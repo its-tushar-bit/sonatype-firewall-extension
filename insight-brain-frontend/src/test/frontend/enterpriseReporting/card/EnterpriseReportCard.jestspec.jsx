@@ -226,4 +226,37 @@ describe('EnterpriseReportCard', () => {
       expect(screen.queryByText('NEW').parentElement).toHaveClass('nx-small-tag--purple');
     });
   });
+
+  describe('telemetry tracking', () => {
+    it('includes telemetry ID for herodevs_eol dashboard', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'herodevs_eol',
+        accessButtonText: 'View HeroDevs EOL',
+      };
+      renderComponent({ dashboard });
+
+      const button = screen.getByRole('button', { name: 'View HeroDevs EOL' });
+      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-herodevs-view-cta');
+    });
+
+    it('includes telemetry ID for best_practices dashboard', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'best_practices',
+        accessButtonText: 'View Best Practices',
+      };
+      renderComponent({ dashboard });
+
+      const button = screen.getByRole('button', { name: 'View Best Practices' });
+      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-best-practices-view-cta');
+    });
+
+    it('does not include telemetry ID for other dashboards', () => {
+      renderComponent();
+
+      const button = screen.getByRole('button', { name: initialState.dashboard.accessButtonText });
+      expect(button).not.toHaveAttribute('data-analytics-id');
+    });
+  });
 });

@@ -119,7 +119,11 @@ export default function EnterpriseReportCard(props) {
                     dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
                   }}
                   data-analytics-id={
-                    dashboard.dashboardId === 'herodevs_eol' ? 'lc-reporting-herodevs-view-cta' : undefined
+                    dashboard.dashboardId === 'herodevs_eol'
+                      ? 'lc-reporting-herodevs-view-cta'
+                      : dashboard.dashboardId === 'best_practices'
+                      ? 'lc-reporting-best-practices-view-cta'
+                      : undefined
                   }
                 >
                   {dashboard.accessButtonText}

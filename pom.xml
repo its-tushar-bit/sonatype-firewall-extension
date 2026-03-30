@@ -106,7 +106,7 @@
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
 
-    <datadog.version>1.40.1</datadog.version>
+    <datadog.version>1.60.3</datadog.version>
     <!--
      Some tools and libraries use the reflection API (setAccessible(true)) to attempt to access non-public fields
      and methods of java.* APIs. This is no longer possible by default on JDK 17, but you can use the -add-opens

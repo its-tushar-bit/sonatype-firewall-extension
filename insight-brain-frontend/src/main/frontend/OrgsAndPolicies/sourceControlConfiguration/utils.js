@@ -545,6 +545,13 @@ export const isAccessTokenRequiredOnNode = (
   const provider = effectiveProvider(sourceControl, serverSourceControl);
   const isGitHub = provider === 'github';
 
+  if (isGitHub && isGithubAppAuthenticationEnabled) {
+    const effectiveAuthType = effectiveAuthenticationType(sourceControl);
+    if (effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      return false;
+    }
+  }
+
   // Check if provider is inherited (applies to all providers)
   const isProviderInherited = sourceControl?.provider?.isInherited;
   const hasParentProvider = sourceControl?.provider?.parentValue?.value;
@@ -614,7 +621,7 @@ export const isAccessTokenRequiredOnNode = (
     const isParentUsingPAT =
       !isGithubAppAuthenticationEnabled || !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
     const isOverridingWithParentToken =
-      !isTokenInherited && hasParentToken && !hasCurrentToken && !hasSavedToken && isParentUsingPAT;
+      !isTokenInherited && isProviderInherited && hasParentToken && !hasCurrentToken && !hasSavedToken && isParentUsingPAT;
 
     if (hasCurrentToken || hasSavedToken || isOverridingWithParentToken) {
       return false; // App has a token (current, saved, or available from parent during override)

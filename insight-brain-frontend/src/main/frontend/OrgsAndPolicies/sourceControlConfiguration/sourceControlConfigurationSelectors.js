@@ -13,6 +13,7 @@ import {
   effectiveProvider,
   effectiveAuthenticationType,
   GITHUB_APP_NOT_CONFIGURED_MESSAGE,
+  PROVIDERS_WITH_USERNAME,
 } from './utils';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -106,12 +107,14 @@ export const selectValidationError = createSelector(
     // Cross-provider token validation: inherited token is only incompatible when the user
     // is still relying on it. Once provider inheritance is off and a local token is entered,
     // validation should follow the local field state instead of the stale inherit flag.
+    // SKIP this check for GitHub App since it doesn't use token at all.
     const isTokenInherited = sourceControl?.token?.isInherited;
     const isProviderInherited = sourceControl?.provider?.isInherited;
     const parentProvider = serverSourceControl?.provider?.parentValue?.value;
     const currentProvider = sourceControl?.provider?.rscValue?.value;
 
     if (
+      !isGitHubWithAppAuth &&
       isTokenInherited &&
       !isProviderInherited &&
       currentProvider &&
@@ -121,9 +124,14 @@ export const selectValidationError = createSelector(
       return GLOBAL_FORM_VALIDATION_ERROR;
     }
 
+    // Check if provider requires username (only Bitbucket and Azure)
+    const providerNeedsUsername = PROVIDERS_WITH_USERNAME.includes(provider);
+
     const validatableFields = [
       !sourceControl.provider?.isInherited && sourceControl.provider?.rscValue,
-      (!sourceControl.username?.isInherited || !sourceControl.provider?.isInherited) &&
+      // Username validation: only for providers that require it (Bitbucket, Azure)
+      providerNeedsUsername &&
+        (!sourceControl.username?.isInherited || !sourceControl.provider?.isInherited) &&
         sourceControl.username?.rscValue,
       isTokenRequired && !sourceControl.token?.isInherited && sourceControl.token?.rscValue,
       !sourceControl.baseBranch?.isInherited && sourceControl.baseBranch?.rscValue,

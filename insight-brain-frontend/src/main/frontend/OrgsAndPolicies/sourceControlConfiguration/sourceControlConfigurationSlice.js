@@ -98,6 +98,26 @@ const setProvider = (state, { payload }) => {
   const isProviderWithUsername = PROVIDERS_WITH_USERNAME.includes(payload);
   state.sourceControl.provider.rscValue = selectUserInput(payload, () => validateNonEmpty(payload));
 
+  // When changing provider, check if inherited token/username are incompatible
+  // If provider is NOT inherited (local override) but token/username ARE inherited,
+  // and the parent has a different provider, we must un-inherit token/username
+  // to avoid cross-provider validation errors
+  const parentProvider = state.serverSourceControl?.provider?.parentValue?.value;
+  const isProviderInherited = state.sourceControl.provider.isInherited;
+  const isTokenInherited = state.sourceControl.token.isInherited;
+  const isUsernameInherited = state.sourceControl.username.isInherited;
+
+  if (!isProviderInherited && parentProvider && parentProvider !== payload) {
+    // Provider is overridden locally and parent has a different provider
+    // Un-inherit token/username to avoid cross-provider validation errors
+    if (isTokenInherited) {
+      state.sourceControl.token.isInherited = false;
+    }
+    if (isUsernameInherited) {
+      state.sourceControl.username.isInherited = false;
+    }
+  }
+
   if (isProviderWithUsername) {
     state.sourceControl.username.rscValue = userInput(
       () => textFieldValidator(usernameValue, USERNAME_INPUT_MAX_CHARACTERS),
@@ -112,6 +132,7 @@ const setProvider = (state, { payload }) => {
   );
   state.submitError = null;
   state.isDirty = setIsDirty(state);
+  state.isRepoUrlDirty = setIsRepoUrlDirty(state);
 };
 
 const setUsername = (state, { payload }) => {
@@ -173,10 +194,38 @@ const setValue = (state, { payload: { property, val } }) => {
 
     if (val === 'PAT') {
       const tokenValue = state.sourceControl.token.rscValue.value;
+      const usernameValue = state.sourceControl.username.rscValue.value;
+      const currentProvider = state.sourceControl.provider.isInherited
+        ? state.serverSourceControl?.provider?.parentValue?.value
+        : state.sourceControl.provider.rscValue.value;
+
       state.sourceControl.token.rscValue = userInput(
         () => textFieldValidator(tokenValue, TOKEN_INPUT_MAX_CHARACTERS),
         tokenValue
       );
+
+      // For GitHub PAT, username is NOT required - clear validation to prevent backend error
+      // For Bitbucket/Azure PAT, username IS required - add validation
+      const isProviderWithUsername = PROVIDERS_WITH_USERNAME.includes(currentProvider);
+      if (isProviderWithUsername) {
+        state.sourceControl.username.rscValue = userInput(
+          () => textFieldValidator(usernameValue, USERNAME_INPUT_MAX_CHARACTERS),
+          usernameValue
+        );
+      } else {
+        // GitHub/GitLab don't use username - clear validation and value to prevent backend error
+        state.sourceControl.username.rscValue = userInput(null, '');
+      }
+    } else if (val === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // When switching to GitHub App, don't inherit token/username (GitHub App doesn't need them)
+      state.sourceControl.token.isInherited = false;
+      state.sourceControl.username.isInherited = false;
+
+      // Clear validation errors by resetting fields with null validator (removes validation requirements)
+      const tokenValue = state.sourceControl.token.rscValue.value;
+      const usernameValue = state.sourceControl.username.rscValue.value;
+      state.sourceControl.token.rscValue = userInput(null, tokenValue);
+      state.sourceControl.username.rscValue = userInput(null, usernameValue);
     }
   }
 
@@ -199,6 +248,12 @@ const setIsInherited = (state, { payload: { property, val } }) => {
       state.sourceControl.githubApp.isInherited = val;
     }
 
+    // For GitHub provider: sync authenticationType and githubApp inheritance
+    if (effectiveProvider === 'github') {
+      state.sourceControl.authenticationType.isInherited = val;
+      state.sourceControl.githubApp.isInherited = val;
+    }
+
     // Sync token and username inheritance with provider.
     // When provider is overridden, inherited credentials from parent are
     // incompatible with the new provider — mark them as overridden so the
@@ -213,7 +268,14 @@ const setIsInherited = (state, { payload: { property, val } }) => {
   if (property === 'authenticationType') {
     state.sourceControl.githubApp.isInherited = val;
     if (val) {
+      // Inheriting - clear local value
       state.sourceControl.authenticationType.value = null;
+    } else {
+      // Overriding - set default value to avoid validation error
+      // Use saved local value if available, otherwise default to PAT
+      const savedLocalValue = state.serverSourceControl?.authenticationType?.value;
+      const defaultValue = savedLocalValue || AUTHENTICATION_TYPES.PAT;
+      state.sourceControl.authenticationType.value = defaultValue;
     }
   }
 

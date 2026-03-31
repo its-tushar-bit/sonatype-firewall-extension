@@ -500,44 +500,44 @@ describe('sourceControlConfiguration util', () => {
       expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(true);
     });
 
-    it('returns false when overriding auth method and parent uses PAT (feature enabled)', () => {
+    it('returns true when overriding provider and parent uses PAT (feature enabled)', () => {
       sourceControl.provider.rscValue = { value: 'github' };
       sourceControl.token.isInherited = false;
       sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       sourceControl.token.rscValue = { value: null, trimmedValue: null };
       sourceControl.authenticationType = { parentValue: AUTHENTICATION_TYPES.PAT };
       serverSourceControl.token = { value: null };
-      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(true);
     });
 
-    it('returns false when parent auth type is undefined (feature enabled - backwards compatible)', () => {
+    it('returns true when overriding provider and parent auth type is undefined (feature enabled)', () => {
       sourceControl.provider.rscValue = { value: 'github' };
       sourceControl.token.isInherited = false;
       sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       sourceControl.token.rscValue = { value: null, trimmedValue: null };
       sourceControl.authenticationType = { parentValue: undefined };
       serverSourceControl.token = { value: null };
-      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(true);
     });
 
-    it('returns false when parent auth type is null (feature enabled - backwards compatible)', () => {
+    it('returns true when overriding provider and parent auth type is null (feature enabled)', () => {
       sourceControl.provider.rscValue = { value: 'github' };
       sourceControl.token.isInherited = false;
       sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       sourceControl.token.rscValue = { value: null, trimmedValue: null };
       sourceControl.authenticationType = { parentValue: null };
       serverSourceControl.token = { value: null };
-      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(false);
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, true)).toBe(true);
     });
 
-    it('returns false when feature is disabled (backwards compatible - always treat as PAT)', () => {
+    it('returns true when overriding provider and feature is disabled', () => {
       sourceControl.provider.rscValue = { value: 'github' };
       sourceControl.token.isInherited = false;
       sourceControl.token.parentValue = { value: '#~FAKE~SECRET~KEY~#' };
       sourceControl.token.rscValue = { value: null, trimmedValue: null };
       sourceControl.authenticationType = { parentValue: AUTHENTICATION_TYPES.GITHUB_APP };
       serverSourceControl.token = { value: null };
-      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, false)).toBe(false);
+      expect(isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, false)).toBe(true);
     });
   });
 

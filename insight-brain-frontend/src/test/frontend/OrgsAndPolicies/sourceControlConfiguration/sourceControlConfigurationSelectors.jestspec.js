@@ -1068,6 +1068,271 @@ describe('selectSourceControlConfigurationSelectors', () => {
         });
       });
     });
+
+    describe('GitHub App authentication validation', () => {
+      it('skips token and username validation when GitHub App is selected (feature enabled)', () => {
+        const state = {
+          router: {
+            currentState: { name: 'root.application.sourceControl' },
+            currentParams: { applicationId: 'app-1' },
+          },
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: { value: 'github' },
+                  isInherited: false,
+                },
+                authenticationType: {
+                  value: 'GITHUB_APP',
+                  isInherited: false,
+                  parentValue: null,
+                },
+                githubApp: {
+                  value: { installationId: '12345', accountName: 'testorg' },
+                  isInherited: false,
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: ['Token is required'], // This should be ignored
+                  },
+                  isInherited: false,
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: ['Username is required'], // This should be ignored
+                  },
+                  isInherited: false,
+                },
+                baseBranch: {
+                  rscValue: { value: 'main', validationErrors: [] },
+                  isInherited: false,
+                },
+                closePrAfterDaysOpenEnabled: { value: false },
+                closePrAfterDays: {
+                  rscValue: { value: '' },
+                  isInherited: false,
+                },
+                repositoryUrl: {
+                  value: 'https://github.com/org/repo',
+                  trimmedValue: 'https://github.com/org/repo',
+                  validationErrors: [],
+                },
+              },
+              serverSourceControl: {
+                provider: { parentValue: { value: 'bitbucket' } },
+              },
+            },
+          },
+        };
+
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(null);
+      });
+
+      it('skips token and username validation when GitHub App is inherited from parent', () => {
+        const state = {
+          router: {
+            currentState: { name: 'root.application.sourceControl' },
+            currentParams: { applicationId: 'app-1' },
+          },
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: { value: 'github' },
+                  isInherited: false,
+                },
+                authenticationType: {
+                  value: null,
+                  isInherited: true,
+                  parentValue: 'GITHUB_APP', // Inherited GitHub App
+                },
+                githubApp: {
+                  value: null,
+                  isInherited: true,
+                  parentValue: { installationId: '12345', accountName: 'testorg' },
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: [], // Should not validate
+                  },
+                  isInherited: false,
+                },
+                username: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: [], // Should not validate
+                  },
+                  isInherited: false,
+                },
+                baseBranch: {
+                  rscValue: { value: 'main', validationErrors: [] },
+                  isInherited: false,
+                },
+                closePrAfterDaysOpenEnabled: { value: false },
+                closePrAfterDays: {
+                  rscValue: { value: '' },
+                  isInherited: false,
+                },
+                repositoryUrl: {
+                  value: 'https://github.com/org/repo',
+                  trimmedValue: 'https://github.com/org/repo',
+                  validationErrors: [],
+                },
+              },
+              serverSourceControl: {
+                provider: { parentValue: { value: 'github' } },
+              },
+            },
+          },
+        };
+
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(null);
+      });
+
+      it('skips cross-provider validation when GitHub App is used', () => {
+        const state = {
+          router: {
+            currentState: { name: 'root.application.sourceControl' },
+            currentParams: { applicationId: 'app-1' },
+          },
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: { value: 'github' },
+                  isInherited: false, // Provider overridden to GitHub
+                },
+                authenticationType: {
+                  value: 'GITHUB_APP',
+                  isInherited: false,
+                },
+                githubApp: {
+                  value: { installationId: '12345', accountName: 'testorg' },
+                  isInherited: false,
+                },
+                token: {
+                  rscValue: { value: '', trimmedValue: '', validationErrors: [] },
+                  isInherited: true, // Token still inherited from Azure (cross-provider)
+                  parentValue: { value: 'azure-token' },
+                },
+                username: {
+                  rscValue: { value: '', trimmedValue: '', validationErrors: [] },
+                  isInherited: true,
+                  parentValue: { value: 'azure-user' },
+                },
+                baseBranch: {
+                  rscValue: { value: 'main', validationErrors: [] },
+                  isInherited: false,
+                },
+                closePrAfterDaysOpenEnabled: { value: false },
+                closePrAfterDays: {
+                  rscValue: { value: '' },
+                  isInherited: false,
+                },
+                repositoryUrl: {
+                  value: 'https://github.com/org/repo',
+                  trimmedValue: 'https://github.com/org/repo',
+                  validationErrors: [],
+                },
+              },
+              serverSourceControl: {
+                provider: { parentValue: { value: 'azure' } }, // Parent was Azure
+              },
+            },
+          },
+        };
+
+        // Should NOT trigger cross-provider validation error because GitHub App doesn't use tokens
+        const actual = selectValidationError(state);
+        expect(actual).toEqual(null);
+      });
+
+      it('validates token when PAT authentication is selected (not GitHub App)', () => {
+        const state = {
+          router: {
+            currentState: { name: 'root.application.sourceControl' },
+            currentParams: { applicationId: 'app-1' },
+          },
+          productFeatures: {
+            productFeatures: {
+              'github-app-authentication': true,
+            },
+          },
+          orgsAndPolicies: {
+            sourceControlConfiguration: {
+              sourceControl: {
+                provider: {
+                  rscValue: { value: 'github' },
+                  isInherited: false,
+                },
+                authenticationType: {
+                  value: 'PAT', // Using PAT, not GitHub App
+                  isInherited: false,
+                },
+                token: {
+                  rscValue: {
+                    value: '',
+                    trimmedValue: '',
+                    validationErrors: [], // Empty but should fail at selector level
+                  },
+                  isInherited: false,
+                },
+                username: {
+                  rscValue: { value: '', trimmedValue: '', validationErrors: [] },
+                  isInherited: false,
+                },
+                baseBranch: {
+                  rscValue: { value: 'main', validationErrors: [] },
+                  isInherited: false,
+                },
+                closePrAfterDaysOpenEnabled: { value: false },
+                closePrAfterDays: {
+                  rscValue: { value: '' },
+                  isInherited: false,
+                },
+                repositoryUrl: {
+                  value: 'https://github.com/org/repo',
+                  trimmedValue: 'https://github.com/org/repo',
+                  validationErrors: [],
+                },
+              },
+              serverSourceControl: {
+                provider: { parentValue: { value: 'github' } },
+              },
+            },
+          },
+        };
+
+        // Should fail validation because PAT requires token
+        const actual = selectValidationError(state);
+        expect(actual).toEqual('Access Token is required when using Personal Access Token authentication');
+      });
+    });
   });
 
   describe('selectIsAccessTokenRequiredOnNode', () => {

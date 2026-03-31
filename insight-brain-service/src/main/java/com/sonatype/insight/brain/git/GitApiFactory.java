@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.JGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
@@ -38,7 +39,11 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class GitApiFactory
 {
+
   private static final Logger log = LoggerFactory.getLogger(GitApiFactory.class);
+
+  /** CLM-39124 - Username for bitbucket cloning **/
+  public static final String X_BITBUCKET_API_TOKEN_AUTH = "x-bitbucket-api-token-auth";
 
   private final Configuration configuration;
 
@@ -52,6 +57,8 @@ public class GitApiFactory
 
   private final GitHubAppAuthStrategyCache authStrategyCache;
 
+  private final SourceControlUtils sourceControlUtils;
+
   private final NativeGitUtilsProvider nativeGitUtilsProvider = new NativeGitUtilsProvider();
 
   @Inject
@@ -61,7 +68,8 @@ public class GitApiFactory
       final PasswordHandler passwordHandler,
       final GitHubAppDAO githubAppDAO,
       final InsightProxy insightProxy,
-      final GitHubAppAuthStrategyCache authStrategyCache)
+      final GitHubAppAuthStrategyCache authStrategyCache,
+      final SourceControlUtils sourceControlUtils)
   {
     this.configuration = configuration;
     this.insightWork = insightWork;
@@ -69,6 +77,7 @@ public class GitApiFactory
     this.githubAppDAO = githubAppDAO;
     this.insightProxy = insightProxy;
     this.authStrategyCache = authStrategyCache;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
@@ -209,6 +218,10 @@ public class GitApiFactory
   }
 
   private String getEffectiveUsername(final GitRepositoryInfo gitInfo) {
+    if (gitInfo.provider != null && sourceControlUtils.isBitbucketCloud(gitInfo)) {
+      return X_BITBUCKET_API_TOKEN_AUTH;
+    }
+
     return gitInfo.username != null ? gitInfo.username : "x-access-token";
   }
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.util.Date;
 
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.github.auth.InstallationToken;
 import jakarta.inject.Inject;
 
@@ -38,6 +39,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static com.sonatype.insight.brain.git.GitApiFactory.X_BITBUCKET_API_TOKEN_AUTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assumptions.assumeThat;
@@ -80,6 +82,9 @@ public class GitApiFactoryTest
   @Mock
   private GitHubAppAuthStrategyCache mockAuthStrategyCache;
 
+  @Inject
+  private SourceControlUtils sourceControlUtils;
+
   private GitApiFactory testGitApiFactory;
 
   private GitApiFactory spyGitApiFactory;
@@ -96,7 +101,8 @@ public class GitApiFactoryTest
         passwordHandler,
         gitHubAppDAO,
         insightProxy,
-        mockAuthStrategyCache);
+        mockAuthStrategyCache,
+        sourceControlUtils);
 
     // Note usage of spy in order to override isNativeGitAvailable
     spyGitApiFactory = spy(testGitApiFactory);
@@ -476,6 +482,67 @@ public class GitApiFactoryTest
     assertThat(gitApi).isNotNull();
     assertThat(gitApi).isInstanceOf(NativeGitApi.class);
     assertThat(gitApi).hasFieldOrPropertyWithValue("token", "legacy-token".toCharArray());
+  }
+
+  @Test
+  public void testGetEffectiveUsername_bitbucketCloud_returnsBitbucketTokenAuth() {
+    GitRepositoryInfo bitbucketCloudInfo = new GitRepositoryInfo(
+        "https://bitbucket.org/workspace/repo",
+        null, null, "token", SourceControlProvider.BITBUCKET, "main",
+        true, true, true, true, true, true, false, null);
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(bitbucketCloudInfo);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .hasFieldOrPropertyWithValue("username", X_BITBUCKET_API_TOKEN_AUTH);
+  }
+
+  @Test
+  public void testGetEffectiveUsername_bitbucketCloud_jgit_returnsBitbucketTokenAuth() {
+    GitRepositoryInfo bitbucketCloudInfo = new GitRepositoryInfo(
+        "https://bitbucket.org/workspace/repo",
+        null, null, "token", SourceControlProvider.BITBUCKET, "main",
+        true, true, true, true, true, true, false, null);
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(bitbucketCloudInfo);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class);
+    assertThat(gitApi).extracting("credentialsProvider")
+        .hasFieldOrPropertyWithValue("username", X_BITBUCKET_API_TOKEN_AUTH);
+  }
+
+  @Test
+  public void testGetEffectiveUsername_bitbucketServer_returnsXAccessToken() {
+    GitRepositoryInfo bitbucketServerInfo = new GitRepositoryInfo(
+        "https://bitbucket.example.com/scm/project/repo",
+        null, null, "token", SourceControlProvider.BITBUCKET, "main",
+        true, true, true, true, true, true, false, null);
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(bitbucketServerInfo);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .hasFieldOrPropertyWithValue("username", "x-access-token");
+  }
+
+  @Test
+  public void testGetEffectiveUsername_nonBitbucket_noUsername_returnsXAccessToken() {
+    GitRepositoryInfo githubNoUsernameInfo = new GitRepositoryInfo(
+        "https://github.com/org/repo",
+        null, null, "token", SourceControlProvider.GITHUB, "main",
+        true, true, true, true, true, true, false, null);
+
+    when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(githubNoUsernameInfo);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .hasFieldOrPropertyWithValue("username", "x-access-token");
   }
 
   /**

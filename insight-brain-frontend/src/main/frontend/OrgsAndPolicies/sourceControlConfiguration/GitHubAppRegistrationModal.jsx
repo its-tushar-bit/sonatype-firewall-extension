@@ -78,6 +78,7 @@ const GitHubAppRegistrationModal = () => {
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         submitBtnText="Register & Create GitHub App"
+        submitBtnClasses="iq-github-app-registration-submit-button"
         submitError={setupError}
         submitMaskState={registrationInProgress ? false : null}
         validationErrors={validationErrors}
@@ -89,13 +90,14 @@ const GitHubAppRegistrationModal = () => {
           <NxInfoAlert>
             <div className="iq-github-app-registration-modal__alert-content">
               <span>You must be logged in to GitHub to continue.</span>
-              <NxButton type="button" variant="primary" onClick={handleOpenGitHub}>
+              <NxButton id="github-app-open-github-button" type="button" variant="primary" onClick={handleOpenGitHub}>
                 Open GitHub
               </NxButton>
             </div>
           </NxInfoAlert>
           <NxFieldset label="GitHub Account Type" isRequired>
             <NxRadio
+              radioId="github-account-type-org-radio"
               name="accountType"
               value={GITHUB_ACCOUNT_TYPES.ORGANIZATION}
               onChange={() => dispatch(actions.setAccountType(GITHUB_ACCOUNT_TYPES.ORGANIZATION))}
@@ -126,6 +128,7 @@ const GitHubAppRegistrationModal = () => {
               </NxFormGroup>
             )}
             <NxRadio
+              radioId="github-account-type-personal-radio"
               name="accountType"
               value={GITHUB_ACCOUNT_TYPES.PERSONAL}
               onChange={() => dispatch(actions.setAccountType(GITHUB_ACCOUNT_TYPES.PERSONAL))}

@@ -49,7 +49,7 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
           <>
             <dt>Repositories:</dt>
             <dd>
-              <NxTextLink href={displayUrl} external>
+              <NxTextLink id="github-app-view-repos-link" href={displayUrl} external>
                 {linkText || (repositoryUrl ? 'Go to GitHub Repositories' : 'View GitHub App configuration')}
               </NxTextLink>
             </dd>
@@ -72,7 +72,13 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
           </>
         )}
         <div className="iq-github-app-details-box__reconfigure">
-          <NxButton variant="tertiary" type="button" onClick={onReconfigure} disabled={disabled || !onReconfigure}>
+          <NxButton
+            id={onReconfigure ? 'github-app-reconfigure-button' : undefined}
+            variant="tertiary"
+            type="button"
+            onClick={onReconfigure}
+            disabled={disabled || !onReconfigure}
+          >
             Reconfigure
           </NxButton>
         </div>

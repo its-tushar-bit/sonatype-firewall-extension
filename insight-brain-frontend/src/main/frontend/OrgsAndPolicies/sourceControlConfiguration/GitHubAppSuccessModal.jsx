@@ -91,7 +91,7 @@ const GitHubAppSuccessModal = ({
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>
-          <NxButton variant="primary" onClick={onClose}>
+          <NxButton id="github-app-success-done-button" variant="primary" onClick={onClose}>
             Done
           </NxButton>
         </NxButtonBar>

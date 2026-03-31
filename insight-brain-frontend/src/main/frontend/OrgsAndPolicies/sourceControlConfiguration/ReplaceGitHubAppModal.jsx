@@ -24,7 +24,12 @@ const ReplaceGitHubAppModal = () => {
 
   return isReplaceGitHubAppModalOpen && isFeatureEnabled ? (
     <NxModal id="replace-github-app-modal" onCancel={closeModal}>
-      <NxStatefulForm onSubmit={continueToRegistration} onCancel={closeModal} submitBtnText="Continue">
+      <NxStatefulForm
+        onSubmit={continueToRegistration}
+        onCancel={closeModal}
+        submitBtnText="Continue"
+        submitBtnClasses="iq-replace-github-app-continue-button"
+      >
         <NxModal.Header>
           <NxH2>Replace GitHub App Configuration</NxH2>
         </NxModal.Header>

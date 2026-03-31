@@ -189,7 +189,13 @@ const GitHubAppAuthenticationMethod = ({
                 disabled={areFieldsDisabled}
               />
             ) : (
-              <NxButton variant="tertiary" type="button" onClick={handleOpenModal} disabled={areFieldsDisabled}>
+              <NxButton
+                id="github-app-configure-button"
+                variant="tertiary"
+                type="button"
+                onClick={handleOpenModal}
+                disabled={areFieldsDisabled}
+              >
                 Configure GitHub App
               </NxButton>
             )}

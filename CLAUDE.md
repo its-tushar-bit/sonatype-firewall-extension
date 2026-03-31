@@ -31,17 +31,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Frontend Build Commands (insight-brain-frontend/)
 - **Start dev server**: `yarn start`
 - **Build for production**: `yarn build`
-- **Run tests**: `yarn test` (runs both Jasmine and Jest tests)
+- **Run tests**: `yarn test` (runs Jest tests and lint)
 - **Lint**: `yarn test-lint`
 - **Jest tests**: `yarn jest`
-- **Jasmine watch mode**: `yarn test-watch`
 - **Jest watch mode**: `yarn jest-watch`
 - **Individual test file**: `yarn jest -- <test-name>`
 
 ### Fast Frontend Development Loop with Functional Tests
-To iterate on frontend changes without a full rebuild, use the webpack-dev-server (WDS) mode:
+To iterate on frontend changes without a full rebuild, use the esbuild dev server mode:
 
-1. Start the WDS from `insight-brain-frontend/`: `yarn start` (serves on port 8070, proxies API calls to port 8072)
+1. Start the dev server from `insight-brain-frontend/`: `yarn start` (serves on port 8070, proxies API calls to port 8072)
 2. Run any functional test with `-Dfunctional-test-webpack-dev-server=true` (from `insight-brain-java-functional-test/`)
 
 ```bash
@@ -49,7 +48,7 @@ cd insight-brain-java-functional-test
 mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
 ```
 
-In this mode the test server starts on fixed port 8072 (matching the WDS proxy target) and the browser points at the WDS on port 8070. Frontend changes are picked up instantly by the WDS without any rebuild of `insight-brain-service`.
+In this mode the test server starts on fixed port 8072 (matching the dev server proxy target) and the browser points at the dev server on port 8070. Frontend changes are picked up instantly without any rebuild of `insight-brain-service`.
 
 ### Development Profiles
 - **Quick profile**: `-Pquick` - skips tests, linting, and checks
@@ -67,10 +66,10 @@ In this mode the test server starts on fixed port 8072 (matching the WDS proxy t
 - **nexus-mtiq-server**: Multi-tenant server variant
 
 ### Technology Stack
-- **Backend**: Java 17, Dropwizard 3.x, JAX-RS, Guice DI
+- **Backend**: Java 17, Dropwizard 5.x, JAX-RS, Guice DI
 - **Database**: PostgreSQL (prod), H2 (dev/test/light prod), jOOQ
-- **Frontend**: React 16, Redux, Webpack, SCSS
-- **Testing**: JUnit 4, Mockito, Selenium, Karma/Jasmine, Jest, React Testing Library
+- **Frontend**: React 19, Redux Toolkit, esbuild, SCSS
+- **Testing**: JUnit 4, Mockito, Selenium, Jest, React Testing Library
 - **Security**: Apache Shiro, Keycloak SAML
 
 ### Key Configuration
@@ -192,7 +191,7 @@ GitHub App authentication is the highest-churn, highest-bug-rate area in the cod
 - Tests using `Thread.sleep()` instead of explicit waits or synchronization (ongoing flakiness source — PRs #15219, #15284, #15348)
 - Tests using `@Ignore` to suppress failures without a clear justification and linked ticket to re-enable (PR #14972 reverted an `@Ignore` that was premature)
 - Tests that don't use `TemporaryEntity` rule for database cleanup
-- Frontend tests using `fireEvent` instead of `userEvent` (React Testing Library best practice)
+- Frontend tests using `fireEvent` instead of `userEvent` for user interactions (React Testing Library best practice)
 - Calendar/time-dependent tests without mocked clocks (break on month boundaries — PR #15402)
 - Tests that pass on the feature branch but fail after merge to main — this has caused multiple reverts (PRs #15329, #15352). Ensure tests don't depend on branch-specific state
 - Don't write tests for trivial getters/setters (PR #15249 review feedback)

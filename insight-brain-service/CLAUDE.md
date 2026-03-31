@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 ## Architecture
 
 ### Framework Stack
-- **Dropwizard 3.x**: Main application framework with embedded Jetty
+- **Dropwizard 5.x**: Main application framework with embedded Jetty
 - **JAX-RS**: REST API endpoints with Jersey
 - **Guice**: Dependency injection container
 - **Sisu**: Classpath scanning for Guice
@@ -76,7 +76,7 @@ mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainSe
 java -jar target/insight-brain-service-*-SNAPSHOT-server.jar server src/test/resources/config-dev.yml
 ```
 
-**Tip**: When iterating on frontend changes alongside functional tests, use the webpack-dev-server mode instead of running this server directly — see the "Fast Frontend Development Loop with Functional Tests" section in the root `CLAUDE.md` or `insight-brain-frontend/CLAUDE.md`.
+**Tip**: When iterating on frontend changes alongside functional tests, use the esbuild dev server mode instead of running this server directly — see the "Fast Frontend Development Loop with Functional Tests" section in the root `CLAUDE.md` or `insight-brain-frontend/CLAUDE.md`.
 
 ### Testing
 ```bash

@@ -11,8 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - **User Interface**: Complete frontend UI for all IQ Server products
 - **State Management**: Redux-based state management with both legacy and modern patterns
 - **Component Library**: React components
-- **Asset Management**: Webpack-based build system with multiple bundles
-- **Testing Infrastructure**: Dual testing framework (Jest + Jasmine) with comprehensive coverage
+- **Asset Management**: esbuild-based build system
+- **Testing Infrastructure**: Jest with React Testing Library
 - **Styling System**: SCSS-based styling with BEM conventions
 
 ## Architecture
@@ -21,28 +21,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 #### Core Frameworks
 
-- **React 16.14.0**: Modern component development (preferred for new features)
-- **Redux 3.7.2 + Redux Toolkit 1.5.1**: State management
+- **React 19.x**: Component development with hooks
+- **Redux 5.x + Redux Toolkit 2.x**: State management
 - **@sonatype/react-shared-components**: Sonatype's shared React component library
 
 #### Build Tools
 
-- **Webpack 5.95.0**: Module bundling and asset processing
-- **Babel**: JavaScript transpilation with React preset
+- **esbuild**: Module bundling and asset processing (`esbuild.config.mjs`)
 - **SASS**: CSS preprocessing with SCSS syntax
 - **ESLint + Prettier**: Code linting and formatting
 
 #### Testing Frameworks
 
-- **Jest 29.6.1**: Modern testing framework (preferred for new tests)
-- **Jasmine 3.9.0**: Legacy testing framework (being phased out)
-- **Karma**: Test runner for Jasmine tests in browser environment
+- **Jest 29.x**: Testing framework
 - **React Testing Library**: Component testing utilities
 
 #### Development Tools
 
-- **Webpack Dev Server**: Hot reload development server
-- **yarn**: Package management (preferred over npm)
+- **esbuild dev server**: Hot reload development server (`yarn start`)
+- **yarn**: Package management
 - **Node.js**: JavaScript runtime (version specified in pom.xml)
 
 ## Development Commands
@@ -69,9 +66,9 @@ yarn start                     # Main bundle only (faster)
 
 ### Fast Frontend Development Loop with Functional Tests
 
-To iterate on frontend changes without rebuilding `insight-brain-service`, you can run functional tests against the WDS:
+To iterate on frontend changes without rebuilding `insight-brain-service`, you can run functional tests against the dev server:
 
-1. Start the WDS: `yarn start` (serves on port 8070, proxies `/rest`, `/api`, `/ui`, `/policy-assets`, `/saml` to `localhost:8072`)
+1. Start the dev server: `yarn start` (serves on port 8070, proxies `/rest`, `/api`, `/ui`, `/policy-assets`, `/saml` to `localhost:8072`)
 2. Run a functional test with `-Dfunctional-test-webpack-dev-server=true` from `insight-brain-java-functional-test/`
 
 ```bash
@@ -79,28 +76,20 @@ cd insight-brain-java-functional-test
 mvn verify -Dit.test=SomeTest#someMethod -Dfunctional-test-webpack-dev-server=true
 ```
 
-The test server starts on fixed port 8072 and the browser is pointed at the WDS on port 8070, so frontend changes are reflected instantly without any Java rebuild. Works with both local Chrome (`-Drun-functional-tests=local`) and the default Docker Selenium container.
+The test server starts on fixed port 8072 and the browser is pointed at the dev server on port 8070, so frontend changes are reflected instantly without any Java rebuild. Works with both local Chrome (`-Drun-functional-tests=local`) and the default Docker Selenium container.
 
 ### Testing
 
 ```bash
-# Run all tests (Jest + Jasmine)
+# Run all tests (Jest + lint)
 yarn test
 
-# Jest tests only (preferred for new tests)
+# Jest tests only
 yarn jest
 yarn jest-watch                # Watch mode
 
-# Jasmine tests only (legacy)
-yarn karma
-yarn test-watch                # Watch mode
-
 # Run specific test file
 yarn jest -- <test-name>
-
-# Run specific Jasmine tests (requires code changes)
-# Use fit() or fdescribe() in test files, then run yarn test-watch
-# ⚠️ IMPORTANT: Remove all fit/fdescribe calls before committing!
 ```
 
 ## Key Service Patterns
@@ -528,126 +517,16 @@ renderComponent({}, { ...defaultPreloadedState, customProp: 'value' });
 ### Test File Organization
 
 - **Jest tests**: `src/test/frontend/path/to/ComponentName.jestspec.jsx`
-- **Jasmine tests**: `src/test/frontend/path/to/ComponentNameSpec.jsx` (legacy)
 - **Test utilities**: `src/test/frontend/SpecUtil.js`
 
-### Legacy Testing Patterns (Migrate Away From)
+### Testing Anti-Patterns
 
-**❌ AVOID: Jasmine Spy Patterns** (migrate to Jest):
+**Avoid these patterns:**
 
-```javascript
-// AdministratorsEditSpec.jsx - LEGACY APPROACH
-describe('AdministratorsEdit', () => {
-  let selectIsLoadingSpy, selectLoadErrorSpy;
-
-  beforeEach(() => {
-    // OLD: Jasmine spyOn with .and.returnValue()
-    selectIsLoadingSpy = spyOn(administratorsSelectors, 'selectIsLoading').and.returnValue(false);
-    selectLoadErrorSpy = spyOn(administratorsSelectors, 'selectLoadError').and.returnValue(null);
-
-    // OLD: jasmine.createSpy()
-    spyOn(RouterStateContext, 'useRouterState').and.returnValue({
-      get: jasmine.createSpy('useRouterState.get'),
-      href: jasmine.createSpy('useRouterState.href'),
-    });
-
-    // OLD: jasmine.clock() for timing
-    jasmine.clock().install();
-    jasmine.clock().mockDate();
-  });
-
-  it('renders loading state', () => {
-    // OLD: .and.returnValue() chaining
-    selectIsLoadingSpy.and.returnValue(true);
-    renderComponent();
-    expect(screen.getByText('Loading…')).toBeVisible();
-  });
-
-  afterEach(() => {
-    jasmine.clock().uninstall();
-  });
-});
-```
-
-**✅ PREFERRED: Jest Equivalent**:
-
-```javascript
-// AdministratorsEdit.jestspec.jsx - MODERN APPROACH
-describe('AdministratorsEdit', () => {
-  let selectIsLoadingSpy, selectLoadErrorSpy;
-
-  beforeEach(() => {
-    // MODERN: jest.spyOn with mockReturnValue()
-    selectIsLoadingSpy = jest.spyOn(administratorsSelectors, 'selectIsLoading').mockReturnValue(false);
-    selectLoadErrorSpy = jest.spyOn(administratorsSelectors, 'selectLoadError').mockReturnValue(null);
-
-    // MODERN: jest.fn()
-    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({
-      get: jest.fn(),
-      href: jest.fn(),
-    });
-  });
-
-  it('renders loading state', () => {
-    // MODERN: mockReturnValue()
-    selectIsLoadingSpy.mockReturnValue(true);
-    renderComponent();
-    expect(screen.getByText('Loading…')).toBeVisible();
-  });
-
-  // MODERN: Use fake timers when needed
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-});
-```
-
-**❌ AVOID: Direct Redux Store Mocking**:
-
-```javascript
-// OLD: Mocking Redux store directly
-const mockStore = {
-  getState: jest.fn(() => ({ data: mockData })),
-  dispatch: jest.fn(),
-  subscribe: jest.fn(),
-};
-```
-
-**❌ AVOID: Enzyme (if present)**:
-
-```javascript
-// OLD: Enzyme shallow/mount
-import { shallow, mount } from 'enzyme';
-const wrapper = shallow(<Component />);
-expect(wrapper.find('.selector')).toHaveLength(1);
-```
-
-**❌ AVOID: fireEvent for User Interactions**:
-
-```javascript
-// OLD: fireEvent for simple interactions
-fireEvent.click(button);
-fireEvent.change(input, { target: { value: 'text' } });
-
-// PREFER: userEvent for realistic interactions
-await userEvent.click(button);
-await userEvent.type(input, 'text');
-```
-
-**❌ AVOID: Hardcoded Test IDs Without Accessibility**:
-
-```javascript
-// OLD: Generic test IDs
-screen.getByTestId('submit-button');
-
-// PREFER: Accessible queries
-screen.getByRole('button', { name: 'Submit' });
-screen.getByLabelText('Email Address');
-```
+- **`fireEvent` for user interactions** — use `userEvent` instead for realistic behavior
+- **Direct Redux store mocking** — use `preloadedState` via the `render` helper from `SpecUtil`
+- **`screen.getByTestId`** — prefer accessible queries (`getByRole`, `getByLabelText`)
+- **Enzyme (`shallow`/`mount`)** — use React Testing Library exclusively
 
 ## Key Patterns and Utilities
 
@@ -740,11 +619,11 @@ Always check **React Shared Components Library** before building custom componen
 
 ### Current State
 
-- **React**: Required for all UI components
-- **Jest**: Preferred for new tests
-- **Jasmine**: Legacy tests being phased out
+- **React 19**: Required for all UI components
+- **Jest**: Sole testing framework (Jasmine/Karma migration complete)
 - **Redux Toolkit**: Preferred for state management
 - **Legacy Redux**: Still present in some areas, migrate to Redux Toolkit when touching
+- **esbuild**: Build system (migrated from Webpack)
 
 ### Testing Strategy
 
@@ -766,7 +645,7 @@ Frontend changes typically require updates to multiple test layers:
 ## Important Files
 
 - **`package.json`**: Dependencies and build scripts
-- **`webpack.config.js`**: Build configuration
+- **`esbuild.config.mjs`**: Build configuration
 - **`jest.config.js`**: Test configuration
 - **`src/main/frontend/MainModule.js`**: Application entry point
 - **`src/main/frontend/scss/scss.scss`**: Main stylesheet entry

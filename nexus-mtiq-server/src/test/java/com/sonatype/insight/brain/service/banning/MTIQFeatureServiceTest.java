@@ -135,7 +135,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
         SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
         SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
-        SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+        SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
+        SystemConfigurationPropertyFeature.GUIDE_MCP);
 
     assertThat(expectedBannedFeatures).allSatisfy(expectedBannedFeature -> {
       assertThatThrownBy(() -> underTest.enableFeature(expectedBannedFeature.getId()))

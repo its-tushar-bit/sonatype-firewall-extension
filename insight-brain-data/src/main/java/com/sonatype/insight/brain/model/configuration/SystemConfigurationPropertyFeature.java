@@ -415,7 +415,9 @@ public enum SystemConfigurationPropertyFeature
 
   GITHUB_APP_AUTHENTICATION(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION, false),
 
-  FIREWALL_ENTERPRISE_REPORTING(SystemConfigurationProperty.FIREWALL_ENTERPRISE_REPORTING, true);
+  FIREWALL_ENTERPRISE_REPORTING(SystemConfigurationProperty.FIREWALL_ENTERPRISE_REPORTING, true),
+
+  GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

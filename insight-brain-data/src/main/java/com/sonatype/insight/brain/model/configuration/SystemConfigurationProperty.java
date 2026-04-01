@@ -312,6 +312,8 @@ public class SystemConfigurationProperty
 
   public static final String FIREWALL_ENTERPRISE_REPORTING = "firewallEnterpriseReporting";
 
+  public static final String GUIDE_MCP_ENABLED = "guideMcpEnabled";
+
   public static final String EVALUATION_QUEUE_CONFIG = "evaluationQueueConfig";
 
   @Id

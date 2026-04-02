@@ -776,10 +776,11 @@
         <artifactId>joda-time</artifactId>
         <version>2.14.0</version>
       </dependency>
+      <!-- Upgraded from 3.5.1 to mitigate CVE-2025-67030 (Zip Slip directory traversal vulnerability) -->
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tika</groupId>

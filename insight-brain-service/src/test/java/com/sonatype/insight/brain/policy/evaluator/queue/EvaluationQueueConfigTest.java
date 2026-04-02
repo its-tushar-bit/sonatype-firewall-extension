@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -128,6 +129,7 @@ public class EvaluationQueueConfigTest
         1,
         1,
         false,
+        false,
         1,
         1,
         1,
@@ -144,6 +146,7 @@ public class EvaluationQueueConfigTest
         Integer.MAX_VALUE,
         Long.MAX_VALUE,
         true,
+        true,
         Integer.MAX_VALUE,
         Long.MAX_VALUE,
         Integer.MAX_VALUE,
@@ -153,15 +156,62 @@ public class EvaluationQueueConfigTest
   }
 
   @Test
+  public void testMerge_emptyOverrides() {
+    EvaluationQueueConfig base = EvaluationQueueConfig.builder().build();
+
+    EvaluationQueueConfig result = EvaluationQueueConfig.merge(base, Map.of());
+
+    assertThat(result).isEqualTo(base);
+  }
+
+  @Test
+  public void testMerge_singleOverride() {
+    EvaluationQueueConfig base = EvaluationQueueConfig.builder().enabled(false).build();
+
+    EvaluationQueueConfig result = EvaluationQueueConfig.merge(base, Map.of("enabled", true));
+
+    assertThat(result).usingRecursiveComparison().ignoringFields("enabled").isEqualTo(base);
+    assertThat(result.enabled()).isTrue();
+  }
+
+  @Test
+  public void testMerge_multipleOverrides() {
+    EvaluationQueueConfig base = EvaluationQueueConfig.builder().build();
+
+    EvaluationQueueConfig result = EvaluationQueueConfig.merge(base,
+        Map.of("enabled", true, "consumerThreadsPerTenant", 2, "producerMaxQueuedRows", 500));
+
+    assertThat(result.enabled()).isTrue();
+    assertThat(result.consumerThreadsPerTenant()).isEqualTo(2);
+    assertThat(result.producerMaxQueuedRows()).isEqualTo(500);
+    assertThat(result.consumerPeriodInMilliseconds()).isEqualTo(base.consumerPeriodInMilliseconds());
+  }
+
+  @Test
+  public void testMerge_overridesOntoNonDefault() {
+    EvaluationQueueConfig base = EvaluationQueueConfig.builder()
+        .enabled(true)
+        .consumerThreadsPerTenant(5)
+        .producerMaxQueuedRows(200)
+        .build();
+
+    EvaluationQueueConfig result = EvaluationQueueConfig.merge(base, Map.of("consumerThreadsPerTenant", 3));
+
+    assertThat(result.enabled()).isTrue();
+    assertThat(result.consumerThreadsPerTenant()).isEqualTo(3);
+    assertThat(result.producerMaxQueuedRows()).isEqualTo(200);
+  }
+
+  @Test
   public void testBuild_usesDefaults() {
     assertThat(EvaluationQueueConfig.DEFAULT_ENABLED).isFalse();
     assertThat(EvaluationQueueConfig.DEFAULT_PRODUCER_PERIOD).isEqualTo(Duration.ofMinutes(10));
     assertThat(EvaluationQueueConfig.DEFAULT_PRODUCER_MAX_QUEUED_ROWS).isEqualTo(1000);
     assertThat(EvaluationQueueConfig.DEFAULT_TARGET_CYCLE_PERIOD).isEqualTo(Duration.ofHours(24));
     assertThat(EvaluationQueueConfig.DEFAULT_RESET_CYCLE_ON_TIMEOUT).isFalse();
-    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_THREADS_PER_TENANT).isEqualTo(10);
+    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_THREADS_PER_TENANT).isEqualTo(1);
     assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_PERIOD).isEqualTo(Duration.ofMinutes(5));
-    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_MAX_QUEUED_ROWS).isEqualTo(150);
+    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_MAX_QUEUED_ROWS).isEqualTo(15);
 
     EvaluationQueueConfig config = EvaluationQueueConfig.builder().build();
 

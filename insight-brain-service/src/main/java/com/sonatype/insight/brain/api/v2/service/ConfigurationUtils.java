@@ -271,7 +271,13 @@ public class ConfigurationUtils
 
   @SuppressWarnings("unchecked")
   public static <T> T getParameter(Object[] parameters, Class<T> clazz) {
+    if (parameters == null) {
+      return null;
+    }
     for (Object p : parameters) {
+      if (p == null) {
+        continue;
+      }
       if (ClassUtils.isAssignable(p.getClass(), clazz)) {
         return (T) p;
       }

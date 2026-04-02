@@ -40,6 +40,7 @@ public class EvaluationQueueIntegrationTest
   public void testEvaluationQueueProduceAndConsume_multipleSboms() throws Exception {
     EvaluationQueueConfig config = EvaluationQueueConfig.builder()
         .enabled(true)
+        .startTimeDelayEnabled(false)
         .producerPeriod(Duration.ofDays(1))
         .consumerPeriod(Duration.ofDays(1))
         .producerMaxQueuedRows(100)

@@ -66,7 +66,8 @@ public class TenantConfigurationService
       SESSION_TIMEOUT_MINUTES,
       USER_ACTIVITY_TRACKING,
       USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
-      MALICIOUS_URLS_PARTNER_ACCESS);
+      MALICIOUS_URLS_PARTNER_ACCESS,
+      EVALUATION_QUEUE_CONFIG);
 
   // Visible for testing
   /**

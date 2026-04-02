@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
@@ -22,6 +19,7 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -44,6 +42,9 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Maps;
@@ -2058,6 +2059,82 @@ public class ApiConfigurationServiceTest
     service.setConfigurationNoAuthz(name, max);
     assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
+  }
+
+  @Test
+  public void testGetConfiguration_EvaluationQueueConfig_Null_ReturnsDefaults() {
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+
+    assertThat(result).isEqualTo(EvaluationQueueConfig.builder().build());
+  }
+
+  @Test
+  public void testSetConfiguration_EvaluationQueueConfig_Null() {
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, null);
+
+    assertThat(dao.get(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG)).isNull();
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+    assertThat(result).isEqualTo(EvaluationQueueConfig.builder().build());
+  }
+
+  @Test
+  public void testSetConfiguration_EvaluationQueueConfig_FullConfig() {
+    EvaluationQueueConfig config = EvaluationQueueConfig.builder()
+        .enabled(true)
+        .consumerThreadsPerTenant(5)
+        .build();
+
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
+        JsonUtils.convertValue(config, Map.class));
+
+    EvaluationQueueConfig result =
+        (EvaluationQueueConfig) service.getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+    assertThat(result).isEqualTo(config);
+  }
+
+  @Test
+  public void testSetConfiguration_EvaluationQueueConfig_PartialConfig_MergesWithDefaults() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, Map.of("enabled", true)));
+
+    EvaluationQueueConfig result =
+        (EvaluationQueueConfig) service.getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+
+    EvaluationQueueConfig defaults = EvaluationQueueConfig.builder().build();
+    assertThat(result.enabled()).isTrue();
+    assertThat(result).usingRecursiveComparison().ignoringFields("enabled").isEqualTo(defaults);
+  }
+
+  @Test
+  public void testSetConfiguration_EvaluationQueueConfig_PartialConfig_MergesWithExisting() {
+    EvaluationQueueConfig initial = EvaluationQueueConfig.builder()
+        .enabled(true)
+        .consumerThreadsPerTenant(5)
+        .producerMaxQueuedRows(200)
+        .build();
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
+        JsonUtils.convertValue(initial, Map.class));
+
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, Map.of("consumerThreadsPerTenant", 3)));
+
+    EvaluationQueueConfig result =
+        (EvaluationQueueConfig) service.getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+    assertThat(result.enabled()).isTrue();
+    assertThat(result.consumerThreadsPerTenant()).isEqualTo(3);
+    assertThat(result.producerMaxQueuedRows()).isEqualTo(200);
+    assertThat(result).usingRecursiveComparison()
+        .ignoringFields("enabled", "consumerThreadsPerTenant", "producerMaxQueuedRows")
+        .isEqualTo(initial);
+  }
+
+  @Test
+  public void testSetConfiguration_EvaluationQueueConfig_UnknownProperty_Rejected() {
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(
+            Maps.newHashMap(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
+                Map.of("consumerThreads", 5))))
+        .withMessageContaining("consumerThreads");
   }
 
   @Named

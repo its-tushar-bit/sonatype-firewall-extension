@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
 import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -77,6 +78,8 @@ public class TenantConfigurationServiceTest
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(USER_ACTIVITY_TRACKING, false);
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 30);
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(MALICIOUS_URLS_PARTNER_ACCESS, false);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(EVALUATION_QUEUE_CONFIG,
+        JsonUtils.convertValue(EvaluationQueueConfig.builder().build(), Map.class));
   }
 
   private static final Map<String, Object> EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES = new HashMap<>();

@@ -321,12 +321,18 @@ public class ConfigurationProperty
             EvaluationQueueConfig.class,
             EvaluationQueueConfig.builder().build()),
         (p, o) -> {
-          EvaluationQueueConfig evaluationQueueConfig = JsonUtils.convertValue(o, EvaluationQueueConfig.class);
-          if (evaluationQueueConfig == null) {
+          if (o == null) {
             return null;
           }
-          evaluationQueueConfig.validate();
-          return ConfigurationUtils.objectToString(evaluationQueueConfig);
+          @SuppressWarnings("unchecked")
+          Map<String, Object> overrides = JsonUtils.convertValue(o, Map.class);
+          String existingValue = ConfigurationUtils.getParameter(p, String.class);
+          EvaluationQueueConfig base = ConfigurationUtils.stringToObject(
+              existingValue,
+              EvaluationQueueConfig.class,
+              EvaluationQueueConfig.builder().build());
+          EvaluationQueueConfig merged = EvaluationQueueConfig.merge(base, overrides);
+          return ConfigurationUtils.objectToString(merged);
         }),
   };
 

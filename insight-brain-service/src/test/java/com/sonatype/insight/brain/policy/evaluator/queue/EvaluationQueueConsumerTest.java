@@ -576,9 +576,13 @@ public class EvaluationQueueConsumerTest
 
   @Test
   public void testConfigurationChanged_evaluationQueueConfig_consumerThreadsPerTenantDecreased() {
+    EvaluationQueueConfig initialConfig = EvaluationQueueConfig.builder()
+        .consumerThreadsPerTenant(2)
+        .build();
+    setEvaluationQueueConfig(initialConfig);
     evaluationQueueConsumer.configurationChanged(Set.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG));
     EvaluationQueueConfig config = EvaluationQueueConfig.builder()
-        .consumerThreadsPerTenant(EvaluationQueueConfig.DEFAULT_CONSUMER_THREADS_PER_TENANT - 1)
+        .consumerThreadsPerTenant(initialConfig.consumerThreadsPerTenant() - 1)
         .build();
     setEvaluationQueueConfig(config);
 

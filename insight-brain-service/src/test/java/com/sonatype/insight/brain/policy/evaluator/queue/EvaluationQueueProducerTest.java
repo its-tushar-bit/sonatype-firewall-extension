@@ -182,7 +182,7 @@ public class EvaluationQueueProducerTest
 
     evaluationQueueProducer.execute(null);
 
-    assertThat(logOutput).atDebugLevel().contains("Processed 1 SBOM(s) up to latest offset 1 across 1 application(s).");
+    assertThat(logOutput).atDebugLevel().contains("Processed 1 SBOM(s) up to latest offset 1.");
     assertThat(evaluationQueueDAO.getAll()).hasSize(1);
 
     // Pretend the SBOM got processed
@@ -198,7 +198,7 @@ public class EvaluationQueueProducerTest
     when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
     jobDataMap.put("resetCycle", "true");
     evaluationQueueProducer.execute(mockJobExecutionContext);
-    assertThat(logOutput).atDebugLevel().contains("Processed 1 SBOM(s) up to latest offset 1 across 1 application(s).");
+    assertThat(logOutput).atDebugLevel().contains("Processed 1 SBOM(s) up to latest offset 1.");
     assertThat(evaluationQueueDAO.getAll()).hasSize(1);
   }
 
@@ -244,6 +244,83 @@ public class EvaluationQueueProducerTest
   }
 
   @Test
+  public void testExecute_maxVersions_earlyBreakWhenAllAppsBounded() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    String orgId = tempEntity.newOrganization().getId();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app-aaa", "App A", "app-aaa-public", orgId);
+    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app2 = tempEntity.newApplicationWithSpecificId("app-bbb", "App B", "app-bbb-public", orgId);
+    tempEntity.newPolicyMonitoring(app2.getId(), ComplianceStageType.ID);
+
+    tempEntity.newVersionEvaluationWindow(app1.getId(), ComplianceStageType.ID, 1, null);
+    tempEntity.newVersionEvaluationWindow(app2.getId(), ComplianceStageType.ID, 2, null);
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(1));
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(2));
+    ThirdPartySbomMetadata app1Sbom4 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(3));
+
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(4));
+    tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(5));
+    ThirdPartySbomMetadata app2Sbom3 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(6));
+    ThirdPartySbomMetadata app2Sbom4 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(7));
+
+    evaluationQueueProducer.execute(null);
+
+    // app2 maxVersions=2: rank 0 (app2Sbom4) + rank 1 (app2Sbom3)
+    // app1 maxVersions=1: only rank 0 (app1Sbom4)
+    // rank 2: both filtered by maxVersions, nothing passes → early break
+    // (maxAppActiveSboms=4 but stopped at offset 3)
+    assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
+        .containsExactly(
+            app2Sbom4.getSbomVersion(),
+            app1Sbom4.getSbomVersion(),
+            app2Sbom3.getSbomVersion());
+    assertThat(logOutput).atDebugLevel()
+        .contains("Processed 6 SBOM(s) up to latest offset 3.");
+    assertThat(logOutput).atInfoLevel().contains("Completed cycle.");
+
+    evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
+    evaluationQueueProducer.execute(null);
+    assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
+    assertThat(evaluationQueueDAO.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testExecute_maxVersions_noEarlyBreakWhenAppUnbounded() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    String orgId = tempEntity.newOrganization().getId();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app-aaa", "App A", "app-aaa-public", orgId);
+    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app2 = tempEntity.newApplicationWithSpecificId("app-bbb", "App B", "app-bbb-public", orgId);
+    tempEntity.newPolicyMonitoring(app2.getId(), ComplianceStageType.ID);
+
+    tempEntity.newVersionEvaluationWindow(app1.getId(), ComplianceStageType.ID, 1, null);
+    // app2 has no window — unbounded
+
+    tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(0));
+    ThirdPartySbomMetadata app1Sbom2 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE, new Date(1));
+
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(2));
+    ThirdPartySbomMetadata app2Sbom2 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(3));
+    ThirdPartySbomMetadata app2Sbom3 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(4));
+
+    evaluationQueueProducer.execute(null);
+
+    // app2 no window: all ranks — sbom3 (rank 0), sbom2 (rank 1), sbom1 (rank 2)
+    // app1 maxVersions=1: only rank 0 (sbom2)
+    // no early break because app2 is unbounded — iterates all 3 ranks (maxAppActiveSboms=3)
+    assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
+        .containsExactly(
+            app2Sbom3.getSbomVersion(),
+            app1Sbom2.getSbomVersion(),
+            app2Sbom2.getSbomVersion(),
+            app2Sbom1.getSbomVersion());
+    assertThat(logOutput).atDebugLevel()
+        .contains("Processed 5 SBOM(s) up to latest offset 3.");
+  }
+
+  @Test
   public void testExecute_maxAgeInDays() throws Exception {
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
     Application app = tempEntity.newApplicationWithParent();
@@ -260,6 +337,125 @@ public class EvaluationQueueProducerTest
 
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom4.getSbomVersion(), sbom3.getSbomVersion());
+  }
+
+  @Test
+  public void testExecute_maxAgeInDays_earlyBreak() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    String orgId = tempEntity.newOrganization().getId();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app-aaa", "App A", "app-aaa-public", orgId);
+    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app2 = tempEntity.newApplicationWithSpecificId("app-bbb", "App B", "app-bbb-public", orgId);
+    tempEntity.newPolicyMonitoring(app2.getId(), ComplianceStageType.ID);
+
+    long now = System.currentTimeMillis();
+    // maxAgeInDays=1 for both, no maxVersions
+    tempEntity.newVersionEvaluationWindow(app1.getId(), ComplianceStageType.ID, null, 1);
+    tempEntity.newVersionEvaluationWindow(app2.getId(), ComplianceStageType.ID, null, 1);
+
+    // app1: 3 SBOMs, newest is recent, older two are > 1 day old
+    tempEntity.newThirdPartySbomMetadata("a1s1", app1.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(3).toMillis()));
+    tempEntity.newThirdPartySbomMetadata("a1s2", app1.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(2).toMillis()));
+    ThirdPartySbomMetadata app1Recent = tempEntity.newThirdPartySbomMetadata("a1s3", app1.getId(), ACTIVE,
+        new Date(now));
+
+    // app2: 3 SBOMs, newest is recent, older two are > 1 day old
+    tempEntity.newThirdPartySbomMetadata("a2s1", app2.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(3).toMillis()));
+    tempEntity.newThirdPartySbomMetadata("a2s2", app2.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(2).toMillis()));
+    ThirdPartySbomMetadata app2Recent = tempEntity.newThirdPartySbomMetadata("a2s3", app2.getId(), ACTIVE,
+        new Date(now));
+
+    evaluationQueueProducer.execute(null);
+
+    // rank 0: both newest SBOMs pass age filter → queued
+    // rank 1: both 2nd SBOMs are > 1 day old → filtered by age, nothing passes → early break
+    // (maxAppActiveSboms=3 but stopped at offset 2)
+    assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
+        .containsExactly(app2Recent.getSbomVersion(), app1Recent.getSbomVersion());
+    assertThat(logOutput).atDebugLevel()
+        .contains("Processed 4 SBOM(s) up to latest offset 2.");
+    assertThat(logOutput).atInfoLevel().contains("Completed cycle.");
+  }
+
+  @Test
+  public void testExecute_maxAgeInDays_noEarlyBreakWhenAllRecent() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    String orgId = tempEntity.newOrganization().getId();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app-aaa", "App A", "app-aaa-public", orgId);
+    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app2 = tempEntity.newApplicationWithSpecificId("app-bbb", "App B", "app-bbb-public", orgId);
+    tempEntity.newPolicyMonitoring(app2.getId(), ComplianceStageType.ID);
+
+    long now = System.currentTimeMillis();
+    tempEntity.newVersionEvaluationWindow(app1.getId(), ComplianceStageType.ID, null, 1);
+    tempEntity.newVersionEvaluationWindow(app2.getId(), ComplianceStageType.ID, null, 1);
+
+    // All SBOMs are recent (< 1 day old) — age filter never triggers
+    ThirdPartySbomMetadata app1Sbom1 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE,
+        new Date(now - 3000));
+    ThirdPartySbomMetadata app1Sbom2 = tempEntity.newThirdPartySbomMetadata(app1.getId(), ACTIVE,
+        new Date(now - 2000));
+
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE,
+        new Date(now - 1000));
+    ThirdPartySbomMetadata app2Sbom2 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(now));
+
+    evaluationQueueProducer.execute(null);
+
+    // All SBOMs pass age filter at every rank — no early break, iterates all ranks
+    assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
+        .containsExactly(
+            app2Sbom2.getSbomVersion(),
+            app1Sbom2.getSbomVersion(),
+            app2Sbom1.getSbomVersion(),
+            app1Sbom1.getSbomVersion());
+    assertThat(logOutput).atDebugLevel()
+        .contains("Processed 4 SBOM(s) up to latest offset 2.");
+  }
+
+  @Test
+  public void testExecute_maxVersionsAndMaxAgeInDays_earlyBreak() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    String orgId = tempEntity.newOrganization().getId();
+    Application app1 = tempEntity.newApplicationWithSpecificId("app-aaa", "App A", "app-aaa-public", orgId);
+    tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
+    Application app2 = tempEntity.newApplicationWithSpecificId("app-bbb", "App B", "app-bbb-public", orgId);
+    tempEntity.newPolicyMonitoring(app2.getId(), ComplianceStageType.ID);
+
+    long now = System.currentTimeMillis();
+    // app1: maxVersions=1 (filtered by version at rank 1+)
+    // app2: maxAgeInDays=1, no maxVersions (filtered by age for old SBOMs)
+    tempEntity.newVersionEvaluationWindow(app1.getId(), ComplianceStageType.ID, 1, null);
+    tempEntity.newVersionEvaluationWindow(app2.getId(), ComplianceStageType.ID, null, 1);
+
+    // app1: 3 SBOMs, all recent
+    tempEntity.newThirdPartySbomMetadata("a1s1", app1.getId(), ACTIVE, new Date(now - 3000));
+    tempEntity.newThirdPartySbomMetadata("a1s2", app1.getId(), ACTIVE, new Date(now - 2000));
+    ThirdPartySbomMetadata app1Latest = tempEntity.newThirdPartySbomMetadata("a1s3", app1.getId(), ACTIVE,
+        new Date(now - 1000));
+
+    // app2: 3 SBOMs, newest is recent, older two are > 1 day old
+    tempEntity.newThirdPartySbomMetadata("a2s1", app2.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(3).toMillis()));
+    tempEntity.newThirdPartySbomMetadata("a2s2", app2.getId(), ACTIVE,
+        new Date(now - Duration.ofDays(2).toMillis()));
+    ThirdPartySbomMetadata app2Recent = tempEntity.newThirdPartySbomMetadata("a2s3", app2.getId(), ACTIVE,
+        new Date(now));
+
+    evaluationQueueProducer.execute(null);
+
+    // rank 0: app1Latest (passes maxVersions=1) + app2Recent (passes age) → both queued
+    // rank 1: app1 filtered by maxVersions, app2's 2nd SBOM filtered by age → nothing passes → early break
+    // (maxAppActiveSboms=3 but stopped at offset 2)
+    assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
+        .containsExactly(app2Recent.getSbomVersion(), app1Latest.getSbomVersion());
+    assertThat(logOutput).atDebugLevel()
+        .contains("Processed 4 SBOM(s) up to latest offset 2.");
+    assertThat(logOutput).atInfoLevel().contains("Completed cycle.");
   }
 
   @Test
@@ -557,8 +753,212 @@ public class EvaluationQueueProducerTest
         .containsExactlyInAnyOrder(Pair.of(0, sbom1.getSbomVersion()), Pair.of(1, sbom2.getSbomVersion()));
   }
 
+  @Test
+  public void testExecute_waitsForPolicyMonitoringHour() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyMonitoring(app.getId(), ComplianceStageType.ID);
+    tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
+
+    EvaluationQueueProducerCheckpoint checkpoint = new EvaluationQueueProducerCheckpoint(
+        new Date(System.currentTimeMillis() + Duration.ofHours(1).toMillis()),
+        null, 0, 1);
+    tempEntity.newKeyValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
+        JsonUtils.writeUnformatted(checkpoint));
+
+    evaluationQueueProducer.execute(null);
+
+    assertThat(evaluationQueueDAO.getCount()).isZero();
+    assertThat(logOutput).atDebugLevel().contains("Waiting for policy monitoring hour, skipping execution.");
+  }
+
+  @Test
+  public void testExecute_resetCycleWithStartTimeOverride() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyMonitoring(app.getId(), ComplianceStageType.ID);
+    tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
+
+    // Pre-seed a checkpoint with a future start time
+    EvaluationQueueProducerCheckpoint checkpoint = new EvaluationQueueProducerCheckpoint(
+        new Date(System.currentTimeMillis() + Duration.ofHours(1).toMillis()),
+        null, 0, 1);
+    tempEntity.newKeyValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
+        JsonUtils.writeUnformatted(checkpoint));
+
+    // resetCycle + startTime=now starts a fresh cycle immediately
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+    jobDataMap.put("resetCycle", "true");
+    jobDataMap.put("startTime", String.valueOf(System.currentTimeMillis()));
+
+    evaluationQueueProducer.execute(mockJobExecutionContext);
+
+    assertThat(evaluationQueueDAO.getAll()).hasSize(1);
+  }
+
+  @Test
+  public void testExecute_resetCycleStillWaitsForStartTime() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyMonitoring(app.getId(), ComplianceStageType.ID);
+    tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
+
+    // Complete a cycle first so resetCycle has something to reset
+    evaluationQueueProducer.execute(null);
+    assertThat(evaluationQueueDAO.getAll()).hasSize(1);
+    evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
+
+    // resetCycle clears queue + checkpoint, but startTime in the future means it still waits
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+    jobDataMap.put("resetCycle", "true");
+    jobDataMap.put("startTime", String.valueOf(System.currentTimeMillis() + Duration.ofHours(1).toMillis()));
+
+    evaluationQueueProducer.execute(mockJobExecutionContext);
+
+    assertThat(evaluationQueueDAO.getCount()).isZero();
+    assertThat(logOutput).atDebugLevel().contains("Waiting for policy monitoring hour, skipping execution.");
+  }
+
+  @Test
+  public void testExecute_startTimeOverrideWithFutureTime_waits() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    Application app = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicyMonitoring(app.getId(), ComplianceStageType.ID);
+    tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
+
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+    jobDataMap.put("startTime", String.valueOf(System.currentTimeMillis() + Duration.ofHours(1).toMillis()));
+
+    evaluationQueueProducer.execute(mockJobExecutionContext);
+
+    assertThat(evaluationQueueDAO.getCount()).isZero();
+    assertThat(logOutput).atDebugLevel().contains("Waiting for policy monitoring hour, skipping execution.");
+  }
+
+  @Test
+  public void testExecute_manualTriggerPassesStartTime() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
+
+    String startTime = String.valueOf(System.currentTimeMillis());
+    evaluationQueueProducer.execute(
+        Map.of("startTime", List.of(startTime)),
+        mock(PrintWriter.class));
+
+    Map<String, String> expectedJobDataMap = Map.of("resetCycle", "false", "startTime", startTime);
+    verify(mockTaskScheduler).triggerTaskNow(evaluationQueueProducer, expectedJobDataMap);
+  }
+
+  @Test
+  public void testExecute_manualTriggerStartTimeNow() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
+
+    long before = System.currentTimeMillis();
+    evaluationQueueProducer.execute(
+        Map.of("startTime", List.of("now")),
+        mock(PrintWriter.class));
+    long after = System.currentTimeMillis();
+
+    var captor = org.mockito.ArgumentCaptor.forClass(Map.class);
+    verify(mockTaskScheduler).triggerTaskNow(eq(evaluationQueueProducer), captor.capture());
+    Map<String, String> captured = captor.getValue();
+    assertThat(captured).containsEntry("resetCycle", "false");
+    long startTimeValue = Long.parseLong(captured.get("startTime"));
+    assertThat(startTimeValue).isBetween(before, after);
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_nullHour_returnsNow() {
+    long now = System.currentTimeMillis();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(null, now);
+
+    assertThat(result).isEqualTo(new Date(now));
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_hourAlreadyPassedToday_returnsTomorrow() {
+    java.time.LocalDateTime pastToday =
+        java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    long now = pastToday.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, now);
+
+    long expectedTomorrow = pastToday.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expectedTomorrow));
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_hourNotYetReachedToday_returnsToday() {
+    java.time.LocalDateTime todayAt22 =
+        java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(22, now);
+
+    long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expectedToday));
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_exactlyAtHour_returnsTomorrow() {
+    java.time.LocalDateTime todayAtMidnight = java.time.LocalDateTime.now()
+        .withHour(0)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0);
+    long now = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, now);
+
+    long expectedTomorrow =
+        todayAtMidnight.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expectedTomorrow));
+  }
+
+  @Test
+  public void testGetRenewalCycleStartTime_nullHour_returnsNow() {
+    long now = System.currentTimeMillis();
+
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(null, now);
+
+    assertThat(result).isEqualTo(new Date(now));
+  }
+
+  @Test
+  public void testGetRenewalCycleStartTime_hourAlreadyPassedToday_returnsToday() {
+    java.time.LocalDateTime todayAtMidnight =
+        java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAtMidnight.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(0, now);
+
+    long expectedToday = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expectedToday));
+  }
+
+  @Test
+  public void testGetRenewalCycleStartTime_hourNotYetReachedToday_returnsToday() {
+    java.time.LocalDateTime todayAt22 =
+        java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(22, now);
+
+    long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expectedToday));
+  }
+
   private void setEvaluationQueueConfig(final EvaluationQueueConfig evaluationQueueConfig) {
-    apiConfigurationService.setConfiguration(Map.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
-        JsonUtils.convertValue(evaluationQueueConfig, Map.class)));
+    Map<String, Object> configMap = JsonUtils.convertValue(evaluationQueueConfig, Map.class);
+    configMap.put("startTimeDelayEnabled", false);
+    apiConfigurationService.setConfiguration(Map.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, configMap));
   }
 }

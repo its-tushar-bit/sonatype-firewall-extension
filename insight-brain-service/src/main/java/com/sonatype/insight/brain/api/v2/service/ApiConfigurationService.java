@@ -264,7 +264,7 @@ public class ApiConfigurationService
       systemConfigurationPropertyDAO.set(tx, property.getKey(),
           ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey())
               .getValueToString()
-              .apply(new Object[]{tx}, property.getValue()));
+              .apply(new Object[]{tx, existingValue}, property.getValue()));
       sendTelemetryForIntegrationsSupportedVersionCount(property.getKey(), property.getValue(), action);
     }
   }

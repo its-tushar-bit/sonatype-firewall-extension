@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.PageIterator;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -69,6 +73,8 @@ public class EvaluationQueueProducer
 
   private static final String RESET_CYCLE = "resetCycle";
 
+  private static final String START_TIME = "startTime";
+
   private final ApiConfigurationService apiConfigurationService;
 
   private final TaskScheduler taskScheduler;
@@ -89,6 +95,8 @@ public class EvaluationQueueProducer
 
   private final ProductLicense productLicense;
 
+  private final Configuration configuration;
+
   @Inject
   public EvaluationQueueProducer(
       final ApiConfigurationService apiConfigurationService,
@@ -99,7 +107,8 @@ public class EvaluationQueueProducer
       final EvaluationQueueDAO evaluationQueueDAO,
       final PolicyMonitoringDAO policyMonitoringDAO,
       final EvaluationQueueService evaluationQueueService,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final Configuration configuration)
   {
     super(TASK_NAME);
     this.apiConfigurationService = apiConfigurationService;
@@ -112,6 +121,7 @@ public class EvaluationQueueProducer
     this.evaluationQueueConfigs = new TenantReference<>(this::getEvaluationQueueConfig);
     this.evaluationQueueService = evaluationQueueService;
     this.productLicense = productLicense;
+    this.configuration = configuration;
   }
 
   @Override
@@ -135,6 +145,12 @@ public class EvaluationQueueProducer
     log.info("Manual request to run {}.", TASK_NAME);
     Map<String, String> parameters = new HashMap<>();
     parameters.put(RESET_CYCLE, String.valueOf(map.containsKey(RESET_CYCLE)));
+    if (map.containsKey(START_TIME)) {
+      String startTimeValue = map.get(START_TIME).get(0);
+      parameters.put(START_TIME, "now".equalsIgnoreCase(startTimeValue)
+          ? String.valueOf(System.currentTimeMillis())
+          : startTimeValue);
+    }
     if (taskScheduler.isTaskScheduled(this)) {
       taskScheduler.triggerTaskNow(this, parameters);
     }
@@ -166,16 +182,24 @@ public class EvaluationQueueProducer
     }
 
     EvaluationQueueProducerCheckpoint checkpoint;
-    if (context != null && context.getMergedJobDataMap().getBoolean(RESET_CYCLE)) {
+    boolean isResetCycle = context != null && context.getMergedJobDataMap().getBoolean(RESET_CYCLE);
+    Date startTimeOverride = getStartTimeOverride(context);
+    Date initialStartTime = startTimeOverride != null ? startTimeOverride : getInitialCycleStartTime();
+    if (isResetCycle) {
       log.info("Resetting cycle.");
       resetCycle();
-      checkpoint = initializeEvaluationQueueProducerCheckpoint();
+      checkpoint = initializeEvaluationQueueProducerCheckpoint(initialStartTime);
     }
     else {
       checkpoint = getEvaluationQueueProducerCheckpoint();
       if (checkpoint == null) {
-        checkpoint = initializeEvaluationQueueProducerCheckpoint();
+        checkpoint = initializeEvaluationQueueProducerCheckpoint(initialStartTime);
       }
+    }
+
+    if (System.currentTimeMillis() < checkpoint.getStartTime().getTime()) {
+      log.debug("Waiting for policy monitoring hour, skipping execution.");
+      return;
     }
 
     long millisSinceStart = System.currentTimeMillis() - checkpoint.getStartTime().getTime();
@@ -189,7 +213,11 @@ public class EvaluationQueueProducer
         if (config.resetCycleOnTimeout()) {
           resetCycle();
         }
-        checkpoint = initializeEvaluationQueueProducerCheckpoint();
+        checkpoint = initializeEvaluationQueueProducerCheckpoint(getRenewalCycleStartTime());
+        if (System.currentTimeMillis() < checkpoint.getStartTime().getTime()) {
+          log.debug("Waiting for policy monitoring hour, skipping execution.");
+          return;
+        }
       }
     }
     else {
@@ -217,16 +245,63 @@ public class EvaluationQueueProducer
     }
   }
 
-  private EvaluationQueueProducerCheckpoint initializeEvaluationQueueProducerCheckpoint() {
+  private EvaluationQueueProducerCheckpoint initializeEvaluationQueueProducerCheckpoint(final Date startTime) {
     log.info("Starting cycle.");
     EvaluationQueueProducerCheckpoint checkpoint = new EvaluationQueueProducerCheckpoint(
-        new Date(System.currentTimeMillis()),
+        startTime,
         null,
         0,
         (int) thirdPartySbomMetadataDAO.getMaxActiveSbomsAcrossApplications());
     keyValueDAO.setValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
         JsonUtils.writeUnformatted(checkpoint));
     return checkpoint;
+  }
+
+  private Date getInitialCycleStartTime() {
+    if (!evaluationQueueConfigs.get().startTimeDelayEnabled()) {
+      return new Date(System.currentTimeMillis());
+    }
+    return getInitialCycleStartTime(configuration.getPolicyMonitoringHour(), System.currentTimeMillis());
+  }
+
+  private Date getRenewalCycleStartTime() {
+    if (!evaluationQueueConfigs.get().startTimeDelayEnabled()) {
+      return new Date(System.currentTimeMillis());
+    }
+    return getRenewalCycleStartTime(configuration.getPolicyMonitoringHour(), System.currentTimeMillis());
+  }
+
+  static Date getInitialCycleStartTime(final Integer policyMonitoringHour, final long now) {
+    if (policyMonitoringHour == null) {
+      return new Date(now);
+    }
+    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0);
+    LocalDate today = new Date(now).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    long todayAtTargetHour = today.atTime(targetTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    if (todayAtTargetHour <= now) {
+      return new Date(today.plusDays(1).atTime(targetTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+    }
+    return new Date(todayAtTargetHour);
+  }
+
+  static Date getRenewalCycleStartTime(final Integer policyMonitoringHour, final long now) {
+    if (policyMonitoringHour == null) {
+      return new Date(now);
+    }
+    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0);
+    LocalDate today = new Date(now).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    return new Date(today.atTime(targetTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+  }
+
+  private Date getStartTimeOverride(final JobExecutionContext context) {
+    if (context == null) {
+      return null;
+    }
+    String value = context.getMergedJobDataMap().getString(START_TIME);
+    if (value == null) {
+      return null;
+    }
+    return new Date(Long.parseLong(value));
   }
 
   private EvaluationQueueConfig getEvaluationQueueConfig() {
@@ -262,10 +337,14 @@ public class EvaluationQueueProducer
     int maxSbomsToAdd = (int) (config.producerMaxQueuedRows() - evaluationQueueDAO.getCount());
     Queue<ThirdPartySbomMetadata> sbomsToAdd = new ArrayDeque<>(maxSbomsToAdd);
 
-    int appCount = 0;
     int sbomCount = 0;
     String applicationId = checkpoint.getApplicationId();
     int latestOffset = checkpoint.getLatestOffset();
+    boolean anyPassedVersionAndAgeFilters = false;
+    // Usually when the inner while loop completes, we would have iterated over all applications.
+    // However, if we resumed from some application, then this would not be true
+    // i.e. we only set this to true initially if we haven't resumed
+    boolean completedFullRank = applicationId == null;
 
     outer:
     while (latestOffset < checkpoint.getMaxAppActiveSboms()) {
@@ -285,7 +364,6 @@ public class EvaluationQueueProducer
 
         if (!sbom.getApplicationId().equals(applicationId)) {
           applicationId = sbom.getApplicationId();
-          appCount++;
         }
         sbomCount++;
 
@@ -300,6 +378,8 @@ public class EvaluationQueueProducer
           continue;
         }
 
+        anyPassedVersionAndAgeFilters = true;
+
         if (lastScanTime != null && lastScanTime.getTime() >= checkpoint.getStartTime().getTime()) {
           continue;
         }
@@ -311,9 +391,15 @@ public class EvaluationQueueProducer
       checkpoint.setLatestOffset(latestOffset);
       applicationId = null;
       checkpoint.setApplicationId(applicationId);
+
+      if (completedFullRank && !anyPassedVersionAndAgeFilters) {
+        checkpoint.setLatestOffset(checkpoint.getMaxAppActiveSboms());
+        break;
+      }
+      completedFullRank = true;
+      anyPassedVersionAndAgeFilters = false;
     }
-    log.debug("Processed {} SBOM(s) up to latest offset {} across {} application(s).", sbomCount, latestOffset,
-        appCount);
+    log.debug("Processed {} SBOM(s) up to latest offset {}.", sbomCount, latestOffset);
     return sbomsToAdd;
   }
 

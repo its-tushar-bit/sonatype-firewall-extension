@@ -752,32 +752,36 @@ public class ThirdPartySbomMetadataDAO
       final int pageSize)
   {
     var sm = SBOM_METADATA.as("sm");
-
-    var rankField = DSL.rowNumber()
-        .over(DSL.partitionBy(SBOM_METADATA.APPLICATION_ID)
-            .orderBy(SBOM_METADATA.CREATED_AT.desc(), SBOM_METADATA.SBOM_METADATA_ID.desc()))
-        .minus(DSL.inline(1))
-        .as("rank");
-
-    var subquery = DSL.select(SBOM_METADATA.fields())
-        .select(rankField)
+    var apps = DSL.selectDistinct(SBOM_METADATA.APPLICATION_ID)
         .from(SBOM_METADATA)
         .where(SBOM_METADATA.STATUS.eq(ACTIVE.name()))
-        .asTable(sm.getName());
+        .asTable("apps");
 
-    int offset = (page - 1) * pageSize;
+    var lateral = DSL.lateral(
+        DSL.select(sm.fields())
+            .from(sm)
+            .where(sm.APPLICATION_ID.eq(apps.field(SBOM_METADATA.APPLICATION_ID)))
+            .and(sm.STATUS.eq(ACTIVE.name()))
+            .orderBy(sm.CREATED_AT.desc(), sm.SBOM_METADATA_ID.desc())
+            .offset(rank)
+            .limit(1)
+            .asTable("lat"));
 
-    var condition = subquery.field("rank", Integer.class).eq(rank);
+    int pageOffset = (page - 1) * pageSize;
+
+    var condition = DSL.noCondition();
 
     if (lastApplicationId != null) {
-      condition = condition.and(subquery.field(SBOM_METADATA.APPLICATION_ID).le(lastApplicationId));
+      condition = condition.and(lateral.field(sm.APPLICATION_ID).le(lastApplicationId));
     }
 
     return tx.dsl()
-        .selectFrom(subquery)
+        .select(lateral.fields())
+        .from(apps)
+        .crossJoin(lateral)
         .where(condition)
-        .orderBy(subquery.field(SBOM_METADATA.APPLICATION_ID).desc())
-        .offset(offset)
+        .orderBy(lateral.field(sm.APPLICATION_ID).desc())
+        .offset(pageOffset)
         .limit(pageSize)
         .fetchInto(ThirdPartySbomMetadata.class);
   }

@@ -6,6 +6,12 @@
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
 import java.time.Duration;
+import java.util.Map;
+
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public record EvaluationQueueConfig(
     boolean enabled,
@@ -13,6 +19,7 @@ public record EvaluationQueueConfig(
     int producerMaxQueuedRows,
     long cyclePeriodInMilliseconds,
     boolean resetCycleOnTimeout,
+    boolean startTimeDelayEnabled,
     int consumerThreadsPerTenant,
     long consumerPeriodInMilliseconds,
     int consumerMaxQueuedRows,
@@ -29,7 +36,9 @@ public record EvaluationQueueConfig(
 
   public static final boolean DEFAULT_RESET_CYCLE_ON_TIMEOUT = false;
 
-  public static final int DEFAULT_CONSUMER_THREADS_PER_TENANT = 10;
+  public static final boolean DEFAULT_START_TIME_DELAY_ENABLED = true;
+
+  public static final int DEFAULT_CONSUMER_THREADS_PER_TENANT = 1;
 
   public static final Duration DEFAULT_CONSUMER_PERIOD = Duration.ofMinutes(5);
 
@@ -84,6 +93,8 @@ public record EvaluationQueueConfig(
 
     private boolean resetCycleOnTimeout = DEFAULT_RESET_CYCLE_ON_TIMEOUT;
 
+    private boolean startTimeDelayEnabled = DEFAULT_START_TIME_DELAY_ENABLED;
+
     private int consumerThreadsPerTenant = DEFAULT_CONSUMER_THREADS_PER_TENANT;
 
     private long consumerPeriodInMilliseconds = DEFAULT_CONSUMER_PERIOD.toMillis();
@@ -117,6 +128,11 @@ public record EvaluationQueueConfig(
       return this;
     }
 
+    public Builder startTimeDelayEnabled(final boolean startTimeDelayEnabled) {
+      this.startTimeDelayEnabled = startTimeDelayEnabled;
+      return this;
+    }
+
     public Builder consumerThreadsPerTenant(final int consumerThreadsPerTenant) {
       this.consumerThreadsPerTenant = consumerThreadsPerTenant;
       return this;
@@ -144,6 +160,7 @@ public record EvaluationQueueConfig(
           producerMaxQueuedRows,
           cyclePeriodInMilliseconds,
           resetCycleOnTimeout,
+          startTimeDelayEnabled,
           consumerThreadsPerTenant,
           consumerPeriodInMilliseconds,
           consumerMaxQueuedRows,
@@ -151,5 +168,15 @@ public record EvaluationQueueConfig(
       config.validate();
       return config;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static EvaluationQueueConfig merge(final EvaluationQueueConfig base, final Map<String, Object> overrides) {
+    Map<String, Object> merged = JsonUtils.convertValue(base, Map.class);
+    merged.putAll(overrides);
+    ObjectMapper objectMapper = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    EvaluationQueueConfig result = objectMapper.convertValue(merged, EvaluationQueueConfig.class);
+    result.validate();
+    return result;
   }
 }

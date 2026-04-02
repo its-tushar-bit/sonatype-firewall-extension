@@ -12,10 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
+import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -26,6 +24,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -49,9 +50,11 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
 import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.User;
@@ -60,6 +63,10 @@ import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.base.Strings;
+import com.nimbusds.jose.JWSAlgorithm;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,6 +151,12 @@ public class DbData
 
   private final CiIntegrationsConfigDao ciIntegrationsConfigDao;
 
+  private final CrowdConfigurationDAO crowdConfigurationDAO;
+
+  private final OAuth2ConfigurationDAO oauth2ConfigurationDAO;
+
+  private final OidcConfigurationDAO oidcConfigurationDAO;
+
   @Inject
   DbData(
       final RepositoryManagerDAO repositoryManagerDAO,
@@ -179,7 +192,10 @@ public class DbData
       final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
-      final CiIntegrationsConfigDao ciIntegrationsConfigDao)
+      final CiIntegrationsConfigDao ciIntegrationsConfigDao,
+      final CrowdConfigurationDAO crowdConfigurationDAO,
+      final OAuth2ConfigurationDAO oauth2ConfigurationDAO,
+      final OidcConfigurationDAO oidcConfigurationDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -215,6 +231,9 @@ public class DbData
     this.repositoryConnectionDAO = repositoryConnectionDAO;
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
+    this.crowdConfigurationDAO = crowdConfigurationDAO;
+    this.oauth2ConfigurationDAO = oauth2ConfigurationDAO;
+    this.oidcConfigurationDAO = oidcConfigurationDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -394,6 +413,42 @@ public class DbData
       maskCiConfigSensitiveData(config);
     }
     return wrapEntry("ciIntegrationsConfig", configs);
+  }
+
+  Entry<String, Object> getCrowdConfiguration() {
+    CrowdConfiguration crowdConfiguration = crowdConfigurationDAO.get();
+    if (crowdConfiguration != null && crowdConfiguration.getApplicationPassword() != null) {
+      crowdConfiguration.setApplicationPassword(SystemInfo.MASK.toCharArray());
+    }
+    return wrapEntry("crowdConfiguration", crowdConfiguration);
+  }
+
+  Entry<String, Object> getOAuth2Configuration() {
+    List<OAuth2Configuration> configs = oauth2ConfigurationDAO.getAll();
+    for (OAuth2Configuration config : configs) {
+      if (isSymmetricAlgorithm(config.getIdpJwsAlgorithm())) {
+        maskValueIfPresent(config.getIdpJwks(), config::setIdpJwks);
+      }
+    }
+    return wrapEntry("oauth2Configuration", configs);
+  }
+
+  private boolean isSymmetricAlgorithm(String algorithm) {
+    if (algorithm == null) {
+      return true;
+    }
+    JWSAlgorithm jwsAlg = JWSAlgorithm.parse(algorithm);
+    // SIGNATURE covers RSA, EC, and EdDSA — everything asymmetric
+    // If not in SIGNATURE, it's either HMAC_SHA or unrecognised — mask both
+    return !JWSAlgorithm.Family.SIGNATURE.contains(jwsAlg);
+  }
+
+  Entry<String, Object> getOidcConfiguration() {
+    OidcConfiguration oidcConfiguration = oidcConfigurationDAO.get();
+    if (oidcConfiguration != null) {
+      maskValueIfPresent(oidcConfiguration.getClientSecret(), oidcConfiguration::setClientSecret);
+    }
+    return wrapEntry("oidcConfiguration", oidcConfiguration);
   }
 
   private void maskCiConfigSensitiveData(CiIntegrationsConfig config) throws IOException {

@@ -25,9 +25,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -41,6 +40,7 @@ import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.inject.Inject;
 import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -48,10 +48,9 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import org.junit.experimental.categories.Category;
 
 /**
  * @since 1.27
@@ -150,6 +149,12 @@ public class SupportServiceTest
         zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/saml.json");
     assertThat(entries.nextElement().getName()).isEqualTo(
         zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/mail.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/crowd.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/oauth2Configuration.json");
+    assertThat(entries.nextElement().getName()).isEqualTo(
+        zipFileBasename + "/" + SupportFileType.CONFIG.getDirName() + "/oidcConfiguration.json");
     assertThat(entries.nextElement().getName()).isEqualTo(
         zipFileBasename + "/" + SupportFileType.INFO.getDirName() + "/dbFileInfo.txt");
     assertThat(entries.nextElement().getName()).isEqualTo(
@@ -490,6 +495,44 @@ public class SupportServiceTest
       assertThat(jsonNode.has("cpeMatchingConfiguration")).isTrue();
       assertThat(jsonNode.get("cpeMatchingConfiguration").isArray()).isTrue();
       assertThat(jsonNode.get("cpeMatchingConfiguration").size()).isGreaterThanOrEqualTo(2);
+    }
+  }
+
+  @Test
+  public void testCreateSupportZip_IncludesAuthConfigWithoutIncludeDb() throws Exception {
+    tempEntity.newOAuth2Configuration();
+    tempEntity.newOidcConfiguration("https://idp.example.com", "client-id", "super-secret",
+        "https://idp.example.com/auth", "https://idp.example.com/token");
+    tempEntity.newCrowdConfiguration();
+
+    File supportZip = supportService.createSupportZip(false, null, false);
+
+    try (ZipFile zipFile = new ZipFile(supportZip)) {
+      List<? extends ZipEntry> entries = EnumerationUtils.toList(zipFile.entries());
+      String base = getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/";
+
+      ZipEntry oauth2Entry = entries.stream()
+          .filter(e -> e.getName().equals(base + "oauth2Configuration.json"))
+          .findFirst()
+          .orElse(null);
+      assertThat(oauth2Entry).isNotNull();
+      assertThat(getZipEntryContent(zipFile, oauth2Entry)).contains("https://an-idp");
+
+      ZipEntry oidcEntry = entries.stream()
+          .filter(e -> e.getName().equals(base + "oidcConfiguration.json"))
+          .findFirst()
+          .orElse(null);
+      assertThat(oidcEntry).isNotNull();
+      String oidcContent = getZipEntryContent(zipFile, oidcEntry);
+      assertThat(oidcContent).contains("client-id");
+
+      ZipEntry crowdEntry = entries.stream()
+          .filter(e -> e.getName().equals(base + "crowd.json"))
+          .findFirst()
+          .orElse(null);
+      assertThat(crowdEntry).isNotNull();
+      String crowdContent = getZipEntryContent(zipFile, crowdEntry);
+      assertThat(crowdContent).contains("http://localhost:8095/crowd");
     }
   }
 

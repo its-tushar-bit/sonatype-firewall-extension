@@ -103,6 +103,7 @@ public class TenantSupportInfoService
         .withInnerSourceRepositoryInfo()
         .withSystemConfigPropertiesInfo()
         .withFeatureConfigPropertiesInfo()
+        .withTenantMetadataInfo()
         .build();
 
     return supportInfoUtil.generateSupportInfo(tenantSlug, supportFiles);

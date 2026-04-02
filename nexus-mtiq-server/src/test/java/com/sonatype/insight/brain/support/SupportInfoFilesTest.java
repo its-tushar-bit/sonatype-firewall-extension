@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
@@ -113,6 +115,9 @@ public class SupportInfoFilesTest
   private FeaturePropertiesInfo featurePropertiesInfo;
 
   @Mock
+  private TenantMetadataDAO tenantMetadataDAO;
+
+  @Mock
   private SupportInfoUtil supportInfoUtil;
 
   private SupportInfoFiles supportInfoFiles;
@@ -121,7 +126,7 @@ public class SupportInfoFilesTest
   public void setup() {
     supportInfoFiles =
         new SupportInfoFiles(versionService, dbData, samlUserDAO, oAuth2UserDAO, configurationInfo, systemInfo,
-            sourceControlConfigurationInfo, featurePropertiesInfo, supportInfoUtil);
+            sourceControlConfigurationInfo, featurePropertiesInfo, tenantMetadataDAO, supportInfoUtil);
   }
 
   @AfterClass
@@ -1075,7 +1080,7 @@ public class SupportInfoFilesTest
     // Then
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
-    assertThat(fileContents).isEqualTo("""
+    assertThat(fileContents.replace("\r\n", "\n")).isEqualTo("""
         {
           "autoWaivers" : true,
           "blockNonAsciiInPath" : false,
@@ -1108,7 +1113,7 @@ public class SupportInfoFilesTest
     // Then
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
-    assertThat(fileContents).isEqualTo("""
+    assertThat(fileContents.replace("\r\n", "\n")).isEqualTo("""
         {
           "ADVANCED_SEARCH_ENABLED" : true,
           "dashboard" : true,
@@ -1116,6 +1121,26 @@ public class SupportInfoFilesTest
           "saasLifecycleScmEnabled" : true,
           "SSO_IDP_MANAGED_BY_SONATYPE" : false
         }""");
+  }
+
+  @Test
+  public void testWithTenantMetadataInfo_ReturnsTenantMetadataFile() throws IOException {
+    // Given
+    TenantMetadata tenantMetadata =
+        new TenantMetadata("appId", "appName", "connId", "connName", "keyName", "orgId", "orgName");
+    String tenantMetadataJson =
+        JsonUtils.format(new AbstractMap.SimpleImmutableEntry<>("tenantMetadata", tenantMetadata));
+
+    // When
+    when(tenantMetadataDAO.get()).thenReturn(tenantMetadata);
+    when(supportInfoUtil.writeTextToFile(any(), any()))
+        .thenReturn(writeFile(WORK_DIR, tenantMetadataJson, "tenantMetadata.json"));
+    SupportFile supportFile = supportInfoFiles.aNewListOfSupportFiles().withTenantMetadataInfo().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(tenantMetadataJson);
   }
 
   private Entry<String, SortedMap<String, Object>> wrapEntry(String entryName, SortedMap<String, Object> objectToPut) {

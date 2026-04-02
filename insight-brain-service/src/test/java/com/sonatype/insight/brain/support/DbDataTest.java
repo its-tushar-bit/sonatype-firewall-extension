@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -21,11 +20,15 @@ import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsService;
 
+import jakarta.inject.Inject;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
@@ -308,6 +311,90 @@ public class DbDataTest
         assertThat(config.getConfigurationJson()).contains("scanPatterns");
       }
     });
+  }
+
+  @Test
+  public void testGetOAuth2Configuration_asymmetricAlgorithm_doesNotMaskIdpJwks() {
+    OAuth2Configuration oAuth2Configuration =
+        tempEntity.newOAuth2Configuration("https://an-idp", "RS256", "https://an-idp/jwks.json", "public-key-material");
+
+    @SuppressWarnings("unchecked")
+    List<OAuth2Configuration> result = (List<OAuth2Configuration>) dbData.getOAuth2Configuration().getValue();
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0)).usingRecursiveComparison().isEqualTo(oAuth2Configuration);
+  }
+
+  @Test
+  public void testGetOAuth2Configuration_symmetricAlgorithm_masksIdpJwks() {
+    OAuth2Configuration oAuth2Configuration =
+        tempEntity.newOAuth2Configuration("https://an-idp", "HS256", "https://an-idp/jwks.json", "secret-key-material");
+
+    @SuppressWarnings("unchecked")
+    List<OAuth2Configuration> result = (List<OAuth2Configuration>) dbData.getOAuth2Configuration().getValue();
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0)).usingRecursiveComparison().ignoringFields("idpJwks").isEqualTo(oAuth2Configuration);
+    assertThat(result.get(0).getIdpJwks()).isEqualTo(SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetOAuth2Configuration_unknownAlgorithm_masksIdpJwks() {
+    OAuth2Configuration oAuth2Configuration =
+        tempEntity.newOAuth2Configuration("https://an-idp", "other", "https://an-idp/jwks.json", "secret-key-material");
+
+    @SuppressWarnings("unchecked")
+    List<OAuth2Configuration> result = (List<OAuth2Configuration>) dbData.getOAuth2Configuration().getValue();
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0)).usingRecursiveComparison().ignoringFields("idpJwks").isEqualTo(oAuth2Configuration);
+    assertThat(result.get(0).getIdpJwks()).isEqualTo(SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetOAuth2Configuration_noConfiguration() {
+    @SuppressWarnings("unchecked")
+    List<OAuth2Configuration> result = (List<OAuth2Configuration>) dbData.getOAuth2Configuration().getValue();
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetOidcConfiguration() {
+    OidcConfiguration oidcConfiguration =
+        tempEntity.newOidcConfiguration("https://idp.example.com", "client-id", "super-secret",
+            "https://idp.example.com/auth", "https://idp.example.com/token");
+
+    OidcConfiguration result = (OidcConfiguration) dbData.getOidcConfiguration().getValue();
+
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().ignoringFields("clientSecret").isEqualTo(oidcConfiguration);
+    assertThat(result.getClientSecret()).isEqualTo(SystemInfo.MASK);
+  }
+
+  @Test
+  public void testGetOidcConfiguration_noConfiguration() {
+    OidcConfiguration result = (OidcConfiguration) dbData.getOidcConfiguration().getValue();
+
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetCrowdConfiguration() {
+    CrowdConfiguration crowdConfiguration = tempEntity.newCrowdConfiguration();
+
+    CrowdConfiguration result = (CrowdConfiguration) dbData.getCrowdConfiguration().getValue();
+
+    assertThat(result).isNotNull();
+    assertThat(result).usingRecursiveComparison().ignoringFields("applicationPassword").isEqualTo(crowdConfiguration);
+    assertThat(result.getApplicationPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
+  }
+
+  @Test
+  public void testGetCrowdConfiguration_noConfiguration() {
+    CrowdConfiguration result = (CrowdConfiguration) dbData.getCrowdConfiguration().getValue();
+
+    assertThat(result).isNull();
   }
 
   @Test

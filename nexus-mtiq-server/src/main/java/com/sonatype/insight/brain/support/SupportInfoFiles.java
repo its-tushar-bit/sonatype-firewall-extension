@@ -19,6 +19,8 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -120,6 +122,8 @@ public class SupportInfoFiles
 
   private static final String FEATURE_CONFIG_PROPERTIES_FILE = "featuresConfigurationProperties.json";
 
+  private static final String TENANT_METADATA_FILE = "tenantMetadata.json";
+
   private final VersionService versionService;
 
   private final DbData dbData;
@@ -136,6 +140,8 @@ public class SupportInfoFiles
 
   private final FeaturePropertiesInfo featurePropertiesInfo;
 
+  private final TenantMetadataDAO tenantMetadataDAO;
+
   private final SupportInfoUtil supportInfoUtil;
 
   private List<SupportFile> supportFiles;
@@ -150,6 +156,7 @@ public class SupportInfoFiles
       SystemInfo systemInfo,
       SourceControlConfigurationInfo sourceControlConfigurationInfo,
       FeaturePropertiesInfo featurePropertiesInfo,
+      TenantMetadataDAO tenantMetadataDAO,
       SupportInfoUtil supportInfoUtil)
   {
     this.versionService = versionService;
@@ -160,6 +167,7 @@ public class SupportInfoFiles
     this.systemInfo = systemInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
     this.featurePropertiesInfo = featurePropertiesInfo;
+    this.tenantMetadataDAO = tenantMetadataDAO;
     this.supportInfoUtil = supportInfoUtil;
   }
 
@@ -524,6 +532,16 @@ public class SupportInfoFiles
     String featureConfigPropertiesJson = JsonUtils.format(featureConfigProperties);
 
     createAndAddSupportFile(featureConfigPropertiesJson, FEATURE_CONFIG_PROPERTIES_FILE, SupportFileType.CONFIG);
+
+    return this;
+  }
+
+  public SupportInfoFiles withTenantMetadataInfo() {
+    TenantMetadata tenantMetadata = tenantMetadataDAO.get();
+    String tenantMetadataJson =
+        JsonUtils.format(new AbstractMap.SimpleImmutableEntry<>("tenantMetadata", tenantMetadata));
+
+    createAndAddSupportFile(tenantMetadataJson, TENANT_METADATA_FILE, SupportFileType.DB);
 
     return this;
   }

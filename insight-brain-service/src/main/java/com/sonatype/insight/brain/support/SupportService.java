@@ -381,6 +381,18 @@ public class SupportService
           SupportFileType.CONFIG, true);
       addFileIfExists(filesToZip, writeTextToFile(systemInfo.getMailConfig(), new File(workDir, "mail.json")), "mail",
           SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip,
+          writeTextToFile(JsonUtils.format(dbData.getCrowdConfiguration().getValue()),
+              new File(workDir, "crowd.json")),
+          "crowd", SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip,
+          writeTextToFile(JsonUtils.format(dbData.getOAuth2Configuration().getValue()),
+              new File(workDir, "oauth2Configuration.json")),
+          "oauth2Configuration", SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip,
+          writeTextToFile(JsonUtils.format(dbData.getOidcConfiguration().getValue()),
+              new File(workDir, "oidcConfiguration.json")),
+          "oidcConfiguration", SupportFileType.CONFIG, true);
 
       addFileIfExists(filesToZip, writeTextToFile(dbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
           "dbFileInfo", SupportFileType.INFO, true);

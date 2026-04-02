@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -137,9 +138,10 @@ public class ApiAdvancedSearchResourceV2
           description = "Set to `true` to retrieve results that include components with no violations.") @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode,
       @Parameter(hidden = true) @QueryParam("searchAfter") String searchAfter,
+      @Context HttpServletRequest httpServletRequest,
       @Context HttpServletResponse httpServletResponse)
   {
     return searchService.exportSearch(searchQuery, pageSize, page, allComponents, mode, searchAfter,
-        httpServletResponse);
+        httpServletRequest, httpServletResponse);
   }
 }

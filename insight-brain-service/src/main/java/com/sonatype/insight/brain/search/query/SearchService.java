@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -40,6 +41,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.search.export.SearchPaths.EXPORT_FILE_NAME;
 
@@ -113,6 +115,7 @@ public class SearchService
       boolean allComponents,
       ProductMode mode,
       String searchAfter,
+      HttpServletRequest httpServletRequest,
       HttpServletResponse httpServletResponse)
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
@@ -156,14 +159,21 @@ public class SearchService
         }
       }
     };
-    httpServletResponse.setTrailerFields(() -> searchAfterRef.get() == null
-        ? Map.of()
-        : Map.of(SEARCH_AFTER_HEADER, String.join(",", searchAfterRef.get())));
+    if (supportsTrailers(httpServletRequest)) {
+      httpServletResponse.setTrailerFields(() -> searchAfterRef.get() == null
+          ? Map.of()
+          : Map.of(SEARCH_AFTER_HEADER, String.join(",", searchAfterRef.get())));
+    }
     ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(iterator, pageSize, isSbomManagerMode))
         .type("application/csv; charset=UTF-8")
         .encoding("UTF-8")
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));
     return responseBuilder.build();
+  }
+
+  boolean supportsTrailers(HttpServletRequest request) {
+    String protocol = request.getProtocol();
+    return StringUtils.isNotBlank(protocol) && !protocol.equals("HTTP/1.0");
   }
 
   private StreamingOutput createAdvancedSearchCSV(

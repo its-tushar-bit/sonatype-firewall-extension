@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.StreamingOutput;
 
@@ -527,7 +528,7 @@ public abstract class AbstractSearchServiceTest
 
     assertThatExceptionOfType(NotAuthorizedException.class)
         .isThrownBy(() -> searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null, null,
-            mock(HttpServletResponse.class)))
+            mock(HttpServletRequest.class), mock(HttpServletResponse.class)))
         .withMessage("advanced-search-configuration feature is disabled.");
   }
 
@@ -568,7 +569,7 @@ public abstract class AbstractSearchServiceTest
 
     StreamingOutput stream =
         (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null, null,
-            mock(HttpServletResponse.class)).getEntity();
+            mock(HttpServletRequest.class), mock(HttpServletResponse.class)).getEntity();
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);
     List<String> export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -610,7 +611,7 @@ public abstract class AbstractSearchServiceTest
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
       stream = (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null, null,
-          mock(HttpServletResponse.class)).getEntity();
+          mock(HttpServletRequest.class), mock(HttpServletResponse.class)).getEntity();
       baos = new ByteArrayOutputStream();
       stream.write(baos);
       export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -792,7 +793,7 @@ public abstract class AbstractSearchServiceTest
 
     StreamingOutput stream =
         (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, ProductMode.SBOM_MANAGER,
-            null, mock(HttpServletResponse.class)).getEntity();
+            null, mock(HttpServletRequest.class), mock(HttpServletResponse.class)).getEntity();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);
@@ -870,7 +871,7 @@ public abstract class AbstractSearchServiceTest
 
     StreamingOutput stream =
         (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null, null,
-            mock(HttpServletResponse.class)).getEntity();
+            mock(HttpServletRequest.class), mock(HttpServletResponse.class)).getEntity();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);

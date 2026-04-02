@@ -62,21 +62,46 @@ function fetchProductFeatures() {
         if (!isAppWebhooksSupported && !isRepoWebhooksSupported) {
           throw 'Webhooks feature is not supported by your license.';
         }
-        return isAppWebhooksSupported;
+        // Detect current product context from URL path and document title
+        // Note: This detection mechanism is intentionally separate from WebhookListItem's router-based detection.
+        // Actions layer uses URL/title checking as it executes outside the React component lifecycle.
+        // Firewall URLs contain '/firewall/' or '/malware-defense/' or 'repository firewall' in title
+        const isFirewallContext =
+          window.location.pathname.includes('/firewall/') ||
+          window.location.pathname.includes('/malware-defense/') ||
+          window.location.hash.includes('/firewall/') ||
+          window.location.hash.includes('/malware-defense/') ||
+          document.title.toLowerCase().includes('repository firewall');
+
+        // For Firewall context, return false to indicate Firewall mode (not app webhooks mode)
+        // The license check was already done above, so we know at least one feature exists
+        // Return false for Firewall context, true for Lifecycle context
+        return isFirewallContext ? false : isAppWebhooksSupported;
       })
       .then(compose(dispatch, fetchProductFeaturesFulfilled));
   };
 }
 
-function fetchEventTypes() {
+function fetchEventTypes(isAppWebhooksSupported) {
   return (dispatch) => {
-    return axios.get(getWebhookEventTypesUrl()).then(prop('data')).then(compose(dispatch, fetchEventTypesFulfilled));
+    // Determine context based on product features
+    // isAppWebhooksSupported === true means Lifecycle (webhooks-for-applications)
+    // isAppWebhooksSupported === false means Firewall (webhooks-for-repositories)
+    const context = isAppWebhooksSupported ? 'lifecycle' : 'firewall';
+    return axios
+      .get(getWebhookEventTypesUrl(context))
+      .then(prop('data'))
+      .then(compose(dispatch, fetchEventTypesFulfilled));
   };
 }
 
-function fetchWebhooks() {
+function fetchWebhooks(isAppWebhooksSupported) {
   return (dispatch) => {
-    return axios.get(getWebhooksUrl()).then(prop('data')).then(compose(dispatch, fetchWebhooksFulfilled));
+    const context = isAppWebhooksSupported ? 'lifecycle' : 'firewall';
+    return axios
+      .get(getWebhooksUrl() + '?context=' + context)
+      .then(prop('data'))
+      .then(compose(dispatch, fetchWebhooksFulfilled));
   };
 }
 
@@ -96,7 +121,11 @@ export function loadAddWebhookPage() {
 
     return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() => {
-        return Promise.all([dispatch(fetchProductFeatures()), dispatch(fetchEventTypes())]);
+        return dispatch(fetchProductFeatures());
+      })
+      .then((productFeaturesAction) => {
+        const isAppWebhooksSupported = productFeaturesAction.payload;
+        return dispatch(fetchEventTypes(isAppWebhooksSupported));
       })
       .then(compose(dispatch, loadFulfilled))
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
@@ -109,7 +138,15 @@ export function loadEditWebhookPage(webhookId) {
 
     return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() => {
-        return Promise.all([dispatch(fetchProductFeatures()), dispatch(fetchEventTypes()), dispatch(fetchWebhooks())]);
+        return dispatch(fetchProductFeatures());
+      })
+      .then((productFeaturesAction) => {
+        const isAppWebhooksSupported = productFeaturesAction.payload;
+        return Promise.all([
+          productFeaturesAction,
+          dispatch(fetchEventTypes(isAppWebhooksSupported)),
+          dispatch(fetchWebhooks(isAppWebhooksSupported)),
+        ]);
       })
       .then((data) => {
         const webhook = find((webhook) => webhook.id === webhookId, data[2].payload);
@@ -131,7 +168,11 @@ export function loadWebhookListPage() {
 
     return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() => {
-        return Promise.all([dispatch(fetchProductFeatures()), dispatch(fetchWebhooks())]);
+        return dispatch(fetchProductFeatures());
+      })
+      .then((productFeaturesAction) => {
+        const isAppWebhooksSupported = productFeaturesAction.payload;
+        return Promise.all([productFeaturesAction, dispatch(fetchWebhooks(isAppWebhooksSupported))]);
       })
       .then(compose(dispatch, loadFulfilled))
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));

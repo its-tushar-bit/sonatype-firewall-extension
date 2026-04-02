@@ -16,14 +16,31 @@ function WebhookListItem({ webhook, isAppWebhooksSupported }) {
   const { id, url, description, eventTypes } = webhook;
   const uiRouterState = useRouterState();
   const webhookLabel = description || url;
+
+  // Determine if we're in Firewall context by checking current state
+  const currentStateName = uiRouterState.current.name || '';
+  const isFirewallContext = currentStateName.startsWith('firewall.');
+  const editWebhookState = isFirewallContext ? 'firewall.editWebhook' : 'editWebhook';
+
   const eventTypesDisplay =
     !isNilOrEmpty(eventTypes) &&
     eventTypes.map((eventType, index) => {
-      const isDisabled = eventType === 'Application Evaluation' && !isAppWebhooksSupported;
+      // Translate event type names based on context
+      let displayEventType = eventType;
+      if (isFirewallContext) {
+        if (eventType === 'Application Evaluation') {
+          displayEventType = 'Container Evaluation';
+        } else if (eventType === 'Organization and Application Management') {
+          displayEventType = 'Organization and Repository Management';
+        }
+      }
+
+      // Only mark "Application Evaluation" as disabled in Lifecycle context (NOT in Firewall)
+      const isDisabled = !isFirewallContext && eventType === 'Application Evaluation' && !isAppWebhooksSupported;
       const comma = index === eventTypes.length - 1 ? null : ', ';
       return (
         <span key={eventType} className={classnames({ 'iq-webhook-event--disabled': isDisabled })}>
-          {eventType}
+          {displayEventType}
           {comma}
         </span>
       );
@@ -31,7 +48,7 @@ function WebhookListItem({ webhook, isAppWebhooksSupported }) {
 
   return (
     <li className="nx-list__item nx-list__item--link">
-      <NxTextLink href={uiRouterState.href('editWebhook', { webhookId: id })} className="nx-list__link">
+      <NxTextLink href={uiRouterState.href(editWebhookState, { webhookId: id })} className="nx-list__link">
         <span className="nx-list__text">{webhookLabel}</span>
         {eventTypesDisplay && <span className="nx-list__subtext">{eventTypesDisplay}</span>}
         <NxFontAwesomeIcon icon={faAngleRight} className="nx-chevron" />

@@ -71,9 +71,9 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
-        axiosMock.onGet(getWebhooksUrl()).reply(200, [
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(200, [
           {
             id: '1',
             url: 'http://yetanother.com',
@@ -119,9 +119,9 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
-        axiosMock.onGet(getWebhooksUrl()).reply(200, [
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(200, [
           {
             id: '1',
             url: 'http://yetanother.com',
@@ -179,7 +179,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
 
         store.dispatch(loadAddWebhookPage()).then(() => {
@@ -206,7 +206,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        axiosMock.onGet(getWebhookEventTypesUrl('firewall')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-repositories']);
 
         store.dispatch(loadAddWebhookPage()).then(() => {
@@ -233,7 +233,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(500, 'failed to get event types');
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(500, 'failed to get event types');
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
 
         store.dispatch(loadAddWebhookPage()).then(() => {
@@ -252,8 +252,8 @@ describe('webhookActions', () => {
       it('fires EDIT_WEBHOOK_LOAD_FAILED action on ProductFeatures fetch error', (done) => {
         const store = SpecUtil.mockReduxStore();
 
-        // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        // Mock axios calls using axiosMockAdapter - this will not be called since product features fails first
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(500, 'failed to get product features');
 
         store.dispatch(loadAddWebhookPage()).then(() => {
@@ -272,8 +272,8 @@ describe('webhookActions', () => {
       it('fires EDIT_WEBHOOK_LOAD_FAILED action when does not have expected product features', (done) => {
         const store = SpecUtil.mockReduxStore();
 
-        // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhookEventTypesUrl()).reply(200, ['eventType1', 'eventType2']);
+        // Mock axios calls using axiosMockAdapter - eventTypes will not be called since product features check fails
+        axiosMock.onGet(getWebhookEventTypesUrl('lifecycle')).reply(200, ['eventType1', 'eventType2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, []);
 
         store.dispatch(loadAddWebhookPage()).then(() => {
@@ -320,7 +320,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhooksUrl()).reply(200, ['webhook1', 'webhook2']);
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(200, ['webhook1', 'webhook2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
 
         store.dispatch(loadWebhookListPage()).then(() => {
@@ -347,7 +347,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhooksUrl()).reply(200, ['webhook1', 'webhook2']);
+        axiosMock.onGet(getWebhooksUrl() + '?context=firewall').reply(200, ['webhook1', 'webhook2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-repositories']);
 
         store.dispatch(loadWebhookListPage()).then(() => {
@@ -374,7 +374,7 @@ describe('webhookActions', () => {
         const store = SpecUtil.mockReduxStore();
 
         // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhooksUrl()).reply(500, 'failed to get webhooks');
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(500, 'failed to get webhooks');
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['webhooks-for-applications', 'webhooks-for-repositories']);
 
         store.dispatch(loadWebhookListPage()).then(() => {
@@ -393,8 +393,8 @@ describe('webhookActions', () => {
       it('fires EDIT_WEBHOOK_LOAD_FAILED action on ProductFeatures fetch error', (done) => {
         const store = SpecUtil.mockReduxStore();
 
-        // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhooksUrl()).reply(200, ['webhook1', 'webhook2']);
+        // Mock axios calls using axiosMockAdapter - webhooks will not be called since product features fails first
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(200, ['webhook1', 'webhook2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(500, 'failed to get product features');
 
         store.dispatch(loadWebhookListPage()).then(() => {
@@ -413,8 +413,8 @@ describe('webhookActions', () => {
       it('fires EDIT_WEBHOOK_LOAD_FAILED action when does not have expected product features', (done) => {
         const store = SpecUtil.mockReduxStore();
 
-        // Mock axios calls using axiosMockAdapter
-        axiosMock.onGet(getWebhooksUrl()).reply(200, ['webhook1', 'webhook2']);
+        // Mock axios calls using axiosMockAdapter - webhooks will not be called since product features check fails
+        axiosMock.onGet(getWebhooksUrl() + '?context=lifecycle').reply(200, ['webhook1', 'webhook2']);
         axiosMock.onGet(getProductFeaturesUrl()).reply(200, []);
 
         store.dispatch(loadWebhookListPage()).then(() => {

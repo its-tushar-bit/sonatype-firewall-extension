@@ -17,6 +17,16 @@ public class ApplicationEvaluationPayload
 
   public ApplicationEvaluationDTO applicationEvaluation;
 
+  /**
+   * Evaluation type distinguishing between Lifecycle and Firewall contexts.
+   *
+   * In Lifecycle context (APPLICATION): represents an "Application Evaluation"
+   * In Firewall context (CONTAINER): represents a "Container Evaluation"
+   *
+   * Defaults to APPLICATION for backward compatibility.
+   */
+  public EvaluationType evaluationType = EvaluationType.APPLICATION;
+
   public static class ApplicationEvaluationDTO
   {
     /**

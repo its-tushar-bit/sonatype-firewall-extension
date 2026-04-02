@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
+import com.sonatype.insight.brain.webhook.dto.EvaluationType;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
@@ -167,6 +168,7 @@ public class WebhookDispatcherTest
         .getValue();
     assertThat(webhookPayload.initiator).isEqualTo("initiator");
     assertThat(webhookPayload.id).isEqualTo("policyEvaluationId");
+    assertThat(webhookPayload.evaluationType).isEqualTo(EvaluationType.APPLICATION); // Default for non-proxy stage
 
     ApplicationEvaluationDTO applicationEvaluationDTO = webhookPayload.applicationEvaluation;
     assertThat(applicationEvaluationDTO.policyEvaluationId).isEqualTo("policyEvaluationId");
@@ -185,6 +187,48 @@ public class WebhookDispatcherTest
     assertThat(applicationEvaluationDTO.application.publicId).isEqualTo("app-public-id");
     assertThat(applicationEvaluationDTO.application.name).isEqualTo("app-name");
     assertThat(applicationEvaluationDTO.application.organizationId).isEqualTo("org-id");
+  }
+
+  @Test
+  public void testOn_HandlesApplicationEvaluationEvent_FirewallContext() {
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+
+    Date date = new Date();
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
+    event.initiator = "admin";
+    event.policyEvaluationId = "policyEvaluationId";
+    event.stageTypeId = "proxy"; // Firewall proxy stage
+    event.ownerId = "repositoryId";
+    event.evaluationDate = date;
+    event.affectedComponentCount = 10;
+    event.criticalComponentCount = 2;
+    event.severeComponentCount = 5;
+    event.moderateComponentCount = 3;
+    event.outcome = "fail";
+    event.reportId = "reportId";
+    event.isForLatestScan = true;
+
+    event.application.id = "repositoryId";
+    event.application.publicId = "docker-proxy";
+    event.application.name = "host.docker.internal_8013-docker-proxy";
+    event.application.organizationId = "org-id";
+
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookEventType.APPLICATION_EVALUATION.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    ApplicationEvaluationPayload webhookPayload = (ApplicationEvaluationPayload) webhookPayloadArgumentCaptor
+        .getValue();
+
+    // Verify Firewall context sets CONTAINER type
+    assertThat(webhookPayload.evaluationType).isEqualTo(EvaluationType.CONTAINER);
+
+    ApplicationEvaluationDTO applicationEvaluationDTO = webhookPayload.applicationEvaluation;
+    assertThat(applicationEvaluationDTO.stage).isEqualTo("proxy");
+    assertThat(applicationEvaluationDTO.application.name).isEqualTo("host.docker.internal_8013-docker-proxy");
   }
 
   @Test
@@ -681,7 +725,8 @@ public class WebhookDispatcherTest
     final List<ApplicationSummary> applicationSummaries = Collections.singletonList(applicationSummary);
 
     final OrganizationApplicationManagementEvent event =
-        new OrganizationApplicationManagementEvent(organizationSummaries, applicationSummaries);
+        new OrganizationApplicationManagementEvent(
+            organizationSummaries, applicationSummaries, Collections.emptyList(), Collections.emptyList());
     event.initiator = "initiator";
     asyncEventBus.post(event);
 

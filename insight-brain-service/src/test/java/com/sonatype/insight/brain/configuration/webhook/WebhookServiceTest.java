@@ -34,6 +34,7 @@ import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAK
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.ORG_APP_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_EXPIRATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -408,5 +409,76 @@ public class WebhookServiceTest
 
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> webhookService.deleteWebhook(webhook.getId()));
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_IncludesWaiverExpiration() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).contains("Waiver Expiration");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_ExcludesWaiverExpiration() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).doesNotContain("Waiver Expiration");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_ReturnsContainerEvaluationDisplayName() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).contains("Container Evaluation");
+    assertThat(eventTypes).doesNotContain("Application Evaluation");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_ReturnsApplicationEvaluationDisplayName() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).contains("Application Evaluation");
+    assertThat(eventTypes).doesNotContain("Container Evaluation");
+  }
+
+  @Test
+  public void testGetAllFiltered_LifecycleContext_HidesWaiverExpirationWebhook() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+    tempEntity.newWebhook("http://webhook-waiver", EnumSet.of(WAIVER_EXPIRATION));
+    tempEntity.newWebhook("http://webhook-policy", EnumSet.of(POLICY_ALERT));
+
+    List<Webhook> webhooks = webhookService.getAllFiltered("lifecycle");
+
+    assertThat(webhooks).hasSize(1);
+    assertThat(webhooks.get(0).getUrl()).isEqualTo("http://webhook-policy");
+  }
+
+  @Test
+  public void testGetAllFiltered_FirewallContext_ShowsWaiverExpirationWebhook() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+    tempEntity.newWebhook("http://webhook-waiver", EnumSet.of(WAIVER_EXPIRATION));
+    tempEntity.newWebhook("http://webhook-policy", EnumSet.of(POLICY_ALERT));
+
+    List<Webhook> webhooks = webhookService.getAllFiltered("firewall");
+
+    assertThat(webhooks).hasSize(2);
+    assertThat(webhooks.stream().anyMatch(w -> w.getUrl().equals("http://webhook-waiver"))).isTrue();
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_NoLicense_ReturnsEmptyList() {
+    testProductLicense.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).isEmpty();
   }
 }

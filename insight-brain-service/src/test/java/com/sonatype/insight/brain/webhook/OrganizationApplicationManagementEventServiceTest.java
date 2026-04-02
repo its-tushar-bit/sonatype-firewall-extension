@@ -16,6 +16,8 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -49,6 +51,12 @@ public class OrganizationApplicationManagementEventServiceTest
 
   @Inject
   private CurrentUser currentUser;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
   @Captor
   private ArgumentCaptor<OrganizationApplicationManagementEvent> eventArgumentCaptor;
@@ -84,7 +92,8 @@ public class OrganizationApplicationManagementEventServiceTest
   public void testPostEvent_CreateOrganizationSummariesWhenValid() {
     final AsyncEventBus eventBusSpy = spy(asyncEventBus);
     final OrganizationApplicationManagementEventService orgAppSummaryEventService =
-        new OrganizationApplicationManagementEventService(eventBusSpy, organizationDAO, applicationDAO, currentUser);
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
 
     final Organization organization1 = tempEntity.newOrganization("a");
     final Organization organization2 = tempEntity.newOrganization("b");
@@ -119,7 +128,8 @@ public class OrganizationApplicationManagementEventServiceTest
   public void testPostEvent_OrganizationSummaries_DoesNotContainRootOrg() {
     final AsyncEventBus eventBusSpy = spy(asyncEventBus);
     final OrganizationApplicationManagementEventService orgAppSummaryEventService =
-        new OrganizationApplicationManagementEventService(eventBusSpy, organizationDAO, applicationDAO, currentUser);
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
 
     final Organization organization1 = tempEntity.newOrganization();
     final Organization organization2 = tempEntity.newOrganization();
@@ -140,7 +150,8 @@ public class OrganizationApplicationManagementEventServiceTest
   public void testPostEvent_OrganizationSummaries_SortedByNameAlphabetically() {
     final AsyncEventBus eventBusSpy = spy(asyncEventBus);
     final OrganizationApplicationManagementEventService orgAppSummaryEventService =
-        new OrganizationApplicationManagementEventService(eventBusSpy, organizationDAO, applicationDAO, currentUser);
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
 
     final Organization organization1 = tempEntity.newOrganization("DEf");
     final Organization organization2 = tempEntity.newOrganization("abC");
@@ -159,7 +170,8 @@ public class OrganizationApplicationManagementEventServiceTest
   public void testPostEvent_CreateApplicationSummariesWhenValid() {
     final AsyncEventBus eventBusSpy = spy(asyncEventBus);
     final OrganizationApplicationManagementEventService orgAppSummaryEventService =
-        new OrganizationApplicationManagementEventService(eventBusSpy, organizationDAO, applicationDAO, currentUser);
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
 
     final Organization org = tempEntity.newOrganization();
     final Application application1 = tempEntity.newApplication("a", "a", org.getId());
@@ -199,7 +211,8 @@ public class OrganizationApplicationManagementEventServiceTest
   public void testPostEvent_ApplicationSummaries_SortedByNameAlphabetically() {
     final AsyncEventBus eventBusSpy = spy(asyncEventBus);
     final OrganizationApplicationManagementEventService orgAppSummaryEventService =
-        new OrganizationApplicationManagementEventService(eventBusSpy, organizationDAO, applicationDAO, currentUser);
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
 
     final Organization organization = tempEntity.newOrganization();
     final Application application1 = tempEntity.newApplication("ZZz", "public-id1", organization.getId());

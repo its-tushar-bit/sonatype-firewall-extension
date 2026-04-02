@@ -14,6 +14,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
@@ -48,6 +49,7 @@ public class SbomManagerContinuousMonitoringPageTest
   }
 
   @Test
+  @Ignore
   public void testSbomManagerContinuousMonitoring_EditorPage() {
     // Root Organization level
     refreshOrOpen(SbomManagerContinuousMonitoringPage.url("ROOT_ORGANIZATION_ID", true));

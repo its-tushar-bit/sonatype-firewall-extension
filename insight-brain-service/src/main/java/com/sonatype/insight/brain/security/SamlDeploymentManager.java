@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.security;
 
 import java.security.cert.Certificate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -26,6 +26,7 @@ import org.keycloak.adapters.saml.DefaultSamlDeployment.DefaultSingleLogoutServi
 import org.keycloak.adapters.saml.DefaultSamlDeployment.DefaultSingleSignOnService;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlDeployment.Binding;
+import org.keycloak.adapters.saml.SamlPrincipal;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
@@ -219,7 +220,13 @@ public class SamlDeploymentManager
       singleLogoutService.setResponseBinding(getBinding(singleLogoutEndpoint));
     }
 
-    defaultSamlDeployment.setRoleAttributeNames(Collections.emptySet());
+    // Must include the Keycloak default role attribute name ("Roles") because
+    // AbstractSamlAuthenticationHandler.handleLoginResponse() always executes:
+    // attributes.put("Roles", new ArrayList(roles));
+    // which overwrites any SAML attribute literally named "Roles" with the internal roles set.
+    // The internal roles in turn are only populated if one or more of the passed attributes
+    // has a name contained in roleAttributeNames.
+    defaultSamlDeployment.setRoleAttributeNames(Set.of(SamlPrincipal.DEFAULT_ROLE_ATTRIBUTE_NAME));
     return defaultSamlDeployment;
   }
 

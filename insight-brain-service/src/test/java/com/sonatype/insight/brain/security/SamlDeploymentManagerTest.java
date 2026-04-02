@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -21,12 +19,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.io.Resources;
 import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlDeployment.Binding;
 import org.keycloak.adapters.saml.SamlDeployment.IDP;
 import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleLogoutService;
 import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleSignOnService;
+import org.keycloak.adapters.saml.SamlPrincipal;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.saml.SignatureAlgorithm;
 import org.mockito.Mock;
@@ -145,7 +145,8 @@ public class SamlDeploymentManagerTest
         .isEqualTo(samlConfiguration.getSigningKeyPair().getPrivate().getEncoded());
     assertThat(samlDeployment.getSigningKeyPair().getPublic().getEncoded())
         .isEqualTo(samlConfiguration.getSigningKeyPair().getPublic().getEncoded());
-    assertThat(samlDeployment.getRoleAttributeNames()).isEmpty();
+    assertThat(samlDeployment.getRoleAttributeNames())
+        .containsExactly(SamlPrincipal.DEFAULT_ROLE_ATTRIBUTE_NAME);
 
     IDP idp = samlDeployment.getIDP();
     assertThat(idp.getEntityID()).isEqualTo("idp-entity-id");

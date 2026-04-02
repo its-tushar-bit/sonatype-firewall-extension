@@ -94,6 +94,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
+@Ignore("CLM-39087 LocalStack container fails to start in CI (exit code 126)")
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class CopyStorageServiceTest

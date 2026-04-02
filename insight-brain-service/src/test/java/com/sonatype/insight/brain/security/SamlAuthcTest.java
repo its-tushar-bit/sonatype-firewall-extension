@@ -121,6 +121,11 @@ public class SamlAuthcTest
     for (int i = 0; i < nodes.getLength(); i++) {
       nodes.item(i).setTextContent(entityId);
     }
+    NodeList scdNodes = document.getElementsByTagNameNS(
+        JBossSAMLConstants.AUDIENCE.getNsUri().get(), "SubjectConfirmationData");
+    for (int i = 0; i < scdNodes.getLength(); i++) {
+      ((Element) scdNodes.item(i)).setAttribute("Recipient", samlEndpoint);
+    }
     return document;
   }
 
@@ -265,6 +270,24 @@ public class SamlAuthcTest
     assertResponseStatus(200, response);
     assertThat(response.getBodyText()).contains("<INPUT TYPE=\"HIDDEN\" NAME=\"SAMLRequest\"");
     assertThat(logOutput).atInfoLevel().containsPattern("Assertion .* is not addressed to this SP");
+  }
+
+  @Test
+  public void testLoginResponse_MismatchingRecipient() throws Exception {
+    configureSaml();
+
+    Document doc = loadMessage("login-response.xml");
+    NodeList scdNodes = doc.getElementsByTagNameNS(
+        JBossSAMLConstants.AUDIENCE.getNsUri().get(), "SubjectConfirmationData");
+    for (int i = 0; i < scdNodes.getLength(); i++) {
+      ((Element) scdNodes.item(i)).setAttribute("Recipient", "mismatching-recipient");
+    }
+    finishIdpMessage(doc, SIGN_DOCUMENT, SIGN_ASSERTION);
+
+    HttpResponse response = samlRequest().with(samlResponse(doc)).post();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("<INPUT TYPE=\"HIDDEN\" NAME=\"SAMLRequest\"");
   }
 
   @Test

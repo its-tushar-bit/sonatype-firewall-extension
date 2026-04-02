@@ -40,6 +40,7 @@ import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaive
 import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
@@ -55,7 +56,7 @@ export default function AutoWaiverDetails() {
   const selectedOwner = useSelector(selectSelectedOwner);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);
-  const isWaiverDetailsPage = currentRouteName === 'waiver.details';
+  const isWaiverDetailsPage = currentRouteName === 'waiver.details' || currentRouteName === FIREWALL_WAIVER_DETAILS;
 
   const {
     createTime,

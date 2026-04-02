@@ -10,6 +10,7 @@ import { Messages } from 'MainRoot/util/CommonServices';
 import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
 import { selectCurrentRouteName, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 const REDUCER_NAME = 'autoWaiverDetails';
 
@@ -27,15 +28,17 @@ const loadAutoWaiverDetails = createAsyncThunk(
     const { ownerType, autoWaiverOwnerId, autoWaiverId, ownerId, waiverId } = selectRouterCurrentParams(state);
     const currentRoute = selectCurrentRouteName(state);
 
-    if (currentRoute === 'waiver.details') {
+    const normalizedOwnerType = ownerType === 'root_organization' ? 'organization' : ownerType;
+
+    if (currentRoute === 'waiver.details' || currentRoute === FIREWALL_WAIVER_DETAILS) {
       return axios
-        .get(getAutoWaiversConfigurationURLWaiver(ownerType, ownerId, waiverId))
+        .get(getAutoWaiversConfigurationURLWaiver(normalizedOwnerType, ownerId, waiverId))
         .then(prop('data'))
         .catch(rejectWithValue);
     }
 
     return axios
-      .get(getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId))
+      .get(getAutoWaiversConfigurationURLWaiver(normalizedOwnerType, autoWaiverOwnerId, autoWaiverId))
       .then(prop('data'))
       .catch(rejectWithValue);
   }

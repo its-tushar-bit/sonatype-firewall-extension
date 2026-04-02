@@ -9,6 +9,7 @@ import { getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation'
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 import { lensPath, set } from 'ramda';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 describe('Auto Waiver Details', function () {
   let axiosMock,
@@ -412,5 +413,134 @@ describe('Auto Waiver Details', function () {
 
     const exclusionLogTable = await screen.findByRole('table');
     expect(exclusionLogTable).toBeInTheDocument();
+  });
+
+  describe('when viewing auto-waiver details from Firewall dashboard (FIREWALL_WAIVER_DETAILS route)', () => {
+    beforeEach(() => {
+      initialState = {
+        router: {
+          currentParams: {
+            ownerId: autoWaiverOwnerId,
+            waiverId: autoWaiverId,
+            ownerType,
+            type: 'autoWaiver',
+          },
+          currentState: {
+            name: FIREWALL_WAIVER_DETAILS,
+          },
+        },
+      };
+
+      // API should be called with ownerId and waiverId (not autoWaiverOwnerId/autoWaiverId)
+      expectedAutoWaiverDetailsUrl = getAutoWaiversConfigurationURLWaiver(ownerType, autoWaiverOwnerId, autoWaiverId);
+      axiosMock.onGet(expectedAutoWaiverDetailsUrl).reply(200, autoWaiverDetails);
+    });
+
+    it('loads and renders auto-waiver details correctly', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      const autoWaiver = await screen.findByTestId('auto-waiver-details-version');
+      expect(autoWaiver).toBeInTheDocument();
+
+      // Verify the correct API endpoint was called
+      expect(axiosMock.history.get.length).toBe(1);
+      expect(axiosMock.history.get[0].url).toBe(expectedAutoWaiverDetailsUrl);
+    });
+
+    it('does not render edit and delete buttons (read-only view)', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    it('does not render the exclusion log table (read-only view)', async () => {
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      expect(screen.queryByRole('heading', { name: 'Exclusion Log' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('owner type normalization', () => {
+    it('normalizes "root_organization" to "organization" when calling API', async () => {
+      const rootOrgOwnerType = 'root_organization';
+
+      initialState = {
+        router: {
+          currentParams: {
+            autoWaiverId,
+            autoWaiverOwnerId,
+            organizationId,
+            ownerType: rootOrgOwnerType,
+          },
+          currentState: {
+            name: 'management.edit.organization.auto-waiver-details',
+          },
+        },
+        orgsAndPolicies: {
+          selectedOwner: {
+            id: autoWaiverOwnerId,
+          },
+        },
+      };
+
+      // API should be called with 'organization', not 'root_organization'
+      const normalizedUrl = getAutoWaiversConfigurationURLWaiver('organization', autoWaiverOwnerId, autoWaiverId);
+      axiosMock.onGet(normalizedUrl).reply(200, autoWaiverDetails);
+
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      const autoWaiver = await screen.findByTestId('auto-waiver-details-version');
+      expect(autoWaiver).toBeInTheDocument();
+
+      // Verify API was called with normalized 'organization' type
+      const waiverDetailsCall = axiosMock.history.get.find((call) => call.url === normalizedUrl);
+      expect(waiverDetailsCall).toBeDefined();
+      expect(waiverDetailsCall.url).toContain('/organization/');
+      expect(waiverDetailsCall.url).not.toContain('/root_organization/');
+    });
+
+    it('normalizes "root_organization" to "organization" for FIREWALL_WAIVER_DETAILS route', async () => {
+      const rootOrgOwnerType = 'root_organization';
+
+      initialState = {
+        router: {
+          currentParams: {
+            ownerId: autoWaiverOwnerId,
+            waiverId: autoWaiverId,
+            ownerType: rootOrgOwnerType,
+            type: 'autoWaiver',
+          },
+          currentState: {
+            name: FIREWALL_WAIVER_DETAILS,
+          },
+        },
+      };
+
+      // API should be called with 'organization', not 'root_organization'
+      const normalizedUrl = getAutoWaiversConfigurationURLWaiver('organization', autoWaiverOwnerId, autoWaiverId);
+      axiosMock.onGet(normalizedUrl).reply(200, autoWaiverDetails);
+
+      await waitFor(() => {
+        renderComponent();
+      });
+
+      const autoWaiver = await screen.findByTestId('auto-waiver-details-version');
+      expect(autoWaiver).toBeInTheDocument();
+
+      // Verify API was called with normalized 'organization' type
+      expect(axiosMock.history.get[0].url).toBe(normalizedUrl);
+      expect(axiosMock.history.get[0].url).toContain('/organization/');
+      expect(axiosMock.history.get[0].url).not.toContain('/root_organization/');
+    });
   });
 });

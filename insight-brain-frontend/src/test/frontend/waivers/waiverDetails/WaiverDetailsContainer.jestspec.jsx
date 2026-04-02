@@ -45,6 +45,18 @@ describe('WaiverDetailsContainer', () => {
     expect(screen.getByRole('heading', { name: 'Auto-Waiver Details' })).toBeInTheDocument();
   });
 
+  it('should render AutoWaiverDetails when type is autoWaiver on FIREWALL_WAIVER_DETAILS route', () => {
+    const firewallAutoWaiverState = set(
+      lensPath(['router', 'currentState', 'name']),
+      'firewall.waiver.details',
+      defaultPreloadedState
+    );
+
+    renderComponent(firewallAutoWaiverState);
+    expect(screen.getByTestId('auto-waiver-details')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Auto-Waiver Details' })).toBeInTheDocument();
+  });
+
   it('should render WaiverDetails when type is not autoWaiver', () => {
     const typeLens = lensPath(['router', 'currentParams', 'type']);
     const newState = set(typeLens, 'waiver', defaultPreloadedState);

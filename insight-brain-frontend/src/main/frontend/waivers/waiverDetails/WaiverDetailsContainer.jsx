@@ -13,7 +13,7 @@ import {
 import WaiverDetails from './WaiverDetails';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
-import { FIREWALL_FIREWALLPAGE_WAIVERS } from 'MainRoot/constants/states';
+import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 export default function WaiverDetailsContainer() {
   const currentRouteName = useSelector(selectCurrentRouteName);
@@ -24,7 +24,9 @@ export default function WaiverDetailsContainer() {
     ? FIREWALL_FIREWALLPAGE_WAIVERS
     : 'dashboard.overview.waivers';
 
-  const showAutoWaiverDetails = currentRouteName === 'waiver.details' && routerCurrentParams?.type === 'autoWaiver';
+  const showAutoWaiverDetails =
+    (currentRouteName === 'waiver.details' || currentRouteName === FIREWALL_WAIVER_DETAILS) &&
+    routerCurrentParams?.type === 'autoWaiver';
 
   return (
     <>

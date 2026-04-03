@@ -41,6 +41,8 @@ public class DatabaseConfig
 
   private int connectionValidationTimeoutSeconds;
 
+  private int maxWaitSeconds = -1;
+
   private String applicationName;
 
   public String getDriverClassName() {
@@ -169,6 +171,14 @@ public class DatabaseConfig
 
   public void setConnectionValidationTimeoutSeconds(int connectionValidationTimeoutSeconds) {
     this.connectionValidationTimeoutSeconds = connectionValidationTimeoutSeconds;
+  }
+
+  public int getMaxWaitSeconds() {
+    return maxWaitSeconds;
+  }
+
+  public void setMaxWaitSeconds(final int maxWaitSeconds) {
+    this.maxWaitSeconds = maxWaitSeconds;
   }
 
   public String getApplicationName() {

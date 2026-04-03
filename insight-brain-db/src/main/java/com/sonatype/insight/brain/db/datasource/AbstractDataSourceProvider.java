@@ -55,6 +55,7 @@ public abstract class AbstractDataSourceProvider
     dataSource.setAutoCommitOnReturn(databaseConfig.isAutoCommitOnReturnToPool());
     dataSource.setTestOnBorrow(true);
     dataSource.setValidationQueryTimeout(Duration.ofSeconds(databaseConfig.getConnectionValidationTimeoutSeconds()));
+    dataSource.setMaxWait(Duration.ofSeconds(databaseConfig.getMaxWaitSeconds()));
     dataSource.setAccessToUnderlyingConnectionAllowed(databaseConfig.isAccessToUnderlyingConnectionAllowed());
     if (databaseConfig.getSessionVariables() != null) {
       dataSource.addConnectionProperty("sessionVariables", databaseConfig.getSessionVariables());

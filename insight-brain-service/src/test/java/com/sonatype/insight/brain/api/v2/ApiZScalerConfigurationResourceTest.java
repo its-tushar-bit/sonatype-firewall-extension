@@ -65,7 +65,7 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testGetZScalerConfiguration() throws Exception {
     ZScalerConfiguration config = tempEntity.newZScalerConfiguration("user", "password",
-        "https://api.zscaler.net", "apikey", true, true, true, true);
+        "https://api.zscaler.net", "apikey123456", true, true, true, true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).get();
 
@@ -97,7 +97,7 @@ public class ApiZScalerConfigurationResourceTest
     request.setUsername("testusername");
     request.setPassword("testpassword");
     request.setHostname("https://api.zscaler.net");
-    request.setApiKey("testapikey");
+    request.setApiKey("testapikey12");
     request.setMavenFormatEnabled(true);
     request.setEulaAgreed(true);
 
@@ -139,7 +139,7 @@ public class ApiZScalerConfigurationResourceTest
     request.setUsername("testusername");
     request.setPassword("testpassword");
     request.setHostname("https://api.zscaler.net");
-    request.setApiKey("testapikey");
+    request.setApiKey("testapikey12");
     request.setMavenFormatEnabled(true);
     request.setEulaAgreed(false);
 
@@ -156,7 +156,7 @@ public class ApiZScalerConfigurationResourceTest
     request.setUsername("testusername");
     request.setPassword("testpassword");
     request.setHostname("https://api.zscaler.net");
-    request.setApiKey("testapikey");
+    request.setApiKey("testapikey12");
     request.setEulaAgreed(true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).body(request).put();
@@ -210,8 +210,37 @@ public class ApiZScalerConfigurationResourceTest
   }
 
   @Test
+  public void testTestZScalerConfiguration_InvalidApiKeyLength() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("username");
+    request.setPassword("password");
+    request.setHostname("https://api.zscaler.net");
+    request.setApiKey("short");
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
+  public void testTestZScalerConfiguration_ApiKeyTooLong() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("username");
+    request.setPassword("password");
+    request.setHostname("https://api.zscaler.net");
+    request.setApiKey("toolongapikey123");
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
   public void testDeleteZScalerConfiguration() throws Exception {
-    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey", true, true, true, true);
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey123456", true, true, true,
+        true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).delete();
 
@@ -372,10 +401,12 @@ public class ApiZScalerConfigurationResourceTest
             .withQueryParam("customOnly", equalTo("true")));
 
     // Account for:
-    // - 4 POSTs from update operation (update configured format and delete of MAVEN/NPM/PYPI with real URLs)
+    // - 3 DELETE POSTs with real URLs (MAVEN, NPM, PYPI)
+    // - 4 UPDATE POSTs with real URLs from malicious URL fetcher (MAVEN, NPM, PYPI, NUGET)
+    // - Total: 7 POSTs without "placeholder"
     // Note: Functional permission test no longer runs during update operations
     zScalerMockServer.getWireMockServer()
-        .verify(4, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
+        .verify(7, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
     // Account for delete of NUGET format only (uses placeholder)
     zScalerMockServer.getWireMockServer()
@@ -440,8 +471,8 @@ public class ApiZScalerConfigurationResourceTest
     String username = "username";
     String password = passwordHandler.encryptPassword("password");
     String apiKey = "cajgffdcgkej";
-    tempEntity.newZScalerConfiguration(username, password, zScalerMockServer.getBaseUrl(), apiKey, true,
-        false, false, false);
+    tempEntity.newZScalerConfiguration(username, password, zScalerMockServer.getBaseUrl(), apiKey, true, true, true,
+        true);
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetQuota(200, "{\"uniqueUrlsProvisioned\":\"1000\", \"remainingUrlsQuota\":\"10\"}");
     // Don't override getCustomUrlCategories - let the functional test mock handle it
@@ -457,7 +488,7 @@ public class ApiZScalerConfigurationResourceTest
     request.setUsername("testusername");
     request.setPassword("testpassword");
     request.setHostname("ftp://invalid-protocol.com");
-    request.setApiKey("testapikey");
+    request.setApiKey("testapikey12");
     request.setMavenFormatEnabled(true);
     request.setEulaAgreed(true);
 

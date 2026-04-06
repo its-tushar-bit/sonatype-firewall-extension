@@ -242,6 +242,7 @@ public class ApiZScalerServiceTest
   public void testUpdateCategory_whenQuotaIsNotCached() {
     when(configurationDAO.get()).thenReturn(config);
     when(cache.getIfPresent(anyString())).thenReturn(null);
+    when(passwordHandler.decryptPassword(anyString())).thenReturn("password");
     when(client.getZScalerQuota(config.getHostname())).thenReturn(new ZScalerQuota(99, 1));
 
     ApiZScalerQuotaDTO response = underTest.getQuota();
@@ -487,5 +488,77 @@ public class ApiZScalerServiceTest
     verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-2-shadow-download-defense"),
         anyList());
     verify(metricsDAO).set(any());
+  }
+
+  @Test
+  public void testAuthenticate_withNullHostname() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate(null, "username", "password", "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The hostname is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withEmptyHostname() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("   ", "username", "password", "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The hostname is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withNullUsername() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", null, "password", "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The username is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withEmptyUsername() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "  ", "password", "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The username is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withNullPassword() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "username", null, "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The password is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withEmptyPassword() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "username", "  ", "apikey123456"));
+
+    assertThat(exception.getMessage()).isEqualTo("The password is required.");
+  }
+
+  @Test
+  public void testAuthenticate_withNullApiKey() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "username", "password", null));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
+  public void testAuthenticate_withInvalidApiKeyLengthTooShort() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "username", "password", "short"));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
+  public void testAuthenticate_withInvalidApiKeyLengthTooLong() {
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("https://api.zscaler.net", "username", "password", "toolongapikey123"));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey must be exactly 12 characters.");
   }
 }

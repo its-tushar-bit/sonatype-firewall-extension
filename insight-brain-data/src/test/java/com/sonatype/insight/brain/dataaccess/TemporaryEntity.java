@@ -1027,8 +1027,8 @@ public class TemporaryEntity
       delete(componentChangeDetectionConfigurationDAO.getAll(), componentChangeDetectionConfigurationDAO);
       delete(componentChangeDetectionEventDAO.getAll(), componentChangeDetectionEventDAO);
       delete(clusterIdentificationDAO.getAll(), clusterIdentificationDAO);
-      delete(zScalerConfigurationDAO.getAll(), zScalerConfigurationDAO);
       delete(zscalerFormatDAO.getAll(), zscalerFormatDAO);
+      delete(zScalerConfigurationDAO.getAll(), zScalerConfigurationDAO);
       delete(enterpriseReportingFilterDAO.getAll(), enterpriseReportingFilterDAO);
       delete(enterpriseReportingDefaultFilterDAO.getAll(), enterpriseReportingDefaultFilterDAO);
       delete(versionEvaluationWindowDAO.getAll(), versionEvaluationWindowDAO);

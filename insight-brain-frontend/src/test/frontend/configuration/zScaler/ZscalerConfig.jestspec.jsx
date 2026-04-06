@@ -140,7 +140,6 @@ describe('ZscalerConfig', () => {
     expect(hostnameInput).toHaveValue('');
     expect(apiKeyInput).toBeInTheDocument();
     expect(apiKeyInput).toHaveAccessibleDescription(apiKeyDesc);
-    expect(apiKeyInput).toHaveAttribute('placeholder', '465');
     expect(apiKeyInput).toHaveValue('');
     expect(eulaCheckboxInput).toBeInTheDocument();
     expect(eulaCheckboxInput).not.toBeChecked();
@@ -173,7 +172,7 @@ describe('ZscalerConfig', () => {
         usernameState: initUserInput('testUser'),
         passwordState: initUserInput(FAKE_PASSWORD), // password is null
         hostnameState: initUserInput('https://zsapi.zscalertwo.net'),
-        apiKeyState: initUserInput('123'),
+        apiKeyState: initUserInput('validapikey1'),
         eulaState: {
           value: true,
           isPristine: false,
@@ -190,7 +189,7 @@ describe('ZscalerConfig', () => {
           username: 'testUser',
           password: FAKE_PASSWORD,
           hostname: 'https://zsapi.zscalertwo.net',
-          apiKeyState: '123',
+          apiKeyState: 'validapikey1',
         },
       })
     );
@@ -199,7 +198,7 @@ describe('ZscalerConfig', () => {
     expect(screen.getByLabelText('Username')).toHaveValue('testUser');
     expect(screen.getByLabelText('Password')).toHaveValue(FAKE_PASSWORD);
     expect(screen.getByLabelText('Hostname')).toHaveValue('https://zsapi.zscalertwo.net');
-    expect(screen.getByLabelText('Zscaler API Key')).toHaveValue('123');
+    expect(screen.getByLabelText('Zscaler API Key')).toHaveValue('validapikey1');
     expect(screen.getByRole('button', { name: '2 of 4' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeDisabled();
@@ -242,8 +241,8 @@ describe('ZscalerConfig', () => {
     fireEvent.change(hostnameInput, { target: { value: 'https://zsapi.zscalertwo.test.net' } });
     expect(setHostnameMock).toHaveBeenCalledWith('https://zsapi.zscalertwo.test.net', expect.anything());
 
-    fireEvent.change(apiKeyInput, { target: { value: '111' } });
-    expect(setApiKeyMock).toHaveBeenCalledWith('111', expect.anything());
+    fireEvent.change(apiKeyInput, { target: { value: 'validapikey2' } });
+    expect(setApiKeyMock).toHaveBeenCalledWith('validapikey2', expect.anything());
 
     fireEvent.click(formatDropdownButton);
     const mavenCheckbox = screen.getByRole('checkbox', { name: 'Maven' });
@@ -314,7 +313,7 @@ describe('ZscalerConfig', () => {
         usernameState: userInput(null, 'testUser'),
         passwordState: userInput(null, 'password'),
         hostnameState: userInput(null, 'https://zsapi.zscalertwo.net'),
-        apiKeyState: userInput(null, '123'),
+        apiKeyState: userInput(null, 'validapikey1'),
         testConfig: testConfigMock,
         hasAllRequiredDataForTestConfig: true,
         isDirty: true,

@@ -10,7 +10,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 
 import { hasValidationErrors, validateNonEmpty } from '../../util/validationUtil';
-import { validateZScalerHostName } from './utils/validators';
+import { validateZScalerHostName, validateZscalerApiKey } from './utils/validators';
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
 import { getZScalerConfigUrl, getZScalerTestConfigUrl } from '../../util/CLMLocation';
@@ -32,7 +32,7 @@ export const initialState = {
     username: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     password: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     hostname: nxTextInputStateHelpers.initialState('', validateZScalerHostName),
-    apiKey: nxTextInputStateHelpers.initialState('', validateNonEmpty),
+    apiKey: nxTextInputStateHelpers.initialState('', validateZscalerApiKey),
     eula: {
       value: false,
       isPristine: true,
@@ -102,15 +102,16 @@ function computeHasAllRequiredData(state) {
     } = state,
     // Check if hostname has value AND no validation errors
     isHostnameValid = hostname.value && (!hostname.validationErrors || hostname.validationErrors.length === 0),
+    isApiKeyValid = apiKey.value && (!apiKey.validationErrors || apiKey.validationErrors.length === 0),
     hasAllRequiredData = !!(
       username.value &&
       password.value &&
       isHostnameValid &&
-      apiKey.value &&
+      isApiKeyValid &&
       configuredFormatState.formats.size > 0 &&
       eula.value
     ),
-    hasAllRequiredDataForTestConfig = !!(username.value && password.value && isHostnameValid && apiKey.value);
+    hasAllRequiredDataForTestConfig = !!(username.value && password.value && isHostnameValid && isApiKeyValid);
 
   return { ...state, hasAllRequiredData, hasAllRequiredDataForTestConfig };
 }
@@ -397,7 +398,7 @@ const zscalerConfigSlice = createSlice({
     setUsername: setTextInput('username', validateNonEmpty),
     setPassword: setTextInput('password', validateNonEmpty),
     setHostname: setTextInput('hostname', validateZScalerHostName),
-    setApiKey: setTextInput('apiKey', validateNonEmpty),
+    setApiKey: setTextInput('apiKey', validateZscalerApiKey),
     setShowDeleteModal: propSet('showDeleteModal'),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
     setEulaCheckbox: setEulaCheckbox,

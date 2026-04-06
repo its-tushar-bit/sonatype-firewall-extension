@@ -62,7 +62,7 @@ public class ZScalerClientTest
     // Authentication response
     when(authResponse.statusCode()).thenReturn(200);
 
-    underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp");
+    underTest.authenticate("http://example.com", "user", "pass", "validapikey1", "timestamp");
 
     // Should make only 1 call: auth
     verify(mockHttpClient, times(1)).send(any(), any());
@@ -75,7 +75,7 @@ public class ZScalerClientTest
     when(mockHttpResponse.body()).thenReturn("Unauthorized");
 
     BadRequestException exception = assertThrows(BadRequestException.class,
-        () -> underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp"));
+        () -> underTest.authenticate("http://example.com", "user", "pass", "validapikey1", "timestamp"));
 
     assertEquals("Authentication failed: Unauthorized", exception.getMessage());
   }
@@ -153,7 +153,7 @@ public class ZScalerClientTest
   public void testAuthenticate_integratesWithUrlValidation_invalidProtocol() {
     // Test that client layer calls validation before attempting authentication
     BadRequestException exception = assertThrows(BadRequestException.class,
-        () -> underTest.authenticate("ftp://badurl.com", "user", "pass", "apiKey", "timestamp"));
+        () -> underTest.authenticate("ftp://badurl.com", "user", "pass", "validapikey1", "timestamp"));
 
     assertThat(exception.getMessage())
         .isEqualTo("Protocol must be http or https");
@@ -163,7 +163,7 @@ public class ZScalerClientTest
   public void testAuthenticate_integratesWithUrlValidation_nullHostname() {
     // Test that client layer validates null hostnames
     BadRequestException exception = assertThrows(BadRequestException.class,
-        () -> underTest.authenticate(null, "user", "pass", "apiKey", "timestamp"));
+        () -> underTest.authenticate(null, "user", "pass", "validapikey1", "timestamp"));
 
     assertThat(exception.getMessage()).isEqualTo("Host name is required");
   }

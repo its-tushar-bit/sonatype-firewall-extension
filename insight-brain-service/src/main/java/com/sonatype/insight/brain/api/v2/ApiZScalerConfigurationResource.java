@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.zscaler.ApiZScalerService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
 import com.sonatype.insight.brain.zscaler.ZScalerSupportedFormat;
 import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Timed
@@ -154,6 +156,11 @@ public class ApiZScalerConfigurationResource
           "</ul>",
           useParameterTypeSchema = true) ApiZScalerConfigurationDTO configurationDTO)
   {
+    // Validate API key length at resource layer for better error messages
+    if (!StringUtils.isBlank(configurationDTO.getApiKey()) && configurationDTO.getApiKey().length() != 12) {
+      throw new BadRequestException("The apiKey must be exactly 12 characters.");
+    }
+
     zScalerService.authenticateAndValidatePermissions(configurationDTO.getHostname(),
         configurationDTO.getUsername(), configurationDTO.getPassword(), configurationDTO.getApiKey());
   }

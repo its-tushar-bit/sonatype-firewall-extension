@@ -34,4 +34,13 @@ function validateZScalerHostName(val) {
   }
 }
 
-export { validateZScalerHostName };
+function validateZscalerApiKey(val) {
+  if (!val) return 'API key is required';
+
+  if (val.length !== 12) {
+    return 'API key must be 12 characters.';
+  }
+  return null;
+}
+
+export { validateZScalerHostName, validateZscalerApiKey};

@@ -53,7 +53,7 @@ public class ApiZScalerConfigurationServiceTest
   @Test
   public void testGetConfiguration() {
     ZScalerConfiguration config = tempEntity.newZScalerConfiguration("user", "password",
-        "https://api.zscaler.net", "apikey", true, false, false, true);
+        "https://api.zscaler.net", "validapikey1", true, false, false, true);
 
     ApiZScalerConfigurationDTO dto = underTest.getConfiguration();
 
@@ -75,7 +75,7 @@ public class ApiZScalerConfigurationServiceTest
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
     dto.setHostname("https://api.zscaler.net");
-    dto.setApiKey("testapikey");
+    dto.setApiKey("testapikey12");
     dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
 
@@ -118,7 +118,7 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration() {
-    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey",
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "validapikey1",
         true, false, false, false);
 
     underTest.deleteConfiguration();
@@ -138,7 +138,7 @@ public class ApiZScalerConfigurationServiceTest
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
     dto.setHostname("https://");
-    dto.setApiKey("testapikey");
+    dto.setApiKey("validapikey1");
     dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
 
@@ -154,7 +154,7 @@ public class ApiZScalerConfigurationServiceTest
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
     dto.setHostname("ftp://api.zscaler.net");
-    dto.setApiKey("testapikey");
+    dto.setApiKey("testapikey12");
     dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
 
@@ -162,5 +162,102 @@ public class ApiZScalerConfigurationServiceTest
         () -> underTest.setConfiguration(dto));
 
     assertThat(exception.getMessage()).isEqualTo("Protocol must be http or https");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_missingApiKey() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey(null);
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey is required.");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_emptyApiKey() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey("");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey is required.");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_blankApiKey() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey("   ");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey is required.");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_tooShort() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey("short");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_tooLong() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey("toolongapikey123");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("The apiKey must be exactly 12 characters.");
+  }
+
+  @Test
+  public void testSetConfiguration_apiKeyValidation_exactlyTwelveCharacters() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://api.zscaler.net");
+    dto.setApiKey("valid12chars");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    String response = underTest.setConfiguration(dto);
+
+    ZScalerConfiguration config = zScalerConfigurationDAO.get();
+    assertThat(config.getApikey()).isEqualTo("valid12chars");
+    assertThat(response).isEqualTo(String.format("You have acknowledged and agreed that %s", EULA_MESSAGE));
   }
 }

@@ -161,6 +161,10 @@ public class ApiZScalerConfigurationService
       ZScalerValidator.validateHostName(configuration.getHostname());
     }
 
+    if (!StringUtils.isBlank(configuration.getApiKey()) && configuration.getApiKey().length() != 12) {
+      throw new BadRequestException("The apiKey must be exactly 12 characters.");
+    }
+
     if (!configuration.isMavenFormatEnabled() &&
         !configuration.isNpmFormatEnabled() &&
         !configuration.isPypiFormatEnabled() &&

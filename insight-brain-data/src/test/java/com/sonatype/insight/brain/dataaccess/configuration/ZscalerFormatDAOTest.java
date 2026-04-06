@@ -25,7 +25,7 @@ public class ZscalerFormatDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createZscalerFormatDAO();
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, true, false, true);
+    tempEntity.newZScalerConfiguration("user", "password", "host", "validapikey1", true, true, false, true);
   }
 
   @Test

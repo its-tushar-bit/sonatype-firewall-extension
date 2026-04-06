@@ -102,6 +102,16 @@ public class ApiZScalerService
       final String password,
       final String apiKey)
   {
+    if (hostname == null || hostname.trim().isEmpty()) {
+      throw new BadRequestException("The hostname is required.");
+    }
+    if (username == null || username.trim().isEmpty()) {
+      throw new BadRequestException("The username is required.");
+    }
+    if (password == null || password.trim().isEmpty()) {
+      throw new BadRequestException("The password is required.");
+    }
+
     String timestamp = String.valueOf(System.currentTimeMillis());
     String obfuscatedKey = obfuscateApiKey(apiKey, timestamp);
 
@@ -465,6 +475,10 @@ public class ApiZScalerService
 
   private static String obfuscateApiKey(String key, String timestamp) {
     int apiKeySize = 12;
+    if (key == null || key.length() != apiKeySize) {
+      throw new BadRequestException("The apiKey must be exactly 12 characters.");
+    }
+
     StringBuilder retVal = new StringBuilder();
     char[] key1Arr = key.substring(0, apiKeySize - 2).toCharArray();
     char[] key2Arr = key.substring(2).toCharArray();

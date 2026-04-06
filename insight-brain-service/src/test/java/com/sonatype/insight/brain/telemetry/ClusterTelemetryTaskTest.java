@@ -88,7 +88,7 @@ public class ClusterTelemetryTaskTest
     zScalerConfiguration.setHostname("host");
     zScalerConfiguration.setUsername("user");
     zScalerConfiguration.setPassword("password");
-    zScalerConfiguration.setApikey("apikey");
+    zScalerConfiguration.setApikey("validapikey1");
     List<ZscalerFormat> zscalerFormats = new ArrayList<>();
     zscalerFormats.add(new ZscalerFormat("maven", false));
     zscalerFormats.add(new ZscalerFormat("npm", true));

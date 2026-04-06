@@ -34,7 +34,7 @@ describe('zscalerConfigSlice', () => {
       username: 'user',
       password: 'asdf',
       hostname: 'https://zsapi.zscalertwo.net',
-      apiKey: 'foo',
+      apiKey: 'validapikey1',
     };
   });
 
@@ -83,7 +83,7 @@ describe('zscalerConfigSlice', () => {
       expect(newState.formState.username.value).toBe('user');
       expect(newState.formState.password.value).toBe('\0\0\0\0\0'); // fake password will be set
       expect(newState.formState.hostname.value).toBe('https://zsapi.zscalertwo.net');
-      expect(newState.formState.apiKey.value).toBe('foo');
+      expect(newState.formState.apiKey.value).toBe('validapikey1');
     });
   });
 
@@ -138,7 +138,7 @@ describe('zscalerConfigSlice', () => {
       expect(newState.formState.username.value).toBe('user');
       expect(newState.formState.password.value).toBe('\0\0\0\0\0'); // fake password will be set
       expect(newState.formState.hostname.value).toBe('https://zsapi.zscalertwo.net');
-      expect(newState.formState.apiKey.value).toBe('foo');
+      expect(newState.formState.apiKey.value).toBe('validapikey1');
     });
   });
 
@@ -267,7 +267,7 @@ describe('zscalerConfigSlice', () => {
           username: userInput(() => 'foo', 'user-1'),
           password: userInput(() => 'foo', 'asdf'),
           hostname: userInput(() => 'foo', 'zsapi.user-1.net'),
-          apiKey: userInput(() => 'foo', 'bar'),
+          apiKey: userInput(() => 'foo', 'validapikey2'),
         },
         serverData: payload,
       });
@@ -279,7 +279,7 @@ describe('zscalerConfigSlice', () => {
       expect(newState.formState.username.value).toBe('user');
       expect(newState.formState.password.value).toBe('\0\0\0\0\0'); // fake password will be set
       expect(newState.formState.hostname.value).toBe('https://zsapi.zscalertwo.net');
-      expect(newState.formState.apiKey.value).toBe('foo');
+      expect(newState.formState.apiKey.value).toBe('validapikey1');
     });
   });
 
@@ -392,22 +392,52 @@ describe('zscalerConfigSlice', () => {
 
       expect(newState.formState.apiKey.value).toBe('');
       expect(newState.formState.apiKey.isPristine).toBe(false);
-      expect(newState.formState.apiKey.validationErrors).toContain('Must be non-empty');
+      expect(newState.formState.apiKey.validationErrors).toContain('API key is required');
     });
 
-    it('sets the apiKey and no validation error when the payload is present', () => {
+    it('sets the apiKey and a validation error when the payload is too short', () => {
       const state = Object.freeze({
         formState: initialFormState,
       });
 
       const newState = reducer(state, {
         type: 'zscalerConfig/setApiKey',
-        payload: 'boo',
+        payload: 'short',
       });
 
-      expect(newState.formState.apiKey.value).toBe('boo');
+      expect(newState.formState.apiKey.value).toBe('short');
       expect(newState.formState.apiKey.isPristine).toBe(false);
-      expect(newState.formState.apiKey.validationErrors).toBeFalsy();
+      expect(newState.formState.apiKey.validationErrors).toContain('API key must be 12 characters.');
+    });
+
+    it('sets the apiKey and a validation error when the payload is too long', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setApiKey',
+        payload: 'toolongapikey123',
+      });
+
+      expect(newState.formState.apiKey.value).toBe('toolongapikey123');
+      expect(newState.formState.apiKey.isPristine).toBe(false);
+      expect(newState.formState.apiKey.validationErrors).toContain('API key must be 12 characters.');
+    });
+
+    it('sets the apiKey and no validation error when the payload is exactly 12 characters', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setApiKey',
+        payload: 'validapikey1',
+      });
+
+      expect(newState.formState.apiKey.value).toBe('validapikey1');
+      expect(newState.formState.apiKey.isPristine).toBe(false);
+      expect(newState.formState.apiKey.validationErrors).toBe(null);
     });
   });
 
@@ -475,6 +505,59 @@ describe('zscalerConfigSlice', () => {
       });
 
       expect(newState.showDeleteModal).toBe(true);
+    });
+  });
+
+  describe('API key validation for button enablement', () => {
+    it('setApiKey with empty value should set hasAllRequiredData to false', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setApiKey',
+        payload: '',
+      });
+
+      // Empty API key should result in validation error
+      expect(newState.formState.apiKey.validationErrors).toContain('API key is required');
+      // Should not have all required data (Save button disabled)
+      expect(newState.hasAllRequiredData).toBe(false);
+      // Should not have test config data (Test button disabled)
+      expect(newState.hasAllRequiredDataForTestConfig).toBe(false);
+    });
+
+    it('setApiKey with invalid length should set hasAllRequiredData to false', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setApiKey',
+        payload: 'short',
+      });
+
+      // Short API key should result in validation error
+      expect(newState.formState.apiKey.validationErrors).toContain('API key must be 12 characters');
+      // Should not have all required data (Save button disabled)
+      expect(newState.hasAllRequiredData).toBe(false);
+      // Should not have test config data (Test button disabled)
+      expect(newState.hasAllRequiredDataForTestConfig).toBe(false);
+    });
+
+    it('setApiKey with valid value should allow form submission when other fields are valid', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setApiKey',
+        payload: 'validapikey1',
+      });
+
+      // Valid API key should have no validation errors
+      expect(newState.formState.apiKey.validationErrors).toBe(null);
+      expect(newState.formState.apiKey.value).toBe('validapikey1');
     });
   });
 });

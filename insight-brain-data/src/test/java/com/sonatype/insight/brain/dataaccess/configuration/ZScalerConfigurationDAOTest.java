@@ -50,7 +50,7 @@ public class ZScalerConfigurationDAOTest
     config.setUsername("testuser");
     config.setPassword("testpass");
     config.setHostname("testhost");
-    config.setApikey("testapikey");
+    config.setApikey("validapikey1");
     List<ZscalerFormat> zscalerFormats = new ArrayList<>();
     zscalerFormats.add(new ZscalerFormat("maven", true));
     zscalerFormats.add(new ZscalerFormat("npm", true));
@@ -63,7 +63,7 @@ public class ZScalerConfigurationDAOTest
     assertThat(config.getUsername()).isEqualTo("testuser");
     assertThat(config.getPassword()).isEqualTo("testpass");
     assertThat(config.getHostname()).isEqualTo("testhost");
-    assertThat(config.getApikey()).isEqualTo("testapikey");
+    assertThat(config.getApikey()).isEqualTo("validapikey1");
     List<ZscalerFormat> configuredFormats = zscalerFormatDAO.getAll();
     assertThat(configuredFormats).hasSize(4);
     for (ZscalerFormat format : configuredFormats) {
@@ -75,7 +75,7 @@ public class ZScalerConfigurationDAOTest
     }
 
     config.setHostname("newhost");
-    config.setApikey("newapikey");
+    config.setApikey("validapikey2");
     for (ZscalerFormat format : configuredFormats) {
       if ("pypi".equals(format.getFormat()) || "nuget".equals(format.getFormat())) {
         format.setEnabled(true);
@@ -86,7 +86,7 @@ public class ZScalerConfigurationDAOTest
     config = dao.get();
     assertThat(config).isNotNull();
     assertThat(config.getHostname()).isEqualTo("newhost");
-    assertThat(config.getApikey()).isEqualTo("newapikey");
+    assertThat(config.getApikey()).isEqualTo("validapikey2");
     List<ZscalerFormat> updatedConfiguredFormats = zscalerFormatDAO.getAll();
     assertThat(configuredFormats).hasSize(4);
     for (ZscalerFormat format : updatedConfiguredFormats) {
@@ -146,7 +146,7 @@ public class ZScalerConfigurationDAOTest
     config.setUsername("testuser");
     config.setPassword("testpass");
     config.setHostname("testhost");
-    config.setApikey("testapikey");
+    config.setApikey("validapikey1");
     return config;
   }
 }

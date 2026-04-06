@@ -312,66 +312,107 @@ public class ExportEmbeddedDatabaseCommandTest
 
   @Test
   @H2DiskTest
-  public void testRun_ConstraintManagementStatements() throws Exception {
+  public void testRun_TransactionAndConstraintDeferral() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
     DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(this::initData);
+    service.setConfigurator(config -> {
+      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
+          Statement statement = connection.createStatement())
+      {
+        statement.execute("CREATE SCHEMA test_schema;");
+        statement.execute("CREATE TABLE test_schema.parent (id VARCHAR(36) PRIMARY KEY);");
+        statement.execute("CREATE TABLE test_schema.child (id VARCHAR(36) PRIMARY KEY, parent_id VARCHAR(36));");
+        statement.execute("ALTER TABLE test_schema.child ADD CONSTRAINT child_parent_fk " +
+            "FOREIGN KEY (parent_id) REFERENCES test_schema.parent(id);");
+        statement.execute("INSERT INTO test_schema.parent VALUES ('parent1');");
+        statement.execute("INSERT INTO test_schema.child VALUES ('child1', 'parent1');");
+      }
+      catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
 
-    boolean foundDisableConstraints = false;
-    boolean foundEnableConstraints = false;
-    int disableIndex = -1;
-    int enableIndex = -1;
+    int beginIndex = -1;
+    int alterTableIndex = -1;
+    int setConstraintsIndex = -1;
+    int copyIndex = -1;
+    int commitIndex = -1;
 
     for (int i = 0; i < lines.size(); i++) {
       String line = lines.get(i).trim();
-      if (line.equals("SET session_replication_role = replica;")) {
-        foundDisableConstraints = true;
-        disableIndex = i;
+      if (line.equals("BEGIN;")) {
+        beginIndex = i;
       }
-      if (line.equals("SET session_replication_role = DEFAULT;")) {
-        foundEnableConstraints = true;
-        enableIndex = i;
+      if (line.contains("ALTER TABLE") && line.contains("FOREIGN KEY")) {
+        alterTableIndex = i;
+      }
+      if (line.equals("SET CONSTRAINTS ALL DEFERRED;")) {
+        setConstraintsIndex = i;
+      }
+      if (line.startsWith("COPY ")) {
+        copyIndex = i;
+      }
+      if (line.equals("COMMIT;")) {
+        commitIndex = i;
       }
     }
 
-    assertThat(foundDisableConstraints).as("Should disable constraints at beginning").isTrue();
-    assertThat(foundEnableConstraints).as("Should enable constraints at end").isTrue();
-    assertThat(disableIndex).as("Disable constraints should appear early in file").isLessThan(enableIndex);
+    assertThat(beginIndex).as("Should have BEGIN transaction").isGreaterThanOrEqualTo(0);
+    assertThat(alterTableIndex).as("Should have ALTER TABLE with FK").isGreaterThanOrEqualTo(0);
+    assertThat(setConstraintsIndex).as("Should have SET CONSTRAINTS ALL DEFERRED").isGreaterThanOrEqualTo(0);
+    assertThat(copyIndex).as("Should have COPY statement").isGreaterThanOrEqualTo(0);
+    assertThat(commitIndex).as("Should have COMMIT transaction").isGreaterThanOrEqualTo(0);
+
+    assertThat(alterTableIndex).as("FK constraints must be created before SET CONSTRAINTS")
+        .isLessThan(setConstraintsIndex);
+    assertThat(setConstraintsIndex).as("SET CONSTRAINTS must come before data insertion").isLessThan(copyIndex);
+    assertThat(copyIndex).as("Data insertion must come before COMMIT").isLessThan(commitIndex);
   }
 
   @Test
   @H2DiskTest
-  public void testRun_StatementClassificationAndComments() throws Exception {
+  public void testRun_ForeignKeysAreDeferrable() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
     DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(this::initData);
+    service.setConfigurator(config -> {
+      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
+          Statement statement = connection.createStatement())
+      {
+        statement.execute("CREATE SCHEMA test_schema;");
+        statement.execute("CREATE TABLE test_schema.parent (id VARCHAR(36) PRIMARY KEY);");
+        statement.execute("CREATE TABLE test_schema.child (id VARCHAR(36) PRIMARY KEY, parent_id VARCHAR(36));");
+        statement.execute("ALTER TABLE test_schema.child ADD CONSTRAINT child_parent_fk " +
+            "FOREIGN KEY (parent_id) REFERENCES test_schema.parent(id);");
+      }
+      catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    });
 
     service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
 
-    boolean foundConstraintDisableComment = false;
-    boolean foundConstraintEnableComment = false;
+    boolean foundDeferrableForeignKey = false;
 
     for (String line : lines) {
-      if (line.contains("-- Disable foreign key constraints and triggers for bulk import")) {
-        foundConstraintDisableComment = true;
-      }
-      if (line.contains("-- Re-enable foreign key constraints and triggers")) {
-        foundConstraintEnableComment = true;
+      if (line.contains("FOREIGN KEY") && line.contains("DEFERRABLE INITIALLY IMMEDIATE")) {
+        foundDeferrableForeignKey = true;
+        break;
       }
     }
 
-    assertThat(foundConstraintDisableComment).as("Should include constraint disable comment").isTrue();
-    assertThat(foundConstraintEnableComment).as("Should include constraint enable comment").isTrue();
+    assertThat(foundDeferrableForeignKey)
+        .as("Foreign keys should be DEFERRABLE INITIALLY IMMEDIATE")
+        .isTrue();
   }
 
   private int findStatementIndex(List<String> lines, String statementPrefix) {

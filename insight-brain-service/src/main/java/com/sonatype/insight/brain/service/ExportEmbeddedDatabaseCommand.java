@@ -138,18 +138,17 @@ public class ExportEmbeddedDatabaseCommand
    * Delegates to H2's SCRIPT command for the heavy lifting in generating the SQL dump and post-processes its output to
    * be both compatible and efficient for use with PostgreSQL, specifically its psql client.
    *
-   * Uses a foreign key constraint bypass strategy: disables constraints during data load, then re-enables them.
+   * Uses a transactional foreign key deferral strategy: wraps import in a transaction with deferred constraint checking
    *
    * @see https://www.h2database.com/html/commands.html#script
    * @see https://www.postgresql.org/docs/10/app-psql.html
+   * @see https://www.postgresql.org/docs/current/sql-set-constraints.html
    */
   private void export(BufferedWriter writer, DataSource dataSource) throws Exception {
     log.info("Reading tables, please be patient");
 
-    // Start with constraint bypass commands
-    writer.write("-- Disable foreign key constraints and triggers for bulk import");
     writer.newLine();
-    writer.write("SET session_replication_role = replica;");
+    writer.write("BEGIN;");
     writer.newLine();
     writer.newLine();
 
@@ -204,6 +203,9 @@ public class ExportEmbeddedDatabaseCommand
           else if (sql.startsWith("ALTER TABLE ")) {
             sql = sql.replaceAll("(?<= ADD CONSTRAINT )\"[^\"]+\"\\.", "");
             sql = sql.replace(" NOCHECK", "");
+            if (sql.contains("FOREIGN KEY")) {
+              sql = sql.replace(";", " DEFERRABLE INITIALLY IMMEDIATE;");
+            }
             modifyStatements.add(sql);
           }
           else if (sql.startsWith("CREATE INDEX ")) {
@@ -229,13 +231,17 @@ public class ExportEmbeddedDatabaseCommand
     writeStatements(writer, tableStatements);
     writeStatements(writer, viewStatements);
     writeStatements(writer, modifyStatements);
+
+    writer.newLine();
+    writer.write("SET CONSTRAINTS ALL DEFERRED;");
+    writer.newLine();
+    writer.newLine();
+
     writeInsertStatements(writer, insertStatements);
 
-    // Re-enable foreign key constraints and triggers
     writer.newLine();
-    writer.write("-- Re-enable foreign key constraints and triggers");
     writer.newLine();
-    writer.write("SET session_replication_role = DEFAULT;");
+    writer.write("COMMIT;");
     writer.newLine();
     writer.newLine();
   }

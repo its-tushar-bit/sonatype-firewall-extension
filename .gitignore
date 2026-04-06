@@ -54,5 +54,6 @@ dependency_tree.txt
 /setup-docker-repository.sh
 /test-docker-telemetry.sh
 
-# Claude auto-review working file
+# Claude auto-review working files
 review_payload.json
+analysis_scratchpad.md

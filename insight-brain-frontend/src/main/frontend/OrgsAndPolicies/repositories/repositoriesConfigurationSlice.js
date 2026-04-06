@@ -4,7 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { compose, createAsyncThunk, original } from '@reduxjs/toolkit';
+import { enableMapSet } from 'immer';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
+
+// Enable Immer support for Set and Map in Redux state
+enableMapSet();
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
 import {
@@ -30,7 +34,13 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'repositories';
 
-const initialSortConfiguration = [
+// View types for scoping state between Repository Container and Repository Manager views
+export const VIEW_TYPES = {
+  CONTAINER: 'container', // Repository Container view (all repos from all managers)
+  MANAGER: 'manager', // Repository Manager view (repos for specific manager)
+};
+
+export const initialSortConfiguration = [
   {
     key: 'publicId',
     dir: 'asc',
@@ -50,8 +60,32 @@ const initialSortConfiguration = [
 ];
 
 export const initialState = {
-  originalRepositories: [],
-  repositories: [],
+  // Current view context (container or manager)
+  currentView: VIEW_TYPES.CONTAINER,
+
+  // Keyed by view type to maintain independent state
+  originalRepositories: {
+    [VIEW_TYPES.CONTAINER]: [],
+    [VIEW_TYPES.MANAGER]: [],
+  },
+  repositories: {
+    [VIEW_TYPES.CONTAINER]: [],
+    [VIEW_TYPES.MANAGER]: [],
+  },
+  sortConfiguration: {
+    [VIEW_TYPES.CONTAINER]: [...initialSortConfiguration],
+    [VIEW_TYPES.MANAGER]: [...initialSortConfiguration],
+  },
+  repositoryPublicIdFilter: {
+    [VIEW_TYPES.CONTAINER]: '',
+    [VIEW_TYPES.MANAGER]: '',
+  },
+  repositoryFormatsFilter: {
+    [VIEW_TYPES.CONTAINER]: new Set(),
+    [VIEW_TYPES.MANAGER]: new Set(),
+  },
+
+  // Shared state (not view-specific)
   loading: false,
   loadError: null,
   deleteError: null,
@@ -68,9 +102,6 @@ export const initialState = {
     managerName: null,
     repoManagerId: null,
   },
-  sortConfiguration: initialSortConfiguration,
-  repositoryPublicIdFilter: '',
-  repositoryFormatsFilter: new Set(),
 };
 
 const openDeleteModal = (state, { payload: { publicId, id } }) => {
@@ -88,12 +119,13 @@ const openEditRepositoryManagerNameModal = (state, { payload: { managerInstanceI
 const getNextDir = (currentDir) => (currentDir === 'asc' ? 'desc' : 'asc');
 
 const setSortConfiguration = (state, column) => {
-  const sortConfiguration = [...original(state.sortConfiguration)];
+  const currentView = state.currentView;
+  const sortConfiguration = [...original(state.sortConfiguration[currentView])];
   const index = sortConfiguration.findIndex((columnObj) => columnObj.key === column);
   if (index === 0)
     sortConfiguration[index] = { ...sortConfiguration[index], dir: getNextDir(sortConfiguration[index].dir) };
   else sortConfiguration.unshift(sortConfiguration.splice(index, 1)[0]);
-  state.sortConfiguration = sortConfiguration;
+  state.sortConfiguration[currentView] = sortConfiguration;
 };
 
 const getSortKey = (key) => {
@@ -120,8 +152,12 @@ const sortRepositoriesByConfig = (repositories, sortConfiguration) => {
 };
 
 const sortRepositories = (state, { payload: column }) => {
+  const currentView = state.currentView;
   setSortConfiguration(state, column);
-  state.repositories = sortRepositoriesByConfig(state.repositories, state.sortConfiguration);
+  state.repositories[currentView] = sortRepositoriesByConfig(
+    state.repositories[currentView],
+    state.sortConfiguration[currentView]
+  );
 };
 
 const loadRepositoriesRequested = (state) => {
@@ -131,20 +167,38 @@ const loadRepositoriesRequested = (state) => {
 };
 
 const loadRepositoriesFulfilled = (state, { payload }) => {
-  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
+  const currentView = state.currentView;
+  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration[currentView])]);
   return {
     ...state,
     loading: false,
     loadError: null,
-    originalRepositories: repos,
-    repositories: repos,
+    originalRepositories: {
+      ...state.originalRepositories,
+      [currentView]: repos,
+    },
+    repositories: {
+      ...state.repositories,
+      [currentView]: repos,
+    },
   };
 };
 
 const loadRepositoriesFailed = (state, { payload }) => {
-  state.loading = false;
-  state.repositories = null;
-  state.loadError = Messages.getHttpErrorMessage(payload);
+  const currentView = state.currentView;
+  return {
+    ...state,
+    loading: false,
+    repositories: {
+      ...state.repositories,
+      [currentView]: null,
+    },
+    originalRepositories: {
+      ...state.originalRepositories,
+      [currentView]: null,
+    },
+    loadError: Messages.getHttpErrorMessage(payload),
+  };
 };
 
 const deleteRepositoryRequested = (state) => {
@@ -254,57 +308,82 @@ const editRepositoryManagerName = createAsyncThunk(
 );
 
 const setRepositoryPublicIdFilter = (state, { payload }) => {
-  const newState = {
-    ...state,
-    repositoryPublicIdFilter: payload,
-  };
-  return filterRepositories(newState);
+  const currentView = state.currentView;
+  state.repositoryPublicIdFilter[currentView] = payload;
+  return filterRepositories(state);
 };
 
 const setRepositoryFormatsFilter = (state, { payload }) => {
-  const newState = {
-    ...state,
-    repositoryFormatsFilter: payload,
-  };
-  return filterRepositories(newState);
+  const currentView = state.currentView;
+  state.repositoryFormatsFilter[currentView] = payload;
+  return filterRepositories(state);
 };
 
 const filterRepositories = (state) => {
-  return {
-    ...state,
-    repositories: state.originalRepositories.filter((repository) => {
-      if (!repository.repository.publicId.toLowerCase().includes(state.repositoryPublicIdFilter.toLowerCase())) {
-        return false;
-      }
-      if (state.repositoryFormatsFilter.size > 0 && !state.repositoryFormatsFilter.has(repository.repository.format)) {
-        return false;
-      }
-      return true;
-    }),
-  };
+  const currentView = state.currentView;
+  const publicIdFilter = state.repositoryPublicIdFilter[currentView];
+  const formatsFilter = state.repositoryFormatsFilter[currentView];
+  const originalRepos = state.originalRepositories[currentView];
+
+  if (!originalRepos) {
+    state.repositories[currentView] = null;
+    return state;
+  }
+
+  state.repositories[currentView] = originalRepos.filter((repository) => {
+    if (!repository?.repository?.publicId?.toLowerCase().includes(publicIdFilter.toLowerCase())) {
+      return false;
+    }
+    if (formatsFilter.size > 0 && !formatsFilter.has(repository?.repository?.format)) {
+      return false;
+    }
+    return true;
+  });
+
+  return state;
 };
 
 const loadRepositoriesByManagerIdRequested = (state) => {
-  state.loading = true;
-  state.loadError = null;
-  state.repositories = [];
-  state.submitMaskState = null;
+  const currentView = state.currentView;
+  return {
+    ...state,
+    loading: true,
+    loadError: null,
+    repositories: {
+      ...state.repositories,
+      [currentView]: [],
+    },
+    originalRepositories: {
+      ...state.originalRepositories,
+      [currentView]: [],
+    },
+    submitMaskState: null,
+  };
 };
 
 const loadRepositoriesByManagerIdFulfilled = (state, { payload }) => {
-  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
+  const currentView = state.currentView;
+  const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration[currentView])]);
   return {
     ...state,
     loading: false,
     loadError: null,
-    originalRepositories: repos,
-    repositories: repos,
+    originalRepositories: {
+      ...state.originalRepositories,
+      [currentView]: repos,
+    },
+    repositories: {
+      ...state.repositories,
+      [currentView]: repos,
+    },
   };
 };
 
 const loadRepositoriesByManagerIdFailed = (state, { payload }) => {
+  const currentView = state.currentView;
   state.loading = false;
-  state.repositories = null;
+  state.repositories[currentView] = null;
+  state.originalRepositories[currentView] = null;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
@@ -324,6 +403,10 @@ const goToRepositorySummaryView = (repositoryId) => {
   };
 };
 
+const setCurrentView = (state, { payload }) => {
+  state.currentView = payload;
+};
+
 const repositoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -332,6 +415,7 @@ const repositoriesSlice = createSlice({
     setShowEditRepositoryManagerNameModal: propSet('showEditRepositoryManagerNameModal'),
     setRepositoryManagerName: pathSet(['editRepositoryManagerNameModalInfo', 'managerName']),
     resetSubmitMaskState: propSetConst('submitMaskState', null),
+    setCurrentView,
     openDeleteModal,
     openEditRepositoryManagerNameModal,
     sortRepositories,

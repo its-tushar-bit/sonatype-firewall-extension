@@ -23,7 +23,7 @@ import {
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import { actions } from './repositoriesConfigurationSlice';
+import { actions, VIEW_TYPES } from './repositoriesConfigurationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDeleteModal,
@@ -112,12 +112,17 @@ const RepositoriesConfigurationTile = () => {
   };
 
   useEffect(() => {
+    // Set the current view context based on whether we're in repository manager or container view
+    const viewType = isRepositoryManager ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER;
+    dispatch(actions.setCurrentView(viewType));
+
+    // Load repositories for the appropriate view
     if (isRepositoryManager) {
       loadRepositoriesByManagerId();
     } else {
       loadRepositories();
     }
-  }, [isRepositoryManager]);
+  }, [isRepositoryManager, owner?.id]);
 
   const deleteModal = (
     <NxModal

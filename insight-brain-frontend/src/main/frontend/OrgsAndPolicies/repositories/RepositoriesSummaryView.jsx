@@ -55,7 +55,7 @@ export default function RepositoriesSummaryView() {
             id="repositories-summary-sections"
           >
             <div id="scrollable-content">
-              <RepositoriesConfigurationTile />
+              <RepositoriesConfigurationTile key="container-view" />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile />
               <AccessTile />

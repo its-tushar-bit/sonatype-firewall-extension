@@ -68,7 +68,7 @@ export default function RepositoryManagerSummaryView() {
             id="repositories-summary-sections"
           >
             <div id="scrollable-content">
-              <RepositoriesConfigurationTile />
+              <RepositoriesConfigurationTile key={`manager-view-${entityId}`} />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
               <AccessTile />

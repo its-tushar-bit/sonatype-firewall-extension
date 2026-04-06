@@ -10,13 +10,13 @@ import {
   selectShowWelcomeScreen,
   selectUnconfiguredRepoManagersList,
   selectUnconfiguredRepoManager,
+  selectRepositories,
   selectRepositoriesList,
   selectSupportedFormats,
   selectRepositoriesByType,
   selectTotalEnabledRepositoriesByTypeAndProp,
   selectProtectionRules,
 } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
-import { selectRepositories } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 
 describe('FirewallOnboardingSelectors', () => {
   describe('selectFirewallOnboardingSlice', () => {

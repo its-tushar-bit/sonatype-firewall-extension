@@ -6,6 +6,10 @@
 import '@testing-library/jest-dom';
 import customMatchers from './customMatchers';
 import $ from 'jquery';
+import { enableMapSet } from 'immer';
+
+// Enable Immer MapSet plugin for Redux Toolkit with Set/Map support
+enableMapSet();
 
 global.$ = $;
 global.jQuery = $;

@@ -1,0 +1,267 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+// readJSON (Pipeline Utility Steps plugin) is used instead of JsonSlurper
+// because JsonSlurper returns non-serializable LazyMap objects that cause
+// NotSerializableException during Jenkins CPS pipeline serialization.
+
+def IQ_BASEURL = "https://sonatype.sonatype.app"
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  parameters {
+    string(name: 'COMMIT_SHA', description: 'The git commit SHA to generate SBOMs from (e.g., 9a3da741b08f9c7ef50a8c9d705054d799f1b1ab)')
+    string(name: 'RELEASE_VERSION', description: 'The release version label for SBOM artifacts (e.g., 1.198.0-01)')
+  }
+
+  options {
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Validate parameters') {
+      steps {
+        script {
+          if (!params.COMMIT_SHA?.trim()) {
+            error 'COMMIT_SHA is required'
+          }
+          // Prevent command injection — COMMIT_SHA must be a valid 40-char hex SHA
+          if (!(params.COMMIT_SHA ==~ /^[0-9a-fA-F]{40}$/)) {
+            error "COMMIT_SHA must be a valid 40-character hex SHA, got: '${params.COMMIT_SHA}'"
+          }
+          if (!params.RELEASE_VERSION?.trim()) {
+            error 'RELEASE_VERSION is required'
+          }
+          // RELEASE_VERSION must match expected format: X.Y.Z-NN (e.g., 1.198.0-01)
+          if (!(params.RELEASE_VERSION ==~ /^\d+\.\d+\.\d+-\d{2}$/)) {
+            error "RELEASE_VERSION must match format X.Y.Z-NN (e.g., 1.198.0-01), got: '${params.RELEASE_VERSION}'"
+          }
+          currentBuild.displayName = "#${env.BUILD_NUMBER} - ${params.RELEASE_VERSION}"
+        }
+      }
+    }
+
+    stage('Checkout commit') {
+      steps {
+        sshagent(credentials: [sonatypeZionCredentialsId()]) {
+          runSafely "git fetch origin"
+          runSafely "git checkout ${params.COMMIT_SHA}"
+        }
+        // Fix pmd-ruleset version — older commits reference v18 which no longer exists in the Maven repo
+        sh "awk '/<artifactId>pmd-ruleset<\\/artifactId>/{found=1} found && /<version>18<\\/version>/{sub(/18/,\"22\"); found=0} 1' pom.xml > pom.xml.tmp && mv pom.xml.tmp pom.xml"
+        // Remove --frozen-lockfile from frontend POM to avoid yarn install failures on older commits
+        sh "sed -i 's/--frozen-lockfile//' insight-brain-frontend/pom.xml || true"
+        // Fix npm registry URL — older commits reference the deprecated repo.sonatype.com
+        sh "sed -i 's|https://repo.sonatype.com/|https://sonatype.repo.sonatype.app/|g' insight-brain-frontend/yarn.lock || true"
+      }
+    }
+
+    stage('Build') {
+      steps {
+        script {
+          def config = mavenCommon(
+            javaVersion: 'OpenJDK 17',
+            mavenVersion: 'Maven 3.9.x',
+            useEventSpy: false,
+            mavenOptions: "-Dquick -DskipTests -Dskip-functional-test -Dpmd.skip=true -Dcheckstyle.skip=true -Dclm.skip=false -pl !insight-brain-functional-test-common,!insight-brain-java-functional-test,!nexus-mtiq-functional-test,!keycloak-server,!gitlab-server,!docker-utils,!hds-mock-server,!insight-brain-test --threads 4"
+          )
+          withSonatypeDockerRegistry() {
+            withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
+              mvn config, 'clean install'
+            }
+          }
+        }
+      }
+    }
+
+    stage('Remove test fixtures') {
+      steps {
+        // Remove test-classes that contain intentionally invalid CycloneDX/SPDX fixtures
+        // which cause the Lifecycle scanner to fail validation
+        sh 'find . -path "*/target/test-classes" -type d -exec rm -rf {} + || true'
+      }
+    }
+
+    stage('Lifecycle scan') {
+      steps {
+        script {
+          // Uses 'release' stage intentionally — SBOMs are exported from this stage via the Lifecycle API,
+          // matching the stage used by the release pipeline (Jenkinsfile.aggregateRelease)
+          nexusPolicyEvaluation(
+            iqStage: 'release',
+            iqApplication: 'insight-brain',
+            iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+            iqModuleExcludes: [
+              [moduleExclude: '**/test/**'],
+              [moduleExclude: '**/test-classes/**/module.xml']
+            ],
+            failBuildOnNetworkError: true
+          )
+        }
+      }
+    }
+
+    stage('Export SBOMs') {
+      steps {
+        script {
+          storeLifecycleSboms('insight-brain', "${params.RELEASE_VERSION}", IQ_BASEURL)
+        }
+      }
+    }
+
+    stage('Upload SBOMs') {
+      steps {
+        script {
+          def version = params.RELEASE_VERSION
+          def spdxFile = "insight-brain-${version}-spdx.json"
+          def cyclonedxFile = "insight-brain-${version}-cyclonedx.json"
+          def pdfFile = "insight-brain-${version}.pdf"
+
+          // SPDX and CycloneDX are required — fail if missing
+          if (!fileExists(spdxFile) || !fileExists(cyclonedxFile)) {
+            error "SBOM export incomplete — missing files: SPDX=${fileExists(spdxFile)}, CycloneDX=${fileExists(cyclonedxFile)}"
+          }
+
+          uploadSbom('insight-brain', version, spdxFile)
+          uploadSbom('insight-brain', version, cyclonedxFile)
+
+          // PDF is optional — only upload if it was successfully fetched
+          if (fileExists(pdfFile)) {
+            uploadSbom('insight-brain', version, pdfFile)
+          } else {
+            echo "Skipping PDF upload — file not found (no release stage PDF available)"
+          }
+        }
+      }
+    }
+
+    stage('Archive SBOMs') {
+      steps {
+        script {
+          def version = params.RELEASE_VERSION
+          def pdfFile = "insight-brain-${version}.pdf"
+
+          archiveArtifacts artifacts: "insight-brain-${version}-*.json", fingerprint: true
+
+          // PDF is optional — archive if present
+          if (fileExists(pdfFile)) {
+            archiveArtifacts artifacts: pdfFile, fingerprint: true
+          }
+
+          def sbomBaseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms/insight-brain'
+          echo "SBOM URLs:"
+          echo "  ${sbomBaseUrl}/${version}/insight-brain-${version}-spdx.json"
+          echo "  ${sbomBaseUrl}/${version}/insight-brain-${version}-cyclonedx.json"
+          if (fileExists(pdfFile)) {
+            echo "  ${sbomBaseUrl}/${version}/insight-brain-${version}.pdf"
+          } else {
+            echo "  (PDF not available for this release)"
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      node(InsightConstants.AGENT_LABEL) {
+        cleanWs()
+      }
+    }
+  }
+}
+
+/**
+ * Fetches and stores SBOMs (SPDX, CycloneDX) and PDF reports from Lifecycle.
+ */
+private void storeLifecycleSboms(String applicationName, String version, String iqBaseUrl) {
+  def response = httpRequest(
+    url: "${iqBaseUrl}/api/v2/applications?publicId=${applicationName}",
+    authentication: 'jenkins-saas-service-acct',
+    httpMode: 'GET',
+    contentType: 'APPLICATION_JSON',
+    timeout: 60,
+    consoleLogResponseBody: false,
+    validResponseCodes: '200'
+  )
+  def parsedResponse = readJSON text: response.content
+  def applicationId = parsedResponse?.applications[0]?.id
+  if (!applicationId) {
+    error "No Lifecycle applicationId found for ${applicationName}. Check that the application exists and credentials are valid."
+  }
+
+  // Fetch SPDX JSON
+  response = httpRequest(
+    url: "${iqBaseUrl}/api/v2/spdx/${applicationId}/stages/release?format=json",
+    authentication: 'jenkins-saas-service-acct',
+    httpMode: 'GET',
+    contentType: 'APPLICATION_JSON',
+    timeout: 120,
+    consoleLogResponseBody: false,
+    validResponseCodes: '200'
+  )
+  writeFile file: "${applicationName}-${version}-spdx.json", text: response.content
+
+  // Fetch CycloneDX JSON
+  response = httpRequest(
+    url: "${iqBaseUrl}/api/v2/cycloneDx/1.5/${applicationId}/stages/release",
+    authentication: 'jenkins-saas-service-acct',
+    httpMode: 'GET',
+    contentType: 'APPLICATION_JSON',
+    timeout: 120,
+    consoleLogResponseBody: false,
+    validResponseCodes: '200'
+  )
+  writeFile file: "${applicationName}-${version}-cyclonedx.json", text: response.content
+
+  // Fetch PDF report URL
+  response = httpRequest(
+    url: "${iqBaseUrl}/api/v2/reports/applications/${applicationId}",
+    authentication: 'jenkins-saas-service-acct',
+    httpMode: 'GET',
+    contentType: 'APPLICATION_JSON',
+    timeout: 60,
+    consoleLogResponseBody: false,
+    validResponseCodes: '200'
+  )
+  parsedResponse = readJSON text: response.content
+  def reportPdfUrl = parsedResponse.find { it.stage == 'release' }?.reportPdfUrl
+  if (!reportPdfUrl) {
+    echo "No release stage reportPdfUrl found for ${applicationName} — skipping PDF"
+  } else {
+    // Download PDF via httpRequest instead of curl to avoid credential leakage on redirects
+    httpRequest(
+      url: "${iqBaseUrl}/${reportPdfUrl}",
+      authentication: 'jenkins-saas-service-acct',
+      httpMode: 'GET',
+      timeout: 120,
+      outputFile: "${applicationName}-${version}.pdf",
+      validResponseCodes: '200'
+    )
+  }
+}
+
+/**
+ * Uploads SBOM artifacts to the Sonatype SBOM repository.
+ */
+private void uploadSbom(String applicationName, String version, String fileName) {
+  String baseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms'
+  def targetUrl = "${baseUrl}/${applicationName}/${version}/${fileName}"
+  def response = httpRequest(
+    url: targetUrl,
+    httpMode: 'PUT',
+    authentication: 'jenkins-at-sonatype.repo.sonatype.app',
+    uploadFile: fileName,
+    multipartName: fileName,
+    wrapAsMultipart: false,
+    timeout: 120,
+    validResponseCodes: '200:299'
+  )
+  echo "Uploaded ${fileName} (HTTP ${response.status})"
+}

@@ -48,7 +48,7 @@ public class RepositoryResultsService
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
-  RepositoryResultsService(
+  public RepositoryResultsService(
       final RepositoryDAO repositoryDAO,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final RepositoryManagerDAO repositoryManagerDAO)

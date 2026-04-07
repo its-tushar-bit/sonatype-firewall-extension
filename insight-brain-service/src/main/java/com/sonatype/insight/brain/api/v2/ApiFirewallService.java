@@ -142,7 +142,7 @@ public class ApiFirewallService
   private final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService;
 
   @Inject
-  ApiFirewallService(
+  public ApiFirewallService(
       final ProductLicense productLicense,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,

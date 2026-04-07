@@ -81,7 +81,7 @@ public class DashboardPolicyWaiverRequestService
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
   @Inject
-  DashboardPolicyWaiverRequestService(
+  public DashboardPolicyWaiverRequestService(
       final DashboardUtils dashboardUtils,
       final PolicyDAO policyDAO,
       final PolicyWaiverRequestDAO policyWaiverRequestDAO,

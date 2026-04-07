@@ -92,7 +92,7 @@ public class PolicyWaiverService
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   @Inject
-  PolicyWaiverService(
+  public PolicyWaiverService(
       final DashboardUtils dashboardUtils,
       final PolicyDAO policyDAO,
       final PolicyWaiverDAO policyWaiverDAO,

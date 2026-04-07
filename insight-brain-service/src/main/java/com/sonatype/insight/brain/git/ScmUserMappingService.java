@@ -56,7 +56,7 @@ public class ScmUserMappingService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  ScmUserMappingService(
+  public ScmUserMappingService(
       final RoleDAO roleDAO,
       final IqForScmLicenseChecker licenseChecker,
       final ScmUserMappingsDAO scmUserMappingsDAO,

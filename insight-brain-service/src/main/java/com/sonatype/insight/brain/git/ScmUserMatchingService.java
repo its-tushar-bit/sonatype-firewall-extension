@@ -89,7 +89,7 @@ public class ScmUserMatchingService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  ScmUserMatchingService(
+  public ScmUserMatchingService(
       GitClientFactory gitClientFactory,
       MembershipMappingService membershipMappingService,
       RoleDAO roleDAO,

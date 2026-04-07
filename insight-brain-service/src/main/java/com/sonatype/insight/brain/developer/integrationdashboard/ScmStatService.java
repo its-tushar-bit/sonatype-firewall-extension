@@ -29,7 +29,7 @@ public class ScmStatService
   private final DateTimeService dateTimeService;
 
   @Inject
-  ScmStatService(
+  public ScmStatService(
       final ApplicationCountHistoryService applicationCountHistoryService,
       final DateTimeService dateTimeService)
   {

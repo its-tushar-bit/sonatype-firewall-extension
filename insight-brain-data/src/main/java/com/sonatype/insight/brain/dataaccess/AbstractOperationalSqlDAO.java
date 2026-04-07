@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -159,6 +160,17 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       Function<Collection<E>, List<U>> getter)
   {
     return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore);
+  }
+
+  /**
+   * Stream variant of {@link #getListWithSqlInClause(Collection, Function)}. The getter returns a {@link Stream}
+   * (e.g. from jOOQ's {@code fetchStream()}) instead of a {@link List}. The caller must close the returned stream.
+   */
+  protected <E, U> Stream<U> getStreamWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, Stream<U>> getter)
+  {
+    return super.getStreamWithSqlInClause(inClauseValues, getter, operationalDataStore);
   }
 
   protected String getDatabaseSchema() {

@@ -10,11 +10,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 
 /**
@@ -27,31 +22,17 @@ import com.sonatype.insight.brain.model.security.Permission;
 @Target({ElementType.METHOD})
 public @interface AuthzFilter
 {
+  /**
+   * Specifies the owner type for authorization filtering. Used to select the appropriate ancestor view for
+   * performance optimization - type-specific views (e.g., {@code application_ancestor}) are faster than the
+   * generic {@code owner_ancestor} UNION ALL view.
+   */
   enum Context
   {
-    /**
-     * An existing {@link Application} entity.
-     */
     APPLICATION,
-
-    /**
-     * An existing {@link Organization} entity.
-     */
     ORGANIZATION,
-
-    /**
-     * An existing {@link Repository} entity.
-     */
     REPOSITORY,
-
-    /**
-     * An existing {@link RepositoryManager} entity.
-     */
     REPOSITORY_MANAGER,
-
-    /**
-     * An existing {@link Owner} entity.
-     */
     APPLICATION_OR_ORGANIZATION,
   }
 
@@ -61,7 +42,7 @@ public @interface AuthzFilter
   Permission permission();
 
   /**
-   * The context for the permission check.
+   * Specifies the owner type for authorization filtering. See {@link Context} for details.
    */
   Context context();
 }

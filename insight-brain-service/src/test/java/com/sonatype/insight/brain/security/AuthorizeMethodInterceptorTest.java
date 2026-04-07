@@ -23,7 +23,6 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -105,7 +104,7 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[]{"test"});
     when(invoc.proceed()).thenReturn("test");
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(false);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMap())).thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> interceptor.invoke(invoc))
         .withMessage("Insufficient permissions");
@@ -115,7 +114,7 @@ public class AuthorizeMethodInterceptorTest
   public void testInvoke_NoPrincipal() throws Throwable {
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[]{"test"});
-    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(true);
+    when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyMap())).thenReturn(true);
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> interceptor.invoke(invoc))
         .withMessage("Anonymous access forbidden");
   }

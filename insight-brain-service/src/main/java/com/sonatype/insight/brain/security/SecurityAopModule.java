@@ -20,9 +20,7 @@ public class SecurityAopModule
 {
   @Override
   protected void configureInterceptors(AnnotationResolver resolver) {
-    ContextResolver contextResolver = new ContextResolver();
-    requestInjection(contextResolver);
-    AuthorizationChecker authzChecker = new AuthorizationChecker(contextResolver);
+    AuthorizationChecker authzChecker = new AuthorizationChecker();
     requestInjection(authzChecker);
 
     bind(AuthorizationChecker.class).toInstance(authzChecker);

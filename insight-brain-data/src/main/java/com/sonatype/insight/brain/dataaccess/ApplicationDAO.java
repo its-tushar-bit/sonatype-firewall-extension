@@ -210,6 +210,27 @@ public class ApplicationDAO
     return application;
   }
 
+  /**
+   * Returns the ancestor IDs for an application identified by its public ID, using a single query that joins the
+   * application table with the application_ancestor view. The result is ordered by ancestor_distance (child to parent).
+   *
+   * @param publicId the application's public ID (case-insensitive)
+   * @return ancestor IDs ordered by distance, or empty list if the application is not found
+   */
+  public List<String> getAncestorIdsByPublicId(String publicId) {
+    publicId = normalizePublicId(publicId);
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .select(APPLICATION_ANCESTOR.ANCESTOR_ID)
+          .from(APPLICATION_ANCESTOR)
+          .join(APPLICATION)
+          .on(APPLICATION.APPLICATION_ID.eq(APPLICATION_ANCESTOR.APPLICATION_ID))
+          .where(APPLICATION.PUBLIC_ID_LOWERCASE.eq(publicId))
+          .orderBy(APPLICATION_ANCESTOR.ANCESTOR_DISTANCE)
+          .fetch(APPLICATION_ANCESTOR.ANCESTOR_ID);
+    }
+  }
+
   public Application getByName(TransactionContext tx, String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new DataAccessException("The application name cannot be null or empty.");

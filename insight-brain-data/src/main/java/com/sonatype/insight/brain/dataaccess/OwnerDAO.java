@@ -63,6 +63,9 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
@@ -73,15 +76,26 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Select;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationTag.APPLICATION_TAG;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.MembershipMapping.MEMBERSHIP_MAPPING;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RolePermission.ROLE_PERMISSION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OrganizationAncestor.ORGANIZATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryAncestor.REPOSITORY_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryContainerAncestor.REPOSITORY_CONTAINER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManagerAncestor.REPOSITORY_MANAGER_ANCESTOR;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import org.jooq.impl.DSL;
 
 @Named
 @Singleton
@@ -277,6 +291,249 @@ public class OwnerDAO
 
   public Owner getParentOwner(Owner owner) {
     return getById(owner.getParentOwnerId());
+  }
+
+  /**
+   * Batch query using the appropriate ancestor view to get only owner IDs that the user has permission to access.
+   * This method uses a single SQL query with a CTE that joins membership_mapping with role_permission to compute
+   * user contexts, then filters owner IDs based on whether they have any ancestor in the user's context IDs
+   * (including global short-circuit).
+   *
+   * @param ownerIds the IDs of the owners to check
+   * @param ownerType the type of owner to select the appropriate ancestor view (null for generic view)
+   * @param permission the permission to check
+   * @param username the username to check for user membership
+   * @param groupNames the group names to check for group membership
+   * @return a Set of owner IDs that the user has permission to access
+   */
+  public Set<String> getPermittedOwnerIds(
+      final List<String> ownerIds,
+      final OwnerType ownerType,
+      final Permission permission,
+      final String username,
+      final Set<String> groupNames)
+  {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      if (ownerType == null) {
+        return getPermittedOwnerIdsSpecific(tx, ownerIds, OWNER_ANCESTOR,
+            OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
+      }
+      else {
+        switch (ownerType) {
+          case APPLICATION:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, APPLICATION_ANCESTOR,
+                APPLICATION_ANCESTOR.APPLICATION_ID, APPLICATION_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          case ORGANIZATION:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, ORGANIZATION_ANCESTOR,
+                ORGANIZATION_ANCESTOR.ORGANIZATION_ID, ORGANIZATION_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          case REPOSITORY:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, REPOSITORY_ANCESTOR,
+                REPOSITORY_ANCESTOR.REPOSITORY_ID, REPOSITORY_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          case REPOSITORY_MANAGER:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, REPOSITORY_MANAGER_ANCESTOR,
+                REPOSITORY_MANAGER_ANCESTOR.REPOSITORY_MANAGER_ID, REPOSITORY_MANAGER_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          case REPOSITORY_CONTAINER:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, REPOSITORY_CONTAINER_ANCESTOR,
+                REPOSITORY_CONTAINER_ANCESTOR.REPOSITORY_CONTAINER_ID, REPOSITORY_CONTAINER_ANCESTOR.ANCESTOR_ID,
+                permission, username, groupNames);
+          default:
+            return getPermittedOwnerIdsSpecific(tx, ownerIds, OWNER_ANCESTOR,
+                OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
+        }
+      }
+    }
+  }
+
+  /**
+   * Batch query using a specific ancestor view with CTE-based permission resolution. The CTE joins
+   * membership_mapping with role_permission to find contexts where the user has the required permission,
+   * then the main query filters owner IDs by ancestor intersection with those contexts.
+   */
+  private <R extends Record> Set<String> getPermittedOwnerIdsSpecific(
+      TransactionContext tx,
+      List<String> ownerIds,
+      Table<R> ancestorTable,
+      Field<String> ownerIdColumn,
+      Field<String> ancestorIdColumn,
+      Permission permission,
+      String username,
+      Set<String> groupNames)
+  {
+    Set<String> effectiveGroupNames = groupNames != null ? groupNames : Collections.emptySet();
+
+    // Build membership conditions (same logic as
+    // MembershipMappingDAO.getContextIdsByUserCaseInsensitiveAndGroupsAndRoles)
+    var userCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.USER.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.eq(username)
+            .or(DSL.lower(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toLowerCase()))
+            .or(DSL.upper(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toUpperCase())));
+    var groupCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.GROUP.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(effectiveGroupNames));
+
+    // CTE: compute user's context IDs once by joining membership_mapping with role_permission
+    Name userContextsCte = DSL.name("user_contexts");
+    Select<?> userContextsQuery = tx.dsl()
+        .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
+        .from(MEMBERSHIP_MAPPING)
+        .join(ROLE_PERMISSION)
+        .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+        .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
+        .and(userCondition.or(groupCondition));
+
+    Field<String> ctxId = DSL.field(DSL.name("user_contexts", "context_id"), String.class);
+
+    // Main query: return entity IDs that pass authz, using getStreamWithSqlInClause for IN clause partitioning
+    // When permission is global, any user who has the permission in ANY context can access all entities
+    // (the CTE will be non-empty if they have it anywhere, and we check for GLOBAL_CONTEXT existence)
+    // OR check if the ancestor is in the user's contexts
+    try (var stream = getStreamWithSqlInClause(ownerIds, partition -> tx.dsl()
+        .with(userContextsCte)
+        .as(userContextsQuery)
+        .selectDistinct(ownerIdColumn)
+        .from(ancestorTable)
+        .where(ownerIdColumn.in(partition))
+        .and(
+            (permission.isGlobal()
+                ? DSL.exists(DSL.selectOne().from(userContextsCte))
+                : DSL.noCondition())
+                    .or(DSL.exists(
+                        DSL.selectOne()
+                            .from(userContextsCte)
+                            .where(ctxId.eq(MembershipMapping.GLOBAL_CONTEXT_ID))))
+                    .or(ancestorIdColumn.in(
+                        DSL.select(ctxId).from(userContextsCte))))
+        .fetchStream()))
+    {
+      return stream.map(r -> r.get(ownerIdColumn)).collect(Collectors.toSet());
+    }
+  }
+
+  /**
+   * Result of a combined entity-existence + permission check.
+   *
+   * @param entityExists whether the entity exists in the ancestor view
+   * @param permitted whether the user has the permission (via global context, isGlobal, or ancestor match)
+   */
+  public record PermissionCheckResult(boolean entityExists, boolean permitted)
+  {
+  }
+
+  /**
+   * Single-entity permission check with entity existence detection. Uses the same CTE + ancestor view approach as
+   * {@link #getPermittedOwnerIds} but returns a {@link PermissionCheckResult} from a single query that checks both
+   * entity existence and permission, avoiding extra round trips.
+   */
+  public PermissionCheckResult checkPermissionForOwner(
+      final String ownerId,
+      final OwnerType ownerType,
+      final Permission permission,
+      final String username,
+      final Set<String> groupNames)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      if (ownerType == null) {
+        return checkPermissionForOwnerSpecific(tx, ownerId, OWNER_ANCESTOR,
+            OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
+      }
+      switch (ownerType) {
+        case APPLICATION:
+          return checkPermissionForOwnerSpecific(tx, ownerId, APPLICATION_ANCESTOR,
+              APPLICATION_ANCESTOR.APPLICATION_ID, APPLICATION_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
+        case ORGANIZATION:
+          return checkPermissionForOwnerSpecific(tx, ownerId, ORGANIZATION_ANCESTOR,
+              ORGANIZATION_ANCESTOR.ORGANIZATION_ID, ORGANIZATION_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
+        case REPOSITORY:
+          return checkPermissionForOwnerSpecific(tx, ownerId, REPOSITORY_ANCESTOR,
+              REPOSITORY_ANCESTOR.REPOSITORY_ID, REPOSITORY_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
+        case REPOSITORY_MANAGER:
+          return checkPermissionForOwnerSpecific(tx, ownerId, REPOSITORY_MANAGER_ANCESTOR,
+              REPOSITORY_MANAGER_ANCESTOR.REPOSITORY_MANAGER_ID, REPOSITORY_MANAGER_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
+        case REPOSITORY_CONTAINER:
+          return checkPermissionForOwnerSpecific(tx, ownerId, REPOSITORY_CONTAINER_ANCESTOR,
+              REPOSITORY_CONTAINER_ANCESTOR.REPOSITORY_CONTAINER_ID, REPOSITORY_CONTAINER_ANCESTOR.ANCESTOR_ID,
+              permission, username, groupNames);
+        default:
+          return checkPermissionForOwnerSpecific(tx, ownerId, OWNER_ANCESTOR,
+              OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
+      }
+    }
+  }
+
+  private <R extends Record> PermissionCheckResult checkPermissionForOwnerSpecific(
+      TransactionContext tx,
+      String ownerId,
+      Table<R> ancestorTable,
+      Field<String> ownerIdColumn,
+      Field<String> ancestorIdColumn,
+      Permission permission,
+      String username,
+      Set<String> groupNames)
+  {
+    Set<String> effectiveGroupNames = groupNames != null ? groupNames : Collections.emptySet();
+
+    var userCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.USER.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.eq(username)
+            .or(DSL.lower(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toLowerCase()))
+            .or(DSL.upper(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toUpperCase())));
+    var groupCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.GROUP.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(effectiveGroupNames));
+
+    Name userContextsCte = DSL.name("user_contexts");
+    Select<?> userContextsQuery = tx.dsl()
+        .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
+        .from(MEMBERSHIP_MAPPING)
+        .join(ROLE_PERMISSION)
+        .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+        .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
+        .and(userCondition.or(groupCondition));
+
+    Field<String> ctxId = DSL.field(DSL.name("user_contexts", "context_id"), String.class);
+
+    // Single query that returns both entity existence and permission status.
+    // entity_exists: whether the ownerId appears in the type-specific ancestor view.
+    // permitted: whether the user has the permission via global context, isGlobal, or ancestor match.
+    Field<Boolean> entityExists = DSL.field(
+        DSL.exists(DSL.selectOne().from(ancestorTable).where(ownerIdColumn.eq(ownerId))));
+    Field<Boolean> permitted = DSL.field(
+        DSL.exists(
+            tx.dsl()
+                .with(userContextsCte)
+                .as(userContextsQuery)
+                .selectOne()
+                .where(
+                    (permission.isGlobal()
+                        ? DSL.exists(DSL.selectOne().from(userContextsCte))
+                        : DSL.noCondition())
+                            .or(DSL.exists(
+                                DSL.selectOne()
+                                    .from(userContextsCte)
+                                    .where(ctxId.eq(MembershipMapping.GLOBAL_CONTEXT_ID))))
+                            .or(DSL.exists(
+                                DSL.selectOne()
+                                    .from(ancestorTable)
+                                    .where(ownerIdColumn.eq(ownerId))
+                                    .and(ancestorIdColumn.in(
+                                        DSL.select(ctxId).from(userContextsCte))))))));
+
+    Record result = tx.dsl()
+        .select(entityExists.as("entity_exists"), permitted.as("permitted"))
+        .fetchSingle();
+
+    boolean exists = Boolean.TRUE.equals(result.get("entity_exists"));
+    boolean isPermitted = Boolean.TRUE.equals(result.get("permitted"));
+
+    return new PermissionCheckResult(exists, isPermitted);
   }
 
   /**

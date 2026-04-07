@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.common.config.ConfigUtil;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -300,6 +301,41 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
       List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, partitionSize);
 
       return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
+    }
+    else {
+      return getter.apply(inClauseValues);
+    }
+  }
+
+  /**
+   * Stream variant of {@link #getListWithSqlInClause}. The getter function returns a {@link Stream} (e.g. from
+   * jOOQ's {@code fetchStream()}) instead of a {@link List}. Partitions are processed lazily via
+   * {@link Stream#flatMap}, which closes each sub-stream before opening the next.
+   *
+   * <p>
+   * <b>Important:</b> the caller must close the returned stream (try-with-resources) to release any underlying
+   * database cursors.
+   * </p>
+   */
+  protected <E, U> Stream<U> getStreamWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, Stream<U>> getter,
+      DataStore dataStore)
+  {
+    int inOperatorThreshold = getInOperatorThreshold(dataStore);
+    if (inClauseValues.size() >= inOperatorThreshold) {
+      List<E> inClauseValuesList;
+      if (inClauseValues instanceof List<E>) {
+        inClauseValuesList = (List<E>) inClauseValues;
+      }
+      else {
+        inClauseValuesList = new ArrayList<>(inClauseValues);
+      }
+
+      int partitionSize = Math.max(1, inOperatorThreshold - PARAMETER_BUFFER);
+      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, partitionSize);
+
+      return inClauseValuesPartitions.stream().flatMap(getter);
     }
     else {
       return getter.apply(inClauseValues);

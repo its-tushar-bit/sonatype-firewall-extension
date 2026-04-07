@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
 import org.apache.shiro.aop.AnnotationMethodInterceptor;
@@ -44,12 +45,13 @@ class AuthzFilterMethodInterceptor
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Object invoke(MethodInvocation mi) throws Throwable {
     Object result = mi.proceed();
     if (result != null) {
       AuthzFilter anno = getAnnotation(mi);
       if (anno != null) {
-        Iterable<?> entities = (Iterable<?>) result;
+        Iterable<Owner> entities = (Iterable<Owner>) result;
         Object principal = getSubject().getPrincipal();
         UserPrincipal user = (UserPrincipal) ((principal != null) ? principal : null);
         result = authzChecker.filterByPermission(user, anno.permission(), entities, anno.context());

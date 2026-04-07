@@ -569,7 +569,9 @@ public class ScanPolicyEvaluator
       Map<String, Owner> policyIdPolicyOwnerMap = new HashMap<>();
 
       List<PolicyViolation> existingViolationsForReachability = Collections.emptyList();
-      if (isReevaluation && reachablePurlIdentifiersWithVulnerabilities == null) {
+      if ((isReevaluation || forMonitoring) && reachablePurlIdentifiersWithVulnerabilities == null) {
+        // CLM-38947: Load existing violations during re-evaluation OR continuous monitoring
+        // to preserve reachability status ONLY when there is no new reachability data.
         existingViolationsForReachability = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
             stage.getStageTypeId());
         policyViolationDAO.loadConstraintFacts(existingViolationsForReachability);
@@ -620,7 +622,7 @@ public class ScanPolicyEvaluator
                     oldViolation -> PolicyViolationComparator.COMPARATOR.compare(oldViolation, policyViolation) == 0)
                 .findFirst()
                 .ifPresent(oldViolation -> policyViolation.setReachabilityStatus(
-                    determineReachabilityStatus(oldViolation, policyViolation, isReevaluation)));
+                    determineReachabilityStatus(oldViolation, policyViolation, isReevaluation || forMonitoring)));
           }
 
           // send telemetry information only after we updated the status, this will provide accurate
@@ -906,8 +908,9 @@ public class ScanPolicyEvaluator
 
             if (keepExistingViolation) {
               // CLM-35315 - make sure after replacement to keep the latest reachability status
+              // CLM-38947 - Also preserve for continuous monitoring
               oldPolicyViolation.setReachabilityStatus(
-                  determineReachabilityStatus(oldPolicyViolation, newPolicyViolation, isReevaluation));
+                  determineReachabilityStatus(oldPolicyViolation, newPolicyViolation, isReevaluation || forMonitoring));
               results.allViolations.remove(newPolicyViolation);
               results.allViolations.add(oldPolicyViolation);
             }

@@ -5775,6 +5775,157 @@ public class ScanPolicyEvaluatorTest
         .isNotEqualTo(NON_REACHABLE);
   }
 
+  @Test
+  public void testEvaluateForMonitoring_PreservesReachabilityStatus() throws Exception {
+    // CLM-38947: Test that Continuous Monitoring preserves reachability status
+    // Setup: Create security policy and reachability-based auto-waiver
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // Initial evaluation with reachability data showing vulnerability is NON_REACHABLE
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap<>();
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23");
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // First evaluation: with reachability data, violations should be auto-waived due to NON_REACHABLE status
+    ScanPolicyEvaluatorResults initialResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO, false);
+
+    assertThat(initialResults.autoWaivedViolations).hasSize(36);
+    assertThat(initialResults.activeViolations).isEmpty();
+    Optional<PolicyViolation> initialViolation =
+        findPolicyViolationByVulnerabilityIdentifier(initialResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(initialViolation).isPresent();
+    assertThat(initialViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(initialViolation.get().isAutoWaived()).isTrue();
+
+    // Continuous Monitoring with NEW scanId (CM creates new scan) and NO new reachability data
+    // This is the key difference from re-evaluation: CM uses a different scanId
+    String monitoringScanId = simulateReportIsAvailable("AutoWaiverRevocations");
+    assertThat(monitoringScanId).isNotEqualTo(scanId); // Verify CM creates new scanId
+
+    // CM evaluation WITHOUT new reachability data (analysisDTO = null)
+    // Before CLM-38947 fix, this would lose reachability status because isReevaluation=false
+    ScanPolicyEvaluatorResults monitoringResults = scanPolicyEvaluator.evaluateForMonitoring(
+        application, monitoringScanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    // Verify reachability status is preserved during CM and auto-waivers are maintained
+    assertThat(monitoringResults.autoWaivedViolations).hasSize(36);
+    assertThat(monitoringResults.activeViolations).isEmpty();
+    Optional<PolicyViolation> monitoredViolation =
+        findPolicyViolationByVulnerabilityIdentifier(monitoringResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(monitoredViolation).isPresent();
+    assertThat(monitoredViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(monitoredViolation.get().isAutoWaived()).isTrue();
+
+    // Verify all auto-waived violations maintained their reachability status during CM
+    monitoringResults.autoWaivedViolations
+        .forEach(violation -> assertThat(violation.getReachabilityStatus()).isEqualTo(NON_REACHABLE));
+  }
+
+  @Test
+  public void testEvaluateForMonitoring_DoesNotPreserveReachabilityStatus_WhenNoPriorData() throws Exception {
+    // CLM-38947: Negative test - Verify CM does NOT retroactively add reachability status
+    // when the prior scan never had reachability data
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    // Create auto-waiver with "Not Reachable" scope
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // Initial evaluation WITHOUT reachability data (no -ra flag)
+    // This simulates a scan without callflow analysis
+    ScanPolicyEvaluatorResults initialResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, null, false);
+
+    // Verify: All violations are ACTIVE (not auto-waived) because no reachability data
+    assertThat(initialResults.activeViolations).hasSize(36);
+    assertThat(initialResults.autoWaivedViolations).isEmpty();
+
+    Optional<PolicyViolation> initialViolation =
+        findPolicyViolationByVulnerabilityIdentifier(initialResults.activeViolations, vulnerabilityIdentifier);
+    assertThat(initialViolation).isPresent();
+
+    // Verify: No reachability status (null or UNKNOWN)
+    ReachabilityStatus initialStatus = initialViolation.get().getReachabilityStatus();
+    assertThat(initialStatus).isIn(null, ReachabilityStatus.UNKNOWN);
+
+    // CM runs - also without new reachability data
+    String monitoringScanId = simulateReportIsAvailable("AutoWaiverRevocations");
+    assertThat(monitoringScanId).isNotEqualTo(scanId); // Verify CM creates new scanId
+
+    ScanPolicyEvaluatorResults monitoringResults = scanPolicyEvaluator.evaluateForMonitoring(
+        application, monitoringScanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    // Verify: Violations remain ACTIVE (not auto-waived) after CM
+    // CM should NOT retroactively add reachability status from nowhere
+    assertThat(monitoringResults.activeViolations).hasSize(36);
+    assertThat(monitoringResults.autoWaivedViolations).isEmpty();
+
+    Optional<PolicyViolation> monitoredViolation =
+        findPolicyViolationByVulnerabilityIdentifier(monitoringResults.activeViolations, vulnerabilityIdentifier);
+    assertThat(monitoredViolation).isPresent();
+
+    // Verify: Still no reachability status after CM (should not be fabricated)
+    ReachabilityStatus monitoredStatus = monitoredViolation.get().getReachabilityStatus();
+    assertThat(monitoredStatus)
+        .isIn(null, ReachabilityStatus.UNKNOWN)
+        .isNotEqualTo(NON_REACHABLE); // Must NOT incorrectly set to NON_REACHABLE
+
+    // Verify: All violations have null/UNKNOWN reachability (not incorrectly set to NON_REACHABLE)
+    monitoringResults.activeViolations.forEach(violation -> {
+      ReachabilityStatus status = violation.getReachabilityStatus();
+      assertThat(status)
+          .isIn(null, ReachabilityStatus.UNKNOWN)
+          .describedAs("Violation should not have fabricated reachability status");
+    });
+  }
+
   private File createScanFile(Application app, String scanId) {
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     scanFile.delete();

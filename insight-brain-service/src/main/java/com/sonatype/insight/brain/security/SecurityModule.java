@@ -134,11 +134,13 @@ public class SecurityModule
     manager.createChain("/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess",
         anonFilters + ", antiCsrf");
 
-    // public REST API
-    manager.createChain("/api/**", "noSessionCreation, clientIPAddressFilter, " +
+    // public REST API and MCP endpoint share the same auth chain
+    String apiFilters = "noSessionCreation, clientIPAddressFilter, " +
         "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcJWT, authcBasic, " +
-        "saml, apiAccessControlFilter, requireAuth");
+        "saml, apiAccessControlFilter, requireAuth";
+    manager.createChain("/mcp/**", apiFilters);
+    manager.createChain("/api/**", apiFilters);
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, clientIPAddressFilter, antiCsrf["

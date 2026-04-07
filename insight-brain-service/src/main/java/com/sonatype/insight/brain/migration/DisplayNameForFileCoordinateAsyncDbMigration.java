@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.networknt.schema.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Migrator that will populate the file_coordinate display_name column with a value calculated based on the pURL or

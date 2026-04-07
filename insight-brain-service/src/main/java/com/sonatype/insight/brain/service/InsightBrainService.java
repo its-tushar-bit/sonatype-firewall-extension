@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.migration.DbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
+import com.sonatype.insight.brain.mcp.McpModule;
+import com.sonatype.insight.brain.mcp.McpServletProvider;
 import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.search.opensearch.SingleTenantIndexConfigProvider;
@@ -611,6 +613,13 @@ public class InsightBrainService
         .addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
+    if (SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled()) {
+      McpServletProvider mcpProvider = injector.getInstance(McpServletProvider.class);
+      mcpProvider.initialize();
+      var mcpReg = env.servlets().addServlet("mcp", mcpProvider.getServlet());
+      mcpReg.addMapping("/mcp", "/mcp/*");
+    }
+
     addServletFilters(env);
 
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
@@ -756,6 +765,7 @@ public class InsightBrainService
     modules.add(new ScannerModule());
     modules.add(new AuthenticationModule());
     modules.add(new TelemetryModule());
+    modules.add(new McpModule());
 
     return modules;
   }

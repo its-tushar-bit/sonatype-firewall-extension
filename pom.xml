@@ -164,6 +164,7 @@
     <module>insight-brain-policy</module>
     <module>insight-brain-event</module>
     <module>insight-brain-frontend</module>
+    <module>insight-brain-guide-mcp</module>
     <module>insight-brain-service</module>
     <module>insight-brain-tenancy</module>
     <module>nexus-iq-server</module>
@@ -202,6 +203,11 @@
         <artifactId>docker-utils</artifactId>
         <version>1.203.0-SNAPSHOT</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-guide-mcp</artifactId>
+        <version>1.203.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>

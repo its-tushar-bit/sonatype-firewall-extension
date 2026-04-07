@@ -33,8 +33,12 @@ public class EvaluationQueueService
     this.evaluationQueueDAO = evaluationQueueDAO;
   }
 
+  public String getInstanceId() {
+    return quartzJobStoreTX.getInstanceId();
+  }
+
   public List<EvaluationQueue> acquireRows(final int limit) {
-    return evaluationQueueDAO.acquireRows(quartzJobStoreTX.getInstanceId(), limit);
+    return evaluationQueueDAO.acquireRows(getInstanceId(), limit);
   }
 
   public void unacquireRows(final Set<String> ids) {

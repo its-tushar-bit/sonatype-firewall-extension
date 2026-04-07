@@ -141,6 +141,7 @@ public class EvaluationQueueConsumerTest
   @Before
   public void before() {
     lenient().when(mockQuartzJobStoreTX.getInstanceId()).thenReturn("worker");
+    lenient().when(mockEvaluationQueueService.getInstanceId()).thenReturn("worker");
   }
 
   @After
@@ -231,7 +232,7 @@ public class EvaluationQueueConsumerTest
 
     // Second run should add nothing and not try to acquire rows
     spyEvaluationQueueConsumer.run();
-    verifyNoMoreInteractions(mockEvaluationQueueService);
+    verify(mockEvaluationQueueService, times(1)).acquireRows(2);
 
     countDownLatch.countDown();
   }
@@ -509,7 +510,8 @@ public class EvaluationQueueConsumerTest
 
     logOutput.assertThat()
         .atDebugLevel()
-        .contains("Scheduling evaluation queue consumer every " + config.consumerPeriodInMilliseconds() + " ms.");
+        .contains("Scheduling evaluation queue consumer every " + config.consumerPeriodInMilliseconds()
+            + " ms with initial delay");
   }
 
   @Test
@@ -534,7 +536,8 @@ public class EvaluationQueueConsumerTest
     logOutput.assertThat()
         .atDebugLevel()
         .contains(
-            "Scheduling evaluation queue consumer every " + enabledConfig.consumerPeriodInMilliseconds() + " ms.");
+            "Scheduling evaluation queue consumer every " + enabledConfig.consumerPeriodInMilliseconds()
+                + " ms with initial delay");
   }
 
   @Test

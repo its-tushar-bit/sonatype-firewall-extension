@@ -192,6 +192,10 @@ public class InsightConfigurationFactory
   private void setDefaultLogLevelsIfNotConfigured(Map<String, JsonNode> loggers) {
     loggers.putIfAbsent("org.jooq.tools", new TextNode("WARN"));
     loggers.putIfAbsent("org.jooq.Constants", new TextNode("OFF"));
+    loggers.putIfAbsent(
+        "com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer", new TextNode("INFO"));
+    loggers.putIfAbsent(
+        "com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer", new TextNode("INFO"));
   }
 
   private void configureAsyncAppendersForNoLoss(Map<String, JsonNode> loggers) {

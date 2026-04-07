@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -106,6 +108,14 @@ public class EvaluationQueueConsumer
 
   private final TenantReference<AtomicBoolean> running;
 
+  private final TenantReference<AtomicInteger> acquired = new TenantReference<>(AtomicInteger::new);
+
+  private final TenantReference<AtomicInteger> evaluated = new TenantReference<>(AtomicInteger::new);
+
+  private final TenantReference<AtomicInteger> failed = new TenantReference<>(AtomicInteger::new);
+
+  private final TenantReference<AtomicInteger> skipped = new TenantReference<>(AtomicInteger::new);
+
   private final ShutdownHandler shutdownHandler;
 
   @Inject
@@ -149,14 +159,20 @@ public class EvaluationQueueConsumer
     reschedule(evaluationQueueConfigs.get());
   }
 
+  private String getJitterSeed() {
+    return evaluationQueueService.getInstanceId() + TenantThreadLocal.getTenant().tenantSlug;
+  }
+
   private void reschedule(final EvaluationQueueConfig config) {
     if (config.enabled()) {
-      log.debug("Scheduling evaluation queue consumer every {} ms.", config.consumerPeriodInMilliseconds());
+      long initialDelay = getInitialDelay(getJitterSeed(), config.consumerPeriodInMilliseconds());
+      log.debug("Scheduling evaluation queue consumer every {} ms with initial delay {} ms.",
+          config.consumerPeriodInMilliseconds(), initialDelay);
       cancelScheduledFutureIfNeeded();
       scheduledFutures.set(scheduleExecutors.get()
           .scheduleAtFixedRate(
               this::tryRun,
-              0,
+              initialDelay,
               config.consumerPeriodInMilliseconds(),
               TimeUnit.MILLISECONDS));
     }
@@ -164,6 +180,10 @@ public class EvaluationQueueConsumer
       log.debug("Unscheduling evaluation queue consumer.");
       cancelScheduledFutureIfNeeded();
     }
+  }
+
+  static long getInitialDelay(final String jitterSeed, final long periodInMilliseconds) {
+    return Integer.toUnsignedLong(jitterSeed.hashCode()) % periodInMilliseconds;
   }
 
   private void cancelScheduledFutureIfNeeded() {
@@ -199,6 +219,7 @@ public class EvaluationQueueConsumer
         log.debug("Evaluation queue consumer is disabled, skipping execution.");
         return;
       }
+      logSummary();
       long start = System.currentTimeMillis();
       log.debug("Starting evaluation queue consumer.");
       ThreadPoolExecutor executor = executors.get();
@@ -207,6 +228,7 @@ public class EvaluationQueueConsumer
       if (rowsToAcquire > 0) {
         List<EvaluationQueue> queued = evaluationQueueService.acquireRows(rowsToAcquire);
         queued.forEach(item -> executor.submit(new EvaluationQueueTask(item, () -> tryEvaluate(item))));
+        acquired.get().addAndGet(queued.size());
         log.debug("Acquired {} items for evaluation, pool state: {}.", queued.size(), executor);
       }
       else {
@@ -216,6 +238,17 @@ public class EvaluationQueueConsumer
     }
     finally {
       running.get().set(false);
+    }
+  }
+
+  private void logSummary() {
+    int acquiredCount = acquired.get().getAndSet(0);
+    int evaluatedCount = evaluated.get().getAndSet(0);
+    int failedCount = failed.get().getAndSet(0);
+    int skippedCount = skipped.get().getAndSet(0);
+    if (acquiredCount > 0 || evaluatedCount > 0 || failedCount > 0 || skippedCount > 0) {
+      log.info("Acquired {}, evaluated {} ({} failed, {} skipped) since last poll.",
+          acquiredCount, evaluatedCount, failedCount, skippedCount);
     }
   }
 
@@ -258,6 +291,7 @@ public class EvaluationQueueConsumer
       evaluate(item);
     }
     catch (IOException | InterruptedException | RuntimeException e) {
+      failed.get().incrementAndGet();
       log.warn(
           "Failed evaluation queue item with priority {} for application id {}, stage {}, and version {}. Unacquiring row.",
           item.getPriority(), item.getApplicationId(), item.getStageTypeId(), item.getVersion());
@@ -280,6 +314,7 @@ public class EvaluationQueueConsumer
       log.warn("Unsupported evaluation queue item with priority {} for application id {}, stage {}, and version {}.",
           item.getPriority(), item.getApplicationId(), item.getStageTypeId(), item.getVersion());
       evaluationQueueDAO.delete(item);
+      skipped.get().incrementAndGet();
       return;
     }
 
@@ -289,6 +324,7 @@ public class EvaluationQueueConsumer
 
     consumer.accept(item);
     evaluationQueueDAO.delete(item);
+    evaluated.get().incrementAndGet();
 
     log.debug(
         "Finished evaluation queue item with priority {} for application id {}, stage {}, and version {} in {} ms.",
@@ -308,12 +344,14 @@ public class EvaluationQueueConsumer
     ThirdPartySbomMetadata sbom =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(item.getApplicationId(), item.getVersion());
     if (sbom == null) {
+      skipped.get().incrementAndGet();
       log.debug("No SBOM found for application id {} and version {}.", item.getApplicationId(), item.getVersion());
       return;
     }
 
     Application app = applicationDAO.getById(sbom.getApplicationId());
     if (app == null) {
+      skipped.get().incrementAndGet();
       log.debug("No application found for SBOM with application id {} and version {}.", sbom.getApplicationId(),
           sbom.getSbomVersion());
       return;
@@ -321,6 +359,7 @@ public class EvaluationQueueConsumer
 
     ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileId(sbom.getThirdPartyFileId());
     if (thirdPartyScan == null) {
+      skipped.get().incrementAndGet();
       log.debug("No third party scan found with id {} for SBOM with application id {} and version {}.",
           sbom.getThirdPartyFileId(), sbom.getApplicationId(), sbom.getSbomVersion());
       return;
@@ -332,6 +371,7 @@ public class EvaluationQueueConsumer
           scanPersistenceService.getScanByName(sbom.getApplicationId(), thirdPartyScan.getFilteredScanFile());
     }
     if (filteredScan == null || !filteredScan.exists()) {
+      skipped.get().incrementAndGet();
       log.debug(
           "No filtered scan found at {} for third party scan with id {} for SBOM with application id {} and" +
               " version {}.",
@@ -459,5 +499,10 @@ public class EvaluationQueueConsumer
 
     queuedItemIds.remove();
     evaluationQueueConfigs.remove();
+
+    acquired.remove();
+    evaluated.remove();
+    failed.remove();
+    skipped.remove();
   }
 }

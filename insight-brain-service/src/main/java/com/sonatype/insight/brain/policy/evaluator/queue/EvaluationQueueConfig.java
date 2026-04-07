@@ -46,7 +46,8 @@ public record EvaluationQueueConfig(
 
   public static final int DEFAULT_CONSUMER_MAX_QUEUED_ROWS =
       (int) (DEFAULT_CONSUMER_PERIOD.dividedBy(DEFAULT_ESTIMATED_EVALUATION_PERIOD)
-          * DEFAULT_CONSUMER_THREADS_PER_TENANT);
+          * DEFAULT_CONSUMER_THREADS_PER_TENANT
+          * 2);
 
   public static final Duration DEFAULT_CONSUMER_ROW_EXPIRATION =
       DEFAULT_ESTIMATED_EVALUATION_PERIOD

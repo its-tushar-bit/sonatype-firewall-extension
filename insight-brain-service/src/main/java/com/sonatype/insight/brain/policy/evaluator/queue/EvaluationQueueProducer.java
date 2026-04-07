@@ -186,7 +186,6 @@ public class EvaluationQueueProducer
     Date startTimeOverride = getStartTimeOverride(context);
     Date initialStartTime = startTimeOverride != null ? startTimeOverride : getInitialCycleStartTime();
     if (isResetCycle) {
-      log.info("Resetting cycle.");
       resetCycle();
       checkpoint = initializeEvaluationQueueProducerCheckpoint(initialStartTime);
     }
@@ -227,8 +226,12 @@ public class EvaluationQueueProducer
       }
     }
 
-    Queue<ThirdPartySbomMetadata> sbomsToAdd = getSbomsToAdd(config, checkpoint);
-    processSbomsToAdd(sbomsToAdd, checkpoint);
+    ProducerSbomResult result = getSbomsToAdd(config, checkpoint);
+    int queued = processSbomsToAdd(result.sbomsToAdd(), checkpoint);
+    if (result.sbomCount() > 0 || queued > 0) {
+      log.info("Processed {} SBOM(s), queued {} for evaluation. Progress: offset {} / {}.",
+          result.sbomCount(), queued, checkpoint.getLatestOffset(), checkpoint.getMaxAppActiveSboms());
+    }
 
     if (checkpoint.isComplete()) {
       log.info("Completed cycle.");
@@ -246,12 +249,12 @@ public class EvaluationQueueProducer
   }
 
   private EvaluationQueueProducerCheckpoint initializeEvaluationQueueProducerCheckpoint(final Date startTime) {
-    log.info("Starting cycle.");
     EvaluationQueueProducerCheckpoint checkpoint = new EvaluationQueueProducerCheckpoint(
         startTime,
         null,
         0,
         (int) thirdPartySbomMetadataDAO.getMaxActiveSbomsAcrossApplications());
+    log.info("Starting cycle with {} max SBOM version(s) per application.", checkpoint.getMaxAppActiveSboms());
     keyValueDAO.setValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
         JsonUtils.writeUnformatted(checkpoint));
     return checkpoint;
@@ -330,7 +333,11 @@ public class EvaluationQueueProducer
     }
   }
 
-  private Queue<ThirdPartySbomMetadata> getSbomsToAdd(
+  private record ProducerSbomResult(Queue<ThirdPartySbomMetadata> sbomsToAdd, int sbomCount)
+  {
+  }
+
+  private ProducerSbomResult getSbomsToAdd(
       final EvaluationQueueConfig config,
       final EvaluationQueueProducerCheckpoint checkpoint)
   {
@@ -400,10 +407,10 @@ public class EvaluationQueueProducer
       anyPassedVersionAndAgeFilters = false;
     }
     log.debug("Processed {} SBOM(s) up to latest offset {}.", sbomCount, latestOffset);
-    return sbomsToAdd;
+    return new ProducerSbomResult(sbomsToAdd, sbomCount);
   }
 
-  private void processSbomsToAdd(
+  private int processSbomsToAdd(
       final Queue<ThirdPartySbomMetadata> sbomsToAdd,
       final EvaluationQueueProducerCheckpoint checkpoint)
   {
@@ -435,6 +442,7 @@ public class EvaluationQueueProducer
       keyValueDAO.setValue(tx, KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
           JsonUtils.writeUnformatted(checkpoint));
       tx.commit();
+      return entities.size();
     }
   }
 

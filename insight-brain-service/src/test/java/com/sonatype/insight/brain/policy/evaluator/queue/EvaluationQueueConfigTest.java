@@ -211,7 +211,7 @@ public class EvaluationQueueConfigTest
     assertThat(EvaluationQueueConfig.DEFAULT_RESET_CYCLE_ON_TIMEOUT).isFalse();
     assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_THREADS_PER_TENANT).isEqualTo(1);
     assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_PERIOD).isEqualTo(Duration.ofMinutes(5));
-    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_MAX_QUEUED_ROWS).isEqualTo(15);
+    assertThat(EvaluationQueueConfig.DEFAULT_CONSUMER_MAX_QUEUED_ROWS).isEqualTo(30);
 
     EvaluationQueueConfig config = EvaluationQueueConfig.builder().build();
 

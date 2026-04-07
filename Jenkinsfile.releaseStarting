@@ -13,7 +13,7 @@ pipeline {
   stages {
     stage('Announce Release is Starting') {
       steps {
-        slackSend color: 'good', channel: '#iq-releases',
+        slackSend color: 'good', channel: '#releases-sca-core',
             message: "Starting IQ Server Release ${params.releaseVersion}."
       }
     }

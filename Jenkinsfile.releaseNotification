@@ -39,7 +39,7 @@ pipeline {
     }
     stage('Slack Release Notification') {
       steps {
-        slackSend color: 'good', channel: '#iq-releases', message: "IQ Server Release ${params.releaseVersion} is complete. @lifecycle-product-folks Please send the notification to the clm-announcements list."
+        slackSend color: 'good', channel: '#releases-sca-core', message: "IQ Server Release ${params.releaseVersion} is complete. @lifecycle-product-folks Please send the notification to the clm-announcements list."
       }
     }
   }

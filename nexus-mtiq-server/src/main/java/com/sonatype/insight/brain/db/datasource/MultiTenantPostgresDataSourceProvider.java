@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.db.datasource;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DbApplicationNameGenerator;
-import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseSchemaInitializer;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * TODO: Upon MTIQ Database Layer Cleanup completion, this class COMPLETELY replaces MultiTenantDataSourceFactory.
- *
  * <p>
  * MTIQ-specific implementation of the {@link DataSourceProvider}. Extends the {@link PostgresDataSourceProvider}
  * implementation but does NOT use the parent implementation for the DataSource creation. Full control of that resides
@@ -117,6 +115,7 @@ public class MultiTenantPostgresDataSourceProvider
       final String dataStoreId,
       final String databaseSchema)
   {
-    return new MultiTenantDataSourceFactory().populateDbSchema(dataSource, databaseEngine, dataStoreId, databaseSchema);
+    return new MultiTenantDatabaseSchemaInitializer().populateDbSchema(dataSource, databaseEngine, dataStoreId,
+        databaseSchema);
   }
 }

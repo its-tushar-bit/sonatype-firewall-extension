@@ -3,26 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.db.datasource;
+package com.sonatype.insight.brain.db;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.db.AbstractDatabaseSchemaPopulator;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseSchemaInitializer;
 
 /**
- * TODO: This interface will be removed at the end of the liquibase move - CLM-26741
+ * MTIQ-specific schema initializer that uses {@link MultiTenantDatabaseSchemaPopulator} to handle the multi-tenant
+ * schema version checking.
  */
-@Deprecated
-public interface LegacyDataSourceProvider
+public class MultiTenantDatabaseSchemaInitializer
+    extends DatabaseSchemaInitializer
 {
-  @Deprecated
-  default boolean populateDbSchema(
+  @Override
+  protected AbstractDatabaseSchemaPopulator createDatabaseSchemaPopulator(
       final DataSource dataSource,
       final DatabaseEngine databaseEngine,
       final String dataStoreId,
       final String databaseSchema)
   {
-    return new DatabaseSchemaInitializer().populateDbSchema(dataSource, databaseEngine, dataStoreId, databaseSchema);
+    return new MultiTenantDatabaseSchemaPopulator(dataSource, dataStoreId, databaseSchema);
   }
 }

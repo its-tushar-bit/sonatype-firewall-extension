@@ -174,7 +174,8 @@ public class SupportService
         "audit.log",
         "request.log",
         "clm-server.log",
-        "policy-violation.log");
+        "policy-violation.log",
+        "stderr.log");
   }
 
   File getWorkDir() {

@@ -14,8 +14,4 @@ public class OrganizationApplicationSummaryPayload
   public List<OrganizationSummary> organizations;
 
   public List<ApplicationSummary> applications;
-
-  public List<RepositoryManagerSummary> repositoryManagers;
-
-  public List<RepositorySummary> repositories;
 }

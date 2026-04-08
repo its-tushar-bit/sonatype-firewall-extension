@@ -17,7 +17,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -47,7 +46,6 @@ public class Webhook
   @CollectionTable(name = "webhook_event_type", joinColumns = @JoinColumn(name = "webhook_id"))
   @Column(name = "event_type", nullable = false)
   @Enumerated(EnumType.STRING)
-  @JsonSerialize(using = WebhookEventTypeSetSerializer.class)
   private Set<WebhookEventType> eventTypes;
 
   public Webhook() {

@@ -11,8 +11,6 @@ import java.util.List;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.OrganizationSummary;
-import com.sonatype.insight.brain.webhook.dto.RepositoryManagerSummary;
-import com.sonatype.insight.brain.webhook.dto.RepositorySummary;
 
 public class OrganizationApplicationManagementEvent
     extends WebhookEvent
@@ -21,20 +19,12 @@ public class OrganizationApplicationManagementEvent
 
   public List<ApplicationSummary> applications;
 
-  public List<RepositoryManagerSummary> repositoryManagers;
-
-  public List<RepositorySummary> repositories;
-
   public OrganizationApplicationManagementEvent(
       final List<OrganizationSummary> organizations,
-      final List<ApplicationSummary> applications,
-      final List<RepositoryManagerSummary> repositoryManagers,
-      final List<RepositorySummary> repositories)
+      final List<ApplicationSummary> applications)
   {
     this.organizations = organizations;
     this.applications = applications;
-    this.repositoryManagers = repositoryManagers;
-    this.repositories = repositories;
   }
 
   @Override
@@ -42,8 +32,6 @@ public class OrganizationApplicationManagementEvent
     return getClass().getSimpleName() + "{" +
         "organizations=" + organizations +
         ", applications=" + applications +
-        ", repositoryManagers=" + repositoryManagers +
-        ", repositories=" + repositories +
         '}';
   }
 }

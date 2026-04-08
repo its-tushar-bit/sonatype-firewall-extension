@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.configuration.webhook;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -31,7 +29,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CipherFactory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
-import com.sonatype.insight.brain.webhook.WebhookEventTypeDisplayUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -48,13 +45,6 @@ import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAK
 public class WebhookService
 {
   private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
-
-  private static final Set<WebhookEventType> FIREWALL_ONLY_EVENTS = Set.of(
-      WebhookEventType.WAIVER_EXPIRATION);
-
-  private static final Set<WebhookEventType> LIFECYCLE_ONLY_EVENTS = Set.of(
-  // Future lifecycle-only events if needed
-  );
 
   protected final WebhookDAO webhookDao;
 
@@ -114,32 +104,6 @@ public class WebhookService
     return result;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public List<Webhook> getAllFiltered(String context) {
-    List<Webhook> allWebhooks = getAll(); // Returns all with redacted secrets
-
-    boolean isFirewallContext = "firewall".equalsIgnoreCase(context);
-
-    // Filter webhooks based on context
-    return allWebhooks.stream()
-        .filter(webhook -> {
-          Set<WebhookEventType> eventTypes = webhook.getEventTypes();
-          if (eventTypes == null || eventTypes.isEmpty()) {
-            return true; // Show webhooks with no event types
-          }
-
-          if (isFirewallContext) {
-            // Firewall: exclude webhooks with lifecycle-only events
-            return eventTypes.stream().filter(Objects::nonNull).noneMatch(LIFECYCLE_ONLY_EVENTS::contains);
-          }
-          else {
-            // Lifecycle: exclude webhooks with firewall-only events
-            return eventTypes.stream().filter(Objects::nonNull).noneMatch(FIREWALL_ONLY_EVENTS::contains);
-          }
-        })
-        .collect(Collectors.toList());
-  }
-
   public List<Webhook> getAll_Unauthorized() {
     List<Webhook> result = new ArrayList<>();
     for (Webhook webhook : webhookDao.getAll()) {
@@ -156,32 +120,8 @@ public class WebhookService
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public List<String> getAllWebhookEventTypes(String context) {
-    List<WebhookEventType> allEventTypes = new LinkedList<>(Arrays.asList(WebhookEventType.values()));
-
-    boolean isFirewallContext = "firewall".equalsIgnoreCase(context);
-
-    if (isFirewallContext) {
-      // Firewall context: Remove Lifecycle-only events, check Firewall license
-      if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)) {
-        log.debug("Firewall license not present, returning empty list");
-        return Collections.emptyList();
-      }
-      allEventTypes.removeAll(LIFECYCLE_ONLY_EVENTS);
-    }
-    else {
-      // Lifecycle context (default): Remove Firewall-only events, check Lifecycle license
-      if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS)) {
-        log.debug("Lifecycle license not present, returning empty list");
-        return Collections.emptyList();
-      }
-      allEventTypes.removeAll(FIREWALL_ONLY_EVENTS);
-    }
-
-    // Map event types to display names based on context
-    return allEventTypes.stream()
-        .map(eventType -> WebhookEventTypeDisplayUtil.getContextualDisplayName(eventType, isFirewallContext))
-        .collect(Collectors.toList());
+  public List<WebhookEventType> getAllWebhookEventTypes() {
+    return new LinkedList<>(Arrays.asList(WebhookEventType.values()));
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

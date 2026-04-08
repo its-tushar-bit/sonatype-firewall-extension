@@ -24,7 +24,6 @@ import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 import { validateUrlIsHttp } from 'MainRoot/configuration/webhook/webhookActions';
-import routerInstance from 'MainRoot/router/routerInstance';
 
 function EditWebhook({
   isLoading,
@@ -66,42 +65,17 @@ function EditWebhook({
 
   const { url, description, secretKey } = inputFields;
 
-  // Determine if we're in Firewall context
-  const currentStateName = routerInstance.stateService.current.name || '';
-  const isFirewallContext = currentStateName.startsWith('firewall.');
-
-  // Helper function to normalize event type for comparison
-  // Converts Firewall display names back to stored names for matching
-  function normalizeEventTypeForComparison(eventType) {
-    if (isFirewallContext) {
-      if (eventType === 'Container Evaluation') {
-        return 'Application Evaluation';
-      }
-      if (eventType === 'Organization and Repository Management') {
-        return 'Organization and Application Management';
-      }
-    }
-    return eventType;
-  }
-
   function renderCheckbox(eventType) {
     const id = eventType.split(' ').join('-');
-    // Normalize the available event type (display name) to stored name for comparison
-    // selectedEventTypes already contains stored names from the database, so don't normalize them
-    const normalizedEventType = normalizeEventTypeForComparison(eventType);
-    const isSelected = includes(normalizedEventType, selectedEventTypes);
-
-    // Only disable "Application Evaluation" in Lifecycle context when license is missing.
-    // In Firewall context, isAppWebhooksSupported is false (to indicate context), but checkboxes should NOT be disabled.
-    // Firewall event types ("Container Evaluation", "Organization and Repository Management") should never be disabled here.
-    const isDisabled = eventType === 'Application Evaluation' && !isAppWebhooksSupported && !isFirewallContext;
+    const isSelected = includes(eventType, selectedEventTypes);
+    const isDisabled = eventType === 'Application Evaluation' && !isAppWebhooksSupported;
 
     return (
       <NxCheckbox
         key={id}
         checkboxId={id}
         isChecked={isSelected}
-        onChange={() => toggleEventType(normalizedEventType)}
+        onChange={() => toggleEventType(eventType)}
         disabled={isDisabled}
       >
         {eventType}
@@ -200,7 +174,7 @@ function EditWebhook({
                   inputAttributes={{ maxLength: '512', autoComplete: 'new-password' }}
                 />
               </NxFormGroup>
-              {!isAppWebhooksSupported && !isFirewallContext && (
+              {!isAppWebhooksSupported && (
                 <NxInfoAlert id="application-evaluation-disabled-message">
                   Webhooks with Application Evaluation event types are not supported by your license.
                 </NxInfoAlert>

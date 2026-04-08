@@ -35,19 +35,19 @@ public class WebhookServiceAuthzTest
   public void testGetAllWebhookEventTypes_Authorized() {
     grantConfigureSystemPermission();
 
-    webhookService.getAllWebhookEventTypes("lifecycle");
+    webhookService.getAllWebhookEventTypes();
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetAllWebhookEventTypes_Unauthorized() {
     login();
 
-    webhookService.getAllWebhookEventTypes("lifecycle");
+    webhookService.getAllWebhookEventTypes();
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAllWebhookEventTypes_Unauthenticated() {
-    webhookService.getAllWebhookEventTypes("lifecycle");
+    webhookService.getAllWebhookEventTypes();
   }
 
   @Test

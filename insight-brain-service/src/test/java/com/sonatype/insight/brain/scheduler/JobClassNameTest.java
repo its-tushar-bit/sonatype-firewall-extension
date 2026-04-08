@@ -93,8 +93,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeTask", "WaivedComponentUpgradeTask");
     insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.policy.waiver.WaiverExpirationDetectionTask", "WaiverExpirationDetectionTask");
-    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector", "InvalidateComponentNameMatchers");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper", "ApplicationCountHistoryKeeper");

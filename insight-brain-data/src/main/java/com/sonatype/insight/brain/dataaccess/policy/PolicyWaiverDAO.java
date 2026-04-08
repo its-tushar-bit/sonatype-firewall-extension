@@ -317,26 +317,6 @@ public class PolicyWaiverDAO
     }
   }
 
-  /**
-   * Gets all waivers that will expire within the specified time window.
-   * This is used by the waiver expiration webhook feature to detect waivers that are expiring soon
-   * and send advance warning notifications.
-   *
-   * @param tx transaction context
-   * @param fromTime start of the time window (inclusive) - typically now
-   * @param toTime end of the time window (exclusive) - typically now + 7 days
-   * @return list of waivers that will expire in the time window
-   * @since 1.179.0
-   */
-  public List<PolicyWaiver> getUpcomingExpiringWaivers(TransactionContext tx, Date fromTime, Date toTime) {
-    return tx.dsl()
-        .selectFrom(POLICY_WAIVER)
-        .where(POLICY_WAIVER.EXPIRY_TIME.ge(fromTime))
-        .and(POLICY_WAIVER.EXPIRY_TIME.lt(toTime))
-        .orderBy(POLICY_WAIVER.EXPIRY_TIME.asc())
-        .fetch(this::toEntity);
-  }
-
   public List<PolicyWaiver> getByPolicyIdAndOwnerIds(TransactionContext tx, String policyId, Set<String> ownerIds) {
     if (ownerIds == null || ownerIds.isEmpty()) {
       return java.util.Collections.emptyList();

@@ -16,15 +16,11 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.OrganizationSummary;
-import com.sonatype.insight.brain.webhook.dto.RepositoryManagerSummary;
-import com.sonatype.insight.brain.webhook.dto.RepositorySummary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +37,6 @@ public class OrganizationApplicationManagementEventService
 
   private final OrganizationDAO organizationDAO;
 
-  private final RepositoryManagerDAO repositoryManagerDAO;
-
-  private final RepositoryDAO repositoryDAO;
-
   private final CurrentUser currentUser;
 
   @Inject
@@ -52,15 +44,11 @@ public class OrganizationApplicationManagementEventService
       final AsyncEventBus asyncEventBus,
       final OrganizationDAO organizationDAO,
       final ApplicationDAO applicationDAO,
-      final RepositoryManagerDAO repositoryManagerDAO,
-      final RepositoryDAO repositoryDAO,
       final CurrentUser currentUser)
   {
     this.asyncEventBus = asyncEventBus;
     this.organizationDAO = organizationDAO;
     this.applicationDAO = applicationDAO;
-    this.repositoryManagerDAO = repositoryManagerDAO;
-    this.repositoryDAO = repositoryDAO;
     this.currentUser = currentUser;
   }
 
@@ -68,15 +56,8 @@ public class OrganizationApplicationManagementEventService
     try {
       final List<OrganizationSummary> organizationSummaries = createOrganizationSummaries();
       final List<ApplicationSummary> applicationSummaries = createApplicationSummaries();
-      final List<RepositoryManagerSummary> repositoryManagerSummaries = createRepositoryManagerSummaries();
-      final List<RepositorySummary> repositorySummaries = createRepositorySummaries();
-
       final OrganizationApplicationManagementEvent orgAppManagementEvent =
-          new OrganizationApplicationManagementEvent(
-              organizationSummaries,
-              applicationSummaries,
-              repositoryManagerSummaries,
-              repositorySummaries);
+          new OrganizationApplicationManagementEvent(organizationSummaries, applicationSummaries);
       orgAppManagementEvent.initiator = currentUser.getUsernameOrSystem();
 
       asyncEventBus.post(orgAppManagementEvent);
@@ -101,23 +82,6 @@ public class OrganizationApplicationManagementEventService
         .stream()
         .sorted(Comparator.comparing(application -> application.getName().toLowerCase(Locale.ROOT)))
         .map(ApplicationSummary::new)
-        .collect(Collectors.toList());
-  }
-
-  private List<RepositoryManagerSummary> createRepositoryManagerSummaries() {
-    return repositoryManagerDAO.getAll()
-        .stream()
-        .sorted(Comparator.comparing(rm -> rm.getName() != null ? rm.getName().toLowerCase(Locale.ROOT) : ""))
-        .map(RepositoryManagerSummary::new)
-        .collect(Collectors.toList());
-  }
-
-  private List<RepositorySummary> createRepositorySummaries() {
-    return repositoryDAO.getAll()
-        .stream()
-        .sorted(
-            Comparator.comparing(repo -> repo.getPublicId() != null ? repo.getPublicId().toLowerCase(Locale.ROOT) : ""))
-        .map(RepositorySummary::new)
         .collect(Collectors.toList());
   }
 }

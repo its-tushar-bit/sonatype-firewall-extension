@@ -79,9 +79,6 @@ import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupCond
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeInspector;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeTask;
-import com.sonatype.insight.brain.policy.waiver.WaiverExpirationDetectionScheduler;
-import com.sonatype.insight.brain.policy.waiver.WaiverExpirationDetectionService;
-import com.sonatype.insight.brain.policy.waiver.WaiverExpirationDetectionTask;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityStatusService;
 import com.sonatype.insight.brain.model.policy.PolicyValidator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertSourceCodeOrganizer;
@@ -175,9 +172,6 @@ public class PolicyModule
     bind(StageTypeService.class);
     bind(WaivedComponentUpgradeScheduler.class);
     bind(WaivedComponentUpgradeTask.class);
-    bind(WaiverExpirationDetectionScheduler.class);
-    bind(WaiverExpirationDetectionService.class);
-    bind(WaiverExpirationDetectionTask.class);
 
     // Additional bindings for requireExplicitBindings
     bind(ConditionValidator.class);

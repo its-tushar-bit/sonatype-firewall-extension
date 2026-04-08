@@ -57,8 +57,6 @@ public class RepositoryService
 
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
-  private final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
-
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -79,8 +77,7 @@ public class RepositoryService
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
       com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
-      ContainerImageReportService containerImageReportService,
-      final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
+      ContainerImageReportService containerImageReportService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
@@ -88,7 +85,6 @@ public class RepositoryService
         repositoryComponentDAO, repositoryPolicyViolationDAO, firewallIgnorePatternService,
         requestSafeComponentsMetricEventService, mainRepositoryService, containerImageReportService);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
-    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
   /**
@@ -123,7 +119,6 @@ public class RepositoryService
       repository.setRepositoryManagerId(repositoryManager.getId());
       repository.setAuditEnabled(false);
       repositoryDAO.insert(repository);
-      organizationApplicationManagementEventService.postEvent();
     }
     AuditData.get().setRepository(repository);
 

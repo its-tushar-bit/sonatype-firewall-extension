@@ -1179,18 +1179,9 @@ public class ScanPolicyEvaluator
       }
     }
 
-    // Insert by table type for clarity - consider using jOOQ batch API if performance is critical
-    for (ApplicationComponent applicationComponent : newApplicationComponents) {
-      applicationComponentDAO.insert(tx, applicationComponent);
-    }
-
-    for (AggregateFile aggregateFile : newAggregateFiles) {
-      aggregateFileDAO.insert(tx, aggregateFile);
-    }
-
-    for (ApplicationComponentLicense license : newLicenses) {
-      applicationComponentLicenseDAO.insert(tx, license);
-    }
+    applicationComponentDAO.insertBatch(tx, newApplicationComponents);
+    aggregateFileDAO.insertBatch(tx, newAggregateFiles);
+    applicationComponentLicenseDAO.insertBatch(tx, newLicenses);
   }
 
   private void calculateCounters(

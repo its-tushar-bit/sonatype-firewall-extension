@@ -39,6 +39,9 @@ import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGrou
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
+import FirewallBulkWaivePage from 'MainRoot/firewall/bulkWaive/bulkWaivePage/FirewallBulkWaivePage';
+import FirewallBulkWaiveConfigurationPage from 'MainRoot/firewall/bulkWaive/bulkWaiveConfigurationPage/FirewallBulkWaiveConfigurationPage';
+import FirewallBulkWaiveConfirmationPage from 'MainRoot/firewall/bulkWaive/bulkWaiveConfirmationPage/FirewallBulkWaiveConfirmationPage';
 import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
 import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddContainer';
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
@@ -456,6 +459,31 @@ router.stateRegistry.register({
   name: 'firewall.repository-report',
   url: '/repository/{repositoryId}/result?hideBackButton={hideButton}',
   component: RepositoryResultsSummaryPage,
+});
+
+router.stateRegistry.register({
+  name: 'firewall.bulkWaive',
+  url: '/repository/{repositoryId}/bulk-waive',
+  component: FirewallBulkWaivePage,
+});
+
+router.stateRegistry.register({
+  name: 'firewall.bulkWaiveConfiguration',
+  url: '/repository/{repositoryId}/bulk-waive-configuration',
+  component: FirewallBulkWaiveConfigurationPage,
+  params: {
+    selectedCount: {
+      value: null,
+      squash: true,
+      dynamic: true,
+    },
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.bulkWaiveConfirmation',
+  url: '/repository/{repositoryId}/bulk-waive-confirmation',
+  component: FirewallBulkWaiveConfirmationPage,
 });
 
 router.stateRegistry.register({

@@ -23,7 +23,7 @@ import * as PropTypes from 'prop-types';
 import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
 import PortalDrawer from 'MainRoot/react/PortalDrawer';
 
-const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
+const RepositoryResultsComponentsFilter = ({ repositoryId, isBulkWaivePage = false }) => {
   const dispatch = useDispatch();
 
   const matchStateFilters = [
@@ -45,7 +45,11 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
 
   const applyFilters = () => {
     dispatch(actions.applyFilters());
-    dispatch(actions.getRepositoryComponents(repositoryId));
+    if (isBulkWaivePage) {
+      dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
+    } else {
+      dispatch(actions.getRepositoryComponents(repositoryId));
+    }
   };
   const clearFilters = () => {
     dispatch(actions.clearFilters());
@@ -111,8 +115,9 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   );
 };
 
-export default RepositoryResultsComponentsFilter;
-
 RepositoryResultsComponentsFilter.propTypes = {
   repositoryId: PropTypes.string.isRequired,
+  isBulkWaivePage: PropTypes.bool,
 };
+
+export default RepositoryResultsComponentsFilter;

@@ -606,6 +606,10 @@ export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/firewall/quarantine/summary`;
 }
 
+export function getRepositoryViolationsUrl(repositoryId) {
+  return uriTemplate`/api/v2/firewall/repositories/${repositoryId}/violations`;
+}
+
 export function getProductFeaturesUrl() {
   return uriTemplate`/rest/product/features`;
 }
@@ -1741,6 +1745,10 @@ export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
 
 export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
   return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
+}
+
+export function getFirewallBulkWaiverUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/firewall/repositories/${ownerType}/${ownerId}/waivers/bulk`;
 }
 
 export const getFipsStatusUrl = () => uriTemplate`/rest/security/fipsMode`;

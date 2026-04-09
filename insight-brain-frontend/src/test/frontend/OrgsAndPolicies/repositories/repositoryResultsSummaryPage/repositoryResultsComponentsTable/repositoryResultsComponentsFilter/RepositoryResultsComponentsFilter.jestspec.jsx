@@ -12,12 +12,13 @@ import { actions as repositoryComponentsActions } from 'MainRoot/OrgsAndPolicies
 import { fireEvent } from '@testing-library/react';
 
 describe('RepositoryResultsComponentsFilter', () => {
-  let applyFiltersSpy;
+  let applyFiltersSpy, getRepositoryComponentsSpy, getRepositoryComponentsForBulkWaiveSpy;
   const repoId = 'testRepo';
 
   const preloadedState = {
     repositoryResultsSummaryPage: {
       componentsRequestBody: {},
+      selectedMatchStateFilters: new Set(),
       selectedViolationStateFilters: new Set(),
       selectedThreatLevelFilters: [0, 10],
       showFilterPopover: true,
@@ -25,8 +26,14 @@ describe('RepositoryResultsComponentsFilter', () => {
   };
 
   // Render the component and trigger its animationEnd event so that it portrays itself as fully visible
-  function renderComponent() {
-    render(<RepositoryResultsComponentsFilter repositoryId={repoId} />, { preloadedState });
+  function renderComponent(props = {}) {
+    const defaultProps = {
+      repositoryId: repoId,
+      isBulkWaivePage: false,
+      ...props,
+    };
+
+    render(<RepositoryResultsComponentsFilter {...defaultProps} />, { preloadedState });
 
     const drawer = screen.getByRole('dialog', { hidden: true });
     fireEvent.animationEnd(drawer);
@@ -35,7 +42,19 @@ describe('RepositoryResultsComponentsFilter', () => {
   beforeAll(() => setupPortalContainer());
 
   beforeEach(() => {
-    applyFiltersSpy = jest.spyOn(repositoryComponentsActions, 'applyFilters');
+    applyFiltersSpy = jest.spyOn(repositoryComponentsActions, 'applyFilters').mockImplementation(() => ({
+      type: 'repositoryResultsSummaryPage/applyFilters',
+    }));
+    getRepositoryComponentsSpy = jest
+      .spyOn(repositoryComponentsActions, 'getRepositoryComponents')
+      .mockImplementation(() => ({
+        type: 'repositoryResultsSummaryPage/getRepositoryComponents',
+      }));
+    getRepositoryComponentsForBulkWaiveSpy = jest
+      .spyOn(repositoryComponentsActions, 'getRepositoryComponentsForBulkWaive')
+      .mockImplementation(() => ({
+        type: 'repositoryResultsSummaryPage/getRepositoryComponentsForBulkWaive',
+      }));
   });
 
   describe('when data are being loaded', () => {
@@ -132,6 +151,30 @@ describe('RepositoryResultsComponentsFilter', () => {
       await user.click(applyButton);
 
       expect(applyFiltersSpy).toHaveBeenCalled();
+    });
+
+    it('should call getRepositoryComponents when isBulkWaivePage is false', async () => {
+      const user = userEvent.setup();
+      renderComponent({ isBulkWaivePage: false });
+
+      const applyButton = screen.getByRole('button', { name: 'Apply' });
+      await user.click(applyButton);
+
+      expect(applyFiltersSpy).toHaveBeenCalled();
+      expect(getRepositoryComponentsSpy).toHaveBeenCalledWith(repoId);
+      expect(getRepositoryComponentsForBulkWaiveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call getRepositoryComponentsForBulkWaive when isBulkWaivePage is true', async () => {
+      const user = userEvent.setup();
+      renderComponent({ isBulkWaivePage: true });
+
+      const applyButton = screen.getByRole('button', { name: 'Apply' });
+      await user.click(applyButton);
+
+      expect(applyFiltersSpy).toHaveBeenCalled();
+      expect(getRepositoryComponentsForBulkWaiveSpy).toHaveBeenCalledWith(repoId);
+      expect(getRepositoryComponentsSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -68,3 +68,11 @@ export const selectAggregate = createSelector(
   selectRepositoryResultsSummaryPageSlice,
   (state) => state.componentsRequestBody.aggregate
 );
+export const selectTotalComponentCount = createSelector(
+  selectRepositoryResultsSummaryPageSlice,
+  prop('totalComponentCount')
+);
+export const selectFilteredTotalCount = createSelector(
+  selectRepositoryResultsSummaryPageSlice,
+  prop('filteredTotalCount')
+);

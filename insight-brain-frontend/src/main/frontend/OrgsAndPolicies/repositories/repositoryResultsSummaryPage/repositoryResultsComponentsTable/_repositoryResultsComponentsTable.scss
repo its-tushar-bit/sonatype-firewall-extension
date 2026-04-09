@@ -75,3 +75,9 @@
 #repository-report-button-bar {
   justify-content: space-between;
 }
+
+#repository-report-action-buttons{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}

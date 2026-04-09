@@ -45,6 +45,7 @@ const initialState = {
   showFilterPopover: false,
   errorComponentsTable: null,
   repositoryComponents: [],
+  filteredTotalCount: null, // Total count from bulk waiver API (filtered results)
   componentsRequestBody: {
     page: 1,
     pageSize: PAGE_SIZE,
@@ -169,6 +170,12 @@ const clearFilters = (state) => {
   state.componentsRequestBody.matchStateFilters = Array.from(state.selectedMatchStateFilters);
   state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
   state.componentsRequestBody.threatLevelFilters = [...state.selectedThreatLevelFilters];
+  state.searchFiltersValues = {
+    POLICY_NAME: '',
+    QUARANTINE_TIME: '',
+    COMPONENT_COORDINATES: '',
+  };
+  state.componentsRequestBody.searchFilters = [];
 };
 
 const CancelToken = axios.CancelToken;
@@ -180,8 +187,24 @@ const getRepositoryComponents = createAsyncThunk(
     source.cancel();
     source = CancelToken.source();
     const componentsRequestBody = selectComponentsRequestBody(getState());
+
     return axios
       .post(getRepositoryComponentsUrl('repository', repoId), componentsRequestBody, { cancelToken: source.token })
+      .then(prop('data'))
+      .catch(rejectWithValue);
+  }
+);
+
+const getRepositoryComponentsForBulkWaive = createAsyncThunk(
+  `${REDUCER_NAME}/getRepositoryComponentsForBulkWaive`,
+  (repoId, { getState, rejectWithValue }) => {
+    source.cancel();
+    source = CancelToken.source();
+    const componentsRequestBody = selectComponentsRequestBody(getState());
+    const requestBody = { ...componentsRequestBody, isBulkWaiverPage: true };
+
+    return axios
+      .post(getRepositoryComponentsUrl('repository', repoId), requestBody, { cancelToken: source.token })
       .then(prop('data'))
       .catch(rejectWithValue);
   }
@@ -209,6 +232,7 @@ const loadData = (repoId) => (dispatch) => {
 const getRepositoryComponentsPending = (state) => {
   state.loadingRepositoryComponents = true;
   state.errorComponentsTable = null;
+  state.filteredTotalCount = null; // Reset to avoid stale values from previous bulk waive sessions
 };
 
 const getRepositoryComponentsFulfilled = (state, { payload }) => {
@@ -217,6 +241,8 @@ const getRepositoryComponentsFulfilled = (state, { payload }) => {
   state.repositoryComponents = payload.repositoryResultsDetails;
   state.unsortedComponents = state.repositoryComponents;
   state.hasMoreResults = payload.hasNextPage;
+  // Store filtered total count from bulk waiver API response
+  state.filteredTotalCount = payload.totalCount || null;
 };
 
 const getRepositoryComponentsRejected = (state, { payload }) => {
@@ -278,6 +304,11 @@ const increasePage = (state) => {
 
 const decreasePage = (state) => {
   state.componentsRequestBody.page -= 1;
+};
+
+const setPageSize = (state, { payload }) => {
+  state.componentsRequestBody.pageSize = payload;
+  state.componentsRequestBody.page = 1; // Reset to first page when changing page size
 };
 
 const loadNextPage = () => (dispatch, getState) => {
@@ -342,6 +373,7 @@ export const repositoryResultsSummaryPageSlice = createSlice({
     toggleAggregate,
     increasePage,
     decreasePage,
+    setPageSize,
     applyFilters,
   },
   extraReducers: {
@@ -354,6 +386,9 @@ export const repositoryResultsSummaryPageSlice = createSlice({
     [getRepositoryComponents.pending]: getRepositoryComponentsPending,
     [getRepositoryComponents.fulfilled]: getRepositoryComponentsFulfilled,
     [getRepositoryComponents.rejected]: getRepositoryComponentsRejected,
+    [getRepositoryComponentsForBulkWaive.pending]: getRepositoryComponentsPending,
+    [getRepositoryComponentsForBulkWaive.fulfilled]: getRepositoryComponentsFulfilled,
+    [getRepositoryComponentsForBulkWaive.rejected]: getRepositoryComponentsRejected,
 
     [reevaluateReport.pending]: reevaluateReportPending,
     [reevaluateReport.fulfilled]: reevaluateReportFulfilled,
@@ -366,6 +401,7 @@ export const actions = {
   getRepositoryInformation,
   getRepositorySummary,
   getRepositoryComponents,
+  getRepositoryComponentsForBulkWaive,
   sortComponents,
   searchComponents,
   toggleAggregateAndGetRepositoryComponents,

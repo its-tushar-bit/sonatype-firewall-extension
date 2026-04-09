@@ -161,6 +161,9 @@
 @use '../OrgsAndPolicies/actionDropdown/actionDropdown';
 @use '../OrgsAndPolicies/navigation/ownerDetailSidebar';
 @use '../firewallOnboarding/firewallOnboarding';
+@use '../firewall/bulkWaive/bulkWaivePage/firewallBulkWaive';
+@use '../firewall/bulkWaive/bulkWaivePage/bulkWaiveTableRow/bulkWaiveTableRow';
+@use '../firewall/bulkWaive/bulkWaiveConfigurationPage/firewallBulkWaiveConfigurationPage';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../configuration/userTokensConfiguration/userTokensConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';

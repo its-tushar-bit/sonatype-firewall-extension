@@ -1,0 +1,46 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.fw-bulk-waive-page {
+  .fw-bulk-waive__select-all-cell {
+    width: 48px;
+  }
+
+  .fw-bulk-waive__toggle-cell {
+    .nx-checkbox {
+      margin-top: 4px;
+    }
+  }
+
+  .fw-bulk-waive__filter-policy {
+    .nx-filter-input {
+      width: 100%;
+    }
+  }
+
+  .fw-bulk-waive__filter-component {
+    .nx-filter-input {
+      width: 100%;
+    }
+  }
+}
+
+#fw-bulk-waive-page-main {
+  .nx-table-container__footer {
+    bottom: -1px;
+  }
+
+  .nx-table-container {
+    max-height: 800px;
+    overflow-y: auto;
+  }
+
+  .nx-table {
+    table-layout: auto;
+    width: 100%;
+  }
+}

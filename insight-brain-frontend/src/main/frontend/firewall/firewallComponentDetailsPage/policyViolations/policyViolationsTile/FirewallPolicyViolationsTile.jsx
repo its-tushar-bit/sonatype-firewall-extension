@@ -20,12 +20,15 @@ import {
 } from '../firewallPolicyViolationsSelectors';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector.js';
 import ViewAllPoliciesWaiversButton from './ViewAllPoliciesWaiversButton';
+import BulkWaiveButton from 'MainRoot/firewall/bulkWaive/bulkWaiveButton/BulkWaiveButton';
 
 export default function FirewallPolicyViolationsTile({ title, violations }) {
   const [showPolicyWaiversPopover, setShowComponentWaiversPopover] = useState(false);
   const { isLoadingPolicyViolations, policyViolationsError } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
-  const { pathname, repositoryId, componentDisplayName } = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const { pathname, repositoryId, componentDisplayName, componentIdentifier, componentHash, matchState, tabId } =
+    routeParams;
   const componentName = useSelector(selectComponentName);
   const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
   const waivers = useSelector(selectWaivers);
@@ -38,6 +41,17 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
           <NxH2>{title}</NxH2>
         </NxTile.HeaderTitle>
         <div className="nx-tile__actions">
+          <BulkWaiveButton
+            repositoryId={repositoryId}
+            disabled={violations?.length === 0}
+            source="component-details"
+            componentIdentifier={componentIdentifier}
+            componentHash={componentHash}
+            matchState={matchState}
+            tabId={tabId}
+            pathname={pathname}
+            componentDisplayName={componentDisplayName}
+          />
           <ViewAllPoliciesWaiversButton setShowComponentWaiversPopover={setShowComponentWaiversPopover} />
         </div>
       </NxTile.Header>

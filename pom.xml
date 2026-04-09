@@ -40,7 +40,7 @@
     <slf4j.version>2.0.17</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.21</logback.version>
-    <jackson.version>2.20.1</jackson.version>
+    <jackson.version>2.21.2</jackson.version>
     <jooq.version>3.19.29</jooq.version>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->

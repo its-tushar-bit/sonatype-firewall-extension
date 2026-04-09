@@ -849,6 +849,34 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
+  public void testGetDetails_BulkWaiverPage_pageSizeExceedsMax() {
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = RepositoryResultsService.MAX_BULK_WAIVER_PAGE_SIZE + 1;
+    detailsRequest.isBulkWaiverPage = true;
+
+    assertThatThrownBy(
+        () -> repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Page size cannot exceed " + RepositoryResultsService.MAX_BULK_WAIVER_PAGE_SIZE +
+                " for bulk waiver page");
+  }
+
+  @Test
+  public void testGetDetails_NonBulkWaiverPage_largePageSizeAllowed() {
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = RepositoryResultsService.MAX_BULK_WAIVER_PAGE_SIZE + 1;
+    detailsRequest.isBulkWaiverPage = false;
+    detailsRequest.matchStateFilters = Collections.singletonList(MatchStateFilter.MATCH_STATE_ALL);
+
+    // Should NOT throw - large page size is allowed for non-bulk waiver pages
+    RepositoryResultsDetailsResponseDto result =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
+    assertThat(result).isNotNull();
+  }
+
+  @Test
   public void testGetDetails_Repository_invalidSortPriority() {
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
@@ -1614,5 +1642,81 @@ public class RepositoryResultsServiceTest
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g : a : e : c : v");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+  }
+
+  @Test
+  public void testGetDetails_BulkWaiverPage_returnsTotalCount() {
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.isBulkWaiverPage = true;
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
+
+    // Verify totalCount is populated with exact expected value
+    // Based on setup:
+    // - path1: 2 violations (threatLevel 10 open, threatLevel 5 open)
+    // - path4: 3 violations (threatLevel 10 open, threatLevel 5 waived, threatLevel 1 open)
+    // Total: 5 violations (excludeThreatLevelZero is true but all have threatLevel >= 1)
+    assertThat(responseDto.totalCount).isNotNull();
+    assertThat(responseDto.totalCount).isEqualTo(5L);
+    assertThat(responseDto.filterCount).isEqualTo(5L);
+  }
+
+  @Test
+  public void testGetDetails_NonBulkWaiverPage_noTotalCount() {
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.isBulkWaiverPage = false;
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
+
+    // Verify totalCount is NOT populated for non-bulk waiver page
+    assertThat(responseDto.totalCount).isNull();
+    assertThat(responseDto.filterCount).isNull();
+  }
+
+  @Test
+  public void testGetDetails_BulkWaiverPage_filterCountsMatchFilters() {
+    SortField sortField = new SortField();
+    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField.sortPriority = 1;
+    sortField.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.isBulkWaiverPage = true;
+    detailsRequest.threatLevelFilters = Arrays.asList(5, 10);
+    detailsRequest.sortFields = Collections.singletonList(sortField);
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
+
+    assertThat(responseDto.totalCount).isNotNull();
+    assertThat(responseDto.totalCount).isEqualTo(5L);
+    assertThat(responseDto.filterCount).isEqualTo(4L);
+  }
+
+  @Test
+  public void testGetDetails_BulkWaiverPage_emptyResults() {
+    // Create a new empty repository
+    RepositoryManager emptyRepoManager = tempEntity.newRepositoryManager();
+    Repository emptyRepository = tempEntity.newRepository(emptyRepoManager, "emptyRepo");
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.isBulkWaiverPage = true;
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, emptyRepository.getId(), detailsRequest);
+
+    // Verify totalCount is 0 for empty results
+    assertThat(responseDto.totalCount).isEqualTo(0L);
+    assertThat(responseDto.filterCount).isEqualTo(0L);
   }
 }

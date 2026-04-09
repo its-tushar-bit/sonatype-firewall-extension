@@ -33,6 +33,20 @@ public class RepositoryResultsDetails
 
   public Boolean waived;
 
+  /**
+   * The raw constraint facts JSON for converting to PolicyConstraint in the service layer.
+   *
+   * @since 1.202
+   */
+  public String constraintFactsJson;
+
+  /**
+   * The policy violation ID for enabling direct waiver operations.
+   *
+   * @since 1.203
+   */
+  public String policyViolationId;
+
   public RepositoryResultsDetails(
       final Integer policyThreatLevel,
       final String policyName,
@@ -47,6 +61,26 @@ public class RepositoryResultsDetails
       final Date quarantineTime,
       final Boolean waived)
   {
+    this(policyThreatLevel, policyName, repositoryManagerId, repositoryId, componentIdFormat, pathname,
+        componentIdCoordinatesJson, componentDisplayName, hash, matchStateId, quarantineTime, waived, null, null);
+  }
+
+  public RepositoryResultsDetails(
+      final Integer policyThreatLevel,
+      final String policyName,
+      final String repositoryManagerId,
+      final String repositoryId,
+      final String componentIdFormat,
+      final String pathname,
+      final String componentIdCoordinatesJson,
+      final String componentDisplayName,
+      final String hash,
+      final String matchStateId,
+      final Date quarantineTime,
+      final Boolean waived,
+      final String constraintFactsJson,
+      final String policyViolationId)
+  {
     this.policyThreatLevel = policyThreatLevel;
     this.policyName = policyName;
     this.repositoryManagerId = repositoryManagerId;
@@ -59,5 +93,7 @@ public class RepositoryResultsDetails
     this.matchStateId = matchStateId;
     this.quarantineTime = quarantineTime;
     this.waived = waived;
+    this.constraintFactsJson = constraintFactsJson;
+    this.policyViolationId = policyViolationId;
   }
 }

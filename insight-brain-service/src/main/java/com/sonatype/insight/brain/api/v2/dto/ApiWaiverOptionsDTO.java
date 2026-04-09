@@ -12,8 +12,15 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.ISODateSerializer;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Options for creating policy waivers")
 public class ApiWaiverOptionsDTO
 {
+  @Schema(
+      description = "Reason for waiving the violation(s). Must be non-blank.",
+      required = true,
+      example = "False positive - internal tool approved by security team")
   public String comment;
 
   /**
@@ -22,21 +29,39 @@ public class ApiWaiverOptionsDTO
    * @deprecated use {@link #matcherStrategy}
    */
   @Deprecated
+  @Schema(hidden = true)
   public boolean applyToAllComponents;
 
   /**
    * @since 1.140
    */
+  @Schema(
+      description = "Component matching strategy. For Firewall bulk waivers, only EXACT_COMPONENT and ALL_VERSIONS are supported.",
+      required = true,
+      allowableValues = {"EXACT_COMPONENT", "ALL_VERSIONS"},
+      example = "EXACT_COMPONENT")
   public ComponentMatcherStrategyForWaiver matcherStrategy;
 
   @JsonSerialize(using = ISODateSerializer.class)
+  @Schema(
+      description = "Optional expiration date/time for the waiver in ISO 8601 format. Must be in the future if provided.",
+      required = false)
   public Date expiryTime;
 
+  @Schema(
+      description = "Optional reference to a pre-defined waiver reason ID",
+      required = false,
+      example = "waiver-reason-id-123")
   public String waiverReasonId;
 
   /**
    * @since 1.185
    */
+  @Schema(
+      description = "If true, the waiver will automatically expire when a remediation becomes available. " +
+          "Can only be set to true when matcherStrategy is EXACT_COMPONENT.",
+      required = false,
+      example = "false")
   public boolean expireWhenRemediationAvailable;
 
   public ApiWaiverOptionsDTO() {

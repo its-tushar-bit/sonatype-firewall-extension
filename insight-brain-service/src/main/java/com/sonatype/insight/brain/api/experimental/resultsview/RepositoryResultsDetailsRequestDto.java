@@ -27,6 +27,16 @@ public class RepositoryResultsDetailsRequestDto
 
   public boolean aggregate;
 
+  /**
+   * Flag to indicate if the request is from the Bulk Waiver page.
+   * When true:
+   * - pageSize is limited to MAX_BULK_WAIVER_PAGE_SIZE (1000)
+   * - All filters from the request are applied by backend (required data only principle)
+   * - threat level 0 violations are excluded from results and count calculations
+   * - filterCount and totalCount are populated in the response
+   */
+  public boolean isBulkWaiverPage;
+
   public enum MatchStateFilter
   {
     MATCH_STATE_ALL,

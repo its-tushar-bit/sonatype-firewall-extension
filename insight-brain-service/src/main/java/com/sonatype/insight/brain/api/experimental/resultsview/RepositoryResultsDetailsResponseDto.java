@@ -16,4 +16,20 @@ public class RepositoryResultsDetailsResponseDto
   public List<RepositoryResultsDetailsDto> repositoryResultsDetails = new ArrayList<>();
 
   public boolean hasNextPage;
+
+  /**
+   * Total count of results for the bulk waiver page before user-applied filters.
+   * Only populated when isBulkWaiverPage = true in the request.
+   *
+   * @since 1.203
+   */
+  public Long totalCount;
+
+  /**
+   * Total count of results matching the applied filters before pagination.
+   * Only populated when isBulkWaiverPage = true in the request.
+   *
+   * @since 1.203
+   */
+  public Long filterCount;
 }

@@ -29,6 +29,8 @@ public class RepositoryResultsDetailsFilter
 
   public Map<String, List<String>> formatExclusionPatterns;
 
+  public boolean excludeThreatLevelZero;
+
   public static class SortField
   {
     public SortableField sortableField;

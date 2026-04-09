@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsCountSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -77,8 +78,6 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(policyViolation.getId()).isNull();
     dao.insert(policyViolation);
     assertThat(policyViolation.getId()).isNotNull();
-    // Restore constraint facts after insert since storeConstraints() clears them for memory optimization
-    policyViolation.setConstraintFacts(List.of(constraintFact));
 
     // Test constraints stored
     assertThat(policyViolation.getConstraintFactsId()).isNotNull();
@@ -263,7 +262,8 @@ public class RepositoryPolicyViolationDAOTest
     List<RepositoryResultsDetails> repositoryResultsDetails =
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetails(repository, c1, c1v1),
             toRepositoryResultsDetails(repository, c1, c1v2),
@@ -315,7 +315,8 @@ public class RepositoryPolicyViolationDAOTest
     List<RepositoryResultsDetails> repositoryResultsDetails =
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
 
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetailsWithoutWaived(repository, c1, c1v1),
             toRepositoryResultsDetailsWithoutWaived(repository, c2, c2v1));
@@ -375,20 +376,23 @@ public class RepositoryPolicyViolationDAOTest
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetails(repository, c1, c1v1),
             toRepositoryResultsDetails(repository, c2, c2v1));
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "19");
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactly(
             toRepositoryResultsDetails(repository, c1, c1v1));
 
     repositoryResultsDetailsFilter.searchFilters.put("QUARANTINE_TIME", "18");
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactly(
             toRepositoryResultsDetails(repository, c2, c2v1));
   }
@@ -529,7 +533,8 @@ public class RepositoryPolicyViolationDAOTest
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetails(repository, c1, c1v1),
             toRepositoryResultsDetails(repository, c1, c1v2),
@@ -538,16 +543,238 @@ public class RepositoryPolicyViolationDAOTest
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 5);
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetails(repository, c1, c1v2));
 
     repositoryResultsDetailsFilter.threatLevelFilters = Arrays.asList(5, 10);
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
-    assertThat(repositoryResultsDetails).usingRecursiveFieldByFieldElementComparator()
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
         .containsExactlyInAnyOrder(
             toRepositoryResultsDetails(repository, c1, c1v1),
             toRepositoryResultsDetails(repository, c1, c1v2));
+  }
+
+  @Test
+  public void testCountRepositoryResultsDetails_noFilters_H2() {
+    testCountRepositoryResultsDetails_noFilters();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testCountRepositoryResultsDetails_noFilters_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testCountRepositoryResultsDetails_noFilters();
+  }
+
+  private void testCountRepositoryResultsDetails_noFilters() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 5);
+    Repository repository = tempEntity.newRepository();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, false);
+
+    // 2 open violations
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
+        p2.getId(), p2.getName(), c1.getComponentIdentifier());
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+
+    RepositoryResultsCountSummary countSummary = dao.countRepositoryResultsDetails(repositoryIds, filter);
+
+    assertThat(countSummary.totalCount).isEqualTo(2);
+    assertThat(countSummary.openCount).isEqualTo(2);
+    assertThat(countSummary.waivedCount).isEqualTo(0);
+    assertThat(countSummary.quarantinedCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testCountRepositoryResultsDetails_withWaivedViolations_H2() {
+    testCountRepositoryResultsDetails_withWaivedViolations();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testCountRepositoryResultsDetails_withWaivedViolations_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testCountRepositoryResultsDetails_withWaivedViolations();
+  }
+
+  private void testCountRepositoryResultsDetails_withWaivedViolations() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 5);
+    Repository repository = tempEntity.newRepository();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, false);
+
+    // 1 open, 1 waived
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), true,
+        p2.getId(), p2.getName(), c1.getComponentIdentifier());
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+
+    RepositoryResultsCountSummary countSummary = dao.countRepositoryResultsDetails(repositoryIds, filter);
+
+    assertThat(countSummary.totalCount).isEqualTo(2);
+    assertThat(countSummary.openCount).isEqualTo(1);
+    assertThat(countSummary.waivedCount).isEqualTo(1);
+    assertThat(countSummary.quarantinedCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testCountRepositoryResultsDetails_withQuarantinedViolations_H2() {
+    testCountRepositoryResultsDetails_withQuarantinedViolations();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testCountRepositoryResultsDetails_withQuarantinedViolations_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testCountRepositoryResultsDetails_withQuarantinedViolations();
+  }
+
+  private void testCountRepositoryResultsDetails_withQuarantinedViolations() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Repository repository = tempEntity.newRepository();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    // Quarantined component (quarantine_time set, unquarantine_time null)
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, new Date(), new Date());
+
+    // Violation with fail action (required for quarantine count)
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        Action.ID_FAIL, p1.getId(), p1.getName(), c1.getComponentIdentifier());
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+
+    RepositoryResultsCountSummary countSummary = dao.countRepositoryResultsDetails(repositoryIds, filter);
+
+    assertThat(countSummary.totalCount).isEqualTo(1);
+    assertThat(countSummary.openCount).isEqualTo(1);
+    assertThat(countSummary.waivedCount).isEqualTo(0);
+    assertThat(countSummary.quarantinedCount).isEqualTo(1);
+  }
+
+  @Test
+  public void testCountRepositoryResultsDetails_withThreatLevelFilter_H2() {
+    testCountRepositoryResultsDetails_withThreatLevelFilter();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testCountRepositoryResultsDetails_withThreatLevelFilter_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testCountRepositoryResultsDetails_withThreatLevelFilter();
+  }
+
+  private void testCountRepositoryResultsDetails_withThreatLevelFilter() {
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 5);
+    Policy p3 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p3", 1);
+    Repository repository = tempEntity.newRepository();
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, false);
+
+    // 3 violations at different threat levels
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
+        p2.getId(), p2.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p3.getThreatLevel(), c1.getPathname(), false,
+        p3.getId(), p3.getName(), c1.getComponentIdentifier());
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+    // Filter to threat level 5-10 (excludes threat level 1)
+    filter.threatLevelFilters = Arrays.asList(5, 10);
+
+    RepositoryResultsCountSummary countSummary = dao.countRepositoryResultsDetails(repositoryIds, filter);
+
+    assertThat(countSummary.totalCount).isEqualTo(2);
+    assertThat(countSummary.openCount).isEqualTo(2);
+    assertThat(countSummary.waivedCount).isEqualTo(0);
+    assertThat(countSummary.quarantinedCount).isEqualTo(0);
+  }
+
+  @Test
+  public void testCountRepositoryResultsDetails_emptyResults_H2() {
+    testCountRepositoryResultsDetails_emptyResults();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testCountRepositoryResultsDetails_emptyResults_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testCountRepositoryResultsDetails_emptyResults();
+  }
+
+  private void testCountRepositoryResultsDetails_emptyResults() {
+    Repository repository = tempEntity.newRepository();
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+
+    RepositoryResultsCountSummary countSummary = dao.countRepositoryResultsDetails(repositoryIds, filter);
+
+    assertThat(countSummary.totalCount).isEqualTo(0);
+    assertThat(countSummary.openCount).isEqualTo(0);
+    assertThat(countSummary.waivedCount).isEqualTo(0);
+    assertThat(countSummary.quarantinedCount).isEqualTo(0);
   }
 
   private RepositoryResultsDetails toRepositoryResultsDetailsWithoutWaived(
@@ -558,6 +785,7 @@ public class RepositoryPolicyViolationDAOTest
     RepositoryResultsDetails result =
         toRepositoryResultsDetails(repository, repositoryComponent, repositoryPolicyViolation);
     result.waived = null;
+    result.policyViolationId = null; // Aggregate queries don't return violation ID
     return result;
   }
 
@@ -579,6 +807,8 @@ public class RepositoryPolicyViolationDAOTest
         repositoryComponent.getMatchStateId(),
         (repositoryComponent.getQuarantineTime() != null &&
             repositoryComponent.getUnquarantineTime() == null) ? repositoryComponent.getQuarantineTime() : null,
-        repositoryPolicyViolation.isWaived());
+        repositoryPolicyViolation.isWaived(),
+        null, // constraintFactsJson - tested separately, excluded from filter tests
+        repositoryPolicyViolation.getId());
   }
 }

@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.product.license.CLMFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.sonatype.licensing.LicensingException;
-import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.internal.DefaultLicenseKey;
@@ -260,7 +259,7 @@ public class TestProductLicenseManager
 
       properties.putAll(this.properties);
 
-      DefaultLicenseKey key = new DefaultLicenseKey(new Features(featureMap));
+      DefaultLicenseKey key = new DefaultLicenseKey(featureMap);
 
       // effective date is yesterday
       key.setEffectiveDate(new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)));

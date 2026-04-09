@@ -15,7 +15,6 @@ import org.sonatype.licensing.PreferencesFactory;
 import org.sonatype.licensing.ProductDetails;
 import org.sonatype.licensing.feature.Feature;
 import org.sonatype.licensing.feature.FeatureValidator;
-import org.sonatype.licensing.feature.Features;
 import org.sonatype.licensing.internal.DefaultFeatureValidator;
 import org.sonatype.licensing.product.LicenseBuilder;
 import org.sonatype.licensing.product.LicenseChangeListener;
@@ -92,7 +91,7 @@ public class SonatypeLicensingModule
       final Map<String, Feature> features,
       final FeatureValidator featureValidator)
   {
-    return new DefaultTrialLicenseManager(() -> new DefaultLicenseKey(new Features(features)), featureValidator);
+    return new DefaultTrialLicenseManager(() -> new DefaultLicenseKey(features), featureValidator);
   }
 
   @Provides

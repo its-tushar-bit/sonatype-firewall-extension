@@ -747,19 +747,7 @@
       <dependency>
         <groupId>com.sonatype.licensing</groupId>
         <artifactId>license-bundle</artifactId>
-        <version>2.0.0</version>
-        <exclusions>
-          <exclusion>
-            <!-- avoid clash with javax.annotation:javax.annotation-api -->
-            <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- using official guice instead -->
-            <groupId>org.sonatype.sisu</groupId>
-            <artifactId>sisu-guice</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>3.0.0</version>
       </dependency>
 
       <dependency>

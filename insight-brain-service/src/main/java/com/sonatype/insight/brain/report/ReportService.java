@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -249,8 +250,20 @@ public class ReportService
       final String scanId,
       final String stageTypeId) throws IOException
   {
+    return fetchReport(app, scanId, stageTypeId, null);
+  }
+
+  @Trace
+  public ApplicationReport fetchReport(
+      final Application app,
+      final String scanId,
+      final String stageTypeId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
     ApplicationReport applicationReport =
-        reportDataStore.downloadReport(app, scanId, this::processThirdPartyData);
+        reportDataStore.downloadReport(app, scanId,
+            (sid, report, appId) -> processThirdPartyDataWithFallback(sid, report, appId,
+                preservedThirdPartyEntries));
     CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
     applyChanges(app, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
         telemetryUtils, configuration);
@@ -292,6 +305,31 @@ public class ReportService
       {
         thirdPartyDataService.deleteByScanId(scanId);
       }
+    }
+  }
+
+  private void processThirdPartyDataWithFallback(
+      final String scanId,
+      final ApplicationReport tempApplicationReport,
+      final String appId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
+    if (preservedThirdPartyEntries != null &&
+        preservedThirdPartyEntries.values().stream().anyMatch(Objects::nonNull))
+    {
+      for (String entryName : List.of(
+          THIRD_PARTY_BOM_JSON.getName(),
+          THIRD_PARTY_SECURITY_JSON.getName(),
+          THIRD_PARTY_LICENSE_JSON.getName()))
+      {
+        ReportEntry preserved = preservedThirdPartyEntries.get(entryName);
+        if (preserved != null) {
+          tempApplicationReport.putEntry(entryName, preserved.buf);
+        }
+      }
+    }
+    else {
+      processThirdPartyData(scanId, tempApplicationReport, appId);
     }
   }
 
@@ -1413,10 +1451,35 @@ public class ReportService
       throw new RuntimeException("Scan " + scanId + " interrupted while waiting for report re-generation.", e);
     }
 
+    Map<String, ReportEntry> preservedThirdPartyEntries = readThirdPartyEntriesFromReport(application, scanId);
+
     String tempScanId = scanReceipt.getScanId();
-    fetchReport(application, tempScanId, stageTypeId);
+    fetchReport(application, tempScanId, stageTypeId, preservedThirdPartyEntries);
     reportDataStore.moveApplicationReport(appId, tempScanId, scanId);
     return policyEvaluation;
+  }
+
+  private Map<String, ReportEntry> readThirdPartyEntriesFromReport(
+      final Application application,
+      final String scanId)
+  {
+    try {
+      ApplicationReport originalReport = reportDataStore.getApplicationReport(application, scanId);
+      if (originalReport.exists()) {
+        List<String> entryNames = List.of(
+            THIRD_PARTY_BOM_JSON.getName(),
+            THIRD_PARTY_SECURITY_JSON.getName(),
+            THIRD_PARTY_LICENSE_JSON.getName());
+        Map<String, ReportEntry> entries = originalReport.getEntries(entryNames);
+        if (entries.values().stream().anyMatch(Objects::nonNull)) {
+          return entries;
+        }
+      }
+    }
+    catch (IOException e) {
+      log.warn("Could not read third-party entries from original report for scan {}", scanId, e);
+    }
+    return null;
   }
 
   public static void setMavenCoordinatesWithExtension(

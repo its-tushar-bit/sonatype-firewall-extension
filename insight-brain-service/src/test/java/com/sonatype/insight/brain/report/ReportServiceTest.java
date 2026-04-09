@@ -129,6 +129,9 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LIC
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1433,6 +1436,123 @@ public class ReportServiceTest
         argThat(scanContext -> scanContext != null &&
             scanContext.containerImageSbomSpecification() == null),
         eq(true));
+  }
+
+  @Test
+  public void testReUploadScanReport_preservesThirdPartyEntriesFromOriginalReport() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ReportServiceTest/report-with-third-party-license-data", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
+            anyBoolean());
+    // Use mockReportDownloader (not pre-saved) so downloadReportPostAction fires, allowing preserved entries to inject
+    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+
+    String thirdPartyBomBefore = getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
+    String thirdPartyLicenseBefore = getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
+    String thirdPartySecurityBefore = getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName()));
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    assertThat(getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName())))
+            .isEqualTo(thirdPartyBomBefore);
+    assertThat(getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName())))
+            .isEqualTo(thirdPartyLicenseBefore);
+    assertThat(getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_SECURITY_JSON.getName())))
+            .isEqualTo(thirdPartySecurityBefore);
+  }
+
+  @Test
+  public void testReUploadScanReport_nonSbomReportRunsStandardProcessThirdPartyDataPath() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
+            anyBoolean());
+    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    verify(thirdPartyDataServiceSpy).getScanData(eq(newScanId));
+  }
+
+  @Test
+  public void testReUploadScanReport_preservesIacComponentsAlongsideSbomEntries() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
+        app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
+            anyBoolean());
+    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    String thirdPartyBomAfter = getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
+    JsonNode bomData = new ObjectMapper().readTree(thirdPartyBomAfter);
+    List<String> formats = new java.util.ArrayList<>();
+    bomData.path("aaData").forEach(entry -> formats.add(entry.path("componentIdentifier").path("format").asText()));
+    assertThat(formats).contains("terraform");
+  }
+
+  @Test
+  public void testReUploadScanReport_preservedLicensesRetainDeclaredAndEffectiveValues() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ReportServiceTest/report-with-third-party-license-data", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
+            anyBoolean());
+    mockReportDownloader.mockDownloadReport(newScanId, "/ApplicationReportPersistenceServiceTest/report");
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    String licenseContents = getEntityContents(
+        applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_LICENSE_JSON.getName()));
+    JsonNode licenseData = new ObjectMapper().readTree(licenseContents);
+    Map<String, JsonNode> byHash = new HashMap<>();
+    licenseData.path("aaData").forEach(entry -> byHash.put(entry.path("hash").asText(), entry));
+
+    assertThat(byHash.get("cf085cd08ee27334c573").path("declaredLicenses").get(0).path("id").asText())
+        .isEqualTo("GPL-2.0");
+    assertThat(byHash.get("964cd74171f427720480").path("effectiveLicenses").get(0).path("id").asText())
+        .isEqualTo("AGPL-1.0");
   }
 
   @Test

@@ -115,23 +115,25 @@ make(
 )
 
 void postBuild() {
-  if (isDeployBranch(env, 'main')) {
+  if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+    echo 'Skipping MTIQ docker image for IQ on-premise release'
+    return
+  }
+
+  if (isMtiqImagePushEnabled()) {
     def imageVersion = mtiqImageVersion()
-    pushMTIQDockerImage(isMtiqImagePushEnabled(), imageVersion)
+    pushMTIQDockerImage(true, imageVersion)
 
-    if (currentBuild.fullProjectName.contains("insight-brain/release")) {
-        echo 'Skipping MTIQ deployment for IQ on-premise release'
-        return
-    }
-
-    // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
-    def isSuccess = currentBuild.currentResult == 'SUCCESS'
-    if (isSuccess) {
-      build('job': '/insight/MTIQ/bump-mtiq-version',
-          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
-              env.GIT_COMMIT) ],
-          wait: false,
-          propagate: false)
+    if (isDeployBranch(env, 'main')) {
+      // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
+      def isSuccess = currentBuild.currentResult == 'SUCCESS'
+      if (isSuccess) {
+        build('job': '/insight/MTIQ/bump-mtiq-version',
+            parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
+                env.GIT_COMMIT) ],
+            wait: false,
+            propagate: false)
+      }
     }
   }
 }

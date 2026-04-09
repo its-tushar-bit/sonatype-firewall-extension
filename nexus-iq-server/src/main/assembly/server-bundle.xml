@@ -40,6 +40,10 @@
       <outputDirectory>.</outputDirectory>
       <destName>${clm.server.jar}</destName>
     </file>
+    <file>
+      <source>${maven.multiModuleProjectDirectory}/jvm.options</source>
+      <outputDirectory>.</outputDirectory>
+    </file>
     <!-- 
       Flip executable bit for demo bash script.
       

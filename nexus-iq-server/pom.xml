@@ -22,7 +22,6 @@
 
   <properties>
     <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
-    <clm.server.demo.command>java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED --add-opens=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED -jar ${clm.server.jar} server config.yml 2> stderr.log</clm.server.demo.command>
   </properties>
 
   <dependencies>
@@ -52,6 +51,30 @@
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
               <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Publish jvm.options (static file at repo root) as a standalone Maven artifact
+           so Docker and other consumers can download it independently of the bundle tarball. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-jvm-options</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${maven.multiModuleProjectDirectory}/jvm.options</file>
+                  <type>options</type>
+                  <classifier>jvm</classifier>
+                </artifact>
+              </artifacts>
             </configuration>
           </execution>
         </executions>

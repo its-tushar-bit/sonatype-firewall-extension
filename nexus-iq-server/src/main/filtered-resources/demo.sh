@@ -5,4 +5,4 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
-${clm.server.demo.command}
+java @jvm.options -jar ${clm.server.jar} server config.yml 2> stderr.log

@@ -89,13 +89,12 @@ assemble:
         artifactId: nexus-mtiq-server
         mainClass: com.sonatype.insight.brain.service.MultiTenantInsightBrainService
         jvmOptions:
+          # Runtime --add-opens flags read from jvm.options at the distribution root.
           universal:
-            - --add-opens=java.base/java.lang=ALL-UNNAMED
-            - --add-opens=java.base/java.util=ALL-UNNAMED
-            - --add-opens=java.base/java.security=ALL-UNNAMED
-            - --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
-            - --add-opens=java.base/sun.security.x509=ALL-UNNAMED
-            - --add-opens=java.base/sun.security.util=ALL-UNNAMED
-            - --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            - '@$APP_HOME/jvm.options'
       mainJar:
         path: 'nexus-mtiq-server/target/nexus-mtiq-server.jar'
+
+      artifacts:
+        - path: jvm.options
+          transform: jvm.options

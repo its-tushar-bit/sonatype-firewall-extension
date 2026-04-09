@@ -108,33 +108,13 @@
 
     <datadog.version>1.60.3</datadog.version>
     <!--
-     Some tools and libraries use the reflection API (setAccessible(true)) to attempt to access non-public fields
-     and methods of java.* APIs. This is no longer possible by default on JDK 17, but you can use the -add-opens
-     option on the command line to enable it for specific tools and libraries.
-
-     https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-12F945EB-71D6-46AF-8C3D-D354FD0B1781
-     The libraries implicated in this exception are guice and some of the testing/assertion libraries
-
-     Note that mockito may use reflection to access non-public fields/methods when creating mocks/spies.
-     For each of these cases, where reflective access is needed, we need to add the module/package containing the
-     target classes we want to mock/spy below.  If we don't do this you'll likely see
-     "IllegalAccessException ReflectionMemberAccessor cannot access a member of class X ... when running the test.
-
-     These are needed for SystemInfoTest#testGetSamlInfo_Configured to get the Saml config from the Keycloak model
-     -add-opens java.base/java.security=ALL-UNNAMED
-     -add-opens java.base/sun.security.rsa=ALL-UNNAMED
-     -add-opens java.base/sun.security.x509=ALL-UNNAMED
-     -add-opens java.base/sun.security.util=ALL-UNNAMED
+     Runtime add-opens flags live in jvm.options at the repo root (the single source of truth).
+     @argfile syntax (JEP 293) tells the JVM to read flags from that file.
+     java.util.concurrent is test-only (mockito reflective access to mock/spy on classes in that package).
      -->
     <argLine>
-      --add-opens java.base/java.lang=ALL-UNNAMED
-      --add-opens java.base/java.util=ALL-UNNAMED
-      --add-opens java.base/java.util.concurrent=ALL-UNNAMED
-      --add-opens java.base/java.security=ALL-UNNAMED
-      --add-opens java.base/sun.security.rsa=ALL-UNNAMED
-      --add-opens java.base/sun.security.x509=ALL-UNNAMED
-      --add-opens java.base/sun.security.util=ALL-UNNAMED
-      --add-opens java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+      @${maven.multiModuleProjectDirectory}/jvm.options
+      --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
       ${jfr.args}
     </argLine>
     <jreleaser.version>1.14.0</jreleaser.version>
@@ -1479,6 +1459,11 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.8.14</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.5.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

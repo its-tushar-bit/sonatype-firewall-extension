@@ -261,6 +261,14 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     return datastore.isDatabaseEmbedded();
   }
 
+  // Note: jOOQ's inlineThreshold (default 0 = dialect-specific limits) automatically inlines all bind variables when
+  // the vendor limit is reached (65,535 for PostgreSQL; no limit for H2), so splitting is not required for correctness.
+  // Splitting pros: avoids H2's superlinear IN clause performance (see below); parameterized queries get better plan
+  // caching than large inlined SQL on PostgreSQL.
+  // Splitting cons: multiple round trips instead of one, added code complexity for callers.
+  // The H2 threshold of 2,000 was chosen in CLM-6085 due to H2's roughly O(n^2) IN clause performance:
+  // 100 items=7ms, 1k=137ms, 2k=393ms, 5k=2.2s, 10k=8.6s. Those benchmarks were on OpenJPA — may differ with jOOQ.
+  // See InOperatorThresholdTest / InOperatorThresholdPostgresTest for correctness verification.
   public int getInOperatorThreshold(DataStore dataStore) {
     return isDatabaseEmbedded(dataStore) ? H2_IN_OPERATOR_THRESHOLD : POSTGRES_IN_OPERATOR_THRESHOLD;
   }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -221,16 +220,11 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   @Override
   public TransactionContext createTransactionContext() {
-    try {
-      DataStore dataStore = getDataStore();
-      return new TransactionContext(
-          dataStore.getDataSource(),
-          DialectHelper.detectDialect(dataStore),
-          dataStore.getDatabaseSchema());
-    }
-    catch (SQLException e) {
-      throw new RuntimeException("Failed to create transaction context", e);
-    }
+    DataStore dataStore = getDataStore();
+    return new TransactionContext(
+        dataStore.getDataSource(),
+        DialectHelper.detectDialect(dataStore),
+        dataStore.getDatabaseSchema());
   }
 
   protected void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {

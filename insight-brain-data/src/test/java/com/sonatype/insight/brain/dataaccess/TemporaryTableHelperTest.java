@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import java.sql.SQLException;
-
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
@@ -89,15 +87,10 @@ public class TemporaryTableHelperTest
 
   private TransactionContext createTransactionContext() {
     DataStore dataStore = databaseRule.getOperationalDataStore();
-    try {
-      return new TransactionContext(
-          dataStore.getDataSource(),
-          DialectHelper.detectDialect(dataStore),
-          dataStore.getDatabaseSchema());
-    }
-    catch (SQLException e) {
-      throw new RuntimeException("Failed to create transaction context", e);
-    }
+    return new TransactionContext(
+        dataStore.getDataSource(),
+        DialectHelper.detectDialect(dataStore),
+        dataStore.getDatabaseSchema());
   }
 
   private List<String> createIds(final int count) {

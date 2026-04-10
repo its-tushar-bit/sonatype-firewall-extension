@@ -75,11 +75,11 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.jooq.CommonTableExpression;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Select;
+import org.jooq.Record1;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -378,16 +378,17 @@ public class OwnerDAO
         .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(effectiveGroupNames));
 
     // CTE: compute user's context IDs once by joining membership_mapping with role_permission
-    Name userContextsCte = DSL.name("user_contexts");
-    Select<?> userContextsQuery = tx.dsl()
-        .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
-        .from(MEMBERSHIP_MAPPING)
-        .join(ROLE_PERMISSION)
-        .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
-        .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
-        .and(userCondition.or(groupCondition));
+    CommonTableExpression<Record1<String>> userContextsCte = DSL.name("user_contexts")
+        .fields("context_id")
+        .as(tx.dsl()
+            .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
+            .from(MEMBERSHIP_MAPPING)
+            .join(ROLE_PERMISSION)
+            .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+            .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
+            .and(userCondition.or(groupCondition)));
 
-    Field<String> ctxId = DSL.field(DSL.name("user_contexts", "context_id"), String.class);
+    Field<String> ctxId = userContextsCte.field("context_id", String.class);
 
     // Main query: return entity IDs that pass authz, using getStreamWithSqlInClause for IN clause partitioning
     // When permission is global, any user who has the permission in ANY context can access all entities
@@ -395,7 +396,6 @@ public class OwnerDAO
     // OR check if the ancestor is in the user's contexts
     try (var stream = getStreamWithSqlInClause(ownerIds, partition -> tx.dsl()
         .with(userContextsCte)
-        .as(userContextsQuery)
         .selectDistinct(ownerIdColumn)
         .from(ancestorTable)
         .where(ownerIdColumn.in(partition))
@@ -489,16 +489,17 @@ public class OwnerDAO
     var groupCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.GROUP.name())
         .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(effectiveGroupNames));
 
-    Name userContextsCte = DSL.name("user_contexts");
-    Select<?> userContextsQuery = tx.dsl()
-        .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
-        .from(MEMBERSHIP_MAPPING)
-        .join(ROLE_PERMISSION)
-        .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
-        .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
-        .and(userCondition.or(groupCondition));
+    CommonTableExpression<Record1<String>> userContextsCte = DSL.name("user_contexts")
+        .fields("context_id")
+        .as(tx.dsl()
+            .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
+            .from(MEMBERSHIP_MAPPING)
+            .join(ROLE_PERMISSION)
+            .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+            .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
+            .and(userCondition.or(groupCondition)));
 
-    Field<String> ctxId = DSL.field(DSL.name("user_contexts", "context_id"), String.class);
+    Field<String> ctxId = userContextsCte.field("context_id", String.class);
 
     // Single query that returns both entity existence and permission status.
     // entity_exists: whether the ownerId appears in the type-specific ancestor view.
@@ -509,7 +510,6 @@ public class OwnerDAO
         DSL.exists(
             tx.dsl()
                 .with(userContextsCte)
-                .as(userContextsQuery)
                 .selectOne()
                 .where(
                     (permission.isGlobal()

@@ -48,7 +48,7 @@ import static com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffS
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.jooq.impl.DSL;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolation.POLICY_VIOLATION;
 
 public class ApiReportDataResourceV2Test
     extends AbstractResourceTest
@@ -181,9 +181,9 @@ public class ApiReportDataResourceV2Test
     try (com.sonatype.insight.dataaccess.TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
       tx.dsl()
-          .update(DSL.table("policy_violation"))
-          .set(DSL.field("policy_violation_id"), "1a2b754bd39345c0a2a3af85f04d68da")
-          .where(DSL.field("policy_violation_id").eq(policyViolation.getId()))
+          .update(POLICY_VIOLATION)
+          .set(POLICY_VIOLATION.POLICY_VIOLATION_ID, "1a2b754bd39345c0a2a3af85f04d68da")
+          .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(policyViolation.getId()))
           .execute();
       tx.commit();
     }
@@ -581,9 +581,9 @@ public class ApiReportDataResourceV2Test
     try (com.sonatype.insight.dataaccess.TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
       tx.dsl()
-          .update(DSL.table("policy_violation"))
-          .set(DSL.field("policy_violation_id"), "appeared_1")
-          .where(DSL.field("policy_violation_id").eq(policyViolation.getId()))
+          .update(POLICY_VIOLATION)
+          .set(POLICY_VIOLATION.POLICY_VIOLATION_ID, "appeared_1")
+          .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(policyViolation.getId()))
           .execute();
       tx.commit();
     }

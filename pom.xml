@@ -42,6 +42,9 @@
     <logback.version>1.5.21</logback.version>
     <jackson.version>2.21.2</jackson.version>
     <jooq.version>3.19.29</jooq.version>
+    <!-- Placeholder schema name stamped into jOOQ-generated classes by codegen (insight-brain-db/pom.xml).
+         Must match TransactionContext.PLACEHOLDER_SCHEMA so the render mapping can replace it at runtime. -->
+    <jooq.placeholder.schema>__placeholder_schema__</jooq.placeholder.schema>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
     <shiro.version>2.0.6</shiro.version>

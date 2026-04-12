@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.features;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -70,9 +71,12 @@ public class FeaturesService
       if (configuration.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
+
+      // Batch load all properties once to avoid N individual queries for feature flags
+      Map<String, SystemConfigurationProperty> allProps = systemConfigurationPropertyDAO.getAllAsMap();
       features.addAll(
           Arrays.stream(SystemConfigurationPropertyFeature.values())
-              .filter(SystemConfigurationPropertyFeature::isEnabled)
+              .filter(f -> f.isEnabled(allProps))
               .collect(Collectors.toSet()));
 
       if (developerEnablementService.shouldEnableDeveloperProduct()) {

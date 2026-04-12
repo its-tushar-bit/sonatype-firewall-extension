@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -75,6 +76,41 @@ public class DevelopmentPrioritizationComponentInfoDAO
           .where(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID.eq(scanId))
           .and(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.COMPONENT_HASH.eq(componentHash))
           .fetchOne());
+    }
+  }
+
+  /**
+   * Batch loads component info for multiple component hashes within a single scan context.
+   * Returns a map keyed by componentHash for O(1) lookup during processing.
+   * <p>
+   * This method is useful for avoiding N+1 queries when processing multiple components
+   * that all belong to the same scan.
+   *
+   * @param scanId the scan ID
+   * @param componentHashes set of component hashes to fetch info for
+   * @return map of component hash to component info, or empty map if componentHashes is null/empty
+   */
+  public Map<String, DevelopmentPrioritizationComponentInfo> getByScanIdAndComponentHashes(
+      final String scanId,
+      final Set<String> componentHashes)
+  {
+    if (CollectionUtils.isEmpty(componentHashes)) {
+      return Collections.emptyMap();
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      try (var stream = getStreamWithSqlInClause(componentHashes, partition -> tx.dsl()
+          .selectFrom(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO)
+          .where(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.SCAN_ID.eq(scanId))
+          .and(DEVELOPMENT_PRIORITIZATION_COMPONENT_INFO.COMPONENT_HASH.in(partition))
+          .fetchStream()
+          .map(this::toEntity)))
+      {
+        return stream.collect(Collectors.toMap(
+            DevelopmentPrioritizationComponentInfo::getComponentHash,
+            info -> info,
+            (a, b) -> a)); // Keep first if duplicates
+      }
     }
   }
 

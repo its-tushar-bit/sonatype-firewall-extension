@@ -277,6 +277,38 @@ public class PolicyWaiverDAO
         .fetch(this::toEntity);
   }
 
+  /**
+   * Batch loads policy waivers for multiple component hashes within a single owner context.
+   * Returns a map keyed by hash for O(1) lookup during processing.
+   * <p>
+   * This method is useful for avoiding N+1 queries when processing multiple components
+   * that all belong to the same application/organization.
+   *
+   * @param tx the transaction context
+   * @param ownerId the owner ID (application or organization ID)
+   * @param hashes set of component hashes to fetch waivers for
+   * @return map of hash to list of policy waivers, or empty map if hashes is null/empty
+   */
+  public Map<String, List<PolicyWaiver>> getByOwnerIdAndHashes(
+      TransactionContext tx,
+      String ownerId,
+      Set<String> hashes)
+  {
+    if (hashes == null || hashes.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    try (var stream = getStreamWithSqlInClause(hashes, partition -> tx.dsl()
+        .selectFrom(POLICY_WAIVER)
+        .where(POLICY_WAIVER.OWNER_ID.eq(ownerId))
+        .and(POLICY_WAIVER.HASH.in(partition))
+        .fetchStream()
+        .map(this::toEntity)))
+    {
+      return stream.collect(Collectors.groupingBy(PolicyWaiver::getHash));
+    }
+  }
+
   public List<PolicyWaiver> getByOwnerId(TransactionContext tx, String ownerId) {
     return tx.dsl()
         .selectFrom(POLICY_WAIVER)

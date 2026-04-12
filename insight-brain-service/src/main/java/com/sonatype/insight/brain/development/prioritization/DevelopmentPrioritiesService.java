@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -230,6 +231,30 @@ public class DevelopmentPrioritiesService
 
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
+    // Batch fetch policy waivers and component info before stream processing
+    Set<String> componentHashes = apiReportRawDataDTOV2.components.stream()
+        .map(component -> component.hash)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Map<String, List<PolicyWaiver>> policyWaiversByHash;
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      policyWaiversByHash = policyWaiverDAO.getByOwnerIdAndHashes(tx, applicationId, componentHashes);
+    }
+
+    final Map<String, DevelopmentPrioritizationComponentInfo> componentInfoByHash;
+    if (isBulkRecommendationsEnabled) {
+      Set<String> syntheticHashes = apiReportRawDataDTOV2.components.stream()
+          .filter(c -> c.componentIdentifier != null)
+          .map(c -> c.componentIdentifier.toComponentIdentifier().toSyntheticHash())
+          .filter(Objects::nonNull)
+          .collect(Collectors.toSet());
+      componentInfoByHash = prioritizationComponentInfoDAO.getByScanIdAndComponentHashes(scanId, syntheticHashes);
+    }
+    else {
+      componentInfoByHash = Collections.emptyMap();
+    }
+
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
         .stream()
         .map(component -> {
@@ -280,11 +305,8 @@ public class DevelopmentPrioritiesService
           }
 
           if (isBulkRecommendationsEnabled && componentIdentifier != null) {
-            // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
-            // from the component identifier (does not use the binary) is what is stored in the database
             DevelopmentPrioritizationComponentInfo prioritizationComponentInfo =
-                prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
-                    componentIdentifier.toSyntheticHash());
+                componentInfoByHash.get(componentIdentifier.toSyntheticHash());
 
             if (prioritizationComponentInfo != null) {
               remediationType = prioritizationComponentInfo.getRemediationType();
@@ -315,7 +337,7 @@ public class DevelopmentPrioritiesService
             }
           }
 
-          List<PolicyWaiver> policyWaivers = fetchPolicyWaiversByAppAndHash(applicationId, component.hash);
+          List<PolicyWaiver> policyWaivers = policyWaiversByHash.getOrDefault(component.hash, List.of());
           for (PolicyWaiver policyWaiver : policyWaivers) {
             if (Objects.nonNull(policyWaiver.getExpiryTime())) {
               ZonedDateTime waiverExpiryTime = policyWaiver.getExpiryTime().toInstant().atZone(ZoneId.systemDefault());
@@ -706,12 +728,6 @@ public class DevelopmentPrioritiesService
   private static boolean matchesFilter(final String componentName, final String filter) {
     return componentName.toLowerCase(Locale.ROOT)
         .matches(String.format(".*%s.*", Pattern.quote(filter.toLowerCase(Locale.ROOT))));
-  }
-
-  private List<PolicyWaiver> fetchPolicyWaiversByAppAndHash(String appId, String hash) {
-    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
-      return policyWaiverDAO.getByOwnerIdAndHash(tx, appId, hash);
-    }
   }
 
   /**

@@ -11,11 +11,13 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -88,6 +90,52 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
         .isNull();
     assertThat(dao.getByScanIdAndComponentHash("scan1", "hashX"))
         .isNull();
+  }
+
+  @Test
+  public void testGetByScanIdAndComponentHashes_multipleHashes() {
+    Map<String, DevelopmentPrioritizationComponentInfo> result =
+        dao.getByScanIdAndComponentHashes("scan1", Set.of("hash1", "hash2"));
+
+    assertThat(result)
+        .hasSize(2)
+        .containsKeys("hash1", "hash2")
+        .containsValues(scan1component1, scan1component2);
+  }
+
+  @Test
+  public void testGetByScanIdAndComponentHashes_partialMatch() {
+    Map<String, DevelopmentPrioritizationComponentInfo> result =
+        dao.getByScanIdAndComponentHashes("scan1", Set.of("hash1", "hashNonExistent"));
+
+    assertThat(result)
+        .hasSize(1)
+        .containsKey("hash1")
+        .doesNotContainKey("hashNonExistent");
+  }
+
+  @Test
+  public void testGetByScanIdAndComponentHashes_emptyHashes() {
+    Map<String, DevelopmentPrioritizationComponentInfo> result =
+        dao.getByScanIdAndComponentHashes("scan1", Collections.emptySet());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByScanIdAndComponentHashes_nullHashes() {
+    Map<String, DevelopmentPrioritizationComponentInfo> result =
+        dao.getByScanIdAndComponentHashes("scan1", null);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetByScanIdAndComponentHashes_nonExistentScanId() {
+    Map<String, DevelopmentPrioritizationComponentInfo> result =
+        dao.getByScanIdAndComponentHashes("scanNonExistent", Set.of("hash1", "hash2"));
+
+    assertThat(result).isEmpty();
   }
 
   @Test

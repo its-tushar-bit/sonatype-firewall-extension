@@ -552,6 +552,60 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndHashes_multipleHashes() {
+    DateTime now = DateTime.now();
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    String ownerId = organization.getId();
+    String hash1 = "hash0000000000000001";
+    String hash2 = "hash0000000000000002";
+    String hash3 = "hash0000000000000003";
+
+    PolicyWaiver waiver1 = tempEntity.newWaiver(hash1, policy1.getId(), ownerId, null, "comment", now.toDate(), null);
+    PolicyWaiver waiver2a = tempEntity.newWaiver(hash2, policy1.getId(), ownerId, null, "comment", now.toDate(), null);
+    // Second waiver for hash2 uses a different policy to avoid unique constraint violation
+    PolicyWaiver waiver2b = tempEntity.newWaiver(hash2, policy2.getId(), ownerId, null, "comment2", now.toDate(), null);
+    // hash3 has no waivers
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<String, List<PolicyWaiver>> result = dao.getByOwnerIdAndHashes(tx, ownerId, Set.of(hash1, hash2, hash3));
+
+      assertThat(result).hasSize(2); // only hash1 and hash2 have waivers
+      assertThat(result.get(hash1)).hasSize(1).extracting(PolicyWaiver::getId).containsExactly(waiver1.getId());
+      assertThat(result.get(hash2)).hasSize(2)
+          .extracting(PolicyWaiver::getId)
+          .containsExactlyInAnyOrder(waiver2a.getId(), waiver2b.getId());
+      assertThat(result).doesNotContainKey(hash3);
+    }
+  }
+
+  @Test
+  public void testGetByOwnerIdAndHashes_emptyHashes() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<String, List<PolicyWaiver>> result =
+          dao.getByOwnerIdAndHashes(tx, organization.getId(), Collections.emptySet());
+      assertThat(result).isEmpty();
+    }
+  }
+
+  @Test
+  public void testGetByOwnerIdAndHashes_nullHashes() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<String, List<PolicyWaiver>> result = dao.getByOwnerIdAndHashes(tx, organization.getId(), null);
+      assertThat(result).isEmpty();
+    }
+  }
+
+  @Test
+  public void testGetByOwnerIdAndHashes_noMatchingWaivers() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<String, List<PolicyWaiver>> result = dao.getByOwnerIdAndHashes(
+          tx, organization.getId(), Set.of("nonexistent_hash_1", "nonexistent_hash_2"));
+      assertThat(result).isEmpty();
+    }
+  }
+
+  @Test
   public void testGetExpiredByOwnerIdAndPurl() {
     String ownerId = "owner123";
     String packageUrlString = "pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar";

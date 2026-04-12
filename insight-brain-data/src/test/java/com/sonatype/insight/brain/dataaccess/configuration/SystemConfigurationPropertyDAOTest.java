@@ -108,4 +108,30 @@ public class SystemConfigurationPropertyDAOTest
 
     assertThat(dao.getByName(property.getName())).isNull();
   }
+
+  @Test
+  public void testGetAllAsMap_ReturnsMap() {
+    // Database may have pre-existing properties, so we just verify the method returns a map
+    // and that our inserted property is present
+    SystemConfigurationProperty property = new SystemConfigurationProperty(DUMMY_PROPERTY_NAME, "value");
+    dao.insert(property);
+
+    var result = dao.getAllAsMap();
+
+    assertThat(result).isNotEmpty();
+    assertThat(result).containsKey(DUMMY_PROPERTY_NAME);
+    assertThat(result.get(DUMMY_PROPERTY_NAME).getValue()).isEqualTo("value");
+  }
+
+  @Test
+  public void testGetAllAsMap_ContainsMultipleProperties() {
+    dao.insert(new SystemConfigurationProperty("prop1", "value1"));
+    dao.insert(new SystemConfigurationProperty("prop2", "value2"));
+
+    var result = dao.getAllAsMap();
+
+    assertThat(result).containsKeys("prop1", "prop2");
+    assertThat(result.get("prop1").getValue()).isEqualTo("value1");
+    assertThat(result.get("prop2").getValue()).isEqualTo("value2");
+  }
 }

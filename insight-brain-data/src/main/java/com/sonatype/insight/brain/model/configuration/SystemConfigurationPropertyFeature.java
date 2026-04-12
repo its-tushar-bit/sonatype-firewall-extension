@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
+import java.util.Map;
+
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -77,6 +79,12 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ADVANCED_SEARCH_CONFIGURATION_ENV_VAR);
+      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
     public void setEnabled(TransactionContext tx, boolean enabled) {
       String valueInEnvVar = System.getenv().get(NXIQ_ADVANCED_SEARCH_CONFIGURATION_ENV_VAR);
       if (valueInEnvVar == null) {
@@ -91,6 +99,12 @@ public enum SystemConfigurationPropertyFeature
     @Override
     public boolean isEnabled(TransactionContext tx) {
       return Boolean.parseBoolean(systemConfigurationPropertyDAO.getByName(tx, getPropertyName()).getValue());
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop != null && Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
@@ -116,6 +130,15 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
       return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
+      if (valueInEnvVar != null) {
+        return Boolean.parseBoolean(valueInEnvVar);
+      }
+      return super.isEnabled(allProperties);
     }
 
     @Override
@@ -152,6 +175,19 @@ public enum SystemConfigurationPropertyFeature
         super.setEnabled(tx, enabled);
       }
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
+      if (valueInEnvVar != null) {
+        return Boolean.parseBoolean(valueInEnvVar);
+      }
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      // Enabled in MTIQ non-FIPS mode when not explicitly set, disabled otherwise
+      return prop == null
+          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(prop.getValue());
+    }
   },
   API_PAGE(SystemConfigurationProperty.API_PAGE, true),
   SCAN_POM_FILES_IN_META_INF_DIRECTORY(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY, false),
@@ -185,6 +221,15 @@ public enum SystemConfigurationPropertyFeature
           ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      // Enabled in MTIQ non-FIPS mode when not explicitly set, disabled otherwise
+      return prop == null
+          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   /**
@@ -206,6 +251,14 @@ public enum SystemConfigurationPropertyFeature
       }
       return super.isEnabled(tx);
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      if (tenantUtil.isSingleTenant()) {
+        return true;
+      }
+      return super.isEnabled(allProperties);
+    }
   },
 
   /**
@@ -221,6 +274,15 @@ public enum SystemConfigurationPropertyFeature
       }
       String valueInEnvVar = System.getenv().get(NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR);
       return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      if (tenantUtil.isSingleTenant()) {
+        return true;
+      }
+      String valueInEnvVar = System.getenv().get(NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR);
+      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -269,6 +331,12 @@ public enum SystemConfigurationPropertyFeature
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   NON_BREAKING_VERSION_SUGGESTION_TELEMETRY(
@@ -290,6 +358,12 @@ public enum SystemConfigurationPropertyFeature
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   WAIVER_REQUEST_WORKFLOW_ENABLED(SystemConfigurationProperty.WAIVER_REQUEST_WORKFLOW_ENABLED, true),
@@ -303,6 +377,14 @@ public enum SystemConfigurationPropertyFeature
       }
       return super.isEnabled(tx);
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      if (tenantUtil.isSingleTenant()) {
+        return false;
+      }
+      return super.isEnabled(allProperties);
+    }
   },
 
   CONTAINER_IMAGES_EVAL_ENABLED(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, true)
@@ -315,6 +397,12 @@ public enum SystemConfigurationPropertyFeature
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   ZSCALER(SystemConfigurationProperty.ZSCALER, true)
@@ -326,6 +414,12 @@ public enum SystemConfigurationPropertyFeature
       return systemConfigurationProperty == null
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
 
@@ -340,6 +434,12 @@ public enum SystemConfigurationPropertyFeature
       return systemConfigurationProperty == null
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
 
@@ -358,6 +458,18 @@ public enum SystemConfigurationPropertyFeature
           ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      // CLM-35986 - default this based on the environment we are in.
+      // 1) On prem IQ - Default to be enabled.
+      // 2) MTIQ with FIPS enabled - Default to be enabled.
+      // 3) MITQ with FIPS disabled - Default to be disabled.
+      return prop == null
+          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   USER_MANAGEMENT_PAGES(SystemConfigurationProperty.USER_MANAGEMENT_PAGES, true)
@@ -371,6 +483,15 @@ public enum SystemConfigurationPropertyFeature
           ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      // Enabled in single tenant OR FIPS mode, disabled otherwise
+      return prop == null
+          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(prop.getValue());
+    }
   },
 
   EPSS_DATA(SystemConfigurationProperty.EPSS_DATA, false),
@@ -381,6 +502,12 @@ public enum SystemConfigurationPropertyFeature
     public boolean isEnabled(TransactionContext tx) {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR);
       return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR);
+      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -403,6 +530,12 @@ public enum SystemConfigurationPropertyFeature
       return systemConfigurationProperty == null
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
@@ -476,6 +609,18 @@ public enum SystemConfigurationPropertyFeature
     SystemConfigurationProperty systemConfigurationProperty =
         systemConfigurationPropertyDAO.getByName(tx, propertyName);
     return (systemConfigurationProperty == null) == enabledWhenAbsent;
+  }
+
+  /**
+   * Checks if this feature is enabled using a pre-loaded map of all properties.
+   * This avoids N individual database queries when checking multiple features.
+   *
+   * @param allProperties map of property name to SystemConfigurationProperty
+   * @return true if the feature is enabled
+   */
+  public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    SystemConfigurationProperty prop = allProperties.get(propertyName);
+    return (prop == null) == enabledWhenAbsent;
   }
 
   public void verifyEnabled() {

@@ -138,7 +138,7 @@ export default function AddContainerImageWaiverPage() {
               )}
               <div className="iq-caption">
                 <h3 className="iq-caption__text">
-                  {failViolationsCount} FAIL VIOLATION
+                  {failViolationsCount} FAILED VIOLATION
                   {toUpper(plural(failViolationsCount))}
                 </h3>
                 <p className="iq-caption__sub-text">

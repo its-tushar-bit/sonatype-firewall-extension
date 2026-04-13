@@ -61,7 +61,7 @@ describe('AddContainerImageWaiverPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: /Add Waiver/i })).toBeVisible();
     expect(screen.getByRole('heading', { level: 2, name: /Waiver Configuration/i })).toBeVisible();
     expect(screen.getAllByText('1')).toHaveLength(3); // threat indicators
-    expect(screen.getByText('3 FAIL VIOLATIONS')).toBeInTheDocument();
+    expect(screen.getByText('3 FAILED VIOLATIONS')).toBeInTheDocument();
     expect(screen.getByText('Affecting 3 components')).toBeInTheDocument();
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(

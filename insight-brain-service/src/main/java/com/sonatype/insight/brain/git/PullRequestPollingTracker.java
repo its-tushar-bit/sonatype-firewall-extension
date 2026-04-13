@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -34,6 +36,8 @@ class PullRequestPollingTracker
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final int prefetchBatchSize;
+
   // keep track of which repositories (by internal id) we've polled and which ones we haven't
   private final TenantReference<Set<String>> repositoriesPolled = new TenantReference<>(HashSet::new);
 
@@ -41,8 +45,14 @@ class PullRequestPollingTracker
   // combo for this polling cycle there is no need to check it again until the next polling cycle
   private final TenantReference<Set<String>> alreadyCheckedKeys = new TenantReference<>(HashSet::new);
 
-  PullRequestPollingTracker(SourceControlDAO sourceControlDAO) {
+  // pre-fetched batch of repos to poll, avoiding one DB query per iteration; re-fetched when exhausted
+  private Queue<SourceControl> prefetchedQueue;
+
+  private boolean prefetchExhausted;
+
+  PullRequestPollingTracker(SourceControlDAO sourceControlDAO, int prefetchBatchSize) {
     this.sourceControlDAO = sourceControlDAO;
+    this.prefetchBatchSize = prefetchBatchSize;
   }
 
   /**
@@ -52,13 +62,23 @@ class PullRequestPollingTracker
    * @return next source control entry to poll or null if there are none left to poll
    */
   SourceControl getNextRepositoryToPoll() {
-    SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
-    if (null == sourceControl || repositoriesPolled.get().contains(sourceControl.getId())) {
-      return null;
-    }
+    while (true) {
+      if (prefetchedQueue == null || (prefetchedQueue.isEmpty() && !prefetchExhausted)) {
+        List<SourceControl> batch = sourceControlDAO.getNextRepositoriesToPoll(prefetchBatchSize);
+        prefetchedQueue = new ArrayDeque<>(batch);
+        prefetchExhausted = batch.size() < prefetchBatchSize;
+      }
 
-    repositoriesPolled.get().add(sourceControl.getId());
-    return sourceControl;
+      if (prefetchedQueue.isEmpty()) {
+        return null;
+      }
+
+      SourceControl sourceControl = prefetchedQueue.poll();
+      if (!repositoriesPolled.get().contains(sourceControl.getId())) {
+        repositoriesPolled.get().add(sourceControl.getId());
+        return sourceControl;
+      }
+    }
   }
 
   /**

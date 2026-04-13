@@ -256,16 +256,19 @@ public class SourceControlDAO
     }
   }
 
-  public SourceControl getNextRepositoryToPoll() {
+  public List<SourceControl> getNextRepositoriesToPoll(int limit) {
     try (TransactionContext tx = createTransactionContext()) {
-      return toEntity(tx.dsl()
+      return tx.dsl()
           .selectFrom(SOURCE_CONTROL)
           .where(SOURCE_CONTROL.REPOSITORY_URL.isNotNull())
           .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNotNull())
           .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(new Date()))
           .orderBy(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.asc())
-          .limit(1)
-          .fetchOne());
+          .limit(limit)
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
     }
   }
 

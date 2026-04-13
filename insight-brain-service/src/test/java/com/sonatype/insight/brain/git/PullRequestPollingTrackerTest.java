@@ -38,7 +38,7 @@ public class PullRequestPollingTrackerTest
 
   @Before
   public void before() {
-    pollingTracker = new PullRequestPollingTracker(sourceControlDAO);
+    pollingTracker = new PullRequestPollingTracker(sourceControlDAO, 50);
   }
 
   @Test
@@ -73,6 +73,50 @@ public class PullRequestPollingTrackerTest
 
     // then: we've already seen both source controls in this tracker so expecting null now
     assertThat(sourceControl).isNull();
+  }
+
+  @Test
+  public void testGetNextRepositoryToPoll_refetchesWhenBatchExhausted() {
+    // given: 3 source control entries with poll times in the past, and a tracker with batch size 1
+    PullRequestPollingTracker smallBatchTracker = new PullRequestPollingTracker(sourceControlDAO, 1);
+    long now = System.currentTimeMillis();
+
+    SourceControl sourceControl1 = createSourceControl();
+    sourceControl1.setPullRequestPollTime(new Date(now - 3000));
+    sourceControlDAO.update(sourceControl1);
+
+    SourceControl sourceControl2 = createSourceControl();
+    sourceControl2.setPullRequestPollTime(new Date(now - 2000));
+    sourceControlDAO.update(sourceControl2);
+
+    SourceControl sourceControl3 = createSourceControl();
+    sourceControl3.setPullRequestPollTime(new Date(now - 1000));
+    sourceControlDAO.update(sourceControl3);
+
+    // when/then: first call returns oldest, triggers first batch fetch
+    SourceControl result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl1.getId());
+
+    // simulate processing: advance poll time to future so it won't reappear in re-fetch
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl1.getId(), new Date(now + 60000), 0);
+
+    // when/then: second call exhausts first batch, re-fetches, returns next oldest
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl2.getId());
+
+    // simulate processing
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl2.getId(), new Date(now + 60000), 0);
+
+    // when/then: third call re-fetches again, returns last repo
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl3.getId());
+
+    // simulate processing
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl3.getId(), new Date(now + 60000), 0);
+
+    // when/then: all repos processed and poll times in future — returns null, no infinite loop
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result).isNull();
   }
 
   @Test

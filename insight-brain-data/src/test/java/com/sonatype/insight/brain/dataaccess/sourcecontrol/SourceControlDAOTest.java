@@ -261,7 +261,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetNextRepositoryToPoll() {
+  public void testGetNextRepositoriesToPoll() {
     // given: several source control entries with different pull request poll times
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     LocalDateTime dateTime = LocalDateTime.now();
@@ -272,53 +272,58 @@ public class SourceControlDAOTest
         toDate(dateTime.minusDays(1)));
 
     Application app3 = tempEntity.newApplication("app3", org.getId());
-    SourceControl sourceControl3 = tempEntity.newSourceControl(app3.getId(), "http://a.com/org/repo3",
+    tempEntity.newSourceControl(app3.getId(), "http://a.com/org/repo3",
         toDate(dateTime.minusDays(2)));
 
-    // when: get source control for next repo to poll
-    SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+    // when: get repos to poll
+    List<SourceControl> results = sourceControlDAO.getNextRepositoriesToPoll(10);
 
-    // then: app3 has oldest poll time
-    assertThat(sourceControl.getOwnerId()).isEqualTo(app3.getId());
+    // then: returns all 3 ordered by oldest poll time first
+    assertThat(results).hasSize(3);
+    assertThat(results.get(0).getOwnerId()).isEqualTo(app3.getId());
+    assertThat(results.get(1).getOwnerId()).isEqualTo(app2.getId());
+    assertThat(results.get(2).getOwnerId()).isEqualTo(app.getId());
 
-    // when: update app3 source control poll time to have current time
-    sourceControl3.setPullRequestPollTime(new Date());
-    sourceControlDAO.update(sourceControl3);
-    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
-
-    // then: app2 source control now has oldest poll time
-    assertThat(sourceControl.getOwnerId()).isEqualTo(app2.getId());
-
-    // when: clear app2 poll time and lookup next repo to poll
+    // when: clear app2 poll time
     sourceControl2.setPullRequestPollTime(null);
     sourceControlDAO.update(sourceControl2);
-    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+    results = sourceControlDAO.getNextRepositoriesToPoll(10);
 
-    // then: app 1 source control has oldest poll time now
-    assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
+    // then: app2 excluded, only 2 returned
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getOwnerId()).isEqualTo(app3.getId());
+    assertThat(results.get(1).getOwnerId()).isEqualTo(app.getId());
+
+    // when: limit is respected
+    results = sourceControlDAO.getNextRepositoriesToPoll(1);
+
+    // then: only the oldest is returned
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getOwnerId()).isEqualTo(app3.getId());
   }
 
   @Test
-  public void testGetNextRepositoryToPoll_future() {
+  public void testGetNextRepositoriesToPoll_future() {
     // given: source control entries with pull request poll time in future
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     LocalDateTime dateTime = LocalDateTime.now();
     SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo1", toDate(dateTime.plusDays(1)));
 
-    // when: get source control for next repo to poll
-    SourceControl sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+    // when: get repos to poll
+    List<SourceControl> results = sourceControlDAO.getNextRepositoriesToPoll(10);
 
     // then: nothing should be returned
-    assertThat(sourceControl).isNull();
+    assertThat(results).isEmpty();
 
     // when: update app source control poll time to have past time
     appSourceControl.setPullRequestPollTime(toDate(dateTime.minusDays(1)));
     sourceControlDAO.update(appSourceControl);
-    sourceControl = sourceControlDAO.getNextRepositoryToPoll();
+    results = sourceControlDAO.getNextRepositoriesToPoll(10);
 
     // then: app source control is returned
-    assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getOwnerId()).isEqualTo(app.getId());
   }
 
   @Test

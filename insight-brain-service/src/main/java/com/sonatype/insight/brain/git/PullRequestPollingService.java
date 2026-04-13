@@ -109,7 +109,8 @@ public class PullRequestPollingService
       return;
     }
 
-    PullRequestPollingTracker pollingTracker = new PullRequestPollingTracker(sourceControlDAO);
+    PullRequestPollingTracker pollingTracker =
+        new PullRequestPollingTracker(sourceControlDAO, MAX_API_REQUESTS_PER_CYCLE);
 
     // the pull requests we get back can be for any app that the related org and key have access to
     List<PullRequest> pullRequests = getPullRequestsFromScm(pollingTracker);

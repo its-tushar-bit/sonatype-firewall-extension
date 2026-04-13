@@ -4,13 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @use 'react2ShellSummaryTiles';
-@use 'react2ShellImpactTable';
 
 .iq-react2shell-page {
   .nx-alert.nx-alert--error {
     width: 100%;
     max-width: none;
     margin: var(--nx-spacing-4x) 0;
+  }
+
+  .nx-table-container {
+    overflow-x: auto;
   }
 }
 

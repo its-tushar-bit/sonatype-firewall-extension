@@ -92,7 +92,8 @@ public class EvaluationQueueProducerTest
   public void testRegister_withoutConfig() {
     evaluationQueueProducer.register();
 
-    verify(mockTaskScheduler).unscheduleTask(evaluationQueueProducer);
+    verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer,
+        Duration.ofMillis(EvaluationQueueConfig.DEFAULT_PRODUCER_PERIOD.toMillis()));
   }
 
   @Test

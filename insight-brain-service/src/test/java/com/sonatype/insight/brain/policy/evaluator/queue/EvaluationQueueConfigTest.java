@@ -204,7 +204,7 @@ public class EvaluationQueueConfigTest
 
   @Test
   public void testBuild_usesDefaults() {
-    assertThat(EvaluationQueueConfig.DEFAULT_ENABLED).isFalse();
+    assertThat(EvaluationQueueConfig.DEFAULT_ENABLED).isTrue();
     assertThat(EvaluationQueueConfig.DEFAULT_PRODUCER_PERIOD).isEqualTo(Duration.ofMinutes(10));
     assertThat(EvaluationQueueConfig.DEFAULT_PRODUCER_MAX_QUEUED_ROWS).isEqualTo(1000);
     assertThat(EvaluationQueueConfig.DEFAULT_TARGET_CYCLE_PERIOD).isEqualTo(Duration.ofHours(24));

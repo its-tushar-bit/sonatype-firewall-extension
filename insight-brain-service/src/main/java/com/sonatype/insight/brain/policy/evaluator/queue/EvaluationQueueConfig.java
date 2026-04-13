@@ -26,7 +26,7 @@ public record EvaluationQueueConfig(
     long consumerRowExpirationInMilliseconds)
 {
 
-  public static final boolean DEFAULT_ENABLED = false;
+  public static final boolean DEFAULT_ENABLED = true;
 
   public static final Duration DEFAULT_PRODUCER_PERIOD = Duration.ofMinutes(10);
 

@@ -716,4 +716,60 @@ public class ApiReportDataServiceV2Test
     assertThat(violation.policyName).isEqualTo("Security-Medium");
 
   }
+
+  @Test
+  public void testGetRawData_AiModelData() throws Exception {
+    makeReport("report-ai-model");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+
+    // component with both contentTypes and derivedFromAiModel
+    ApiReportComponentDTOV2 component = data.components.get(0);
+    assertThat(component.hash).isEqualTo("a1b2c3d4e5f6g7h8i9j0");
+    assertThat(component.aiModelData).isNotNull();
+    assertThat(component.aiModelData.contentTypes).hasSize(1);
+    assertThat(component.aiModelData.contentTypes.get(0).id).isEqualTo("OBJECTIONABLE");
+    assertThat(component.aiModelData.contentTypes.get(0).name).isEqualTo("Objectionable");
+    assertThat(component.aiModelData.derivedFromComponentIdentifier)
+        .isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+            ComponentIdentifier.createHuggingfaceModelCoordinates(
+                "microsoft", "deberta-v3-base", "1.0", "safetensors", "safetensors")));
+    assertThat(component.aiModelData.derivedFromSimilarityScore).isEqualTo(0.85);
+
+    // component with contentTypes only — no derivedFrom fields
+    ApiReportComponentDTOV2 contentOnly = data.components.get(1);
+    assertThat(contentOnly.hash).isEqualTo("b1b2c3d4e5f6g7h8i9j0");
+    assertThat(contentOnly.aiModelData).isNotNull();
+    assertThat(contentOnly.aiModelData.contentTypes).hasSize(1);
+    assertThat(contentOnly.aiModelData.contentTypes.get(0).id).isEqualTo("OBJECTIONABLE");
+    assertThat(contentOnly.aiModelData.derivedFromComponentIdentifier).isNull();
+    assertThat(contentOnly.aiModelData.derivedFromSimilarityScore).isNull();
+
+    // component with derivedFromAiModel only — empty contentTypes
+    ApiReportComponentDTOV2 derivedOnly = data.components.get(2);
+    assertThat(derivedOnly.hash).isEqualTo("c1b2c3d4e5f6g7h8i9j0");
+    assertThat(derivedOnly.aiModelData).isNotNull();
+    assertThat(derivedOnly.aiModelData.contentTypes).isEmpty();
+    assertThat(derivedOnly.aiModelData.derivedFromComponentIdentifier)
+        .isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+            ComponentIdentifier.createHuggingfaceModelCoordinates(
+                "microsoft", "deberta-v3-base", "1.0", "safetensors", "safetensors")));
+    assertThat(derivedOnly.aiModelData.derivedFromSimilarityScore).isEqualTo(0.9);
+  }
+
+  @Test
+  public void testGetRawData_NoAiModelData_ForNonAiComponent() throws Exception {
+    makeReport("report-3");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(1);
+
+    ApiReportComponentDTOV2 component = data.components.get(0);
+    assertThat(component.aiModelData).isNull();
+  }
 }

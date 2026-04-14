@@ -35,6 +35,9 @@ public class ApiReportComponentDTOV2
   @JsonInclude(Include.NON_NULL)
   public ApiDependencyDataDTO dependencyData;
 
+  @JsonInclude(Include.NON_NULL)
+  public ApiAiModelDataDTO aiModelData;
+
   public String cpe;
 
   public Swid swid;

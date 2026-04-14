@@ -1,0 +1,153 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "hf-model",
+        "coordinates": {
+          "repo_id": "protectai",
+          "model": "deberta-v3-base-prompt-injection-v2",
+          "version": "1.0",
+          "model_format": "safetensors",
+          "extension": "safetensors"
+        }
+      },
+      "filenames": [
+        "model.safetensors"
+      ],
+      "pathnames": [
+        "model.safetensors"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "packageUrl": "pkg:huggingface/protectai/deberta-v3-base-prompt-injection-v2@1.0",
+      "hash": "a1b2c3d4e5f6g7h8i9j0",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "deberta-v3-base-prompt-injection-v2"
+          }
+        ],
+        "name": "deberta-v3-base-prompt-injection-v2"
+      },
+      "directDependency": false,
+      "innerSource": false,
+      "aiModelContentTypes": [
+        {
+          "id": "OBJECTIONABLE",
+          "name": "Objectionable"
+        }
+      ],
+      "derivedFromAiModel": {
+        "componentIdentifier": {
+          "format": "hf-model",
+          "coordinates": {
+            "repo_id": "microsoft",
+            "model": "deberta-v3-base",
+            "version": "1.0",
+            "model_format": "safetensors",
+            "extension": "safetensors"
+          }
+        },
+        "similarityScore": 0.85
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "hf-model",
+        "coordinates": {
+          "repo_id": "org2",
+          "model": "content-only-model",
+          "version": "2.0",
+          "model_format": "safetensors",
+          "extension": "safetensors"
+        }
+      },
+      "filenames": ["model2.safetensors"],
+      "pathnames": ["model2.safetensors"],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "packageUrl": "pkg:huggingface/org2/content-only-model@2.0",
+      "hash": "b1b2c3d4e5f6g7h8i9j0",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "integrityRating": null,
+      "displayName": {
+        "parts": [{"field": "Name", "value": "content-only-model"}],
+        "name": "content-only-model"
+      },
+      "directDependency": false,
+      "innerSource": false,
+      "aiModelContentTypes": [
+        {"id": "OBJECTIONABLE", "name": "Objectionable"}
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "hf-model",
+        "coordinates": {
+          "repo_id": "org3",
+          "model": "derived-only-model",
+          "version": "3.0",
+          "model_format": "safetensors",
+          "extension": "safetensors"
+        }
+      },
+      "filenames": ["model3.safetensors"],
+      "pathnames": ["model3.safetensors"],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "packageUrl": "pkg:huggingface/org3/derived-only-model@3.0",
+      "hash": "c1b2c3d4e5f6g7h8i9j0",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [],
+      "hygieneRating": null,
+      "integrityRating": null,
+      "displayName": {
+        "parts": [{"field": "Name", "value": "derived-only-model"}],
+        "name": "derived-only-model"
+      },
+      "directDependency": false,
+      "innerSource": false,
+      "derivedFromAiModel": {
+        "componentIdentifier": {
+          "format": "hf-model",
+          "coordinates": {
+            "repo_id": "microsoft",
+            "model": "deberta-v3-base",
+            "version": "1.0",
+            "model_format": "safetensors",
+            "extension": "safetensors"
+          }
+        },
+        "similarityScore": 0.9
+      }
+    }
+  ]
+}

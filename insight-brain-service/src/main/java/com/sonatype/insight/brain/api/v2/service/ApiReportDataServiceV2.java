@@ -19,9 +19,13 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.clm.dto.model.DerivedFromAiModel;
+import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiAiModelContentTypeDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiAiModelDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
@@ -500,6 +504,7 @@ public class ApiReportDataServiceV2
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
+        populateAiModelData(comp, component);
       }
 
       if (doAddDependencyData) {
@@ -551,6 +556,30 @@ public class ApiReportDataServiceV2
       if (comp.getInnerSourceData() != null) {
         component.dependencyData.innerSourceData = comp.getInnerSourceData();
       }
+    }
+  }
+
+  private static void populateAiModelData(Component comp, ApiReportComponentDTOV2 component) {
+    boolean hasContentTypes = !comp.getAiModelContentTypes().isEmpty();
+    boolean hasDerivedFrom = comp.getDerivedFromAiModel() != null;
+    if (!hasContentTypes && !hasDerivedFrom) {
+      return;
+    }
+
+    component.aiModelData = new ApiAiModelDataDTO();
+
+    for (AiModelContentType contentType : comp.getAiModelContentTypes()) {
+      ApiAiModelContentTypeDTO dto = new ApiAiModelContentTypeDTO();
+      dto.id = contentType.getId();
+      dto.name = contentType.getName();
+      component.aiModelData.contentTypes.add(dto);
+    }
+
+    if (hasDerivedFrom) {
+      DerivedFromAiModel derivedFrom = comp.getDerivedFromAiModel();
+      component.aiModelData.derivedFromComponentIdentifier =
+          ApiComponentIdentifierDTOV2.fromComponentIdentifier(derivedFrom.getComponentIdentifier());
+      component.aiModelData.derivedFromSimilarityScore = derivedFrom.getSimilarityScore();
     }
   }
 

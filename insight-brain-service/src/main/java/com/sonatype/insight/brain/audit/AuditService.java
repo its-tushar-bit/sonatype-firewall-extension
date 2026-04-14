@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.audit;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 @Singleton
@@ -43,13 +46,20 @@ public class AuditService
   }
 
   public List<OrganizationAuditDTO> getSelectedOrganizationsById(final Set<String> queriedOrganizationIds) {
-    List<OrganizationAuditDTO> organizationAuditDTOs = new ArrayList<>();
+    if (queriedOrganizationIds == null || queriedOrganizationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
 
-    if (queriedOrganizationIds != null) {
-      for (String queriedOrganizationId : queriedOrganizationIds) {
-        organizationAuditDTOs
-            .add(new OrganizationAuditDTO(queriedOrganizationId, organizationDAO.getById(queriedOrganizationId)));
-      }
+    // Batch fetch organizations to avoid N+1 pattern (handles large collections via partitioning)
+    Map<String, Organization> organizationsById = organizationDAO.getByIds(queriedOrganizationIds)
+        .stream()
+        .collect(Collectors.toMap(Organization::getId, Function.identity()));
+
+    List<OrganizationAuditDTO> organizationAuditDTOs = new ArrayList<>();
+    for (String queriedOrganizationId : queriedOrganizationIds) {
+      organizationAuditDTOs.add(new OrganizationAuditDTO(
+          queriedOrganizationId,
+          organizationsById.get(queriedOrganizationId)));
     }
     return organizationAuditDTOs;
   }
@@ -99,16 +109,27 @@ public class AuditService
   {
     List<ApplicationCategoryAuditDTO> applicationCategoryDTOs = new ArrayList<>();
 
-    if (applicationCategoryIds == null) {
+    if (applicationCategoryIds == null || applicationCategoryIds.isEmpty()) {
       return applicationCategoryDTOs;
     }
 
+    // Collect non-null IDs for batch fetch
+    Set<String> nonNullCategoryIds = applicationCategoryIds.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    // Batch fetch application categories to avoid N+1 pattern
+    Map<String, Tag> categoriesById = applicationCategoryDAO.getByIds(new ArrayList<>(nonNullCategoryIds))
+        .stream()
+        .collect(Collectors.toMap(Tag::getId, Function.identity()));
+
+    // Build result list maintaining order of input IDs
     for (String applicationCategoryId : applicationCategoryIds) {
       if (applicationCategoryId == null) {
         applicationCategoryDTOs.add(new ApplicationCategoryAuditDTO(null, "(Uncategorized)"));
       }
       else {
-        Tag applicationCategory = applicationCategoryDAO.getById(applicationCategoryId);
+        Tag applicationCategory = categoriesById.get(applicationCategoryId);
         if (applicationCategory == null) {
           applicationCategoryDTOs.add(new ApplicationCategoryAuditDTO(applicationCategoryId, null));
         }

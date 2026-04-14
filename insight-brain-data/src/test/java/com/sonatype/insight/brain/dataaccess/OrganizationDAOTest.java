@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -99,6 +100,8 @@ import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getRandomMa
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class OrganizationDAOTest
     extends NameableDAOTest<Organization>
@@ -381,6 +384,60 @@ public class OrganizationDAOTest
 
     List<Organization> orgs = dao.getByNames(Sets.newHashSet("doesNotExist1", organization.getName(), "doesNotExist2"));
     assertThat(orgs).extracting(Organization::getId).containsExactly(organization.getId());
+  }
+
+  @Test
+  public void testGetByIds() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    tempEntity.newOrganization("org2");
+
+    List<Organization> orgs = dao.getByIds(Collections.singletonList(org1.getId()));
+    assertThat(orgs).usingRecursiveFieldByFieldElementComparator().containsExactly(org1);
+  }
+
+  @Test
+  public void testGetByIds_MultipleIds() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+    Organization org3 = tempEntity.newOrganization("org3");
+
+    List<Organization> orgs = dao.getByIds(Arrays.asList(org1.getId(), org2.getId(), org3.getId()));
+    assertThat(orgs).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(org1, org2, org3);
+  }
+
+  @Test
+  public void testGetByIds_EmptyCollection() {
+    assertThat(dao.getByIds(Collections.emptyList())).isEmpty();
+    assertThat(dao.getByIds(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByIds_SomeNotFound() {
+    Organization org1 = tempEntity.newOrganization("org1");
+
+    List<Organization> orgs = dao.getByIds(Arrays.asList(org1.getId(), "non-existent-id-1", "non-existent-id-2"));
+    assertThat(orgs).usingRecursiveFieldByFieldElementComparator().containsExactly(org1);
+  }
+
+  @Test
+  public void testGetByIds_NotFound() {
+    assertThat(dao.getByIds(Collections.singletonList("non-existent-id"))).isEmpty();
+  }
+
+  @Test
+  public void testGetByIds_Batched() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+    Organization org3 = tempEntity.newOrganization("org3");
+
+    // Spy the DAO to force batching by lowering the IN operator threshold
+    // Use doReturn().when() syntax to stub the 0-arg method which is called by the internal
+    // getListWithSqlInClause -> getInOperatorThreshold(dataStore) chain
+    OrganizationDAO spiedDao = spy(dao);
+    when(spiedDao.getInOperatorThreshold()).thenReturn(2);
+
+    List<Organization> orgs = spiedDao.getByIds(Arrays.asList(org1.getId(), org2.getId(), org3.getId()));
+    assertThat(orgs).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(org1, org2, org3);
   }
 
   @Test

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -151,6 +153,30 @@ public class OrganizationDAO
         .selectFrom(ORGANIZATION)
         .where(ORGANIZATION.NAME_LOWERCASE_NO_WHITESPACE.eq(name))
         .fetchOne());
+  }
+
+  /**
+   * Retrieves multiple organizations by their IDs in a single query using an IN clause.
+   * <p>
+   * This method uses batch retrieval to avoid N+1 query patterns when fetching multiple organizations.
+   * It automatically handles large collections by partitioning them if they exceed database limits.
+   *
+   * @param organizationIds the collection of organization IDs to retrieve
+   * @return list of organizations found (may be fewer than requested if some IDs don't exist)
+   */
+  public List<Organization> getByIds(Collection<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    return getListWithSqlInClause(organizationIds, ids -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(ORGANIZATION)
+            .where(ORGANIZATION.ORGANIZATION_ID.in(ids))
+            .fetch(this::toEntity);
+      }
+    });
   }
 
   public List<Organization> getByNames(Set<String> organizationNames) {

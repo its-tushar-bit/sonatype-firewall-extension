@@ -978,6 +978,167 @@ describe('repositoriesConfigurationSliceReducer', () => {
       });
     });
 
+    describe('repositories/resetViewFilters action', () => {
+      it('resets repositoryPublicIdFilter for the specified view', () => {
+        const state = Object.freeze({
+          repositoryPublicIdFilter: {
+            [VIEW_TYPES.CONTAINER]: 'test-filter',
+            [VIEW_TYPES.MANAGER]: 'manager-filter',
+          },
+          repositoryFormatsFilter: {
+            [VIEW_TYPES.CONTAINER]: new Set(['maven']),
+            [VIEW_TYPES.MANAGER]: new Set(['npm']),
+          },
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: [
+              { key: 'publicId', dir: 'desc' },
+              { key: 'format', dir: 'asc' },
+            ],
+            [VIEW_TYPES.MANAGER]: [
+              { key: 'format', dir: 'desc' },
+              { key: 'publicId', dir: 'asc' },
+            ],
+          },
+        });
+
+        const result = reducer(state, {
+          type: 'repositories/resetViewFilters',
+          payload: VIEW_TYPES.CONTAINER,
+        });
+
+        // Container view should be reset
+        expect(result.repositoryPublicIdFilter[VIEW_TYPES.CONTAINER]).toBe('');
+        expect(result.repositoryFormatsFilter[VIEW_TYPES.CONTAINER]).toEqual(new Set());
+        expect(result.sortConfiguration[VIEW_TYPES.CONTAINER]).toEqual([
+          { key: 'publicId', dir: 'asc' },
+          { key: 'format', dir: 'asc' },
+          { key: 'repositoryType', dir: 'asc' },
+          { key: 'managerInstanceId', dir: 'asc' },
+        ]);
+
+        // Manager view should remain unchanged
+        expect(result.repositoryPublicIdFilter[VIEW_TYPES.MANAGER]).toBe('manager-filter');
+        expect(result.repositoryFormatsFilter[VIEW_TYPES.MANAGER]).toEqual(new Set(['npm']));
+        expect(result.sortConfiguration[VIEW_TYPES.MANAGER]).toEqual([
+          { key: 'format', dir: 'desc' },
+          { key: 'publicId', dir: 'asc' },
+        ]);
+      });
+
+      it('resets repositoryFormatsFilter for the specified view', () => {
+        const state = Object.freeze({
+          repositoryPublicIdFilter: {
+            [VIEW_TYPES.CONTAINER]: 'container-filter',
+            [VIEW_TYPES.MANAGER]: 'manager-filter',
+          },
+          repositoryFormatsFilter: {
+            [VIEW_TYPES.CONTAINER]: new Set(['maven', 'npm']),
+            [VIEW_TYPES.MANAGER]: new Set(['docker']),
+          },
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: [{ key: 'publicId', dir: 'asc' }],
+            [VIEW_TYPES.MANAGER]: [{ key: 'publicId', dir: 'asc' }],
+          },
+        });
+
+        const result = reducer(state, {
+          type: 'repositories/resetViewFilters',
+          payload: VIEW_TYPES.MANAGER,
+        });
+
+        // Manager view should be reset
+        expect(result.repositoryPublicIdFilter[VIEW_TYPES.MANAGER]).toBe('');
+        expect(result.repositoryFormatsFilter[VIEW_TYPES.MANAGER]).toEqual(new Set());
+
+        // Container view should remain unchanged
+        expect(result.repositoryPublicIdFilter[VIEW_TYPES.CONTAINER]).toBe('container-filter');
+        expect(result.repositoryFormatsFilter[VIEW_TYPES.CONTAINER]).toEqual(new Set(['maven', 'npm']));
+      });
+
+      it('resets sort configuration to initial state for the specified view', () => {
+        const modifiedSortConfig = [
+          { key: 'format', dir: 'desc' },
+          { key: 'repositoryType', dir: 'desc' },
+          { key: 'publicId', dir: 'asc' },
+        ];
+
+        const state = Object.freeze({
+          repositoryPublicIdFilter: {
+            [VIEW_TYPES.CONTAINER]: '',
+            [VIEW_TYPES.MANAGER]: '',
+          },
+          repositoryFormatsFilter: {
+            [VIEW_TYPES.CONTAINER]: new Set(),
+            [VIEW_TYPES.MANAGER]: new Set(),
+          },
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: modifiedSortConfig,
+            [VIEW_TYPES.MANAGER]: modifiedSortConfig,
+          },
+        });
+
+        const result = reducer(state, {
+          type: 'repositories/resetViewFilters',
+          payload: VIEW_TYPES.CONTAINER,
+        });
+
+        // Container view should be reset to initial sort configuration
+        expect(result.sortConfiguration[VIEW_TYPES.CONTAINER]).toEqual([
+          { key: 'publicId', dir: 'asc' },
+          { key: 'format', dir: 'asc' },
+          { key: 'repositoryType', dir: 'asc' },
+          { key: 'managerInstanceId', dir: 'asc' },
+        ]);
+
+        // Manager view should remain unchanged
+        expect(result.sortConfiguration[VIEW_TYPES.MANAGER]).toEqual(modifiedSortConfig);
+      });
+
+      it('ensures cleanup on view unmount works correctly', () => {
+        // Simulates the lifecycle: apply filters → unmount → remount
+        const initialState = {
+          currentView: VIEW_TYPES.CONTAINER,
+          repositoryPublicIdFilter: {
+            [VIEW_TYPES.CONTAINER]: '',
+            [VIEW_TYPES.MANAGER]: '',
+          },
+          repositoryFormatsFilter: {
+            [VIEW_TYPES.CONTAINER]: new Set(),
+            [VIEW_TYPES.MANAGER]: new Set(),
+          },
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: [{ key: 'publicId', dir: 'asc' }],
+            [VIEW_TYPES.MANAGER]: [{ key: 'publicId', dir: 'asc' }],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [{ repository: { publicId: 'repo1', format: 'maven' } }],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+        };
+
+        // Step 1: Apply filter in container view
+        const stateWithFilter = reducer(initialState, {
+          type: 'repositories/setRepositoryPublicIdFilter',
+          payload: 'test',
+        });
+        expect(stateWithFilter.repositoryPublicIdFilter[VIEW_TYPES.CONTAINER]).toBe('test');
+
+        // Step 2: Unmount container view (cleanup runs)
+        const stateAfterCleanup = reducer(stateWithFilter, {
+          type: 'repositories/resetViewFilters',
+          payload: VIEW_TYPES.CONTAINER,
+        });
+
+        // Step 3: Verify filters are cleared
+        expect(stateAfterCleanup.repositoryPublicIdFilter[VIEW_TYPES.CONTAINER]).toBe('');
+        expect(stateAfterCleanup.repositoryFormatsFilter[VIEW_TYPES.CONTAINER]).toEqual(new Set());
+      });
+    });
+
     describe('null safety (its-tushar-bit review)', () => {
       it('handles null originalRepositories when filtering', () => {
         const state = {

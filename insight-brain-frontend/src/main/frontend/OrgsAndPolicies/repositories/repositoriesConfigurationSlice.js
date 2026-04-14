@@ -407,6 +407,12 @@ const setCurrentView = (state, { payload }) => {
   state.currentView = payload;
 };
 
+const resetViewFilters = (state, { payload: viewType }) => {
+  state.repositoryPublicIdFilter[viewType] = '';
+  state.repositoryFormatsFilter[viewType].clear();
+  state.sortConfiguration[viewType] = [...initialSortConfiguration];
+};
+
 const repositoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -416,6 +422,7 @@ const repositoriesSlice = createSlice({
     setRepositoryManagerName: pathSet(['editRepositoryManagerNameModalInfo', 'managerName']),
     resetSubmitMaskState: propSetConst('submitMaskState', null),
     setCurrentView,
+    resetViewFilters,
     openDeleteModal,
     openEditRepositoryManagerNameModal,
     sortRepositories,

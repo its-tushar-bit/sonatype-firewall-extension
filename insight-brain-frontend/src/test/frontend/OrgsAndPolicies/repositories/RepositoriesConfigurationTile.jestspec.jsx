@@ -7,7 +7,7 @@ import React from 'react';
 import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
-import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
+import { actions as repositoriesActions, VIEW_TYPES } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesConfigurationTile';
 import { getRepositoriesUrl, getRepositoryInfoUrl, getRepositoryListUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent, within } from '@testing-library/react';
@@ -425,6 +425,80 @@ describe('RepositoriesConfigurationTile', () => {
         fireEvent.click(editIcons[0]);
 
         expect(goToRepositorySummaryViewSpy).toHaveBeenCalledWith('repository');
+      });
+    });
+  });
+
+  describe('Component cleanup behavior', () => {
+    let resetViewFiltersSpy;
+
+    beforeEach(() => {
+      resetViewFiltersSpy = jest.spyOn(repositoriesActions, 'resetViewFilters');
+    });
+
+    describe('when component unmounts at container level', () => {
+      beforeEach(() => {
+        jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+        jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+        jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+          id: 'repositoryContainerId',
+          instanceId: 'containerInstanceId',
+          name: 'Repository Container',
+        });
+        jest
+          .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+          .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
+      });
+
+      it('should dispatch resetViewFilters with CONTAINER viewType on unmount', () => {
+        const { unmount } = renderComponent();
+
+        // Verify component mounted successfully
+        expect(screen.getByText('Configuration')).toBeInTheDocument();
+
+        // Clear any calls from mount
+        resetViewFiltersSpy.mockClear();
+
+        // Unmount the component
+        unmount();
+
+        // Verify resetViewFilters was called with CONTAINER viewType
+        expect(resetViewFiltersSpy).toHaveBeenCalledTimes(1);
+        expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.CONTAINER);
+      });
+    });
+
+    describe('when component unmounts at repository manager level', () => {
+      beforeEach(() => {
+        jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+        jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+        jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+          id: 'repositoryManagerId',
+          instanceId: 'managerInstanceId',
+          name: 'managerName',
+        });
+        jest
+          .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+          .mockReturnValue(groupBy(prop('managerInstanceId'))(reposAtManagerLevel));
+      });
+
+      it('should dispatch resetViewFilters with MANAGER viewType on unmount', () => {
+        const { unmount } = renderComponent();
+
+        // Verify component mounted successfully
+        expect(screen.getByText('Configuration')).toBeInTheDocument();
+
+        // Clear any calls from mount
+        resetViewFiltersSpy.mockClear();
+
+        // Unmount the component
+        unmount();
+
+        // Verify resetViewFilters was called with MANAGER viewType
+        expect(resetViewFiltersSpy).toHaveBeenCalledTimes(1);
+        expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.MANAGER);
       });
     });
   });

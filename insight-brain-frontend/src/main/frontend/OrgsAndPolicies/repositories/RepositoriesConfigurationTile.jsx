@@ -122,6 +122,9 @@ const RepositoriesConfigurationTile = () => {
     } else {
       loadRepositories();
     }
+    return () => {
+      dispatch(actions.resetViewFilters(viewType));
+    };
   }, [isRepositoryManager, owner?.id]);
 
   const deleteModal = (

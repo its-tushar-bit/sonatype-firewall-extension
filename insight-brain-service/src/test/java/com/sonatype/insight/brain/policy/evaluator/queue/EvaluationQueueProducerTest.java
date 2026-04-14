@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.policy.evaluator.queue;
 import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -879,7 +881,7 @@ public class EvaluationQueueProducerTest
   public void testGetInitialCycleStartTime_nullHour_returnsNow() {
     long now = System.currentTimeMillis();
 
-    Date result = EvaluationQueueProducer.getInitialCycleStartTime(null, now);
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(null, 0, now);
 
     assertThat(result).isEqualTo(new Date(now));
   }
@@ -890,7 +892,7 @@ public class EvaluationQueueProducerTest
         java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
     long now = pastToday.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, now);
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, 0, now);
 
     long expectedTomorrow = pastToday.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedTomorrow));
@@ -902,7 +904,7 @@ public class EvaluationQueueProducerTest
         java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
     long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-    Date result = EvaluationQueueProducer.getInitialCycleStartTime(22, now);
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(22, 0, now);
 
     long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
@@ -917,7 +919,7 @@ public class EvaluationQueueProducerTest
         .withNano(0);
     long now = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, now);
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, 0, now);
 
     long expectedTomorrow =
         todayAtMidnight.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -928,7 +930,7 @@ public class EvaluationQueueProducerTest
   public void testGetRenewalCycleStartTime_nullHour_returnsNow() {
     long now = System.currentTimeMillis();
 
-    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(null, now);
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(null, 0, now);
 
     assertThat(result).isEqualTo(new Date(now));
   }
@@ -939,7 +941,7 @@ public class EvaluationQueueProducerTest
         java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
     long now = todayAtMidnight.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(0, now);
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(0, 0, now);
 
     long expectedToday = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
@@ -951,10 +953,54 @@ public class EvaluationQueueProducerTest
         java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
     long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(22, now);
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(22, 0, now);
 
     long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_jitterOffsetsStartTime() {
+    LocalDateTime todayAt10 = LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt10.minusHours(5).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(10, 45, now);
+
+    long expected = todayAt10.plusMinutes(45).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expected));
+  }
+
+  @Test
+  public void testGetRenewalCycleStartTime_jitterOffsetsStartTime() {
+    LocalDateTime todayAt10 = LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt10.plusHours(5).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(10, 45, now);
+
+    long expected = todayAt10.plusMinutes(45).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expected));
+  }
+
+  @Test
+  public void testGetInitialCycleStartTime_jitterWrapsPastMidnight() {
+    LocalDateTime todayAt23 = LocalDateTime.now().withHour(23).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt23.minusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getInitialCycleStartTime(23, 119, now);
+
+    long expected = todayAt23.plusMinutes(119).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expected));
+  }
+
+  @Test
+  public void testGetRenewalCycleStartTime_jitterWrapsPastMidnight() {
+    LocalDateTime todayAt23 = LocalDateTime.now().withHour(23).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt23.plusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+    Date result = EvaluationQueueProducer.getRenewalCycleStartTime(23, 119, now);
+
+    long expected = todayAt23.plusMinutes(119).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    assertThat(result).isEqualTo(new Date(expected));
   }
 
   private void setEvaluationQueueConfig(final EvaluationQueueConfig evaluationQueueConfig) {

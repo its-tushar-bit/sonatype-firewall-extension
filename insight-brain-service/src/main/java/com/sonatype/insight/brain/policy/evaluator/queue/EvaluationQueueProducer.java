@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.PageIterator;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -70,6 +71,8 @@ public class EvaluationQueueProducer
   private static final int DEFAULT_PAGE_SIZE = 10000;
 
   private static final String TASK_NAME = "EvaluationQueueProducer";
+
+  static final Duration JITTER_WINDOW = Duration.ofHours(2);
 
   private static final String RESET_CYCLE = "resetCycle";
 
@@ -260,25 +263,32 @@ public class EvaluationQueueProducer
     return checkpoint;
   }
 
+  private int getJitterMinutes() {
+    String jitterSeed = evaluationQueueService.getInstanceId() + TenantThreadLocal.getTenant().tenantSlug;
+    return (int) (Integer.toUnsignedLong(jitterSeed.hashCode()) % JITTER_WINDOW.toMinutes());
+  }
+
   private Date getInitialCycleStartTime() {
     if (!evaluationQueueConfigs.get().startTimeDelayEnabled()) {
       return new Date(System.currentTimeMillis());
     }
-    return getInitialCycleStartTime(configuration.getPolicyMonitoringHour(), System.currentTimeMillis());
+    return getInitialCycleStartTime(configuration.getPolicyMonitoringHour(), getJitterMinutes(),
+        System.currentTimeMillis());
   }
 
   private Date getRenewalCycleStartTime() {
     if (!evaluationQueueConfigs.get().startTimeDelayEnabled()) {
       return new Date(System.currentTimeMillis());
     }
-    return getRenewalCycleStartTime(configuration.getPolicyMonitoringHour(), System.currentTimeMillis());
+    return getRenewalCycleStartTime(configuration.getPolicyMonitoringHour(), getJitterMinutes(),
+        System.currentTimeMillis());
   }
 
-  static Date getInitialCycleStartTime(final Integer policyMonitoringHour, final long now) {
+  static Date getInitialCycleStartTime(final Integer policyMonitoringHour, final int jitterMinutes, final long now) {
     if (policyMonitoringHour == null) {
       return new Date(now);
     }
-    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0);
+    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0).plusMinutes(jitterMinutes);
     LocalDate today = new Date(now).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     long todayAtTargetHour = today.atTime(targetTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     if (todayAtTargetHour <= now) {
@@ -287,11 +297,11 @@ public class EvaluationQueueProducer
     return new Date(todayAtTargetHour);
   }
 
-  static Date getRenewalCycleStartTime(final Integer policyMonitoringHour, final long now) {
+  static Date getRenewalCycleStartTime(final Integer policyMonitoringHour, final int jitterMinutes, final long now) {
     if (policyMonitoringHour == null) {
       return new Date(now);
     }
-    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0);
+    LocalTime targetTime = LocalTime.of(policyMonitoringHour, 0).plusMinutes(jitterMinutes);
     LocalDate today = new Date(now).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     return new Date(today.atTime(targetTime).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
   }

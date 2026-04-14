@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import datadog.trace.api.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +145,7 @@ public class PullRequestPollingScheduler
   }
 
   // Visible to tests so they can spy it and count the number of times it runs
+  @Trace
   @VisibleForTesting
   void discoverPullRequestsForCommenting() {
     if (isLicensed()) {

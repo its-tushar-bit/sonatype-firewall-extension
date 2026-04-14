@@ -257,12 +257,20 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getNextRepositoriesToPoll(int limit) {
+    return getNextRepositoriesToPoll(limit, Collections.emptySet());
+  }
+
+  public List<SourceControl> getNextRepositoriesToPoll(int limit, Set<String> excludeIds) {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
+      var query = tx.dsl()
           .selectFrom(SOURCE_CONTROL)
           .where(SOURCE_CONTROL.REPOSITORY_URL.isNotNull())
           .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNotNull())
-          .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(new Date()))
+          .and(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(new Date()));
+      if (!excludeIds.isEmpty()) {
+        query = query.and(SOURCE_CONTROL.SOURCE_CONTROL_ID.notIn(excludeIds));
+      }
+      return query
           .orderBy(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.asc())
           .limit(limit)
           .fetch()

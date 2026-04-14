@@ -19,11 +19,15 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.base.Joiner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.System.currentTimeMillis;
 
 class PullRequestPollingTracker
 {
+  private static final Logger log = LoggerFactory.getLogger(PullRequestPollingTracker.class);
+
   private static final long MS_PER_MINUTE = 1000L * 60;
 
   private static final long MS_PER_HOUR = MS_PER_MINUTE * 60;
@@ -64,9 +68,13 @@ class PullRequestPollingTracker
   SourceControl getNextRepositoryToPoll() {
     while (true) {
       if (prefetchedQueue == null || (prefetchedQueue.isEmpty() && !prefetchExhausted)) {
-        List<SourceControl> batch = sourceControlDAO.getNextRepositoriesToPoll(prefetchBatchSize);
+        boolean firstFetch = prefetchedQueue == null;
+        List<SourceControl> batch =
+            sourceControlDAO.getNextRepositoriesToPoll(prefetchBatchSize, repositoriesPolled.get());
         prefetchedQueue = new ArrayDeque<>(batch);
         prefetchExhausted = batch.size() < prefetchBatchSize;
+        log.debug("PR polling {} fetched {} repos to poll (exhausted={})",
+            firstFetch ? "initial fetch" : "re-fetch", batch.size(), prefetchExhausted);
       }
 
       if (prefetchedQueue.isEmpty()) {
@@ -74,10 +82,8 @@ class PullRequestPollingTracker
       }
 
       SourceControl sourceControl = prefetchedQueue.poll();
-      if (!repositoriesPolled.get().contains(sourceControl.getId())) {
-        repositoriesPolled.get().add(sourceControl.getId());
-        return sourceControl;
-      }
+      repositoriesPolled.get().add(sourceControl.getId());
+      return sourceControl;
     }
   }
 

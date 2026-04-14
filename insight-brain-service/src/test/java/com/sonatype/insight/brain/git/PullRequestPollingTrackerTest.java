@@ -279,6 +279,100 @@ public class PullRequestPollingTrackerTest
   }
 
   @Test
+  public void testGetNextRepositoryToPoll_doesNotInfiniteLoopWhenRefetchReturnsAlreadySeenRepos() {
+    // given: a tracker with batch size 2 and 3 repos with poll times at 'now' (simulating repos that
+    // get their poll times set to 'now' when PR commenting is disabled — they remain eligible for
+    // re-fetch but should not cause an infinite re-fetch loop)
+    PullRequestPollingTracker smallBatchTracker = new PullRequestPollingTracker(sourceControlDAO, 2);
+    long now = System.currentTimeMillis();
+
+    SourceControl sourceControl1 = createSourceControl();
+    sourceControl1.setPullRequestPollTime(new Date(now - 3000));
+    sourceControlDAO.update(sourceControl1);
+
+    SourceControl sourceControl2 = createSourceControl();
+    sourceControl2.setPullRequestPollTime(new Date(now - 2000));
+    sourceControlDAO.update(sourceControl2);
+
+    SourceControl sourceControl3 = createSourceControl();
+    sourceControl3.setPullRequestPollTime(new Date(now - 1000));
+    sourceControlDAO.update(sourceControl3);
+
+    // when: first batch returns repo1 and repo2
+    SourceControl result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl1.getId());
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl2.getId());
+
+    // simulate: both repos get poll time moved to the future (as happens when PR commenting is disabled
+    // and updateSourceControl sets poll time to 'now' — we use future time to avoid timing sensitivity)
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl1.getId(), new Date(now + 60000), 0);
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl2.getId(), new Date(now + 60000), 0);
+
+    // when: next call triggers re-fetch; DB excludes repo1 and repo2 via NOT IN, returns repo3
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl3.getId());
+
+    // simulate: repo3 also gets poll time moved to the future
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl3.getId(), new Date(now + 60000), 0);
+
+    // when/then: all repos already seen — DB excludes all via NOT IN, returns empty batch, terminates
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetNextRepositoryToPoll_dbExclusionReachesReposBeyondBatchWindow() {
+    // given: 4 repos with poll times in the past, and a tracker with batch size 2
+    PullRequestPollingTracker smallBatchTracker = new PullRequestPollingTracker(sourceControlDAO, 2);
+    long now = System.currentTimeMillis();
+
+    SourceControl sourceControl1 = createSourceControl();
+    sourceControl1.setPullRequestPollTime(new Date(now - 4000));
+    sourceControlDAO.update(sourceControl1);
+
+    SourceControl sourceControl2 = createSourceControl();
+    sourceControl2.setPullRequestPollTime(new Date(now - 3000));
+    sourceControlDAO.update(sourceControl2);
+
+    SourceControl sourceControl3 = createSourceControl();
+    sourceControl3.setPullRequestPollTime(new Date(now - 2000));
+    sourceControlDAO.update(sourceControl3);
+
+    SourceControl sourceControl4 = createSourceControl();
+    sourceControl4.setPullRequestPollTime(new Date(now - 1000));
+    sourceControlDAO.update(sourceControl4);
+
+    // when: first batch (size 2) returns repo1 and repo2
+    SourceControl result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl1.getId());
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl2.getId());
+
+    // simulate: repo1 and repo2 get poll time moved to the future (as happens when PR commenting is disabled
+    // and updateSourceControl sets poll time to 'now' — we use future time to avoid timing sensitivity)
+    // Without DB-level exclusion via NOT IN, a LIMIT 2 re-fetch would return repo1 and repo2 again
+    // because they still have poll_time <= now(), hiding repo3 and repo4 behind the batch window
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl1.getId(), new Date(now + 60000), 0);
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl2.getId(), new Date(now + 60000), 0);
+
+    // when/then: re-fetch uses NOT IN to exclude repo1 and repo2, so repo3 and repo4 are reached
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl3.getId());
+
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result.getId()).isEqualTo(sourceControl4.getId());
+
+    // simulate: repo3 and repo4 also get poll time moved to the future
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl3.getId(), new Date(now + 60000), 0);
+    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl4.getId(), new Date(now + 60000), 0);
+
+    // when/then: all repos seen — returns null
+    result = smallBatchTracker.getNextRepositoryToPoll();
+    assertThat(result).isNull();
+  }
+
+  @Test
   public void cutOffTimesAreTenantAware() {
     Date date = new Date();
     Date oldDate = Date.from(date.toInstant().minusSeconds(1L));

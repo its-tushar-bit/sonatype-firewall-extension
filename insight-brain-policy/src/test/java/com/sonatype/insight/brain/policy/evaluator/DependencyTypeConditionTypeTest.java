@@ -14,12 +14,17 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidConditionException;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
+import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithSeverity;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import org.junit.Test;
@@ -136,16 +141,14 @@ public class DependencyTypeConditionTypeTest
 
   @Test
   public void testEvaluate_NullValue_InnerSource() {
-    // Create policy constraints
-    Constraint constraint = createConstraint("is not", DependencyType.INNER_SOURCE.getId(), "1");
-    Constraint constraint1 = createConstraint("is", DependencyType.INNER_SOURCE.getId(), "2");
+    // "is innersource" should not match when isInnerSource is null (component is not innersource)
+    Constraint constraint = createConstraint("is", DependencyType.INNER_SOURCE.getId());
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     components.add(component1);
 
-    // Evaluate the policy
-    assertNoPolicy(Arrays.asList(constraint, constraint1), components);
+    assertNoPolicy(Collections.singletonList(constraint), components);
   }
 
   @Test
@@ -288,6 +291,48 @@ public class DependencyTypeConditionTypeTest
 
     // Evaluate the policy
     assertPolicy(constraint, components, component2, "Dependency type was not InnerSource");
+  }
+
+  // CLM-38699: DependencyType "is not innersource" should match components where isInnerSource is null
+  // (null means not innersource, since innersource requires the flag to be explicitly set to true)
+  @Test
+  public void testEvaluateIsNot_InnerSource_WhenBothDependencyFieldsNull() {
+    Constraint constraint = createConstraint("is not", DependencyType.INNER_SOURCE.getId());
+
+    List<Component> components = new ArrayList<>();
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    // Neither isInnerSource nor directDependency is set - typical for Python packages
+    components.add(component);
+
+    assertPolicy(constraint, components, component, "Dependency type was not InnerSource");
+  }
+
+  // CLM-38699: Reproduce the exact scenario - AND constraint with DependencyType + SecurityVulnerabilitySeverity
+  @Test
+  public void testEvaluateIsNot_InnerSource_CombinedWithSecurityVulnerabilitySeverity() {
+    Condition secVulnCondition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "9");
+    Condition depTypeCondition =
+        new Condition(DependencyTypeConditionType.ID, "is not", DependencyType.INNER_SOURCE.getId());
+    Constraint constraint = new Constraint("ConstraintId1", "Constraint Name 1", LogicalOperator.AND);
+    constraint.addCondition(secVulnCondition);
+    constraint.addCondition(depTypeCondition);
+
+    SecurityVulnerability securityVulnerability = new SecurityVulnerability("source", "CVE-2024-0001", 9F);
+    Component component = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    // No isInnerSource or directDependency - typical for Python packages
+    component.addSecurityVulnerability(securityVulnerability);
+
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(Collections.singletonList(constraint));
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(component));
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID,
+        SecurityVulnerabilitySeverityConditionType.ID,
+        new ConditionTrigger(0, new TriggerSecurityVulnerabilityWithSeverity(securityVulnerability)),
+        policyAlerts);
   }
 
   private void assertPolicy(

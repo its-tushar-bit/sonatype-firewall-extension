@@ -44,8 +44,8 @@ public class DependencyTypeConditionType
     DependencyType dependencyType = getDependencyType(component);
     Boolean isInnerSource = component.getInnerSource();
 
-    if (DependencyType.INNER_SOURCE == DependencyType.getById(value) && isInnerSource != null) {
-      return "is".equals(operator) == isInnerSource;
+    if (DependencyType.INNER_SOURCE == DependencyType.getById(value)) {
+      return "is".equals(operator) == Boolean.TRUE.equals(isInnerSource);
     }
     else if (dependencyType != null) {
       boolean result = value.equals(dependencyType.getId());

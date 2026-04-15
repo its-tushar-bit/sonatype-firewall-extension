@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer;
+import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
@@ -348,6 +350,8 @@ public class TestMultiTenantInsightBrainService
     getInstance(HistoricalPolicyViolationTelemetryTask.class).disableForTesting = true;
     getInstance(PolicyWaiverTelemetryBackfillTask.class).disableForTesting = true;
     getInstance(ReevaluateCascadeRequestCleaner.class).disableForTesting = true;
+    getInstance(EvaluationQueueConsumer.class).disableForTesting = true;
+    getInstance(EvaluationQueueProducer.class).disableForTesting = true;
   }
 
   @Override

@@ -100,6 +100,8 @@ public class EvaluationQueueProducer
 
   private final Configuration configuration;
 
+  public boolean disableForTesting;
+
   @Inject
   public EvaluationQueueProducer(
       final ApiConfigurationService apiConfigurationService,
@@ -129,6 +131,9 @@ public class EvaluationQueueProducer
 
   @Override
   public void register() {
+    if (disableForTesting) {
+      return;
+    }
     reschedule(evaluationQueueConfigs.get());
   }
 

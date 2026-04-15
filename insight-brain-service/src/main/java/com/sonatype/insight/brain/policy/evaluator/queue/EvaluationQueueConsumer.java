@@ -118,6 +118,8 @@ public class EvaluationQueueConsumer
 
   private final ShutdownHandler shutdownHandler;
 
+  public boolean disableForTesting;
+
   @Inject
   public EvaluationQueueConsumer(
       final ApiConfigurationService apiConfigurationService,
@@ -156,6 +158,9 @@ public class EvaluationQueueConsumer
 
   @Override
   public void register() {
+    if (disableForTesting) {
+      return;
+    }
     reschedule(evaluationQueueConfigs.get());
   }
 

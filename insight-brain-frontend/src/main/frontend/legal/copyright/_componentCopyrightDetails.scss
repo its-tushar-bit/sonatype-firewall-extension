@@ -5,16 +5,18 @@
  */
 
 component-copyright-details,
-copyright-list,
-copyright-details-header,
 copyright-details-contents {
   display: contents;
 }
 
 #component-copyright-details-content {
-  display: grid;
-  column-gap: var(--nx-spacing-4x);
-  grid-template-columns: 24% 1fr;
+  gap: var(--nx-spacing-4x);
+}
+
+#copyright-list {
+  width: 24%;
+  border-top: var(--nx-border-default);
+  border-bottom: var(--nx-border-default);
 }
 
 .copyright-overview {

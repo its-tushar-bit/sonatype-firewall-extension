@@ -193,6 +193,7 @@ router.stateRegistry.register({
   component: CopyrightDetailsContentsContainer,
   data: {
     title: 'Copyright Details',
+    viewportSized: true,
   },
 });
 
@@ -209,6 +210,7 @@ router.stateRegistry.register({
   component: CopyrightDetailsContentsContainer,
   data: {
     title: 'Copyright Details',
+    viewportSized: true,
   },
 });
 
@@ -225,6 +227,7 @@ router.stateRegistry.register({
   component: CopyrightDetailsContentsContainer,
   data: {
     title: 'Copyright Details',
+    viewportSized: true,
   },
 });
 

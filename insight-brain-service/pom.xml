@@ -854,7 +854,7 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <forkCount>0.75C</forkCount>
-          <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory}/heap-dumps/</argLine>
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
             <test.forkId>#${surefire.forkNumber}</test.forkId>

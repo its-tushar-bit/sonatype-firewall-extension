@@ -57,3 +57,13 @@ dependency_tree.txt
 # Claude auto-review working files
 review_payload.json
 analysis_scratchpad.md
+
+# Superpowers (AI-assisted development artifacts - not for version control)
+docs/superpowers/
+
+# Superset worktree configuration
+.superset/
+
+# Git worktrees
+.worktrees/
+

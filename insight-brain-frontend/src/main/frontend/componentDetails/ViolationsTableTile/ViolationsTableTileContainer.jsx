@@ -24,6 +24,7 @@ import { stateGo } from '../../reduxUiRouter/routerActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
 import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { FIREWALL_CONTAINER_COMPONENT_DETAILS } from 'MainRoot/constants/states/firewall';
 
 function mapStateToProps(state) {
   const {
@@ -44,6 +45,9 @@ function mapStateToProps(state) {
   );
   const componentNameWithoutVersion = component && getComponentNameWithoutVersion(component);
 
+  // Detect if this is a Firewall container component
+  const isFirewall = state.router.currentState?.name?.includes(FIREWALL_CONTAINER_COMPONENT_DETAILS);
+
   return {
     isLoadingComponentDetails,
     componentDetailsLoadError,
@@ -60,6 +64,7 @@ function mapStateToProps(state) {
     showViewTransitiveViolations,
     ownerType: 'application',
     ownerId: state.router.currentParams.publicId,
+    isFirewall,
     ...pick(['scanId', 'hash'], state.router.currentParams),
   };
 }

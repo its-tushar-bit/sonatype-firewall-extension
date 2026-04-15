@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
 
 import {
   getActiveViolationsWithActionFailUrl,
@@ -15,13 +16,21 @@ import AddContainerImageWaiverPage from 'MainRoot/firewall/containerImageWaiver/
 import { activeViolationsResult as mockPayload, waiverReasons } from './data';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import * as productFeatures from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
+import { FIREWALL_FIREWALLPAGE_CONTAINERS } from 'MainRoot/constants/states/firewall';
 
 describe('AddContainerImageWaiverPage', () => {
   let axiosMock;
 
   const getPreloadState = () =>
     Object.freeze({
-      router: { currentParams: { publicId: 'test-public-id', scanId: 'test-scan-id' } },
+      router: {
+        currentParams: {
+          publicId: 'test-public-id',
+          scanId: 'test-scan-id',
+          origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
+        },
+      },
     });
 
   const renderComponent = (preloadedState = getPreloadState()) =>
@@ -160,6 +169,7 @@ describe('AddContainerImageWaiverPage', () => {
   });
 
   it('calls submit request with correct data when form is submitted', async () => {
+    const user = userEvent.setup();
     const payload = {
       expiryTime: null,
       waiverReasonId: null,
@@ -167,22 +177,38 @@ describe('AddContainerImageWaiverPage', () => {
     };
 
     const commentsInput = screen.getByRole('textbox', { name: 'Comments' });
-    fireEvent.change(commentsInput, { target: { value: 'Test waiver comment' } });
+    await user.type(commentsInput, 'Test waiver comment');
 
     const submitButton = screen.getByRole('button', { name: 'Submit' });
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
     expect(axiosMock.history.post.length).toBe(1);
     expect(axiosMock.history.post[0].url).toBe(getAddContainerImagePolicyWaiverUrl('test-public-id'));
     expect(JSON.parse(axiosMock.history.post[0].data)).toEqual(payload);
   });
 
+  it('passes origin to the save thunk when form is submitted', async () => {
+    const user = userEvent.setup();
+    const saveSpy = jest.spyOn(addContainerImageWaiverPageSlice.actions, 'save');
+
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    await user.click(submitButton);
+
+    expect(saveSpy).toHaveBeenCalledWith({
+      publicId: 'test-public-id',
+      scanId: 'test-scan-id',
+      origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
+    });
+  });
+
   it('calls stateGo when cancel button is clicked', async () => {
+    const user = userEvent.setup();
     const stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-    fireEvent.click(cancelButton);
+    await user.click(cancelButton);
     expect(stateGoSpy).toHaveBeenCalledWith('firewall.containerReport', {
       publicId: 'test-public-id',
       scanId: 'test-scan-id',
+      origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
     });
   });
 });

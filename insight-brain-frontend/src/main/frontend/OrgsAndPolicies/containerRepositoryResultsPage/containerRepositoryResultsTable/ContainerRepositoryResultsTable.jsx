@@ -21,6 +21,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 import { FIREWALL_DATE_TIME_FORMAT, formatDate } from 'MainRoot/util/dateUtils';
 
 import selectContainerRepositoryResultsPage from '../containerRepositoryResultsPageSelectors';
@@ -69,6 +70,7 @@ const ContainerRepositoryResultsTable = () => {
       onClick={() =>
         dispatch(
           stateGo('firewall.containerReport', {
+            origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
             publicId: row.applicationPublicId,
             scanId: row.scanId,
           })

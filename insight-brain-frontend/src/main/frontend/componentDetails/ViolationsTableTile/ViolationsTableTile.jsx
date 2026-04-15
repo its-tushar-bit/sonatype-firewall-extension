@@ -57,6 +57,7 @@ export default function ViolationsTableTile({
   ownerId,
   scanId,
   hash,
+  isFirewall,
   ...tableProps
 }) {
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function ViolationsTableTile({
         </div>
         {(showViewAllComponents || showViewTransitiveViolations) && (
           <div className="nx-tile__actions">
-            <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={ownerId} />
+            {!isFirewall && <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={ownerId} />}
             {showViewTransitiveViolations && (
               <ViewTransitiveViolationsButton
                 stateGo={stateGo}
@@ -121,5 +122,6 @@ ViolationsTableTile.propTypes = {
   scanId: PropTypes.string.isRequired,
   hash: PropTypes.string.isRequired,
   title: PropTypes.string,
+  isFirewall: PropTypes.bool,
   ...PolicyViolationsTable.propTypes,
 };

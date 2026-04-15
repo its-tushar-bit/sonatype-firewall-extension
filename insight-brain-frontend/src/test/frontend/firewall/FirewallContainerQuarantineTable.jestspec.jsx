@@ -10,6 +10,10 @@ import { render } from 'TestRoot/SpecUtil';
 import FirewallContainerQuarantineTable from 'MainRoot/firewall/FirewallContainerQuarantineTable';
 import { formatDate, FIREWALL_DATE_TIME_FORMAT, FIREWALL_TIME_DATE_FORMAT } from 'MainRoot/util/dateUtils';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
 
 describe('FirewallContainerQuarantineTable', () => {
   const props = {
@@ -47,8 +51,9 @@ describe('FirewallContainerQuarantineTable', () => {
   });
 
   it('renders table with data', () => {
+    const hrefMock = jest.fn().mockReturnValue('testHref');
     jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue({
-      href: jest.fn().mockReturnValue('testHref'),
+      href: hrefMock,
     });
     const mockData = {
       containerQuarantineList: [
@@ -84,9 +89,17 @@ describe('FirewallContainerQuarantineTable', () => {
       name: 'localhost_8070-docker-proxy-library-alpine-3.6',
     });
     expect(containerReportLink).toHaveAttribute('href', 'testHref');
+    expect(hrefMock).toHaveBeenCalledWith('firewall.containerReport', {
+      origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
+      publicId: 'localhost_8070-docker-proxy-library-alpine-3.6',
+      scanId: '7a0a2d89dffa4277ba4fd8ce6c550f38',
+    });
 
     const reportLink = within(bodyCells[4]).getByRole('link', { name: 'docker-proxy' });
     expect(reportLink).toHaveAttribute('href', 'testHref');
+    expect(hrefMock).toHaveBeenCalledWith(FIREWALL_CONTAINER_REPOSITORY_RESULTS, {
+      repositoryId: '42b8e3703eb94a89ac920eaeba0b612e',
+    });
   });
 
   it('renders error alert when loadContainerQuarantineGridError is provided', () => {

@@ -11,6 +11,7 @@ import ComponentDetailsBackButton from 'MainRoot/componentDetails/ComponentDetai
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as RouterSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 
 describe('ComponentDetailsBackButton', () => {
   let renderComponent,
@@ -83,15 +84,20 @@ describe('ComponentDetailsBackButton', () => {
     });
   });
 
-  describe('Back To Firewall Container Images button', () => {
+  describe('Back To Container Report button', () => {
     it('renders if scanId and publicId props are provided', () => {
       selectReportStageIdSpy.mockReturnValue('proxy');
       selectIsContainerImagesEvaluationEnabledAndProxyStageSpy.mockReturnValue(true);
 
       renderComponent({ scanId: 'scanId', publicId: 'testId' });
-      const backBtn = screen.getByRole('link', { name: 'Back To Container Images' });
+      const backBtn = screen.getByRole('link', { name: 'Back To Container Report' });
       expect(backBtn).toBeInTheDocument();
       expect(backBtn).toHaveAttribute('href', 'firewall.containerReport');
+      expect(routerContextMock.href).toHaveBeenCalledWith('firewall.containerReport', {
+        scanId: 'scanId',
+        publicId: 'testId',
+        origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+      });
     });
   });
 

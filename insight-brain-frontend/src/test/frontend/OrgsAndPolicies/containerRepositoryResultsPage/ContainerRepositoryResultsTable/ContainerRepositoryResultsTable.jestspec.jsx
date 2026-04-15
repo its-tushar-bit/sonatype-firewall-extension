@@ -5,10 +5,13 @@
  */
 import * as R from 'ramda';
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 
 import { render, screen } from 'TestRoot/SpecUtil';
 
 import ContainerRepositoryResultsTable from 'MainRoot/OrgsAndPolicies/containerRepositoryResultsPage/containerRepositoryResultsTable/ContainerRepositoryResultsTable';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 
 describe('ContainerRepositoryResultsTable', () => {
   let renderTable;
@@ -18,6 +21,7 @@ describe('ContainerRepositoryResultsTable', () => {
       threatLevel: 1,
       policyName: null,
       violationCount: 0,
+      applicationPublicId: 'test-container-public-id',
       scanId: 'scanid1234567890',
       objectName: 'containerImageNamespace1-containerImageName1-containerImageVersion1',
       quarantineTime: 1747153984479,
@@ -26,6 +30,7 @@ describe('ContainerRepositoryResultsTable', () => {
       threatLevel: 1,
       policyName: null,
       violationCount: 1,
+      applicationPublicId: 'test-container-public-id',
       scanId: 'scanid1234567890',
       objectName: 'containerImageNamespace1-containerImageName1-containerImageVersion1',
       quarantineTime: 1747153984479,
@@ -34,6 +39,7 @@ describe('ContainerRepositoryResultsTable', () => {
       threatLevel: 7,
       policyName: null,
       violationCount: 2,
+      applicationPublicId: 'test-container-public-id',
       scanId: 'scanid1234567890',
       objectName: 'containerImageNamespace1-containerImageName1-containerImageVersion1',
       quarantineTime: 1747153984479,
@@ -130,6 +136,22 @@ describe('ContainerRepositoryResultsTable', () => {
 
       // Header, Fiter Row, and the Empty Message Row
       expect(screen.getAllByRole('row')).toHaveLength(3);
+    });
+
+    it('navigates to container report with repository-results origin when a row is clicked', async () => {
+      const user = userEvent.setup();
+      const stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+
+      renderTable();
+
+      const firstDataRow = screen.getAllByRole('row')[2];
+      await user.click(firstDataRow);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('firewall.containerReport', {
+        origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+        publicId: 'test-container-public-id',
+        scanId: 'scanid1234567890',
+      });
     });
   });
 

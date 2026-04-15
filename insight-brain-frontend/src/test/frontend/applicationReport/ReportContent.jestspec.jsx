@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within, axiosMockAdapter, userEvent } from 'TestRoot/SpecUtil';
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -300,30 +300,34 @@ describe('ReportContent component', function () {
         expect(filterButton).not.toBeInTheDocument();
       });
 
-      it('navigates to the Firewall container component details state', () => {
+      it('navigates to the Firewall container component details state', async () => {
+        const user = userEvent.setup();
         renderComponent();
 
         const firstComponentRow = screen.getAllByRole('row')[2];
-        fireEvent.click(firstComponentRow);
+        await user.click(firstComponentRow);
 
         expect(stateGoSpy).toHaveBeenCalledWith('firewall.containerComponentDetails.overview', {
           hash: 'hash1',
           publicId: 'publicId',
           scanId: 'scanId',
+          origin: 'firewall.containerRepositoryResults',
         });
       });
 
-      it('renders Waive All Fail Policy Violations button and navigate to add waiver page when button is clicked', () => {
+      it('renders Waive All Fail Policy Violations button and navigate to add waiver page when button is clicked', async () => {
+        const user = userEvent.setup();
         jest.spyOn(applicationReportSelectors, 'selectActiveProxyFailedViolationCount').mockReturnValue(1);
         renderComponent();
 
         const waiveAllViolationsButton = screen.getByRole('button', { name: 'Waive All Fail Policy Violations' });
         expect(waiveAllViolationsButton).toBeInTheDocument();
 
-        fireEvent.click(waiveAllViolationsButton);
+        await user.click(waiveAllViolationsButton);
         expect(stateGoSpy).toHaveBeenCalledWith('firewall.addContainerImageWaiver', {
           publicId: 'publicId',
           scanId: 'scanId',
+          origin: 'firewall.containerRepositoryResults',
         });
       });
 

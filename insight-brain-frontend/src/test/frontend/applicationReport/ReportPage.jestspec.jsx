@@ -13,6 +13,7 @@ import * as applicationReportActions from 'MainRoot/applicationReport/applicatio
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { fireEvent, render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 import {
   getApplicationSummaryUrl,
   getLatestReportInformation,
@@ -143,6 +144,19 @@ describe('Report Page component', () => {
 
     const backToFirewallDashboard = screen.getByRole('link', { name: 'Back to Repository Results' });
     expect(backToFirewallDashboard).toBeVisible();
+  });
+
+  it('prefers origin param over previous-state firewall detection for container reports', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    router.currentParams.origin = FIREWALL_CONTAINER_REPOSITORY_RESULTS;
+    jest.spyOn(routerSelectors, 'selectPrevStateIsFirewallDashboard').mockReturnValue(true);
+    jest
+      .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+      .mockReturnValue(true);
+
+    renderComponent();
+
+    expect(screen.getByRole('link', { name: 'Back to Repository Results' })).toBeVisible();
   });
 
   it('renders a ReportTitle', async () => {

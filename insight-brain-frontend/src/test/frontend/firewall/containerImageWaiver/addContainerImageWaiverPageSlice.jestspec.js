@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState } from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
+import reducer, {
+  initialState,
+  actions,
+} from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
+import { FIREWALL_FIREWALLPAGE_CONTAINERS } from 'MainRoot/constants/states/firewall';
+import 'TestRoot/SpecUtil';
 
 import { activeViolationsResult } from './data';
 
@@ -146,6 +151,29 @@ describe('addContainerImageWaiverPageSlice', () => {
       expect(newState.waiverComments.value).toBe('Test waiver comment');
       expect(newState.waiverComments.isPristine).toBe(false);
       expect(newState.waiverComments.validationErrors).toBeFalsy();
+    });
+  });
+
+  describe('returnToContainerReportPage', () => {
+    it('preserves origin when navigating back to the container report', () => {
+      const store = SpecUtil.mockReduxStore({});
+
+      store.dispatch(
+        actions.returnToContainerReportPage('test-public-id', 'test-scan-id', FIREWALL_FIREWALLPAGE_CONTAINERS)
+      );
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.containerReport',
+          params: {
+            publicId: 'test-public-id',
+            scanId: 'test-scan-id',
+            origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
+          },
+          options: undefined,
+        },
+      });
     });
   });
 });

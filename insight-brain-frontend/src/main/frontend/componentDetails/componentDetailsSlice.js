@@ -29,6 +29,7 @@ import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { processOwnerHierarchy } from 'MainRoot/util/hierarchyUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import {
@@ -99,7 +100,8 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
 
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
-    const { hash, publicId, scanId } = selectRouterCurrentParams(getState());
+    const { hash, publicId, scanId, origin } = selectRouterCurrentParams(getState());
+    const containerReportOrigin = origin || FIREWALL_CONTAINER_REPOSITORY_RESULTS;
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
     const isContainerImagesEvaluation = selectIsContainerImagesEvaluationEnabledAndProxyStage(getState());
@@ -110,6 +112,7 @@ const onTabChange = (tabId) => {
           publicId,
           scanId,
           hash,
+          origin: containerReportOrigin,
         })
       );
     } else if (isPrioritiesPageContainer) {

@@ -34,6 +34,7 @@ import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { getISODateFromDateInput } from 'MainRoot/util/jsUtil';
+import { getContainerReportParams } from 'MainRoot/applicationReport/applicationReportActions';
 
 const REDUCER_NAME = 'addContainerImageWaiverPage';
 
@@ -84,7 +85,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (publicId, { rejectWithVal
 
 const save = createAsyncThunk(
   `${REDUCER_NAME}/save`,
-  ({ publicId, scanId }, { getState, rejectWithValue, dispatch }) => {
+  ({ publicId, scanId, origin }, { getState, rejectWithValue, dispatch }) => {
     const state = getState().addContainerImageWaiverPage;
     const expiration = getExpiration(state);
     const serverData = {
@@ -96,7 +97,7 @@ const save = createAsyncThunk(
     return axios
       .post(getAddContainerImagePolicyWaiverUrl(publicId), serverData)
       .then(() => {
-        startSubmitMaskSuccessTimer(dispatch, publicId, scanId);
+        startSubmitMaskSuccessTimer(dispatch, publicId, scanId, origin);
       })
       .catch(rejectWithValue);
   }
@@ -227,16 +228,16 @@ const setCustomExpiryTime = (state, { payload }) =>
     customExpiryTime: nxDateInputStateHelpers.userInput(customDateValidator, payload),
   });
 
-const startSubmitMaskSuccessTimer = (dispatch, publicId, scanId) => {
+const startSubmitMaskSuccessTimer = (dispatch, publicId, scanId, origin) => {
   setTimeout(() => {
     dispatch(actions.resetSubmitMaskState());
-    dispatch(actions.returnToContainerReportPage(publicId, scanId));
+    dispatch(actions.returnToContainerReportPage(publicId, scanId, origin));
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 };
 
-export const returnToContainerReportPage = (publicId, scanId) => {
+export const returnToContainerReportPage = (publicId, scanId, origin) => {
   return (dispatch) => {
-    dispatch(stateGo('firewall.containerReport', { publicId, scanId }));
+    dispatch(stateGo('firewall.containerReport', getContainerReportParams(publicId, scanId, origin)));
   };
 };
 

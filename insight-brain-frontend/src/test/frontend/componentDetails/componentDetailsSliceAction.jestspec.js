@@ -18,6 +18,7 @@ import * as applicationReportActions from 'MainRoot/applicationReport/applicatio
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import * as componentDetailsSelectors from 'MainRoot/componentDetails/componentDetailsSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 
 import 'TestRoot/SpecUtil';
 
@@ -608,6 +609,34 @@ describe('componentDetailsActions', function () {
       expect(store.getActions()).toHaveAction({
         type: '@@reduxUiRouter/stateGo',
         payload: expectedPayload,
+      });
+    });
+
+    it('preserves origin when switching tabs for firewall container component details', () => {
+      jest
+        .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+        .mockReturnValue(true);
+
+      state.router.currentParams = {
+        ...state.router.currentParams,
+        origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(onTabChange('security'));
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.containerComponentDetails.security',
+          params: {
+            publicId: mockAppId,
+            scanId: mockReportId,
+            hash: mockComponentHash,
+            origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+          },
+          options: undefined,
+        },
       });
     });
   });

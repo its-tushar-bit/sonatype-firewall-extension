@@ -272,6 +272,19 @@ describe('ViolationsTableTile component', () => {
 
       expect(screen.queryByRole('button', { name: 'Bulk Waive' })).not.toBeInTheDocument();
     });
+
+    it('does not render in firewall container component details', () => {
+      renderComponent({
+        showViewAllComponents: true,
+        isFirewall: true,
+        violations: [
+          { id: '1', waived: false, legacyViolation: false, waivedWithAutoWaiver: false },
+          { id: '2', derivedViolationState: 'open' },
+        ],
+      });
+
+      expect(screen.queryByRole('button', { name: 'Bulk Waive' })).not.toBeInTheDocument();
+    });
   });
 
   describe('ViewTransitiveViolationsButton', () => {

@@ -370,8 +370,29 @@ router.stateRegistry.register({
 
 router.stateRegistry.register({
   name: 'firewall.addContainerImageWaiver',
-  url: '/containerReport/{publicId}/{scanId}/policy/addContainerImageWaiver',
+  url: '/containerReport/{publicId}/{scanId}/policy/addContainerImageWaiver?origin',
   component: AddContainerImageWaiverPage,
+  params: {
+    /**
+     * Origin tracking parameter to preserve navigation context.
+     *
+     * @param {string|null} origin - The previous state name (e.g., 'firewall.firewallPage.containers' or 'firewall.containerRepositoryResults')
+     *
+     * Configuration:
+     * - value: null - Default value when no origin is provided
+     * - squash: true - Omits parameter from URL when value is null (keeps URLs clean)
+     * - dynamic: true - Allows origin to change without triggering full state reload (better performance)
+     *
+     * Purpose: Enables correct back navigation from container report → add waiver → back to origin
+     * Without this, users navigating from different entry points (Dashboard vs Repository Results)
+     * would be taken to the wrong previous page when clicking "Back".
+     */
+    origin: {
+      value: null,
+      squash: true,
+      dynamic: true,
+    },
+  },
   data: {
     title: 'Add Container Image Waiver',
     isDirty: ['addContainerImageWaiverPage', 'isDirty'],
@@ -791,10 +812,15 @@ router.stateRegistry.register({
 
 router.stateRegistry.register({
   name: 'firewall.containerReport',
-  url: '/containerReport/{publicId}/{scanId}/policy',
+  url: '/containerReport/{publicId}/{scanId}/policy?origin',
   component: ReportPage,
   params: {
     policyViolationId: { dynamic: true },
+    origin: {
+      value: null,
+      squash: true,
+      dynamic: true,
+    },
   },
 });
 
@@ -809,12 +835,17 @@ router.stateRegistry.register({
 
 router.stateRegistry.register({
   name: 'firewall.containerComponentDetails',
-  url: '/containerReport/{publicId}/{scanId}/componentDetails/{hash}',
+  url: '/containerReport/{publicId}/{scanId}/componentDetails/{hash}?origin',
   component: ComponentDetails,
   data: {
     title: 'Component Details',
   },
   params: {
+    origin: {
+      value: null,
+      squash: true,
+      dynamic: true,
+    },
     tabId: 'overview',
     policyViolationId: { dynamic: true },
   },

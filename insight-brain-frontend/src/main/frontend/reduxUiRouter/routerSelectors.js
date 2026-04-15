@@ -7,6 +7,7 @@
 import { prop, path, propOr, propEq } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
+import { FIREWALL_FIREWALLPAGE } from 'MainRoot/constants/states/firewall';
 import { isSbomManagerComponentDetails, nameStartsWithSbomManager } from 'MainRoot/sbomManager/sbomManagerUtil';
 
 export const selectRouterSlice = prop('router');
@@ -271,7 +272,7 @@ export const selectPrevStateIsAppOwnerManagementView = createSelector(selectRout
 );
 
 export const selectPrevStateIsFirewallDashboard = createSelector(selectRouterPrevState, (prevState) =>
-  prevState.name?.includes('firewall.firewallPage')
+  prevState.name?.includes(FIREWALL_FIREWALLPAGE)
 );
 
 export const selectPrevStateIsRepositoryManagerView = createSelector(selectRouterPrevState, (prevState) =>

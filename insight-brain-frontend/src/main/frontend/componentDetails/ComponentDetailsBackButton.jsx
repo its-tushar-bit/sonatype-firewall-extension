@@ -17,6 +17,7 @@ import {
   selectRouterPrevParams,
 } from '../reduxUiRouter/routerSelectors';
 import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { FIREWALL_CONTAINER_REPOSITORY_RESULTS } from 'MainRoot/constants/states/firewall';
 
 export default function ComponentDetailsBackButton(props) {
   const { scanId, publicId, fromDependencyTree } = props;
@@ -41,9 +42,13 @@ export default function ComponentDetailsBackButton(props) {
   }
 
   if (isContainerImagesEvaluationEnabled) {
-    const text = 'Back To Container Images';
+    const text = 'Back To Container Report';
     const stateName = 'firewall.containerReport';
-    const href = uiRouterState.href(stateName, { scanId, publicId });
+    const href = uiRouterState.href(stateName, {
+      scanId,
+      publicId,
+      origin: currentParams?.origin || FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+    });
 
     return <MenuBarBackButton text={text} href={href} />;
   }

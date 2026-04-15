@@ -10,6 +10,10 @@ import * as CLMLocation from 'MainRoot/util/CLMLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
 
 import 'TestRoot/SpecUtil';
 
@@ -973,12 +977,13 @@ describe('applicationReportActions', function () {
   });
 
   describe('goToAddContainerImageWaiverPage', () => {
-    it('calls stateGo with the appropriate parameters', () => {
+    it('derives and passes dashboard origin', () => {
       const mockRouterParams = {
         publicId: 'publicId',
         scanId: 'scanId',
       };
       jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(mockRouterParams);
+      jest.spyOn(routerSelectors, 'selectRouterPrevState').mockReturnValue({ name: FIREWALL_FIREWALLPAGE_CONTAINERS });
       const store = SpecUtil.mockReduxStore({});
 
       store.dispatch(applicationReportActions.goToAddContainerImageWaiverPage());
@@ -987,7 +992,7 @@ describe('applicationReportActions', function () {
         type: '@@reduxUiRouter/stateGo',
         payload: {
           to: 'firewall.addContainerImageWaiver',
-          params: mockRouterParams,
+          params: { ...mockRouterParams, origin: FIREWALL_FIREWALLPAGE_CONTAINERS },
           options: undefined,
         },
       });
@@ -1019,8 +1024,10 @@ describe('applicationReportActions', function () {
       const mockRouterParams = {
         scanId: 'scanId',
         publicId: 'publicId',
+        origin: FIREWALL_CONTAINER_REPOSITORY_RESULTS,
       };
       jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(mockRouterParams);
+      jest.spyOn(routerSelectors, 'selectRouterPrevState').mockReturnValue({ name: FIREWALL_FIREWALLPAGE_CONTAINERS });
       const store = SpecUtil.mockReduxStore({});
 
       store.dispatch(applicationReportActions.goToComponentDetailsPage('hash', true));

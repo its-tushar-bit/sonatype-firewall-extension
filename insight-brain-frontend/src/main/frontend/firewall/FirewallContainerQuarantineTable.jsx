@@ -23,6 +23,10 @@ import {
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import { formatDate, FIREWALL_TIME_DATE_FORMAT, FIREWALL_DATE_TIME_FORMAT } from 'MainRoot/util/dateUtils';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
 
 import './_firewall.scss';
 
@@ -113,6 +117,7 @@ export default function FirewallContainerQuarantineTable(props) {
                           <NxTextLink
                             id="iq-firewall-container-quarantine-table--container-report-link"
                             href={uiRouterState.href('firewall.containerReport', {
+                              origin: FIREWALL_FIREWALLPAGE_CONTAINERS,
                               publicId: row.applicationPublicId,
                               scanId: row.scanId,
                             })}
@@ -128,7 +133,7 @@ export default function FirewallContainerQuarantineTable(props) {
                         <div className="nx-truncate-ellipsis">
                           <NxTextLink
                             id="iq-firewall-container-quarantine-table--repo-view-link"
-                            href={uiRouterState.href('firewall.containerRepositoryResults', {
+                            href={uiRouterState.href(FIREWALL_CONTAINER_REPOSITORY_RESULTS, {
                               repositoryId: row.repositoryId,
                             })}
                             truncate

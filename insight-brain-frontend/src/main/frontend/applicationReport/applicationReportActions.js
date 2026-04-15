@@ -29,9 +29,34 @@ import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageContainerName,
+  selectRouterPrevState,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
 import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+
+const isFirewallDashboardState = (stateName = '') =>
+  stateName === FIREWALL_FIREWALLPAGE || stateName.startsWith(`${FIREWALL_FIREWALLPAGE}.`);
+
+const getContainerReportOrigin = (currentOrigin, prevState) => {
+  if (currentOrigin != null) {
+    return currentOrigin;
+  }
+  return isFirewallDashboardState(prevState?.name)
+    ? FIREWALL_FIREWALLPAGE_CONTAINERS
+    : FIREWALL_CONTAINER_REPOSITORY_RESULTS;
+};
+
+/**
+ * Build container report navigation params with optional origin preservation.
+ * Reduces repetition across waiver flow components.
+ */
+export const getContainerReportParams = (publicId, scanId, origin) =>
+  origin ? { publicId, scanId, origin } : { publicId, scanId };
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -499,9 +524,12 @@ export const goToDependencyTreePage = (hash) => {
 
 export const goToAddContainerImageWaiverPage = () => {
   return (dispatch, getState) => {
-    const { publicId, scanId } = selectRouterCurrentParams(getState());
+    const state = getState();
+    const { publicId, scanId, origin } = selectRouterCurrentParams(state);
+    const prevState = selectRouterPrevState(state);
+    const containerReportOrigin = getContainerReportOrigin(origin, prevState);
 
-    dispatch(stateGo('firewall.addContainerImageWaiver', { publicId, scanId }));
+    dispatch(stateGo('firewall.addContainerImageWaiver', { publicId, scanId, origin: containerReportOrigin }));
   };
 };
 
@@ -526,16 +554,21 @@ export const goToBulkWaivePage = () => {
 
 export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
   return (dispatch, getState) => {
-    const { publicId, scanId } = selectRouterCurrentParams(getState());
-    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
-    const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
+    const state = getState();
+    const { publicId, scanId, origin } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+    const prevState = selectRouterPrevState(state);
 
     if (isContainerImagesEvaluation) {
+      const containerReportOrigin = getContainerReportOrigin(origin, prevState);
+
       dispatch(
         stateGo('firewall.containerComponentDetails.overview', {
           publicId,
           scanId,
           hash,
+          origin: containerReportOrigin,
         })
       );
     } else if (isPrioritiesPageContainer) {

@@ -36,6 +36,10 @@ import {
   selectPrioritiesPageName,
   selectPrevStateIsFirewallDashboard,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  FIREWALL_CONTAINER_REPOSITORY_RESULTS,
+  FIREWALL_FIREWALLPAGE_CONTAINERS,
+} from 'MainRoot/constants/states/firewall';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { actions as latestReportForStageActions } from './latestReportForStageSlice';
@@ -197,7 +201,7 @@ function BackButton() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const repositoryId = pathOr('', ['application', 'organization', 'relatedRepositoryId'], metadataDetails);
 
-  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, origin } = useSelector(selectRouterCurrentParams);
 
   if (isPrioritiesPageContainer) {
     const prioritiesPageHref = uiRouterState.href(prioritiesPageName, {
@@ -207,11 +211,19 @@ function BackButton() {
     return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities" />;
   }
 
-  if (isPrevFirewallDashboardPage) {
-    const backHref = uiRouterState.href('firewall.firewallPage.containers');
+  if (origin === FIREWALL_FIREWALLPAGE_CONTAINERS) {
+    const backHref = uiRouterState.href(FIREWALL_FIREWALLPAGE_CONTAINERS);
+    return <MenuBarBackButton href={backHref} text="Back to Firewall Dashboard" />;
+  } else if (origin === FIREWALL_CONTAINER_REPOSITORY_RESULTS) {
+    const backHref = uiRouterState.href(FIREWALL_CONTAINER_REPOSITORY_RESULTS, {
+      repositoryId: repositoryId,
+    });
+    return <MenuBarBackButton href={backHref} text="Back to Repository Results" />;
+  } else if (isPrevFirewallDashboardPage) {
+    const backHref = uiRouterState.href(FIREWALL_FIREWALLPAGE_CONTAINERS);
     return <MenuBarBackButton href={backHref} text="Back to Firewall Dashboard" />;
   } else if (isContainerImagesEvaluation) {
-    const backHref = uiRouterState.href('firewall.containerRepositoryResults', {
+    const backHref = uiRouterState.href(FIREWALL_CONTAINER_REPOSITORY_RESULTS, {
       repositoryId: repositoryId,
     });
     return <MenuBarBackButton href={backHref} text="Back to Repository Results" />;

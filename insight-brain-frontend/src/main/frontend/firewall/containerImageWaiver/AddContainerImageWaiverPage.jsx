@@ -24,9 +24,9 @@ import {
 } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { getContainerReportParams } from 'MainRoot/applicationReport/applicationReportActions';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import { actions } from './addContainerImageWaiverPageSlice';
@@ -49,8 +49,9 @@ const FEATURE_NOT_SUPPORTED_TEXT = 'This feature is not supported.';
 export default function AddContainerImageWaiverPage() {
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
-  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
-  const backButtonHref = uiRouterState.href('firewall.containerReport', { publicId, scanId });
+  const { publicId, scanId, origin } = useSelector(selectRouterCurrentParams);
+  const containerReportParams = getContainerReportParams(publicId, scanId, origin);
+  const backButtonHref = uiRouterState.href('firewall.containerReport', containerReportParams);
   const isContainerImagesEvalEnabled = useSelector(selectIsContainerImagesEvaluationEnabled);
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const {
@@ -82,7 +83,7 @@ export default function AddContainerImageWaiverPage() {
   const setCustomExpiryTime = (value) => dispatch(actions.setCustomExpiryTime(value));
   const setWaiverReason = (value) => dispatch(actions.setWaiverReason(value));
   const setWaiverComment = (value) => dispatch(actions.setWaiverComment(value));
-  const save = () => dispatch(actions.save({ publicId, scanId }));
+  const save = () => dispatch(actions.save({ publicId, scanId, origin }));
 
   useEffect(() => {
     loadData();
@@ -97,7 +98,7 @@ export default function AddContainerImageWaiverPage() {
   };
 
   const returnToContainerReportPage = () => {
-    dispatch(stateGo('firewall.containerReport', { publicId, scanId }));
+    dispatch(actions.returnToContainerReportPage(publicId, scanId, origin));
   };
 
   const formValidationErrors = hasValidationErrors(customExpiryTime.validationErrors)
@@ -105,7 +106,7 @@ export default function AddContainerImageWaiverPage() {
     : null;
 
   return (
-    <NxPageMain id="add-firewall-container-image-waiver-page">
+    <NxPageMain className="add-firewall-container-image-waiver-page">
       <MenuBarBackButton text="Back to Container Report" href={backButtonHref} />
       <NxPageTitle>
         <NxH1 className="nx-h1">Add Waiver</NxH1>
@@ -171,28 +172,32 @@ export default function AddContainerImageWaiverPage() {
             </dl>
 
             <NxFieldset className="add-waiver-expiryTime" label="Waiver Expiration" isRequired>
-              <div>
-                <NxFormSelect id="add-container-image-waiver-expiration-select" onChange={onExpiryTimeChange}>
-                  {waiverExpirations &&
-                    waiverExpirations.map(({ name, value }, index) => (
-                      <option key={index} value={value}>
-                        {name}
-                      </option>
-                    ))}
-                </NxFormSelect>
-                <div className="iq-add-waiver-form__expiration-days-diff add-waiver-expiration-days-diff">
-                  {daysDiffMessage}
+              <div className="add-container-image-waiver-form__expiryTime-block">
+                <div className="add-container-image-waiver-form__controls-row">
+                  <NxFormSelect id="add-container-image-waiver-expiration-select" onChange={onExpiryTimeChange}>
+                    {waiverExpirations &&
+                      waiverExpirations.map(({ name, value }, index) => (
+                        <option key={index} value={value}>
+                          {name}
+                        </option>
+                      ))}
+                  </NxFormSelect>
+                  {customExpiryTimeSelected && (
+                    <NxDateInput
+                      className="add-container-image-waiver-form__date-input"
+                      {...customExpiryTime}
+                      onChange={setCustomExpiryTime}
+                      validatable={true}
+                      data-testid="add-container-image-waiver-custom-date"
+                    />
+                  )}
                 </div>
+                {daysDiffMessage && (
+                  <div className="add-container-image-waiver-form__expiration-days-diff visual-testing-ignore">
+                    {daysDiffMessage}
+                  </div>
+                )}
               </div>
-              {customExpiryTimeSelected && (
-                <NxDateInput
-                  className="iq-add-waiver-form__date-input"
-                  {...customExpiryTime}
-                  onChange={setCustomExpiryTime}
-                  validatable={true}
-                  data-testid="add-container-image-waiver-custom-date"
-                />
-              )}
             </NxFieldset>
 
             <NxFieldset className="add-waiver-reason" label="Reason">

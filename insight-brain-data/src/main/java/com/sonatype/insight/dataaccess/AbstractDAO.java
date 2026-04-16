@@ -14,8 +14,10 @@ import java.util.List;
 
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
@@ -240,7 +242,7 @@ public abstract class AbstractDAO<T>
   }
 
   public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
-    if (entities.isEmpty()) {
+    if (CollectionUtils.isEmpty(entities)) {
       return;
     }
     Table<?> table = getJooqTable();
@@ -334,6 +336,49 @@ public abstract class AbstractDAO<T>
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       update(tx, entity);
+      tx.commit();
+    }
+  }
+
+  /**
+   * Batch update entities. Unlike {@link #update(TransactionContext, Object)}, the non-H2 path does not fetch
+   * existing records first — it issues blind UPDATE statements that write ALL columns. Entities must be fully
+   * populated with their intended DB values (not just the fields being changed), since no fetch-before-update occurs.
+   * Rows not found in the database are silently skipped rather than throwing.
+   * The H2 path falls back to individual {@link #update(TransactionContext, Object)} calls.
+   */
+  public void updateBatch(TransactionContext tx, List<T> entities) {
+    if (CollectionUtils.isEmpty(entities)) {
+      return;
+    }
+    Table<?> table = getJooqTable();
+    Field<String> idField = getIdField(table);
+    SQLDialect dialect = tx.dsl().dialect();
+    if (dialect == SQLDialect.H2) {
+      for (T entity : entities) {
+        update(tx, entity);
+      }
+    }
+    else {
+      var steps = entities.stream()
+          .map(entity -> {
+            if (!(entity instanceof HasStringId hasStringId)) {
+              throw new IllegalArgumentException("updateBatch requires HasStringId entities");
+            }
+            UpdatableRecord<?> record = (UpdatableRecord<?>) tx.dsl().newRecord(table);
+            record.set(idField, hasStringId.getId());
+            fromEntity(record, entity);
+            return (Query) tx.dsl().update(table).set(record).where(idField.eq(record.get(idField)));
+          })
+          .toList();
+      tx.dsl().batch(steps).execute();
+    }
+  }
+
+  public void updateBatch(List<T> entities) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      updateBatch(tx, entities);
       tx.commit();
     }
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -61,6 +62,18 @@ public class AutoPolicyWaiverDAO
         .selectFrom(AUTO_POLICY_WAIVER)
         .where(AUTO_POLICY_WAIVER.OWNER_ID.eq(ownerId))
         .fetch(this::toEntity);
+  }
+
+  public List<AutoPolicyWaiver> getByOwnerIds(Collection<String> ownerIds) {
+    return getListWithSqlInClause(ownerIds,
+        ids -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            return tx.dsl()
+                .selectFrom(AUTO_POLICY_WAIVER)
+                .where(AUTO_POLICY_WAIVER.OWNER_ID.in(ids))
+                .fetch(this::toEntity);
+          }
+        });
   }
 
   public AutoPolicyWaiver getByIdAndOwnerIdNotNull(String autoPolicyWaiverId, String ownerId) {

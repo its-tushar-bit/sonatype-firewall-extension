@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityReachabilityS
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
@@ -168,7 +169,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
+import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -213,6 +221,8 @@ import static org.mockito.Mockito.when;
 public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
 {
+  private static final Logger log = LoggerFactory.getLogger(ScanPolicyEvaluatorTest.class);
+
   @Rule
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
@@ -6598,5 +6608,71 @@ public class ScanPolicyEvaluatorTest
       assertThat(violation.getLegacyViolationTime()).isEqualTo(results.evaluation.getTime());
     });
     assertThat(results.activeViolations).isEmpty();
+  }
+
+  @Ignore("On-demand performance benchmark for DB batching optimizations")
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  @Test
+  public void testPerformPolicyEvaluation_BatchingPerformance() throws Exception {
+    int numPolicies = 20;
+    int warmupIterations = 3;
+    int measuredIterations = 10;
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    // Create many policies so each evaluation produces many violations
+    for (int i = 0; i < numPolicies; i++) {
+      newSecurityPolicy();
+    }
+
+    // Warmup: let JIT and caches stabilize
+    for (int i = 0; i < warmupIterations; i++) {
+      String scanId = simulateReportIsAvailable("report");
+      scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+          ClientScanType.SONATYPE, false);
+    }
+
+    // Measure: first evaluations (inserts path)
+    long[] firstEvalTimes = new long[measuredIterations];
+    for (int i = 0; i < measuredIterations; i++) {
+      String scanId = simulateReportIsAvailable("report");
+      long start = System.nanoTime();
+      scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+          ClientScanType.SONATYPE, false);
+      firstEvalTimes[i] = System.nanoTime() - start;
+    }
+
+    // Measure: re-evaluations (updates path — same scanId re-evaluated)
+    long[] reEvalTimes = new long[measuredIterations];
+    for (int i = 0; i < measuredIterations; i++) {
+      String scanId = simulateReportIsAvailable("report");
+      // First eval to establish the scan
+      scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+          ClientScanType.SONATYPE, false);
+      // Re-evaluation of same scan
+      long start = System.nanoTime();
+      scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+          ClientScanType.SONATYPE, false);
+      reEvalTimes[i] = System.nanoTime() - start;
+    }
+
+    Arrays.sort(firstEvalTimes);
+    Arrays.sort(reEvalTimes);
+
+    log.info("=== Policy Evaluation Batching Performance ===");
+    log.info("Policies: {}, Components in report: 28", numPolicies);
+    log.info("First evaluation (insert path):");
+    log.info("  min: {} ms", firstEvalTimes[0] / 1_000_000);
+    log.info("  p50: {} ms", firstEvalTimes[measuredIterations / 2 - 1] / 1_000_000);
+    log.info("  p90: {} ms", firstEvalTimes[(int) Math.ceil(measuredIterations * 0.9) - 1] / 1_000_000);
+    log.info("  max: {} ms", firstEvalTimes[measuredIterations - 1] / 1_000_000);
+    log.info("  avg: {} ms", Arrays.stream(firstEvalTimes).sum() / measuredIterations / 1_000_000);
+    log.info("Re-evaluation (update path):");
+    log.info("  min: {} ms", reEvalTimes[0] / 1_000_000);
+    log.info("  p50: {} ms", reEvalTimes[measuredIterations / 2 - 1] / 1_000_000);
+    log.info("  p90: {} ms", reEvalTimes[(int) Math.ceil(measuredIterations * 0.9) - 1] / 1_000_000);
+    log.info("  max: {} ms", reEvalTimes[measuredIterations - 1] / 1_000_000);
+    log.info("  avg: {} ms", Arrays.stream(reEvalTimes).sum() / measuredIterations / 1_000_000);
   }
 }

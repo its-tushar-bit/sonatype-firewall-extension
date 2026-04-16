@@ -788,6 +788,78 @@ public class ApplicationDAOTest
     assertThat(searchIndexChanges.get(0).getChangeData()).isEqualTo(app.getId());
   }
 
+  @Test
+  public void testInsertBatch_RecordSearchIndexChange() {
+    doTestInsertBatch_RecordSearchIndexChange();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_RecordSearchIndexChange_Postgres() {
+    doTestInsertBatch_RecordSearchIndexChange();
+  }
+
+  private void doTestInsertBatch_RecordSearchIndexChange() {
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    SearchIndexChangeDAO searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    Organization org = tempEntity.newOrganization();
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    Application app1 = new Application("pub1-" + System.nanoTime(), "app1", org.getId());
+    Application app2 = new Application("pub2-" + System.nanoTime(), "app2", org.getId());
+    applicationDAO.insertBatch(List.of(app1, app2));
+
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
+    assertThat(searchIndexChanges).hasSize(2);
+    Set<String> changedIds = searchIndexChanges.stream()
+        .map(SearchIndexChange::getChangeData)
+        .collect(Collectors.toSet());
+    assertThat(changedIds).containsExactlyInAnyOrder(app1.getId(), app2.getId());
+    assertThat(searchIndexChanges).allSatisfy(
+        change -> assertThat(change.getChangeType()).isEqualTo(ChangeType.APPLICATION));
+  }
+
+  @Test
+  public void testUpdateBatch_RecordSearchIndexChange() {
+    doTestUpdateBatch_RecordSearchIndexChange();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testUpdateBatch_RecordSearchIndexChange_Postgres() {
+    doTestUpdateBatch_RecordSearchIndexChange();
+  }
+
+  private void doTestUpdateBatch_RecordSearchIndexChange() {
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    SearchIndexChangeDAO searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
+    Organization org = tempEntity.newOrganization();
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    Application app1 = tempEntity.newApplication(org.getId());
+    Application app2 = tempEntity.newApplication(org.getId());
+    searchIndexChangeDAO.getAll().forEach(searchIndexChangeDAO::delete);
+
+    app1.setName("updated1");
+    app2.setName("updated2");
+    applicationDAO.updateBatch(List.of(app1, app2));
+
+    List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();
+    assertThat(searchIndexChanges).hasSize(2);
+    Set<String> changedIds = searchIndexChanges.stream()
+        .map(SearchIndexChange::getChangeData)
+        .collect(Collectors.toSet());
+    assertThat(changedIds).containsExactlyInAnyOrder(app1.getId(), app2.getId());
+    assertThat(searchIndexChanges).allSatisfy(
+        change -> assertThat(change.getChangeType()).isEqualTo(ChangeType.APPLICATION));
+  }
+
   // Cascade Delete Tests
 
   @Test

@@ -116,6 +116,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import datadog.trace.api.Trace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -354,6 +355,7 @@ public class ScanPolicyEvaluator
    * please note: this method was renamed from 'evaluate' so as to facilitate instrumentation by a java agent
    * that captures metrics during a load test; the agent cannot instrument overloaded methods
    */
+  @Trace
   private ScanPolicyEvaluatorResults doEvaluate(
       final Application application,
       final String scanId,
@@ -547,16 +549,48 @@ public class ScanPolicyEvaluator
 
       List<String> ownerIds = getOwnerIds(appId);
 
-      List<PolicyViolation> autoWaivedPolicyViolations = Collections.emptyList();
+      Map<String, Owner> ownerCache = new HashMap<>();
+
+      if (!isReevaluation && skipAutoWaivers) {
+        throw new BadRequestException(SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS);
+      }
       boolean skipAutoWaiversForReevaluation = skipAutoWaivers && isReevaluation;
+
+      final List<PolicyViolation> autoWaivedPolicyViolations;
+      final Map<String, AutoPolicyWaiver> autoWaiversByIdForReevaluation;
       if (skipAutoWaiversForReevaluation) {
         autoWaivedPolicyViolations =
             policyViolationDAO.getAutoWaivedByApplicationIdAndStageId(appId,
                 stage.getStageTypeId());
         policyViolationDAO.loadConstraintFacts(autoWaivedPolicyViolations);
+        Set<String> waiverIds = autoWaivedPolicyViolations.stream()
+            .map(PolicyViolation::getAutoPolicyWaiverId)
+            .collect(Collectors.toSet());
+        autoWaiversByIdForReevaluation = autoPolicyWaiverDAO.getByIds(waiverIds)
+            .stream()
+            .collect(toMap(AutoPolicyWaiver::getId, Function.identity(), (a, b) -> a));
+        for (AutoPolicyWaiver waiver : autoWaiversByIdForReevaluation.values()) {
+          if (!ownerCache.containsKey(waiver.getOwnerId())) {
+            ownerCache.put(waiver.getOwnerId(), ownerDAO.getById(waiver.getOwnerId()));
+          }
+        }
       }
-      else if (!isReevaluation && skipAutoWaivers) {
-        throw new BadRequestException(SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS);
+      else {
+        autoWaivedPolicyViolations = Collections.emptyList();
+        autoWaiversByIdForReevaluation = Collections.emptyMap();
+      }
+
+      List<AutoPolicyWaiver> allAutoWaiversForOwners = skipAutoWaiversForReevaluation
+          ? Collections.emptyList()
+          : autoPolicyWaiverDAO.getByOwnerIds(ownerIds);
+      List<AutoPolicyWaiver> prefetchedAutoPolicyWaivers =
+          AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(allAutoWaiversForOwners);
+      List<AutoPolicyWaiverExclusion> prefetchedAutoPolicyWaiverExclusions =
+          getApplicableAutoPolicyWaiverExclusions(allAutoWaiversForOwners);
+      for (AutoPolicyWaiver w : prefetchedAutoPolicyWaivers) {
+        if (!ownerCache.containsKey(w.getOwnerId())) {
+          ownerCache.put(w.getOwnerId(), ownerDAO.getById(w.getOwnerId()));
+        }
       }
 
       PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities =
@@ -566,6 +600,18 @@ public class ScanPolicyEvaluator
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
       allPolicyAlerts.addAll(policyResults.getActiveAlerts());
       allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
+
+      Set<String> alertPolicyIds = allPolicyAlerts.stream()
+          .map(alert -> alert.getTrigger().getPolicyId())
+          .collect(Collectors.toSet());
+      Map<String, Policy> policiesById = policies.stream()
+          .filter(p -> alertPolicyIds.contains(p.getId()))
+          .collect(toMap(Policy::getId, Function.identity(), (a, b) -> a));
+      for (Policy p : policiesById.values()) {
+        if (!ownerCache.containsKey(p.getOwnerId())) {
+          ownerCache.put(p.getOwnerId(), ownerDAO.getById(p.getOwnerId()));
+        }
+      }
       Map<String, Owner> policyIdPolicyOwnerMap = new HashMap<>();
 
       List<PolicyViolation> existingViolationsForReachability = Collections.emptyList();
@@ -579,8 +625,11 @@ public class ScanPolicyEvaluator
 
       for (PolicyAlert policyAlert : allPolicyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();
-        Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
-        Owner ownerPolicy = ownerDAO.getById(policy.getOwnerId());
+        Policy policy = policiesById.get(policyFact.getPolicyId());
+        if (policy == null) {
+          throw new NotFoundException("Policy not found: " + policyFact.getPolicyId());
+        }
+        Owner ownerPolicy = ownerCache.get(policy.getOwnerId());
         policyIdPolicyOwnerMap.put(policy.getId(), ownerPolicy);
         PolicyThreatCategory threatCategory = policy.getThreatCategory();
 
@@ -637,28 +686,25 @@ public class ScanPolicyEvaluator
                 .filter(violation -> PolicyViolationComparator.COMPARATOR.compare(violation, policyViolation) == 0)
                 .forEach(violation -> {
                   final AutoPolicyWaiver autoPolicyWaiver =
-                      autoPolicyWaiverDAO.getById(violation.getAutoPolicyWaiverId());
-                  final Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+                      autoWaiversByIdForReevaluation.get(violation.getAutoPolicyWaiverId());
                   policyViolation.setWaiveTime(violation.getWaiveTime());
                   policyViolation.setAutoPolicyWaiverId(violation.getAutoPolicyWaiverId());
-                  autoPolicyWaiverTelemetryCollector.addTelemetryForApplyAutoWaiver(autoPolicyWaiver,
-                      policyViolation, owner);
+                  if (autoPolicyWaiver != null) {
+                    autoPolicyWaiverTelemetryCollector.addTelemetryForApplyAutoWaiver(autoPolicyWaiver,
+                        policyViolation, ownerCache.get(autoPolicyWaiver.getOwnerId()));
+                  }
                 });
           }
           else {
-            List<AutoPolicyWaiver> autoPolicyWaivers = getApplicableAutoPolicyWaivers(ownerIds);
-            List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions =
-                getApplicableAutoPolicyWaiverExclusions(ownerIds);
-
             boolean hasReachabilityData = reachablePurlIdentifiersWithVulnerabilities != null;
-            for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaivers) {
+            for (AutoPolicyWaiver autoPolicyWaiver : prefetchedAutoPolicyWaivers) {
               if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
                 boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
                     appId,
                     component,
                     policyViolation,
                     autoPolicyWaiver,
-                    autoPolicyWaiverExclusions,
+                    prefetchedAutoPolicyWaiverExclusions,
                     stage.getStageTypeId(),
                     scanId,
                     hasReachabilityData);
@@ -666,9 +712,8 @@ public class ScanPolicyEvaluator
                   policyViolation.setWaiveTime(policyEvaluation.getTime());
                   policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
 
-                  Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
                   autoPolicyWaiverTelemetryCollector.addTelemetryForApplyAutoWaiver(autoPolicyWaiver,
-                      policyViolation, owner);
+                      policyViolation, ownerCache.get(autoPolicyWaiver.getOwnerId()));
 
                   // Do not evaluate further auto waivers when one has been applied
                   break;
@@ -702,6 +747,7 @@ public class ScanPolicyEvaluator
 
         // New policy violations.
         List<PolicyViolation> newPolicyViolations = policyViolationDiff.getAppeared();
+        newPolicyViolations.forEach(v -> v.setId(IdUtil.newUUID()));
         logPolicyViolations(newPolicyViolations, "new");
 
         for (PolicyViolation newPolicyViolation : newPolicyViolations) {
@@ -711,8 +757,6 @@ public class ScanPolicyEvaluator
           if (newPolicyViolation.isLegacyViolation()) {
             newPolicyViolation.setLegacyViolationApplied(true);
           }
-
-          policyViolationDAO.insert(tx, newPolicyViolation);
 
           recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation, components);
 
@@ -738,8 +782,11 @@ public class ScanPolicyEvaluator
             policyViolationLogger.add(PolicyViolationLogEvent.GRANT_LEGACY_STATUS, newPolicyViolation);
           }
         }
+        policyViolationDAO.insertBatch(tx, newPolicyViolations);
+
         // Fixed policy violations.
-        for (PolicyViolation oldPolicyViolation : policyViolationDiff.getCleared()) {
+        List<PolicyViolation> fixedPolicyViolations = policyViolationDiff.getCleared();
+        for (PolicyViolation oldPolicyViolation : fixedPolicyViolations) {
           oldPolicyViolation.setFixTime(policyEvaluation.getTime());
 
           List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
@@ -748,14 +795,17 @@ public class ScanPolicyEvaluator
           oldPolicyViolation.setIsRemediatedByVersionChange(
               EvaluationUtils.isRemediatedByVersionChange(found, oldPolicyViolation));
 
-          policyViolationDAO.update(tx, oldPolicyViolation);
           policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
 
           telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation, found);
           results.fixedViolations.add(oldPolicyViolation);
         }
+        policyViolationDAO.updateBatch(tx, fixedPolicyViolations);
+
         // Existing policy violations.
         List<PolicyViolation> existing = new ArrayList<>();
+        List<PolicyViolation> existingToUpdate = new ArrayList<>();
+        List<PolicyViolation> existingToInsert = new ArrayList<>();
         for (Map.Entry<PolicyViolation, PolicyViolation> entry : policyViolationDiff.getSame().entrySet()) {
           PolicyViolation oldPolicyViolation = entry.getKey();
           existing.add(oldPolicyViolation);
@@ -766,11 +816,12 @@ public class ScanPolicyEvaluator
           if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
             // The policy violation was un-waived or un-auto-waived
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
-            policyViolationDAO.update(tx, oldPolicyViolation);
+            existingToUpdate.add(oldPolicyViolation);
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
               results.notifiableViolations.add(newPolicyViolation);
             }
-            policyViolationDAO.insert(tx, newPolicyViolation);
+            newPolicyViolation.setId(IdUtil.newUUID());
+            existingToInsert.add(newPolicyViolation);
 
             policyViolationLogger.add(
                 oldPolicyViolation.isAutoWaived()
@@ -818,7 +869,8 @@ public class ScanPolicyEvaluator
                 if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
                   results.notifiableViolations.add(newPolicyViolation);
                 }
-                policyViolationDAO.insert(tx, newPolicyViolation);
+                newPolicyViolation.setId(IdUtil.newUUID());
+                existingToInsert.add(newPolicyViolation);
 
                 policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
                 telemetryCollector.addTelemetryForUnwaivedViolation(
@@ -848,7 +900,8 @@ public class ScanPolicyEvaluator
                 if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
                   results.notifiableViolations.add(newPolicyViolation);
                 }
-                policyViolationDAO.insert(tx, newPolicyViolation);
+                newPolicyViolation.setId(IdUtil.newUUID());
+                existingToInsert.add(newPolicyViolation);
                 policyViolationLogger.add(PolicyViolationLogEvent.UNAUTOWAIVE, oldPolicyViolation);
                 telemetryCollector.addTelemetryForUnwaivedViolation(
                     oldPolicyViolation,
@@ -915,9 +968,12 @@ public class ScanPolicyEvaluator
               results.allViolations.add(oldPolicyViolation);
             }
 
-            policyViolationDAO.update(tx, oldPolicyViolation);
+            existingToUpdate.add(oldPolicyViolation);
           }
         }
+        policyViolationDAO.updateBatch(tx, existingToUpdate);
+        policyViolationDAO.insertBatch(tx, existingToInsert);
+
         logPolicyViolations(existing, "previously seen");
         persistApplicationComponents(tx, appId, stage, policyEvaluation.getTime(), components);
       }
@@ -1140,11 +1196,7 @@ public class ScanPolicyEvaluator
       List<Component> components)
   {
     // Delete all app->component associations for the specified stage
-    List<ApplicationComponent> oldApplicationComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(tx,
-        appId, stage.getStageTypeId());
-    for (ApplicationComponent oldApplicationComponent : oldApplicationComponents) {
-      applicationComponentDAO.delete(tx, oldApplicationComponent);
-    }
+    applicationComponentDAO.deleteByApplicationIdAndStageTypeId(tx, appId, stage.getStageTypeId());
 
     // Collect all entities in memory first to enable batch inserts by table
     List<ApplicationComponent> newApplicationComponents = new ArrayList<>();
@@ -1806,26 +1858,13 @@ public class ScanPolicyEvaluator
     return pathForwardInspector.containsUpgradeableVersion(component.getComponentIdentifier(), appId, stageId, scanId);
   }
 
-  private List<AutoPolicyWaiver> getApplicableAutoPolicyWaivers(final List<String> ownerIds) {
-    final List<AutoPolicyWaiver> autoPolicyWaivers = new ArrayList<>();
-    ownerIds.forEach(id -> autoPolicyWaivers.addAll(autoPolicyWaiverDAO.getByOwnerId(id)));
-
-    return AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(autoPolicyWaivers);
-  }
-
-  private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(final List<String> ownerIds) {
-    final List<AutoPolicyWaiverExclusion> autoPolicyWaiverExclusions = new ArrayList<>();
-
-    for (String id : ownerIds) {
-      autoPolicyWaiverDAO.getByOwnerId(id)
-          .stream()
-          .filter(Objects::nonNull)
-          .forEach(autoPolicyWaiver -> autoPolicyWaiverExclusions.addAll(
-              autoPolicyWaiverExclusionDAO
-                  .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId())));
-    }
-
-    return autoPolicyWaiverExclusions;
+  private List<AutoPolicyWaiverExclusion> getApplicableAutoPolicyWaiverExclusions(
+      final List<AutoPolicyWaiver> allWaivers)
+  {
+    List<String> waiverIds = allWaivers.stream()
+        .map(AutoPolicyWaiver::getId)
+        .toList();
+    return autoPolicyWaiverExclusionDAO.getByAutoPolicyWaiverIds(waiverIds);
   }
 
   private List<String> getOwnerIds(final String applicationId) {

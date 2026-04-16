@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -2864,5 +2865,166 @@ public class PolicyViolationDAOTest
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).quarantineTime).isNull();
+  }
+
+  @Test
+  public void testAllFieldsRoundTrip_insertAndUpdate() {
+    doTestAllFieldsRoundTrip_insertAndUpdate();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testAllFieldsRoundTrip_insertAndUpdate_Postgres() {
+    doTestAllFieldsRoundTrip_insertAndUpdate();
+  }
+
+  @Test
+  public void testAllFieldsRoundTrip_insertBatchAndUpdateBatch() {
+    doTestAllFieldsRoundTrip_insertBatchAndUpdateBatch();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testAllFieldsRoundTrip_insertBatchAndUpdateBatch_Postgres() {
+    doTestAllFieldsRoundTrip_insertBatchAndUpdateBatch();
+  }
+
+  private void doTestAllFieldsRoundTrip_insertAndUpdate() {
+    PolicyViolation violation = createFullyPopulatedViolation("scan-roundtrip");
+
+    dao.insert(violation);
+    assertAllFields(violation, loadWithConstraintFacts(violation.getId()));
+
+    mutateViolation(violation);
+    dao.update(violation);
+    assertAllFields(violation, loadWithConstraintFacts(violation.getId()));
+  }
+
+  private void doTestAllFieldsRoundTrip_insertBatchAndUpdateBatch() {
+    PolicyViolation violation = createFullyPopulatedViolation("scan-batch-rt");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.insertBatch(tx, List.of(violation));
+      tx.commit();
+    }
+    assertAllFields(violation, loadWithConstraintFacts(violation.getId()));
+
+    mutateViolation(violation);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.updateBatch(tx, List.of(violation));
+      tx.commit();
+    }
+    assertAllFields(violation, loadWithConstraintFacts(violation.getId()));
+  }
+
+  private PolicyViolation createFullyPopulatedViolation(String scanId) {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    Date now = new Date();
+
+    PolicyViolation violation = new PolicyViolation(eval, policy.getId(), policy.getName(), 7,
+        PolicyThreatCategory.SECURITY, "aabbccddee",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+        List.of(new ConstraintFact("cid", "cname", "cop")), "file.jar");
+    violation.setActionTypeId(Action.ID_FAIL);
+    violation.setWaiveTime(now);
+    violation.setFixTime(now);
+    violation.setLegacyViolationTime(now);
+    violation.setPolicyWaiverId("waiver-id");
+    violation.setPolicyWaiverComment("waiver comment");
+    violation.setSeenByPrimaryEvaluation(true);
+    violation.setSeenByMonitoringEvaluation(true);
+    violation.setLegacyViolationApplied(true);
+    violation.setReachabilityStatus(ReachabilityStatus.NON_REACHABLE);
+    violation.setAutoPolicyWaiverId("auto-waiver-id");
+    return violation;
+  }
+
+  private void mutateViolation(PolicyViolation violation) {
+    violation.setReachabilityStatus(ReachabilityStatus.REACHABLE);
+    violation.setLegacyViolationApplied(false);
+    violation.setSeenByMonitoringEvaluation(false);
+    violation.setActionTypeId(Action.ID_WARN);
+  }
+
+  private PolicyViolation loadWithConstraintFacts(String id) {
+    PolicyViolation loaded = dao.getById(id);
+    dao.loadConstraintFacts(List.of(loaded));
+    return loaded;
+  }
+
+  @Test
+  public void testInsertBatch_storesConstraintFacts() {
+    doTestInsertBatch_storesConstraintFacts();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_storesConstraintFacts_Postgres() {
+    doTestInsertBatch_storesConstraintFacts();
+  }
+
+  @Test
+  public void testUpdateBatch_storesConstraintFacts() {
+    doTestUpdateBatch_storesConstraintFacts();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testUpdateBatch_storesConstraintFacts_Postgres() {
+    doTestUpdateBatch_storesConstraintFacts();
+  }
+
+  private void doTestInsertBatch_storesConstraintFacts() {
+    PolicyViolation violation = createFullyPopulatedViolation("scan-constraints");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.insertBatch(tx, List.of(violation), false);
+      tx.commit();
+    }
+
+    assertThat(violation.getConstraintFactsId()).isNotNull();
+    PolicyViolationConstraintFacts facts = constraintFactsDAO.getById(violation.getConstraintFactsId());
+    assertThat(facts).isNotNull();
+    assertThat(facts.getConstraintFactsJson()).isNotBlank();
+  }
+
+  private void doTestUpdateBatch_storesConstraintFacts() {
+    PolicyViolation violation = createFullyPopulatedViolation("scan-constraints-update");
+    dao.insert(violation);
+    String originalConstraintFactsId = violation.getConstraintFactsId();
+
+    violation.setConstraintFacts(List.of(new ConstraintFact("new-cid", "new-cname", "new-cop")));
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.updateBatch(tx, List.of(violation));
+      tx.commit();
+    }
+
+    assertThat(violation.getConstraintFactsId()).isNotNull();
+    assertThat(violation.getConstraintFactsId()).isNotEqualTo(originalConstraintFactsId);
+    PolicyViolationConstraintFacts facts = constraintFactsDAO.getById(violation.getConstraintFactsId());
+    assertThat(facts).isNotNull();
+    assertThat(facts.getConstraintFactsJson()).contains("new-cid");
+  }
+
+  private void assertAllFields(PolicyViolation expected, PolicyViolation actual) {
+    assertThat(actual).usingRecursiveComparison()
+        .ignoringFields(
+            "constraintFacts",
+            "deprecatedConstraintFactsJson")
+        .isEqualTo(expected);
+    assertThat(actual.getConstraintFacts())
+        .usingRecursiveComparison()
+        .ignoringCollectionOrder()
+        .ignoringExpectedNullFields()
+        .isEqualTo(expected.getConstraintFacts());
   }
 }

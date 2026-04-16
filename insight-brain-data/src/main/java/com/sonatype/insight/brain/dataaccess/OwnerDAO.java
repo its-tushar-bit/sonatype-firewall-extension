@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -224,6 +225,21 @@ public class OwnerDAO
     try (TransactionContext tx = appDAO.createTransactionContext()) {
       return getById(tx, id);
     }
+  }
+
+  @Override
+  public List<Owner> getByIds(Collection<String> ids) {
+    throw new UnsupportedOperationException("OwnerDAO is a composite DAO and does not support batch operations");
+  }
+
+  @Override
+  public void insertBatch(TransactionContext tx, List<Owner> entities, boolean ignoreDuplicateKey) {
+    throw new UnsupportedOperationException("OwnerDAO is a composite DAO and does not support batch operations");
+  }
+
+  @Override
+  public void updateBatch(TransactionContext tx, List<Owner> entities) {
+    throw new UnsupportedOperationException("OwnerDAO is a composite DAO and does not support batch operations");
   }
 
   @Override

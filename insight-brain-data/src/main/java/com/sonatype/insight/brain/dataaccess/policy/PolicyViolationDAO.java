@@ -56,6 +56,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -90,72 +91,43 @@ public class PolicyViolationDAO
   @Override
   public void insert(TransactionContext tx, PolicyViolation entity) {
     storeConstraints(entity);
-    generateIdIfNeeded(entity);
-    tx.dsl()
-        .insertInto(POLICY_VIOLATION)
-        .set(POLICY_VIOLATION.POLICY_VIOLATION_ID, entity.getId())
-        .set(POLICY_VIOLATION.APPLICATION_ID, entity.getApplicationId())
-        .set(POLICY_VIOLATION.STAGE_TYPE_ID, entity.getStageTypeId())
-        .set(POLICY_VIOLATION.POLICY_ID, entity.getPolicyId())
-        .set(POLICY_VIOLATION.POLICY_NAME, entity.getPolicyName())
-        .set(POLICY_VIOLATION.THREAT_LEVEL, (short) entity.getThreatLevel())
-        .set(POLICY_VIOLATION.THREAT_CATEGORY,
-            entity.getThreatCategory() != null ? entity.getThreatCategory().name() : null)
-        .set(POLICY_VIOLATION.HASH, entity.getHash())
-        .set(POLICY_VIOLATION.COMPONENT_ID_FORMAT, entity.getComponentIdFormat())
-        .set(POLICY_VIOLATION.COMPONENT_ID_COORDINATES_JSON, entity.getComponentIdCoordinatesJson())
-        .set(POLICY_VIOLATION.FILENAME, entity.getFilename())
-        .set(POLICY_VIOLATION.ACTION_TYPE_ID, entity.getActionTypeId())
-        .set(POLICY_VIOLATION.OPEN_TIME, entity.getOpenTime())
-        .set(POLICY_VIOLATION.WAIVE_TIME, entity.getWaiveTime())
-        .set(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, entity.getLegacyViolationTime())
-        .set(POLICY_VIOLATION.FIX_TIME, entity.getFixTime())
-        .set(POLICY_VIOLATION.POLICY_WAIVER_ID, entity.getPolicyWaiverId())
-        .set(POLICY_VIOLATION.POLICY_WAIVER_COMMENT, entity.getPolicyWaiverComment())
-        .set(POLICY_VIOLATION.SEEN_BY_PRIMARY_EVALUATION, entity.isSeenByPrimaryEvaluation())
-        .set(POLICY_VIOLATION.SEEN_BY_MONITORING_EVALUATION, entity.isSeenByMonitoringEvaluation())
-        .set(POLICY_VIOLATION.LEGACY_VIOLATION_APPLIED, entity.isLegacyViolationApplied())
-        .set(POLICY_VIOLATION.REACHABILITY_STATUS,
-            entity.getReachabilityStatus() != null ? entity.getReachabilityStatus().name() : null)
-        .set(POLICY_VIOLATION.AUTO_POLICY_WAIVER_ID, entity.getAutoPolicyWaiverId())
-        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_ID, entity.getConstraintFactsId())
-        .execute();
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, PolicyViolation entity, boolean ignoreDuplicateKey) {
+    storeConstraints(entity);
+    super.insert(tx, entity, ignoreDuplicateKey);
   }
 
   @Override
   public void update(TransactionContext tx, PolicyViolation entity) {
     storeConstraints(entity);
-    tx.dsl()
-        .update(POLICY_VIOLATION)
-        .set(POLICY_VIOLATION.APPLICATION_ID, entity.getApplicationId())
-        .set(POLICY_VIOLATION.STAGE_TYPE_ID, entity.getStageTypeId())
-        .set(POLICY_VIOLATION.POLICY_ID, entity.getPolicyId())
-        .set(POLICY_VIOLATION.POLICY_NAME, entity.getPolicyName())
-        .set(POLICY_VIOLATION.THREAT_LEVEL, (short) entity.getThreatLevel())
-        .set(POLICY_VIOLATION.THREAT_CATEGORY,
-            entity.getThreatCategory() != null ? entity.getThreatCategory().name() : null)
-        .set(POLICY_VIOLATION.HASH, entity.getHash())
-        .set(POLICY_VIOLATION.COMPONENT_ID_FORMAT, entity.getComponentIdFormat())
-        .set(POLICY_VIOLATION.COMPONENT_ID_COORDINATES_JSON, entity.getComponentIdCoordinatesJson())
-        .set(POLICY_VIOLATION.FILENAME, entity.getFilename())
-        .set(POLICY_VIOLATION.ACTION_TYPE_ID, entity.getActionTypeId())
-        .set(POLICY_VIOLATION.OPEN_TIME, entity.getOpenTime())
-        .set(POLICY_VIOLATION.WAIVE_TIME, entity.getWaiveTime())
-        .set(POLICY_VIOLATION.LEGACY_VIOLATION_TIME, entity.getLegacyViolationTime())
-        .set(POLICY_VIOLATION.FIX_TIME, entity.getFixTime())
-        .set(POLICY_VIOLATION.POLICY_WAIVER_ID, entity.getPolicyWaiverId())
-        .set(POLICY_VIOLATION.POLICY_WAIVER_COMMENT, entity.getPolicyWaiverComment())
-        .set(POLICY_VIOLATION.SEEN_BY_PRIMARY_EVALUATION, entity.isSeenByPrimaryEvaluation())
-        .set(POLICY_VIOLATION.SEEN_BY_MONITORING_EVALUATION, entity.isSeenByMonitoringEvaluation())
-        .set(POLICY_VIOLATION.LEGACY_VIOLATION_APPLIED, entity.isLegacyViolationApplied())
-        .set(POLICY_VIOLATION.REACHABILITY_STATUS,
-            entity.getReachabilityStatus() != null ? entity.getReachabilityStatus().name() : null)
-        .set(POLICY_VIOLATION.AUTO_POLICY_WAIVER_ID, entity.getAutoPolicyWaiverId())
-        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_ID, entity.getConstraintFactsId())
-        // Clear deprecated column after migration to new constraint_facts_id
-        .set(POLICY_VIOLATION.CONSTRAINT_FACTS_JSON, (String) null)
-        .where(POLICY_VIOLATION.POLICY_VIOLATION_ID.eq(entity.getId()))
-        .execute();
+    super.update(tx, entity);
+  }
+
+  @Override
+  public void insertBatch(TransactionContext tx, List<PolicyViolation> entities, boolean ignoreDuplicateKey) {
+    // On H2, the fallback calls insert(tx, entity, ignoreDuplicateKey) per entity which already
+    // handles storeConstraints via our insert() override.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      for (PolicyViolation entity : entities) {
+        storeConstraints(entity);
+      }
+    }
+    super.insertBatch(tx, entities, ignoreDuplicateKey);
+  }
+
+  @Override
+  public void updateBatch(TransactionContext tx, List<PolicyViolation> entities) {
+    // On H2, the fallback calls update(tx, entity) per entity which already handles storeConstraints
+    // via our update() override.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      for (PolicyViolation entity : entities) {
+        storeConstraints(entity);
+      }
+    }
+    super.updateBatch(tx, entities);
   }
 
   private final PolicyEvaluationDAO policyEvaluationDAO;

@@ -19,6 +19,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jooq.SQLDialect;
+import org.jooq.Table;
 
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
@@ -87,14 +89,19 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   public void insertBatch(TransactionContext tx, List<T> entities, boolean ignoreDuplicateKey) {
     super.insertBatch(tx, entities, ignoreDuplicateKey);
 
-    for (T entity : entities) {
-      if (shouldAddSearchIndexChange(tx, entity)) {
-        insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
-      }
-      if (detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
-        Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
-        testEntityLeaksDetectionData.put(entity.getId(),
-            new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
+    // Only add search index changes and leak detection for the non-H2 path. The H2 fallback in
+    // AbstractDAO.insertBatch calls insert(tx, entity) per entity, which already handles these
+    // via our insert() override above.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      for (T entity : entities) {
+        if (shouldAddSearchIndexChange(tx, entity)) {
+          insertSearchIndexChange(tx, newSearchIndexChangeForInsert(entity));
+        }
+        if (detectTestEntityLeaks() && operationalDataStore.isDatabaseInMemory()) {
+          Exception e = new Exception("Entity of type " + entity.getClass().getName() + " created at:");
+          testEntityLeaksDetectionData.put(entity.getId(),
+              new TestEntityLeakDetectionData(this, ExceptionUtils.getStackTrace(e)));
+        }
       }
     }
   }
@@ -117,6 +124,22 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     // Handle search index changes
     if (shouldAddSearchIndexChange(tx, entity)) {
       insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+    }
+  }
+
+  @Override
+  public void updateBatch(TransactionContext tx, List<T> entities) {
+    super.updateBatch(tx, entities);
+
+    // Only add search index changes for the non-H2 path. The H2 fallback in AbstractDAO.updateBatch
+    // calls update(tx, entity) per entity, which already handles search index changes via our
+    // update() override above.
+    if (tx.dsl().dialect() != SQLDialect.H2) {
+      for (T entity : entities) {
+        if (shouldAddSearchIndexChange(tx, entity)) {
+          insertSearchIndexChange(tx, newSearchIndexChangeForUpdate(entity));
+        }
+      }
     }
   }
 
@@ -171,6 +194,20 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       Function<Collection<E>, Stream<U>> getter)
   {
     return super.getStreamWithSqlInClause(inClauseValues, getter, operationalDataStore);
+  }
+
+  public List<T> getByIds(Collection<String> ids) {
+    return getListWithSqlInClause(ids,
+        partition -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            Table<?> table = getJooqTable();
+            var idField = getIdField(table);
+            return tx.dsl()
+                .selectFrom(table)
+                .where(idField.in(partition))
+                .fetch(this::toEntity);
+          }
+        });
   }
 
   protected String getDatabaseSchema() {

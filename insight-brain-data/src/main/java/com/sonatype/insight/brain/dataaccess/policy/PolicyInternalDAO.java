@@ -55,7 +55,8 @@ public class PolicyInternalDAO
     this.policyTagDAO = policyTagDAO;
   }
 
-  List<PolicyInternal> getByIds(Collection<String> ids) {
+  @Override
+  public List<PolicyInternal> getByIds(Collection<String> ids) {
     if (ids == null || ids.isEmpty()) {
       return java.util.Collections.emptyList();
     }

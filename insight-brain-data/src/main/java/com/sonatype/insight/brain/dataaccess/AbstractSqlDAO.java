@@ -24,6 +24,7 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Record;
 import org.jooq.ResultQuery;
 import org.jooq.Table;
@@ -288,6 +289,9 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
       Function<Collection<E>, List<U>> getter,
       DataStore dataStore)
   {
+    if (CollectionUtils.isEmpty(inClauseValues)) {
+      return List.of();
+    }
     int inOperatorThreshold = getInOperatorThreshold(dataStore);
     if (inClauseValues.size() >= inOperatorThreshold) {
       List<E> inClauseValuesList;
@@ -324,6 +328,9 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
       Function<Collection<E>, Stream<U>> getter,
       DataStore dataStore)
   {
+    if (CollectionUtils.isEmpty(inClauseValues)) {
+      return Stream.of();
+    }
     int inOperatorThreshold = getInOperatorThreshold(dataStore);
     if (inClauseValues.size() >= inOperatorThreshold) {
       List<E> inClauseValuesList;

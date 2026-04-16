@@ -91,6 +91,16 @@ public class ApplicationComponentDAO
         .fetch(this::toEntity);
   }
 
+  // Bypasses per-entity delete() for performance. This DAO does not use a SearchIndexManager,
+  // so no search index side effects are lost.
+  public void deleteByApplicationIdAndStageTypeId(TransactionContext tx, String appId, String stageTypeId) {
+    tx.dsl()
+        .deleteFrom(APPLICATION_COMPONENT)
+        .where(APPLICATION_COMPONENT.APPLICATION_ID.eq(appId))
+        .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+        .execute();
+  }
+
   public ApplicationComponent getByApplicationIdAndStageTypeIdAndHash(String appId, String stageTypeId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       return toEntity(tx.dsl()

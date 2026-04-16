@@ -652,7 +652,8 @@ public class RepositoryPolicyEvaluator
       if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
         // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
         // anymore.
-        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring, explicitReleaseReason);
+        unquarantineComponent(tx, repository, repositoryComponent, evaluationTime, forMonitoring,
+            explicitReleaseReason);
       }
 
       repositoryComponentDAO.update(tx, repositoryComponent);
@@ -661,6 +662,7 @@ public class RepositoryPolicyEvaluator
   }
 
   private void unquarantineComponent(
+      TransactionContext tx,
       Repository repository,
       RepositoryComponent repositoryComponent,
       Date evaluationTime,
@@ -684,7 +686,7 @@ public class RepositoryPolicyEvaluator
     }
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
+        .getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), repositoryComponent.getPathname(), false);
     repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
 
     ReleaseQuarantineType releaseQuarantineType =

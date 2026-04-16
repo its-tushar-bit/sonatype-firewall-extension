@@ -169,6 +169,38 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  public void testGetActiveByRepositoryIdAndPathnameAndWaived_WithTransactionContext() {
+    final String pathname = "pathname";
+
+    // Create non-waived violations
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, pathname, false, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, pathname, false, null);
+
+    // Create waived violations
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, true, null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Test fetching non-waived violations
+      final List<RepositoryPolicyViolation> nonWaivedViolations =
+          dao.getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), pathname, false);
+
+      assertThat(nonWaivedViolations).hasSize(2);
+      assertThat(nonWaivedViolations.get(0).getThreatLevel()).isEqualTo(3);
+      assertThat(nonWaivedViolations.get(0).isWaived()).isFalse();
+      assertThat(nonWaivedViolations.get(1).getThreatLevel()).isEqualTo(2);
+      assertThat(nonWaivedViolations.get(1).isWaived()).isFalse();
+
+      // Test fetching waived violations
+      final List<RepositoryPolicyViolation> waivedViolations =
+          dao.getActiveByRepositoryIdAndPathnameAndWaived(tx, repository.getId(), pathname, true);
+
+      assertThat(waivedViolations).hasSize(1);
+      assertThat(waivedViolations.get(0).getThreatLevel()).isEqualTo(1);
+      assertThat(waivedViolations.get(0).isWaived()).isTrue();
+    }
+  }
+
+  @Test
   public void testGetCount() {
     final String pathname = "pathname";
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);

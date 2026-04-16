@@ -95,19 +95,28 @@ public class RepositoryPolicyViolationDAO
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
+      TransactionContext tx,
+      String repositoryId,
+      String pathname,
+      boolean isWaived)
+  {
+    return tx.dsl()
+        .selectFrom(REPOSITORY_POLICY_VIOLATION)
+        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(isWaived))
+        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+        .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+        .fetch(this::toEntity);
+  }
+
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       String repositoryId,
       String pathname,
       boolean isWaived)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
-          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(isWaived))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-          .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
-          .fetch(this::toEntity);
+      return getActiveByRepositoryIdAndPathnameAndWaived(tx, repositoryId, pathname, isWaived);
     }
   }
 

@@ -50,19 +50,65 @@ public class MtiqDefaultApiConfigurationResourceTest
   }
 
   @Test
-  public void test_putConfiguration_shouldBeBanned() throws Exception {
+  public void test_putConfiguration_quarantineMessage_shouldSucceed() throws Exception {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "This message is set.");
+
+    HttpResponse response = restRequest().body(properties).put();
+    assertResponseStatus(204, response);
+
+    HttpResponse getResponse = restRequest()
+        .query("property", SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)
+        .get();
+    assertResponseStatus(200, getResponse);
+    Map<String, Object> result = getResponse.getBody(Map.class);
+    assertThat(result).containsEntry(
+        SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "This message is set.");
+  }
+
+  @Test
+  public void test_deleteConfiguration_quarantineMessage_shouldSucceed() throws Exception {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "To be deleted.");
+    restRequest().body(properties).put();
+
+    HttpResponse response = restRequest()
+        .query("property", SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)
+        .delete();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void test_putConfiguration_nonAllowedProperty_shouldBeRejected() throws Exception {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
+
+    HttpResponse response = restRequest().body(properties).put();
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void test_putConfiguration_mixedAllowedAndNonAllowed_shouldBeRejected() throws Exception {
     Map<String, Object> properties = new HashMap<>();
     properties.put(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
     properties.put(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "This message is set.");
 
     HttpResponse response = restRequest().body(properties).put();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
   }
 
   @Test
-  public void test_seleteConfiguration_shouldBeBanned() throws Exception {
+  public void test_deleteConfiguration_nonAllowedProperty_shouldBeRejected() throws Exception {
+    HttpResponse response = restRequest()
+        .query("property", SystemConfigurationProperty.BASE_URL)
+        .delete();
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void test_deleteConfiguration_mixedAllowedAndNonAllowed_shouldBeRejected() throws Exception {
     HttpResponse response = restRequest().query("property", SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE).delete();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
   }
 }

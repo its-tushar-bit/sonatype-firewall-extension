@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -93,6 +94,14 @@ public class ApiConfigurationService
   // Visible for testing
   static final String ACTION = "action";
 
+  @VisibleForTesting
+  static final Set<String> MTIQ_CUSTOMER_WRITABLE_PROPERTIES = Set.of(
+      SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE);
+
+  @VisibleForTesting
+  static final String MTIQ_PROPERTY_NOT_ALLOWED_ERROR_MSG =
+      "Property '%s' is not configurable in SaaS.";
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private final Provider<Set<ConfigurationListener>> configurationListenersProvider;
@@ -111,6 +120,8 @@ public class ApiConfigurationService
 
   private final Provider<TelemetrySender> telemetrySenderProvider;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
@@ -121,7 +132,8 @@ public class ApiConfigurationService
       Provider<ScanFileCleaner> scanFileCleanerProvider,
       PermissionService permissionService,
       StageTypeService stageTypeService,
-      Provider<TelemetrySender> telemetrySenderProvider)
+      Provider<TelemetrySender> telemetrySenderProvider,
+      TenantUtil tenantUtil)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListenersProvider = configurationListenersProvider;
@@ -132,6 +144,7 @@ public class ApiConfigurationService
     this.permissionService = permissionService;
     this.stageTypeService = stageTypeService;
     this.telemetrySenderProvider = telemetrySenderProvider;
+    this.tenantUtil = tenantUtil;
   }
 
   public Map<String, Object> getConfiguration(Set<String> propertyNames) {
@@ -210,6 +223,10 @@ public class ApiConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(Map<String, Object> properties) {
+    if (tenantUtil.isMultiTenant()) {
+      validateMtiqWritableProperties(properties.keySet());
+    }
+
     setConfigurationNoAuthz(properties);
   }
 
@@ -271,6 +288,10 @@ public class ApiConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration(Set<String> propertyNames) {
+    if (tenantUtil.isMultiTenant()) {
+      validateMtiqWritableProperties(propertyNames);
+    }
+
     deleteConfigurationNoAuthz(propertyNames);
   }
 
@@ -335,6 +356,18 @@ public class ApiConfigurationService
   private void validatePropertyName(String propertyName) {
     if (!ConfigurationProperty.PROPERTY_BY_NAME.containsKey(propertyName)) {
       throw new BadRequestException(String.format(INVALID_PROPERTY_NAME_ERROR_MSG, propertyName));
+    }
+  }
+
+  private void validateMtiqWritableProperties(Set<String> propertyNames) {
+    for (String name : propertyNames) {
+      if (name == null) {
+        throw new BadRequestException("Property name cannot be null");
+      }
+      if (!MTIQ_CUSTOMER_WRITABLE_PROPERTIES.contains(name)) {
+        throw new BadRequestException(
+            String.format(MTIQ_PROPERTY_NOT_ALLOWED_ERROR_MSG, name));
+      }
     }
   }
 

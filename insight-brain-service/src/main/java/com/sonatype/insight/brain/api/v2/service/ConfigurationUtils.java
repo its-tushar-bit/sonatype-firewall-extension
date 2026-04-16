@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.inject.Inject;
@@ -63,6 +64,18 @@ public class ConfigurationUtils
 
   public static final String LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG =
       "The quarantined item custom message cannot exceed %s characters.";
+
+  /**
+   * Matches control characters (ANSI escape codes, null bytes, bell, backspace, tab, etc.)
+   * but excludes newline (\n) which is allowed for multi-line messages.
+   * CRLF (\r\n) and CR (\r) are normalized to LF before this check runs.
+   * Tab (\t) and all other control characters are rejected.
+   * Prevents terminal injection in CLI build output (maven/gradle/npm).
+   */
+  static final Pattern CONTROL_CHARACTERS_PATTERN = Pattern.compile("[\\p{Cc}&&[^\\n]]");
+
+  static final String CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG =
+      "Custom message contains invalid control characters.";
 
   public static final String NONE_VALUE = "'none'";
 
@@ -363,6 +376,14 @@ public class ConfigurationUtils
       return null;
     }
     String customMessageValue = customMessage.toString();
+
+    // Normalize CRLF/CR to LF so Windows-authored messages are accepted
+    customMessageValue = customMessageValue.replace("\r\n", "\n").replace("\r", "\n");
+
+    if (CONTROL_CHARACTERS_PATTERN.matcher(customMessageValue).find()) {
+      throw new BadRequestException(CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG);
+    }
+
     if (customMessageValue.length() > MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE) {
       throw new BadRequestException(
           String.format(LONG_QUARANTINED_ITEM_CUSTOM_MESSAGE_ERROR_MSG, MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE));

@@ -390,6 +390,87 @@ public class ConfigurationUtilsTest
   }
 
   @Test
+  public void testValidateCustomMessage_exactMaxLength() {
+    String maxMessage = StringUtils.repeat("a", ConfigurationUtils.MAX_QUARANTINED_ITEM_CUSTOM_MESSAGE_SIZE);
+    assertThat(ConfigurationUtils.validateCustomMessage(maxMessage)).isEqualTo(maxMessage);
+  }
+
+  @Test
+  public void testValidateCustomMessage_validMessage() {
+    assertThat(ConfigurationUtils.validateCustomMessage("Contact security@acme.com"))
+        .isEqualTo("Contact security@acme.com");
+  }
+
+  @Test
+  public void testValidateCustomMessage_withNewlines() {
+    String message = "Line 1\nLine 2\nLine 3";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo(message);
+  }
+
+  @Test
+  public void testValidateCustomMessage_withCRLF_normalizedToLF() {
+    String message = "Line 1\r\nLine 2\r\nLine 3";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo("Line 1\nLine 2\nLine 3");
+  }
+
+  @Test
+  public void testValidateCustomMessage_withCR_normalizedToLF() {
+    String message = "Line 1\rLine 2\rLine 3";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo("Line 1\nLine 2\nLine 3");
+  }
+
+  @Test
+  public void testValidateCustomMessage_withUnicode() {
+    String message = "Komponentti karanteenissa. Ota yhteytt\u00e4 turvallisuus@yritys.fi";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo(message);
+  }
+
+  @Test
+  public void testValidateCustomMessage_withUrl() {
+    String message = "Visit https://security.acme.com/waivers to request a waiver";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo(message);
+  }
+
+  @Test
+  public void testValidateCustomMessage_emptyString() {
+    assertThat(ConfigurationUtils.validateCustomMessage("")).isEqualTo("");
+  }
+
+  @Test
+  public void testValidateCustomMessage_htmlTags_allowed() {
+    String message = "Contact <security@acme.com> for help";
+    assertThat(ConfigurationUtils.validateCustomMessage(message)).isEqualTo(message);
+  }
+
+  @Test
+  public void testValidateCustomMessage_controlCharacters_rejected() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ConfigurationUtils.validateCustomMessage("text\u0000null byte"))
+        .withMessageContaining(ConfigurationUtils.CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG);
+  }
+
+  @Test
+  public void testValidateCustomMessage_ansiEscapeCodes_rejected() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ConfigurationUtils.validateCustomMessage("normal \u001b[31mred text\u001b[0m"))
+        .withMessageContaining(ConfigurationUtils.CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG);
+  }
+
+  @Test
+  public void testValidateCustomMessage_bellCharacter_rejected() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ConfigurationUtils.validateCustomMessage("alert\u0007message"))
+        .withMessageContaining(ConfigurationUtils.CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG);
+  }
+
+  @Test
+  public void testValidateCustomMessage_tabCharacter_rejected() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ConfigurationUtils.validateCustomMessage("col1\tcol2"))
+        .withMessageContaining(ConfigurationUtils.CUSTOM_MESSAGE_CONTROL_CHARS_ERROR_MSG);
+  }
+
+  @Test
   public void testGetEventBusThreadPoolSize_withValue() {
     assertThat(ConfigurationUtils.getEventBusThreadPoolSize("5", 10)).isEqualTo(5);
   }

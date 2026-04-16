@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
@@ -78,7 +77,6 @@ public class ApiConfigurationResource
   @PUT
   @Audited(AuditEvent.CONFIGURE_PROPERTIES)
   @Consumes(MediaType.APPLICATION_JSON)
-  @BlockIfMultiTenant
   @Operation(description = "Use this method to configure one or more IQ Server system properties. The property names " +
       "are case-sensitive." +
       "\n" +
@@ -114,7 +112,6 @@ public class ApiConfigurationResource
             description = "The IQ Server system properties specified have been successfully disabled.")
       })
   @Audited(AuditEvent.DELETE_PROPERTIES)
-  @BlockIfMultiTenant
   public void deleteConfiguration(
       @Parameter(
           description = "Enter the names of the system properties. Values provided for name are case-sensitive.") @QueryParam("property") Set<String> properties)

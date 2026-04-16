@@ -94,6 +94,9 @@ public class ApiConfigurationServiceTest
   @Mock
   private TelemetrySender mockTelemetrySender;
 
+  @Mock
+  private com.sonatype.insight.brain.tenancy.TenantUtil mockTenantUtil;
+
   @Inject
   private InsightConfig insightConfig;
 
@@ -120,6 +123,7 @@ public class ApiConfigurationServiceTest
     listenerBinder.addBinding().toInstance(testListener);
 
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    binder.bind(com.sonatype.insight.brain.tenancy.TenantUtil.class).toInstance(mockTenantUtil);
   }
 
   @Test
@@ -2135,6 +2139,21 @@ public class ApiConfigurationServiceTest
             Maps.newHashMap(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
                 Map.of("consumerThreads", 5))))
         .withMessageContaining("consumerThreads");
+  }
+
+  @Test
+  public void testSetConfiguration_NullPropertyName_RejectedInMtiqMode() {
+    // Configure mock to simulate MTIQ environment
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+
+    // Create a map with a null key - this bypasses JSON serialization
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(null, "some value");
+
+    // Verify that null property name is rejected with appropriate error message
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.setConfiguration(properties))
+        .withMessage("Property name cannot be null");
   }
 
   @Named

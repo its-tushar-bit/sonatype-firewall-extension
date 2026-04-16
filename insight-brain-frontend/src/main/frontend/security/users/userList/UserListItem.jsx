@@ -8,8 +8,10 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { NxButton, NxFontAwesomeIcon, NxList } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
 
 import { useRouterState } from '../../../react/RouterStateContext';
+import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 import DeleteModal from '../modals/DeleteModal';
 
 export default function UserListItem({ user, currentUsername, editable, deleteUser, deleteError, deleteMaskState }) {
@@ -17,10 +19,11 @@ export default function UserListItem({ user, currentUsername, editable, deleteUs
   const isCurrentUser = currentUsername === username;
 
   const history = useRouterState();
+  const prefixRoute = useSelector(selectPrefixRoute);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const ListItem = editable ? NxList.LinkItem : NxList.Item;
-  const listItemProps = editable ? { href: history.href('editUser', { userId }) } : null;
+  const listItemProps = editable ? { href: history.href(prefixRoute('editUser'), { userId }) } : null;
 
   return (
     <ListItem {...listItemProps}>

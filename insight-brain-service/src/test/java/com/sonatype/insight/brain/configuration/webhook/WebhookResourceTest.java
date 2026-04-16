@@ -150,7 +150,7 @@ public class WebhookResourceTest
     webhook.setSecretKey("sooper_sekrit");
     webhook.setEventTypes(new HashSet<>(Arrays.asList(POLICY_MANAGEMENT, LICENSE_OVERRIDE_MANAGEMENT)));
 
-    HttpResponse response = restRequest().body(webhook).post();
+    HttpResponse response = restRequest().query("context=lifecycle").body(webhook).post();
     assertResponseStatus(200, response);
 
     Webhook result = response.getBody(Webhook.class);

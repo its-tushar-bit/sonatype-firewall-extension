@@ -972,8 +972,9 @@ export function getReportAuditLogUrl(appPublicId, reportId, component) {
       ?key=${keyJson}`;
 }
 
-export function getWebhookEventTypesUrl() {
-  return uriTemplate`/rest/config/webhook/eventTypes`;
+export function getWebhookEventTypesUrl(context) {
+  const baseUrl = uriTemplate`/rest/config/webhook/eventTypes`;
+  return context ? `${baseUrl}?context=${context}` : baseUrl;
 }
 
 export function getCreatePolicyWaiverRequestUrl(ownerType, ownerId, policyViolationId) {

@@ -27,7 +27,7 @@ public class WebhookResourceAuditTest
 {
   @Test
   public void testAddWebhook() throws Exception {
-    Webhook webhook = webhookRequest().body(webhook()).post().getBody(Webhook.class);
+    Webhook webhook = webhookRequest().query("context=lifecycle").body(webhook()).post().getBody(Webhook.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WEBHOOK, null);
     assertWebhookData(auditDTO, webhook);
@@ -35,7 +35,7 @@ public class WebhookResourceAuditTest
 
   @Test
   public void testAddWebhook_NullEventTypes() throws Exception {
-    Webhook webhook = webhookRequest().body(webhook(null)).post().getBody(Webhook.class);
+    Webhook webhook = webhookRequest().query("context=lifecycle").body(webhook(null)).post().getBody(Webhook.class);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WEBHOOK, null);
     assertWebhookData(auditDTO, webhook);
@@ -43,7 +43,7 @@ public class WebhookResourceAuditTest
 
   @Test
   public void testAddWebhook_Unauthorized() throws Exception {
-    webhookRequest().body(webhook()).with(unauthorizedUser()).post();
+    webhookRequest().query("context=lifecycle").body(webhook()).with(unauthorizedUser()).post();
 
     assertAuditLog(AuditEvent.CREATE_WEBHOOK, "unauthorized");
   }

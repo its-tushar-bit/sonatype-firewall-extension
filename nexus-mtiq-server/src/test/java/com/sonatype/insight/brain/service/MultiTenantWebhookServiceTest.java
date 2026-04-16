@@ -57,7 +57,7 @@ public class MultiTenantWebhookServiceTest
 
       // Throws bad request exception
       assertThatExceptionOfType(BadRequestException.class)
-          .isThrownBy(() -> webhookService.addWebhookNoAuthz(webhook));
+          .isThrownBy(() -> webhookService.addWebhookNoAuthz(webhook, "lifecycle"));
     });
   }
 
@@ -71,7 +71,7 @@ public class MultiTenantWebhookServiceTest
       webhook.setUrl("https://localhost");
       webhook.setSecretKey(secretKey);
       webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
-      Webhook savedWebhook = webhookService.addWebhookNoAuthz(webhook);
+      Webhook savedWebhook = webhookService.addWebhookNoAuthz(webhook, "lifecycle");
 
       Webhook retrievedWebhook = webhookDAO.getByIdNotNull(savedWebhook.getId());
       assertThat(retrievedWebhook.getSecretKey()).isNotEqualTo(secretKey);

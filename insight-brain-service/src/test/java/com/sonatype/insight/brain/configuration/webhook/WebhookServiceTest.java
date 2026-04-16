@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
@@ -34,9 +35,11 @@ import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAK
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.ORG_APP_MANAGEMENT;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.POLICY_ALERT;
+import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_EXPIRATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.WAIVER_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -115,7 +118,7 @@ public class WebhookServiceTest
     webhook.setUrl("http://localhost");
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
-    webhook = webhookService.addWebhook(webhook);
+    webhook = webhookService.addWebhook(webhook, "lifecycle");
 
     // WebhookService should fake out secret key when returning from addWebhook
     assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
@@ -144,7 +147,8 @@ public class WebhookServiceTest
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.addWebhook(webhook));
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> webhookService.addWebhook(webhook, "lifecycle"));
   }
 
   @Test
@@ -160,9 +164,9 @@ public class WebhookServiceTest
     webhook.setUrl("http://localhost");
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(ORG_APP_MANAGEMENT));
-    webhookService.addWebhook(webhook);
+    webhookService.addWebhook(webhook, "lifecycle");
 
-    verify(orgAppManagementEventServiceSpy).postEvent();
+    verify(orgAppManagementEventServiceSpy).postEventForLifecycle();
   }
 
   @Test
@@ -178,7 +182,7 @@ public class WebhookServiceTest
     webhook.setUrl("http://localhost");
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(WAIVER_REQUEST, POLICY_ALERT));
-    webhookService.addWebhook(webhook);
+    webhookService.addWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -196,7 +200,7 @@ public class WebhookServiceTest
     webhook.setUrl("http://localhost");
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(null);
-    webhookService.addWebhook(webhook);
+    webhookService.addWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -211,7 +215,7 @@ public class WebhookServiceTest
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
 
-    Webhook addedWebhook = webhookService.addWebhook(webhook);
+    Webhook addedWebhook = webhookService.addWebhook(webhook, "lifecycle");
     webhookService.deleteWebhook(addedWebhook.getId());
   }
 
@@ -225,7 +229,7 @@ public class WebhookServiceTest
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
 
-    Webhook addedWebhook = webhookService.addWebhook(webhook);
+    Webhook addedWebhook = webhookService.addWebhook(webhook, "lifecycle");
     webhookService.deleteWebhook(addedWebhook.getId());
   }
 
@@ -234,7 +238,7 @@ public class WebhookServiceTest
     Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
-    webhook = webhookService.updateWebhook(webhook);
+    webhook = webhookService.updateWebhook(webhook, "lifecycle");
 
     // WebhookService should fake out secret key when returning from updateWebhook
     assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
@@ -258,7 +262,8 @@ public class WebhookServiceTest
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> webhookService.updateWebhook(webhook));
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> webhookService.updateWebhook(webhook, "lifecycle"));
   }
 
   @Test
@@ -268,7 +273,7 @@ public class WebhookServiceTest
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
   }
 
   @Test
@@ -278,7 +283,46 @@ public class WebhookServiceTest
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
+  }
+
+  @Test
+  public void testUpdateWebhook_NullContext_ReClassifiesAsLifecycle() throws PlexusCipherException {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    // Create webhook with NULL context (simulating pre-migration webhook)
+    Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey("secret");
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+    webhook.setContext(null);
+    webhookDAO.insert(webhook);
+
+    // Update webhook with NULL context parameter (simulating direct API call without context)
+    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+    webhookService.updateWebhook(webhook, null);
+
+    // Verify it was re-classified as lifecycle (default)
+    Webhook savedWebhook = webhookDAO.getByIdNotNull(webhook.getId());
+    assertThat(savedWebhook.getContext()).isEqualTo(Webhook.CONTEXT_LIFECYCLE);
+
+    webhookDAO.delete(webhook);
+  }
+
+  @Test
+  public void testAddWebhook_NullContext_ThrowsBadRequest() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    // Create webhook without context
+    Webhook webhook = new Webhook();
+    webhook.setUrl("http://localhost");
+    webhook.setSecretKey("secret");
+    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+
+    // Verify that adding webhook with null context throws BadRequestException
+    assertThatThrownBy(() -> webhookService.addWebhook(webhook, null))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook context is required (firewall or lifecycle)");
   }
 
   @Test
@@ -293,9 +337,9 @@ public class WebhookServiceTest
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
     webhook.getEventTypes().add(ORG_APP_MANAGEMENT);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
 
-    verify(orgAppManagementEventServiceSpy).postEvent();
+    verify(orgAppManagementEventServiceSpy).postEventForLifecycle();
   }
 
   @Test
@@ -310,7 +354,7 @@ public class WebhookServiceTest
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
     webhook.getEventTypes().add(WAIVER_REQUEST);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -326,7 +370,7 @@ public class WebhookServiceTest
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(POLICY_ALERT, ORG_APP_MANAGEMENT));
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -343,7 +387,7 @@ public class WebhookServiceTest
     webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
     webhook.getEventTypes().remove(ORG_APP_MANAGEMENT);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -358,7 +402,7 @@ public class WebhookServiceTest
     final Webhook webhook = tempEntity.newWebhook("http://localhost", null);
     webhook.setSecretKey(secretKey);
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
@@ -374,7 +418,7 @@ public class WebhookServiceTest
     webhook.setUrl("http://localhost");
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
     webhook.setSecretKey("");
-    webhook = webhookService.addWebhook(webhook);
+    webhook = webhookService.addWebhook(webhook, "lifecycle");
 
     // WebhookService should fake out secret key when returning from addWebhook
     assertThat(webhook.getSecretKey()).isEqualTo(FAKE_SECRET_KEY);
@@ -408,5 +452,92 @@ public class WebhookServiceTest
 
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> webhookService.deleteWebhook(webhook.getId()));
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_IncludesWaiverExpiration() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).contains("Waiver Expiration");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_ExcludesWaiverExpiration() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).doesNotContain("Waiver Expiration");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_ReturnsContainerEvaluationDisplayName() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).contains("Container Evaluation");
+    assertThat(eventTypes).doesNotContain("Application Evaluation");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_ReturnsApplicationEvaluationDisplayName() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).contains("Application Evaluation");
+    assertThat(eventTypes).doesNotContain("Container Evaluation");
+  }
+
+  @Test
+  public void testGetAllFiltered_LifecycleContext_HidesWaiverExpirationWebhook() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    // Create firewall-only webhook (WAIVER_EXPIRATION)
+    Webhook firewallWebhook = tempEntity.newWebhook("http://webhook-waiver", EnumSet.of(WAIVER_EXPIRATION));
+    firewallWebhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(firewallWebhook);
+
+    // Create lifecycle webhook (POLICY_ALERT)
+    Webhook lifecycleWebhook = tempEntity.newWebhook("http://webhook-policy", EnumSet.of(POLICY_ALERT));
+    lifecycleWebhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(lifecycleWebhook);
+
+    List<Webhook> webhooks = webhookService.getAllFiltered("lifecycle");
+
+    assertThat(webhooks).hasSize(1);
+    assertThat(webhooks.get(0).getUrl()).isEqualTo("http://webhook-policy");
+  }
+
+  @Test
+  public void testGetAllFiltered_FirewallContext_ShowsWaiverExpirationWebhook() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    // Create firewall webhook (WAIVER_EXPIRATION)
+    Webhook firewallWebhook1 = tempEntity.newWebhook("http://webhook-waiver", EnumSet.of(WAIVER_EXPIRATION));
+    firewallWebhook1.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(firewallWebhook1);
+
+    // Create another firewall webhook (POLICY_ALERT)
+    Webhook firewallWebhook2 = tempEntity.newWebhook("http://webhook-policy", EnumSet.of(POLICY_ALERT));
+    firewallWebhook2.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(firewallWebhook2);
+
+    List<Webhook> webhooks = webhookService.getAllFiltered("firewall");
+
+    assertThat(webhooks).hasSize(2);
+    assertThat(webhooks.stream().anyMatch(w -> w.getUrl().equals("http://webhook-waiver"))).isTrue();
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_NoLicense_ReturnsEmptyList() {
+    testProductLicense.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).isEmpty();
   }
 }

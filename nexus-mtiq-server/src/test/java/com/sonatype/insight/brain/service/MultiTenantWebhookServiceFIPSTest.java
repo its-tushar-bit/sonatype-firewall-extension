@@ -73,7 +73,7 @@ public class MultiTenantWebhookServiceFIPSTest
     webhook.setUrl("https://localhost");
     webhook.setSecretKey(secretKey);
     webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
-    webhook = webhookService.addWebhookNoAuthz(webhook);
+    webhook = webhookService.addWebhookNoAuthz(webhook, "lifecycle");
 
     webhook = webhookDAO.getByIdNotNull(webhook.getId());
     assertThat(webhook.getSecretKey()).isNotEqualTo(secretKey);

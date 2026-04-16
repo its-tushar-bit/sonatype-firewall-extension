@@ -328,7 +328,7 @@ public class ApplicationService
         OwnerMaintenanceTelemetry.TYPE_UPDATE);
 
     managementEventService.postEvent(UPDATED, application);
-    organizationApplicationManagementEventService.postEvent();
+    organizationApplicationManagementEventService.postEventForLifecycle();
 
     return application;
   }
@@ -350,7 +350,7 @@ public class ApplicationService
       policyViolationLoggerFactory.newLogger(new Date(), application).logClearEvent();
     }
     managementEventService.postEvent(DELETED, application);
-    organizationApplicationManagementEventService.postEvent();
+    organizationApplicationManagementEventService.postEventForLifecycle();
   }
 
   public Set<String> getApplicationIdsByOrganizationIds(Set<String> organizationIds) {

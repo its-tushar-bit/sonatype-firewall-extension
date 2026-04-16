@@ -9,6 +9,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -16,13 +17,14 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
-import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.webhook.WebhookContextHolder;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -76,31 +78,47 @@ public class WebhookResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Webhook> getAll() {
-    return webhookService.getAll();
+  public List<Webhook> getAll(@QueryParam("context") @DefaultValue("lifecycle") String context) {
+    // Set context in ThreadLocal for custom serializer to use during Jackson serialization
+    WebhookContextHolder.setContext(context);
+    try {
+      return webhookService.getAllFiltered(context);
+    }
+    finally {
+      // Clear ThreadLocal to prevent memory leaks and thread pollution in Dropwizard's thread pool
+      WebhookContextHolder.clear();
+    }
   }
 
   @Path(WEBHOOK_EVENT_TYPES_PATH)
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<WebhookEventType> getAllWebhookEventTypes() {
-    return webhookService.getAllWebhookEventTypes();
+  public List<String> getAllWebhookEventTypes(
+      @QueryParam("context") @DefaultValue("lifecycle") String context)
+  {
+    return webhookService.getAllWebhookEventTypes(context);
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_WEBHOOK)
-  public Webhook addWebhook(Webhook webhook) {
-    return webhookService.addWebhook(webhook);
+  public Webhook addWebhook(
+      Webhook webhook,
+      @QueryParam("context") String context)
+  {
+    return webhookService.addWebhook(webhook, context);
   }
 
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_WEBHOOK)
-  public Webhook updateWebhook(Webhook webhook) {
-    return webhookService.updateWebhook(webhook);
+  public Webhook updateWebhook(
+      Webhook webhook,
+      @QueryParam("context") @DefaultValue("lifecycle") String context)
+  {
+    return webhookService.updateWebhook(webhook, context);
   }
 
   @DELETE

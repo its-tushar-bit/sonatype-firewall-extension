@@ -690,6 +690,7 @@ CREATE TABLE webhook (
   url varchar(2048) NOT NULL,
   description varchar(2048),
   secret_key varchar(512),
+  context varchar(20),
   CONSTRAINT webhook_pk PRIMARY KEY (webhook_id)
 );
 

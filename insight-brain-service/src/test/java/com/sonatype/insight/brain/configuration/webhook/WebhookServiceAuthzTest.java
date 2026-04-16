@@ -35,19 +35,19 @@ public class WebhookServiceAuthzTest
   public void testGetAllWebhookEventTypes_Authorized() {
     grantConfigureSystemPermission();
 
-    webhookService.getAllWebhookEventTypes();
+    webhookService.getAllWebhookEventTypes("lifecycle");
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetAllWebhookEventTypes_Unauthorized() {
     login();
 
-    webhookService.getAllWebhookEventTypes();
+    webhookService.getAllWebhookEventTypes("lifecycle");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAllWebhookEventTypes_Unauthenticated() {
-    webhookService.getAllWebhookEventTypes();
+    webhookService.getAllWebhookEventTypes("lifecycle");
   }
 
   @Test
@@ -106,7 +106,7 @@ public class WebhookServiceAuthzTest
   public void testAddWebhook_Authorized() {
     grantConfigureSystemPermission();
 
-    Webhook webhook = webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
+    Webhook webhook = webhookService.addWebhook(new Webhook("http://some.url", "secret key"), "lifecycle");
 
     webhookDAO.delete(webhook);
   }
@@ -114,12 +114,12 @@ public class WebhookServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testAddWebhook_Unauthorized() {
     login();
-    webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
+    webhookService.addWebhook(new Webhook("http://some.url", "secret key"), "lifecycle");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddWebhook_Unauthenticated() {
-    webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
+    webhookService.addWebhook(new Webhook("http://some.url", "secret key"), "lifecycle");
   }
 
   @Test
@@ -129,7 +129,7 @@ public class WebhookServiceAuthzTest
 
     webhook.setEventTypes(Sets.newHashSet(WebhookEventType.APPLICATION_EVALUATION));
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -139,7 +139,7 @@ public class WebhookServiceAuthzTest
 
     webhook.setEventTypes(Sets.newHashSet(WebhookEventType.APPLICATION_EVALUATION));
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -148,7 +148,7 @@ public class WebhookServiceAuthzTest
 
     webhook.setEventTypes(Sets.newHashSet(WebhookEventType.APPLICATION_EVALUATION));
 
-    webhookService.updateWebhook(webhook);
+    webhookService.updateWebhook(webhook, "lifecycle");
   }
 
   @Test

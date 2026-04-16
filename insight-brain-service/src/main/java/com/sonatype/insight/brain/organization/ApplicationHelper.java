@@ -172,7 +172,7 @@ public class ApplicationHelper
   public void postAddApplicationEvent() {
     // Post event here instead of ApplicationService so that SCM imports and automatic application creation (CLI)
     // are covered
-    organizationApplicationManagementEventService.postEvent();
+    organizationApplicationManagementEventService.postEventForLifecycle();
   }
 
   private void addUserToApplicationOwnerRole(final TransactionContext tx, Application application) {

@@ -115,6 +115,8 @@ public class RepositoryService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -128,7 +130,8 @@ public class RepositoryService
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
       OrganizationService organizationService,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -142,6 +145,7 @@ public class RepositoryService
     this.ownerDAO = ownerDAO;
     this.organizationService = organizationService;
     this.clusterLockManager = clusterLockManager;
+    this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
   /**
@@ -289,6 +293,7 @@ public class RepositoryService
       }
     }
     repositoryDAO.delete(repository);
+    organizationApplicationManagementEventService.postEventForFirewall();
     AuditData.get()
         .setData("repositoryManagerInstanceId",
             repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
@@ -730,6 +735,7 @@ public class RepositoryService
           }
         }
       }
+      organizationApplicationManagementEventService.postEventForFirewall();
     }
     finally {
       AuditData.get().commitSubEvents();
@@ -816,6 +822,7 @@ public class RepositoryService
 
     repositoryManager.setName(name);
     repositoryManagerDAO.update(repositoryManager);
+    organizationApplicationManagementEventService.postEventForFirewall();
 
     log.debug("Repository manager with id {} updated to name: {}", repositoryManagerId, name);
   }

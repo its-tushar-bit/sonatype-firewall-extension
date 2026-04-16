@@ -46,6 +46,8 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
+import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload;
+import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload.ContainerEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
@@ -129,7 +131,10 @@ public class WebhookDispatcherTest
 
   @Test
   public void testOn_HandlesApplicationEvaluationEvent() {
-    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+    Webhook createdWebhook = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+    createdWebhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(createdWebhook);
 
     Date date = new Date();
     ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
@@ -188,6 +193,46 @@ public class WebhookDispatcherTest
   }
 
   @Test
+  public void testOn_HandlesApplicationEvaluationEvent_FirewallContext() {
+    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.APPLICATION_EVALUATION));
+
+    Date date = new Date();
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEvent();
+    event.initiator = "admin";
+    event.policyEvaluationId = "policyEvaluationId";
+    event.stageTypeId = "proxy"; // Firewall proxy stage
+    event.ownerId = "repositoryId";
+    event.evaluationDate = date;
+    event.affectedComponentCount = 10;
+    event.criticalComponentCount = 2;
+    event.severeComponentCount = 5;
+    event.moderateComponentCount = 3;
+    event.outcome = "fail";
+    event.reportId = "reportId";
+    event.isForLatestScan = true;
+
+    event.application.id = "repositoryId";
+    event.application.publicId = "docker-proxy";
+    event.application.name = "host.docker.internal_8013-docker-proxy";
+    event.application.organizationId = "org-id";
+
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookEventType.APPLICATION_EVALUATION.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    // Verify Firewall context sends ContainerEvaluationPayload with container-specific fields
+    ContainerEvaluationPayload webhookPayload = (ContainerEvaluationPayload) webhookPayloadArgumentCaptor
+        .getValue();
+
+    ContainerEvaluationDTO containerEvaluationDTO = webhookPayload.containerEvaluation;
+    assertThat(containerEvaluationDTO.stage).isEqualTo("proxy");
+    assertThat(containerEvaluationDTO.repository.name).isEqualTo("host.docker.internal_8013-docker-proxy");
+  }
+
+  @Test
   public void test_WebhooksAppAndRepoLicensed_SendsAllEvents() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -241,7 +286,9 @@ public class WebhookDispatcherTest
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
 
-    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+    Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+    webhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(webhook);
 
     testEventTypesWithOwner(rootOrg);
     verifyEventTypesSent();
@@ -265,7 +312,9 @@ public class WebhookDispatcherTest
     Application application = tempEntity.newApplication(organization.getId());
     Repository repository = tempEntity.newRepository();
 
-    tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+    Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
+    webhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(webhook);
 
     testEventTypesWithOwner(rootOrg);
     verifyEventTypesSent();
@@ -670,7 +719,12 @@ public class WebhookDispatcherTest
 
   @Test
   public void testOn_HandlesOrganizationApplicationSummaryEvent() {
-    tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.ORG_APP_MANAGEMENT));
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    Webhook webhook =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.ORG_APP_MANAGEMENT));
+    webhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(webhook);
 
     final Organization organization = tempEntity.newOrganization();
     final OrganizationSummary organizationSummary = new OrganizationSummary(organization);
@@ -681,7 +735,8 @@ public class WebhookDispatcherTest
     final List<ApplicationSummary> applicationSummaries = Collections.singletonList(applicationSummary);
 
     final OrganizationApplicationManagementEvent event =
-        new OrganizationApplicationManagementEvent(organizationSummaries, applicationSummaries);
+        new OrganizationApplicationManagementEvent(
+            organizationSummaries, applicationSummaries, Collections.emptyList(), Collections.emptyList());
     event.initiator = "initiator";
     asyncEventBus.post(event);
 
@@ -691,9 +746,9 @@ public class WebhookDispatcherTest
         .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.ORG_APP_MANAGEMENT.getId()),
             webhookPayloadArgumentCaptor.capture());
 
-    final Webhook webhook = webhookArgumentCaptor.getValue();
-    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
-    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+    final Webhook capturedWebhook = webhookArgumentCaptor.getValue();
+    assertThat(capturedWebhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(capturedWebhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
     final OrganizationApplicationSummaryPayload webhookPayload =
         (OrganizationApplicationSummaryPayload) webhookPayloadArgumentCaptor.getValue();

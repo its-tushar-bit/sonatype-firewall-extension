@@ -23,6 +23,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +48,11 @@ public class MultiTenantWebhookService
 
   @Override
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public Webhook addWebhook(Webhook webhook) {
-    return addWebhookNoAuthz(webhook);
+  public Webhook addWebhook(Webhook webhook, String context) {
+    return addWebhookNoAuthz(webhook, context);
   }
 
-  public Webhook addWebhookNoAuthz(Webhook webhook) {
+  public Webhook addWebhookNoAuthz(Webhook webhook, String context) {
     if (!productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS) &&
         !productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES))
     {
@@ -63,11 +64,24 @@ public class MultiTenantWebhookService
       throw new BadRequestException("HTTPS is required for Webhook URLs");
     }
 
+    // Context is required for new webhooks to ensure proper product-specific classification
+    if (StringUtils.isBlank(context)) {
+      throw new BadRequestException("Webhook context is required (firewall or lifecycle)");
+    }
+
+    // Store the context in the webhook (firewall or lifecycle)
+    webhook.setContext(context);
+
     encryptWebhookSecretKey(webhook);
     webhookDao.insert(webhook);
     final Set<WebhookEventType> eventTypes = webhook.getEventTypes();
     if (!CollectionUtils.isEmpty(eventTypes) && eventTypes.contains(WebhookEventType.ORG_APP_MANAGEMENT)) {
-      organizationApplicationManagementEventService.postEvent();
+      if ("firewall".equalsIgnoreCase(context)) {
+        organizationApplicationManagementEventService.postEventForFirewall();
+      }
+      else {
+        organizationApplicationManagementEventService.postEventForLifecycle();
+      }
     }
     auditWebhook(webhook);
     webhook.setSecretKey(FAKE_SECRET_KEY);

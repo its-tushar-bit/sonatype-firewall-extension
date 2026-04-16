@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -28,6 +29,12 @@ public class Webhook
     implements HasStringId
 {
   public static final String FAKE_SECRET_KEY = "#~FAKE~SECRET~KEY~#";
+
+  /** Webhook context for Lifecycle product */
+  public static final String CONTEXT_LIFECYCLE = "lifecycle";
+
+  /** Webhook context for Firewall product */
+  public static final String CONTEXT_FIREWALL = "firewall";
 
   @Id
   @Column(name = "webhook_id")
@@ -42,10 +49,14 @@ public class Webhook
   @Column(name = "description")
   private String description;
 
+  @Column(name = "context")
+  private String context;
+
   @ElementCollection(targetClass = WebhookEventType.class)
   @CollectionTable(name = "webhook_event_type", joinColumns = @JoinColumn(name = "webhook_id"))
   @Column(name = "event_type", nullable = false)
   @Enumerated(EnumType.STRING)
+  @JsonSerialize(using = WebhookEventTypeSetSerializer.class)
   private Set<WebhookEventType> eventTypes;
 
   public Webhook() {
@@ -115,5 +126,13 @@ public class Webhook
 
   public void setDescription(final String description) {
     this.description = description;
+  }
+
+  public String getContext() {
+    return context;
+  }
+
+  public void setContext(final String context) {
+    this.context = context;
   }
 }

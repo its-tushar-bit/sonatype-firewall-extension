@@ -128,7 +128,7 @@ public class OrganizationService
     AuditData.get().setOrganization(organization);
 
     managementEventService.postEvent(CREATED, organization);
-    organizationApplicationManagementEventService.postEvent();
+    organizationApplicationManagementEventService.postEventForLifecycle();
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_ADD);
 
     return organization;
@@ -145,7 +145,7 @@ public class OrganizationService
     organizationDAO.update(organization);
 
     managementEventService.postEvent(UPDATED, organization);
-    organizationApplicationManagementEventService.postEvent();
+    organizationApplicationManagementEventService.postEventForLifecycle();
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_UPDATE);
 
     return organization;
@@ -211,7 +211,7 @@ public class OrganizationService
         organizationDAO.delete(tx, organization);
         tx.commit();
         managementEventService.postEvent(DELETED, organization);
-        organizationApplicationManagementEventService.postEvent();
+        organizationApplicationManagementEventService.postEventForLifecycle();
         ownerMaintenanceTelemetryCreator
             .sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_DELETE);
         policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();

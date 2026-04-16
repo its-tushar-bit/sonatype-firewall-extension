@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -43,6 +45,9 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.ApplicationEvaluationDTO;
+import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload;
+import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload.ContainerEvaluationDTO;
+import com.sonatype.insight.brain.webhook.dto.ContainerRepositorySummary;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
@@ -53,6 +58,7 @@ import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.WaiverExpirationPayload;
 import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -119,10 +125,30 @@ public class WebhookDispatcher
     if (!checkEventIsLicensed(applicationEvaluationEvent.ownerId, webhookEventType)) {
       return;
     }
+
+    // Determine event context based on stage type
+    // Firewall uses "proxy" stage for container evaluations, Lifecycle uses other stages
+    boolean eventIsFromFirewall = isEventFromFirewall(applicationEvaluationEvent);
+    boolean eventIsFromRootOrg = Organization.ROOT_ORGANIZATION_ID.equals(applicationEvaluationEvent.ownerId);
+
     for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
-      invokeWithAudit(webhook, webhookEventType,
-          () -> sendApplicationEvaluationPayload(webhookService.getDecrypted(webhook.getId()),
-              applicationEvaluationEvent));
+      // Context-based filtering: only fire webhook if contexts match
+      boolean webhookIsForFirewall = isWebhookForFirewall(webhook);
+      boolean webhookIsForLifecycle = isWebhookForLifecycle(webhook);
+
+      // Fire webhook only if context matches:
+      // - Firewall event fires Firewall webhooks
+      // - Lifecycle event fires Lifecycle webhooks
+      // - Root organization events fire BOTH Firewall and Lifecycle webhooks
+      boolean shouldFire = eventIsFromRootOrg ||
+          (eventIsFromFirewall && webhookIsForFirewall) ||
+          (!eventIsFromFirewall && webhookIsForLifecycle);
+
+      if (shouldFire) {
+        invokeWithAudit(webhook, webhookEventType,
+            () -> sendApplicationEvaluationPayload(webhookService.getDecrypted(webhook.getId()),
+                applicationEvaluationEvent));
+      }
     }
   }
 
@@ -267,15 +293,52 @@ public class WebhookDispatcher
   }
 
   @Subscribe
+  public void on(final WaiverExpirationEvent waiverExpirationEvent) {
+    WebhookEventType webhookEventType = WebhookEventType.WAIVER_EXPIRATION;
+
+    // Check license at the application level for proper tenant isolation
+    if (!checkEventIsLicensed(waiverExpirationEvent.applicationId, webhookEventType)) {
+      return;
+    }
+
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      invokeWithAudit(webhook, webhookEventType,
+          () -> sendWaiverExpirationPayload(webhookService.getDecrypted(webhook.getId()), waiverExpirationEvent));
+    }
+  }
+
+  @Subscribe
   public void on(final OrganizationApplicationManagementEvent organizationApplicationManagementEvent) {
     final WebhookEventType eventType = WebhookEventType.ORG_APP_MANAGEMENT;
     if (!checkEventIsLicensed(Organization.ROOT_ORGANIZATION_ID, eventType)) {
       return;
     }
+
+    // Determine event context based on the entities present in the event.
+    // Note: ORG_APP_MANAGEMENT events contain EITHER repository data (Firewall context)
+    // OR application data (Lifecycle context), never both. Each product context fires
+    // separate events for its operations, so mixed events do not occur.
+    boolean eventIsFromFirewall = (organizationApplicationManagementEvent.repositories != null &&
+        !organizationApplicationManagementEvent.repositories.isEmpty()) ||
+        (organizationApplicationManagementEvent.repositoryManagers != null &&
+            !organizationApplicationManagementEvent.repositoryManagers.isEmpty());
+
     for (Webhook webhook : getWebhooksOfEventType(eventType)) {
-      invokeWithAudit(webhook, eventType,
-          () -> sendOrganizationApplicationSummaryPayload(webhookService.getDecrypted(webhook.getId()),
-              organizationApplicationManagementEvent));
+      // Context-based filtering: only fire webhook if contexts match
+      boolean webhookIsForFirewall = isWebhookForFirewall(webhook);
+      boolean webhookIsForLifecycle = isWebhookForLifecycle(webhook);
+
+      // Fire webhook only if context matches:
+      // - Firewall event (repo/repo manager changes) fires Firewall webhooks
+      // - Lifecycle event (org/app changes) fires Lifecycle webhooks
+      boolean shouldFire = (eventIsFromFirewall && webhookIsForFirewall) ||
+          (!eventIsFromFirewall && webhookIsForLifecycle);
+
+      if (shouldFire) {
+        invokeWithAudit(webhook, eventType,
+            () -> sendOrganizationApplicationSummaryPayload(webhookService.getDecrypted(webhook.getId()),
+                organizationApplicationManagementEvent, eventIsFromFirewall));
+      }
     }
   }
 
@@ -379,6 +442,21 @@ public class WebhookDispatcher
   }
 
   private void sendApplicationEvaluationPayload(final Webhook webhook, final ApplicationEvaluationEvent event) {
+    // Determine context based on webhook configuration
+    // Firewall webhooks send container evaluation payloads
+    // Lifecycle webhooks send application evaluation payloads
+    if (isWebhookForFirewall(webhook)) {
+      sendContainerEvaluationPayload(webhook, event);
+    }
+    else {
+      sendLifecycleApplicationEvaluationPayload(webhook, event);
+    }
+  }
+
+  private void sendLifecycleApplicationEvaluationPayload(
+      final Webhook webhook,
+      final ApplicationEvaluationEvent event)
+  {
     ApplicationEvaluationDTO applicationEvaluationDTO = new ApplicationEvaluationDTO();
     applicationEvaluationDTO.policyEvaluationId = event.policyEvaluationId;
     applicationEvaluationDTO.stage = event.stageTypeId;
@@ -398,6 +476,30 @@ public class WebhookDispatcher
     payload.initiator = event.initiator;
     payload.id = event.policyEvaluationId;
     payload.applicationEvaluation = applicationEvaluationDTO;
+
+    webhookClientUtil.post(webhook, WebhookEventType.APPLICATION_EVALUATION.getId(), payload);
+  }
+
+  private void sendContainerEvaluationPayload(final Webhook webhook, final ApplicationEvaluationEvent event) {
+    ContainerEvaluationDTO containerEvaluationDTO = new ContainerEvaluationDTO();
+    containerEvaluationDTO.policyEvaluationId = event.policyEvaluationId;
+    containerEvaluationDTO.stage = event.stageTypeId;
+    containerEvaluationDTO.ownerId = event.ownerId;
+    containerEvaluationDTO.evaluationDate = event.evaluationDate;
+    containerEvaluationDTO.affectedComponentCount = event.affectedComponentCount;
+    containerEvaluationDTO.criticalComponentCount = event.criticalComponentCount;
+    containerEvaluationDTO.severeComponentCount = event.severeComponentCount;
+    containerEvaluationDTO.moderateComponentCount = event.moderateComponentCount;
+    containerEvaluationDTO.outcome = event.outcome;
+    containerEvaluationDTO.reportId = event.reportId;
+    containerEvaluationDTO.repository = new ContainerRepositorySummary(event.application);
+    containerEvaluationDTO.isForLatestScan = event.isForLatestScan;
+
+    ContainerEvaluationPayload payload = new ContainerEvaluationPayload();
+    payload.timestamp = new Date();
+    payload.initiator = event.initiator;
+    payload.id = event.policyEvaluationId;
+    payload.containerEvaluation = containerEvaluationDTO;
 
     webhookClientUtil.post(webhook, WebhookEventType.APPLICATION_EVALUATION.getId(), payload);
   }
@@ -460,15 +562,37 @@ public class WebhookDispatcher
     webhookClientUtil.post(webhook, WebhookEventType.WAIVER_REQUEST.getId(), payload);
   }
 
+  private void sendWaiverExpirationPayload(final Webhook webhook, WaiverExpirationEvent event) {
+    WaiverExpirationPayload payload = new WaiverExpirationPayload(event);
+    webhookClientUtil.post(webhook, WebhookEventType.WAIVER_EXPIRATION.getId(), payload);
+  }
+
   private void sendOrganizationApplicationSummaryPayload(
       final Webhook webhook,
-      final OrganizationApplicationManagementEvent event)
+      final OrganizationApplicationManagementEvent event,
+      final boolean eventIsFromFirewall)
   {
     final OrganizationApplicationSummaryPayload payload = new OrganizationApplicationSummaryPayload();
     payload.timestamp = new Date();
     payload.initiator = event.initiator;
     payload.organizations = event.organizations;
-    payload.applications = event.applications;
+
+    // Filter payload based on event direction (not webhook license) to avoid sending irrelevant data
+    // Firewall events (repo/repo manager changes) send only repository-related fields
+    // Lifecycle events (org/app changes) send only application-related fields
+    // This ensures payload filtering matches the event source, not the webhook's license context
+    if (eventIsFromFirewall) {
+      // Firewall event: include only repository-related fields
+      payload.repositoryManagers = event.repositoryManagers;
+      payload.repositories = event.repositories;
+      payload.applications = null; // Exclude application details from Firewall payload
+    }
+    else {
+      // Lifecycle event: include only application-related fields
+      payload.applications = event.applications;
+      payload.repositoryManagers = null; // Exclude repository details from Lifecycle payload
+      payload.repositories = null;
+    }
 
     webhookClientUtil.post(webhook, WebhookEventType.ORG_APP_MANAGEMENT.getId(), payload);
   }
@@ -484,6 +608,11 @@ public class WebhookDispatcher
   }
 
   private boolean checkEventIsLicensed(final String ownerId, final WebhookEventType webhookEventType) {
+    // WAIVER_EXPIRATION is Firewall-only (repositories), not applicable to Lifecycle (applications)
+    if (webhookEventType == WebhookEventType.WAIVER_EXPIRATION) {
+      return productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+    }
+
     boolean eventApplicableToRepos = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ||
         RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(ownerId) || repositoryDAO.getById(ownerId) != null;
     boolean eventApplicableToApps = Organization.ROOT_ORGANIZATION_ID.equals(ownerId) || !eventApplicableToRepos;
@@ -496,6 +625,83 @@ public class WebhookDispatcher
     }
 
     log.debug("Webhooks feature for event {} is not supported by the current license.", webhookEventType);
+    return false;
+  }
+
+  /**
+   * Determines if a webhook is intended for Firewall context based on its stored context.
+   *
+   * @param webhook the webhook to check
+   * @return true if the webhook is intended for Firewall context
+   */
+  /**
+   * Determines if a webhook is intended for Firewall context.
+   * For NULL context (old webhooks before migration), fires only if customer has Firewall license.
+   *
+   * @param webhook the webhook to check
+   * @return true if the webhook is explicitly for Firewall, or NULL with Firewall license
+   */
+  private boolean isWebhookForFirewall(Webhook webhook) {
+    String context = webhook.getContext();
+
+    if (context == null) {
+      // NULL context = old webhook created before migration
+      // Fire for Firewall events only if customer has Firewall license
+      return productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+    }
+
+    return "firewall".equalsIgnoreCase(context);
+  }
+
+  /**
+   * Determines if a webhook is intended for Lifecycle context.
+   * For NULL context (old webhooks before migration), fires only if customer has Lifecycle license.
+   *
+   * @param webhook the webhook to check
+   * @return true if the webhook is explicitly for Lifecycle, or NULL with Lifecycle license
+   */
+  private boolean isWebhookForLifecycle(Webhook webhook) {
+    String context = webhook.getContext();
+
+    if (context == null) {
+      // NULL context = old webhook created before migration
+      // Fire for Lifecycle events only if customer has Lifecycle license
+      return productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+    }
+
+    return "lifecycle".equalsIgnoreCase(context);
+  }
+
+  /**
+   * Determines if an ApplicationEvaluationEvent originated from Firewall context.
+   * An event is considered Firewall context if:
+   * 1. Stage type is "proxy" (container evaluations), OR
+   * 2. Owner is a Repository
+   *
+   * Note: Root organization events are handled separately to fire BOTH Firewall and Lifecycle webhooks.
+   *
+   * @param event the event to check
+   * @return true if the event originated from Firewall context
+   */
+  private boolean isEventFromFirewall(ApplicationEvaluationEvent event) {
+    // Check stage type first (most common case for actual Firewall scans)
+    if (ProxyStageType.ID.equals(event.stageTypeId)) {
+      return true;
+    }
+
+    // Check if owner is a Repository by querying the database
+    // Repository owners are Firewall context
+    try {
+      Repository repository = repositoryDAO.getById(event.ownerId);
+      if (repository != null) {
+        return true;
+      }
+    }
+    catch (Exception e) {
+      // If owner is not a repository, fall through to return false
+      // (Applications and Organizations are not Firewall context)
+    }
+
     return false;
   }
 

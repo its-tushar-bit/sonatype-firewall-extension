@@ -489,7 +489,7 @@ public class RepositoryPolicyViolationDAO
           " FROM " + getDatabaseSchema() + ".repository_component component" +
           " INNER JOIN (" + select2 + ") AS t2" +
           " ON t2.pathname = component.pathname AND t2.repository_id = component.repository_id" +
-          validateAndAddSortFields(detailsFilter.sortFields) +
+          validateAndAddSortFields(detailsFilter.sortFields, true) +
           " LIMIT " + pageSize +
           " OFFSET " + offset;
 
@@ -709,6 +709,10 @@ public class RepositoryPolicyViolationDAO
   }
 
   private String validateAndAddSortFields(final List<SortField> sortFields) {
+    return validateAndAddSortFields(sortFields, false);
+  }
+
+  private String validateAndAddSortFields(final List<SortField> sortFields, boolean isAggregate) {
     StringBuilder query = new StringBuilder();
     List<String> result = new ArrayList<>();
     if (!CollectionUtils.isEmpty(sortFields)) {
@@ -725,6 +729,15 @@ public class RepositoryPolicyViolationDAO
           result.add(getSortField(sortField.sortableField) + " DESC NULLS LAST");
         }
         sortPriorities.add(sortField.sortPriority);
+      }
+      // Add unique tiebreaker for stable pagination - prevents duplicate rows across pages
+      if (isAggregate) {
+        // In aggregate mode, violation alias not available - use component composite key
+        result.add("component.pathname");
+        result.add("component.repository_id");
+      }
+      else {
+        result.add("violation.repository_policy_violation_id NULLS LAST");
       }
       query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
     }

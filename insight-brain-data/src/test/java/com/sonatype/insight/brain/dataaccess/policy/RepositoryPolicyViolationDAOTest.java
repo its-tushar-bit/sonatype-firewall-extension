@@ -843,4 +843,191 @@ public class RepositoryPolicyViolationDAOTest
         null, // constraintFactsJson - tested separately, excluded from filter tests
         repositoryPolicyViolation.getId());
   }
+
+  @Test
+  public void testPaginationStability_NonAggregate_H2() {
+    testPaginationStability_NonAggregate();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testPaginationStability_NonAggregate_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testPaginationStability_NonAggregate();
+  }
+
+  private void testPaginationStability_NonAggregate() {
+    // Create 25 violations with IDENTICAL threat levels to test worst-case pagination scenario
+    // This reproduces the Django components bug where all violations have the same sort values
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Policy", 10);
+
+    // Create 25 components with violations, all with same threat level
+    for (int i = 1; i <= 25; i++) {
+      ComponentIdentifier componentId =
+          ComponentIdentifier.createMavenCoordinates("com.example", "component-" + i, "1.0.0");
+      RepositoryComponent component = tempEntity.newRepositoryComponent(
+          repository.getId(),
+          MatchState.EXACT,
+          "com/example/component-" + i + "/1.0.0/component-" + i + "-1.0.0.jar",
+          "hash-" + i,
+          componentId,
+          false);
+
+      tempEntity.newRepositoryPolicyViolation(
+          repository.getId(),
+          policy.getThreatLevel(), // All violations have same threat level (10)
+          component.getPathname(),
+          false,
+          policy.getId(),
+          policy.getName(),
+          component.getComponentIdentifier());
+    }
+
+    // Query with pageSize=12 to force pagination across 3 pages
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+    filter.sortFields = Arrays
+        .asList(createSortField(RepositoryResultsDetailsFilter.SortField.SortableField.POLICY_THREAT_LEVEL, false, 1));
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+
+    // Fetch three pages
+    // Note: DAO returns pageSize+1 (13) to detect "has more pages", but we only check first pageSize (12) records
+    filter.page = 1;
+    List<RepositoryResultsDetails> page1All = dao.getRepositoryResultsDetails(repositoryIds, filter);
+    List<RepositoryResultsDetails> page1 = page1All.subList(0, Math.min(filter.pageSize, page1All.size()));
+
+    filter.page = 2;
+    List<RepositoryResultsDetails> page2All = dao.getRepositoryResultsDetails(repositoryIds, filter);
+    List<RepositoryResultsDetails> page2 = page2All.subList(0, Math.min(filter.pageSize, page2All.size()));
+
+    filter.page = 3;
+    List<RepositoryResultsDetails> page3All = dao.getRepositoryResultsDetails(repositoryIds, filter);
+    List<RepositoryResultsDetails> page3 = page3All.subList(0, Math.min(filter.pageSize, page3All.size()));
+
+    // Extract policyViolationIds from each page
+    Set<String> page1Ids = page1.stream().map(d -> d.policyViolationId).collect(java.util.stream.Collectors.toSet());
+    Set<String> page2Ids = page2.stream().map(d -> d.policyViolationId).collect(java.util.stream.Collectors.toSet());
+    Set<String> page3Ids = page3.stream().map(d -> d.policyViolationId).collect(java.util.stream.Collectors.toSet());
+
+    // CRITICAL ASSERTION: No policyViolationId should appear on multiple pages
+    Set<String> page1And2Overlap = new HashSet<>(page1Ids);
+    page1And2Overlap.retainAll(page2Ids);
+    assertThat(page1And2Overlap).as("No duplicates between page 1 and page 2").isEmpty();
+
+    Set<String> page2And3Overlap = new HashSet<>(page2Ids);
+    page2And3Overlap.retainAll(page3Ids);
+    assertThat(page2And3Overlap).as("No duplicates between page 2 and page 3").isEmpty();
+
+    Set<String> page1And3Overlap = new HashSet<>(page1Ids);
+    page1And3Overlap.retainAll(page3Ids);
+    assertThat(page1And3Overlap).as("No duplicates between page 1 and page 3").isEmpty();
+
+    // Verify all 25 violations are present exactly once across all pages
+    Set<String> allIds = new HashSet<>();
+    allIds.addAll(page1Ids);
+    allIds.addAll(page2Ids);
+    allIds.addAll(page3Ids);
+    assertThat(allIds).hasSize(25);
+  }
+
+  @Test
+  public void testPaginationStability_Aggregate_H2() {
+    testPaginationStability_Aggregate();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testPaginationStability_Aggregate_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testPaginationStability_Aggregate();
+  }
+
+  private void testPaginationStability_Aggregate() {
+    // Test aggregate mode pagination stability with identical sort values
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Test Policy", 10);
+
+    // Create 12 components with 2-3 violations each (30 total violations)
+    // All violations have identical threat level to test worst-case pagination
+    for (int i = 1; i <= 12; i++) {
+      ComponentIdentifier componentId =
+          ComponentIdentifier.createMavenCoordinates("com.example", "component-" + i, "1.0.0");
+      RepositoryComponent component = tempEntity.newRepositoryComponent(
+          repository.getId(),
+          MatchState.EXACT,
+          "com/example/component-" + i + "/1.0.0/component-" + i + "-1.0.0.jar",
+          "hash-" + i,
+          componentId,
+          false);
+
+      // Create 2-3 violations per component
+      int violationCount = (i % 2 == 0) ? 2 : 3;
+      for (int j = 1; j <= violationCount; j++) {
+        tempEntity.newRepositoryPolicyViolation(
+            repository.getId(),
+            policy.getThreatLevel(), // All violations have same threat level (10)
+            component.getPathname(),
+            false,
+            policy.getId(),
+            policy.getName(),
+            component.getComponentIdentifier());
+      }
+    }
+
+    // Query in aggregate mode with pageSize=12
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 12;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = true; // Aggregate mode - group by component
+    filter.sortFields = Arrays
+        .asList(createSortField(RepositoryResultsDetailsFilter.SortField.SortableField.POLICY_THREAT_LEVEL, false, 1));
+
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+
+    // Fetch two pages (should get all 12 components)
+    filter.page = 1;
+    List<RepositoryResultsDetails> page1All = dao.getRepositoryResultsDetails(repositoryIds, filter);
+    List<RepositoryResultsDetails> page1 = page1All.subList(0, Math.min(filter.pageSize, page1All.size()));
+
+    filter.page = 2;
+    List<RepositoryResultsDetails> page2All = dao.getRepositoryResultsDetails(repositoryIds, filter);
+    List<RepositoryResultsDetails> page2 = page2All.subList(0, Math.min(filter.pageSize, page2All.size()));
+
+    // In aggregate mode, use pathname as unique identifier (violation ID is null)
+    Set<String> page1Pathnames = page1.stream().map(d -> d.pathname).collect(java.util.stream.Collectors.toSet());
+    Set<String> page2Pathnames = page2.stream().map(d -> d.pathname).collect(java.util.stream.Collectors.toSet());
+
+    // CRITICAL ASSERTION: No pathname should appear on multiple pages
+    Set<String> overlap = new HashSet<>(page1Pathnames);
+    overlap.retainAll(page2Pathnames);
+    assertThat(overlap).as("No duplicates between pages in aggregate mode").isEmpty();
+
+    // Verify all 12 components present exactly once
+    Set<String> allPathnames = new HashSet<>();
+    allPathnames.addAll(page1Pathnames);
+    allPathnames.addAll(page2Pathnames);
+    assertThat(allPathnames).hasSize(12);
+  }
+
+  private RepositoryResultsDetailsFilter.SortField createSortField(
+      RepositoryResultsDetailsFilter.SortField.SortableField field,
+      boolean asc,
+      int priority)
+  {
+    RepositoryResultsDetailsFilter.SortField sortField = new RepositoryResultsDetailsFilter.SortField();
+    sortField.sortableField = field;
+    sortField.asc = asc;
+    sortField.sortPriority = priority;
+    return sortField;
+  }
 }

@@ -7,10 +7,9 @@
 #   - AGP_GITHUB_TOKEN: GitHub PAT with 'repo' scope (optional, for orgs that restrict GITHUB_TOKEN)
 #   - RC_USERNAME: Docker registry username (org secret)
 #   - RC_PASSWORD: Docker registry password (org secret)
-#   - NPM_REGISTRY_AUTH: NPM registry authentication (.npmrc content for private registries)
-#   - AWS_ROLE_TO_ASSUME: AWS IAM role ARN for OIDC authentication (required for Bedrock AI agent)
 #
-# Optional secrets:
+# Optional secrets (needed when agentic mode is enabled):
+#   - AWS_ROLE_TO_ASSUME: AWS IAM role ARN for OIDC authentication (required for Bedrock AI agent)
 #   - ANTHROPIC_API_KEY: Anthropic API key (only needed if NOT using AWS Bedrock)
 #
 
@@ -55,11 +54,22 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.ref }}
 
-      - name: Configure AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: us-west-2
+      - name: Generate .npmrc
+        id: npmrc
+        run: |
+          AUTH_TOKEN=$(echo -n "${RC_USERNAME}:${RC_PASSWORD}" | base64)
+          NPMRC_CONTENT=$(cat <<'NPMRC'
+          always-auth=true
+          registry=https://sonatype.repo.sonatype.app/repository/npm-all/
+          //sonatype.repo.sonatype.app/repository/npm-all/:_auth=AUTH_TOKEN_PLACEHOLDER
+          NPMRC
+          )
+          NPMRC_CONTENT="${NPMRC_CONTENT//AUTH_TOKEN_PLACEHOLDER/$AUTH_TOKEN}"
+          NPMRC_BASE64=$(echo -n "$NPMRC_CONTENT" | base64 -w 0)
+          echo "content=$NPMRC_BASE64" >> "$GITHUB_OUTPUT"
+        env:
+          RC_USERNAME: ${{ secrets.RC_USERNAME }}
+          RC_PASSWORD: ${{ secrets.RC_PASSWORD }}
 
       - name: Run AGP
         uses: sonatype/agp-action@v1
@@ -74,7 +84,7 @@ jobs:
           docker-registry: sonatype.repo.sonatype.app/docker-all
           docker-username: ${{ secrets.RC_USERNAME }}
           docker-password: ${{ secrets.RC_PASSWORD }}
-          npmrc-content: ${{ secrets.NPM_REGISTRY_AUTH }}
+          npmrc-content: ${{ steps.npmrc.outputs.content }}
           maven-settings-xml: |
             <?xml version="1.0" encoding="UTF-8"?>
             <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
@@ -122,7 +132,6 @@ jobs:
               </activeProfiles>
             </settings>
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # TODO: Remove once agp image is rebuilt with .com default URL
           AGP_API_URL: https://api.guide.sonatype.com
           # Use custom PAT if provided, otherwise fall back to github.token

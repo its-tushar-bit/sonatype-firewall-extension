@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import moment from 'moment';
 import {
   waiverMatcherStrategy,
   useFirewallWaiverExpirations,
@@ -69,14 +70,12 @@ describe('firewallWaiverUtils', () => {
     });
 
     it('should return false for today', () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = moment().format('YYYY-MM-DD');
       expect(isCustomExpiryTimeValid(today)).toBe(false);
     });
 
     it('should return true for future dates', () => {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 1);
-      const futureDateStr = futureDate.toISOString().split('T')[0];
+      const futureDateStr = moment().add(1, 'days').format('YYYY-MM-DD');
 
       expect(isCustomExpiryTimeValid(futureDateStr)).toBe(true);
     });
@@ -141,9 +140,7 @@ describe('firewallWaiverUtils', () => {
 
   describe('getExpirationDaysMessage', () => {
     it('should return message for custom expiry with valid date', () => {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 45);
-      const futureDateStr = futureDate.toISOString().split('T')[0];
+      const futureDateStr = moment().add(45, 'days').format('YYYY-MM-DD');
 
       const customExpiryTime = { value: futureDateStr };
       const message = getExpirationDaysMessage('custom', customExpiryTime);
@@ -292,9 +289,7 @@ describe('firewallWaiverUtils', () => {
     });
 
     it('should build payload with custom expiration', () => {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 45);
-      const futureDateStr = futureDate.toISOString().split('T')[0];
+      const futureDateStr = moment().add(45, 'days').format('YYYY-MM-DD');
 
       const params = {
         selectedViolations: [],

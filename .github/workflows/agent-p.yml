@@ -1,0 +1,130 @@
+#
+# Sonatype Guide - Agentic Patches Workflow
+# This workflow was automatically created by the Sonatype Guide GitHub App.
+# Learn more: https://guide.sonatype.com
+#
+# Required secrets:
+#   - AGP_GITHUB_TOKEN: GitHub PAT with 'repo' scope (optional, for orgs that restrict GITHUB_TOKEN)
+#   - RC_USERNAME: Docker registry username (org secret)
+#   - RC_PASSWORD: Docker registry password (org secret)
+#   - NPM_REGISTRY_AUTH: NPM registry authentication (.npmrc content for private registries)
+#   - AWS_ROLE_TO_ASSUME: AWS IAM role ARN for OIDC authentication (required for Bedrock AI agent)
+#
+# Optional secrets:
+#   - ANTHROPIC_API_KEY: Anthropic API key (only needed if NOT using AWS Bedrock)
+#
+
+name: Sonatype Guide - Agentic Patches
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to checkout (defaults to branch where workflow was triggered)'
+        required: false
+        type: string
+      mode:
+        description: 'Run mode: full or security'
+        required: false
+        default: 'full'
+      vulnerabilities:
+        description: 'JSON array of vulnerabilities to fix'
+        required: false
+      dry-run:
+        description: 'Run in dry-run mode (no PRs created)'
+        required: false
+        default: 'false'
+        type: boolean
+      verbose:
+        description: 'Enable verbose output (may expose sensitive data in logs)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  agp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-west-2
+
+      - name: Run AGP
+        uses: sonatype/agp-action@v1
+        with:
+          mode: ${{ inputs.mode }}
+          vulnerabilities: ${{ inputs.vulnerabilities }}
+          create-pr: 'true'
+          dry-run: ${{ inputs.dry-run }}
+          verbose: ${{ inputs.verbose }}
+          # Monorepo mode: AGP auto-discovers all projects in the repository
+          # working-directory: 'ui'
+          docker-registry: sonatype.repo.sonatype.app/docker-all
+          docker-username: ${{ secrets.RC_USERNAME }}
+          docker-password: ${{ secrets.RC_PASSWORD }}
+          npmrc-content: ${{ secrets.NPM_REGISTRY_AUTH }}
+          maven-settings-xml: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+              <servers>
+                <server>
+                  <id>sonatype-repo-cloud</id>
+                  <username>${{ secrets.RC_USERNAME }}</username>
+                  <password>${{ secrets.RC_PASSWORD }}</password>
+                </server>
+              </servers>
+              <mirrors>
+                <mirror>
+                  <id>sonatype-repo-cloud</id>
+                  <mirrorOf>*</mirrorOf>
+                  <url>https://sonatype.repo.sonatype.app/repository/maven-private/</url>
+                </mirror>
+              </mirrors>
+              <profiles>
+                <profile>
+                  <id>repository-manager-support</id>
+                  <repositories>
+                    <repository>
+                      <id>central</id>
+                      <url>https://repo1.maven.org/maven2</url>
+                      <snapshots>
+                        <enabled>true</enabled>
+                      </snapshots>
+                    </repository>
+                  </repositories>
+                  <pluginRepositories>
+                    <pluginRepository>
+                      <id>central</id>
+                      <url>https://repo1.maven.org/maven2</url>
+                      <snapshots>
+                        <enabled>true</enabled>
+                      </snapshots>
+                    </pluginRepository>
+                  </pluginRepositories>
+                </profile>
+              </profiles>
+              <activeProfiles>
+                <activeProfile>repository-manager-support</activeProfile>
+              </activeProfiles>
+            </settings>
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # TODO: Remove once agp image is rebuilt with .com default URL
+          AGP_API_URL: https://api.guide.sonatype.com
+          # Use custom PAT if provided, otherwise fall back to github.token
+          # Organizations may restrict github.token permissions, requiring a PAT
+          GITHUB_TOKEN: ${{ secrets.AGP_GITHUB_TOKEN || github.token }}

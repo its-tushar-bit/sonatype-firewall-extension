@@ -1,0 +1,35 @@
+version: "1"
+
+# Ignore test fixtures and test-only projects from AGP scanning
+ignore:
+  paths:
+    # skip tests and resources directories that might contain manifest files under test
+    - "**/src/test/**"
+    - "**/src/main/resources/**"
+
+# Agent configuration - use AWS Bedrock for AI model access
+agent:
+  enabled: false
+  provider: bedrock
+  model: arn:aws:bedrock:us-west-2:135167709271:application-inference-profile/qj5q2hjf1hos
+  awsRegion: us-west-2
+  maxFixAttempts: 3
+
+
+# Global validation fallback (used in single-project mode)
+validation:
+  enabled: true
+  commands:
+    - "mvn compile -DskipTests -q"
+
+# PR configuration
+pr:
+  labels:
+    - dependencies
+    - automated
+    - agp
+
+# Limits for PR creation
+limits:
+  maxOpenPRs: 5       # Maximum number of open PRs at any time
+  maxPRsPerRun: 3     # Conservative initial limit

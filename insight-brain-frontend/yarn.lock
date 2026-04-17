@@ -4227,10 +4227,10 @@ core-js-compat@^3.14.0, core-js-compat@^3.16.0:
     browserslist "^4.16.8"
     semver "7.0.0"
 
-core-js-pure@3.28.0, core-js-pure@^3.30.2, core-js-pure@^3.48.0:
-  version "3.28.0"
-  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/core-js-pure/-/core-js-pure-3.28.0.tgz#4ef2888475b6c856ef6f5aeef8b4f618b76ad048"
-  integrity sha512-DSOVleA9/v3LNj/vFxAPfUHttKTzrB2RXhAPvR5TPXn4vrra3Z2ssytvRyt8eruJwAfwAiFADEbrjcRdcvPLQQ==
+core-js-pure@3.32.0, core-js-pure@^3.30.2, core-js-pure@^3.48.0:
+  version "3.32.0"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/core-js-pure/-/core-js-pure-3.32.0.tgz#5d79f85da7a4373e9a06494ccbef995a4c639f8b"
+  integrity sha512-qsev1H+dTNYpDUEURRuOXMvpdtAnNEvQWS/FMJ2Vb5AY8ZP4rAPQldkE27joykZPJTe0+IVgHZYh1P5Xu1/i1g==
 
 core-js@^3.33.2:
   version "3.33.2"

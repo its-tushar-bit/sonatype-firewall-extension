@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for running post-deployment smoke tests against shared-dev cell.
+ *
+ * Triggered as a downstream job from Jenkinsfile.deploy-to-shared-dev after successful deployments.
+ * Initially a no-op placeholder until smoke test tenants are provisioned (CLM-39450).
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag that was just deployed (for traceability/reporting)
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The ECR tag that was just deployed')
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    timestamps()
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  tools {
+    jdk 'OpenJDK 17'
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG is required'
+          }
+        }
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        script {
+          echo 'SKIP: Smoke test tenant not yet provisioned on shared-dev. Passing as no-op.'
+          echo "Image tag: ${params.IMAGE_TAG}"
+          // TODO: Replace with real smoke test once CLM-39450 is complete
+        }
+      }
+    }
+
+    stage('Trigger push-to-staging') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/push-to-staging',
+              parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+              wait: false
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Smoke tests passed for image tag: ${params.IMAGE_TAG}"
+      // TODO: Uncomment when real tests are enabled (CLM-39470)
+      // archiveArtifacts 'mtiq-load-testing/**/mtiq-*-report-*.html'
+    }
+    failure {
+      script {
+        echo "Smoke tests failed for image tag: ${params.IMAGE_TAG}"
+        // TODO: Add Slack/email notification when real tests are enabled
+      }
+    }
+  }
+}

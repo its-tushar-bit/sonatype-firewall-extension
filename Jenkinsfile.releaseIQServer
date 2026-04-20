@@ -27,9 +27,9 @@ properties(
                 booleanParam(name: 'skipPublishAlpineDocker', defaultValue: false, description: 'Skip: Publish Alpine Docker Image'),
                 booleanParam(name: 'skipPublishRedHatDocker', defaultValue: false, description: 'Skip: Publish RedHat Docker Image to quay.io'),
                 booleanParam(name: 'skipPublishStandardDocker', defaultValue: false, description: 'Skip: Publish Standard Docker Image'),
-                booleanParam(name: 'skipPublishCloudFormation', defaultValue: true, description: 'Skip: Publish CloudFormation Templates'),
                 booleanParam(name: 'skipReleaseCompleteNotifications', defaultValue: false, description: 'Skip: Send Release Complete Notifications'),
-                booleanParam(name: 'skipPostReleaseBuild', defaultValue: false, description: 'Skip: Trigger Post-Release Build')
+                booleanParam(name: 'skipPostReleaseBuild', defaultValue: false, description: 'Skip: Trigger Post-Release Build'),
+                booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version')
             ]
         )
     ]
@@ -117,7 +117,8 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Staging'),
-                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                            booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
       }
     }
     stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
@@ -127,7 +128,8 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Production'),
-                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                            booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
       }
     }
     stage('Create Product Notification') {
@@ -172,7 +174,8 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/slim-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
+              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                           booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
       }
     }
     stage('Publish Alpine Docker Image') {
@@ -181,7 +184,8 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/alpine-image/release',
-            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                         booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
       }
     }
     stage('Publish RedHat Docker Image to quay.io') {
@@ -192,7 +196,8 @@ pipeline {
         build(job: 'insight/insight-brain/docker/redhat-image/release',
             parameters: [
                 string(name: 'tag', value: "${params.releaseVersion.split('-')[0]}-ubi-1"),
-                run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")
+                run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)
             ])
       }
     }
@@ -202,16 +207,8 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
-      }
-    }
-    stage('Publish CloudFormation Templates') {
-      when {
-        expression { !params.skipPublishCloudFormation }
-      }
-      steps {
-        build(job: 'integrations/cloud/nexus-iq-ha-reference',
-              parameters: [ run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}")])
+              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/aggregate-release#${env.aggregateReleaseBuild_NUMBER}"),
+                           booleanParam(name: 'skipMarkAsLatest', value: params.skipMarkAsLatest)])
       }
     }
     stage('Send Release Complete Notifications') {

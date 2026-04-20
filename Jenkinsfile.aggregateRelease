@@ -16,7 +16,6 @@ pipeline {
   parameters {
     string(name: 'RELEASE_VERSION', description: 'The version being released (e.g., 1.199.0). Build number will be appended automatically.')
     string(name: 'RELEASE_BRANCH_NAME', description: 'The release branch to build from (e.g., release-1.199.x)')
-    booleanParam(name: 'HOTFIX', defaultValue: false, description: 'Whether this is a hotfix release')
 
     // Skip stage parameters for testing
     booleanParam(name: 'skipValidateParams', defaultValue: false, description: 'Skip: Validate release parameters')
@@ -27,6 +26,7 @@ pipeline {
     booleanParam(name: 'skipTag', defaultValue: false, description: 'Skip: Create release tag')
     booleanParam(name: 'skipPublish', defaultValue: false, description: 'Skip: Publish to staging repository')
     booleanParam(name: 'skipSboms', defaultValue: false, description: 'Skip: Save insight-brain SBOMs')
+    booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version (set to true for hotfix/patch releases)')
   }
 
   environment {
@@ -48,9 +48,6 @@ pipeline {
             }
           }
           def displayParams = [Version: FULL_RELEASE_VERSION, Branch: RELEASE_BRANCH_NAME]
-          if (HOTFIX.toBoolean()) {
-            displayParams['Mode'] = 'HOTFIX'
-          }
           setBuildDisplayName(displayParams)
         }
       }
@@ -209,7 +206,9 @@ pipeline {
         writeBuildProperties('Staging', "${FULL_RELEASE_VERSION}")
         // Publish to staging
         publishProduct('IQServer')
-        updateLatestVersionTable('Staging', 'IQ_SERVER', "${FULL_RELEASE_VERSION}")
+        if (!params.skipMarkAsLatest) {
+          updateLatestVersionTable('Staging', 'IQ_SERVER', "${FULL_RELEASE_VERSION}")
+        }
         updateNginxConfig('Staging')
       }
     }

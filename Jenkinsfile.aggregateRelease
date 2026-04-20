@@ -206,8 +206,10 @@ pipeline {
         writeBuildProperties('Staging', "${FULL_RELEASE_VERSION}")
         // Publish to staging
         publishProduct('IQServer')
-        if (!params.skipMarkAsLatest) {
-          updateLatestVersionTable('Staging', 'IQ_SERVER', "${FULL_RELEASE_VERSION}")
+        script {
+          if (!params.skipMarkAsLatest) {
+            updateLatestVersionTable('Staging', 'IQ_SERVER', "${FULL_RELEASE_VERSION}")
+          }
         }
         updateNginxConfig('Staging')
       }

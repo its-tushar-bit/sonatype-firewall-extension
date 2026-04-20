@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for deploying MTIQ images to shared-dev cell.
+ *
+ * Triggered as a downstream job from Jenkinsfile.main (main branch) after successful ECR push.
+ * Handles TFC deployment for the progressive deployment pipeline.
+ *
+ * Parameters:
+ *   ECR_TAG - The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)
+ *             Format: {dateSection}-{branch}-{buildNumber}-{commitId}
+ *             See jenkins/ecr-helpers.groovy for full documentation.
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'ECR_TAG', description: 'The ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    // NOTE: must exceed 10 min × len(MODERN_CELL_WORKSPACES in tfc-helpers.groovy) + overhead.
+    // Currently 1 workspace → 15 min is sufficient. Increase if workspaces are added.
+    timeout(time: 15, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.ECR_TAG) {
+            error 'ECR_TAG parameter is required but was null. This job must be triggered from Jenkinsfile.main.'
+          }
+          echo "Parameters validated: ECR_TAG=${params.ECR_TAG}"
+        }
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        // The jenkins helpers from the current workspace are stashed because the checkout
+        // may target a commit that doesn't have the latest helper scripts. This ensures
+        // we always use the most up-to-date helpers regardless of the target commit.
+        stash name: 'jenkins-helpers', includes: 'jenkins/**'
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
+        ])
+        unstash 'jenkins-helpers'
+      }
+    }
+
+    stage('Deploy to Cells') {
+      steps {
+        script {
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployToCells(params.ECR_TAG)
+        }
+      }
+    }
+
+    stage('Trigger test-shared-dev') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/test-shared-dev',
+              parameters: [string(name: 'IMAGE_TAG', value: params.ECR_TAG)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+}

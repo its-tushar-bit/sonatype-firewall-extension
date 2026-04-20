@@ -122,18 +122,37 @@ void postBuild() {
 
   if (isMtiqImagePushEnabled()) {
     def imageVersion = mtiqImageVersion()
-    pushMTIQDockerImage(true, imageVersion)
+    // Build the MTIQ image (and optionally push to RSC)
+    pushMTIQDockerImage(isMtiqImagePushEnabled(), imageVersion)
 
-    if (isDeployBranch(env, 'main')) {
-      // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
-      def isSuccess = currentBuild.currentResult == 'SUCCESS'
-      if (isSuccess) {
-        build('job': '/insight/MTIQ/bump-mtiq-version',
-            parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT', value:
-                env.GIT_COMMIT) ],
-            wait: false,
-            propagate: false)
+    // Main-branch-only actions
+    def isSuccess = currentBuild.currentResult == 'SUCCESS'
+    if (isSuccess && isDeployBranch(env, 'main')) {
+
+      // Push MTIQ image to dev ECR (reuses cached buildx layers — fast push only)
+      pushMTIQImageToEcr()
+
+      // Trigger TFC deployment to shared-dev cells
+      if (env.ECR_TAG) {
+        try {
+          echo "Triggering deploy-to-shared-dev with ECR_TAG=${env.ECR_TAG}"
+          build job: 'insight/MTIQ/sca-cloud/deploy-to-shared-dev',
+              parameters: [string(name: 'ECR_TAG', value: env.ECR_TAG)],
+              wait: false,
+              propagate: false
+        } catch (Exception e) {
+          echo "WARNING: Failed to trigger deploy-to-shared-dev job (non-fatal): ${e.message}"
+        }
+      } else {
+        echo "WARNING: ECR_TAG not set — ECR push may have failed. Skipping deploy-to-shared-dev trigger."
       }
+
+      // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
+      build('job': '/insight/MTIQ/bump-mtiq-version',
+          parameters: [ string(name: 'DOCKER_IMAGE_VERSION', value: imageVersion), string(name: 'IQ_COMMIT',
+            value: env.GIT_COMMIT) ],
+          wait: false,
+          propagate: false)
     }
   }
 }
@@ -267,6 +286,22 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
 
       }
     }
+}
+
+/**
+ * Push the MTIQ Docker image to dev ECR.
+ *
+ * Must be called AFTER pushMTIQDockerImage() — reuses the buildx builder cache.
+ * Sets env.ECR_TAG on success (used by postBuild to trigger deploy-to-shared-dev).
+ * Non-fatal: failures are logged as warnings and do not affect the main build.
+ */
+void pushMTIQImageToEcr() {
+  try {
+    def ecr = load 'jenkins/ecr-helpers.groovy'
+    env.ECR_TAG = ecr.pushToEcrCached('main')
+  } catch (Exception e) {
+    echo "WARNING: ECR push failed (non-fatal): ${e.message}"
+  }
 }
 
 Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {

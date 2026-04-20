@@ -477,6 +477,28 @@ pipeline {
             def imageVersion = mtiqImageVersion()
             def shouldPush = params.mtiqImagePushEnabled || currentBuild.fullProjectName.endsWith('_mtiq')
             pushMTIQDockerImage(shouldPush, imageVersion)
+            env.MTIQ_BUILD_SUCCEEDED = 'true'
+          }
+        }
+      }
+    }
+
+    stage('Push to ECR Dev') {
+      when {
+        expression {
+          return env.MTIQ_BUILD_SUCCEEDED == 'true' &&
+            (params.mtiqImagePushEnabled || currentBuild.fullProjectName.endsWith('_mtiq'))
+        }
+      }
+      steps {
+        script {
+          dir(env.BUILD_DIR) {
+            try {
+              def ecr = load 'jenkins/ecr-helpers.groovy'
+              ecr.pushToEcrCached()  // branch auto-detected via gitBranch(env)
+            } catch (Exception e) {
+              echo "WARNING: ECR push failed (non-fatal): ${e.message}"
+            }
           }
         }
       }

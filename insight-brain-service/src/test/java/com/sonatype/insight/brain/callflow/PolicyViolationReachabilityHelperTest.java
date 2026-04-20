@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNpmCoordinates;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createNugetCoordinates;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createPecoffCoordinates;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createPypiCoordinates;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.filterOnReachabilitySupport;
@@ -65,12 +67,27 @@ public class PolicyViolationReachabilityHelperTest
     npmReachablePolicyViolation2.setComponentIdentifier(createNpmCoordinates("packageId", "version"));
     npmReachablePolicyViolation2.setOpenTime(new Date());
 
-    List<PolicyViolation> result = filterOnReachabilitySupport(
-        List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, npmReachablePolicyViolation2));
+    // reachable violation by threat category and component identifier format (NuGet)
+    PolicyViolation nugetReachablePolicyViolation = new PolicyViolation();
+    nugetReachablePolicyViolation.setThreatCategory(SECURITY);
+    nugetReachablePolicyViolation.setComponentIdentifier(createNugetCoordinates("packageId", "version"));
+    nugetReachablePolicyViolation.setOpenTime(new Date());
 
-    assertThat(result).hasSize(2);
+    // reachable violation by threat category and component identifier format (pecoff)
+    PolicyViolation pecoffReachablePolicyViolation = new PolicyViolation();
+    pecoffReachablePolicyViolation.setThreatCategory(SECURITY);
+    pecoffReachablePolicyViolation.setComponentIdentifier(createPecoffCoordinates("vendor", "product", "version"));
+    pecoffReachablePolicyViolation.setOpenTime(new Date());
+
+    List<PolicyViolation> result = filterOnReachabilitySupport(
+        List.of(mvnReachablePolicyViolation, unreachablePolicyViolation1, pipyNonreachablePolicyViolation2,
+            npmReachablePolicyViolation2, nugetReachablePolicyViolation, pecoffReachablePolicyViolation));
+
+    assertThat(result).hasSize(4);
     assertThat(result.get(0)).isEqualTo(mvnReachablePolicyViolation);
     assertThat(result.get(1)).isEqualTo(npmReachablePolicyViolation2);
+    assertThat(result.get(2)).isEqualTo(nugetReachablePolicyViolation);
+    assertThat(result.get(3)).isEqualTo(pecoffReachablePolicyViolation);
   }
 
   @Test
@@ -175,8 +192,10 @@ public class PolicyViolationReachabilityHelperTest
 
   @Test
   public void testSupportsReachabilityAnalysis_ComponentIdentifier_PolicyThreatsViolation() {
-    ComponentIdentifier c1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    ComponentIdentifier c2 = ComponentIdentifier.createSwiftCoordinates("n", "v");
+    ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    ComponentIdentifier swift = ComponentIdentifier.createSwiftCoordinates("n", "v");
+    ComponentIdentifier nuget = ComponentIdentifier.createNugetCoordinates("p", "v");
+    ComponentIdentifier pecoff = ComponentIdentifier.createPecoffCoordinates("vendor", "product", "v");
 
     PolicyThreats.PolicyViolation v1 = new PolicyThreats.PolicyViolation();
     v1.policyThreatCategory = SECURITY.toString();
@@ -184,39 +203,53 @@ public class PolicyViolationReachabilityHelperTest
     v2.policyThreatCategory = LICENSE.toString();
     PolicyThreats.PolicyViolation v3 = new PolicyThreats.PolicyViolation();
 
-    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v1)).isTrue();
-    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v2)).isFalse();
-    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c2, v1)).isFalse();
-    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, null)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(maven, v1)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(maven, v2)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(swift, v1)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(nuget, v1)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(nuget, v2)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(pecoff, v1)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(pecoff, v2)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(maven, null)).isFalse();
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null, v1)).isFalse();
-    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(c1, v3)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(maven, v3)).isFalse();
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null, null)).isFalse();
   }
 
   @Test
   public void testSupportsReachabilityAnalysis_PolicyViolation() {
-    ComponentIdentifier c1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    ComponentIdentifier c2 = ComponentIdentifier.createSwiftCoordinates("n", "v");
+    ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    ComponentIdentifier swift = ComponentIdentifier.createSwiftCoordinates("n", "v");
+    ComponentIdentifier nuget = ComponentIdentifier.createNugetCoordinates("p", "v");
+    ComponentIdentifier pecoff = ComponentIdentifier.createPecoffCoordinates("vendor", "product", "v");
 
     PolicyViolation v1 = new PolicyViolation();
-    v1.setComponentIdentifier(c1);
+    v1.setComponentIdentifier(maven);
     v1.setThreatCategory(SECURITY);
 
     PolicyViolation v2 = new PolicyViolation();
-    v2.setComponentIdentifier(c1);
+    v2.setComponentIdentifier(maven);
     v2.setThreatCategory(LICENSE);
 
     PolicyViolation v3 = new PolicyViolation();
-    v3.setComponentIdentifier(c2);
+    v3.setComponentIdentifier(swift);
     v3.setThreatCategory(SECURITY);
 
     PolicyViolation v4 = new PolicyViolation();
-    v4.setComponentIdentifier(c1);
+    v4.setComponentIdentifier(maven);
 
     PolicyViolation v5 = new PolicyViolation();
     v5.setThreatCategory(SECURITY);
 
     PolicyViolation v6 = new PolicyViolation();
+
+    PolicyViolation v7 = new PolicyViolation();
+    v7.setComponentIdentifier(nuget);
+    v7.setThreatCategory(SECURITY);
+
+    PolicyViolation v8 = new PolicyViolation();
+    v8.setComponentIdentifier(pecoff);
+    v8.setThreatCategory(SECURITY);
 
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v1)).isTrue();
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v2)).isFalse();
@@ -225,6 +258,8 @@ public class PolicyViolationReachabilityHelperTest
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v5)).isFalse();
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v6)).isFalse();
     assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(null)).isFalse();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v7)).isTrue();
+    assertThat(PolicyViolationReachabilityHelper.supportsReachabilityAnalysis(v8)).isTrue();
   }
 
   private PolicyViolation createPolicyViolation() {

@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_NPM;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_NUGET;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PECOFF;
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.UNKNOWN;
@@ -183,6 +185,7 @@ public class PolicyViolationReachabilityHelper
   }
 
   private static boolean isSupportedFormat(final String format) {
-    return FORMAT_MAVEN.equalsIgnoreCase(format) || FORMAT_NPM.equalsIgnoreCase(format);
+    return FORMAT_MAVEN.equalsIgnoreCase(format) || FORMAT_NPM.equalsIgnoreCase(format) ||
+        FORMAT_NUGET.equalsIgnoreCase(format) || FORMAT_PECOFF.equalsIgnoreCase(format);
   }
 }

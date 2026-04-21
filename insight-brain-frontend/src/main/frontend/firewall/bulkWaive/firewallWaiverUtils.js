@@ -34,7 +34,8 @@ export const isCustomExpiryTimeValid = (value) => {
   if (!value) {
     return false;
   }
-  return new Date(value) > new Date();
+  // Compare dates at day resolution to avoid timezone/time-of-day flakiness
+  return moment(value, 'YYYY-MM-DD').isAfter(moment(), 'day');
 };
 
 export const isCustomExpiryTimeSelected = (expiryTime) => expiryTime === 'custom';

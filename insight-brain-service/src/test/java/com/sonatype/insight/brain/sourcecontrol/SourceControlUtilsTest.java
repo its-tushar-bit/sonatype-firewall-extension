@@ -256,20 +256,59 @@ public class SourceControlUtilsTest
   @Test
   public void testIsBitbucketCloud() {
     // BB cloud
-    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://bitbucket.org/organization/project", null,
-        "user", TOKEN, BITBUCKET, "base-branch", true, true, true, true, true, true, false, null);
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://bitbucket.org/organization/project",
+        null,
+        "user",
+        TOKEN,
+        BITBUCKET,
+        "base-branch",
+        true,
+        true,
+        true,
+        null,
+        true,
+        true,
+        true,
+        false,
+        null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isTrue();
 
     // BB server
     gitRepositoryInfo =
-        new GitRepositoryInfo("https://my.domain.com/organization/project", null, "user", TOKEN, BITBUCKET,
-            "base-branch", true, true, true, true, true, true, false, null);
+        new GitRepositoryInfo("https://my.domain.com/organization/project",
+            null,
+            "user",
+            TOKEN,
+            BITBUCKET,
+            "base-branch",
+            true,
+            true,
+            true,
+            null,
+            true,
+            true,
+            true,
+            false,
+            null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
 
     // Not BB
     gitRepositoryInfo =
-        new GitRepositoryInfo("https://my.domain.com/organization/project", null, "user", TOKEN, GITHUB,
-            "base-branch", true, true, true, true, true, true, false, null);
+        new GitRepositoryInfo("https://my.domain.com/organization/project",
+            null,
+            "user",
+            TOKEN,
+            GITHUB,
+            "base-branch",
+            true,
+            true,
+            true,
+            null,
+            true,
+            true,
+            true,
+            false,
+            null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
   }
 

@@ -31,9 +31,32 @@ public class GitRepositoryInfo
       final Boolean sshEnabled,
       final String sourceControlScanTarget)
   {
+    this(repositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
+        remediationPullRequestsEnabled, manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled,
+        null, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlEvaluationsEnabled,
+        sshEnabled, sourceControlScanTarget);
+  }
+
+  public GitRepositoryInfo(
+      final String repositoryUrl,
+      final String sshRepositoryUrl,
+      final String username,
+      final String token,
+      final SourceControlProvider provider,
+      final String baseBranch,
+      final Boolean remediationPullRequestsEnabled,
+      final Boolean manualPullRequestsEnabled,
+      final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean nonGoldenPullRequestsEnabled,
+      final Boolean statusChecksEnabled,
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean sourceControlEvaluationsEnabled,
+      final Boolean sshEnabled,
+      final String sourceControlScanTarget)
+  {
     this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
         provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled,
-        innerSourceAutomatedUpdatesEnabled, statusChecksEnabled,
+        innerSourceAutomatedUpdatesEnabled, nonGoldenPullRequestsEnabled, statusChecksEnabled,
         pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget,
         null, null);
   }
@@ -57,6 +80,32 @@ public class GitRepositoryInfo
       final SourceControl.AuthenticationType authenticationType,
       final String authOwnerId)
   {
+    this(repositoryUrl, normalizedRepositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
+        remediationPullRequestsEnabled, manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled,
+        null, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlEvaluationsEnabled,
+        sshEnabled, sourceControlScanTarget, authenticationType, authOwnerId);
+  }
+
+  public GitRepositoryInfo(
+      final String repositoryUrl,
+      final String normalizedRepositoryUrl,
+      final String sshRepositoryUrl,
+      final String username,
+      final String token,
+      final SourceControlProvider provider,
+      final String baseBranch,
+      final Boolean remediationPullRequestsEnabled,
+      final Boolean manualPullRequestsEnabled,
+      final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean nonGoldenPullRequestsEnabled,
+      final Boolean statusChecksEnabled,
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean sourceControlEvaluationsEnabled,
+      final Boolean sshEnabled,
+      final String sourceControlScanTarget,
+      final SourceControl.AuthenticationType authenticationType,
+      final String authOwnerId)
+  {
     this.repositoryUrl = repositoryUrl;
     this.normalizedRepositoryUrl = normalizedRepositoryUrl;
     this.sshRepositoryUrl = sshRepositoryUrl;
@@ -67,6 +116,7 @@ public class GitRepositoryInfo
     this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
     this.manualPullRequestsEnabled = manualPullRequestsEnabled;
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
+    this.nonGoldenPullRequestsEnabled = nonGoldenPullRequestsEnabled;
     this.statusChecksEnabled = statusChecksEnabled;
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
     this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
@@ -95,6 +145,8 @@ public class GitRepositoryInfo
   public Boolean manualPullRequestsEnabled;
 
   public Boolean innerSourceAutomatedUpdatesEnabled;
+
+  public Boolean nonGoldenPullRequestsEnabled;
 
   public Boolean statusChecksEnabled;
 
@@ -146,6 +198,10 @@ public class GitRepositoryInfo
     return innerSourceAutomatedUpdatesEnabled;
   }
 
+  public Boolean getNonGoldenPullRequestsEnabled() {
+    return nonGoldenPullRequestsEnabled;
+  }
+
   public Boolean getStatusChecksEnabled() {
     return statusChecksEnabled;
   }
@@ -189,6 +245,7 @@ public class GitRepositoryInfo
         Objects.equals(remediationPullRequestsEnabled, that.remediationPullRequestsEnabled) &&
         Objects.equals(manualPullRequestsEnabled, that.manualPullRequestsEnabled) &&
         Objects.equals(innerSourceAutomatedUpdatesEnabled, that.innerSourceAutomatedUpdatesEnabled) &&
+        Objects.equals(nonGoldenPullRequestsEnabled, that.nonGoldenPullRequestsEnabled) &&
         Objects.equals(statusChecksEnabled, that.statusChecksEnabled) &&
         Objects.equals(pullRequestCommentingEnabled, that.pullRequestCommentingEnabled) &&
         Objects.equals(sourceControlEvaluationsEnabled, that.sourceControlEvaluationsEnabled) &&

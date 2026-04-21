@@ -901,13 +901,26 @@ public class PullRequestPollingServiceTest
       currentMockRepo.sourceControl =
           new SourceControl(applicationId, currentMockRepo.repositoryUrl, null, username, "token",
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false, true, false,
-              false, null, false, null);
+              false, null, null, false, null);
       tempEntity.newSourceControl(currentMockRepo.sourceControl);
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl,
-          currentMockRepo.repositoryUrl, null, username, "token",
-          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, prCommentingEnabled, true,
+          currentMockRepo.repositoryUrl,
+          null,
+          username,
+          "token",
+          currentMockRepo.sourceControlProvider,
+          defaultBranch,
+          true,
+          true,
+          true,
+          null,
+          true,
+          prCommentingEnabled,
+          true,
           false,
-          null, null, null);
+          null,
+          null,
+          null);
       return this;
     }
 
@@ -915,15 +928,21 @@ public class PullRequestPollingServiceTest
       currentMockRepo.sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
       sourceControlDAO.update(currentMockRepo.sourceControl);
 
-      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(
-          currentMockRepo.repositoryUrl,
+      currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl,
           currentMockRepo.repositoryUrl,
           null,
           null,
           null,
           currentMockRepo.sourceControlProvider,
           currentMockRepo.sourceControl.getBaseBranch(),
-          true, true, true, true, true, true, false,
+          true,
+          true,
+          true,
+          null,
+          true,
+          true,
+          true,
+          false,
           null,
           SourceControl.AuthenticationType.GITHUB_APP,
           ownerId);

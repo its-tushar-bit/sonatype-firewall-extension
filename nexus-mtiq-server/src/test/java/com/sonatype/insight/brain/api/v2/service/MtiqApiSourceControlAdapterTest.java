@@ -64,6 +64,7 @@ public class MtiqApiSourceControlAdapterTest
     apiSourceControlDTO.commitStatusEnabled = false;
     apiSourceControlDTO.manualPullRequestsEnabled = true;
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = true;
+    apiSourceControlDTO.nonGoldenPullRequestsEnabled = true;
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -78,6 +79,7 @@ public class MtiqApiSourceControlAdapterTest
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(false);
     assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(false);
     assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(false);
+    assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(false);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
     assertThat(sourceControl.getPullRequestCommentingEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isEqualTo(true);
@@ -108,6 +110,7 @@ public class MtiqApiSourceControlAdapterTest
       apiSourceControlDTO.commitStatusEnabled = false;
       apiSourceControlDTO.manualPullRequestsEnabled = true;
       apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = true;
+      apiSourceControlDTO.nonGoldenPullRequestsEnabled = true;
 
       SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -127,6 +130,7 @@ public class MtiqApiSourceControlAdapterTest
       assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
       assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
       assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(true);
+      assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(true);
     }
     finally {
       // Reset the feature flag to its default state
@@ -153,6 +157,7 @@ public class MtiqApiSourceControlAdapterTest
     apiSourceControlDTO.remediationPullRequestsEnabled = true;
     apiSourceControlDTO.manualPullRequestsEnabled = true;
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = true;
+    apiSourceControlDTO.nonGoldenPullRequestsEnabled = true;
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -160,6 +165,7 @@ public class MtiqApiSourceControlAdapterTest
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(true);
   }
 
   @Test
@@ -183,6 +189,7 @@ public class MtiqApiSourceControlAdapterTest
     apiSourceControlDTO.remediationPullRequestsEnabled = true;
     apiSourceControlDTO.manualPullRequestsEnabled = true;
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = true;
+    apiSourceControlDTO.nonGoldenPullRequestsEnabled = true;
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -190,5 +197,6 @@ public class MtiqApiSourceControlAdapterTest
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(false);
     assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(false);
     assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(false);
+    assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(false);
   }
 }

@@ -97,6 +97,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setClosePrOnFailedChecksEnabled(true);
     rootOrgSourcecontrol.setClosePrAfterDaysOpenEnabled(true);
     rootOrgSourcecontrol.setClosePrAfterDays(7);
+    rootOrgSourcecontrol.setNonGoldenPullRequestsEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -119,6 +120,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.closePrOnFailedChecksEnabled.value = true;
     actualDTO.closePrAfterDaysOpenEnabled.value = true;
     actualDTO.closePrAfterDays.value = 7;
+    actualDTO.nonGoldenPullRequestsEnabled.value = true;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -244,6 +246,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setClosePrOnFailedChecksEnabled(true);
     rootOrgSourcecontrol.setClosePrAfterDaysOpenEnabled(true);
     rootOrgSourcecontrol.setClosePrAfterDays(7);
+    rootOrgSourcecontrol.setNonGoldenPullRequestsEnabled(true);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -281,6 +284,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.closePrAfterDaysOpenEnabled.parentValue = true;
     actualDTO.closePrAfterDays.parentName = rootOrganization.getName();
     actualDTO.closePrAfterDays.parentValue = 7;
+    actualDTO.nonGoldenPullRequestsEnabled.parentName = rootOrganization.getName();
+    actualDTO.nonGoldenPullRequestsEnabled.parentValue = true;
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
@@ -358,6 +363,7 @@ public class ApiCompositeSourceControlServiceTest
     appSourceControl.setCommitStatusEnabled(false);
     appSourceControl.setManualPullRequestsEnabled(false);
     appSourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
+    appSourceControl.setNonGoldenPullRequestsEnabled(true);
     sourceControlDAO.update(appSourceControl);
 
     resultDTO = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
@@ -387,6 +393,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
     actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
+    actualDTO.nonGoldenPullRequestsEnabled.value = true;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -1207,6 +1214,7 @@ public class ApiCompositeSourceControlServiceTest
     assertField(result.commitStatusEnabled, expected.commitStatusEnabled);
     assertField(result.manualPullRequestsEnabled, expected.manualPullRequestsEnabled);
     assertField(result.innerSourceAutomatedUpdatesEnabled, expected.innerSourceAutomatedUpdatesEnabled);
+    assertField(result.nonGoldenPullRequestsEnabled, expected.nonGoldenPullRequestsEnabled);
     assertField(result.closePrOnFailedChecksEnabled, expected.closePrOnFailedChecksEnabled);
     assertField(result.closePrAfterDaysOpenEnabled, expected.closePrAfterDaysOpenEnabled);
     assertField(result.closePrAfterDays, expected.closePrAfterDays);

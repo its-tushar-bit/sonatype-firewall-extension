@@ -129,7 +129,9 @@ public class SourceControlDAO
           "(ARRAY_REMOVE(ARRAY_AGG(manual_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
           "as manual_pull_requests_enabled, " +
           "(ARRAY_REMOVE(ARRAY_AGG(inner_source_automated_updates_enabled ORDER BY hierarchy_order), NULL))[1] " +
-          "as inner_source_automated_updates_enabled " +
+          "as inner_source_automated_updates_enabled, " +
+          "(ARRAY_REMOVE(ARRAY_AGG(non_golden_pull_requests_enabled ORDER BY hierarchy_order), NULL))[1] " +
+          "as non_golden_pull_requests_enabled " +
           "FROM (" +
           // Create ordered set of Source Control records, from application to root organization
           "SELECT * FROM (" +

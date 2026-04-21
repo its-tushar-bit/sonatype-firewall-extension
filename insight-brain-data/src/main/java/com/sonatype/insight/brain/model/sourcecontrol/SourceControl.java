@@ -108,6 +108,9 @@ public class SourceControl
   @Column(name = "inner_source_automated_updates_enabled")
   private Boolean innerSourceAutomatedUpdatesEnabled;
 
+  @Column(name = "non_golden_pull_requests_enabled")
+  private Boolean nonGoldenPullRequestsEnabled;
+
   @Column(name = "authentication_type")
   @Enumerated(EnumType.STRING)
   private AuthenticationType authenticationType;
@@ -138,6 +141,7 @@ public class SourceControl
       final Boolean commitStatusEnabled,
       final Boolean manualPullRequestsEnabled,
       final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean nonGoldenPullRequestsEnabled,
       final Boolean closePrOnFailedChecksEnabled,
       final Boolean closePrAfterDaysOpenEnabled,
       final Integer closePrAfterDays)
@@ -158,6 +162,7 @@ public class SourceControl
     this.commitStatusEnabled = commitStatusEnabled;
     this.manualPullRequestsEnabled = manualPullRequestsEnabled;
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
+    this.nonGoldenPullRequestsEnabled = nonGoldenPullRequestsEnabled;
     this.closePrOnFailedChecksEnabled = closePrOnFailedChecksEnabled;
     this.closePrAfterDaysOpenEnabled = closePrAfterDaysOpenEnabled;
     this.closePrAfterDays = closePrAfterDays;
@@ -350,6 +355,14 @@ public class SourceControl
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
   }
 
+  public Boolean getNonGoldenPullRequestsEnabled() {
+    return nonGoldenPullRequestsEnabled;
+  }
+
+  public void setNonGoldenPullRequestsEnabled(final Boolean nonGoldenPullRequestsEnabled) {
+    this.nonGoldenPullRequestsEnabled = nonGoldenPullRequestsEnabled;
+  }
+
   public AuthenticationType getAuthenticationType() {
     return authenticationType;
   }
@@ -399,6 +412,8 @@ public class SourceControl
     private Boolean manualPullRequestsEnabled;
 
     private Boolean innerSourceAutomatedUpdatesEnabled;
+
+    private Boolean nonGoldenPullRequestsEnabled;
 
     private AuthenticationType authenticationType;
 
@@ -502,6 +517,11 @@ public class SourceControl
       return this;
     }
 
+    public Builder setNonGoldenPullRequestsEnabled(final Boolean nonGoldenPullRequestsEnabled) {
+      this.nonGoldenPullRequestsEnabled = nonGoldenPullRequestsEnabled;
+      return this;
+    }
+
     public Builder setAuthenticationType(final AuthenticationType authenticationType) {
       this.authenticationType = authenticationType;
       return this;
@@ -512,8 +532,8 @@ public class SourceControl
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
               remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
               sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled, commitStatusEnabled,
-              manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled, closePrOnFailedChecksEnabled,
-              closePrAfterDaysOpenEnabled, closePrAfterDays);
+              manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled, nonGoldenPullRequestsEnabled,
+              closePrOnFailedChecksEnabled, closePrAfterDaysOpenEnabled, closePrAfterDays);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       sourceControl.setAuthenticationType(authenticationType);
       return sourceControl;
@@ -550,6 +570,8 @@ public class SourceControl
         coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
     accumulator.setInnerSourceAutomatedUpdatesEnabled(
         coalesce(accumulator.getInnerSourceAutomatedUpdatesEnabled(), other.getInnerSourceAutomatedUpdatesEnabled()));
+    accumulator.setNonGoldenPullRequestsEnabled(
+        coalesce(accumulator.getNonGoldenPullRequestsEnabled(), other.getNonGoldenPullRequestsEnabled()));
     accumulator.setAuthenticationType(coalesce(accumulator.getAuthenticationType(), other.getAuthenticationType()));
   }
 
@@ -591,6 +613,7 @@ public class SourceControl
         ", commitStatusEnabled=" + commitStatusEnabled +
         ", manualPullRequestsEnabled=" + manualPullRequestsEnabled +
         ", innerSourceAutomatedUpdatesEnabled=" + innerSourceAutomatedUpdatesEnabled +
+        ", nonGoldenPullRequestsEnabled=" + nonGoldenPullRequestsEnabled +
         ", authenticationType=" + authenticationType +
         '}';
   }

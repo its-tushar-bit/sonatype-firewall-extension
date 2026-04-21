@@ -14,12 +14,12 @@ import jakarta.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -80,6 +80,9 @@ public class AutomatedPullRequestCreationServiceTest
   private AutomatedPullRequestCreationService automatedPrService;
 
   @Inject
+  private SourceControlDAO sourceControlDAO;
+
+  @Inject
   private SourceControlEventDAO sourceControlEventDAO;
 
   @Rule
@@ -123,7 +126,7 @@ public class AutomatedPullRequestCreationServiceTest
   }
 
   @Test
-  public void testCreateAutomatedRemediationPullRequest_goldenPR_withFeatureFlagEnabled() throws IOException {
+  public void testCreateAutomatedRemediationPullRequest_goldenPR() throws IOException {
     String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
     RemediationVersionDTO remediationVersionDTO = new RemediationVersionDTO(DEFAULT_REMEDIATION_VERSION,
         ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, 0);
@@ -159,7 +162,7 @@ public class AutomatedPullRequestCreationServiceTest
         new RemediationVersionDTO(version, ApiVersionChangeOptionType.NEXT_NON_FAILING, 0);
     List<PolicyNotification> notifications = createPolicyNotifications();
 
-    // component but not golden remediation type
+    // non-direct dependency — should be filtered out
     automatedPrService.createAutomatedRemediationPullRequest(
         application,
         DEFAULT_SCAN_ID,
@@ -185,7 +188,6 @@ public class AutomatedPullRequestCreationServiceTest
         new RemediationVersionDTO(version, ApiVersionChangeOptionType.NEXT_NON_FAILING, 0);
     List<PolicyNotification> notifications = createPolicyNotifications();
 
-    // component but not golden remediation type
     automatedPrService.createAutomatedRemediationPullRequest(
         application,
         DEFAULT_SCAN_ID,
@@ -195,23 +197,21 @@ public class AutomatedPullRequestCreationServiceTest
         notifications,
         true);
 
-    // no event
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).isEmpty();
     assertThat(logOutput).atDebugLevel()
-        .contains(
-            "Remediation type for component 'maven: {artifactId=artifact, groupId=group, version=1.0.0}' is not golden");
+        .contains("Suppressing non-golden automated PR");
     verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_GOLDEN_VERSION);
   }
 
   @Test
-  public void testCreateAutomatedRemediationPullRequest_withoutFeatureFlag_shouldCreatePR() throws IOException {
+  public void testCreateAutomatedRemediationPullRequest_nonGoldenWithOptIn_shouldCreatePR() throws IOException {
     String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
     RemediationVersionDTO remediationVersionDTO =
         new RemediationVersionDTO(DEFAULT_REMEDIATION_VERSION, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 0);
     List<PolicyNotification> notifications = createPolicyNotifications();
 
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(false);
+    enableNonGoldenPullRequests();
 
     automatedPrService.createAutomatedRemediationPullRequest(
         application,
@@ -222,7 +222,6 @@ public class AutomatedPullRequestCreationServiceTest
         notifications,
         true);
 
-    // should create PR since golden PR feature flag is disabled
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).hasSize(1);
     SourceControlEvent event = eventList.get(0);
@@ -233,7 +232,60 @@ public class AutomatedPullRequestCreationServiceTest
     assertThat(event.getBranchName()).isEqualTo(branchName);
     assertThat(event.getInitiator()).isEqualTo("policy alert");
     assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(logOutput).atDebugLevel().contains("non-golden PRs explicitly enabled");
     verifyNoInteractions(mockScmOperationMetrics);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_npmNonGolden_shouldSuppressByDefault() throws IOException {
+    ComponentIdentifier npmComponent = ComponentIdentifier.createNpmCoordinates("lodash", DEFAULT_VERSION);
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("4.18.0", ApiVersionChangeOptionType.NEXT_NON_FAILING, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        npmComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        true);
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).isEmpty();
+    assertThat(logOutput).atDebugLevel().contains("Suppressing non-golden automated PR");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(NOT_GOLDEN_VERSION);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_npmNonGoldenWithOptIn_shouldCreatePR() throws IOException {
+    ComponentIdentifier npmComponent = ComponentIdentifier.createNpmCoordinates("lodash", DEFAULT_VERSION);
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("4.18.0", ApiVersionChangeOptionType.NEXT_NON_FAILING, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    enableNonGoldenPullRequests();
+
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        npmComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        true);
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).hasSize(1);
+    assertThat(logOutput).atDebugLevel().contains("non-golden PRs explicitly enabled");
+    verifyNoInteractions(mockScmOperationMetrics);
+  }
+
+  private void enableNonGoldenPullRequests() {
+    SourceControl appSourceControl = sourceControlDAO.getByOwnerId(application.getId());
+    appSourceControl.setNonGoldenPullRequestsEnabled(true);
+    sourceControlDAO.updateWithoutValidation(appSourceControl);
   }
 
   private List<PolicyNotification> createPolicyNotifications() {

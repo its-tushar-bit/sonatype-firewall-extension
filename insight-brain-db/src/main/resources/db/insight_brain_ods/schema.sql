@@ -837,6 +837,7 @@ CREATE TABLE source_control (
   close_pr_after_days_open_enabled boolean,
   close_pr_after_days INTEGER NULL,
   authentication_type VARCHAR(20) DEFAULT 'PAT',
+  non_golden_pull_requests_enabled boolean,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

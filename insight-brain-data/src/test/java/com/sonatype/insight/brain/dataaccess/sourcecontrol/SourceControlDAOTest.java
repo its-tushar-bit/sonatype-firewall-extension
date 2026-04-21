@@ -1353,6 +1353,7 @@ public class SourceControlDAOTest
         .withSsh(false, null, null)
         .withCommitStatusEnabled(false, null, null)
         .withManualPullRequestsEnabled(false, null, null)
+        .withNonGoldenPullRequestsEnabled(true, null, null)
         .withStatusChecks(false, null, null)
         .build();
 
@@ -1451,6 +1452,7 @@ public class SourceControlDAOTest
         .withCommitStatusEnabled(false, true, null)
         .withStatusChecks(false, true, null)
         .withManualPullRequestsEnabled(false, true, null)
+        .withNonGoldenPullRequestsEnabled(null, true, null)
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
@@ -1477,6 +1479,7 @@ public class SourceControlDAOTest
         .withCommitStatusEnabled(false, true, false)
         .withStatusChecks(false, null, true)
         .withManualPullRequestsEnabled(false, true, false)
+        .withNonGoldenPullRequestsEnabled(true, null, false)
         .build();
 
     SourceControl appSourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(
@@ -2179,6 +2182,7 @@ public class SourceControlDAOTest
         .isEqualTo(expectedSC.getSourceControlEvaluationsEnabled());
     assertThat(actualSC.getSourceControlScanTarget()).isEqualTo(expectedSC.getSourceControlScanTarget());
     assertThat(actualSC.getManualPullRequestsEnabled()).isEqualTo(expectedSC.getManualPullRequestsEnabled());
+    assertThat(actualSC.getNonGoldenPullRequestsEnabled()).isEqualTo(expectedSC.getNonGoldenPullRequestsEnabled());
   }
 
   private Date getScanLimitDate() {
@@ -2342,6 +2346,14 @@ public class SourceControlDAOTest
       assertHierarchyDepth(manualPullRequestsEnabledFlags.length);
       for (int i = 0; i < manualPullRequestsEnabledFlags.length; i++) {
         getSourceControl(i).setManualPullRequestsEnabled(manualPullRequestsEnabledFlags[i]);
+      }
+      return this;
+    }
+
+    private TestableHierarchy withNonGoldenPullRequestsEnabled(Boolean... nonGoldenPullRequestsEnabledFlags) {
+      assertHierarchyDepth(nonGoldenPullRequestsEnabledFlags.length);
+      for (int i = 0; i < nonGoldenPullRequestsEnabledFlags.length; i++) {
+        getSourceControl(i).setNonGoldenPullRequestsEnabled(nonGoldenPullRequestsEnabledFlags[i]);
       }
       return this;
     }

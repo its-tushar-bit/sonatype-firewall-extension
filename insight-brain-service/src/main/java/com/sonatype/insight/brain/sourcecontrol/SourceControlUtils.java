@@ -114,15 +114,14 @@ public class SourceControlUtils
       return null;
     }
 
-    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(
-        sourceControl.getRepositoryUrl(), sourceControl.getNormalizedRepositoryUrl(),
-        sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
-        sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
-        sourceControl.getManualPullRequestsEnabled(), sourceControl.getInnerSourceAutomatedUpdatesEnabled(),
-        sourceControl.getStatusChecksEnabled(),
-        sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
-        sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget(),
-        sourceControl.getAuthenticationType(), sourceControl.getOwnerId());
+    GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo(sourceControl.getRepositoryUrl(),
+        sourceControl.getNormalizedRepositoryUrl(), sourceControl.getRepositorySshUrl(), sourceControl.getUsername(),
+        sourceControl.getToken(), sourceControl.getProvider(), sourceControl.getBaseBranch(),
+        sourceControl.getRemediationPullRequestsEnabled(), sourceControl.getManualPullRequestsEnabled(),
+        sourceControl.getInnerSourceAutomatedUpdatesEnabled(), sourceControl.getNonGoldenPullRequestsEnabled(),
+        sourceControl.getStatusChecksEnabled(), sourceControl.getPullRequestCommentingEnabled(),
+        sourceControl.getSourceControlEvaluationsEnabled(), sourceControl.getSshEnabled(),
+        sourceControl.getSourceControlScanTarget(), sourceControl.getAuthenticationType(), sourceControl.getOwnerId());
 
     if (Strings.isNullOrEmpty(gitRepositoryInfo.baseBranch)) {
       gitRepositoryInfo.baseBranch = DEFAULT_BASE_BRANCH;
@@ -248,6 +247,7 @@ public class SourceControlUtils
     gitRepositoryInfo.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
     gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
     gitRepositoryInfo.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
+    gitRepositoryInfo.nonGoldenPullRequestsEnabled = sourceControl.getNonGoldenPullRequestsEnabled();
     gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
 
     if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {

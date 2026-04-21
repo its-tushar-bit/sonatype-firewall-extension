@@ -287,6 +287,12 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getInnerSourceAutomatedUpdatesEnabled);
 
+    dto.nonGoldenPullRequestsEnabled = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getNonGoldenPullRequestsEnabled);
+
     dto.closePrOnFailedChecksEnabled = collateCompositeDTO(
         sourceControl,
         ancestorsNameHierarchy,

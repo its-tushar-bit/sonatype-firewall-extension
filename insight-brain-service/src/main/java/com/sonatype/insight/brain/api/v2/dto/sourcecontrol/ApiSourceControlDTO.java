@@ -62,4 +62,6 @@ public class ApiSourceControlDTO
   public Boolean manualPullRequestsEnabled;
 
   public Boolean innerSourceAutomatedUpdatesEnabled;
+
+  public Boolean nonGoldenPullRequestsEnabled;
 }

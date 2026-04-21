@@ -66,6 +66,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.commitStatusEnabled = sourceControl.getCommitStatusEnabled();
     apiSourceControlDTO.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
+    apiSourceControlDTO.nonGoldenPullRequestsEnabled = sourceControl.getNonGoldenPullRequestsEnabled();
     apiSourceControlDTO.authenticationType = sourceControl.getAuthenticationType() == null
         ? null
         : sourceControl.getAuthenticationType().name();
@@ -140,6 +141,13 @@ public class ApiSourceControlAdapter
     return false;
   }
 
+  private Boolean convertNonGoldenPullRequestsEnabled(Boolean nonGoldenPullRequestsEnabled) {
+    if (configFeaturesService.isSaasLifecycleScmPrsEnabled()) {
+      return nonGoldenPullRequestsEnabled;
+    }
+    return false;
+  }
+
   @SuppressWarnings("deprecation")
   public SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
@@ -169,6 +177,8 @@ public class ApiSourceControlAdapter
         .setManualPullRequestsEnabled(convertManualPullRequestsEnabled(dto.manualPullRequestsEnabled))
         .setInnerSourceAutomatedUpdatesEnabled(
             convertInnerSourceAutomatedUpdatesEnabled(dto.innerSourceAutomatedUpdatesEnabled))
+        .setNonGoldenPullRequestsEnabled(
+            convertNonGoldenPullRequestsEnabled(dto.nonGoldenPullRequestsEnabled))
         .setAuthenticationType(getAuthenticationType(dto.authenticationType))
         .build();
 

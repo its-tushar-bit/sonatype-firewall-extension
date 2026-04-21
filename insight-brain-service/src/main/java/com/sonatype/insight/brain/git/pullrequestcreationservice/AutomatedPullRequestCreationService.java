@@ -17,7 +17,6 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
@@ -32,7 +31,6 @@ import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
@@ -111,43 +109,31 @@ public class AutomatedPullRequestCreationService
       return;
     }
 
+    // Non-golden PRs are suppressed unless nonGoldenPullRequestsEnabled=true. InnerSource bypasses this.
     boolean isGoldenVersion = SourceControlUtils.isGolden(remediationVersionDTO.getRemediationType());
+    GitRepositoryInfo gitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
-    if (!isInnerSourceComponent) {
-      /*
-       * A 'non-breaking with dependencies versions PR' (aka 'Golden PR') is a PR made with remediation versions of type
-       * RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES only.
-       * A 'regular' PR is a PR made with remediation versions of all other types.
-       * A Golden PR is created for Maven components if the 'developerSuggestNonBreakingVersion' feature flag is enabled
-       * and if a non-breaking with dependencies version (aka 'Golden version') is available.
-       * If the component is a Maven component and the feature flag is enabled, but there is no Golden version
-       * available, no PR is created.
-       * A regular automated remediation PR is created for non-Maven components or when the feature flag is not enabled.
-       */
-      if (shouldCreateNonBreakingVersionsPR(componentIdentifier)) {
-        ApiVersionChangeOptionType remediationType = remediationVersionDTO.getRemediationType();
-        if (!isGoldenVersion) {
-          log.debug("Remediation type for component '{}' is not golden: {}",
-              componentIdentifier, remediationType);
-          scmOperationMetrics.recordPrCreationIneligible(NOT_GOLDEN_VERSION);
-          return;
-        }
-        log.debug("Attempt to create golden PR for application '{}' component '{}'",
-            app.getPublicId(), componentIdentifier);
-      }
-      else {
-        log.debug("Attempt to create automated PR for application '{}' component '{}'",
-            app.getPublicId(), componentIdentifier);
-      }
-    }
-    else {
+    if (isInnerSourceComponent) {
       log.debug(
           "InnerSource component detected. Attempt to create automated PR for application '{}' and component '{}'",
           app.getPublicId(), componentIdentifier);
     }
-
-    GitRepositoryInfo gitRepositoryInfo =
-        sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+    else if (isGoldenVersion) {
+      log.debug("Creating golden automated PR for application '{}' component '{}'",
+          app.getPublicId(), componentIdentifier);
+    }
+    else if (isNonGoldenPrEnabled(gitRepositoryInfo)) {
+      log.debug(
+          "Creating non-golden automated PR for application '{}' component '{}' (non-golden PRs explicitly enabled)",
+          app.getPublicId(), componentIdentifier);
+    }
+    else {
+      log.debug("Suppressing non-golden automated PR for application '{}' component '{}' (golden-only default)",
+          app.getPublicId(), componentIdentifier);
+      scmOperationMetrics.recordPrCreationIneligible(NOT_GOLDEN_VERSION);
+      return;
+    }
     boolean reducedSecurityData = scmReducedSecurityService.isReducedSecurityData(app.getId());
     PullRequestRemediationDetails prDetails = new PullRequestRemediationDetails(
         componentIdentifier,
@@ -171,11 +157,14 @@ public class AutomatedPullRequestCreationService
   }
 
   /**
-   * Determines if a non-breaking version PR should be created for a component. This is specific to Automated PRs and
-   * implements the "Golden PR" feature.
+   * Returns true only if non-golden automated PRs are explicitly opted in via SCM configuration.
+   * NULL (the default for existing and new records) is treated as false — golden-only is the default.
    */
-  private boolean shouldCreateNonBreakingVersionsPR(final ComponentIdentifier componentIdentifier) {
-    return componentIdentifier.isMaven() &&
-        SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled();
+  private boolean isNonGoldenPrEnabled(final GitRepositoryInfo gitRepositoryInfo) {
+    if (gitRepositoryInfo == null) {
+      return false;
+    }
+    Boolean val = gitRepositoryInfo.getNonGoldenPullRequestsEnabled();
+    return val != null && val;
   }
 }

@@ -42,6 +42,8 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<Boolean> innerSourceAutomatedUpdatesEnabled = new ApiCompositeValueDTO<>();
 
+  public ApiCompositeValueDTO<Boolean> nonGoldenPullRequestsEnabled = new ApiCompositeValueDTO<>();
+
   public ApiCompositeValueDTO<Boolean> closePrOnFailedChecksEnabled = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<Boolean> closePrAfterDaysOpenEnabled = new ApiCompositeValueDTO<>();

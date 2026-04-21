@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for promoting Docker images from dev ECR to staging ECR.
+ *
+ * This job performs a cross-account manifest copy — no Docker build/pull/push required.
+ * The identical image bits are promoted, preserving multi-architecture support.
+ *
+ * Triggered as a downstream job from Jenkinsfile.test-shared-dev after successful smoke tests.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag to promote (e.g., 202604161432-main-142-a1b2c3d4)
+ *               Format: {dateSection}-{branch}-{buildNumber}-{commitId}
+ *               See jenkins/ecr-helpers.groovy for full documentation.
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/push-to-staging
+ *
+ * ============================================================================
+ * TEMPORARY BYPASS — STAGING INFRASTRUCTURE NOT YET READY
+ * ============================================================================
+ *
+ * The staging AWS infrastructure (ECR, IAM roles, etc.) is being built by another team.
+ * Until it's ready, this job acts as a NO-OP that returns SUCCESS.
+ *
+ * Once staging infrastructure is available:
+ * 1. Set STAGING_INFRASTRUCTURE_READY = true below
+ * 2. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT with actual values
+ * 3. Remove this comment block
+ *
+ * Tracked in: CLM-39451
+ * ============================================================================
+ */
+
+// TODO: Change to true when staging infrastructure is ready
+def STAGING_INFRASTRUCTURE_READY = false
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The dev ECR tag to promote (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    timestamps()
+    disableConcurrentBuilds()
+    timeout(time: 15, unit: 'MINUTES')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG is required'
+          }
+          echo "Promoting image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        // Stash helpers before checkout so we always use the most up-to-date scripts
+        // regardless of which commit the checkout targets (matches deploy-to-shared-dev pattern)
+        stash name: 'jenkins-helpers', includes: 'jenkins/**'
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
+        ])
+        unstash 'jenkins-helpers'
+      }
+    }
+
+    stage('Promote to Staging ECR') {
+      steps {
+        script {
+          if (!STAGING_INFRASTRUCTURE_READY) {
+            echo "============================================"
+            echo "STAGING INFRASTRUCTURE NOT YET READY"
+            echo "============================================"
+            echo "This job is running in BYPASS mode."
+            echo "The staging AWS infrastructure is being built by another team."
+            echo ""
+            echo "Once staging infrastructure is available:"
+            echo "1. Set STAGING_INFRASTRUCTURE_READY = true in this Jenkinsfile"
+            echo "2. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT with actual values"
+            echo ""
+            echo "Acknowledging image tag: ${params.IMAGE_TAG}"
+            echo "============================================"
+            return
+          }
+
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.promoteImage(
+            ecr.ECR_ACCOUNT,           // source: dev
+            ecr.STAGING_ECR_ACCOUNT,   // target: staging
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG,
+            ['staging-latest']         // additional tag for scheduled deploys
+          )
+        }
+      }
+    }
+
+    stage('Verify Promotion') {
+      when { expression { STAGING_INFRASTRUCTURE_READY } }
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.validateImageExists(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+          ecr.validateImageExists(
+            ecr.STAGING_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            'staging-latest'
+          )
+          echo "Verified: ${params.IMAGE_TAG} and staging-latest are in staging ECR"
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        def status = STAGING_INFRASTRUCTURE_READY ? "Promoted" : "Acknowledged (bypass mode)"
+        echo "push-to-staging: ${status} ${params.IMAGE_TAG}"
+      }
+    }
+    failure {
+      script {
+        echo "push-to-staging: FAILED to promote ${params.IMAGE_TAG}"
+      }
+    }
+    cleanup {
+      sh 'rm -f image-manifest.json || true'
+    }
+  }
+}

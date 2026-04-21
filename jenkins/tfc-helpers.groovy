@@ -79,7 +79,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
     url: "${TFC_BASE_URL}/api/v2/organizations/${TFC_ORG}/workspaces/${workspaceName}",
     httpMode: 'GET',
     customHeaders: customHeaders,
-    validResponseCodes: '2XX',
+    validResponseCodes: '200:299',
   )
   def json = readJSON text: response.content
   if (!json.data) {
@@ -92,7 +92,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
     url: "${TFC_BASE_URL}/api/v2/workspaces/${workspaceId}/vars",
     httpMode: 'GET',
     customHeaders: customHeaders,
-    validResponseCodes: '2XX',
+    validResponseCodes: '200:299',
   )
   json = readJSON text: response.content
   if (!json.data) {
@@ -109,7 +109,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
       requestBody: groovy.json.JsonOutput.toJson([
         data: [id: variableId, type: 'vars', attributes: [value: imageUri]],
       ]),
-      validResponseCodes: '2XX',
+      validResponseCodes: '200:299',
     )
   } else {
     httpRequest(
@@ -119,7 +119,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
       requestBody: groovy.json.JsonOutput.toJson([
         data: [type: 'vars', attributes: [key: TFC_IMAGE_VARIABLE, value: imageUri, category: 'terraform']],
       ]),
-      validResponseCodes: '2XX',
+      validResponseCodes: '200:299',
     )
   }
 
@@ -136,7 +136,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
         relationships: [workspace: [data: [id: workspaceId, type: 'workspaces']]],
       ],
     ]),
-    validResponseCodes: '2XX',
+    validResponseCodes: '200:299',
   )
   json = readJSON text: response.content
   if (!json.data) {
@@ -150,7 +150,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
   // Poll for completion (10 min timeout)
   for (int i = 0; i < 20; i++) {
     sleep 30
-    response = httpRequest(url: "${TFC_BASE_URL}${runLink}", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '2XX')
+    response = httpRequest(url: "${TFC_BASE_URL}${runLink}", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '200:299')
     json = readJSON text: response.content
     if (!json.data?.attributes?.status) {
       echo "WARNING: TFC returned unexpected response while polling run status (iteration ${i + 1}/20), will retry"
@@ -169,7 +169,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
 
     // Auto-approve safe plans (<=1 destruction for old task def replacement)
     if (status in ['planned', 'cost_estimated', 'policy_checked']) {
-      response = httpRequest(url: "${TFC_BASE_URL}/api/v2/runs/${runId}/plan", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '2XX')
+      response = httpRequest(url: "${TFC_BASE_URL}/api/v2/runs/${runId}/plan", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '200:299')
       json = readJSON text: response.content
       if (!json.data?.attributes) {
         error "TFC returned no data for plan — refusing to auto-approve: ${uiLink}"
@@ -188,7 +188,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
           httpMode: 'POST',
           customHeaders: customHeaders,
           requestBody: groovy.json.JsonOutput.toJson([comment: "Discarded: plan includes ${destructions} resource destruction(s)"]),
-          validResponseCodes: '2XX',
+          validResponseCodes: '200:299',
         )
         error "Terraform plan includes ${destructions} resource destruction(s) (expected at most 1 for task def replacement), discarded: ${uiLink}"
       }
@@ -199,7 +199,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
         httpMode: 'POST',
         customHeaders: customHeaders,
         requestBody: groovy.json.JsonOutput.toJson([comment: "Auto-approved by Jenkins: MTIQ ${imageUri}"]),
-        validResponseCodes: '2XX',
+        validResponseCodes: '200:299',
       )
       echo "Apply request accepted (HTTP ${applyResponse.status})"
     }
@@ -216,7 +216,7 @@ String tfcGetStateOutput(String workspaceName, String outputName) {
     url: "${TFC_BASE_URL}/api/v2/organizations/${TFC_ORG}/workspaces/${workspaceName}",
     httpMode: 'GET',
     customHeaders: customHeaders,
-    validResponseCodes: '2XX',
+    validResponseCodes: '200:299',
   )
   def json = readJSON text: response.content
   if (!json.data) {
@@ -228,7 +228,7 @@ String tfcGetStateOutput(String workspaceName, String outputName) {
     url: "${TFC_BASE_URL}/api/v2/workspaces/${workspaceId}/current-state-version-outputs",
     httpMode: 'GET',
     customHeaders: customHeaders,
-    validResponseCodes: '2XX',
+    validResponseCodes: '200:299',
   )
   json = readJSON text: response.content
   if (!json.data) {

@@ -54,6 +54,15 @@ import groovy.transform.Field
 @Field final String ECR_REGION = 'us-east-2'
 @Field final Map ECR_ACCOUNT = [id: '468017555316', credentialId: 'cloud-native-dev-external-id']
 
+// Staging ECR Account — placeholder until staging infrastructure is ready
+// TODO: Replace with actual staging account ID and credential ID when infrastructure is available
+@Field final Map STAGING_ECR_ACCOUNT = [
+    id: '<PLACEHOLDER-staging-account-id>',
+    credentialId: '<PLACEHOLDER-staging-credential-id>'
+]
+
+@Field final String ECR_REPOSITORY = 'sca-cloud/mtiq-server'
+
 String pushToEcrCached(String branchOverride = null) {
   if (!env.GIT_COMMIT) {
     error 'env.GIT_COMMIT is not set — ensure the workspace was checked out before calling pushToEcrCached()'
@@ -120,6 +129,123 @@ String pushToEcrCached(String branchOverride = null) {
   }
 
   return ecrTag
+}
+
+/**
+ * Validates that an image exists in ECR.
+ *
+ * @param account Account configuration map with 'id' and 'credentialId'
+ * @param repository ECR repository name
+ * @param imageTag Image tag to validate
+ * @param region AWS region
+ */
+void validateImageExists(Map account, String repository, String imageTag, String region = ECR_REGION) {
+  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+      roleAccount: account.id, region: region) {
+    def result = sh(script: """
+      aws ecr describe-images \
+        --repository-name '${repository}' \
+        --image-ids imageTag='${imageTag}' \
+        --region '${region}' \
+        --output json
+    """, returnStatus: true)
+
+    if (result != 0) {
+      error "Image '${imageTag}' not found in ${repository} (account: ${account.id})"
+    }
+    echo "Validated image exists: ${imageTag}"
+  }
+}
+
+/**
+ * Retrieves the image manifest from ECR.
+ * Works for both single-architecture and multi-architecture (manifest list) images.
+ *
+ * @param account Account configuration map with 'id' and 'credentialId'
+ * @param repository ECR repository name
+ * @param imageTag Image tag to retrieve manifest for
+ * @param region AWS region
+ * @return Image manifest JSON string
+ */
+String getImageManifest(Map account, String repository, String imageTag, String region = ECR_REGION) {
+  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+      roleAccount: account.id, region: region) {
+    def manifest = sh(script: """
+      aws ecr batch-get-image \
+        --repository-name '${repository}' \
+        --image-ids imageTag='${imageTag}' \
+        --region '${region}' \
+        --output text \
+        --query 'images[0].imageManifest'
+    """, returnStdout: true).trim()
+
+    if (!manifest || manifest == 'None') {
+      error "Failed to retrieve manifest for '${imageTag}'"
+    }
+    echo "Retrieved manifest for ${imageTag} (${manifest.length()} chars)"
+    return manifest
+  }
+}
+
+/**
+ * Pushes an image manifest to ECR, creating or updating a tag.
+ *
+ * @param account Account configuration map with 'id' and 'credentialId'
+ * @param repository ECR repository name
+ * @param imageTag Tag to apply to the image
+ * @param manifest Image manifest JSON string
+ * @param region AWS region
+ */
+void putImageManifest(Map account, String repository, String imageTag, String manifest, String region = ECR_REGION) {
+  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+      roleAccount: account.id, region: region) {
+    // Write manifest to temp file to avoid shell escaping issues with large JSON
+    writeFile file: 'image-manifest.json', text: manifest
+
+    sh """
+      aws ecr put-image \
+        --repository-name '${repository}' \
+        --image-tag '${imageTag}' \
+        --image-manifest 'file://image-manifest.json' \
+        --region '${region}'
+    """
+
+    echo "Pushed manifest with tag: ${imageTag}"
+  }
+}
+
+/**
+ * Promotes an image from one ECR account to another via manifest copy.
+ * This is a cross-account operation that does NOT require Docker.
+ * Preserves multi-architecture images (manifest lists).
+ *
+ * @param sourceAccount Source account configuration map
+ * @param targetAccount Target account configuration map
+ * @param repository ECR repository name (must exist in both accounts)
+ * @param sourceTag Source image tag
+ * @param additionalTags Optional additional tags to apply in target (e.g., 'staging-latest')
+ * @param region AWS region
+ */
+void promoteImage(Map sourceAccount, Map targetAccount, String repository, String sourceTag,
+    List<String> additionalTags = [], String region = ECR_REGION) {
+
+  echo "Promoting image ${sourceTag} from account ${sourceAccount.id} to ${targetAccount.id}"
+
+  // Step 1: Validate image exists in source
+  validateImageExists(sourceAccount, repository, sourceTag, region)
+
+  // Step 2: Get manifest from source
+  def manifest = getImageManifest(sourceAccount, repository, sourceTag, region)
+
+  // Step 3: Push manifest to target with original tag
+  putImageManifest(targetAccount, repository, sourceTag, manifest, region)
+
+  // Step 4: Apply additional tags if specified
+  for (String tag : additionalTags) {
+    putImageManifest(targetAccount, repository, tag, manifest, region)
+  }
+
+  echo "Successfully promoted ${sourceTag} to account ${targetAccount.id} with tags: ${[sourceTag] + additionalTags}"
 }
 
 return this

@@ -5,23 +5,30 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
 import com.nimbusds.oauth2.sdk.AuthorizationGrant;
+import com.nimbusds.oauth2.sdk.ErrorObject;
 import com.nimbusds.oauth2.sdk.ResponseType;
 import com.nimbusds.oauth2.sdk.Scope;
 import com.nimbusds.oauth2.sdk.TokenRequest;
@@ -34,6 +41,7 @@ import com.nimbusds.oauth2.sdk.id.State;
 import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
 import com.nimbusds.openid.connect.sdk.AuthenticationRequest.Builder;
 import com.nimbusds.openid.connect.sdk.Nonce;
+import com.nimbusds.oauth2.sdk.http.HTTPRequest;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 import jakarta.inject.Inject;
@@ -83,17 +91,21 @@ public class OidcLoginFilter
 
   private final BaseUrl baseUrl;
 
+  private final Configuration configuration;
+
   private final TenantReference<String> oidcClientSecretRef = new TenantReference<>();
 
   @Inject
   public OidcLoginFilter(
       final BaseUrl baseUrl,
       final PasswordHandler passwordHandler,
-      final OidcConfigurationDAO oidcConfigurationDAO)
+      final OidcConfigurationDAO oidcConfigurationDAO,
+      final Configuration configuration)
   {
     this.passwordHandler = passwordHandler;
     this.oidcConfigurationDAO = oidcConfigurationDAO;
     this.baseUrl = baseUrl;
+    this.configuration = configuration;
   }
 
   @Override
@@ -232,26 +244,31 @@ public class OidcLoginFilter
 
     TokenRequest tokenRequest = buildTokenRequest(oidcConfiguration, callbackUrl, codeParameter);
 
+    String idToken;
     try {
-      TokenResponse tokenResponse = OIDCTokenResponseParser.parse(tokenRequest.toHTTPRequest().send());
+      TokenResponse tokenResponse = sendTokenRequestWithProxy(tokenRequest);
 
       if (!tokenResponse.indicatesSuccess()) {
-        String error = tokenResponse.toErrorResponse().getErrorObject().getDescription();
+        ErrorObject errorObject = tokenResponse.toErrorResponse().getErrorObject();
+        String error = errorObject.getDescription() != null ? errorObject.getDescription() : errorObject.getCode();
+        log.error("Token endpoint returned error: code={}, description={}", errorObject.getCode(),
+            errorObject.getDescription());
         throw new AuthenticationException(error);
       }
 
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
-      String idToken = successResponse.getOIDCTokens().getIDTokenString();
-      completeAuthentication(idToken);
-
-      // Redirect to the initial URL
-      res.setHeader("Location", redirectUrl);
-      res.setStatus(HttpServletResponse.SC_FOUND);
+      idToken = successResponse.getOIDCTokens().getIDTokenString();
     }
     catch (Exception e) {
       log.error(ERROR_GETTING_TOKENS, e);
       throw new AuthenticationException(ERROR_GETTING_TOKENS, e);
     }
+
+    completeAuthentication(idToken);
+
+    // Redirect to the initial URL
+    res.setHeader("Location", redirectUrl);
+    res.setStatus(HttpServletResponse.SC_FOUND);
   }
 
   private TokenRequest buildTokenRequest(
@@ -284,6 +301,36 @@ public class OidcLoginFilter
       log.error(ERROR_BUILDING_TOKEN_REQUEST, exception);
       throw new AuthenticationException(ERROR_BUILDING_TOKEN_REQUEST, exception);
     }
+  }
+
+  private TokenResponse sendTokenRequestWithProxy(final TokenRequest tokenRequest) throws Exception {
+    HTTPRequest nimbusRequest = tokenRequest.toHTTPRequest();
+    ProxyServerConfiguration proxyConfig = configuration.getProxyServerConfiguration();
+    if (proxyConfig != null && proxyConfig.getHostname() != null) {
+      String tokenHost = nimbusRequest.getURL().getHost();
+      if (!isHostExcluded(tokenHost, proxyConfig.getExcludeHostsList())) {
+        if (proxyConfig.getUsername() != null) {
+          log.warn("Proxy authentication credentials are not supported for OIDC token requests; "
+              + "proxy username is configured but will be ignored.");
+        }
+        InetSocketAddress proxyAddress = new InetSocketAddress(proxyConfig.getHostname(), proxyConfig.getPort());
+        nimbusRequest.setProxy(new Proxy(Proxy.Type.HTTP, proxyAddress));
+      }
+    }
+    return OIDCTokenResponseParser.parse(nimbusRequest.send());
+  }
+
+  static boolean isHostExcluded(final String hostname, final List<String> excludePatterns) {
+    if (excludePatterns == null || excludePatterns.isEmpty()) {
+      return false;
+    }
+    for (String pattern : excludePatterns) {
+      String regex = "\\Q" + pattern.replace("*", "\\E.*\\Q") + "\\E";
+      if (Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(hostname).matches()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String getOidcClientSecret(OidcConfiguration oidcConfiguration) {

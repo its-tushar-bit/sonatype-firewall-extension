@@ -13,11 +13,15 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import org.apache.shiro.authc.AuthenticationException;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
@@ -25,10 +29,15 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
+import org.eclipse.jetty.server.NetworkConnector;
+import org.eclipse.jetty.server.Server;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +50,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -74,11 +85,15 @@ public class OidcLoginFilterTest
   @Mock
   private BaseUrl mockBaseUrl;
 
+  @Mock
+  private Configuration mockConfiguration;
+
   private String encryptedClientSecret;
 
   @Override
   public void configure(final Binder binder) {
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
+    binder.bind(Configuration.class).toInstance(mockConfiguration);
     super.configure(binder);
   }
 
@@ -285,6 +300,158 @@ public class OidcLoginFilterTest
     result = oidcLoginFilter.onPreHandle(request, response, null);
     assertThat(result).isFalse();
     assertThat(getOidcClientSecretRefValue(oidcLoginFilter)).isEqualTo(CLIENT_SECRET);
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_UsesProxyWhenConfigured() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+    final AtomicBoolean proxyHit = new AtomicBoolean(false);
+
+    // Start a real proxy server that records that it was hit, then serves a valid token response
+    Server proxyServer = new Server(0);
+    ServletContextHandler context = new ServletContextHandler();
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        proxyHit.set(true);
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        res.getWriter().print(getTokensResponse("token-response.json"));
+      }
+    }), "/*");
+    proxyServer.setHandler(context);
+    proxyServer.start();
+
+    try {
+      when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+      ProxyServerConfiguration proxyConfig = new ProxyServerConfiguration();
+      proxyConfig.setHostname("localhost");
+      proxyConfig.setPort(((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort());
+      when(mockConfiguration.getProxyServerConfiguration()).thenReturn(proxyConfig);
+
+      tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+      when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+      when(request.getParameter("code")).thenReturn("code");
+      when(request.getParameter("hash")).thenReturn("");
+
+      boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+
+      assertThat(result).isFalse();
+      assertThat(proxyHit).isTrue();
+      verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+      verify(response).setStatus(HttpServletResponse.SC_FOUND);
+      assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+    }
+    finally {
+      proxyServer.stop();
+    }
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_BypassesProxyWhenHostExcluded() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+    final AtomicBoolean proxyHit = new AtomicBoolean(false);
+
+    // Start a proxy server that records if it was hit
+    Server proxyServer = new Server(0);
+    ServletContextHandler context = new ServletContextHandler();
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        proxyHit.set(true);
+        res.setStatus(HttpServletResponse.SC_OK);
+      }
+    }), "/*");
+    proxyServer.setHandler(context);
+    proxyServer.start();
+
+    try {
+      when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+      ProxyServerConfiguration proxyConfig = new ProxyServerConfiguration();
+      proxyConfig.setHostname("localhost");
+      proxyConfig.setPort(((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort());
+      proxyConfig.setExcludeHosts("localhost");
+      when(mockConfiguration.getProxyServerConfiguration()).thenReturn(proxyConfig);
+
+      tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+      when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+      when(request.getParameter("code")).thenReturn("code");
+      when(request.getParameter("hash")).thenReturn("");
+      idpServer.stubFor(post(urlPathEqualTo("/token"))
+          .willReturn(aResponse()
+              .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+              .withBody(getTokensResponse("token-response.json"))));
+
+      boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+
+      assertThat(result).isFalse();
+      assertThat(proxyHit).isFalse();
+      verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+      verify(response).setStatus(HttpServletResponse.SC_FOUND);
+      assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+    }
+    finally {
+      proxyServer.stop();
+    }
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_AuthenticationFailureNotMaskedAsTokenError() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final PrintWriter writer = setupPrintWriter(response);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response-malformed-id-token.json"))));
+    doThrow(new AuthenticationException("Authentication failed")).when(subject).login(any());
+
+    boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+
+    // Token fetch succeeded, but authentication completion failed (malformed JWT).
+    // The error must NOT say "Error getting the OIDC tokens from IDP".
+    assertThat(result).isFalse();
+    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(response).setContentType(ErrorResponse.CONTENT_TYPE);
+    verify(response).getWriter();
+    verify(writer).close();
+    ArgumentCaptor<String> errorCaptor = ArgumentCaptor.forClass(String.class);
+    verify(writer).print(errorCaptor.capture());
+    assertThat(errorCaptor.getValue()).doesNotContain(OidcLoginFilter.ERROR_GETTING_TOKENS);
+    assertThat(errorCaptor.getValue()).contains("Authentication failed");
+  }
+
+  @Test
+  public void testIsHostExcluded_ReturnsTrueForMatchingPattern() {
+    assertThat(OidcLoginFilter.isHostExcluded("internal.example.com", List.of("*.example.com"))).isTrue();
+    assertThat(OidcLoginFilter.isHostExcluded("INTERNAL.EXAMPLE.COM", List.of("*.example.com"))).isTrue();
+    assertThat(OidcLoginFilter.isHostExcluded("other.com", List.of("*.example.com"))).isFalse();
+    assertThat(OidcLoginFilter.isHostExcluded("example.com", List.of("*.example.com"))).isFalse();
+    assertThat(OidcLoginFilter.isHostExcluded("idp.corp", List.of("idp.corp"))).isTrue();
+    assertThat(OidcLoginFilter.isHostExcluded("idp.corp", List.of())).isFalse();
+    assertThat(OidcLoginFilter.isHostExcluded("idp.corp", null)).isFalse();
   }
 
   @Test

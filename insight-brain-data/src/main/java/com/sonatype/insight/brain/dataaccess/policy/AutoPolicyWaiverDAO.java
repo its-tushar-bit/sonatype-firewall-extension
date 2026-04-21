@@ -71,6 +71,7 @@ public class AutoPolicyWaiverDAO
             return tx.dsl()
                 .selectFrom(AUTO_POLICY_WAIVER)
                 .where(AUTO_POLICY_WAIVER.OWNER_ID.in(ids))
+                .orderBy(AUTO_POLICY_WAIVER.THREAT_LEVEL.desc())
                 .fetch(this::toEntity);
           }
         });

@@ -1,0 +1,137 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for running smoke tests against staging cells.
+ *
+ * Triggered as a downstream job from Jenkinsfile.deploy-to-staging after successful
+ * staging deployment. Initially runs as a no-op placeholder until staging smoke test
+ * tenants are provisioned.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag that was just deployed (for traceability/reporting)
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/test-staging
+ *
+ * ============================================================================
+ * TEMPORARY BYPASS - STAGING SMOKE TEST TENANTS NOT YET PROVISIONED
+ * ============================================================================
+ *
+ * The staging smoke test tenants are not yet provisioned.
+ * Until they're available, this job runs in bypass mode and returns SUCCESS.
+ *
+ * Once staging smoke test tenants are ready:
+ * 1. Set STAGING_SMOKE_TESTS_READY = true below
+ * 2. Add checkout of mtiq-tools repository
+ * 3. Add Maven build with smoke profile
+ * 4. Run PostDeploymentSmokeTest against staging tenant
+ * 5. Archive test reports
+ * 6. Remove this comment block
+ *
+ * Tracked in: CLM-39471 (Enable real smoke tests)
+ * Tenant provisioning: CLM-39472
+ * ============================================================================
+ */
+
+// TODO: Change to true when staging smoke test tenants are provisioned (CLM-39471)
+def STAGING_SMOKE_TESTS_READY = false
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The ECR tag that was deployed (for traceability)')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    timeout(time: 30, unit: 'MINUTES')
+    disableConcurrentBuilds()
+  }
+
+  tools {
+    jdk 'OpenJDK 17'
+  }
+
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          echo "Testing image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Smoke Test') {
+      steps {
+        script {
+          if (!STAGING_SMOKE_TESTS_READY) {
+            echo "============================================"
+            echo "SKIP: STAGING SMOKE TEST TENANTS NOT YET PROVISIONED"
+            echo "============================================"
+            echo "This job is running in BYPASS mode."
+            echo "The staging smoke test tenants have not been provisioned."
+            echo ""
+            echo "Once staging smoke test tenants are ready (CLM-39471):"
+            echo "1. Set STAGING_SMOKE_TESTS_READY = true in this Jenkinsfile"
+            echo "2. Checkout mtiq-tools repository"
+            echo "3. Build with: mvn clean install -P smoke"
+            echo "4. Run PostDeploymentSmokeTest against staging tenant"
+            echo "5. Create Jenkins credential: mtiq-staging-smoke-test-user"
+            echo ""
+            echo "Image tag: ${params.IMAGE_TAG}"
+            echo "============================================"
+            return
+          }
+
+          // TODO: Real smoke test implementation (CLM-39471)
+          // checkout([$class: 'GitSCM',
+          //           branches: [[name: '*/main']],
+          //           userRemoteConfigs: [[url: 'git@github.com:sonatype/mtiq-tools.git',
+          //                               credentialsId: sonatypeZionCredentialsId()]]])
+          //
+          // withCredentials([usernamePassword(credentialsId: 'mtiq-staging-smoke-test-user',
+          //                                   usernameVariable: 'SMOKE_USER',
+          //                                   passwordVariable: 'SMOKE_PASSWORD')]) {
+          //   sh 'mvn clean install -P smoke -Dsmoke.tenant.url=https://staging.mtiq.sonatype.com'
+          // }
+        }
+      }
+    }
+
+    stage('Trigger deploy-to-prod-internal') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-internal',
+              parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Smoke tests passed for image tag: ${params.IMAGE_TAG}"
+      // TODO: Uncomment when real tests are enabled (CLM-39471)
+      // archiveArtifacts 'mtiq-load-testing/**/mtiq-*-report-*.html'
+    }
+    failure {
+      script {
+        echo "Smoke tests failed for image tag: ${params.IMAGE_TAG}"
+        // TODO: Add Slack notification to mtiq-notices when real tests are enabled (CLM-39471)
+        // notifyChat(room: 'mtiq-notices',
+        //            message: "Staging smoke tests FAILED for image tag: ${params.IMAGE_TAG}")
+      }
+    }
+  }
+}

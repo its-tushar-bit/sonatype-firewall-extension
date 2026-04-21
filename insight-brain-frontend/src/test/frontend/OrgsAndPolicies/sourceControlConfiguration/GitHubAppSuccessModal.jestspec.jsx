@@ -37,8 +37,8 @@ describe('GitHubAppSuccessModal', () => {
       expect(getByText(/update/)).toBeInTheDocument();
     });
 
-    it('does not show alert when no features are auto-enabled', () => {
-      const { queryByText } = render(
+    it('still shows alert when no features are auto-enabled', () => {
+      const { getByText } = render(
         <GitHubAppSuccessModal
           {...defaultProps}
           autoEnabledGoldenPRs={false}
@@ -47,7 +47,22 @@ describe('GitHubAppSuccessModal', () => {
         />
       );
 
-      expect(queryByText(/Click/)).not.toBeInTheDocument();
+      expect(getByText(/Click/)).toBeInTheDocument();
+      expect(getByText(/create/)).toBeInTheDocument();
+    });
+
+    it('shows update alert when no features are auto-enabled and submitBtnText is "Update"', () => {
+      const { getByText } = render(
+        <GitHubAppSuccessModal
+          {...defaultProps}
+          autoEnabledGoldenPRs={false}
+          autoEnabledManualPRs={false}
+          submitBtnText="Update"
+        />
+      );
+
+      expect(getByText(/Click/)).toBeInTheDocument();
+      expect(getByText(/update/)).toBeInTheDocument();
     });
   });
 

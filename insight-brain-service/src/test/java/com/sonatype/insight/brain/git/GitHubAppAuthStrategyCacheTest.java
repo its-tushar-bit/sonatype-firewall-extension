@@ -379,6 +379,7 @@ public class GitHubAppAuthStrategyCacheTest
     githubApp.setGithubOrganizationName("test-org");
     githubApp.setLastUpdatedAt(new Date());
     githubApp.setPrivateKey(String.valueOf(encryptedKey));
+    githubApp.setActive(true);
     return tempEntity.newGitHubApp(githubApp);
   }
 }

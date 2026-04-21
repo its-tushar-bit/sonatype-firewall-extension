@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightProxy;
 import jakarta.inject.Inject;
@@ -21,10 +22,13 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStat
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -43,6 +47,8 @@ public class GitHubAppDeletionServiceTest
 {
   private static final Long TEST_VALID_INSTALLATION_ID = 67890L;
 
+  private int appIdCounter = 10000;
+
   @Rule(order = 0)
   public WireMockRule githubMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -58,6 +64,9 @@ public class GitHubAppDeletionServiceTest
   @Inject
   private InsightProxy insightProxy;
 
+  @Mock
+  private GitHubAppAuthStrategyCache mockCache;
+
   @Inject
   private GitHubAppDeletionService deletionService;
 
@@ -65,6 +74,7 @@ public class GitHubAppDeletionServiceTest
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    MockitoAnnotations.openMocks(this);
     setupGitHubAppDeletionService();
     stubGitHubAppInstallationDeletion();
   }
@@ -76,6 +86,7 @@ public class GitHubAppDeletionServiceTest
         installationStateDAO,
         passwordHandler,
         insightProxy,
+        mockCache,
         wireMockBaseUrl);
   }
 
@@ -168,34 +179,30 @@ public class GitHubAppDeletionServiceTest
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
-  private void createGitHubApp(String ownerId) {
-    GitHubApp gitHubApp = new GitHubApp();
-    gitHubApp.setId(UUID.randomUUID().toString());
-    gitHubApp.setOwnerId(ownerId);
-    gitHubApp.setAppId(12345);
-    gitHubApp.setSlug("test-app");
-    gitHubApp.setGithubOrganizationName("myOrg");
-    gitHubApp.setClientId("test-client-id");
-    gitHubApp.setClientSecret(passwordHandler.encryptPassword("test-client-secret"));
-    gitHubApp.setPrivateKey(passwordHandler.encryptPassword(generateTestRsaPrivateKey()));
-    gitHubApp.setInstallationId(TEST_VALID_INSTALLATION_ID);
-    gitHubApp.setLastUpdatedAt(new Date());
-    tempEntity.newGitHubApp(gitHubApp);
+  private GitHubApp createGitHubApp(String ownerId) {
+    return createGitHubApp(ownerId, TEST_VALID_INSTALLATION_ID, true);
   }
 
-  private void createGitHubAppWithoutInstallationId(String ownerId) {
+  private GitHubApp createGitHubAppWithoutInstallationId(String ownerId) {
+    return createGitHubApp(ownerId, null, true);
+  }
+
+  private GitHubApp createGitHubApp(String ownerId, Long installationId, boolean isActive) {
+    appIdCounter++;
+
     GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(UUID.randomUUID().toString());
     gitHubApp.setOwnerId(ownerId);
-    gitHubApp.setAppId(12345);
+    gitHubApp.setAppId(appIdCounter);
     gitHubApp.setSlug("test-app");
     gitHubApp.setGithubOrganizationName("myOrg");
     gitHubApp.setClientId("test-client-id");
     gitHubApp.setClientSecret(passwordHandler.encryptPassword("test-client-secret"));
     gitHubApp.setPrivateKey(passwordHandler.encryptPassword(generateTestRsaPrivateKey()));
-    gitHubApp.setInstallationId(null); // Explicitly set to null
+    gitHubApp.setInstallationId(installationId);
     gitHubApp.setLastUpdatedAt(new Date());
-    tempEntity.newGitHubApp(gitHubApp);
+    gitHubApp.setActive(isActive);
+    return tempEntity.newGitHubApp(gitHubApp);
   }
 
   private String generateTestRsaPrivateKey() {
@@ -209,5 +216,69 @@ public class GitHubAppDeletionServiceTest
     catch (Exception e) {
       throw new RuntimeException("Failed to generate test RSA key", e);
     }
+  }
+
+  @Test
+  public void testDeactivateGitHubApps_NoGitHubApp_ReturnsSuccessfully() {
+    Application app = tempEntity.newApplicationWithParent();
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+  }
+
+  @Test
+  public void testDeactivateGitHubApps_DeactivatesSuccessfully() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = tempEntity.newGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
+
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId()).isActive()).isTrue();
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+
+    GitHubApp deactivatedApp = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivatedApp).isNotNull();
+    assertThat(deactivatedApp.isActive()).isFalse();
+  }
+
+  @Test
+  public void testDeactivateGitHubApps_DeactivatesMultipleApps() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    GitHubApp gitHubApp1 = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID, true);
+    GitHubApp gitHubApp2 = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID + 1, true);
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testDeactivateGitHubApps_WithMultipleApps_DeactivatesAll() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    GitHubApp app1 = createGitHubApp(app.getId(), 11111L, true);
+    GitHubApp app2 = createGitHubApp(app.getId(), 22222L, false);
+    GitHubApp app3 = createGitHubApp(app.getId(), 33333L, true);
+
+    app1.setActive(true);
+    gitHubAppDAO.update(app1);
+    app3.setActive(true);
+    gitHubAppDAO.update(app3);
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+
+    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
   }
 }

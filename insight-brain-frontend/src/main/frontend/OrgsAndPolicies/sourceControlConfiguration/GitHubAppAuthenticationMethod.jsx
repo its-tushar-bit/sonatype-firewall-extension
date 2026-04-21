@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 import { NxButton, NxFieldset, NxFormGroup, NxRadio, NxTextInput } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
 import GitHubAppDetailsBox from './GitHubAppDetailsBox';
-import { AUTHENTICATION_TYPES } from './utils';
+import { AUTHENTICATION_TYPES, hasConfiguredGitHubApp } from './utils';
 import './_gitHubAppAuthenticationMethod.scss';
 
 const GitHubAppAuthenticationMethod = ({
@@ -21,6 +21,8 @@ const GitHubAppAuthenticationMethod = ({
   isGithubAppAuthenticationEnabled,
 }) => {
   const dispatch = useDispatch();
+  const hasLocalGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.value);
+  const hasParentGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.parentValue);
   const [authMethod, setAuthMethod] = useState(() => {
     // If authenticationType has an explicit value, use it
     if (sourceControl?.authenticationType?.value) {
@@ -31,7 +33,7 @@ const GitHubAppAuthenticationMethod = ({
       return null;
     }
     // For non-inherited cases without explicit value, infer from what's configured
-    if (sourceControl?.githubApp?.value?.installationId) {
+    if (hasLocalGithubApp) {
       return AUTHENTICATION_TYPES.GITHUB_APP;
     }
     if (sourceControl?.token?.rscValue?.value) {
@@ -47,7 +49,7 @@ const GitHubAppAuthenticationMethod = ({
   const isAuthMethodInherited = Boolean(supportsInheritance && sourceControl?.authenticationType?.isInherited);
 
   const parentGithubApp = sourceControl?.githubApp?.parentValue;
-  const hasParentConfig = parentGithubApp?.installationId;
+  const hasParentConfig = hasParentGithubApp;
   // Check if parent has any authentication configured (GitHub App OR PAT)
   const hasParentAuth = hasParentConfig || Boolean(sourceControl?.token?.parentValue?.value);
   const parentAuthType = sourceControl?.authenticationType?.parentValue;
@@ -73,7 +75,7 @@ const GitHubAppAuthenticationMethod = ({
       !sourceControl?.authenticationType?.value &&
       authMethod === null
     ) {
-      if (sourceControl?.githubApp?.value?.installationId) {
+      if (hasLocalGithubApp) {
         setAuthMethod(AUTHENTICATION_TYPES.GITHUB_APP);
         if (setValue) {
           setValue('authenticationType', AUTHENTICATION_TYPES.GITHUB_APP);
@@ -88,6 +90,7 @@ const GitHubAppAuthenticationMethod = ({
   }, [
     sourceControl?.authenticationType?.value,
     sourceControl?.authenticationType?.isInherited,
+    sourceControl?.githubApp?.value?.id,
     sourceControl?.githubApp?.value?.installationId,
     sourceControl?.token?.rscValue?.value,
   ]);
@@ -103,7 +106,7 @@ const GitHubAppAuthenticationMethod = ({
   };
 
   //TODO: Determine if GitHub App is already configured via separate API
-  const isConfigured = sourceControl?.githubApp?.value?.installationId;
+  const isConfigured = hasLocalGithubApp;
 
   // If GitHub App authentication is not enabled, only show Personal Access Token option
   if (!isGithubAppAuthenticationEnabled) {
@@ -244,12 +247,14 @@ GitHubAppAuthenticationMethod.propTypes = {
     }),
     githubApp: PropTypes.shape({
       value: PropTypes.shape({
+        id: PropTypes.string,
         installationId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
         name: PropTypes.string,
         accountName: PropTypes.string,
       }),
       isInherited: PropTypes.bool,
       parentValue: PropTypes.shape({
+        id: PropTypes.string,
         installationId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
         name: PropTypes.string,
         accountName: PropTypes.string,

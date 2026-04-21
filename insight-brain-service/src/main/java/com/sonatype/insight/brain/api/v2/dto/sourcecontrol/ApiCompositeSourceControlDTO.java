@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.sourcecontrol;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ApiCompositeSourceControlDTO
 {
   public String id;
@@ -47,8 +50,7 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<String> authenticationType = new ApiCompositeValueDTO<>();
 
-  // GitHub App information
-  public ApiCompositeValueDTO<GitHubAppInfo> githubApp = new ApiCompositeValueDTO<>();
+  public List<ApiCompositeValueDTO<GitHubAppInfo>> githubApps = new ArrayList<>();
 
   /**
    * Nested DTO containing GitHub App configuration details
@@ -64,5 +66,7 @@ public class ApiCompositeSourceControlDTO
     public Long installationId;
 
     public String configurationDate;
+
+    public boolean isActive;
   }
 }

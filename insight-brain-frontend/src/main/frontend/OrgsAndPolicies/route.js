@@ -212,7 +212,7 @@ ownerTypes.forEach((ownerType) => {
 
   router.stateRegistry.register({
     name: `management.edit.${ownerType.type}.edit-source-control`,
-    url: '/source-control?githubAppSuccess',
+    url: '/source-control?githubAppId',
     component: SourceControlConfiguration,
     data: {
       title: 'Source Control',

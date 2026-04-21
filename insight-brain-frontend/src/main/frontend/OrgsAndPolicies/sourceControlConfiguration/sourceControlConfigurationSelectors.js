@@ -13,6 +13,7 @@ import {
   effectiveProvider,
   effectiveAuthenticationType,
   GITHUB_APP_NOT_CONFIGURED_MESSAGE,
+  hasConfiguredGitHubApp,
   PROVIDERS_WITH_USERNAME,
 } from './utils';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -76,11 +77,11 @@ export const selectValidationError = createSelector(
     const isTokenRequired = !isGitHubWithAppAuth;
 
     // GitHub App must be configured when GITHUB_APP auth is selected
-    const githubAppInstallationId = sourceControl.githubApp?.isInherited
-      ? sourceControl.githubApp?.parentValue?.installationId
-      : sourceControl.githubApp?.value?.installationId;
+    const selectedGithubApp = sourceControl.githubApp?.isInherited
+      ? sourceControl.githubApp?.parentValue
+      : sourceControl.githubApp?.value;
 
-    if (isGitHubWithAppAuth && !githubAppInstallationId) {
+    if (isGitHubWithAppAuth && !hasConfiguredGitHubApp(selectedGithubApp)) {
       return GITHUB_APP_NOT_CONFIGURED_MESSAGE;
     }
 
@@ -153,14 +154,9 @@ export const selectShowGitHubAppSuccessModal = createSelector(
   prop('showGitHubAppSuccessModal')
 );
 
-export const selectShowGitHubAppReplacedAlert = createSelector(
+export const selectHasPendingGitHubAppReturn = createSelector(
   selectSourceControlConfigurationSlice,
-  prop('showGitHubAppReplacedAlert')
-);
-
-export const selectIsGitHubAppReplacement = createSelector(
-  selectSourceControlConfigurationSlice,
-  prop('isGitHubAppReplacement')
+  prop('hasPendingGitHubAppReturn')
 );
 
 export const selectSourceControl = createSelector(selectSourceControlConfigurationSlice, prop('sourceControl'));

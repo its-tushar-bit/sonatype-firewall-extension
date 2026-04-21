@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -48,6 +49,8 @@ public class ApplicationCleaner
 
   private final SbomPersistenceService sbomPersistenceService;
 
+  private final GitHubAppDeletionService gitHubAppDeletionService;
+
   @Inject
   public ApplicationCleaner(
       final InsightWork work,
@@ -56,7 +59,8 @@ public class ApplicationCleaner
       final ApplicationDAO applicationDAO,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final ScanPersistenceService scanPersistenceService,
-      final SbomPersistenceService sbomPersistenceService)
+      final SbomPersistenceService sbomPersistenceService,
+      final GitHubAppDeletionService gitHubAppDeletionService)
   {
     this.work = work;
     this.fileCleaner = fileCleaner;
@@ -65,6 +69,7 @@ public class ApplicationCleaner
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.scanPersistenceService = scanPersistenceService;
     this.sbomPersistenceService = sbomPersistenceService;
+    this.gitHubAppDeletionService = gitHubAppDeletionService;
   }
 
   public void delete(final TransactionContext tx, final Application application) throws IOException {
@@ -82,6 +87,8 @@ public class ApplicationCleaner
     catch (IOException e) {
       log.error("Could not delete application icons: {}", applicationIconDirectory, e);
     }
+
+    gitHubAppDeletionService.deactivateGitHubApps(tx, application.getId());
 
     // delete application last, this way the operation can be retried later if anything goes wrong
     applicationDAO.delete(tx, application);

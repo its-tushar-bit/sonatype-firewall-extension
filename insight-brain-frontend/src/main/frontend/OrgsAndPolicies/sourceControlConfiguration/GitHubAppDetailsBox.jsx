@@ -11,6 +11,7 @@ import {
   getCleanAccountName,
   getGitHubAppInstallationUrl,
   GITHUB_ACCOUNT_DISPLAY_LABELS,
+  hasConfiguredGitHubApp,
 } from './utils';
 import './_gitHubAppDetailsBox.scss';
 
@@ -20,7 +21,7 @@ import './_gitHubAppDetailsBox.scss';
  * shows a Reconfigure button and custom repository URL
  */
 const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure, disabled }) => {
-  if (!githubApp?.installationId) {
+  if (!hasConfiguredGitHubApp(githubApp)) {
     return null;
   }
 
@@ -90,6 +91,7 @@ const GitHubAppDetailsBox = ({ githubApp, linkText, repositoryUrl, onReconfigure
 GitHubAppDetailsBox.propTypes = {
   // Required props
   githubApp: PropTypes.shape({
+    id: PropTypes.string,
     installationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     accountName: PropTypes.string,
     accountType: PropTypes.string,

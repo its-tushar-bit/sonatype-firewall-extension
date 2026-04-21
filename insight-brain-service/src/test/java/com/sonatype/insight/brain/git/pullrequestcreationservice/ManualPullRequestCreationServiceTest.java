@@ -576,6 +576,7 @@ public class ManualPullRequestCreationServiceTest
     githubApp.setGithubOrganizationName("test-org");
     githubApp.setPrivateKey(String.valueOf(encryptedKey));
     githubApp.setLastUpdatedAt(new Date());
+    githubApp.setActive(true);
     tempEntity.newGitHubApp(githubApp);
 
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(application.getId());
@@ -638,6 +639,7 @@ public class ManualPullRequestCreationServiceTest
     rootGithubApp.setGithubOrganizationName("root-org");
     rootGithubApp.setPrivateKey(String.valueOf(encryptedKey));
     rootGithubApp.setLastUpdatedAt(new Date());
+    rootGithubApp.setActive(true);
     tempEntity.newGitHubApp(rootGithubApp);
 
     // Update application's source control to use GITHUB_APP authentication

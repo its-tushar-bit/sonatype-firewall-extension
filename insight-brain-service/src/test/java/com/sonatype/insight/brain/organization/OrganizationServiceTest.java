@@ -19,9 +19,12 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -67,6 +70,14 @@ import static org.mockito.Mockito.when;
 public class OrganizationServiceTest
     extends AbstractComponentTest
 {
+  private static final String TEST_GITHUB_APP_SLUG = "test-app";
+
+  private static final String TEST_CLIENT_ID = "test-client-id";
+
+  private static final String TEST_CLIENT_SECRET = "test-client-secret";
+
+  private int appIdCounter = 10000;
+
   @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
@@ -91,6 +102,21 @@ public class OrganizationServiceTest
   @Inject
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
 
+  @Inject
+  private GitHubAppDAO gitHubAppDAO;
+
+  @Inject
+  private ApplicationCleaner applicationCleaner;
+
+  @Inject
+  private com.sonatype.insight.brain.common.io.FileCleaner fileCleaner;
+
+  @Inject
+  private com.sonatype.insight.brain.webhook.ManagementEventService managementEventService;
+
+  @Inject
+  private com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
+
   @Mock
   private CurrentUser currentUser;
 
@@ -99,6 +125,9 @@ public class OrganizationServiceTest
 
   @Mock
   private OwnerMaintenanceTelemetryCreator mockOwnerMaintenanceTelemetryCreator;
+
+  @Mock
+  private GitHubAppDeletionService mockGitHubAppDeletionService;
 
   private ListAppender<ILoggingEvent> loggingEventListAppender;
 
@@ -188,7 +217,7 @@ public class OrganizationServiceTest
   public void testGetAll() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null, mockOwnerMaintenanceTelemetryCreator);
+            null, mockOwnerMaintenanceTelemetryCreator, mockGitHubAppDeletionService);
 
     tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
 
@@ -201,7 +230,7 @@ public class OrganizationServiceTest
     OrganizationService organizationService =
         new OrganizationService(
             null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null, mockOwnerMaintenanceTelemetryCreator);
+            null, mockOwnerMaintenanceTelemetryCreator, mockGitHubAppDeletionService);
 
     tempEntity.newOrganizationWithRepositoryManager("org-with-repo-man");
 
@@ -213,7 +242,7 @@ public class OrganizationServiceTest
   public void testGetOrganization() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null, mockOwnerMaintenanceTelemetryCreator);
+            null, mockOwnerMaintenanceTelemetryCreator, mockGitHubAppDeletionService);
 
     Organization testOrg = tempEntity.newOrganization();
 
@@ -228,7 +257,7 @@ public class OrganizationServiceTest
   public void testGetOrganization_idDoesNotExist() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null, mockOwnerMaintenanceTelemetryCreator);
+            null, mockOwnerMaintenanceTelemetryCreator, mockGitHubAppDeletionService);
 
     Organization resultOrg = organizationService.getOrganization("NOT_REAL_ID");
     assertThat(resultOrg).isNull();
@@ -385,6 +414,56 @@ public class OrganizationServiceTest
   }
 
   @Test
+  public void testDeleteOrganization_DeactivatesGitHubApps() throws Exception {
+    OrganizationService customService = new OrganizationService(
+        work,
+        applicationCleaner,
+        fileCleaner,
+        organizationDAO,
+        applicationDAO,
+        managementEventService,
+        policyViolationLoggerFactory,
+        organizationApplicationManagementEventService,
+        mockOwnerMaintenanceTelemetryCreator,
+        mockGitHubAppDeletionService);
+
+    Organization organization = tempEntity.newOrganization();
+    GitHubApp gitHubApp1 = createGitHubApp(organization.getId(), 100L, true);
+    GitHubApp gitHubApp2 = createGitHubApp(organization.getId(), 200L, false);
+
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId())).isNotNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId())).isNotNull();
+
+    customService.deleteOrganization(organization.getId());
+
+    verify(mockGitHubAppDeletionService).deactivateGitHubApps(any(), eq(organization.getId()));
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteOrganization_NoGitHubApps_StillSucceeds() throws Exception {
+    OrganizationService customService = new OrganizationService(
+        work,
+        applicationCleaner,
+        fileCleaner,
+        organizationDAO,
+        applicationDAO,
+        managementEventService,
+        policyViolationLoggerFactory,
+        organizationApplicationManagementEventService,
+        mockOwnerMaintenanceTelemetryCreator,
+        mockGitHubAppDeletionService);
+
+    Organization organization = tempEntity.newOrganization();
+    assertThat(gitHubAppDAO.getByOwnerId(organization.getId())).isNull();
+
+    customService.deleteOrganization(organization.getId());
+
+    verify(mockGitHubAppDeletionService).deactivateGitHubApps(any(), eq(organization.getId()));
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+  }
+
+  @Test
   public void testGetAllParentOrgsNoAuthz_GetSameParentOrgsOfApps() {
     Organization parentOrganization1 = tempEntity.newOrganization("Parent Org 1");
     Organization parentOrganization2 = tempEntity.newOrganization("Parent Org 2", parentOrganization1);
@@ -431,5 +510,83 @@ public class OrganizationServiceTest
         .containsKey(parentOrganization5.getId())
         .containsKey(ROOT_ORGANIZATION_ID);
     verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
+  }
+
+  @Test
+  public void testDeleteOrganization_WithMultipleApps_DeactivatesAllGitHubApps() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    Application app1 = tempEntity.newApplication("App1", organization.getId());
+    GitHubApp orgGitHubApp = createGitHubApp(organization.getId(), 100L, true);
+    GitHubApp app1GitHubApp = createGitHubApp(app1.getId(), 200L, true);
+
+    Application app2 = tempEntity.newApplication("App2", organization.getId());
+    GitHubApp app2GitHubApp = createGitHubApp(app2.getId(), 300L, true);
+
+    assertThat(gitHubAppDAO.getById(orgGitHubApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(app1GitHubApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(app2GitHubApp.getId()).isActive()).isTrue();
+
+    organizationService.deleteOrganization(organization.getId());
+
+    assertThat(organizationDAO.getById(organization.getId())).isNull();
+    assertThat(applicationDAO.getById(app1.getId())).isNull();
+    assertThat(applicationDAO.getById(app2.getId())).isNull();
+
+    assertThat(gitHubAppDAO.getById(orgGitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(app1GitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(app2GitHubApp.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testDeleteOrganization_DeepHierarchy_DeactivatesAllGitHubApps() throws Exception {
+    Organization level1 = tempEntity.newOrganization("Level1");
+    GitHubApp level1GitHubApp = createGitHubApp(level1.getId(), 100L, true);
+
+    Organization level2 = tempEntity.newOrganization("Level2", level1);
+    Application level2App = tempEntity.newApplication("Level2App", level2.getId());
+    GitHubApp level2AppGitHubApp = createGitHubApp(level2App.getId(), 200L, true);
+
+    Organization level3 = tempEntity.newOrganization("Level3", level2);
+    GitHubApp level3GitHubApp = createGitHubApp(level3.getId(), 300L, true);
+
+    Application level3App = tempEntity.newApplication("Level3App", level3.getId());
+    GitHubApp level3AppGitHubApp = createGitHubApp(level3App.getId(), 400L, true);
+
+    assertThat(gitHubAppDAO.getById(level1GitHubApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(level2AppGitHubApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(level3GitHubApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(level3AppGitHubApp.getId()).isActive()).isTrue();
+
+    organizationService.deleteOrganization(level1.getId());
+
+    assertThat(organizationDAO.getById(level1.getId())).isNull();
+    assertThat(organizationDAO.getById(level2.getId())).isNull();
+    assertThat(organizationDAO.getById(level3.getId())).isNull();
+    assertThat(applicationDAO.getById(level2App.getId())).isNull();
+    assertThat(applicationDAO.getById(level3App.getId())).isNull();
+
+    assertThat(gitHubAppDAO.getById(level1GitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(level2AppGitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(level3GitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(level3AppGitHubApp.getId()).isActive()).isFalse();
+  }
+
+  private GitHubApp createGitHubApp(String ownerId, long installationId, boolean isActive) {
+    appIdCounter++;
+
+    GitHubApp gitHubApp = new GitHubApp();
+    gitHubApp.setId(java.util.UUID.randomUUID().toString());
+    gitHubApp.setOwnerId(ownerId);
+    gitHubApp.setAppId(appIdCounter);
+    gitHubApp.setSlug(TEST_GITHUB_APP_SLUG);
+    gitHubApp.setGithubOrganizationName("myOrg");
+    gitHubApp.setLastUpdatedAt(new Date());
+    gitHubApp.setClientId(TEST_CLIENT_ID);
+    gitHubApp.setClientSecret(TEST_CLIENT_SECRET);
+    gitHubApp.setPrivateKey("test-private-key");
+    gitHubApp.setInstallationId(installationId);
+    gitHubApp.setActive(isActive);
+    return tempEntity.newGitHubApp(gitHubApp);
   }
 }

@@ -12,8 +12,12 @@ import {
   getBaseBranchValueFromModel,
   getCleanAccountName,
   getClosePrOnFailedChecksEnabledFlagFromModel,
+  getCompositeGitHubAppState,
+  getDataFromSourceControl,
   getGitHubAppInstallationUrl,
+  getGitHubAppIdentifier,
   getPullRequestCommentingEnabledFlagFromModel,
+  getGitHubAppReturnParam,
   getRemediationPullRequestsEnabledFlagFromModel,
   getScmFormStateStorageKey,
   getSourceControlEvaluationsEnabledFlagFromModel,
@@ -23,8 +27,10 @@ import {
   isUsernameRequiredOnNode,
   loadFormStateWithFallback,
   providerNeedsUsername,
+  prepareSubmitData,
   removeFormStateWithFallback,
   saveFormStateWithFallback,
+  selectCommittedGitHubAppInfo,
   setDefaultIfNull,
   setIsDirty,
   setIsRepoUrlDirty,
@@ -240,6 +246,269 @@ describe('sourceControlConfiguration util', () => {
     it('returns true if authenticationType isInherited was changed', () => {
       state.sourceControl.authenticationType.isInherited = true;
       expect(setIsDirty(state)).toBe(true);
+    });
+
+    it('returns true when the selected GitHub App id changes even if installation id stays the same', () => {
+      state.sourceControl.githubApp = {
+        value: {
+          id: 'github-app-2',
+          installationId: '12345',
+        },
+        isInherited: false,
+      };
+      state.serverSourceControl.githubApp = {
+        value: {
+          id: 'github-app-1',
+          installationId: '12345',
+        },
+        isInherited: false,
+      };
+
+      expect(setIsDirty(state)).toBe(true);
+    });
+  });
+
+  describe('GitHub App selection helpers', () => {
+    it('uses only the active GitHub App for committed selection from list-based payloads', () => {
+      expect(
+        selectCommittedGitHubAppInfo([
+          { id: 'github-app-1', installationId: '111', isActive: false, name: 'Inactive App' },
+          { id: 'github-app-2', installationId: '222', isActive: true, name: 'Active App' },
+        ])
+      ).toEqual({
+        id: 'github-app-2',
+        installationId: '222',
+        isActive: true,
+        name: 'Active App',
+      });
+    });
+
+    it('does not pick an inactive GitHub App from list-based payloads when there is no active install', () => {
+      expect(
+        selectCommittedGitHubAppInfo([
+          { id: 'github-app-1', installationId: '111', isActive: false, name: 'Inactive App' },
+        ])
+      ).toBeNull();
+    });
+
+    it('does not treat a GitHub App payload without isActive metadata as committed', () => {
+      expect(
+        selectCommittedGitHubAppInfo({
+          id: 'legacy-github-app',
+          installationId: '111',
+          name: 'Legacy App',
+        })
+      ).toBeNull();
+    });
+
+    it('treats blank GitHub App ids as unconfigured', () => {
+      expect(getGitHubAppIdentifier({ id: '', installationId: '' })).toBeNull();
+    });
+
+    it('reads githubAppId from router params first and falls back to the URL search or hash string', () => {
+      expect(getGitHubAppReturnParam({ githubAppId: 'router-github-app' }, '?githubAppId=url-github-app', '')).toBe(
+        'router-github-app'
+      );
+      expect(getGitHubAppReturnParam({}, '?githubAppId=url-github-app', '')).toBe('url-github-app');
+      expect(
+        getGitHubAppReturnParam(
+          {},
+          '',
+          '#/management/edit/organization/test/source-control?githubAppId=hash-github-app'
+        )
+      ).toBe('hash-github-app');
+      expect(getGitHubAppReturnParam({}, '', '#/management/edit/organization/test/source-control')).toBeNull();
+    });
+
+    it('normalizes the plural githubApps backend payload and preserves isActive for selection', () => {
+      expect(
+        getCompositeGitHubAppState({
+          githubApps: [
+            {
+              value: {
+                id: 'github-app-1',
+                installationId: 111,
+                isActive: true,
+                name: 'Active App',
+              },
+              parentValue: {
+                id: 'parent-github-app',
+                installationId: 999,
+                isActive: true,
+                name: 'Parent App',
+              },
+              parentName: 'Root Organization',
+            },
+            {
+              value: {
+                id: 'github-app-2',
+                installationId: 222,
+                isActive: false,
+                name: 'Returned App',
+              },
+              parentValue: {
+                id: 'parent-github-app',
+                installationId: 999,
+                isActive: true,
+                name: 'Parent App',
+              },
+              parentName: 'Root Organization',
+            },
+          ],
+        })
+      ).toEqual({
+        value: [
+          {
+            id: 'github-app-1',
+            installationId: 111,
+            isActive: true,
+            name: 'Active App',
+          },
+          {
+            id: 'github-app-2',
+            installationId: 222,
+            isActive: false,
+            name: 'Returned App',
+          },
+        ],
+        parentValue: {
+          id: 'parent-github-app',
+          installationId: 999,
+          isActive: true,
+          name: 'Parent App',
+        },
+        parentName: 'Root Organization',
+      });
+    });
+  });
+
+  describe('GitHub App submit payload', () => {
+    const baseSourceControl = {
+      ownerId: 'owner-1',
+      id: null,
+      provider: {
+        rscValue: { value: 'github' },
+        parentValue: { value: '' },
+        isInherited: false,
+      },
+      token: {
+        isInherited: false,
+        rscValue: { trimmedValue: '', value: '' },
+      },
+      username: {
+        isInherited: false,
+        rscValue: { trimmedValue: '', value: '' },
+      },
+      baseBranch: {
+        isInherited: false,
+        rscValue: { trimmedValue: 'main', value: 'main' },
+      },
+      authenticationType: {
+        value: AUTHENTICATION_TYPES.GITHUB_APP,
+        isInherited: false,
+      },
+      githubApp: {
+        value: {
+          id: 'github-app-2',
+          installationId: '222',
+          name: 'Returned App',
+        },
+        isInherited: false,
+      },
+      pullRequestCommentingEnabled: { value: true },
+      commitStatusEnabled: { value: true },
+      remediationPullRequestsEnabled: { value: false },
+      sourceControlEvaluationsEnabled: { value: true },
+      manualPullRequestsEnabled: { value: true },
+      innerSourceAutomatedUpdatesEnabled: { value: true },
+      sshEnabled: { value: null },
+      closePrOnFailedChecksEnabled: { value: true },
+      closePrAfterDaysOpenEnabled: { value: false },
+      closePrAfterDays: {
+        rscValue: { trimmedValue: '', value: '' },
+      },
+      repositoryUrl: { trimmedValue: '', value: '' },
+    };
+
+    const baseServerSourceControl = {
+      provider: { parentValue: { value: '' } },
+      baseBranch: { rscValue: { trimmedValue: '' } },
+      pullRequestCommentingEnabled: { value: true },
+      commitStatusEnabled: { value: true },
+      remediationPullRequestsEnabled: { value: false },
+      sourceControlEvaluationsEnabled: { value: true },
+      manualPullRequestsEnabled: { value: true },
+      innerSourceAutomatedUpdatesEnabled: { value: true },
+      closePrOnFailedChecksEnabled: { value: true },
+    };
+
+    it('adds githubAppId when GitHub App authentication is selected locally', () => {
+      const submitData = prepareSubmitData(baseSourceControl, baseServerSourceControl, false, true, true, true);
+
+      expect(submitData.githubAppId).toBe('github-app-2');
+      expect(getDataFromSourceControl('organization', submitData)).toMatchObject({
+        authenticationType: AUTHENTICATION_TYPES.GITHUB_APP,
+        githubAppId: 'github-app-2',
+        provider: 'github',
+      });
+    });
+
+    it('omits githubAppId when PAT authentication is selected', () => {
+      const submitData = prepareSubmitData(
+        {
+          ...baseSourceControl,
+          authenticationType: {
+            value: AUTHENTICATION_TYPES.PAT,
+            isInherited: false,
+          },
+        },
+        baseServerSourceControl,
+        false,
+        true,
+        true,
+        true
+      );
+
+      expect(submitData.githubAppId).toBeUndefined();
+      expect(getDataFromSourceControl('organization', submitData)).not.toHaveProperty('githubAppId');
+    });
+
+    it('omits githubAppId when GitHub App is inherited from parent', () => {
+      const submitData = prepareSubmitData(
+        {
+          ...baseSourceControl,
+          provider: {
+            ...baseSourceControl.provider,
+            isInherited: true,
+            parentValue: { value: 'github' },
+          },
+          authenticationType: {
+            value: null,
+            isInherited: true,
+            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+          },
+          githubApp: {
+            value: null,
+            isInherited: true,
+            parentValue: {
+              id: 'parent-github-app',
+              installationId: '111',
+              name: 'Parent App',
+            },
+          },
+        },
+        {
+          ...baseServerSourceControl,
+          provider: { parentValue: { value: 'github' } },
+        },
+        false,
+        false,
+        true,
+        true
+      );
+
+      expect(submitData.githubAppId).toBeUndefined();
+      expect(getDataFromSourceControl('organization', submitData)).not.toHaveProperty('githubAppId');
     });
   });
 
@@ -1156,6 +1425,131 @@ describe('sourceControlConfiguration util', () => {
         expect(sourceControl.remediationPullRequestsEnabled.value).toBe(false);
         expect(sourceControl.sourceControlEvaluationsEnabled.value).toBe(true);
         expect(sourceControl.sshEnabled.value).toBe(null);
+      });
+
+      it('maps the plural githubApps backend payload into the existing githubApp model', () => {
+        const sourceControl = compositeSourceControlToModel(
+          {
+            ...existConfigResponse,
+            githubApps: [
+              {
+                value: {
+                  id: 'github-app-1',
+                  installationId: 111,
+                  name: 'Active App',
+                  accountName: 'active-org',
+                  isActive: true,
+                },
+                parentValue: {
+                  id: 'parent-github-app',
+                  installationId: 999,
+                  name: 'Parent App',
+                  accountName: 'parent-org',
+                  isActive: true,
+                },
+                parentName: 'Root Organization',
+              },
+              {
+                value: {
+                  id: 'github-app-2',
+                  installationId: 222,
+                  name: 'Returned App',
+                  accountName: 'returned-org',
+                  isActive: false,
+                },
+                parentValue: {
+                  id: 'parent-github-app',
+                  installationId: 999,
+                  name: 'Parent App',
+                  accountName: 'parent-org',
+                  isActive: true,
+                },
+                parentName: 'Root Organization',
+              },
+            ],
+          },
+          isRootOrg
+        );
+
+        expect(sourceControl.githubApp.value).toMatchObject({
+          id: 'github-app-1',
+          installationId: 111,
+          isActive: true,
+        });
+        expect(sourceControl.githubApp.parentValue).toMatchObject({
+          id: 'parent-github-app',
+          installationId: 999,
+          isActive: true,
+        });
+        expect(sourceControl.githubApp.parentName).toBe('Root Organization');
+      });
+
+      it('does not map an inactive local GitHub App from list-based payloads without an active selection', () => {
+        const sourceControl = compositeSourceControlToModel(
+          {
+            ...existConfigResponse,
+            githubApp: {
+              value: [
+                {
+                  id: 'inactive-github-app',
+                  installationId: 111,
+                  name: 'Inactive App',
+                  accountName: 'child-org',
+                  isActive: false,
+                },
+              ],
+              parentValue: {
+                id: 'parent-github-app',
+                installationId: 999,
+                name: 'Parent App',
+                accountName: 'parent-org',
+                isActive: true,
+              },
+              parentName: 'Root Organization',
+            },
+          },
+          isRootOrg
+        );
+
+        expect(sourceControl.githubApp.value).toBeNull();
+        expect(sourceControl.githubApp.parentValue).toMatchObject({
+          id: 'parent-github-app',
+          installationId: 999,
+          isActive: true,
+        });
+      });
+
+      it('does not map a legacy local GitHub App without isActive when there is no persisted org/app SCM config', () => {
+        const sourceControl = compositeSourceControlToModel(
+          {
+            ...existConfigResponse,
+            id: null,
+            githubApp: {
+              value: {
+                id: 'inactive-github-app',
+                installationId: 111,
+                name: 'Inactive App',
+                accountName: 'child-org',
+              },
+              parentValue: {
+                id: 'parent-github-app',
+                installationId: 999,
+                name: 'Parent App',
+                accountName: 'parent-org',
+                isActive: true,
+              },
+              parentName: 'Root Organization',
+            },
+          },
+          false
+        );
+
+        expect(sourceControl.githubApp.value).toBeNull();
+        expect(sourceControl.githubApp.parentValue).toMatchObject({
+          id: 'parent-github-app',
+          installationId: 999,
+          isActive: true,
+        });
       });
     });
   });

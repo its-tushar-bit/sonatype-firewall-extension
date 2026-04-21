@@ -777,8 +777,8 @@ CREATE TABLE IF NOT EXISTS github_app (
   installation_id BIGINT,
   github_organization_name VARCHAR(255) NOT NULL,
   last_updated_at TIMESTAMP NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT false,
   CONSTRAINT github_app_pk PRIMARY KEY (github_app_id),
-  CONSTRAINT github_app_owner_id_uk UNIQUE (owner_id),
   CONSTRAINT github_app_app_id_uk UNIQUE (app_id),
   CONSTRAINT github_app_installation_id_uk UNIQUE (installation_id)
 );

@@ -36,10 +36,14 @@ import {
   urlFieldValidator,
   effectiveAuthenticationType,
   effectiveProvider,
+  getCompositeGitHubAppState,
+  getGitHubAppReturnParam,
   getScmFormStateStorageKey,
   loadFormStateWithFallback,
   removeFormStateWithFallback,
   AUTHENTICATION_TYPES,
+  hasConfiguredGitHubApp,
+  selectMatchedGitHubAppInfo,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
 import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import {
@@ -79,8 +83,7 @@ export const initialState = {
   isDirty: false,
   isRepoUrlDirty: false,
   showGitHubAppSuccessModal: false,
-  showGitHubAppReplacedAlert: false,
-  isGitHubAppReplacement: false,
+  hasPendingGitHubAppReturn: false,
   isReplaceGitHubAppModalOpen: false,
 };
 
@@ -303,14 +306,14 @@ const setLoading = (state, { payload }) => {
   state.formLoading = payload;
 };
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (options = {}, { rejectWithValue, dispatch }) => {
   const promises = [
     dispatch(rootActions.loadSelectedOwner()),
     dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
   ];
   return Promise.all(promises)
     .then(() => {
-      return dispatch(actions.loadSCMRootConfig());
+      return dispatch(actions.loadSCMRootConfig(options));
     })
     .catch(rejectWithValue);
 });
@@ -345,71 +348,82 @@ const consumeSavedSourceControlState = (storageKey) => {
   }
 };
 
-const loadSCMRootConfig = createAsyncThunk(`${REDUCER_NAME}/loadSCMRootConfig`, (_, { getState, rejectWithValue }) => {
-  const state = getState();
-  const owner = selectSelectedOwner(state);
-  const isSourceControlSupported = selectIsSourceControlForSourceTileSupported(state);
-  if (!isSourceControlSupported || !owner) {
-    return {
-      sourceControl: null,
-      sourceControlMetrics: undefined,
-      serverSourceControl: null,
-      savedState: null,
-      shouldShowPendingGitHubApp: false,
-    };
-  }
-  const isApp = selectIsApplication(state);
-  const isRootOrg = selectIsRootOrganization(state);
-  const routerParams = selectRouterCurrentParams(state);
-  const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
-  const shouldShowPendingGitHubApp = isGithubAppAuthenticationEnabled && routerParams?.githubAppSuccess === 'true';
-  const ownerType = isApp ? 'application' : 'organization';
-  const promises = [
-    axios.get(getCompositeSourceControlUrl(ownerType, owner.id)),
-    axios.get(getSourceControlMetricsUrl(ownerType, owner.id)),
-  ];
-  return axios
-    .all(promises)
-    .then(([sourceControlData, sourceControlMetrics]) => {
-      const compositeSourceControl = sourceControlData?.data ?? {};
-      const dirtySourceControl = compositeSourceControlToModel(compositeSourceControl, isRootOrg);
-
-      let originalSourceControl = { ...dirtySourceControl };
-      // username and token can be inherited at org level if they are not set in the parent
-      // however they cannot be inherited at app level when they are not set, so the inherit property is forced to false in that case
-      dirtySourceControl.username.isInherited =
-        dirtySourceControl.username.isInherited &&
-        !isUsernameRequiredOnNode(dirtySourceControl, originalSourceControl, isApp) &&
-        providerNeedsUsername(dirtySourceControl, originalSourceControl);
-      dirtySourceControl.token.isInherited =
-        dirtySourceControl.token?.isInherited &&
-        !isAccessTokenRequiredOnNode(
-          dirtySourceControl,
-          originalSourceControl,
-          isApp,
-          isGithubAppAuthenticationEnabled
-        );
-      dirtySourceControl.provider.isInherited = dirtySourceControl.provider.isInherited && !isRootOrg;
-      originalSourceControl = { ...dirtySourceControl };
-
-      // Generate storage key in thunk to avoid passing redundant ownerId/ownerType through payload
-      const storageKey = isGithubAppAuthenticationEnabled ? getScmFormStateStorageKey(ownerType, owner.id) : null;
-      const savedState = consumeSavedSourceControlState(storageKey);
-
+const loadSCMRootConfig = createAsyncThunk(
+  `${REDUCER_NAME}/loadSCMRootConfig`,
+  (options = {}, { getState, rejectWithValue }) => {
+    const state = getState();
+    const ignoreGitHubAppReturn = Boolean(options?.ignoreGitHubAppReturn);
+    const owner = selectSelectedOwner(state);
+    const isSourceControlSupported = selectIsSourceControlForSourceTileSupported(state);
+    if (!isSourceControlSupported || !owner) {
       return {
-        sourceControl: dirtySourceControl,
-        sourceControlMetrics: sourceControlMetrics.data,
-        serverSourceControl: originalSourceControl,
-        savedState,
-        shouldShowPendingGitHubApp,
+        sourceControl: null,
+        sourceControlMetrics: undefined,
+        serverSourceControl: null,
+        savedState: null,
+        shouldShowPendingGitHubApp: false,
       };
-    })
-    .catch(rejectWithValue);
-});
+    }
+    const isApp = selectIsApplication(state);
+    const isRootOrg = selectIsRootOrganization(state);
+    const routerParams = selectRouterCurrentParams(state);
+    const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
+    const githubAppId = ignoreGitHubAppReturn ? null : getGitHubAppReturnParam(routerParams);
+    const hasGitHubAppReturnParam = isGithubAppAuthenticationEnabled && Boolean(githubAppId);
+    const ownerType = isApp ? 'application' : 'organization';
+    const promises = [
+      axios.get(getCompositeSourceControlUrl(ownerType, owner.id)),
+      axios.get(getSourceControlMetricsUrl(ownerType, owner.id)),
+    ];
+    return axios
+      .all(promises)
+      .then(([sourceControlData, sourceControlMetrics]) => {
+        const compositeSourceControl = sourceControlData?.data ?? {};
+        const compositeGitHubApp = getCompositeGitHubAppState(compositeSourceControl);
+        const dirtySourceControl = compositeSourceControlToModel(compositeSourceControl, isRootOrg);
+        const pendingGitHubApp = hasGitHubAppReturnParam
+          ? selectMatchedGitHubAppInfo(compositeGitHubApp.value, githubAppId)
+          : null;
+
+        let originalSourceControl = { ...dirtySourceControl };
+        // username and token can be inherited at org level if they are not set in the parent
+        // however they cannot be inherited at app level when they are not set, so the inherit property is forced to false in that case
+        dirtySourceControl.username.isInherited =
+          dirtySourceControl.username.isInherited &&
+          !isUsernameRequiredOnNode(dirtySourceControl, originalSourceControl, isApp) &&
+          providerNeedsUsername(dirtySourceControl, originalSourceControl);
+        dirtySourceControl.token.isInherited =
+          dirtySourceControl.token?.isInherited &&
+          !isAccessTokenRequiredOnNode(
+            dirtySourceControl,
+            originalSourceControl,
+            isApp,
+            isGithubAppAuthenticationEnabled
+          );
+        dirtySourceControl.provider.isInherited = dirtySourceControl.provider.isInherited && !isRootOrg;
+        originalSourceControl = { ...dirtySourceControl };
+
+        // Generate storage key in thunk to avoid passing redundant ownerId/ownerType through payload
+        const storageKey = isGithubAppAuthenticationEnabled ? getScmFormStateStorageKey(ownerType, owner.id) : null;
+        const savedState = consumeSavedSourceControlState(storageKey);
+
+        return {
+          sourceControl: dirtySourceControl,
+          sourceControlMetrics: sourceControlMetrics.data,
+          serverSourceControl: originalSourceControl,
+          savedState,
+          shouldShowPendingGitHubApp: hasGitHubAppReturnParam,
+          pendingGitHubApp,
+        };
+      })
+      .catch(rejectWithValue);
+  }
+);
 
 const loadSCMRootConfigPending = (state) => {
   state.formLoading = true;
   state.loadError = null;
+  state.hasPendingGitHubAppReturn = false;
 };
 
 // Clone nested githubApp state so sourceControl and serverSourceControl can diverge
@@ -432,53 +446,54 @@ const initializeLoadedSourceControlState = (state, sourceControl, serverSourceCo
 };
 
 const restoreSavedSourceControlState = (state, savedState) => {
-  const savedStateHadGithubApp = Boolean(savedState?.githubApp?.value?.installationId);
-
   if (!savedState) {
     return {
-      savedStateHadGithubApp,
       sessionWasRestored: false,
     };
   }
 
   state.sourceControl = { ...state.sourceControl, ...savedState };
-  // Set baseline state from before the GitHub App redirect for dirty detection
-  state.serverSourceControl.githubApp = cloneGitHubAppState(savedState.githubApp);
 
   return {
-    savedStateHadGithubApp,
     sessionWasRestored: true,
   };
 };
 
-const deriveGitHubAppVisibilityContext = (serverSourceControl, shouldShowPendingGitHubApp) => {
-  const backendHasLocalGithubApp = Boolean(serverSourceControl?.githubApp?.value?.installationId);
+const deriveGitHubAppVisibilityContext = (serverSourceControl, shouldShowPendingGitHubApp, pendingGitHubApp) => {
+  const backendHasLocalGithubApp = hasConfiguredGitHubApp(serverSourceControl?.githubApp?.value);
   const committedProviderValue = effectiveProvider(serverSourceControl, serverSourceControl);
   const committedEffectiveAuthType = effectiveAuthenticationType(serverSourceControl);
   const hasCommittedLocalGitHubApp =
     committedProviderValue === 'github' &&
     !serverSourceControl?.authenticationType?.isInherited &&
-    committedEffectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP;
+    committedEffectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP &&
+    backendHasLocalGithubApp;
+  const hasPendingLocalGitHubApp = shouldShowPendingGitHubApp && hasConfiguredGitHubApp(pendingGitHubApp);
+  const visibleGitHubApp = hasPendingLocalGitHubApp
+    ? pendingGitHubApp
+    : hasCommittedLocalGitHubApp
+    ? serverSourceControl?.githubApp?.value
+    : null;
 
   return {
     backendHasLocalGithubApp,
     committedProviderValue,
     committedEffectiveAuthType,
     hasCommittedLocalGitHubApp,
-    shouldShowLocalGithubApp: backendHasLocalGithubApp && (hasCommittedLocalGitHubApp || shouldShowPendingGitHubApp),
-    shouldShowPendingLocalGithubApp:
-      backendHasLocalGithubApp && shouldShowPendingGitHubApp && !hasCommittedLocalGitHubApp,
+    hasPendingLocalGitHubApp,
+    visibleGitHubApp,
   };
 };
 
-const applyGitHubAppVisibilityState = (state, serverSourceControl, githubAppVisibility) => {
+const applyGitHubAppVisibilityState = (state, githubAppVisibility) => {
   const {
     backendHasLocalGithubApp,
     committedProviderValue,
     committedEffectiveAuthType,
     hasCommittedLocalGitHubApp,
-    shouldShowLocalGithubApp,
+    visibleGitHubApp,
   } = githubAppVisibility;
+  const shouldShowLocalGithubApp = hasConfiguredGitHubApp(visibleGitHubApp);
 
   // Keep only committed GitHub App state by default.
   // Local backend GitHub App installs are surfaced only for committed local auth or the post-install success return.
@@ -495,7 +510,7 @@ const applyGitHubAppVisibilityState = (state, serverSourceControl, githubAppVisi
   if (shouldShowLocalGithubApp) {
     state.sourceControl.githubApp = {
       ...cloneGitHubAppState(state.sourceControl.githubApp),
-      value: { ...serverSourceControl.githubApp.value },
+      value: { ...visibleGitHubApp },
       isInherited: false,
     };
 
@@ -524,48 +539,43 @@ const applyGitHubAppVisibilityState = (state, serverSourceControl, githubAppVisi
   }
 };
 
-const syncServerSourceControlCoreFields = (state) => {
-  state.serverSourceControl.provider = { ...state.sourceControl.provider };
-  state.serverSourceControl.authenticationType = { ...state.sourceControl.authenticationType };
-};
-
 const finalizeDirtyStateAfterLoad = (state, sessionRestore, githubAppVisibility) => {
-  const { savedStateHadGithubApp, sessionWasRestored } = sessionRestore;
-  const { backendHasLocalGithubApp, shouldShowPendingLocalGithubApp } = githubAppVisibility;
+  const { sessionWasRestored } = sessionRestore;
+  const { hasPendingLocalGitHubApp } = githubAppVisibility;
 
-  syncServerSourceControlCoreFields(state);
-
-  if (!sessionWasRestored && !shouldShowPendingLocalGithubApp) {
-    state.serverSourceControl.githubApp = cloneGitHubAppState(state.sourceControl.githubApp);
+  if (!sessionWasRestored && !hasPendingLocalGitHubApp) {
     return false;
   }
-
-  // For RECONFIGURE: Backend already saved the new installation during the GitHub App redirect
-  // → sync to show "no changes"
-  // For FRESH INSTALL: Need to detect change from null → new installation → don't sync
-
-  if (savedStateHadGithubApp && backendHasLocalGithubApp) {
-    // RECONFIGURE: User had GitHub App before the redirect, backend saved new installation
-    // Sync serverSourceControl to show "no changes" (backend already persisted it)
-    state.serverSourceControl.githubApp = cloneGitHubAppState(state.sourceControl.githubApp);
-  }
-  // FRESH INSTALL (else): User had PAT/null before the redirect, keep baseline from PHASE 1 for dirty detection
 
   return setIsDirty(state);
 };
 
 const loadSCMRootConfigFulfilled = (
   state,
-  { payload: { sourceControl, sourceControlMetrics, serverSourceControl, savedState, shouldShowPendingGitHubApp } }
+  {
+    payload: {
+      sourceControl,
+      sourceControlMetrics,
+      serverSourceControl,
+      savedState,
+      shouldShowPendingGitHubApp,
+      pendingGitHubApp,
+    },
+  }
 ) => {
   initializeLoadedSourceControlState(state, sourceControl, serverSourceControl, sourceControlMetrics);
 
   // PHASE 1: Session Restore - preserves draft changes across the GitHub App registration redirect
   const sessionRestore = restoreSavedSourceControlState(state, savedState);
-  const githubAppVisibility = deriveGitHubAppVisibilityContext(serverSourceControl, shouldShowPendingGitHubApp);
+  const githubAppVisibility = deriveGitHubAppVisibilityContext(
+    serverSourceControl,
+    shouldShowPendingGitHubApp,
+    pendingGitHubApp
+  );
 
   // PHASE 2: Determine which GitHub App state should be visible after load.
-  applyGitHubAppVisibilityState(state, serverSourceControl, githubAppVisibility);
+  applyGitHubAppVisibilityState(state, githubAppVisibility);
+  state.hasPendingGitHubAppReturn = githubAppVisibility.hasPendingLocalGitHubApp;
 
   // PHASE 3: Sync baseline state and compute whether the form still has unsaved changes.
   state.isDirty = finalizeDirtyStateAfterLoad(state, sessionRestore, githubAppVisibility);
@@ -574,6 +584,7 @@ const loadSCMRootConfigFulfilled = (
 const loadSCMRootConfigFailed = (state, { payload }) => {
   state.formLoading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
+  state.hasPendingGitHubAppReturn = false;
 };
 
 const save = createAsyncThunk(`${REDUCER_NAME}/save`, async (_, { getState, dispatch, rejectWithValue }) => {
@@ -604,7 +615,7 @@ const save = createAsyncThunk(`${REDUCER_NAME}/save`, async (_, { getState, disp
 
     await axios[requestType](getSourceControlUrl(ownerType, owner.id), data);
     startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
-    await dispatch(actions.load());
+    await dispatch(actions.load({ ignoreGitHubAppReturn: true }));
   } catch (error) {
     return rejectWithValue(error);
   }
@@ -638,12 +649,16 @@ const reset = createAsyncThunk(`${REDUCER_NAME}/reset`, (_, { getState, dispatch
   const isApp = selectIsApplication(state);
   const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
+  const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
+  const storageKey = isGithubAppAuthenticationEnabled ? getScmFormStateStorageKey(ownerType, owner.id) : null;
+
+  if (storageKey) {
+    removeFormStateWithFallback(storageKey);
+  }
 
   return axios
     .delete(getSourceControlUrl(ownerType, owner.id))
-    .then(() => {
-      dispatch(actions.load());
-    })
+    .then(() => dispatch(actions.load({ ignoreGitHubAppReturn: true })).unwrap())
     .catch(rejectWithValue);
 });
 
@@ -715,20 +730,10 @@ const sourceControl = createSlice({
     saveMaskTimerDone: propSet('submitMaskState', null),
     showGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = true;
-
-      // Determine if this is a replacement: check if GitHub App already existed (has installation ID)
-      const hadExistingGitHubApp = state.serverSourceControl?.githubApp?.value?.installationId != null;
-      state.isGitHubAppReplacement = hadExistingGitHubApp;
     },
     closeGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = false;
-
-      // Only show replacement banner if this was actually a reconfiguration
-      state.showGitHubAppReplacedAlert = state.isGitHubAppReplacement;
-
-      state.isGitHubAppReplacement = false; // Reset flag
     },
-    closeGitHubAppReplacedAlert: propSet('showGitHubAppReplacedAlert', false),
     openReplaceGitHubAppModal: (state) => {
       state.isReplaceGitHubAppModalOpen = true;
     },

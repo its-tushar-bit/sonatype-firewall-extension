@@ -113,14 +113,14 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
   };
 
   describe('Modal Opening', () => {
-    it('should open modal when githubAppSuccess parameter is present in route params', async () => {
+    it('should open modal when githubAppId parameter is present in route params', async () => {
       const stateWithSuccessParam = {
         ...defaultPreloadedState,
         router: {
           ...defaultPreloadedState.router,
           currentParams: {
             ...defaultPreloadedState.router.currentParams,
-            githubAppSuccess: 'true',
+            githubAppId: 'github-app-12345',
           },
         },
       };
@@ -132,7 +132,7 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
       });
     });
 
-    it('should not open modal when githubAppSuccess parameter is not present', async () => {
+    it('should not open modal when githubAppId parameter is not present', async () => {
       renderComponent();
 
       await waitFor(() => {
@@ -147,7 +147,7 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
           ...defaultPreloadedState.router,
           currentParams: {
             ...defaultPreloadedState.router.currentParams,
-            githubAppSuccess: 'true',
+            githubAppId: 'github-app-12345',
           },
         },
         orgsAndPolicies: {

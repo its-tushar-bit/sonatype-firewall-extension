@@ -21,6 +21,8 @@ public class ApiSourceControlDTO
 
   public String authenticationType;
 
+  public String githubAppId;
+
   public String baseBranch;
 
   public Boolean closePrOnFailedChecksEnabled;

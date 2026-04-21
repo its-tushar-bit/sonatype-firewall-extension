@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
@@ -78,6 +79,8 @@ public class OrganizationService
 
   private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
 
+  private final GitHubAppDeletionService gitHubAppDeletionService;
+
   @Inject
   public OrganizationService(
       final InsightWork work,
@@ -88,7 +91,8 @@ public class OrganizationService
       final ManagementEventService managementEventService,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
+      final GitHubAppDeletionService gitHubAppDeletionService)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -99,6 +103,7 @@ public class OrganizationService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
+    this.gitHubAppDeletionService = gitHubAppDeletionService;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -207,6 +212,9 @@ public class OrganizationService
           log.info("Deleted application '{}' with id {}.", application.getName(), application.getId());
         }
         deleteOrganizationIconFolder(organization);
+
+        gitHubAppDeletionService.deactivateGitHubApps(tx, organization.getId());
+
         // delete organization last, this way the operation can be retried later if anything goes wrong
         organizationDAO.delete(tx, organization);
         tx.commit();

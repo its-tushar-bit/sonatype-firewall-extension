@@ -10,7 +10,6 @@ import {
   NxH1,
   NxLoadWrapper,
   NxPageTitle,
-  NxSuccessAlert,
   NxTile,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
@@ -21,11 +20,11 @@ import {
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectLoadError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
+  selectHasPendingGitHubAppReturn,
   selectIsAccessTokenRequiredOnNode,
   selectIsLoading,
   selectSourceControlConfigurationSlice,
   selectShowGitHubAppSuccessModal,
-  selectShowGitHubAppReplacedAlert,
   selectSourceControl,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,8 +42,6 @@ import {
   selectIsApplication,
   selectIsOrganization,
   selectIsRootOrganization,
-  selectRouterCurrentParams,
-  selectRouterState,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import SourceControlAutomatedPullRequestTable from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlAutomatedPullRequestTable';
 import { SOURCE_CONTROL_UNSUPPORTED_MESSAGE } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
@@ -60,20 +57,14 @@ const SourceControlConfiguration = () => {
   const isSourceControlSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const owner = useSelector(selectSelectedOwner);
   const isLoading = useSelector(selectIsLoading);
+  const hasPendingGitHubAppReturn = useSelector(selectHasPendingGitHubAppReturn);
   const showGitHubAppSuccessModal = useSelector(selectShowGitHubAppSuccessModal);
-  const showGitHubAppReplacedAlert = useSelector(selectShowGitHubAppReplacedAlert);
   const sourceControl = useSelector(selectSourceControl);
-  const routerParams = useSelector(selectRouterCurrentParams);
-  const currentState = useSelector((state) => selectRouterState(state)?.name);
   const isGitHubAppSupported = useSelector(selectIsGithubAppAuthenticationEnabled);
   const isGitHubAppRegistrationModalOpen = useSelector(selectIsGitHubAppRegistrationModalOpen);
 
-  // Read githubAppSuccess parameter from route
-  const githubAppSuccess = routerParams?.githubAppSuccess === 'true';
-
-  // Track whether we've already handled the githubAppSuccess parameter
-  // Prevents duplicate modal shows on back navigation, URL manipulation, and Strict Mode double-renders
-  const githubAppSuccessHandled = useRef(false);
+  // Prevent duplicate modal shows on back navigation, URL manipulation, and Strict Mode double-renders.
+  const githubAppReturnHandled = useRef(false);
 
   const doLoad = useCallback(() => {
     dispatch(actions.load());
@@ -86,7 +77,7 @@ const SourceControlConfiguration = () => {
   // Reset the ref when user opens the GitHub App registration modal to start a new setup
   useEffect(() => {
     if (isGitHubAppRegistrationModalOpen) {
-      githubAppSuccessHandled.current = false;
+      githubAppReturnHandled.current = false;
     }
   }, [isGitHubAppRegistrationModalOpen]);
 
@@ -94,25 +85,16 @@ const SourceControlConfiguration = () => {
     if (!isGitHubAppSupported) return;
     if (isLoading) return;
     if (showGitHubAppSuccessModal) return;
-    if (!githubAppSuccess) return;
-    if (githubAppSuccessHandled.current) return;
+    if (!hasPendingGitHubAppReturn) return;
+    if (githubAppReturnHandled.current) return;
 
-    // Mark as handled to prevent re-execution on back navigation, URL manipulation, or Strict Mode
-    githubAppSuccessHandled.current = true;
+    githubAppReturnHandled.current = true;
 
     // Close the GitHubAppRegistrationModal if it's still open from the OAuth flow
     dispatch(gitHubAppActions.closeModal());
 
     dispatch(actions.showGitHubAppSuccessModal());
-  }, [
-    isGitHubAppSupported,
-    isLoading,
-    showGitHubAppSuccessModal,
-    githubAppSuccess,
-    currentState,
-    dispatch,
-    sourceControl,
-  ]);
+  }, [isGitHubAppSupported, isLoading, showGitHubAppSuccessModal, hasPendingGitHubAppReturn, dispatch]);
 
   const handleCloseGitHubAppSuccessModal = useCallback(() => {
     // Enable features that were previously disabled
@@ -122,10 +104,6 @@ const SourceControlConfiguration = () => {
 
     dispatch(actions.closeGitHubAppSuccessModal());
   }, [dispatch, sourceControl]);
-
-  const handleCloseGitHubAppReplacedAlert = useCallback(() => {
-    dispatch(actions.closeGitHubAppReplacedAlert());
-  }, [dispatch]);
 
   return (
     <div id="source-control-editor">
@@ -146,11 +124,6 @@ const SourceControlConfiguration = () => {
               <NxWarningAlert id="source-control-token-warning" data-testid="source-control-token-warning">
                 {isGitHubAppSupported ? 'Authentication method must be configured' : 'Access Token must be configured'}
               </NxWarningAlert>
-            )}
-            {showGitHubAppReplacedAlert && (
-              <NxSuccessAlert id="github-app-replaced-alert" onClose={handleCloseGitHubAppReplacedAlert}>
-                The GitHub App was replaced successfully. The current configuration was overwritten
-              </NxSuccessAlert>
             )}
             <NxTile className="iq-source-control-configuration-tile">
               {isRootOrg && <RootSourceControlConfiguration />}

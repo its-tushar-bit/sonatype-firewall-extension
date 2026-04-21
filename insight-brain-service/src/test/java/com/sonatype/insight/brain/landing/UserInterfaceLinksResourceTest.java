@@ -105,6 +105,19 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToSourceControlManagement_ForwardsGithubAppIdIntoHashRoute() throws Exception {
+    HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH + "/" + UserInterfaceLinksHelper.SOURCE_CONTROL_MANAGEMENT_PATH)
+        .parameter("organization", "test id")
+        .query("githubAppId=github-app-123")
+        .anon()
+        .get();
+
+    assertRedirect(response,
+        "assets/index.html#/management/edit/organization/test%20id/source-control?githubAppId=github-app-123");
+  }
+
+  @Test
   public void testLinkToManagementEdit_Category() throws Exception {
     HttpResponse response =
         get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "organization", "test id", "category", "category id");

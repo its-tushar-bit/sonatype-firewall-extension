@@ -7,8 +7,6 @@ import {
   selectSourceControlConfigurationSlice,
   selectValidationError,
   selectShowGitHubAppSuccessModal,
-  selectShowGitHubAppReplacedAlert,
-  selectIsGitHubAppReplacement,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
@@ -1472,54 +1470,6 @@ describe('selectSourceControlConfigurationSelectors', () => {
           },
         };
         expect(selectShowGitHubAppSuccessModal(state)).toBe(false);
-      });
-    });
-
-    describe('selectShowGitHubAppReplacedAlert', () => {
-      it('returns true when showGitHubAppReplacedAlert is true', () => {
-        const state = {
-          orgsAndPolicies: {
-            sourceControlConfiguration: {
-              showGitHubAppReplacedAlert: true,
-            },
-          },
-        };
-        expect(selectShowGitHubAppReplacedAlert(state)).toBe(true);
-      });
-
-      it('returns false when showGitHubAppReplacedAlert is false', () => {
-        const state = {
-          orgsAndPolicies: {
-            sourceControlConfiguration: {
-              showGitHubAppReplacedAlert: false,
-            },
-          },
-        };
-        expect(selectShowGitHubAppReplacedAlert(state)).toBe(false);
-      });
-    });
-
-    describe('selectIsGitHubAppReplacement', () => {
-      it('returns true when isGitHubAppReplacement is true', () => {
-        const state = {
-          orgsAndPolicies: {
-            sourceControlConfiguration: {
-              isGitHubAppReplacement: true,
-            },
-          },
-        };
-        expect(selectIsGitHubAppReplacement(state)).toBe(true);
-      });
-
-      it('returns false when isGitHubAppReplacement is false', () => {
-        const state = {
-          orgsAndPolicies: {
-            sourceControlConfiguration: {
-              isGitHubAppReplacement: false,
-            },
-          },
-        };
-        expect(selectIsGitHubAppReplacement(state)).toBe(false);
       });
     });
   });

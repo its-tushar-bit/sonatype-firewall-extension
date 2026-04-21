@@ -801,6 +801,7 @@ public class GitClientFactoryTest
     PasswordHandler passwordHandler = lookup(PasswordHandler.class);
     char[] encryptedKey = passwordHandler.encryptPassword(base64Pkcs8.toCharArray());
     githubApp.setPrivateKey(String.valueOf(encryptedKey));
+    githubApp.setActive(true);
 
     return githubApp;
   }

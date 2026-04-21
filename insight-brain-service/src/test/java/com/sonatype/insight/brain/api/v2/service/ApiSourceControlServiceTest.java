@@ -58,10 +58,8 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -87,9 +85,6 @@ import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.delete;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
@@ -200,26 +195,6 @@ public class ApiSourceControlServiceTest
     org = tempEntity.newOrganization();
     rootOrgSourcecontrol = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     app = tempEntity.newApplication(org.getId());
-  }
-
-  private void setupCustomGitHubAppCleanupService() {
-    String wireMockBaseUrl = "http://localhost:" + githubMockServer.port();
-    GitHubAppDeletionService gitHubAppDeletionService = new GitHubAppDeletionService(
-        gitHubAppDAO,
-        installationStateDAO,
-        passwordHandler,
-        insightProxy,
-        wireMockBaseUrl);
-
-    try {
-      Field field = sourceControlService.getClass()
-          .getDeclaredField("sourceControlAuthenticationTransitionHandler");
-      field.setAccessible(true);
-      field.set(sourceControlService, new SourceControlAuthenticationTransitionHandler(gitHubAppDeletionService));
-    }
-    catch (Exception e) {
-      throw new RuntimeException("Failed to inject test cleanup service", e);
-    }
   }
 
   @Test
@@ -1601,23 +1576,26 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_AuthTypeChange_GitHubAppToPat_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
+  public void testUpdateSourceControlByOwner_AuthTypeChange_GitHubAppToPat_DeactivatesGitHubApp() {
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
 
-    createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
         "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
 
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
     updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
     updateDTO.token = "new-pat-token";
 
     sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+
+    GitHubApp deactivatedApp = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivatedApp).isNotNull();
+    assertThat(deactivatedApp.isActive()).isFalse();
 
     SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
     assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
@@ -1664,10 +1642,12 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_AuthTypeChange_NonGitHubProvider_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
+  public void testUpdateSourceControlByOwner_AuthTypeChange_NonGitHubProvider_DeactivatesGitHubApp() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
-    createAndInsertGitHubApp(app.getId());
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
+
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
@@ -1675,56 +1655,33 @@ public class ApiSourceControlServiceTest
     sourceControl.setProvider(SourceControlProvider.BITBUCKET);
     tempEntity.newSourceControl(sourceControl);
 
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
     updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
     updateDTO.token = "new-pat-token";
 
     sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
-    GitHubApp deleted = gitHubAppDAO.getByOwnerId(app.getId());
-    assertThat(deleted).isNull();
+
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
+
     SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
     assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_PATToPAT_NoTokenChange_DeletesOrphanedGitHubApp() {
-    setupCustomGitHubAppCleanupService();
+  public void testUpdateSourceControlByOwner_AuthTypeChange_WithInstallationStates_DeactivatesGitHubApp() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
-    createAndInsertGitHubApp(app.getId());
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
 
-    SourceControl sourceControl = createSourceControl(
-        app.getId(),
-        SourceControl.AuthenticationType.PAT,
-        "http://example.com/test/test");
-    String originalToken = passwordHandler.encryptPassword("original-token");
-    sourceControl.setToken(originalToken);
-    tempEntity.newSourceControl(sourceControl);
-
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
-    ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
-    updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
-    updateDTO.token = FAKE_SECRET_KEY;
-
-    sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
-    SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
-    assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
-    assertThat(updated.getToken()).isEqualTo(originalToken);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
-  }
-
-  @Test
-  public void testUpdateSourceControlByOwner_AuthTypeChange_WithInstallationStates_DeletesAll() {
-    setupCustomGitHubAppCleanupService();
-    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
-    createAndInsertGitHubApp(app.getId());
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
         "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
 
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
     updateDTO.authenticationType = SourceControl.AuthenticationType.PAT.name();
     updateDTO.token = "new-pat-token";
@@ -1733,28 +1690,40 @@ public class ApiSourceControlServiceTest
 
     SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
     assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
+
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_WithGitHubApp_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
-    createAndInsertGitHubApp(app.getId());
+  public void testDeleteSourceControlByOwner_WithGitHubApp_DeactivatesGitHubApp() {
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
+
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
         "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId())).isNotNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId()).isActive()).isTrue();
+
     sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_WithGitHubAppAndPendingInstallationStates_DeletesBoth() {
-    setupCustomGitHubAppCleanupService();
+  public void testDeleteSourceControlByOwner_WithGitHubAppAndPendingInstallationStates_DeactivatesGitHubApp() {
     GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
 
     Date expiresAt = new Date(System.currentTimeMillis() + 900000);
     tempEntity.newGitHubAppInstallationState("pending-state-1", gitHubApp.getId(), "code-verifier-1", expiresAt);
@@ -1765,7 +1734,6 @@ public class ApiSourceControlServiceTest
         SourceControl.AuthenticationType.GITHUB_APP,
         "http://example.com/test/test");
     tempEntity.newSourceControl(sourceControl);
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
 
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       tx.begin();
@@ -1776,33 +1744,33 @@ public class ApiSourceControlServiceTest
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-    try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
-      tx.begin();
-      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNull();
-      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNull();
-      tx.commit();
-    }
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_NonGitHubProvider_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
-    createAndInsertGitHubApp(app.getId());
+  public void testDeleteSourceControlByOwner_NonGitHubProvider_DeactivatesGitHubApp() {
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
+
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
         "https://bitbucket.example.com/scm/PROJECT/repo");
     sourceControl.setProvider(SourceControlProvider.BITBUCKET);
     tempEntity.newSourceControl(sourceControl);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId())).isNotNull();
 
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
     sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
 
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
   }
 
   @Test
@@ -1839,46 +1807,19 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_NoneToPAT_WithExistingGitHubApp_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
-    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
-    createAndInsertGitHubApp(app.getId());
+  public void testAddSourceControlByOwner_WithInactiveGitHubApp_ActivatesIt() {
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(false);
+    gitHubAppDAO.update(gitHubApp);
 
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
-
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
-    ApiSourceControlDTO newSourceControl = new ApiSourceControlDTO();
-    newSourceControl.ownerId = app.getId();
-    newSourceControl.repositoryUrl = "https://github.com/test/repo";
-    newSourceControl.authenticationType = SourceControl.AuthenticationType.PAT.name();
-    newSourceControl.token = "pat-token";
-    newSourceControl.provider = SourceControlProvider.GITHUB.name().toLowerCase();
-
-    ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), newSourceControl);
-
-    assertThat(result).isNotNull();
-    SourceControl created = sourceControlDAO.getByOwnerId(app.getId());
-    assertThat(created).isNotNull();
-    assertThat(created.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
-    assertThat(created.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
-  }
-
-  @Test
-  public void testAddSourceControlByOwner_NoneToGitHubApp_WithExistingGitHubApp_DoesNotDelete() {
-    setupCustomGitHubAppCleanupService();
-    createAndInsertGitHubApp(app.getId());
-
-    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
 
     ApiSourceControlDTO newSourceControl = new ApiSourceControlDTO();
     newSourceControl.ownerId = app.getId();
     newSourceControl.repositoryUrl = "https://github.com/test/repo";
     newSourceControl.authenticationType = SourceControl.AuthenticationType.GITHUB_APP.name();
     newSourceControl.provider = SourceControlProvider.GITHUB.name().toLowerCase();
+    newSourceControl.githubAppId = gitHubApp.getId();
 
     ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(), newSourceControl);
@@ -1888,27 +1829,37 @@ public class ApiSourceControlServiceTest
     assertThat(created).isNotNull();
     assertThat(created.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
     assertThat(created.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNotNull();
+
+    GitHubApp activated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(activated).isNotNull();
+    assertThat(activated.isActive()).isTrue();
   }
 
   @Test
-  public void testUpdateSourceControlByOwner_GitHubAppToGitLab_DeletesGitHubApp() {
-    setupCustomGitHubAppCleanupService();
+  public void testUpdateSourceControlByOwner_GitHubAppToGitLab_DeactivatesGitHubApp() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
-    createAndInsertGitHubApp(app.getId());
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(true);
+    gitHubAppDAO.update(gitHubApp);
+
     SourceControl sourceControl = createSourceControl(
         app.getId(),
         SourceControl.AuthenticationType.GITHUB_APP,
         "https://github.com/test/repo");
     tempEntity.newSourceControl(sourceControl);
-    stubGitHubAppInstallationDeletion(TEST_GITHUB_INSTALLATION_ID, true);
+
     ApiSourceControlDTO updateDTO = apiSourceControlAdapter.convertToDTO(sourceControl);
     updateDTO.repositoryUrl = "https://gitlab.com/test/repo";
     updateDTO.provider = "gitlab";
     updateDTO.authenticationType = "PAT";
     updateDTO.token = "gitlab-token";
+
     sourceControlService.updateSourceControlByOwner(OwnerType.APPLICATION, app.getId(), updateDTO);
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+
+    GitHubApp deactivated = gitHubAppDAO.getById(gitHubApp.getId());
+    assertThat(deactivated).isNotNull();
+    assertThat(deactivated.isActive()).isFalse();
+
     SourceControl updated = sourceControlDAO.getByOwnerId(app.getId());
     assertThat(updated.getProvider()).isEqualTo(SourceControlProvider.GITLAB);
     assertThat(updated.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.PAT);
@@ -2218,25 +2169,6 @@ public class ApiSourceControlServiceTest
     sourceControl.setProvider(SourceControlProvider.GITHUB);
     sourceControl.setRepositoryUrl(repositoryUrl);
     return sourceControl;
-  }
-
-  private void stubGitHubAppInstallationDeletion(Long installationId, boolean shouldSucceed) {
-    if (shouldSucceed) {
-      // GitHub API returns 204 No Content on successful deletion
-      githubMockServer.stubFor(
-          delete(urlPathEqualTo("/app/installations/" + installationId))
-              .willReturn(aResponse()
-                  .withStatus(204)));
-    }
-    else {
-      // Simulate GitHub API failure
-      githubMockServer.stubFor(
-          delete(urlPathEqualTo("/app/installations/" + installationId))
-              .willReturn(aResponse()
-                  .withStatus(500)
-                  .withHeader("Content-Type", "application/json")
-                  .withBody("{\"message\":\"Internal server error\"}")));
-    }
   }
 
   @Test

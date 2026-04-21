@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import com.sonatype.insight.brain.api.v2.dto.githubapp.ApiGitHubAppManifestDTO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.constraints.Min;
@@ -48,13 +50,17 @@ public class ApiGitHubAppResource
 
   private final BaseUrl baseUrl;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public ApiGitHubAppResource(
       final ApiGitHubAppService apiGitHubAppService,
-      final BaseUrl baseUrl)
+      final BaseUrl baseUrl,
+      final OwnerDAO ownerDAO)
   {
     this.apiGitHubAppService = apiGitHubAppService;
     this.baseUrl = baseUrl;
+    this.ownerDAO = ownerDAO;
   }
 
   @POST
@@ -125,21 +131,23 @@ public class ApiGitHubAppResource
       @Parameter(description = "OAuth authorization code",
           required = true) @QueryParam("code") @NotBlank final String oauthCode) throws IOException
   {
-    Owner owner = apiGitHubAppService.handleInstallationSetupCallback(installationId, state, oauthCode);
+    GitHubApp gitHubApp = apiGitHubAppService.handleInstallationSetupCallback(installationId, state, oauthCode);
 
-    // For applications, use publicId for URL; for organizations, use internal ID
+    String ownerId = gitHubApp.getOwnerId();
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+
     String ownerIdForUrl = owner instanceof Application
         ? ((Application) owner).getPublicId()
         : owner.getId();
-    // Use UriBuilder for proper path construction and query parameter handling
+
     URI uri = baseUrl.redirect()
         .path(UserInterfaceLinksHelper.RESOURCE_PATH)
         .path(UserInterfaceLinksHelper.SOURCE_CONTROL_MANAGEMENT_PATH)
-        .queryParam("githubAppSuccess", "true")
+        .queryParam("githubAppId", gitHubApp.getId())
         .build(owner.getType().toString().toLowerCase(), ownerIdForUrl);
 
-    log.info("Redirecting to source control configuration after GitHub App installation: ownerId={}, ownerType={}",
-        ownerIdForUrl, owner.getType());
+    log.info("Redirecting to source control configuration after GitHub App installation: " +
+        "ownerId={}, ownerType={}, githubAppId={}", ownerIdForUrl, owner.getType(), gitHubApp.getId());
 
     return Response.temporaryRedirect(uri).build();
   }

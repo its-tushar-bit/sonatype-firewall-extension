@@ -22,6 +22,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.GithubApp.GITHUB_APP;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
@@ -53,7 +54,8 @@ public class GitHubAppDAO
   public GitHubApp getByOwnerId(final TransactionContext tx, final String ownerId) {
     return toEntity(tx.dsl()
         .selectFrom(GITHUB_APP)
-        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId)
+            .and(GITHUB_APP.IS_ACTIVE.eq(true)))
         .fetchOne());
   }
 
@@ -69,7 +71,8 @@ public class GitHubAppDAO
     }
     return tx.dsl()
         .selectFrom(GITHUB_APP)
-        .where(GITHUB_APP.OWNER_ID.in(ownerIds))
+        .where(GITHUB_APP.OWNER_ID.in(ownerIds)
+            .and(GITHUB_APP.IS_ACTIVE.eq(true)))
         .fetch()
         .stream()
         .map(this::toEntity)
@@ -136,9 +139,103 @@ public class GitHubAppDAO
         .from(GITHUB_APP)
         .join(OWNER_ANCESTOR)
         .on(GITHUB_APP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
-        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId)
+            .and(GITHUB_APP.IS_ACTIVE.eq(true)))
         .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
         .limit(1)
         .fetchOneInto(GitHubApp.class);
+  }
+
+  /**
+   * Get all GitHub Apps for a given owner (no active filter).
+   * Used for UI display to show all available GitHub Apps.
+   *
+   * @param ownerId the owner ID
+   * @return list of all GitHub Apps for the owner
+   */
+  public List<GitHubApp> getAllByOwnerId(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllByOwnerId(tx, ownerId);
+    }
+  }
+
+  public List<GitHubApp> getAllByOwnerId(final TransactionContext tx, final String ownerId) {
+    return tx.dsl()
+        .selectFrom(GITHUB_APP)
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Get a GitHub App by its ID.
+   *
+   * @param githubAppId the GitHub App ID
+   * @return the GitHub App, or null if not found
+   */
+  public GitHubApp getByGithubAppId(final String githubAppId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByGithubAppId(tx, githubAppId);
+    }
+  }
+
+  public GitHubApp getByGithubAppId(final TransactionContext tx, final String githubAppId) {
+    return toEntity(tx.dsl()
+        .selectFrom(GITHUB_APP)
+        .where(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId))
+        .fetchOne());
+  }
+
+  /**
+   * Activate specific GitHub App and deactivate all others for owner.
+   * Self-managed transaction version.
+   *
+   * @param ownerId the owner ID
+   * @param githubAppId the GitHub App ID to activate
+   */
+  public void activateGitHubApp(final String ownerId, final String githubAppId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      activateGitHubApp(tx, ownerId, githubAppId);
+      tx.commit();
+    }
+  }
+
+  public void activateGitHubApp(final TransactionContext tx, final String ownerId, final String githubAppId) {
+    int updated = tx.dsl()
+        .update(GITHUB_APP)
+        .set(GITHUB_APP.IS_ACTIVE,
+            DSL.when(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId), true)
+                .otherwise(false))
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .execute();
+
+    if (updated == 0) {
+      throw new NotFoundException("GitHub App not found or does not belong to owner: " + githubAppId);
+    }
+  }
+
+  /**
+   * Deactivate all GitHub Apps for owner.
+   * Self-managed transaction version.
+   *
+   * @param ownerId the owner ID
+   */
+  public void deactivateAllForOwner(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deactivateAllForOwner(tx, ownerId);
+      tx.commit();
+    }
+  }
+
+  public void deactivateAllForOwner(final TransactionContext tx, final String ownerId) {
+    tx.dsl()
+        .update(GITHUB_APP)
+        .set(GITHUB_APP.IS_ACTIVE, false)
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .execute();
   }
 }

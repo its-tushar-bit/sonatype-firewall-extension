@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppRegistrationStat
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
@@ -152,9 +151,10 @@ public class ApiGitHubAppServiceTest
     gitHubApp.setClientSecret(passwordHandler.encryptPassword(CLIENT_SECRET));
     gitHubApp.setPrivateKey("test-private-key");
     gitHubApp.setOwnerId(organization.getId());
-    gitHubApp.setGithubOrganizationName("(personal)"); // Set to marker so installation callback can populate it
+    gitHubApp.setGithubOrganizationName("(personal)");
     gitHubApp.setLastUpdatedAt(new Date());
     gitHubApp.setInstallationId(INSTALLATION_ID);
+    gitHubApp.setActive(true);
     gitHubApp = tempEntity.newGitHubApp(gitHubApp);
   }
 
@@ -199,10 +199,10 @@ public class ApiGitHubAppServiceTest
     Date futureDate = new Date(System.currentTimeMillis() + 900000);
     createInstallationState("valid-state-success", gitHubApp.getId(), futureDate);
 
-    Owner owner = service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-success", OAUTH_CODE);
+    GitHubApp result = service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-success", OAUTH_CODE);
 
-    assertThat(owner).isNotNull();
-    assertThat(owner.getId()).isEqualTo(organization.getId());
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(organization.getId());
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       GitHubAppInstallationState deletedState = installationStateDAO.findByStateToken(tx, "valid-state-success");
       assertThat(deletedState).isNull();
@@ -229,10 +229,10 @@ public class ApiGitHubAppServiceTest
                     + ",\"app_id\":" + APP_ID
                     + ",\"account\":{\"login\":\"personal-user\",\"id\":54321,\"type\":\"User\"}}]}")));
 
-    Owner owner = service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-personal", OAUTH_CODE);
+    GitHubApp result = service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-personal", OAUTH_CODE);
 
-    assertThat(owner).isNotNull();
-    assertThat(owner.getId()).isEqualTo(organization.getId());
+    assertThat(result).isNotNull();
+    assertThat(result.getOwnerId()).isEqualTo(organization.getId());
 
     GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
@@ -1193,7 +1193,7 @@ public class ApiGitHubAppServiceTest
   }
 
   @Test
-  public void testCreateGitHubAppFromManifest_ReplacesExistingApp_DeletesOldInsertsNew() throws Exception {
+  public void testCreateGitHubAppFromManifest_InsertsNewAppAsInactive_KeepsExistingActive() throws Exception {
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
@@ -1215,60 +1215,27 @@ public class ApiGitHubAppServiceTest
 
     service.createGitHubAppFromManifest(manifestCode, registrationState);
 
-    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(retrievedAfter).isNotNull();
-    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
-    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
-    assertThat(retrievedAfter.getClientId()).isEqualTo(CLIENT_ID);
-    assertThat(retrievedAfter.getOwnerId()).isEqualTo(organization.getId());
-    assertThat(retrievedAfter.getId()).isNotEqualTo(existingApp.getId());
+    List<GitHubApp> allApps = gitHubAppDAO.getAllByOwnerId(organization.getId());
+    assertThat(allApps).hasSize(2);
+
+    GitHubApp newApp = allApps.stream()
+        .filter(app -> app.getAppId().equals(newAppId))
+        .findFirst()
+        .orElse(null);
+    assertThat(newApp).isNotNull();
+    assertThat(newApp.getSlug()).isEqualTo(newSlug);
+    assertThat(newApp.getClientId()).isEqualTo(CLIENT_ID);
+    assertThat(newApp.getOwnerId()).isEqualTo(organization.getId());
+    assertThat(newApp.getId()).isNotEqualTo(existingApp.getId());
+    assertThat(newApp.isActive()).isFalse();
+
+    GitHubApp oldApp = gitHubAppDAO.getById(existingApp.getId());
+    assertThat(oldApp).isNotNull();
+    assertThat(oldApp.isActive()).isTrue();
   }
 
   @Test
-  public void testCreateGitHubAppFromManifest_GitHubApiDeleteFails_DatabaseDeletionProceeds() throws Exception {
-    deleteExistingGitHubAppForOwner(organization.getId());
-
-    GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
-        organization.getId(), "old-org", 777777L);
-    String existingAppId = existingApp.getId();
-
-    GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(retrievedBefore).isNotNull();
-    assertThat(retrievedBefore.getAppId()).isEqualTo(999999);
-    assertThat(retrievedBefore.getInstallationId()).isEqualTo(777777L);
-
-    githubMockServer.stubFor(
-        delete(urlPathEqualTo("/app/installations/777777"))
-            .willReturn(aResponse()
-                .withStatus(500)
-                .withHeader("Content-Type", "application/json")
-                .withBody("{\"message\":\"Internal server error\"}")));
-
-    // Create registration state for new app
-    Date futureDate = new Date(System.currentTimeMillis() + 900000);
-    GitHubAppRegistrationState registrationState = createRegistrationState("fail-delete-state",
-        organization.getId(), futureDate);
-
-    String manifestCode = "fail-delete-code";
-    Integer newAppId = APP_ID + 5500;
-    String newSlug = "new-app-after-failed-delete";
-    mockManifestConversion(manifestCode, newAppId, newSlug);
-
-    service.createGitHubAppFromManifest(manifestCode, registrationState);
-
-    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(retrievedAfter).isNotNull();
-    assertThat(retrievedAfter.getId()).isNotEqualTo(existingAppId);
-    assertThat(retrievedAfter.getAppId()).isNotEqualTo(999999);
-    assertThat(retrievedAfter.getSlug()).isNotEqualTo("old-app-slug");
-
-    // Verify new app WAS inserted successfully
-    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
-    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
-  }
-
-  @Test
-  public void testCreateGitHubAppFromManifest_ReplaceMultipleTimes_EachDeletesOldInsertsNew() throws Exception {
+  public void testCreateGitHubAppFromManifest_ReplaceMultipleTimes_EachInsertsNewInactive() throws Exception {
     deleteExistingGitHubAppForOwner(organization.getId());
 
     Date futureDate1 = new Date(System.currentTimeMillis() + 900000);
@@ -1279,10 +1246,10 @@ public class ApiGitHubAppServiceTest
     mockManifestConversion(code1, appId1, "first-slug");
     service.createGitHubAppFromManifest(code1, state1);
 
-    GitHubApp firstApp = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(firstApp).isNotNull();
-    assertThat(firstApp.getAppId()).isEqualTo(appId1);
-    String firstAppId = firstApp.getId();
+    List<GitHubApp> appsAfterFirst = gitHubAppDAO.getAllByOwnerId(organization.getId());
+    assertThat(appsAfterFirst).hasSize(1);
+    assertThat(appsAfterFirst.get(0).getAppId()).isEqualTo(appId1);
+    assertThat(appsAfterFirst.get(0).isActive()).isFalse();
 
     Date futureDate2 = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState state2 = createRegistrationState("second-app-state",
@@ -1292,10 +1259,8 @@ public class ApiGitHubAppServiceTest
     mockManifestConversion(code2, appId2, "second-slug");
     service.createGitHubAppFromManifest(code2, state2);
 
-    GitHubApp secondApp = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(secondApp).isNotNull();
-    assertThat(secondApp.getAppId()).isEqualTo(appId2);
-    assertThat(secondApp.getId()).isNotEqualTo(firstAppId);
+    List<GitHubApp> appsAfterSecond = gitHubAppDAO.getAllByOwnerId(organization.getId());
+    assertThat(appsAfterSecond).hasSize(2);
 
     Date futureDate3 = new Date(System.currentTimeMillis() + 900000);
     GitHubAppRegistrationState state3 = createRegistrationState("third-app-state",
@@ -1305,25 +1270,25 @@ public class ApiGitHubAppServiceTest
     mockManifestConversion(code3, appId3, "third-slug");
     service.createGitHubAppFromManifest(code3, state3);
 
-    GitHubApp thirdApp = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(thirdApp).isNotNull();
-    assertThat(thirdApp.getAppId()).isEqualTo(appId3);
-    assertThat(thirdApp.getId()).isNotEqualTo(firstAppId);
-    assertThat(thirdApp.getId()).isNotEqualTo(secondApp.getId());
-
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       tx.begin();
       List<GitHubApp> allApps = gitHubAppDAO.getAll(tx);
-      long countForOwner = allApps.stream()
+      List<GitHubApp> ownerApps = allApps.stream()
           .filter(app -> organization.getId().equals(app.getOwnerId()))
-          .count();
-      assertThat(countForOwner).isEqualTo(1);
+          .toList();
+      assertThat(ownerApps).hasSize(3);
+      assertThat(ownerApps.get(0).getAppId()).isEqualTo(appId1);
+      assertThat(ownerApps.get(0).isActive()).isFalse();
+      assertThat(ownerApps.get(1).getAppId()).isEqualTo(appId2);
+      assertThat(ownerApps.get(1).isActive()).isFalse();
+      assertThat(ownerApps.get(2).getAppId()).isEqualTo(appId3);
+      assertThat(ownerApps.get(2).isActive()).isFalse();
       tx.commit();
     }
   }
 
   @Test
-  public void testCreateGitHubAppFromManifest_WithPendingInstallationStates_DeletesStatesAndApp() throws Exception {
+  public void testCreateGitHubAppFromManifest_WithPendingInstallationStates_CreatesNewAppWithoutDeletion() throws Exception {
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
@@ -1351,21 +1316,32 @@ public class ApiGitHubAppServiceTest
 
     service.createGitHubAppFromManifest(manifestCode, registrationState);
 
-    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(retrievedAfter).isNotNull();
-    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
-    assertThat(retrievedAfter.getSlug()).isEqualTo(newSlug);
+    List<GitHubApp> allApps = gitHubAppDAO.getAllByOwnerId(organization.getId());
+    assertThat(allApps).hasSize(2);
+
+    GitHubApp newApp = allApps.stream()
+        .filter(app -> app.getAppId().equals(newAppId))
+        .findFirst()
+        .orElse(null);
+    assertThat(newApp).isNotNull();
+    assertThat(newApp.getAppId()).isEqualTo(newAppId);
+    assertThat(newApp.getSlug()).isEqualTo(newSlug);
+    assertThat(newApp.isActive()).isFalse();
+
+    GitHubApp oldApp = gitHubAppDAO.getById(existingApp.getId());
+    assertThat(oldApp).isNotNull();
+    assertThat(oldApp.isActive()).isTrue();
 
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       tx.begin();
-      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNull();
-      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "pending-state-2")).isNotNull();
       tx.commit();
     }
   }
 
   @Test
-  public void testCreateGitHubAppFromManifest_MultiplePendingStates_DeletesAllBeforeApp() throws Exception {
+  public void testCreateGitHubAppFromManifest_MultiplePendingStates_CreatesNewAppWithoutDeletion() throws Exception {
     deleteExistingGitHubAppForOwner(organization.getId());
 
     GitHubApp existingApp = createGitHubApp(999998, "app-with-many-states", "client-many-states",
@@ -1397,16 +1373,27 @@ public class ApiGitHubAppServiceTest
 
     service.createGitHubAppFromManifest(manifestCode, registrationState);
 
-    GitHubApp retrievedAfter = gitHubAppDAO.getByOwnerId(organization.getId());
-    assertThat(retrievedAfter).isNotNull();
-    assertThat(retrievedAfter.getAppId()).isEqualTo(newAppId);
+    List<GitHubApp> allApps = gitHubAppDAO.getAllByOwnerId(organization.getId());
+    assertThat(allApps).hasSize(2);
+
+    GitHubApp newApp = allApps.stream()
+        .filter(app -> app.getAppId().equals(newAppId))
+        .findFirst()
+        .orElse(null);
+    assertThat(newApp).isNotNull();
+    assertThat(newApp.getAppId()).isEqualTo(newAppId);
+    assertThat(newApp.isActive()).isFalse();
+
+    GitHubApp oldApp = gitHubAppDAO.getById(existingApp.getId());
+    assertThat(oldApp).isNotNull();
+    assertThat(oldApp.isActive()).isTrue();
 
     try (TransactionContext tx = installationStateDAO.createTransactionContext()) {
       tx.begin();
-      assertThat(installationStateDAO.findByStateToken(tx, "state-1")).isNull();
-      assertThat(installationStateDAO.findByStateToken(tx, "state-2")).isNull();
-      assertThat(installationStateDAO.findByStateToken(tx, "state-3")).isNull();
-      assertThat(installationStateDAO.findByStateToken(tx, "state-4")).isNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-1")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-2")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-3")).isNotNull();
+      assertThat(installationStateDAO.findByStateToken(tx, "state-4")).isNotNull();
       tx.commit();
     }
   }
@@ -1434,6 +1421,7 @@ public class ApiGitHubAppServiceTest
     app.setGithubOrganizationName(githubOrgName);
     app.setLastUpdatedAt(new Date());
     app.setInstallationId(installationId);
+    app.setActive(true);
     return tempEntity.newGitHubApp(app);
   }
 

@@ -6,14 +6,15 @@
 package com.sonatype.insight.brain.service.githubapp;
 
 import java.security.PrivateKey;
-
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
+import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.GitHubAppKeyUtils;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -50,6 +51,8 @@ public class GitHubAppDeletionService
 
   private final InsightProxy insightProxy;
 
+  private final GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache;
+
   private final String githubApiBaseUrl;
 
   @Inject
@@ -57,9 +60,10 @@ public class GitHubAppDeletionService
       final GitHubAppDAO gitHubAppDAO,
       final GitHubAppInstallationStateDAO installationStateDAO,
       final PasswordHandler passwordHandler,
-      final InsightProxy insightProxy)
+      final InsightProxy insightProxy,
+      final GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache)
   {
-    this(gitHubAppDAO, installationStateDAO, passwordHandler, insightProxy,
+    this(gitHubAppDAO, installationStateDAO, passwordHandler, insightProxy, gitHubAppAuthStrategyCache,
         DEFAULT_GITHUB_API_BASE_URL);
   }
 
@@ -68,12 +72,14 @@ public class GitHubAppDeletionService
       final GitHubAppInstallationStateDAO installationStateDAO,
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
+      final GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache,
       final String githubApiBaseUrl)
   {
     this.gitHubAppDAO = gitHubAppDAO;
     this.installationStateDAO = installationStateDAO;
     this.passwordHandler = passwordHandler;
     this.insightProxy = insightProxy;
+    this.gitHubAppAuthStrategyCache = gitHubAppAuthStrategyCache;
     this.githubApiBaseUrl = githubApiBaseUrl;
   }
 
@@ -128,5 +134,27 @@ public class GitHubAppDeletionService
     return new GitHubAppJwtAuthStrategy(
         privateKey,
         gitHubApp.getAppId().longValue());
+  }
+
+  /**
+   * Deactivates all GitHub Apps for the given owner.
+   *
+   * @param ownerId the owner ID whose GitHub Apps should be deactivated
+   */
+  public void deactivateGitHubApps(final TransactionContext tx, final String ownerId) {
+    gitHubAppDAO.deactivateAllForOwner(tx, ownerId);
+    gitHubAppAuthStrategyCache.invalidate(ownerId);
+    log.debug("Successfully deactivated all GitHub Apps and invalidated cache for owner {}", ownerId);
+  }
+
+  /**
+   * Deactivates all GitHub Apps for the given owner.
+   *
+   * @param ownerId the owner ID whose GitHub Apps should be deactivated
+   */
+  public void deactivateGitHubApps(final String ownerId) {
+    gitHubAppDAO.deactivateAllForOwner(ownerId);
+    gitHubAppAuthStrategyCache.invalidate(ownerId);
+    log.debug("Successfully deactivated all GitHub Apps and invalidated cache for owner {}", ownerId);
   }
 }

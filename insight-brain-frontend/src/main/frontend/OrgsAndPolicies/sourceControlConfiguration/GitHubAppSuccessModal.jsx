@@ -82,12 +82,12 @@ const GitHubAppSuccessModal = ({
                 {autoEnabledManualPRs && manualPRsListItem}
               </ul>
             </div>
-            <NxInfoAlert>
-              Click <strong>{submitBtnText?.toLowerCase() || 'create/update'}</strong> in the source control page to apply this
-              configuration.
-            </NxInfoAlert>
           </>
         )}
+        <NxInfoAlert>
+          Click <strong>{submitBtnText?.toLowerCase() || 'create/update'}</strong> in the source control page to apply
+          this configuration.
+        </NxInfoAlert>
       </NxModal.Content>
       <NxFooter>
         <NxButtonBar>

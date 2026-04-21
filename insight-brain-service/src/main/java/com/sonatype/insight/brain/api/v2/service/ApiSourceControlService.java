@@ -22,8 +22,10 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.utils.ExceptionUtils;
 import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -140,6 +142,8 @@ public class ApiSourceControlService
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
+  private final GitHubAppDeletionService gitHubAppDeletionService;
+
   @Inject
   public ApiSourceControlService(
       final PasswordHandler passwordHandler,
@@ -161,7 +165,8 @@ public class ApiSourceControlService
       final ScmRepoVisibilityService scmRepoVisibilityService,
       final ApiSourceControlAdapter apiSourceControlAdapter,
       final SourceControlDataService sourceControlDataService,
-      final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler)
+      final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler,
+      final GitHubAppDeletionService gitHubAppDeletionService)
   {
     this.passwordHandler = passwordHandler;
     this.sourceControlDAO = sourceControlDAO;
@@ -183,6 +188,7 @@ public class ApiSourceControlService
     this.sourceControlDataService = sourceControlDataService;
     this.sourceControlAuthenticationTransitionHandler = sourceControlAuthenticationTransitionHandler;
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
+    this.gitHubAppDeletionService = gitHubAppDeletionService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -340,9 +346,12 @@ public class ApiSourceControlService
       throw new BadRequestException(String.format(
           "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
-
-    sourceControlAuthenticationTransitionHandler.handleAuthTransition(null, sourceControl);
-    sourceControlDAO.insert(sourceControl);
+    try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
+      tx.begin();
+      sourceControlAuthenticationTransitionHandler.handleAuthTransition(tx, null, sourceControl, sourceControlDTO);
+      sourceControlDAO.insert(tx, sourceControl);
+      tx.commit();
+    }
     auditSourceControl(sourceControl);
 
     ensureDefaultSourceControlConfigurationExists();
@@ -373,7 +382,6 @@ public class ApiSourceControlService
     sourceControl.setId(storedSourceControl.getId());
     sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
     sourceControl.setPullRequestErrorCount(storedSourceControl.getPullRequestErrorCount());
-    sourceControlAuthenticationTransitionHandler.handleAuthTransition(storedSourceControl, sourceControl);
 
     setTokenValueForSave(sourceControl);
     // updates may come with our 'fake' token
@@ -389,7 +397,14 @@ public class ApiSourceControlService
 
     boolean hasRepositoryUrlChanged = storedSourceControl.getRepositoryUrl() != null &&
         !storedSourceControl.getRepositoryUrl().equalsIgnoreCase(sourceControl.getRepositoryUrl());
-    sourceControlDAO.update(sourceControl);
+    try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
+      tx.begin();
+      sourceControlAuthenticationTransitionHandler.handleAuthTransition(tx, storedSourceControl, sourceControl,
+          sourceControlDTO);
+      sourceControlDAO.update(tx, sourceControl);
+      tx.commit();
+    }
+
     if (hasRepositoryUrlChanged) {
       sourceControlEventDAO.clearEventsAndInsert(new SourceControlEvent()
           .setApplicationId(ownerId)
@@ -423,8 +438,12 @@ public class ApiSourceControlService
       deleteSourceControlDirectory(ownerId);
     }
     SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
-    sourceControlAuthenticationTransitionHandler.deleteGitHubAppInstallation(compositeSourceControl);
-    sourceControlDAO.delete(sourceControl);
+    try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
+      tx.begin();
+      gitHubAppDeletionService.deactivateGitHubApps(tx, ownerId);
+      sourceControlDAO.delete(tx, sourceControl);
+      tx.commit();
+    }
     auditSourceControl(sourceControl);
 
     sendSourceControlTelemetryData(METHOD.DELETE, compositeSourceControl, ownerType);

@@ -247,10 +247,10 @@ public class ApiGitHubAppService
    * @param installationId GitHub App installation ID
    * @param state State token for CSRF protection
    * @param oauthCode OAuth authorization code
-   * @return Owner object (used to build redirect URL in Resource layer)
+   * @return GitHubApp object (used to build redirect URL with githubAppId in Resource layer)
    * @throws BadRequestException if validation fails or configuration errors occur
    */
-  public Owner handleInstallationSetupCallback(
+  public GitHubApp handleInstallationSetupCallback(
       final Long installationId,
       final String state,
       final String oauthCode) throws IOException
@@ -275,7 +275,8 @@ public class ApiGitHubAppService
     String ownerId = gitHubApp.getOwnerId();
     Owner owner = ownerDAO.getByIdNotNull(ownerId);
 
-    return handleInstallationSetupCallbackAuthorized(owner, installationId, gitHubApp, oauthCode);
+    handleInstallationSetupCallbackAuthorized(owner, installationId, gitHubApp, oauthCode);
+    return gitHubApp;
   }
 
   /**
@@ -287,11 +288,10 @@ public class ApiGitHubAppService
    * @param installationId GitHub App installation ID
    * @param gitHubApp Pre-fetched GitHub App entity
    * @param oauthCode OAuth authorization code
-   * @return Owner object (used to build redirect URL in Resource layer)
    * @throws BadRequestException if validation fails or configuration errors occur
    */
   @Authorize(permission = Permission.WRITE)
-  Owner handleInstallationSetupCallbackAuthorized(
+  void handleInstallationSetupCallbackAuthorized(
       @AuthzContext(Key.OWNER) final Owner owner,
       final Long installationId,
       final GitHubApp gitHubApp,
@@ -322,8 +322,6 @@ public class ApiGitHubAppService
     log.info("OAuth validation successful for installation {} and owner {}", installationId, owner.getId());
 
     configureInstallation(gitHubApp, owner.getId(), installationId, accountName);
-
-    return owner;
   }
 
   /**
@@ -367,7 +365,7 @@ public class ApiGitHubAppService
     final ApiGitHubAppDTO gitHubApp = createGitHubAppFromManifest(code, registrationState);
 
     GitHubAppInstallationState installationState =
-        initiateInstallation(gitHubApp.ownerId());
+        initiateInstallation(gitHubApp.id());
 
     return UriBuilder.fromUri("https://github.com")
         .path("apps")
@@ -393,7 +391,6 @@ public class ApiGitHubAppService
         gitHubManifestService.convertManifestCode(code, client);
 
     validateGitHubManifestResponse(githubResponse);
-    gitHubAppDeletionService.delete(registrationState.getOwnerId());
 
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       tx.begin();
@@ -402,7 +399,6 @@ public class ApiGitHubAppService
       gitHubAppDAO.insert(tx, gitHubApp);
       tx.commit();
 
-      // Invalidate cache after GitHub App creation
       authStrategyCache.invalidate(gitHubApp.getOwnerId());
 
       return toGitHubAppDTO(gitHubApp);
@@ -571,11 +567,11 @@ public class ApiGitHubAppService
     return RandomStringUtils.secure().next(length, true, true);
   }
 
-  public GitHubAppInstallationState initiateInstallation(final String ownerId) {
+  public GitHubAppInstallationState initiateInstallation(final String githubAppId) {
 
-    GitHubApp gitHubApp = gitHubAppDAO.getByOwnerId(ownerId);
+    GitHubApp gitHubApp = gitHubAppDAO.getByGithubAppId(githubAppId);
     if (gitHubApp == null) {
-      throw new InternalServerErrorException("No GitHub App configured for owner: " + ownerId);
+      throw new InternalServerErrorException("GitHub App not found: " + githubAppId);
     }
 
     final String stateToken = RandomStringUtils.secure().nextAlphanumeric(32);

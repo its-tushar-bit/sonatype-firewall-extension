@@ -64,6 +64,142 @@ export const BRANCH_INPUT_MAX_CHARACTERS = 243,
   TOKEN_INPUT_MAX_CHARACTERS = 512;
 export const SCM_FORM_STATE_KEY_PREFIX = 'scmFormState_';
 
+const toGitHubAppList = (githubApps) => {
+  if (!githubApps) {
+    return [];
+  }
+
+  return (Array.isArray(githubApps) ? githubApps : [githubApps]).filter(Boolean);
+};
+
+const normalizeGitHubAppInfo = (githubApp) => {
+  if (!githubApp) {
+    return null;
+  }
+
+  return { ...githubApp };
+};
+
+const normalizeGitHubAppCollection = (githubApps) => {
+  if (!githubApps) {
+    return null;
+  }
+
+  const normalizedApps = toGitHubAppList(githubApps).map(normalizeGitHubAppInfo).filter(Boolean);
+
+  if (!normalizedApps.length) {
+    return null;
+  }
+
+  return Array.isArray(githubApps) ? normalizedApps : normalizedApps[0];
+};
+
+export const getCompositeGitHubAppState = ({ githubApp, githubApps } = {}) => {
+  if (githubApps) {
+    const normalizedCompositeApps = toGitHubAppList(githubApps);
+    const localGithubApps = normalizedCompositeApps
+      .map((compositeGithubApp) => normalizeGitHubAppInfo(compositeGithubApp?.value))
+      .filter(Boolean);
+    const inheritedGitHubAppEntry = normalizedCompositeApps.find(
+      (compositeGithubApp) => compositeGithubApp?.parentValue
+    );
+
+    return {
+      value: localGithubApps.length > 1 ? localGithubApps : localGithubApps[0] ?? null,
+      parentValue: normalizeGitHubAppInfo(inheritedGitHubAppEntry?.parentValue),
+      parentName: inheritedGitHubAppEntry?.parentName ?? normalizedCompositeApps[0]?.parentName,
+    };
+  }
+
+  if (!githubApp) {
+    return {
+      value: null,
+      parentValue: null,
+      parentName: undefined,
+    };
+  }
+
+  return {
+    value: normalizeGitHubAppCollection(githubApp.value),
+    parentValue: normalizeGitHubAppCollection(githubApp.parentValue),
+    parentName: githubApp.parentName,
+  };
+};
+
+export const getGitHubAppIdentifier = (githubApp) => {
+  if (!githubApp) {
+    return null;
+  }
+
+  if (githubApp.id != null && String(githubApp.id).trim() !== '') {
+    return String(githubApp.id);
+  }
+
+  if (githubApp.installationId != null && String(githubApp.installationId).trim() !== '') {
+    return `installation:${githubApp.installationId}`;
+  }
+
+  return null;
+};
+
+export const hasConfiguredGitHubApp = (githubApp) => Boolean(getGitHubAppIdentifier(githubApp));
+
+export const getGitHubAppReturnParam = (routerParams, locationSearch, locationHash) => {
+  const routerGithubAppId = routerParams?.githubAppId;
+  if (routerGithubAppId != null && String(routerGithubAppId).trim() !== '') {
+    return String(routerGithubAppId);
+  }
+
+  const resolvedLocationSearch = locationSearch ?? (typeof window !== 'undefined' ? window.location.search : '');
+  const resolvedLocationHash = locationHash ?? (typeof window !== 'undefined' ? window.location.hash : '');
+
+  if (resolvedLocationSearch) {
+    const searchParams = new URLSearchParams(resolvedLocationSearch);
+    const githubAppId = searchParams.get('githubAppId');
+
+    if (githubAppId != null && githubAppId.trim() !== '') {
+      return githubAppId;
+    }
+  }
+
+  const hashQueryStart = resolvedLocationHash.indexOf('?');
+  if (hashQueryStart === -1) {
+    return null;
+  }
+
+  const hashParams = new URLSearchParams(resolvedLocationHash.substring(hashQueryStart + 1));
+  const githubAppId = hashParams.get('githubAppId');
+
+  return githubAppId != null && githubAppId.trim() !== '' ? githubAppId : null;
+};
+
+export const selectMatchedGitHubAppInfo = (githubApps, githubAppId = null) => {
+  const apps = toGitHubAppList(githubApps);
+
+  if (!apps.length) {
+    return null;
+  }
+
+  const normalizedGithubAppId = githubAppId == null ? null : String(githubAppId);
+  const matchedGithubApp = normalizedGithubAppId
+    ? apps.find((githubApp) => githubApp?.id != null && String(githubApp.id) === normalizedGithubAppId)
+    : null;
+
+  return matchedGithubApp ? { ...matchedGithubApp } : null;
+};
+
+export const selectCommittedGitHubAppInfo = (githubApps) => {
+  const apps = toGitHubAppList(githubApps);
+
+  if (!apps.length) {
+    return null;
+  }
+
+  const activeGithubApp = apps.find((githubApp) => githubApp?.isActive === true);
+
+  return activeGithubApp ? { ...activeGithubApp } : null;
+};
+
 /**
  * Generates sessionStorage key for SCM form state scoped to specific owner.
  * Keys are unique per owner to prevent cross-tenant data leakage in multi-tenant environments.
@@ -194,9 +330,13 @@ export const compositeSourceControlToModel = (
     closePrAfterDaysOpenEnabled,
     closePrAfterDays,
     githubApp,
+    githubApps,
   },
   isRootOrg
 ) => {
+  const compositeGitHubApp = getCompositeGitHubAppState({ githubApp, githubApps });
+  const localGithubApp = selectCommittedGitHubAppInfo(compositeGitHubApp.value);
+  const inheritedGithubApp = selectCommittedGitHubAppInfo(compositeGitHubApp.parentValue);
   const sourceControlData = {
     ownerId,
     id,
@@ -294,11 +434,10 @@ export const compositeSourceControlToModel = (
       }),
     },
     githubApp: {
-      // Shallow copy prevents shared references (githubApp contains only primitives)
-      value: githubApp?.value ? { ...githubApp.value } : null,
-      isInherited: githubApp?.value === null && !isRootOrg,
-      parentValue: githubApp?.parentValue ? { ...githubApp.parentValue } : null,
-      parentName: githubApp?.parentName,
+      value: localGithubApp,
+      isInherited: localGithubApp === null && !isRootOrg,
+      parentValue: inheritedGithubApp,
+      parentName: compositeGitHubApp.parentName,
     },
   };
   // Handle edge case: provider inherited from sub-org but token at root level
@@ -472,8 +611,8 @@ export const prepareSubmitData = (
   const shouldClearGithubApp =
     isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT || isGitHubAppFeatureDisabled;
 
-  if (shouldClearGithubApp) {
-    submitData.githubApp = null;
+  if (!shouldClearGithubApp && sourceControl.githubApp?.value?.id) {
+    submitData.githubAppId = sourceControl.githubApp.value.id;
   }
 
   return submitData;
@@ -621,7 +760,12 @@ export const isAccessTokenRequiredOnNode = (
     const isParentUsingPAT =
       !isGithubAppAuthenticationEnabled || !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
     const isOverridingWithParentToken =
-      !isTokenInherited && isProviderInherited && hasParentToken && !hasCurrentToken && !hasSavedToken && isParentUsingPAT;
+      !isTokenInherited &&
+      isProviderInherited &&
+      hasParentToken &&
+      !hasCurrentToken &&
+      !hasSavedToken &&
+      isParentUsingPAT;
 
     if (hasCurrentToken || hasSavedToken || isOverridingWithParentToken) {
       return false; // App has a token (current, saved, or available from parent during override)
@@ -787,6 +931,7 @@ export const getDataFromSourceControl = (
     closePrOnFailedChecksEnabled,
     closePrAfterDaysOpenEnabled,
     closePrAfterDays,
+    githubAppId,
   }
 ) => {
   const data = {
@@ -807,6 +952,9 @@ export const getDataFromSourceControl = (
     closePrAfterDaysOpenEnabled,
     closePrAfterDays,
   };
+  if (githubAppId != null) {
+    data.githubAppId = githubAppId;
+  }
   if (ownerType === 'application') {
     data.repositoryUrl = repositoryUrl;
   }
@@ -859,11 +1007,10 @@ export const setIsDirty = (state) => {
         sourceControl[property]?.value !== serverSourceControl[property]?.value ||
         sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
     } else if (property === 'githubApp') {
-      // Compare GitHub App installation IDs to detect when a new installation is completed
-      const currentInstallationId = sourceControl[property]?.value?.installationId;
-      const serverInstallationId = serverSourceControl[property]?.value?.installationId;
+      const currentGithubAppId = getGitHubAppIdentifier(sourceControl[property]?.value);
+      const serverGithubAppId = getGitHubAppIdentifier(serverSourceControl[property]?.value);
       const isInheritedChanged = sourceControl[property]?.isInherited !== serverSourceControl[property]?.isInherited;
-      fieldIsDirty = currentInstallationId !== serverInstallationId || isInheritedChanged;
+      fieldIsDirty = currentGithubAppId !== serverGithubAppId || isInheritedChanged;
     } else {
       fieldIsDirty =
         sourceControl[property]?.rscValue?.trimmedValue !== serverSourceControl[property]?.rscValue?.trimmedValue ||
@@ -889,7 +1036,7 @@ export const getValidationMessage = (
   isGithubAppAuthenticationEnabled = true
 ) => {
   if (!isDirty) {
-    const hasGitHubApp = sourceControl?.githubApp?.value?.installationId;
+    const hasGitHubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.value);
     const isGitHubAppAuth = sourceControl?.authenticationType?.value === AUTHENTICATION_TYPES.GITHUB_APP;
 
     if (hasGitHubApp && isGitHubAppAuth && isGithubAppAuthenticationEnabled) {

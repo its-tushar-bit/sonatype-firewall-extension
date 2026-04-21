@@ -83,6 +83,24 @@ describe('scmOnboardingProviders', function () {
         expect(hasAuth(org)).toBe(true);
       });
 
+      it('should return GITHUB_APP/true when the live plural githubApps payload is configured at org level', () => {
+        const org = {
+          sourceControl: {
+            provider: { value: 'github', parentValue: null },
+            authenticationType: { value: 'GITHUB_APP', parentValue: null },
+            githubApps: [
+              {
+                value: { id: 'github-app-1', installationId: 12345, isActive: true },
+                parentValue: null,
+                parentName: null,
+              },
+            ],
+          },
+        };
+        expect(getAuthMethodForOrg(org)).toBe('GITHUB_APP');
+        expect(hasAuth(org)).toBe(true);
+      });
+
       it('should return GITHUB_APP when GitHub App is inherited with installationId', () => {
         const org = {
           sourceControl: {
@@ -92,6 +110,29 @@ describe('scmOnboardingProviders', function () {
           },
         };
         expect(getAuthMethodForOrg(org)).toBe('GITHUB_APP');
+      });
+
+      it('should return GITHUB_APP when the live plural githubApps payload is inherited', () => {
+        const org = {
+          sourceControl: {
+            provider: { value: null, parentValue: 'github' },
+            authenticationType: { value: null, parentValue: 'GITHUB_APP' },
+            githubApps: [
+              {
+                value: null,
+                parentValue: {
+                  id: 'github-app-1',
+                  installationId: 12345,
+                  isActive: true,
+                },
+                parentName: 'Root Organization',
+              },
+            ],
+            token: { value: null, parentValue: null },
+          },
+        };
+        expect(getAuthMethodForOrg(org)).toBe('GITHUB_APP');
+        expect(hasAuth(org)).toBe(true);
       });
 
       it('should return null/false when GitHub App is configured but missing installationId', () => {

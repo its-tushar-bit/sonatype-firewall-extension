@@ -11,7 +11,9 @@ import java.util.Map;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
@@ -39,6 +41,9 @@ public class ApplicationCleanerTest
 
   @Inject
   private InsightWork work;
+
+  @Inject
+  private GitHubAppDAO gitHubAppDAO;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -130,5 +135,77 @@ public class ApplicationCleanerTest
     assertThat(actual.getParentOwnerId()).isEqualTo(expected.getParentOwnerId());
     assertThat(actual.getOwnerType()).isEqualTo(expected.getOwnerType());
     assertThat(actual.getOwnerMaintenanceType()).isEqualTo(expected.getOwnerMaintenanceType());
+  }
+
+  @Test
+  public void testDelete_DeactivatesGitHubApps() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp1 = tempEntity.newGitHubApp(application.getId());
+    gitHubApp1.setActive(true);
+    gitHubAppDAO.update(gitHubApp1);
+
+    GitHubApp gitHubApp2 = tempEntity.newGitHubApp(application.getId());
+    gitHubApp2.setActive(false);
+    gitHubAppDAO.update(gitHubApp2);
+
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId())).isNotNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId())).isNotNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId()).isActive()).isTrue();
+
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      appCleaner.delete(tx, application);
+      tx.commit();
+    }
+
+    assertThat(applicationDAO.getById(application.getId())).isNull();
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testDelete_NoGitHubApps_StillSucceeds() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    assertThat(gitHubAppDAO.getByOwnerId(application.getId())).isNull();
+
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      appCleaner.delete(tx, application);
+      tx.commit();
+    }
+
+    assertThat(applicationDAO.getById(application.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_WithMultipleGitHubApps_RollsBackAllDeactivationsOnFailure() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    GitHubApp gitHubApp1 = tempEntity.newGitHubApp(application.getId());
+    gitHubApp1.setActive(true);
+    gitHubAppDAO.update(gitHubApp1);
+
+    GitHubApp gitHubApp2 = tempEntity.newGitHubApp(application.getId());
+    gitHubApp2.setActive(false);
+    gitHubAppDAO.update(gitHubApp2);
+
+    GitHubApp gitHubApp3 = tempEntity.newGitHubApp(application.getId());
+    gitHubApp3.setActive(true);
+    gitHubAppDAO.update(gitHubApp3);
+
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(gitHubApp3.getId()).isActive()).isTrue();
+
+    try (TransactionContext tx = applicationDAO.createTransactionContext()) {
+      tx.begin();
+      appCleaner.delete(tx, application);
+      tx.rollback();
+    }
+
+    assertThat(gitHubAppDAO.getById(gitHubApp1.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(gitHubApp2.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(gitHubApp3.getId()).isActive()).isTrue();
+    assertThat(applicationDAO.getById(application.getId())).isNotNull();
   }
 }

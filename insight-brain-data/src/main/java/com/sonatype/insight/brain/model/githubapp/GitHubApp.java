@@ -59,6 +59,9 @@ public class GitHubApp
   @Column(name = "last_updated_at")
   private Date lastUpdatedAt;
 
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive = false;
+
   public GitHubApp() {
     // Default constructor for JPA
   }
@@ -143,5 +146,13 @@ public class GitHubApp
 
   public void setLastUpdatedAt(Date lastUpdatedAt) {
     this.lastUpdatedAt = lastUpdatedAt;
+  }
+
+  public boolean isActive() {
+    return isActive;
+  }
+
+  public void setActive(boolean active) {
+    isActive = active;
   }
 }

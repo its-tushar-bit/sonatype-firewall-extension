@@ -761,6 +761,7 @@ describe('sourceControlConfiguration', () => {
           authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
           githubApp: {
             value: {
+              id: 'github-app-created',
               installationId: 'new-installation-id',
               name: 'sonatype-iq-server',
               accountName: 'test-org',
@@ -786,7 +787,7 @@ describe('sourceControlConfiguration', () => {
 
         const preloadedState = clone(defaultPreloadedState);
         preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
-        preloadedState.router.currentParams.githubAppSuccess = 'true';
+        preloadedState.router.currentParams.githubAppId = 'github-app-created';
 
         renderComponent(preloadedState);
 
@@ -806,13 +807,14 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByText(/The GitHub App was replaced successfully/i)).not.toBeInTheDocument();
       });
 
-      it('shows update guidance and replacement alert after reconfiguring an existing root GitHub App', async () => {
+      it('shows update guidance after reconfiguring an existing root GitHub App and waits for save to commit it', async () => {
         const backendGitHubAppResponse = {
           ...existingRootOrgConfigResponse,
           provider: { value: 'github', parentValue: null, parentName: null },
           authenticationType: { value: 'GITHUB_APP', parentValue: null, parentName: null },
           githubApp: {
             value: {
+              id: 'github-app-reconfigured',
               installationId: 'new-installation-id',
               name: 'sonatype-iq-server',
               accountName: 'test-org',
@@ -823,12 +825,14 @@ describe('sourceControlConfiguration', () => {
         };
 
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+        axiosMock.onPut(getSourceControlUrl(ownerType, ownerId)).reply(200);
 
         sessionStorage.setItem(
           getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
           JSON.stringify({
             githubApp: {
               value: {
+                id: 'github-app-previous',
                 installationId: 'old-installation-id',
                 name: 'sonatype-iq-server',
                 accountName: 'test-org',
@@ -842,7 +846,7 @@ describe('sourceControlConfiguration', () => {
 
         const preloadedState = clone(defaultPreloadedState);
         preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
-        preloadedState.router.currentParams.githubAppSuccess = 'true';
+        preloadedState.router.currentParams.githubAppId = 'github-app-reconfigured';
 
         renderComponent(preloadedState);
 
@@ -856,8 +860,307 @@ describe('sourceControlConfiguration', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Done' }));
 
-        const replacedAlert = await screen.findByText(/The GitHub App was replaced successfully/i);
-        expect(replacedAlert).toBeVisible();
+        await waitFor(() => {
+          expect(screen.queryByText('GitHub Setup Complete')).not.toBeInTheDocument();
+        });
+        expect(screen.queryByText(/The GitHub App was replaced successfully/i)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+
+        await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+        expect(JSON.parse(axiosMock.history.put[0].data)).toMatchObject({
+          provider: 'github',
+          authenticationType: AUTHENTICATION_TYPES.GITHUB_APP,
+          githubAppId: 'github-app-reconfigured',
+        });
+      });
+
+      it('surfaces the GitHub App selected by githubAppId from a multi-install response and submits that id', async () => {
+        const returnedGithubAppId = 'github-app-2';
+        const backendGitHubAppResponse = {
+          ...defaultRootOrgConfigResponse,
+          githubApps: [
+            {
+              value: {
+                id: 'github-app-1',
+                installationId: 'active-installation-id',
+                name: 'Active GitHub App',
+                accountName: 'active-org',
+                isActive: true,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+            {
+              value: {
+                id: returnedGithubAppId,
+                installationId: 'returned-installation-id',
+                name: 'Returned GitHub App',
+                accountName: 'returned-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          ],
+        };
+        const savedState = compositeSourceControlToModel(
+          {
+            ...defaultRootOrgConfigResponse,
+            provider: { value: 'github', parentValue: null, parentName: null },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: null,
+            },
+          },
+          true
+        );
+
+        delete savedState.token;
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+        axiosMock.onPost(getSourceControlUrl(ownerType, ownerId)).reply(200);
+
+        sessionStorage.setItem(
+          getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
+          JSON.stringify(savedState)
+        );
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        preloadedState.router.currentParams.githubAppId = returnedGithubAppId;
+
+        renderComponent(preloadedState);
+
+        await screen.findByText('GitHub Setup Complete');
+        expect(screen.getAllByText('Returned GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Active GitHub App')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+        await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+        expect(JSON.parse(axiosMock.history.post[0].data)).toMatchObject({
+          provider: 'github',
+          authenticationType: AUTHENTICATION_TYPES.GITHUB_APP,
+          githubAppId: returnedGithubAppId,
+        });
+      });
+
+      it('does not keep showing the returned GitHub App after switching to PAT and saving', async () => {
+        const returnedGithubAppId = 'returned-github-app';
+        const backendReturnResponse = {
+          ...defaultRootOrgConfigResponse,
+          githubApps: [
+            {
+              value: {
+                id: returnedGithubAppId,
+                installationId: 'returned-installation-id',
+                name: 'Returned GitHub App',
+                accountName: 'returned-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          ],
+        };
+        const backendPatResponse = {
+          ...existingRootOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          authenticationType: { value: AUTHENTICATION_TYPES.PAT, parentValue: null, parentName: null },
+          githubApps: [
+            {
+              value: {
+                id: returnedGithubAppId,
+                installationId: 'returned-installation-id',
+                name: 'Returned GitHub App',
+                accountName: 'returned-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          ],
+        };
+        const savedState = compositeSourceControlToModel(
+          {
+            ...defaultRootOrgConfigResponse,
+            provider: { value: 'github', parentValue: null, parentName: null },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: null,
+            },
+          },
+          true
+        );
+
+        delete savedState.token;
+
+        axiosMock.resetHandlers();
+        axiosMock.onGet(getOrganizationUrl(ROOT_ORGANIZATION_ID)).reply(200, rootOrganizationResponse);
+        axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+        axiosMock.onPost(getSourceControlUrl(ownerType, ownerId)).reply(200);
+        axiosMock
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .replyOnce(200, backendReturnResponse)
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .reply(200, backendPatResponse);
+
+        sessionStorage.setItem(
+          getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
+          JSON.stringify(savedState)
+        );
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        preloadedState.router.currentParams.githubAppId = returnedGithubAppId;
+
+        renderComponent(preloadedState);
+
+        await screen.findByText('GitHub Setup Complete');
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+        const authMethodFieldset = await screen.findByRole('group', { name: 'Authentication Method' });
+        fireEvent.click(within(authMethodFieldset).getByRole('radio', { name: 'Personal Access Token' }));
+
+        const tokenInput = await screen.findByLabelText('Access Token');
+        fireEvent.change(tokenInput, { target: { value: 'root-pat-token' } });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+        await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+        expect(JSON.parse(axiosMock.history.post[0].data)).toMatchObject({
+          provider: 'github',
+          authenticationType: AUTHENTICATION_TYPES.PAT,
+          token: 'root-pat-token',
+        });
+        expect(JSON.parse(axiosMock.history.post[0].data)).not.toHaveProperty('githubAppId');
+
+        await waitFor(() =>
+          expect(
+            within(screen.getByRole('group', { name: 'Authentication Method' })).getByRole('radio', {
+              name: 'Personal Access Token',
+            })
+          ).toBeChecked()
+        );
+        expect(screen.queryByText('Returned GitHub App')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Go to GitHub Installation Settings' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Reconfigure' })).not.toBeInTheDocument();
+      });
+
+      it('shows the active GitHub App without a success modal when githubAppId does not match any returned installation', async () => {
+        const backendGitHubAppResponse = {
+          ...existingRootOrgConfigResponse,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP, parentValue: null, parentName: null },
+          githubApps: [
+            {
+              value: {
+                id: 'github-app-1',
+                installationId: 'active-installation-id',
+                name: 'Active GitHub App',
+                accountName: 'active-org',
+                isActive: true,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+            {
+              value: {
+                id: 'github-app-2',
+                installationId: 'returned-installation-id',
+                name: 'Returned GitHub App',
+                accountName: 'returned-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          ],
+        };
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        preloadedState.router.currentParams.githubAppId = 'missing-github-app';
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+        expect(screen.getAllByText('Active GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Returned GitHub App')).not.toBeInTheDocument();
+        expect(screen.queryByText('GitHub Setup Complete')).not.toBeInTheDocument();
+      });
+
+      it('shows the success modal when githubAppId is only present in the hash route query string', async () => {
+        const returnedGithubAppId = 'github-app-2';
+        const originalHash = window.location.hash;
+        const backendGitHubAppResponse = {
+          ...defaultRootOrgConfigResponse,
+          githubApps: [
+            {
+              value: {
+                id: 'github-app-1',
+                installationId: 'active-installation-id',
+                name: 'Active GitHub App',
+                accountName: 'active-org',
+                isActive: true,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+            {
+              value: {
+                id: returnedGithubAppId,
+                installationId: 'returned-installation-id',
+                name: 'Returned GitHub App',
+                accountName: 'returned-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          ],
+        };
+        const savedState = compositeSourceControlToModel(
+          {
+            ...defaultRootOrgConfigResponse,
+            provider: { value: 'github', parentValue: null, parentName: null },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: null,
+            },
+          },
+          true
+        );
+
+        delete savedState.token;
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, backendGitHubAppResponse);
+
+        sessionStorage.setItem(
+          getScmFormStateStorageKey('organization', ROOT_ORGANIZATION_ID),
+          JSON.stringify(savedState)
+        );
+
+        window.location.hash = `#/management/edit/organization/${ROOT_ORGANIZATION_ID}/source-control?githubAppId=${returnedGithubAppId}`;
+
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['github-app-authentication'] = true;
+        delete preloadedState.router.currentParams.githubAppId;
+
+        try {
+          renderComponent(preloadedState);
+
+          await screen.findByText('GitHub Setup Complete');
+          expect(screen.getAllByText('Returned GitHub App').length).toBeGreaterThan(0);
+        } finally {
+          window.location.hash = originalHash;
+        }
       });
     });
   });
@@ -1008,6 +1311,78 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(submitModalBtn);
         expect(axiosMock.history.delete.length).toBe(1);
         expect(axiosMock.history.delete[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
+      });
+
+      it('shows a fresh org SCM page after reset even if githubAppId is still present and backend still returns an inactive local GitHub App record', async () => {
+        axiosMock.resetHandlers();
+        axiosMock.onGet(getOrganizationUrl(ORGANIZATION_ID)).reply(200, organizationResponse);
+        axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+        axiosMock.onDelete(getSourceControlUrl(ownerType, ownerId)).reply(200);
+        axiosMock
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .replyOnce(200, {
+            ...existingOrgConfigResponse,
+            provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: ROOT_ORGANIZATION_NAME,
+            },
+            githubApp: {
+              value: {
+                id: 'org-active-github-app',
+                installationId: '12345',
+                name: 'Org Active GitHub App',
+                accountName: 'child-org',
+                isActive: true,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          })
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .reply(200, {
+            ...defaultOrgConfigResponse,
+            githubApp: {
+              value: {
+                id: 'org-inactive-github-app',
+                installationId: '12345',
+                name: 'Org Inactive GitHub App',
+                accountName: 'child-org',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+          router: {
+            ...defaultPreloadedState.router,
+            currentParams: {
+              ...defaultPreloadedState.router.currentParams,
+              githubAppId: 'org-inactive-github-app',
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        const resetBtn = await screen.findByRole('button', { name: 'Reset' });
+        fireEvent.click(resetBtn);
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+        await waitFor(() => expect(axiosMock.history.delete.length).toBe(1));
+        await waitFor(() => expect(screen.queryByText('Org Inactive GitHub App')).not.toBeInTheDocument());
+        expect(screen.queryByRole('link', { name: 'Go to GitHub Installation Settings' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Reconfigure' })).not.toBeInTheDocument();
       });
 
       it('renders error message and retry button when resetting configuration fails', async () => {
@@ -1424,7 +1799,7 @@ describe('sourceControlConfiguration', () => {
             ...defaultPreloadedState.router,
             currentParams: {
               ...defaultPreloadedState.router.currentParams,
-              githubAppSuccess: 'true',
+              githubAppId: 'pending-github-app',
             },
           },
           productFeatures: {
@@ -1456,6 +1831,7 @@ describe('sourceControlConfiguration', () => {
           ...defaultOrgConfigResponse,
           githubApp: {
             value: {
+              id: 'pending-github-app',
               installationId: 67890,
               name: 'Pending GitHub App',
               accountName: 'pending-org',
@@ -1524,6 +1900,212 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByText('Uncommitted GitHub App')).not.toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Go to GitHub Installation Settings' })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Reconfigure' })).not.toBeInTheDocument();
+      });
+
+      it('shows the active local GitHub App on revisit when multiple local installations exist and there is no return context', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingOrgConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentValue: null,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: [
+              {
+                id: 'inactive-local-github-app',
+                installationId: '11111',
+                name: 'Inactive Local GitHub App',
+                accountName: 'child-org',
+                isActive: false,
+              },
+              {
+                id: 'active-local-github-app',
+                installationId: '22222',
+                name: 'Active Local GitHub App',
+                accountName: 'child-org',
+                isActive: true,
+              },
+            ],
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(within(authMethodFieldset).getByRole('radio', { name: 'Override' })).toBeChecked();
+        expect(
+          within(authMethodFieldset).getByRole('radio', {
+            name: 'GitHub App (Recommended)',
+          })
+        ).toBeChecked();
+        expect(screen.getAllByText('Active Local GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Inactive Local GitHub App')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reconfigure' })).toBeVisible();
+      });
+
+      it('surfaces a returned local GitHub App over an inherited parent GitHub App and submits that local id', async () => {
+        sessionStorage.clear();
+
+        const returnedGithubAppId = 'org-local-github-app';
+        const inheritedGitHubAppResponse = {
+          ...defaultOrgConfigResponse,
+          provider: { value: null, parentValue: 'github', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: null,
+            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: [
+              {
+                id: returnedGithubAppId,
+                installationId: '67890',
+                name: 'Local Override GitHub App',
+                accountName: 'child-org',
+                isActive: false,
+              },
+            ],
+            parentValue: {
+              id: 'parent-github-app',
+              installationId: '12345',
+              name: 'Inherited Parent GitHub App',
+              accountName: 'root-org',
+              isActive: true,
+            },
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+        };
+        const savedStateKey = getScmFormStateStorageKey(ownerType, ownerId);
+        const savedState = compositeSourceControlToModel(inheritedGitHubAppResponse, false);
+
+        savedState.authenticationType = {
+          ...savedState.authenticationType,
+          value: AUTHENTICATION_TYPES.GITHUB_APP,
+          isInherited: false,
+        };
+        savedState.githubApp = {
+          ...savedState.githubApp,
+          value: null,
+          isInherited: false,
+        };
+
+        sessionStorage.setItem(savedStateKey, JSON.stringify(savedState));
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedGitHubAppResponse);
+        axiosMock.onPost(getSourceControlUrl(ownerType, ownerId)).reply(200);
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          router: {
+            ...defaultPreloadedState.router,
+            currentParams: {
+              ...defaultPreloadedState.router.currentParams,
+              githubAppId: returnedGithubAppId,
+            },
+          },
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByText('GitHub Setup Complete');
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(within(authMethodFieldset).getByRole('radio', { name: 'Override' })).toBeChecked();
+        expect(
+          within(authMethodFieldset).getByRole('radio', {
+            name: 'GitHub App (Recommended)',
+          })
+        ).toBeChecked();
+        expect(screen.getAllByText('Local Override GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Inherited Parent GitHub App')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+
+        await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+        expect(JSON.parse(axiosMock.history.post[0].data)).toMatchObject({
+          provider: 'github',
+          authenticationType: AUTHENTICATION_TYPES.GITHUB_APP,
+          githubAppId: returnedGithubAppId,
+        });
+      });
+
+      it('keeps showing the inherited parent GitHub App on revisit and hides stale local installations', async () => {
+        sessionStorage.clear();
+
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultOrgConfigResponse,
+          provider: { value: null, parentValue: 'github', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: null,
+            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: [
+              {
+                id: 'stale-local-github-app',
+                installationId: '67890',
+                name: 'Stale Local GitHub App',
+                accountName: 'child-org',
+                isActive: false,
+              },
+            ],
+            parentValue: {
+              id: 'parent-github-app',
+              installationId: '12345',
+              name: 'Inherited Parent GitHub App',
+              accountName: 'root-org',
+              isActive: true,
+            },
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(
+          within(authMethodFieldset).getByRole('radio', { name: `Inherit from ${ROOT_ORGANIZATION_NAME}` })
+        ).toBeChecked();
+        expect(screen.getAllByText('Inherited Parent GitHub App').length).toBeGreaterThan(0);
+        expect(screen.getByRole('link', { name: 'View GitHub App configuration' })).toBeVisible();
+        expect(screen.queryByText('Stale Local GitHub App')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reconfigure' })).toBeDisabled();
       });
 
       it('allows selecting Personal Access Token authentication method', async () => {
@@ -1892,6 +2474,78 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(submitModalBtn);
         expect(axiosMock.history.delete.length).toBe(1);
         expect(axiosMock.history.delete[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
+      });
+
+      it('shows a fresh app SCM page after reset even if githubAppId is still present and backend still returns an inactive local GitHub App record', async () => {
+        axiosMock.resetHandlers();
+        axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_ID)).reply(200, applicationsResponse);
+        axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+        axiosMock.onDelete(getSourceControlUrl(ownerType, ownerId)).reply(200);
+        axiosMock
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .replyOnce(200, {
+            ...existingAppConfigResponse,
+            provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+            authenticationType: {
+              value: AUTHENTICATION_TYPES.GITHUB_APP,
+              parentValue: null,
+              parentName: ROOT_ORGANIZATION_NAME,
+            },
+            githubApp: {
+              value: {
+                id: 'app-active-github-app',
+                installationId: '12345',
+                name: 'App Active GitHub App',
+                accountName: 'child-app',
+                isActive: true,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          })
+          .onGet(getCompositeSourceControlUrl(ownerType, ownerId))
+          .reply(200, {
+            ...defaultAppConfigResponse,
+            githubApp: {
+              value: {
+                id: 'app-inactive-github-app',
+                installationId: '12345',
+                name: 'App Inactive GitHub App',
+                accountName: 'child-app',
+                isActive: false,
+              },
+              parentValue: null,
+              parentName: null,
+            },
+          });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+          router: {
+            ...defaultPreloadedState.router,
+            currentParams: {
+              ...defaultPreloadedState.router.currentParams,
+              githubAppId: 'app-inactive-github-app',
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        const resetBtn = await screen.findByRole('button', { name: 'Reset' });
+        fireEvent.click(resetBtn);
+        fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+        await waitFor(() => expect(axiosMock.history.delete.length).toBe(1));
+        await waitFor(() => expect(screen.queryByText('App Inactive GitHub App')).not.toBeInTheDocument());
+        expect(screen.queryByRole('link', { name: 'Go to GitHub Installation Settings' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Reconfigure' })).not.toBeInTheDocument();
       });
 
       it('renders error message and retry button when resetting configuration fails', async () => {
@@ -2499,6 +3153,116 @@ describe('sourceControlConfiguration', () => {
 
         // Configure button should be shown (since no installation ID is configured)
         expect(within(authMethodFieldset).getByRole('button', { name: 'Configure GitHub App' })).toBeVisible();
+      });
+
+      it('shows the active local GitHub App on application revisit when multiple local installations exist and there is no return context', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...existingAppConfigResponse,
+          provider: { value: 'github', parentValue: 'azure', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentValue: null,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: [
+              {
+                id: 'inactive-app-github-app',
+                installationId: '11111',
+                name: 'Inactive App GitHub App',
+                accountName: 'child-app',
+                isActive: false,
+              },
+              {
+                id: 'active-app-github-app',
+                installationId: '22222',
+                name: 'Active App GitHub App',
+                accountName: 'child-app',
+                isActive: true,
+              },
+            ],
+            parentValue: null,
+            parentName: null,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(within(authMethodFieldset).getByRole('radio', { name: 'Override' })).toBeChecked();
+        expect(
+          within(authMethodFieldset).getByRole('radio', {
+            name: 'GitHub App (Recommended)',
+          })
+        ).toBeChecked();
+        expect(screen.getAllByText('Active App GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Inactive App GitHub App')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reconfigure' })).toBeVisible();
+      });
+
+      it('keeps showing the inherited parent GitHub App on application revisit and hides stale local installations', async () => {
+        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
+          ...defaultAppConfigResponse,
+          provider: { value: null, parentValue: 'github', parentName: ROOT_ORGANIZATION_NAME },
+          authenticationType: {
+            value: null,
+            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+          githubApp: {
+            value: [
+              {
+                id: 'stale-app-github-app',
+                installationId: '67890',
+                name: 'Stale App GitHub App',
+                accountName: 'child-app',
+                isActive: false,
+              },
+            ],
+            parentValue: {
+              id: 'parent-github-app',
+              installationId: '12345',
+              name: 'Inherited Parent GitHub App',
+              accountName: 'root-org',
+              isActive: true,
+            },
+            parentName: ROOT_ORGANIZATION_NAME,
+          },
+        });
+
+        const preloadedState = {
+          ...defaultPreloadedState,
+          productFeatures: {
+            productFeatures: {
+              ...defaultPreloadedState.productFeatures.productFeatures,
+              'github-app-authentication': true,
+            },
+          },
+        };
+
+        renderComponent(preloadedState);
+
+        await screen.findByRole('button', { name: 'Update' });
+
+        const authMethodFieldset = screen.getByRole('group', { name: 'Authentication Method' });
+        expect(
+          within(authMethodFieldset).getByRole('radio', { name: `Inherit from ${ROOT_ORGANIZATION_NAME}` })
+        ).toBeChecked();
+        expect(screen.getAllByText('Inherited Parent GitHub App').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Stale App GitHub App')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reconfigure' })).toBeDisabled();
       });
 
       it('does not show reconfigure alert by default after loading', async () => {

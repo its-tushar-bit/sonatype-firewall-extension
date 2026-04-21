@@ -19,7 +19,29 @@ const displayName = (provider) => {
 };
 
 function valueFromHierarchy(compositeDto) {
-  return compositeDto === null ? null : compositeDto.value !== null ? compositeDto.value : compositeDto.parentValue;
+  return compositeDto == null ? null : compositeDto.value !== null ? compositeDto.value : compositeDto.parentValue;
+}
+
+function gitHubAppFromEntries(githubApps, localOnly) {
+  if (!githubApps) {
+    return null;
+  }
+
+  const entries = Array.isArray(githubApps) ? githubApps : [githubApps];
+  const app = entries
+    .map((entry) => (localOnly ? entry?.value : entry?.value ?? entry?.parentValue))
+    .find((githubApp) => githubApp?.installationId);
+
+  return app ?? null;
+}
+
+function gitHubAppFromSourceControl(sourceControl, localOnly) {
+  const pluralGitHubApp = gitHubAppFromEntries(sourceControl.githubApps, localOnly);
+  if (pluralGitHubApp) {
+    return pluralGitHubApp;
+  }
+
+  return localOnly ? sourceControl.githubApp?.value : valueFromHierarchy(sourceControl.githubApp);
 }
 
 function tokenForOrg(org) {
@@ -39,9 +61,7 @@ function getAuthMethodForOrg(org) {
 
   // Check GitHub App authentication
   if (authType === 'GITHUB_APP') {
-    const githubApp = org.sourceControl.provider.value
-      ? org.sourceControl.githubApp?.value
-      : valueFromHierarchy(org.sourceControl.githubApp);
+    const githubApp = gitHubAppFromSourceControl(org.sourceControl, !!org.sourceControl.provider.value);
 
     // Valid if GitHub App has installationId
     return githubApp?.installationId ? 'GITHUB_APP' : null;

@@ -42,6 +42,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.codahale.metrics.annotation.Timed;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 
@@ -177,20 +178,23 @@ public class UserInterfaceLinksResource
   public Response linkToSourceControlManagement(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,
-      @QueryParam("githubAppSuccess") String githubAppSuccess)
+      @QueryParam("githubAppId") String githubAppId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
 
     uriBuilder.replaceQuery("");
 
     String fragment = "/management/edit/{ownerType: application|organization}/{ownerId}/source-control";
+    boolean hasGithubAppId = StringUtils.isNotBlank(githubAppId);
 
-    if ("true".equals(githubAppSuccess)) {
-      fragment += "?githubAppSuccess=true";
+    if (hasGithubAppId) {
+      fragment += "?githubAppId={githubAppId}";
     }
 
     uriBuilder.path(ASSET_INDEX_PATH).fragment(fragment);
-    return redirect(uriBuilder, ownerType, ownerId);
+    return hasGithubAppId
+        ? redirect(uriBuilder, ownerType, ownerId, githubAppId)
+        : redirect(uriBuilder, ownerType, ownerId);
   }
 
   @GET

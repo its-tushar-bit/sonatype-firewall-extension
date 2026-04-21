@@ -48,3 +48,5 @@ server:
   applicationConnectors:
     - type: http
       port: 8070
+  requestLog:
+    type: classic

@@ -17,8 +17,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletRequestWrapper;
 import jakarta.servlet.ServletResponse;
-import org.eclipse.jetty.ee11.servlet.ServletApiRequest;
+import org.eclipse.jetty.ee10.servlet.ServletApiRequest;
 import org.eclipse.jetty.server.Request;
 
 @Named
@@ -60,9 +61,29 @@ public class AuthenticationLoggingFilter
 
   /**
    * Sets the username on the Jetty request's AuthenticationState so that it appears in the request log (%user token).
+   * <p>
+   * Note: The request may be wrapped by Shiro (ShiroHttpServletRequest), so we need to unwrap it to access
+   * the underlying ServletApiRequest.
    */
-  private void setUsernameForRequestLogging(final ServletRequest servletRequest, final String username) {
-    if (servletRequest instanceof ServletApiRequest servletApiRequest) {
+  private void setUsernameForRequestLogging(ServletRequest servletRequest, final String username) {
+    // Unwrap Shiro request wrapper to get to the underlying Jetty ServletApiRequest
+    // Limit unwrapping depth to prevent infinite loops (stops at Object class in inheritance tree)
+    final int MAX_UNWRAP_DEPTH = 10;
+    ServletRequest unwrapped = servletRequest;
+    int depth = 0;
+
+    while (unwrapped != null && !(unwrapped instanceof ServletApiRequest) && depth < MAX_UNWRAP_DEPTH) {
+      if (unwrapped instanceof ServletRequestWrapper wrapper) {
+        unwrapped = wrapper.getRequest();
+        depth++;
+      }
+      else {
+        // Not a wrapper we can unwrap, stop here
+        return;
+      }
+    }
+
+    if (unwrapped instanceof ServletApiRequest servletApiRequest) {
       Request jettyRequest = servletApiRequest.getRequest();
       Request.setAuthenticationState(jettyRequest, new Request.AuthenticationState()
       {

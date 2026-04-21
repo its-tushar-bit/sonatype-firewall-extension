@@ -6,6 +6,7 @@
 import React from 'react';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
+import moment from 'moment';
 
 import {
   getActiveViolationsWithActionFailUrl,
@@ -184,6 +185,28 @@ describe('AddContainerImageWaiverPage', () => {
     expect(axiosMock.history.post.length).toBe(1);
     expect(axiosMock.history.post[0].url).toBe(getAddContainerImagePolicyWaiverUrl('test-public-id'));
     expect(JSON.parse(axiosMock.history.post[0].data)).toEqual(payload);
+  });
+
+  it('sends custom expiry date as end of selected day when form is submitted', async () => {
+    const user = userEvent.setup();
+    const waiverSelect = screen.getAllByRole('combobox')[0];
+    const futureDate = moment().add(10, 'days').format('YYYY-MM-DD');
+    const expectedExpiryTime = moment(futureDate).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
+
+    fireEvent.change(waiverSelect, { target: { value: 'custom' } });
+
+    const dateWrapper = screen.getByTestId('add-container-image-waiver-custom-date');
+    const dateInput = dateWrapper.querySelector('input[type="date"]') || dateWrapper.querySelector('input');
+    fireEvent.change(dateInput, { target: { value: futureDate } });
+
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    await user.click(submitButton);
+
+    expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
+      expiryTime: expectedExpiryTime,
+      waiverReasonId: null,
+      comment: '',
+    });
   });
 
   it('passes origin to the save thunk when form is submitted', async () => {

@@ -6,7 +6,8 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
+import { capitalize } from '../util/jsUtil';
+import moment from 'moment';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../util/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -114,7 +115,10 @@ function saveWaiver(
     payload = {
       comment,
       matcherStrategy: componentMatcherStrategy,
-      expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+      expiryTime:
+        typeof expiration === 'string'
+          ? moment(expiration).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+          : getExpiryTime(expiration),
       waiverReasonId,
       expireWhenRemediationAvailable,
     };

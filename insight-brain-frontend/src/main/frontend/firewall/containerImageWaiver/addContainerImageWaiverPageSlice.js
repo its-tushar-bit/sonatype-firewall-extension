@@ -33,8 +33,8 @@ import { getExpiryTime, isCustomExpiryTimeValid } from 'MainRoot/util/waiverUtil
 import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { getISODateFromDateInput } from 'MainRoot/util/jsUtil';
 import { getContainerReportParams } from 'MainRoot/applicationReport/applicationReportActions';
+import moment from 'moment';
 
 const REDUCER_NAME = 'addContainerImageWaiverPage';
 
@@ -89,7 +89,10 @@ const save = createAsyncThunk(
     const state = getState().addContainerImageWaiverPage;
     const expiration = getExpiration(state);
     const serverData = {
-      expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+      expiryTime:
+        typeof expiration === 'string'
+          ? moment(expiration).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+          : getExpiryTime(expiration),
       waiverReasonId: state.waiverReasonId,
       comment: state.waiverComments.value,
     };

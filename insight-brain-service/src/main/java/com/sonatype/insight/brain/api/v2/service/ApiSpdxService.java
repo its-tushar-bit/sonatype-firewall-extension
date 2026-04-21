@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -43,7 +44,6 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -248,11 +248,20 @@ public class ApiSpdxService
       final Map<String, SpdxPackage> purlElementMap,
       final boolean isRootNode) throws InvalidSPDXAnalysisException
   {
-    SpdxPackage spdxPackage = getSpdxPackageForNode(nodeDTO, purlElementMap);
-    if (spdxPackage == null) {
-      return;
-    }
+    SpdxPackage spdxPackage = getSpdxPackageForNode(nodeDTO, document, purlElementMap);
+    addDependencyRelationships(nodeDTO, spdxPackage, document, purlElementMap, isRootNode);
+  }
 
+  // CLM-36995: threads spdxPackage through the recursion so getSpdxPackageForNode is called once
+  // per node — otherwise synthetic fallback packages would be created twice for nodes without a
+  // packageUrl, producing different SPDXRef-<UUID>s and breaking the DEPENDS_ON chain.
+  private void addDependencyRelationships(
+      final ApiDependencyTreeNodeDTO nodeDTO,
+      final SpdxPackage spdxPackage,
+      final SpdxDocument document,
+      final Map<String, SpdxPackage> purlElementMap,
+      final boolean isRootNode) throws InvalidSPDXAnalysisException
+  {
     if (isRootNode) {
       document.getDocumentDescribes().add(spdxPackage);
     }
@@ -262,19 +271,59 @@ public class ApiSpdxService
     }
 
     for (ApiDependencyTreeNodeDTO childNode : nodeDTO.getChildren()) {
-      SpdxPackage childSpdxPackage = getSpdxPackageForNode(childNode, purlElementMap);
-      if (childSpdxPackage != null) {
-        Relationship relationship =
-            document.createRelationship(childSpdxPackage, RelationshipType.DEPENDS_ON, null);
-        spdxPackage.addRelationship(relationship);
-      }
-      addDependencyRelationships(childNode, document, purlElementMap, false);
+      SpdxPackage childSpdxPackage = getSpdxPackageForNode(childNode, document, purlElementMap);
+      Relationship relationship =
+          document.createRelationship(childSpdxPackage, RelationshipType.DEPENDS_ON, null);
+      spdxPackage.addRelationship(relationship);
+      addDependencyRelationships(childNode, childSpdxPackage, document, purlElementMap, false);
     }
   }
 
-  private SpdxPackage getSpdxPackageForNode(ApiDependencyTreeNodeDTO nodeDTO, Map<String, SpdxPackage> purlElementMap) {
+  // CLM-36995: resolves an SPDX package for a dependency tree node, with fallbacks:
+  // 1. Try base purl matching (strip qualifiers, case-insensitive) when exact match fails
+  // 2. If still not found, create a minimal SPDX package so the node is not dropped
+  private SpdxPackage getSpdxPackageForNode(
+      ApiDependencyTreeNodeDTO nodeDTO,
+      SpdxDocument document,
+      Map<String, SpdxPackage> purlElementMap) throws InvalidSPDXAnalysisException
+  {
     String packageUrl = nodeDTO.getPackageUrl();
-    return packageUrl == null ? null : purlElementMap.get(packageUrl);
+    if (packageUrl == null && nodeDTO.getComponentIdentifier() != null) {
+      PackageUrlIdentifier purl =
+          PackageUrlIdentifier.fromComponentIdentifier(nodeDTO.getComponentIdentifier().toComponentIdentifier());
+      packageUrl = purl != null ? purl.getPackageUrl() : null;
+    }
+    if (packageUrl != null) {
+      SpdxPackage result = purlElementMap.get(packageUrl);
+      if (result != null) {
+        return result;
+      }
+      String basePurl = packageUrl.contains("?") ? packageUrl.substring(0, packageUrl.indexOf('?')) : packageUrl;
+      for (Map.Entry<String, SpdxPackage> entry : purlElementMap.entrySet()) {
+        String key = entry.getKey();
+        String baseKey = key.contains("?") ? key.substring(0, key.indexOf('?')) : key;
+        if (basePurl.equalsIgnoreCase(baseKey)) {
+          return entry.getValue();
+        }
+      }
+    }
+    // No match found — create a minimal SPDX package so the node is not dropped
+    log.debug("No matching SPDX package found for purl '{}', creating package for dependency tree", packageUrl);
+    String spdxId = SPDX_REF_PREFIX + UUID.randomUUID();
+    String name = packageUrl != null ? createSpdxNameFromPurl(packageUrl) : null;
+    if (name == null) {
+      name = "unknown";
+    }
+    SpdxPackage spdxPackage = document.createPackage(spdxId, name,
+        new SpdxNoAssertionLicense(), SpdxConstants.NOASSERTION_VALUE, new SpdxNoAssertionLicense())
+        .setFilesAnalyzed(false)
+        .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+        .setVersionInfo("unknown")
+        .build();
+    if (packageUrl != null) {
+      purlElementMap.put(packageUrl, spdxPackage);
+    }
+    return spdxPackage;
   }
 
   private String getReportUrl(String applicationPublicId, String scanId) {
@@ -294,11 +343,11 @@ public class ApiSpdxService
       final Map<String, SpdxPackage> purlElementMap,
       final String spdxVersion) throws InvalidSPDXAnalysisException
   {
+    // CLM-36995: include all components regardless of match state so the dependency tree
+    // structure is preserved in the exported SBOM
     Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
-      if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap, spdxVersion);
-      }
+      addPackage(reportComponent, document, purlElementMap, extractedLicenseInfoMap, spdxVersion);
     }
     if (!extractedLicenseInfoMap.isEmpty()) {
       document.setExtractedLicenseInfos(new ArrayList<>(extractedLicenseInfoMap.values()));
@@ -317,26 +366,32 @@ public class ApiSpdxService
       log.warn("Cannot determine the package URL for component: {}", reportComponent.displayName);
       return;
     }
-    String version = reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
+    String version = reportComponent.componentIdentifier != null
+        ? reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION)
+        : null;
     String sha256 = reportComponent.sha256;
 
     // SPDX declared-license-field combines Sonatype's declared and observed license sets
     Set<AnyLicenseInfo> licenses = new LinkedHashSet<>();
-    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.declaredLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
-      licenses.add(licenseInfo);
-    }
-    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.observedLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
-      licenses.add(licenseInfo);
+    if (reportComponent.licenseData != null) {
+      for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.declaredLicenses) {
+        AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
+        licenses.add(licenseInfo);
+      }
+      for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.observedLicenses) {
+        AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
+        licenses.add(licenseInfo);
+      }
     }
     AnyLicenseInfo declaredLicenseInfo = createLicenseInfo(licenses, document);
 
     // SPDX concluded-license-field is the same as Sonatype's effective license set
     licenses = new LinkedHashSet<>();
-    for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.effectiveLicenses) {
-      AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
-      licenses.add(licenseInfo);
+    if (reportComponent.licenseData != null) {
+      for (ApiLicenseDTO licenseDTO : reportComponent.licenseData.effectiveLicenses) {
+        AnyLicenseInfo licenseInfo = createLicenseInfo(licenseDTO, document, extractedLicenseInfoMap);
+        licenses.add(licenseInfo);
+      }
     }
     AnyLicenseInfo concludedLicenseInfo = createLicenseInfo(licenses, document);
 
@@ -492,6 +547,9 @@ public class ApiSpdxService
   private String getPackageUrl(final ApiReportComponentDTOV2 reportComponent) {
     if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
       return reportComponent.packageUrl;
+    }
+    if (reportComponent.componentIdentifier == null) {
+      return null;
     }
     PackageUrlIdentifier purl =
         PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());

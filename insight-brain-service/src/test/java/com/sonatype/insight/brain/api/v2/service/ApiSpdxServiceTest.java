@@ -222,6 +222,56 @@ public class ApiSpdxServiceTest
   }
 
   @Test
+  public void testAddDependencyRelationships_unidentifiedMiddleNodeSharesSyntheticAcrossSubtree() throws Exception {
+    DefaultModelStore.reset();
+    SpdxDocument document = new SpdxDocument("uri");
+
+    ApiDependencyTreeNodeDTO grandchild = new ApiDependencyTreeNodeDTO();
+    grandchild.setPackageUrl("pkg:maven/com.example/grandchild@1.0.0");
+
+    // middle node has neither packageUrl nor componentIdentifier — triggers the synthetic path
+    ApiDependencyTreeNodeDTO middle = new ApiDependencyTreeNodeDTO();
+    middle.setChildren(List.of(grandchild));
+
+    ApiDependencyTreeNodeDTO root = new ApiDependencyTreeNodeDTO();
+    root.setPackageUrl("pkg:generic/sonatype/root@1");
+    root.setChildren(List.of(middle));
+
+    Map<String, SpdxPackage> purlElementMap = new HashMap<>();
+    purlElementMap.put(root.getPackageUrl(),
+        document.createPackage("SPDXRef-root", "root", new org.spdx.library.model.license.SpdxNoAssertionLicense(),
+            SpdxConstants.NOASSERTION_VALUE, new org.spdx.library.model.license.SpdxNoAssertionLicense())
+            .setFilesAnalyzed(false)
+            .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+            .build());
+    purlElementMap.put(grandchild.getPackageUrl(),
+        document.createPackage("SPDXRef-grandchild", "grandchild",
+            new org.spdx.library.model.license.SpdxNoAssertionLicense(), SpdxConstants.NOASSERTION_VALUE,
+            new org.spdx.library.model.license.SpdxNoAssertionLicense())
+            .setFilesAnalyzed(false)
+            .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+            .build());
+
+    service.addDependencyRelationships(root, document, purlElementMap, true);
+
+    // Only one synthetic SPDX package should be created for the middle node; if getSpdxPackageForNode
+    // is called twice for the same unidentified node, a second synthetic with a different UUID would
+    // be created and the DEPENDS_ON chain would be broken.
+    List<SpdxPackage> synthetics = SbomSpdxUtils.getAllPackages(document)
+        .stream()
+        .filter(p -> {
+          try {
+            return "unknown".equals(p.getName().orElse(null));
+          }
+          catch (InvalidSPDXAnalysisException e) {
+            return false;
+          }
+        })
+        .collect(Collectors.toList());
+    assertThat(synthetics).hasSize(1);
+  }
+
+  @Test
   public void testGetByScanId_exportWithCorrectLicenseIdCase() throws Exception {
     createReportAndPolicyEvaluation("licenseIdSimilarCaseWrongId");
 
@@ -603,6 +653,76 @@ public class ApiSpdxServiceTest
           spdxPackage.getName().get(), relationship.getRelatedSpdxElement().get().getName().get());
       assertThat(relStr).isIn(expectedRelationships);
     }
+  }
+
+  @Test
+  public void testGetByScanId_purlMismatchAndUnknownComponentsPreserved() throws Exception {
+    createReportAndPolicyEvaluation("purlMismatchTree");
+
+    Response response = service.getByScanId(application.getId(), scanId, "json", false, "2.3");
+    SpdxDocument document = deserialize(response.getEntity().toString(), "json");
+
+    List<SpdxPackage> packages = SbomSpdxUtils.getAllPackages(document);
+    // 4 components + 1 root = 5 packages
+    assertThat(packages).hasSize(5);
+
+    Set<String> packageNames = packages.stream()
+        .map(p -> {
+          try {
+            return p.getName().orElse("");
+          }
+          catch (InvalidSPDXAnalysisException e) {
+            return "";
+          }
+        })
+        .collect(Collectors.toSet());
+
+    // All 4 components should be present as SPDX packages (including unknown-child)
+    assertThat(packageNames).contains(
+        "com.example:known-parent",
+        "com.example:unknown-child",
+        "com.example:qualifier-mismatch",
+        "com.example:case-mismatch");
+
+    // Check that dependency relationships are preserved
+    // known-parent should have a DEPENDS_ON relationship to unknown-child
+    SpdxPackage knownParent = findSpdxPackage(packages, "com.example:known-parent");
+    assertThat(knownParent).isNotNull();
+    assertThat(countDependsOn(knownParent)).isEqualTo(1);
+
+    // unknown-child should have a DEPENDS_ON to qualifier-mismatch (base purl fallback)
+    SpdxPackage unknownChild = findSpdxPackage(packages, "com.example:unknown-child");
+    assertThat(unknownChild).isNotNull();
+    assertThat(countDependsOn(unknownChild)).isEqualTo(1);
+
+    // qualifier-mismatch should have a DEPENDS_ON to case-mismatch (case-insensitive fallback)
+    SpdxPackage qualifierMismatch = findSpdxPackage(packages, "com.example:qualifier-mismatch");
+    assertThat(qualifierMismatch).isNotNull();
+    assertThat(countDependsOn(qualifierMismatch)).isEqualTo(1);
+
+    // case-mismatch is a leaf — no DEPENDS_ON relationships
+    SpdxPackage caseMismatch = findSpdxPackage(packages, "com.example:case-mismatch");
+    assertThat(caseMismatch).isNotNull();
+    assertThat(countDependsOn(caseMismatch)).isEqualTo(0);
+  }
+
+  private long countDependsOn(SpdxPackage pkg) throws InvalidSPDXAnalysisException {
+    long count = 0;
+    for (Relationship r : pkg.getRelationships()) {
+      if (r.getRelationshipType() == RelationshipType.DEPENDS_ON) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private SpdxPackage findSpdxPackage(List<SpdxPackage> packages, String name) throws InvalidSPDXAnalysisException {
+    for (SpdxPackage pkg : packages) {
+      if (pkg.getName().isPresent() && pkg.getName().get().equals(name)) {
+        return pkg;
+      }
+    }
+    return null;
   }
 
   @Test

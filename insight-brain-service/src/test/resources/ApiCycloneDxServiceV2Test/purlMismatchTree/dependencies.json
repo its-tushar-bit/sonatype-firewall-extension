@@ -1,0 +1,65 @@
+{
+  "dependencyGraph" : [],
+  "gavDepths" : {},
+  "componentDepths" : [],
+  "dependencyTree" : {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "known-parent",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.example",
+          "version" : "1.0.0"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.example/known-parent@1.0.0?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "unknown-child",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.example",
+            "version" : "2.0.0"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.example/unknown-child@2.0.0?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "qualifier-mismatch",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "com.example",
+              "version" : "3.0.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/com.example/qualifier-mismatch@3.0.0",
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "Case-Mismatch",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "com.Example",
+                "version" : "4.0.0"
+              }
+            },
+            "packageUrl" : "pkg:maven/com.Example/Case-Mismatch@4.0.0?type=jar",
+            "direct" : false
+          } ],
+          "direct" : false
+        } ],
+        "direct" : false
+      } ],
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

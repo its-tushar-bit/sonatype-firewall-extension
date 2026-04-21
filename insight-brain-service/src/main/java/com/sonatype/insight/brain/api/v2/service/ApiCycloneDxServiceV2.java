@@ -115,6 +115,11 @@ public class ApiCycloneDxServiceV2
 
   public static final Pattern CWE_REGEX = Pattern.compile("(?:cwe-)?(\\d+)", Pattern.CASE_INSENSITIVE);
 
+  // Sentinel hash key used in the components map for synthetic entries created when a dependency
+  // tree node has no matching BOM component. The outer map key is the purl (or bom-ref), and the
+  // inner map's only entry is this sentinel — the real component hash is unknown.
+  static final String SYNTHETIC_COMPONENT_HASH = "synthetic-component-hash";
+
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
   private final ApplicationHelper applicationHelper;
@@ -281,7 +286,7 @@ public class ApiCycloneDxServiceV2
       Map<String, Map<String, String>> components)
   {
     if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
-      List<Dependency> dependencies = convert(dependenciesData, components);
+      List<Dependency> dependencies = convert(dependenciesData, bom, components);
       if (!dependencies.isEmpty()) {
         bom.setDependencies(new ArrayList<>(dependencies));
       }
@@ -374,33 +379,79 @@ public class ApiCycloneDxServiceV2
     metadata.addTool(tool);
   }
 
-  List<Dependency> convert(ApiDependencyTreeNodeDTO node, Map<String, Map<String, String>> components) {
+  List<Dependency> convert(ApiDependencyTreeNodeDTO node, Bom bom, Map<String, Map<String, String>> components) {
     Set<Dependency> dependencies = new LinkedHashSet<>();
-    convert(dependencies, node, components);
+    convert(dependencies, node, bom, components);
     return new ArrayList<>(dependencies);
   }
 
   Dependency convert(
       Set<Dependency> dependencies,
       ApiDependencyTreeNodeDTO node,
+      Bom bom,
       Map<String, Map<String, String>> components)
   {
-    if (!components.containsKey(node.getPackageUrl())) {
-      log.debug("dependency component is missing in the bom components. skipping adding to dependency tree");
-      return null;
+    String purl = node.getPackageUrl();
+    if (StringUtils.isBlank(purl) && node.getComponentIdentifier() != null) {
+      PackageUrlIdentifier purlId =
+          PackageUrlIdentifier.fromComponentIdentifier(node.getComponentIdentifier().toComponentIdentifier());
+      purl = purlId != null ? purlId.getPackageUrl() : null;
     }
-    String componentRef = resolveComponentRef(node.getPackageUrl(), components);
+    String componentRef = resolveOrCreateComponentRef(purl, bom, components);
     Dependency dependency = new Dependency(componentRef);
     dependencies.add(dependency);
     if (node.getChildren() != null) {
       for (ApiDependencyTreeNodeDTO childNode : node.getChildren()) {
-        Dependency childDependency = convert(dependencies, childNode, components);
-        if (childDependency != null && components.containsKey(childNode.getPackageUrl())) {
-          dependency.addDependency(new Dependency(childDependency.getRef()));
-        }
+        Dependency childDependency = convert(dependencies, childNode, bom, components);
+        dependency.addDependency(new Dependency(childDependency.getRef()));
       }
     }
     return dependency;
+  }
+
+  // CLM-36995: resolves a component's bom-ref from the components map, with fallbacks:
+  // 1. Try base purl matching (strip qualifiers) when exact match fails — handles the case
+  // where dependencies.json and bom.json use different qualifier formats for the same component
+  // 2. If still not found, create a component in the BOM so the dependency tree structure is
+  // preserved rather than silently dropping the node and its subtree
+  private String resolveOrCreateComponentRef(
+      String purl,
+      Bom bom,
+      Map<String, Map<String, String>> components)
+  {
+    if (purl != null) {
+      // Exact match
+      if (components.containsKey(purl)) {
+        return resolveComponentRef(purl, components);
+      }
+      // Fallback: match by base purl (strip qualifiers)
+      String basePurl = purl.contains("?") ? purl.substring(0, purl.indexOf('?')) : purl;
+      for (String key : components.keySet()) {
+        String baseKey = key.contains("?") ? key.substring(0, key.indexOf('?')) : key;
+        if (basePurl.equalsIgnoreCase(baseKey)) {
+          return resolveComponentRef(key, components);
+        }
+      }
+    }
+    // No match found — create a synthetic component so the node is not dropped.
+    // When purl is null, bomRef is used as the map key, so each null-purl node gets its own entry
+    // (no identity to deduplicate on without a componentIdentifier).
+    log.debug("No matching component found for purl '{}', creating component for dependency tree", purl);
+    String bomRef = createNewBomRef();
+    Component component = purl != null ? createComponent(purl, Component.Type.LIBRARY, bomRef) : null;
+    if (component == null) {
+      component = new Component();
+      component.setType(Component.Type.LIBRARY);
+      component.setName("unknown");
+      component.setVersion("unknown");
+      component.setBomRef(bomRef);
+    }
+    bom.addComponent(component);
+    String key = purl != null ? purl : bomRef;
+    Map<String, String> entry = new HashMap<>();
+    entry.put(SYNTHETIC_COMPONENT_HASH, component.getBomRef());
+    components.put(key, entry);
+    return component.getBomRef();
   }
 
   private String resolveComponentRef(final String packageUrl, final Map<String, Map<String, String>> components) {
@@ -585,14 +636,14 @@ public class ApiCycloneDxServiceV2
       final List<ApiReportComponentDTOV2> reportComponents,
       final Bom bom)
   {
-    // Map that has the purls and hashes and bom ref for each component
+    // CLM-36995: include all components regardless of match state so the dependency tree
+    // structure is preserved in the exported SBOM. Unknown components are valid per the
+    // CycloneDX spec — they represent components the tool could not fully identify.
     Map<String, Map<String, String>> components = new HashMap<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
-      if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        Component component = createLibraryComponent(version, reportComponent, components);
-        if (component != null) {
-          bom.addComponent(component);
-        }
+      Component component = createLibraryComponent(version, reportComponent, components);
+      if (component != null) {
+        bom.addComponent(component);
       }
     }
     return components;
@@ -638,9 +689,19 @@ public class ApiCycloneDxServiceV2
     try {
       String purl = reportComponent.packageUrl;
       if (StringUtils.isBlank(purl)) {
-        purl =
-            PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier())
-                .getPackageUrl();
+        if (reportComponent.componentIdentifier == null) {
+          log.debug("Skipping BOM component with no packageUrl and no componentIdentifier (hash={}, matchState={})",
+              reportComponent.hash, reportComponent.matchState);
+          return null;
+        }
+        PackageUrlIdentifier purlId = PackageUrlIdentifier
+            .fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
+        if (purlId == null) {
+          log.debug("Skipping BOM component; unable to derive packageUrl from componentIdentifier (hash={})",
+              reportComponent.hash);
+          return null;
+        }
+        purl = purlId.getPackageUrl();
       }
 
       String bomRef = createNewBomRef();

@@ -405,6 +405,67 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_purlMismatchAndUnknownComponentsPreserved() throws Exception {
+    createReportAndPolicyEvaluation("purlMismatchTree");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+
+    // All 4 components should be in <components> (including unknown-child)
+    assertThat(bom.getComponents()).hasSize(4);
+    assertThat(bom.getComponents().stream().map(Component::getPurl)).containsExactlyInAnyOrder(
+        "pkg:maven/com.example/known-parent@1.0.0?type=jar",
+        "pkg:maven/com.example/unknown-child@2.0.0?type=jar",
+        "pkg:maven/com.example/qualifier-mismatch@3.0.0?type=jar",
+        "pkg:maven/com.example/case-mismatch@4.0.0?type=jar");
+
+    // All 4 + root = 5 dependency entries — no nodes dropped
+    assertThat(bom.getDependencies()).hasSize(5);
+
+    // Root has 1 child: known-parent
+    String rootRef = bom.getMetadata().getComponent().getBomRef();
+    Dependency root = bom.getDependencies()
+        .stream()
+        .filter(d -> rootRef.equals(d.getRef()))
+        .findFirst()
+        .orElseThrow();
+    assertThat(root.getDependencies()).hasSize(1);
+
+    // known-parent has 1 child: unknown-child
+    Dependency knownParent = findDependency(bom, "pkg:maven/com.example/known-parent@1.0.0?type=jar");
+    assertThat(knownParent).isNotNull();
+    assertThat(knownParent.getDependencies()).hasSize(1);
+
+    // unknown-child has 1 child: qualifier-mismatch (resolved via base purl fallback)
+    Dependency unknownChild = findDependency(bom, "pkg:maven/com.example/unknown-child@2.0.0?type=jar");
+    assertThat(unknownChild).isNotNull();
+    assertThat(unknownChild.getDependencies()).hasSize(1);
+
+    // qualifier-mismatch has 1 child: case-mismatch (resolved via case-insensitive fallback)
+    Dependency qualifierMismatch = findDependency(bom, "pkg:maven/com.example/qualifier-mismatch@3.0.0?type=jar");
+    assertThat(qualifierMismatch).isNotNull();
+    assertThat(qualifierMismatch.getDependencies()).hasSize(1);
+
+    // case-mismatch is a leaf
+    Dependency caseMismatch = findDependency(bom, "pkg:maven/com.example/case-mismatch@4.0.0?type=jar");
+    assertThat(caseMismatch).isNotNull();
+    assertThat(CollectionUtils.isEmpty(caseMismatch.getDependencies())).isTrue();
+  }
+
+  private Dependency findDependency(Bom bom, String purl) {
+    String bomRef = bomRefOf(bom, purl);
+    if (bomRef == null) {
+      return null;
+    }
+    return bom.getDependencies()
+        .stream()
+        .filter(d -> bomRef.equals(d.getRef()))
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Test
   public void testGetByScanId_AddMissingParent_WithEmptyDependencyTree() throws Exception {
     createReportAndPolicyEvaluation("emptyDependencies");
     Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_14);

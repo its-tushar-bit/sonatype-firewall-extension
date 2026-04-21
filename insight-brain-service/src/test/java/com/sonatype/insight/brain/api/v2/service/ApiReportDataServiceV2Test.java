@@ -621,7 +621,7 @@ public class ApiReportDataServiceV2Test
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
-    assertThat(size(children)).isEqualTo(209);
+    assertThat(size(children)).isEqualTo(210);
     validateDependencyTree(children);
   }
 
@@ -635,7 +635,7 @@ public class ApiReportDataServiceV2Test
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
     assertFalse(children.isEmpty());
-    assertThat(size(children)).isEqualTo(209);
+    assertThat(size(children)).isEqualTo(224);
     validateDependencyTree(children);
   }
 
@@ -685,6 +685,44 @@ public class ApiReportDataServiceV2Test
     return children.stream()
         .mapToInt(node -> size(node.getChildren()))
         .sum() + children.size();
+  }
+
+  @Test
+  public void testGetDependencyTree_unknownMiddleNodePreservesFullTree() throws Exception {
+    makeEmptyReport();
+    populateDependencies("java-report-unknown-deps", "dependencies.json");
+    populateBom("java-report-unknown-deps", "bom.json");
+
+    ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
+    assertThat(response).isNotNull();
+    List<ApiDependencyTreeNodeDTO> children = response.getChildren();
+    assertFalse(children.isEmpty());
+
+    // root has 1 direct child: known-parent
+    assertThat(children).hasSize(1);
+    ApiDependencyTreeNodeDTO knownParent = children.get(0);
+    assertThat(knownParent.getPackageUrl()).isEqualTo("pkg:maven/com.example/known-parent@1.0.0?type=jar");
+
+    // unknown-middle is preserved in the tree (matches what the UI shows)
+    List<ApiDependencyTreeNodeDTO> parentChildren = knownParent.getChildren();
+    assertThat(parentChildren).hasSize(1);
+    ApiDependencyTreeNodeDTO unknownMiddle = parentChildren.get(0);
+    assertThat(unknownMiddle.getPackageUrl()).isEqualTo("pkg:maven/com.example/unknown-middle@2.0.0?type=jar");
+
+    // known-child is still under unknown-middle
+    List<ApiDependencyTreeNodeDTO> middleChildren = unknownMiddle.getChildren();
+    assertThat(middleChildren).hasSize(1);
+    ApiDependencyTreeNodeDTO knownChild = middleChildren.get(0);
+    assertThat(knownChild.getPackageUrl()).isEqualTo("pkg:maven/com.example/known-child@3.0.0?type=jar");
+
+    // known-grandchild is preserved under known-child
+    List<ApiDependencyTreeNodeDTO> childChildren = knownChild.getChildren();
+    assertThat(childChildren).hasSize(1);
+    assertThat(childChildren.get(0).getPackageUrl()).isEqualTo("pkg:maven/com.example/known-grandchild@4.0.0?type=jar");
+
+    // total: 4 nodes (unknown-middle included)
+    assertThat(size(children)).isEqualTo(4);
+    validateDependencyTree(children);
   }
 
   @Test

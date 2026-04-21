@@ -65,7 +65,6 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyReportComponentDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -208,23 +207,16 @@ public class ApiReportDataServiceV2
     String appId = application.getId();
 
     ApplicationReport applicationReport = reportService.getReport(appId, scanId);
-    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
-        DEPENDENCIES_JSON.getName(),
-        BOM_JSON.getName()));
-    ReportEntry dependenciesEntry = entries.get(DEPENDENCIES_JSON.getName());
-    ReportEntry bomEntry = entries.get(BOM_JSON.getName());
-    if (dependenciesEntry != null && bomEntry != null) {
+    ReportEntry dependenciesEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+    if (dependenciesEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
-      JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
-      if (dependenciesNode != null && bomNode != null) {
+      if (dependenciesNode != null) {
         JsonNode dependencyTreeNode = dependenciesNode.get("dependencyTree");
-        JsonNode aaDataNode = bomNode.get("aaData");
         if (dependencyTreeNode != null && !dependencyTreeNode.isNull() && !dependencyTreeNode.isEmpty()) {
           ObjectNode dependencyTreeObject = (ObjectNode) dependencyTreeNode;
           dependencyTreeObject.remove("componentIdentifier");
-          Map<String, BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
           dependencyTree = JsonUtils.asPojo(dependencyTreeObject, ApiDependencyTreeNodeDTO.class);
-          dependencyTree.setChildren(correlateDependencyTreeWithComponentIndex(dependencyTree, componentsIndex));
+          dependencyTree.setChildren(resolveDependencyTreePackageUrls(dependencyTree));
 
           // CLM-36797 - travers dependencies and set direct flag to indicate if they are a direct dependency or not
           populateDirectFlags(dependencyTree);
@@ -234,10 +226,10 @@ public class ApiReportDataServiceV2
     return dependencyTree;
   }
 
-  private List<ApiDependencyTreeNodeDTO> correlateDependencyTreeWithComponentIndex(
-      ApiDependencyTreeNodeDTO root,
-      Map<String, BillOfMaterialsRowDTO> componentsIndex)
-  {
+  // CLM-36995: resolves package URLs for all dependency tree nodes without filtering.
+  // Previously this method filtered nodes against a BOM index, dropping unknown-matchState
+  // components and their entire subtrees. Now all nodes are included to match the UI.
+  private List<ApiDependencyTreeNodeDTO> resolveDependencyTreePackageUrls(ApiDependencyTreeNodeDTO root) {
     List<ApiDependencyTreeNodeDTO> children = root.getChildren();
     if (children == null || children.isEmpty()) {
       return Collections.emptyList();
@@ -245,38 +237,25 @@ public class ApiReportDataServiceV2
 
     List<ApiDependencyTreeNodeDTO> updatedChildren = new LinkedList<>();
     for (ApiDependencyTreeNodeDTO child : children) {
-      String key;
-      if (child.getPackageUrl() != null && !child.getPackageUrl().isEmpty()) {
-        key = child.getPackageUrl();
-      }
-      else {
-        ComponentIdentifier identifier = child.getComponentIdentifier().toComponentIdentifier();
-        key = PackageUrlIdentifier.fromComponentIdentifier(identifier).getPackageUrl();
-      }
-      if (componentsIndex.containsKey(key)) {
-        child.setChildren(correlateDependencyTreeWithComponentIndex(child, componentsIndex));
-        child.setPackageUrl(key);
-        updatedChildren.add(child);
-      }
+      String key = resolvePackageUrl(child);
+      child.setChildren(resolveDependencyTreePackageUrls(child));
+      child.setPackageUrl(key);
+      updatedChildren.add(child);
     }
 
     return updatedChildren;
   }
 
-  private Map<String, BillOfMaterialsRowDTO> indexBom(JsonNode aaDataNode) throws IOException {
-    Map<String, BillOfMaterialsRowDTO> components = new HashMap<>();
-    if (aaDataNode == null || aaDataNode.isNull() || aaDataNode.isEmpty()) {
-      return components;
+  private static String resolvePackageUrl(ApiDependencyTreeNodeDTO node) {
+    if (StringUtils.isNotEmpty(node.getPackageUrl())) {
+      return node.getPackageUrl();
     }
-
-    final ArrayNode bomJsonArray = (ArrayNode) aaDataNode;
-    for (JsonNode componentJson : bomJsonArray) {
-      BillOfMaterialsRowDTO component = JsonUtils.asPojo(componentJson, BillOfMaterialsRowDTO.class);
-      if (!component.matchState.equals("unknown")) {
-        components.put(component.packageUrl, component);
-      }
+    if (node.getComponentIdentifier() == null) {
+      return null;
     }
-    return components;
+    ComponentIdentifier identifier = node.getComponentIdentifier().toComponentIdentifier();
+    PackageUrlIdentifier purlId = PackageUrlIdentifier.fromComponentIdentifier(identifier);
+    return purlId != null ? purlId.getPackageUrl() : null;
   }
 
   private List<ApiReportComponentPolicyViolationsDTOV2> getComponents(

@@ -34,6 +34,16 @@ import groovy.transform.Field
   'sca_aws_dev_cell-shared-dev'
 ]
 
+// Staging cell workspaces — explicit allowlist
+// TODO: Replace with actual staging workspace names when infrastructure is ready
+@Field final List<String> STAGING_CELL_WORKSPACES = [
+  'sca_aws_staging_cell-1'  // Placeholder - update when staging infra is ready
+]
+
+// Staging global workspace for ECR URL
+// TODO: Replace with actual staging global workspace name when infrastructure is ready
+@Field final String STAGING_GLOBAL_WORKSPACE = 'sca_aws_staging_global'  // Placeholder
+
 void deployToCells(String ecrTag) {
   if (MODERN_CELL_WORKSPACES.isEmpty()) {
     echo 'No modern cell workspaces configured, skipping TFC deployment'
@@ -61,6 +71,38 @@ void deployToCells(String ecrTag) {
   }
 }
 
+/**
+ * Deploy to staging cells via Terraform Cloud.
+ * Uses the staging global workspace to get the ECR URL.
+ *
+ * @param ecrTag The ECR image tag to deploy
+ */
+void deployToStagingCells(String ecrTag) {
+  if (STAGING_CELL_WORKSPACES.isEmpty()) {
+    echo 'No staging cell workspaces configured, skipping TFC deployment'
+    return
+  }
+
+  if (!ecrTag) {
+    error 'deployToStagingCells: ecrTag parameter is required'
+  }
+
+  withCredentials([string(credentialsId: TFC_CREDENTIAL, variable: 'TFC_TOKEN')]) {
+    // Get ECR URL from staging global workspace state
+    final String ecrUrl = tfcGetStateOutput(STAGING_GLOBAL_WORKSPACE, TFC_ECR_OUTPUT)
+    if (!ecrUrl) {
+      error "Could not read ${TFC_ECR_OUTPUT} from ${STAGING_GLOBAL_WORKSPACE} state"
+    }
+
+    final String fullImageUri = "${ecrUrl}:${ecrTag}"
+    echo "Deploying image to staging: ${fullImageUri}"
+
+    for (String workspace : STAGING_CELL_WORKSPACES) {
+      tfcDeploy(workspace, fullImageUri)
+    }
+  }
+}
+
 void tfcDeploy(String workspaceName, String imageUri) {
   if (!workspaceName) {
     error 'tfcDeploy: workspaceName parameter is required'
@@ -69,8 +111,10 @@ void tfcDeploy(String workspaceName, String imageUri) {
     error 'tfcDeploy: imageUri parameter is required'
   }
 
+  // Use string concatenation (not interpolation) to avoid exposing TFC_TOKEN in logs
+  // See https://jenkins.io/redirect/groovy-string-interpolation
   final List customHeaders = [
-    [name: 'Authorization', value: "Bearer ${TFC_TOKEN}", maskValue: true],
+    [name: 'Authorization', value: 'Bearer ' + TFC_TOKEN, maskValue: true],
     [name: 'Content-Type', value: 'application/vnd.api+json'],
   ]
 
@@ -208,8 +252,10 @@ void tfcDeploy(String workspaceName, String imageUri) {
 }
 
 String tfcGetStateOutput(String workspaceName, String outputName) {
+  // Use string concatenation (not interpolation) to avoid exposing TFC_TOKEN in logs
+  // See https://jenkins.io/redirect/groovy-string-interpolation
   final List customHeaders = [
-    [name: 'Authorization', value: "Bearer ${TFC_TOKEN}", maskValue: true],
+    [name: 'Authorization', value: 'Bearer ' + TFC_TOKEN, maskValue: true],
   ]
 
   def response = httpRequest(

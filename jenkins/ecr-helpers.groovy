@@ -90,33 +90,43 @@ String pushToEcrCached(String branchOverride = null) {
       withAwsRole(credentialsId: ECR_ACCOUNT.credentialId, role: 'jenkins',
                   roleAccount: ECR_ACCOUNT.id, region: ECR_REGION) {
         // Authenticate to ECR - pipe directly to avoid logging password
+        // ECR_REGION and ecrRegistry are derived from constants, not user-controlled
         sh(script: "aws ecr get-login-password --region '${ECR_REGION}' | docker login --username AWS --password-stdin '${ecrRegistry}'")
 
-        sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
-            " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
-            " --build-arg IQ_SERVER_VERSION=${iqVersion} " +
-            " --push " +
-            " --tag '${ecrImageRef}' ."
+        // Use withEnv to pass values safely to shell (prevents shell injection from branch name)
+        withEnv(["ECR_IMAGE_REF=${ecrImageRef}", "SONATYPE_REGISTRY=${sonatypeDockerRegistryId()}", "IQ_VERSION=${iqVersion}"]) {
+          sh '''
+            docker buildx build --platform=linux/amd64,linux/arm64 \
+              --build-arg SONATYPE_PRIVATE_REGISTRY="$SONATYPE_REGISTRY" \
+              --build-arg IQ_SERVER_VERSION="$IQ_VERSION" \
+              --push \
+              --tag "$ECR_IMAGE_REF" .
+          '''
+        }
 
         // Add extra tag: branch-latest (via ECR API)
         // ImageAlreadyExistsException is tolerated (tag already points to this image),
         // but other errors fail the build to avoid silent issues.
         final String latestTag = "${branch}-latest"
         echo "Adding ECR tag: ${latestTag}"
-        def output = sh(script: """\
-          MANIFEST=\$(aws ecr batch-get-image \
-            --repository-name '${ecrRepo}' \
-            --image-ids imageTag='${ecrTag}' \
-            --region '${ECR_REGION}' \
-            --output text \
-            --query 'images[0].imageManifest')
-          aws ecr put-image \
-            --repository-name '${ecrRepo}' \
-            --image-tag '${latestTag}' \
-            --image-manifest "\$MANIFEST" \
-            --region '${ECR_REGION}' \
-            2>&1 || true
-        """, returnStdout: true).trim()
+        // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
+        def output
+        withEnv(["REPOSITORY_ARG=${ecrRepo}", "IMAGE_TAG_ARG=${ecrTag}", "LATEST_TAG_ARG=${latestTag}", "REGION_ARG=${ECR_REGION}"]) {
+          output = sh(script: '''
+            MANIFEST=$(aws ecr batch-get-image \
+              --repository-name "$REPOSITORY_ARG" \
+              --image-ids "imageTag=$IMAGE_TAG_ARG" \
+              --region "$REGION_ARG" \
+              --output text \
+              --query 'images[0].imageManifest')
+            aws ecr put-image \
+              --repository-name "$REPOSITORY_ARG" \
+              --image-tag "$LATEST_TAG_ARG" \
+              --image-manifest "$MANIFEST" \
+              --region "$REGION_ARG" \
+              2>&1 || true
+          ''', returnStdout: true).trim()
+        }
         if (output.contains('ImageAlreadyExistsException')) {
           echo "Tag '${latestTag}' already points to this image, skipping"
         } else if (output.contains('Error') || output.contains('error') || output.contains('denied')) {
@@ -142,18 +152,21 @@ String pushToEcrCached(String branchOverride = null) {
 void validateImageExists(Map account, String repository, String imageTag, String region = ECR_REGION) {
   withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
       roleAccount: account.id, region: region) {
-    def result = sh(script: """
-      aws ecr describe-images \
-        --repository-name '${repository}' \
-        --image-ids imageTag='${imageTag}' \
-        --region '${region}' \
-        --output json
-    """, returnStatus: true)
+    // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
+    withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
+      def result = sh(script: '''
+        aws ecr describe-images \
+          --repository-name "$REPOSITORY_ARG" \
+          --image-ids "imageTag=$IMAGE_TAG_ARG" \
+          --region "$REGION_ARG" \
+          --output json
+      ''', returnStatus: true)
 
-    if (result != 0) {
-      error "Image '${imageTag}' not found in ${repository} (account: ${account.id})"
+      if (result != 0) {
+        error "Image '${imageTag}' not found in ${repository} (account: ${account.id})"
+      }
+      echo "Validated image exists: ${imageTag}"
     }
-    echo "Validated image exists: ${imageTag}"
   }
 }
 
@@ -168,23 +181,28 @@ void validateImageExists(Map account, String repository, String imageTag, String
  * @return Image manifest JSON string
  */
 String getImageManifest(Map account, String repository, String imageTag, String region = ECR_REGION) {
+  def result = null
   withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
       roleAccount: account.id, region: region) {
-    def manifest = sh(script: """
-      aws ecr batch-get-image \
-        --repository-name '${repository}' \
-        --image-ids imageTag='${imageTag}' \
-        --region '${region}' \
-        --output text \
-        --query 'images[0].imageManifest'
-    """, returnStdout: true).trim()
+    // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
+    withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
+      def manifest = sh(script: '''
+        aws ecr batch-get-image \
+          --repository-name "$REPOSITORY_ARG" \
+          --image-ids "imageTag=$IMAGE_TAG_ARG" \
+          --region "$REGION_ARG" \
+          --output text \
+          --query 'images[0].imageManifest'
+      ''', returnStdout: true).trim()
 
-    if (!manifest || manifest == 'None') {
-      error "Failed to retrieve manifest for '${imageTag}'"
+      if (!manifest || manifest == 'None') {
+        error "Failed to retrieve manifest for '${imageTag}'"
+      }
+      echo "Retrieved manifest for ${imageTag} (${manifest.length()} chars)"
+      result = manifest
     }
-    echo "Retrieved manifest for ${imageTag} (${manifest.length()} chars)"
-    return manifest
   }
+  return result
 }
 
 /**
@@ -202,13 +220,16 @@ void putImageManifest(Map account, String repository, String imageTag, String ma
     // Write manifest to temp file to avoid shell escaping issues with large JSON
     writeFile file: 'image-manifest.json', text: manifest
 
-    sh """
-      aws ecr put-image \
-        --repository-name '${repository}' \
-        --image-tag '${imageTag}' \
-        --image-manifest 'file://image-manifest.json' \
-        --region '${region}'
-    """
+    // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
+    withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
+      sh '''
+        aws ecr put-image \
+          --repository-name "$REPOSITORY_ARG" \
+          --image-tag "$IMAGE_TAG_ARG" \
+          --image-manifest 'file://image-manifest.json' \
+          --region "$REGION_ARG"
+      '''
+    }
 
     echo "Pushed manifest with tag: ${imageTag}"
   }

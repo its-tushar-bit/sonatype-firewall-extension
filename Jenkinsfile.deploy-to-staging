@@ -1,0 +1,190 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for deploying MTIQ images to staging cells.
+ *
+ * Triggered on a cron schedule (2x/day on weekdays) and manually from Jenkins UI.
+ * Reads the latest image from staging ECR and deploys via Terraform Cloud.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The ECR tag to deploy (default: staging-latest)
+ *               For manual deployments, can specify a specific tag like
+ *               202604161432-main-142-a1b2c3d4
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-staging
+ *
+ * ============================================================================
+ * TEMPORARY BYPASS - STAGING INFRASTRUCTURE NOT YET READY
+ * ============================================================================
+ *
+ * The staging AWS infrastructure (ECR, IAM roles, TFC workspaces) is not yet ready.
+ * Until it's available, this job runs in bypass mode and returns SUCCESS.
+ *
+ * Once staging infrastructure is available:
+ * 1. Set STAGING_INFRASTRUCTURE_READY = true below
+ * 2. Update jenkins/tfc-helpers.groovy STAGING_CELL_WORKSPACES with actual workspace names
+ * 3. Update jenkins/tfc-helpers.groovy STAGING_GLOBAL_WORKSPACE with actual workspace name
+ * 4. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT with actual values
+ * 5. Remove this comment block
+ *
+ * Tracked in: CLM-39452
+ * ============================================================================
+ */
+
+// TODO: Change to true when staging infrastructure is ready
+def STAGING_INFRASTRUCTURE_READY = false
+
+pipeline {
+  agent { label 'zion-small' }
+
+  triggers {
+    // Schedule runs at 13:00 and 19:00 UTC
+    // - 9am ET during EDT (UTC-4): March through early November
+    // - 8am ET during EST (UTC-5): November through March
+    cron('0 13 * * 1-5\n0 19 * * 1-5')
+  }
+
+  parameters {
+    string(name: 'IMAGE_TAG', defaultValue: 'staging-latest',
+           description: 'The ECR tag to deploy (default: staging-latest)')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+    // 15 min for TFC deployment + overhead
+    timeout(time: 20, unit: 'MINUTES')
+  }
+
+  stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          echo "Deploying image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git',
+                              credentialsId: sonatypeZionCredentialsId()]]
+        ])
+      }
+    }
+
+    stage('Resolve Image Tag') {
+      steps {
+        script {
+          if (!STAGING_INFRASTRUCTURE_READY) {
+            env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
+            echo "Bypass mode: using IMAGE_TAG as-is: ${params.IMAGE_TAG}"
+            return
+          }
+
+          // If IMAGE_TAG is staging-latest, resolve to the underlying specific tag
+          // This provides traceability in logs (which specific image was deployed)
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+
+          withAwsRole(credentialsId: ecr.STAGING_ECR_ACCOUNT.credentialId, role: 'jenkins',
+                      roleAccount: ecr.STAGING_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
+            if (params.IMAGE_TAG == 'staging-latest') {
+              // Get all tags for the image that staging-latest points to
+              def imageDetail = sh(script: """
+                aws ecr describe-images \\
+                  --repository-name '${ecr.ECR_REPOSITORY}' \\
+                  --image-ids imageTag='staging-latest' \\
+                  --region '${ecr.ECR_REGION}' \\
+                  --query 'imageDetails[0].imageTags' \\
+                  --output json
+              """, returnStdout: true).trim()
+
+              def tags = readJSON text: imageDetail
+
+              // Handle null/empty tags (e.g., if staging-latest hasn't been pushed yet)
+              if (!tags) {
+                error "ECR returned no tags for staging-latest image in ${ecr.ECR_REPOSITORY}. " +
+                      "Has the image been pushed? Check push-to-staging job."
+              }
+
+              // Find the specific tag (not staging-latest itself)
+              def specificTag = tags.find { it != 'staging-latest' && it != 'staging_latest' }
+              if (specificTag) {
+                env.RESOLVED_IMAGE_TAG = specificTag
+                echo "Resolved staging-latest to: ${specificTag}"
+              } else {
+                env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
+                echo "Could not resolve staging-latest, using as-is"
+              }
+            } else {
+              env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
+              echo "Using specific image tag: ${params.IMAGE_TAG}"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Deploy to Staging Cells') {
+      steps {
+        script {
+          if (!STAGING_INFRASTRUCTURE_READY) {
+            echo "============================================"
+            echo "STAGING INFRASTRUCTURE NOT YET READY"
+            echo "============================================"
+            echo "This job is running in BYPASS mode."
+            echo "The staging AWS infrastructure is being built by another team."
+            echo ""
+            echo "Once staging infrastructure is available:"
+            echo "1. Set STAGING_INFRASTRUCTURE_READY = true in this Jenkinsfile"
+            echo "2. Update jenkins/tfc-helpers.groovy STAGING_CELL_WORKSPACES"
+            echo "3. Update jenkins/tfc-helpers.groovy STAGING_GLOBAL_WORKSPACE"
+            echo "4. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT"
+            echo ""
+            echo "Would deploy image tag: ${env.RESOLVED_IMAGE_TAG}"
+            echo "============================================"
+            return
+          }
+
+          def tfc = load 'jenkins/tfc-helpers.groovy'
+          tfc.deployToStagingCells(env.RESOLVED_IMAGE_TAG)
+        }
+      }
+    }
+
+    stage('Trigger test-staging') {
+      steps {
+        script {
+          def tagToPass = env.RESOLVED_IMAGE_TAG ?: params.IMAGE_TAG
+          build job: 'insight/MTIQ/sca-cloud/test-staging',
+              parameters: [string(name: 'IMAGE_TAG', value: tagToPass)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        def tag = env.RESOLVED_IMAGE_TAG ?: params.IMAGE_TAG
+        // Notify mtiq-notices room for staging deployment status
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices', message: "Staging deployment for tag: ${tag}")
+      }
+      deleteDir()
+    }
+  }
+}

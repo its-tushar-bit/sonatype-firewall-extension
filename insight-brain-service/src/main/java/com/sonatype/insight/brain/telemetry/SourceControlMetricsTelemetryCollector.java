@@ -11,6 +11,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,10 +20,14 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.AggregatedPRStats;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -109,6 +114,23 @@ public class SourceControlMetricsTelemetryCollector
 
   public static final String TOTAL_SC_GOLDEN_PRS_CREATED = "total_daily_source_control_golden_pull_requests_created";
 
+  // GitHub Authentication Metrics
+  public static final String TOTAL_SC_ORGS_WITH_AUTH_CONFIGURED = "total_source_control_orgs_with_authentication";
+
+  public static final String TOTAL_SC_APPS_WITH_AUTH_CONFIGURED = "total_source_control_apps_with_authentication";
+
+  public static final String TOTAL_SC_ORGS_USING_PAT = "total_source_control_orgs_using_pat_authentication";
+
+  public static final String TOTAL_SC_ORGS_USING_GITHUB_APP =
+      "total_source_control_orgs_using_github_app_authentication";
+
+  public static final String TOTAL_SC_APPS_USING_PAT = "total_source_control_apps_using_pat_authentication";
+
+  public static final String TOTAL_SC_APPS_USING_GITHUB_APP =
+      "total_source_control_apps_using_github_app_authentication";
+
+  public static final String TOTAL_SC_GITHUB_APP_INSTALLATIONS = "total_source_control_github_app_installations";
+
   public static final String TOTAL_SC_PRS_SUGGESTED =
       "total_daily_source_control_pull_requests_suggested_for_remediation";
 
@@ -139,17 +161,25 @@ public class SourceControlMetricsTelemetryCollector
 
   private final SourceControlPullRequestMetrics metrics;
 
+  private final OrganizationDAO organizationDAO;
+
+  private final GitHubAppDAO gitHubAppDAO;
+
   @Inject
   public SourceControlMetricsTelemetryCollector(
       SourceControlDAO sourceControlDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
       ApplicationDAO applicationDAO,
-      SourceControlPullRequestMetrics metrics)
+      SourceControlPullRequestMetrics metrics,
+      OrganizationDAO organizationDAO,
+      GitHubAppDAO gitHubAppDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.applicationDAO = applicationDAO;
     this.metrics = metrics;
+    this.organizationDAO = organizationDAO;
+    this.gitHubAppDAO = gitHubAppDAO;
   }
 
   @Override
@@ -175,6 +205,7 @@ public class SourceControlMetricsTelemetryCollector
 
     collectStaleBranchStats(attributes);
     collectAutoAndManualPRStats(attributes, previousCollectionTime);
+    collectAuthenticationStats(attributes);
 
     return telemetryData;
   }
@@ -276,6 +307,59 @@ public class SourceControlMetricsTelemetryCollector
         .filter(Objects::nonNull)
         .flatMap(List::stream)
         .forEach(sourceControlPullRequestDAO::delete);
+  }
+
+  /**
+   * Collect statistics on GitHub authentication types (PAT vs GitHub App) for organizations and applications.
+   * IMPORTANT: Queries LOCAL DATABASE TABLES via DAOs (NO GitHub API calls).
+   * Only sends aggregated counts to telemetry (no PII, tokens, or credentials).
+   */
+  private void collectAuthenticationStats(Map<String, Object> attributes) {
+    // Query local database tables (NOT GitHub API)
+    List<SourceControl> allConfigs = sourceControlDAO.getAll();
+    Set<String> allOrgIds = organizationDAO.getAll()
+        .stream()
+        .map(Organization::getId)
+        .collect(Collectors.toSet());
+
+    // Separate org-level configs from app-level configs
+    List<SourceControl> orgConfigs = allConfigs.stream()
+        .filter(sc -> allOrgIds.contains(sc.getOwnerId()))
+        .collect(Collectors.toList());
+
+    List<SourceControl> appConfigs = allConfigs.stream()
+        .filter(sc -> !allOrgIds.contains(sc.getOwnerId()))
+        .collect(Collectors.toList());
+
+    // Count by authentication type for orgs
+    long orgsWithPat = orgConfigs.stream()
+        .filter(sc -> sc.getAuthenticationType() == SourceControl.AuthenticationType.PAT)
+        .count();
+
+    long orgsWithGithubApp = orgConfigs.stream()
+        .filter(sc -> sc.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP)
+        .count();
+
+    // Count by authentication type for apps
+    long appsWithPat = appConfigs.stream()
+        .filter(sc -> sc.getAuthenticationType() == SourceControl.AuthenticationType.PAT)
+        .count();
+
+    long appsWithGithubApp = appConfigs.stream()
+        .filter(sc -> sc.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP)
+        .count();
+
+    // Count total GitHub App installations
+    long totalGithubAppInstallations = gitHubAppDAO.getAll().size();
+
+    // Add telemetry attributes (only aggregated counts, no PII)
+    attributes.put(TOTAL_SC_ORGS_WITH_AUTH_CONFIGURED, String.valueOf(orgConfigs.size()));
+    attributes.put(TOTAL_SC_APPS_WITH_AUTH_CONFIGURED, String.valueOf(appConfigs.size()));
+    attributes.put(TOTAL_SC_ORGS_USING_PAT, String.valueOf(orgsWithPat));
+    attributes.put(TOTAL_SC_ORGS_USING_GITHUB_APP, String.valueOf(orgsWithGithubApp));
+    attributes.put(TOTAL_SC_APPS_USING_PAT, String.valueOf(appsWithPat));
+    attributes.put(TOTAL_SC_APPS_USING_GITHUB_APP, String.valueOf(appsWithGithubApp));
+    attributes.put(TOTAL_SC_GITHUB_APP_INSTALLATIONS, String.valueOf(totalGithubAppInstallations));
   }
 
   private Date getPastDate(int type, int delta, Date origin) {

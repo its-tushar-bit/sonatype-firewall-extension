@@ -15,9 +15,13 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -53,13 +57,19 @@ public class SourceControlMetricsTelemetryCollectorTest
   @Mock
   private SourceControlPullRequestMetrics metrics;
 
+  @Mock
+  private OrganizationDAO organizationDAO;
+
+  @Mock
+  private GitHubAppDAO gitHubAppDAO;
+
   private SourceControlMetricsTelemetryCollector collector;
 
   @Before
   public void setup() {
     collector =
         new SourceControlMetricsTelemetryCollector(sourceControlDAO, sourceControlPullRequestDAO, applicationDAO,
-            metrics);
+            metrics, organizationDAO, gitHubAppDAO);
   }
 
   @Test
@@ -69,12 +79,15 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled()).thenReturn(new ArrayList<>());
     when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getAll()).thenReturn(new ArrayList<>());
     when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
     when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(33)
+        .hasSize(40)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
@@ -107,7 +120,14 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0));
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0),
+            entry(TOTAL_SC_ORGS_WITH_AUTH_CONFIGURED, "0"),
+            entry(TOTAL_SC_APPS_WITH_AUTH_CONFIGURED, "0"),
+            entry(TOTAL_SC_ORGS_USING_PAT, "0"),
+            entry(TOTAL_SC_ORGS_USING_GITHUB_APP, "0"),
+            entry(TOTAL_SC_APPS_USING_PAT, "0"),
+            entry(TOTAL_SC_APPS_USING_GITHUB_APP, "0"),
+            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"));
   }
 
   @Test
@@ -124,8 +144,11 @@ public class SourceControlMetricsTelemetryCollectorTest
             new SourceControl.Builder().build(),
             new SourceControl.Builder().build(),
             new SourceControl.Builder().build()));
+    when(sourceControlDAO.getAll()).thenReturn(new ArrayList<>());
     when(applicationDAO.getAll()).thenReturn(Arrays.asList(
         new Application(), new Application(), new Application(), new Application()));
+    when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
     when(metrics.computeStatsAndReset())
         .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1,
             5, 6))));
@@ -134,7 +157,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(33)
+        .hasSize(40)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
@@ -167,7 +190,14 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0));
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0),
+            entry(TOTAL_SC_ORGS_WITH_AUTH_CONFIGURED, "0"),
+            entry(TOTAL_SC_APPS_WITH_AUTH_CONFIGURED, "0"),
+            entry(TOTAL_SC_ORGS_USING_PAT, "0"),
+            entry(TOTAL_SC_ORGS_USING_GITHUB_APP, "0"),
+            entry(TOTAL_SC_APPS_USING_PAT, "0"),
+            entry(TOTAL_SC_APPS_USING_GITHUB_APP, "0"),
+            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"));
   }
 
   @Test
@@ -359,6 +389,70 @@ public class SourceControlMetricsTelemetryCollectorTest
         new Date(),
         state,
         source);
+  }
+
+  @Test
+  public void test_collectAuthenticationStats() {
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    when(mockContext.getPreviousFireTime()).thenReturn(new Date());
+
+    // Create test data: 2 orgs, 3 apps
+    Organization org1 = new Organization();
+    org1.setId("org-1");
+    Organization org2 = new Organization();
+    org2.setId("org-2");
+
+    // Org1 uses PAT, Org2 uses GitHub App
+    SourceControl orgConfig1 = new SourceControl.Builder()
+        .setOwnerId("org-1")
+        .setAuthenticationType(SourceControl.AuthenticationType.PAT)
+        .build();
+    SourceControl orgConfig2 = new SourceControl.Builder()
+        .setOwnerId("org-2")
+        .setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP)
+        .build();
+
+    // App1 uses PAT, App2 uses GitHub App, App3 uses PAT
+    SourceControl appConfig1 = new SourceControl.Builder()
+        .setOwnerId("app-1")
+        .setAuthenticationType(SourceControl.AuthenticationType.PAT)
+        .build();
+    SourceControl appConfig2 = new SourceControl.Builder()
+        .setOwnerId("app-2")
+        .setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP)
+        .build();
+    SourceControl appConfig3 = new SourceControl.Builder()
+        .setOwnerId("app-3")
+        .setAuthenticationType(SourceControl.AuthenticationType.PAT)
+        .build();
+
+    when(organizationDAO.getAll()).thenReturn(Arrays.asList(org1, org2));
+    when(sourceControlDAO.getAll()).thenReturn(Arrays.asList(
+        orgConfig1, orgConfig2, appConfig1, appConfig2, appConfig3));
+
+    // Mock GitHubApp instances
+    GitHubApp githubApp1 = new GitHubApp();
+    GitHubApp githubApp2 = new GitHubApp();
+    when(gitHubAppDAO.getAll()).thenReturn(Arrays.asList(githubApp1, githubApp2));
+
+    // Mock other required DAOs
+    when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
+    when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
+
+    TelemetryData telemetryData = collector.collectData(mockContext);
+
+    // Verify authentication stats
+    assertThat(telemetryData.getAttributes())
+        .contains(
+            entry(TOTAL_SC_ORGS_WITH_AUTH_CONFIGURED, "2"),
+            entry(TOTAL_SC_APPS_WITH_AUTH_CONFIGURED, "3"),
+            entry(TOTAL_SC_ORGS_USING_PAT, "1"),
+            entry(TOTAL_SC_ORGS_USING_GITHUB_APP, "1"),
+            entry(TOTAL_SC_APPS_USING_PAT, "2"),
+            entry(TOTAL_SC_APPS_USING_GITHUB_APP, "1"),
+            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "2"));
   }
 
   private void setupPrBranchTestData() {

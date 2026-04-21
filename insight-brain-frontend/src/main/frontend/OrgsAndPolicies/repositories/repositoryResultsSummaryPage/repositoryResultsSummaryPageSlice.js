@@ -201,7 +201,10 @@ const getRepositoryComponentsForBulkWaive = createAsyncThunk(
     source.cancel();
     source = CancelToken.source();
     const componentsRequestBody = selectComponentsRequestBody(getState());
-    const requestBody = { ...componentsRequestBody, isBulkWaiverPage: true };
+    const requestBody = {
+      ...componentsRequestBody,
+      isBulkWaiverPage: true,
+    };
 
     return axios
       .post(getRepositoryComponentsUrl('repository', repoId), requestBody, { cancelToken: source.token })
@@ -242,7 +245,7 @@ const getRepositoryComponentsFulfilled = (state, { payload }) => {
   state.unsortedComponents = state.repositoryComponents;
   state.hasMoreResults = payload.hasNextPage;
   // Store filtered total count from bulk waiver API response
-  state.filteredTotalCount = payload.totalCount || null;
+  state.filteredTotalCount = payload.filterCount ?? payload.totalCount ?? null;
 };
 
 const getRepositoryComponentsRejected = (state, { payload }) => {
@@ -311,6 +314,10 @@ const setPageSize = (state, { payload }) => {
   state.componentsRequestBody.page = 1; // Reset to first page when changing page size
 };
 
+const setCurrentPage = (state, { payload }) => {
+  state.componentsRequestBody.page = payload;
+};
+
 const loadNextPage = () => (dispatch, getState) => {
   const repository = selectRepositoryInformation(getState());
   const hasMoreResults = selectHasMoreResults(getState());
@@ -374,6 +381,7 @@ export const repositoryResultsSummaryPageSlice = createSlice({
     increasePage,
     decreasePage,
     setPageSize,
+    setCurrentPage,
     applyFilters,
   },
   extraReducers: {

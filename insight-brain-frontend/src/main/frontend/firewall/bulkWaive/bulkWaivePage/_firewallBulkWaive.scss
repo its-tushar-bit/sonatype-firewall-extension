@@ -4,15 +4,57 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '../../../scss/variables' as *;
 
 .fw-bulk-waive-page {
+  .fw-bulk-waive-page__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $iq-spacing-md;
+    flex-wrap: wrap;
+    margin-bottom: $iq-spacing-md;
+  }
+
+  .fw-bulk-waive-page__summary {
+    display: flex;
+    align-items: center;
+    gap: $iq-spacing-md;
+    flex-wrap: wrap;
+  }
+
+  .fw-bulk-waive-page__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $iq-spacing-sm;
+    flex-wrap: wrap;
+  }
+
+  .fw-bulk-waive-page__pagination {
+    margin-top: $iq-spacing-md;
+    margin-bottom: $iq-spacing-md;
+  }
+
+  .fw-bulk-waive-page__footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: $iq-spacing-md;
+  }
+
+  .fw-bulk-waive-page__footer-actions {
+    display: flex;
+    gap: $iq-spacing-sm;
+  }
+
   .fw-bulk-waive__select-all-cell {
     width: 48px;
   }
 
   .fw-bulk-waive__toggle-cell {
     .nx-checkbox {
-      margin-top: 4px;
+      margin-top: $iq-spacing-xxs;
     }
   }
 

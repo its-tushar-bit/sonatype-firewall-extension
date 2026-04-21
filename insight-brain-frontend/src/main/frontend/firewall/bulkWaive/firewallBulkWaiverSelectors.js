@@ -117,3 +117,13 @@ export const selectOriginalAggregateState = createSelector(
   selectFirewallBulkWaiverSlice,
   path(['originalAggregateState'])
 );
+
+export const selectComponentDetailsPolicyNameFilter = createSelector(
+  selectFirewallBulkWaiverSlice,
+  path(['componentDetailsPolicyNameFilter'])
+);
+
+export const selectComponentDetailsConstraintNameFilter = createSelector(
+  selectFirewallBulkWaiverSlice,
+  path(['componentDetailsConstraintNameFilter'])
+);

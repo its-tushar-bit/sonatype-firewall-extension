@@ -61,7 +61,7 @@ export const loadFirewallWaiverScopes = (repositoryId, contextId) => {
   };
 };
 
-export const loadAllFilteredViolations = (repositoryId) => {
+export const loadAllFilteredViolations = (repositoryId, componentsRequestBody = {}) => {
   return async (dispatch) => {
     dispatch(actions.setLoadingAllViolations(true));
 
@@ -73,10 +73,11 @@ export const loadAllFilteredViolations = (repositoryId) => {
 
       while (hasMorePages) {
         const requestBody = {
+          ...componentsRequestBody,
           page,
           pageSize,
-          searchFilters: [],
-          sortFields: [
+          searchFilters: componentsRequestBody.searchFilters || [],
+          sortFields: componentsRequestBody.sortFields || [
             {
               sortableField: 'POLICY_THREAT_LEVEL',
               asc: false,
@@ -84,9 +85,9 @@ export const loadAllFilteredViolations = (repositoryId) => {
             },
           ],
           aggregate: false,
-          matchStateFilters: [],
-          violationStateFilters: [],
-          threatLevelFilters: [0, 10],
+          matchStateFilters: componentsRequestBody.matchStateFilters || [],
+          violationStateFilters: componentsRequestBody.violationStateFilters || [],
+          threatLevelFilters: componentsRequestBody.threatLevelFilters || [0, 10],
           isBulkWaiverPage: true,
         };
 
@@ -98,7 +99,9 @@ export const loadAllFilteredViolations = (repositoryId) => {
         page++;
       }
 
-      const filteredViolations = allViolations.filter((violation) => violation.threatLevel > 0);
+      const filteredViolations = allViolations
+        .map((v) => ({ ...v, threatLevel: v.threatLevel ?? v.policyThreatLevel }))
+        .filter((violation) => violation.threatLevel > 0);
 
       dispatch(actions.setAllFilteredViolations(filteredViolations));
     } catch (error) {
@@ -117,7 +120,7 @@ export const submitFirewallBulkWaiver = (params) => {
       const violationIds = selectedViolations.map((v) => v.policyViolationId);
 
       const apiWaiverOptionsDTO = {
-        comment: waiverConfiguration.comments || 'Bulk waiver',
+        comment: waiverConfiguration.comments || '',
         matcherStrategy: waiverConfiguration.componentMatcherStrategy,
       };
 

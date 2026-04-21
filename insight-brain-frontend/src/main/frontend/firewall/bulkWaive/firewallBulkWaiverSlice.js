@@ -45,6 +45,8 @@ const initialState = {
     componentDisplayName: null,
   },
   originalAggregateState: null,
+  componentDetailsPolicyNameFilter: '',
+  componentDetailsConstraintNameFilter: '',
 };
 
 const setSelectedViolations = (state, action) => {
@@ -153,6 +155,14 @@ const clearOriginalAggregateState = (state) => {
   state.originalAggregateState = null;
 };
 
+const setComponentDetailsPolicyNameFilter = (state, action) => {
+  state.componentDetailsPolicyNameFilter = action.payload;
+};
+
+const setComponentDetailsConstraintNameFilter = (state, action) => {
+  state.componentDetailsConstraintNameFilter = action.payload;
+};
+
 const firewallBulkWaiverSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -180,6 +190,8 @@ const firewallBulkWaiverSlice = createSlice({
     setSubmitError,
     setOriginalAggregateState,
     clearOriginalAggregateState,
+    setComponentDetailsPolicyNameFilter,
+    setComponentDetailsConstraintNameFilter,
   },
 });
 

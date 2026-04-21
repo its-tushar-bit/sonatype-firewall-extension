@@ -218,6 +218,34 @@ describe('repositoryResultsSummaryPageSlice', () => {
       expect(unsortedComponents).toEqual(expectedState);
       expect(hasMoreResults).toBe(true);
     });
+
+    it('stores filterCount as filteredTotalCount for bulk waive responses', () => {
+      const state = Object.freeze({
+        repositoryComponents: [],
+        loadingRepositoryComponents: true,
+        errorComponentsTable: 'Loading error',
+        unsortedComponents: [],
+        hasMoreResults: null,
+        filteredTotalCount: null,
+        componentsRequestBody: {
+          pageSize: 12,
+        },
+      });
+
+      const payload = {
+        repositoryResultsDetails: [],
+        hasNextPage: false,
+        totalCount: 30,
+        filterCount: 12,
+      };
+
+      const { filteredTotalCount } = reducer(state, {
+        type: 'repositoryResultsSummaryPage/getRepositoryComponentsForBulkWaive/fulfilled',
+        payload,
+      });
+
+      expect(filteredTotalCount).toBe(12);
+    });
   });
 
   describe('repositoryResultsSummaryPage/getRepositoryComponents/rejected action', () => {

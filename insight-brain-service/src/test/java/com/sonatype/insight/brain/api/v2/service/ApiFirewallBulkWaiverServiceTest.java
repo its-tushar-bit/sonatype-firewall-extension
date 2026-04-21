@@ -304,15 +304,19 @@ public class ApiFirewallBulkWaiverServiceTest
     RepositoryPolicyViolation violation1 = createValidViolation(VIOLATION_ID_1, REPOSITORY_ID, true);
     RepositoryPolicyViolation violation2 = createValidViolation(VIOLATION_ID_2, REPOSITORY_ID, false);
 
+    // Extract values before setting up mocks to avoid "unfinished stubbing" error
+    String constraintFactsJson1 = violation1.getConstraintFactsJson();
+
     when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation1);
     when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_2)).thenReturn(violation2);
     Owner owner = createOwner(INTERNAL_OWNER_ID);
     when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
 
-    // Mock existing waiver for violation1 (policyId + hash match)
+    // Mock existing waiver for violation1 (policyId + hash + constraintFactsJson match)
     PolicyWaiver existingWaiver = new PolicyWaiver();
     existingWaiver.setPolicyId("policy-" + VIOLATION_ID_1);
     existingWaiver.setHash("hash-" + VIOLATION_ID_1);
+    existingWaiver.setConstraintFactsJson(constraintFactsJson1);
     when(policyWaiverDAO.getActiveApplicableByOwnerId(INTERNAL_OWNER_ID))
         .thenReturn(Collections.singletonList(existingWaiver));
 
@@ -330,6 +334,75 @@ public class ApiFirewallBulkWaiverServiceTest
         any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
         anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_SkipsExistingWaiverWithSameConstraintFactsJson() {
+    List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
+    ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, createValidWaiverOptions());
+
+    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+        VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
+        "Constraint A", "Reason A", false);
+
+    // Extract all values and create owner BEFORE setting up mocks to avoid "unfinished stubbing" error
+    String policyId = violation.getPolicyId();
+    String hash = violation.getHash();
+    String constraintFactsJson = violation.getConstraintFactsJson();
+    Owner owner = createOwner(INTERNAL_OWNER_ID);
+
+    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
+
+    PolicyWaiver existingWaiver = new PolicyWaiver();
+    existingWaiver.setPolicyId(policyId);
+    existingWaiver.setHash(hash);
+    existingWaiver.setConstraintFactsJson(constraintFactsJson);
+    when(policyWaiverDAO.getActiveApplicableByOwnerId(INTERNAL_OWNER_ID))
+        .thenReturn(Collections.singletonList(existingWaiver));
+
+    service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
+
+    verify(apiPolicyWaiverService, never()).savePolicyWaiver(
+        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
+        ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_CreatesWaiverWhenConstraintFactsJsonDiffers() {
+    List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
+    ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, createValidWaiverOptions());
+
+    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+        VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
+        "Constraint A", "Reason A", false);
+    RepositoryPolicyViolation otherConstraintViolation = createValidViolationWithDetails(
+        VIOLATION_ID_2, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
+        "Constraint A", "Reason B", false);
+
+    // Extract values and create owner BEFORE setting up mocks to avoid "unfinished stubbing" error
+    String policyId = violation.getPolicyId();
+    String hash = violation.getHash();
+    String otherConstraintFactsJson = otherConstraintViolation.getConstraintFactsJson();
+    Owner owner = createOwner(INTERNAL_OWNER_ID);
+
+    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
+
+    PolicyWaiver existingWaiver = new PolicyWaiver();
+    existingWaiver.setPolicyId(policyId);
+    existingWaiver.setHash(hash);
+    existingWaiver.setConstraintFactsJson(otherConstraintFactsJson);
+    when(policyWaiverDAO.getActiveApplicableByOwnerId(INTERNAL_OWNER_ID))
+        .thenReturn(Collections.singletonList(existingWaiver));
+
+    service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
+
+    verify(apiPolicyWaiverService, times(1)).savePolicyWaiver(
+        any(TransactionContext.class), eq(INTERNAL_OWNER_ID), eq(violation),
+        eq(WAIVER_COMMENT), eq(EXACT_COMPONENT),
+        ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), eq(false));
   }
 
   /**
@@ -412,26 +485,7 @@ public class ApiFirewallBulkWaiverServiceTest
         .hasMessageContaining("Expire When Remediation Available Waivers can only be applied to Exact Components");
   }
 
-  /**
-   * TEST-INPUT-11: Submit request with blank comment - verify HTTP 400
-   */
-  @Test
-  public void testAddBulkPolicyWaivers_BlankComment() {
-    // Arrange
-    List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
-    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO(
-        "", // Blank comment
-        EXACT_COMPONENT,
-        null,
-        null,
-        false);
-    ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, waiverOptions);
-
-    // Act & Assert
-    assertThatThrownBy(() -> service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("Comment is required");
-  }
+  // TEST-INPUT-11 removed: Comment is now optional for bulk waivers
 
   // ============================================================================
   // AUTHORIZATION TESTS (REQ-1.x)

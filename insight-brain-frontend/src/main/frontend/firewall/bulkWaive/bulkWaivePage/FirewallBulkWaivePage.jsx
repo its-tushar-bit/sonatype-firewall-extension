@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxButton,
   NxCheckbox,
   NxFilterInput,
-  NxIndeterminatePagination,
+  NxPagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -35,7 +35,6 @@ import {
   selectTotalComponentCount,
   selectFilteredTotalCount,
   selectCurrentPage,
-  selectHasMoreResults,
   selectAggregate,
 } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import { actions as firewallBulkWaiverActions } from '../firewallBulkWaiverSlice';
@@ -49,8 +48,11 @@ import {
   selectBulkWaiveComponentDisplayName,
   selectOriginalAggregateState,
   selectSourceContext,
+  selectComponentDetailsPolicyNameFilter,
+  selectComponentDetailsConstraintNameFilter,
 } from '../firewallBulkWaiverSelectors';
 import { loadComponentPolicyViolations } from 'MainRoot/firewall/firewallActions';
+import { actions as policyViolationsActions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 import {
   selectFirewallPolicyViolations,
   selectFirewallComponentDetailsPage,
@@ -58,14 +60,21 @@ import {
 import BulkWaiveTableRow from './bulkWaiveTableRow/BulkWaiveTableRow';
 import BulkWaiveTitle from '../bulkWaiveTitle/BulkWaiveTitle';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
+import FirewallPolicyViolationDetailsPopover from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallPolicyViolationDetailsPopover';
+
+const DEFAULT_PAGE_SIZE = 12;
 
 export default function FirewallBulkWaivePage() {
   const dispatch = useDispatch();
   const routerParams = useSelector(selectRouterCurrentParams);
   const { repositoryId } = routerParams;
+  // Dual-state pattern: local state drives rendering; Redux stores a checkpoint of the selection.
+  // When the user navigates away (e.g. to adjust filters) and returns, the useEffect below
+  // re-seeds local state from Redux so the selection is preserved across navigation.
+  // Refs (checkboxStateRef, selectAllModeRef) mirror the local state to give stale-closure-safe
+  // access inside useCallback/useEffect handlers without causing extra re-renders.
   const [checkboxState, setCheckboxState] = useState({});
   const [selectAllMode, setSelectAllMode] = useState(false);
-  const [selectedViolationId, setSelectedViolationId] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
   const source = useSelector(selectBulkWaiveSource);
@@ -79,8 +88,25 @@ export default function FirewallBulkWaivePage() {
   const repositoryViolations = useSelector(selectRepositoryComponents);
   const componentViolations = useSelector(selectFirewallPolicyViolations);
   const componentDetailsPage = useSelector(selectFirewallComponentDetailsPage);
+  const componentDetailsPolicyNameFilter = useSelector(selectComponentDetailsPolicyNameFilter);
+  const componentDetailsConstraintNameFilter = useSelector(selectComponentDetailsConstraintNameFilter);
 
-  const violations = source === 'component-details' ? componentViolations : repositoryViolations;
+  const filteredComponentViolations = useMemo(() => {
+    let result = componentViolations ?? [];
+    if (componentDetailsPolicyNameFilter) {
+      const policyFilter = String(componentDetailsPolicyNameFilter).toLowerCase();
+      result = result.filter((v) => v.policyName?.toLowerCase().includes(policyFilter));
+    }
+    if (componentDetailsConstraintNameFilter) {
+      const constraintFilter = String(componentDetailsConstraintNameFilter).toLowerCase();
+      result = result.filter((v) =>
+        v.constraints?.[0]?.constraintName?.toLowerCase().includes(constraintFilter)
+      );
+    }
+    return result;
+  }, [componentViolations, componentDetailsPolicyNameFilter, componentDetailsConstraintNameFilter]);
+
+  const violations = source === 'component-details' ? filteredComponentViolations : repositoryViolations;
 
   const repositoryLoading = useSelector(selectLoadingRepositoryComponents);
   const repositoryError = useSelector(selectErrorComponentsTable);
@@ -91,8 +117,6 @@ export default function FirewallBulkWaivePage() {
   const error = source === 'component-details' ? componentError : repositoryError;
 
   const currentPage = useSelector(selectCurrentPage);
-  const hasMoreResults = useSelector(selectHasMoreResults);
-
   const totalComponentCount = useSelector(selectTotalComponentCount);
   const filteredTotalCount = useSelector(selectFilteredTotalCount);
   const searchFiltersValues = useSelector(selectSearchFiltersValues);
@@ -121,7 +145,7 @@ export default function FirewallBulkWaivePage() {
           dispatch(actions.toggleAggregate());
         }
 
-        dispatch(actions.setPageSize(12));
+        dispatch(actions.setPageSize(DEFAULT_PAGE_SIZE));
         dispatch(actions.getRepositoryInformation(repositoryId));
         dispatch(actions.getRepositorySummary(repositoryId));
         dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
@@ -130,7 +154,11 @@ export default function FirewallBulkWaivePage() {
 
     return () => {
       if (repositoryId && source !== 'component-details') {
-        dispatch(actions.setPageSize(12));
+        dispatch(actions.setPageSize(DEFAULT_PAGE_SIZE));
+      }
+      if (source === 'component-details') {
+        dispatch(firewallBulkWaiverActions.setComponentDetailsPolicyNameFilter(''));
+        dispatch(firewallBulkWaiverActions.setComponentDetailsConstraintNameFilter(''));
       }
       if (policyFilterTimeoutRef.current) {
         clearTimeout(policyFilterTimeoutRef.current);
@@ -148,18 +176,6 @@ export default function FirewallBulkWaivePage() {
     }
   }, [storedSelectedCount, storedSelectAllMode, storedCheckboxState]);
 
-  useEffect(() => {
-    if (selectAllMode || Object.keys(checkboxState).length > 0) {
-      setSelectAllMode(false);
-      setCheckboxState({});
-    }
-  }, [
-    componentsRequestBody?.searchFilters,
-    componentsRequestBody?.matchStateFilters,
-    componentsRequestBody?.violationStateFilters,
-    componentsRequestBody?.threatLevelFilters,
-  ]); // Don't include selectAllMode or checkboxState in deps to avoid infinite loop
-
   const getViolationCondition = (component) => {
     if (!component) {
       return 'No condition specified';
@@ -175,9 +191,93 @@ export default function FirewallBulkWaivePage() {
     return reasons.length > 0 ? reasons.join(', ') : 'No condition specified';
   };
 
+  const normalizeViolation = (violation) => ({
+    ...violation,
+    threatLevel: violation.threatLevel ?? violation.policyThreatLevel,
+    matchState: violation.matchState ?? violation.matchStateId ?? sourceContext?.matchState,
+  });
+
+  const effectiveTotalCount =
+    source === 'component-details'
+      ? violations?.length || 0
+      : filteredTotalCount != null
+      ? filteredTotalCount
+      : totalComponentCount;
+
+  const buildCurrentPageSelections = (nextCheckboxState, nextSelectAllMode) => {
+    return (
+      violations?.filter((violation) => {
+        if (nextSelectAllMode) {
+          return nextCheckboxState[violation.policyViolationId] !== false;
+        }
+
+        return nextCheckboxState[violation.policyViolationId] === true;
+      }) || []
+    ).map(normalizeViolation);
+  };
+
+  const buildPersistedSelectedViolations = (nextCheckboxState, nextSelectAllMode) => {
+    const currentPageSelections = buildCurrentPageSelections(nextCheckboxState, nextSelectAllMode);
+
+    if (nextSelectAllMode) {
+      if (source === 'component-details') {
+        return currentPageSelections;
+      }
+
+      if (currentPageSelections.length > 0) {
+        return currentPageSelections.slice(0, 5);
+      }
+
+      return storedSelectedViolations
+        .filter((violation) => nextCheckboxState[violation.policyViolationId] !== false)
+        .slice(0, 5);
+    }
+
+    const currentPageIds = new Set((violations || []).map((violation) => violation.policyViolationId));
+    const persistedSelections = storedSelectedViolations.filter(
+      (violation) => !currentPageIds.has(violation.policyViolationId)
+    );
+    const existingIds = new Set(persistedSelections.map((violation) => violation.policyViolationId));
+
+    currentPageSelections.forEach((violation) => {
+      if (!existingIds.has(violation.policyViolationId)) {
+        persistedSelections.push(violation);
+      }
+    });
+
+    return persistedSelections;
+  };
+
+  const buildSelectedCount = (nextCheckboxState, nextSelectAllMode) => {
+    if (nextSelectAllMode) {
+      const deselectedCount = Object.values(nextCheckboxState).filter((value) => value === false).length;
+      return effectiveTotalCount - deselectedCount;
+    }
+
+    return buildPersistedSelectedViolations(nextCheckboxState, false).length;
+  };
+
+  const persistSelectionState = (nextCheckboxState, nextSelectAllMode = selectAllMode) => {
+    const persistedSelectedViolations = buildPersistedSelectedViolations(nextCheckboxState, nextSelectAllMode);
+    const persistedSelectedCount = buildSelectedCount(nextCheckboxState, nextSelectAllMode);
+
+    dispatch(firewallBulkWaiverActions.setSelectedViolations(persistedSelectedViolations));
+    dispatch(firewallBulkWaiverActions.setSelectedCount(persistedSelectedCount));
+    dispatch(firewallBulkWaiverActions.setSelectAllMode(nextSelectAllMode));
+    dispatch(firewallBulkWaiverActions.setCheckboxState(nextCheckboxState));
+
+    return { persistedSelectedViolations, persistedSelectedCount };
+  };
+
   const handleSort = (sortableField) => {
     if (source !== 'component-details') {
+      if (selectAllMode) {
+        handleClearAllFilteredViolations();
+      } else {
+        persistSelectionState(checkboxState, false);
+      }
       dispatch(actions.setSorting(sortableField));
+      dispatch(actions.setCurrentPage(1));
       dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
     }
   };
@@ -190,92 +290,81 @@ export default function FirewallBulkWaivePage() {
     return null;
   };
 
-  const handleNextPage = () => {
-    if (hasMoreResults) {
-      saveCurrentPageSelections();
-      dispatch(actions.increasePage());
-      dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      saveCurrentPageSelections();
-      dispatch(actions.decreasePage());
-      dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
-    }
-  };
-
-  const saveCurrentPageSelections = () => {
-    const currentPageSelections =
-      violations?.filter((v) => {
-        if (selectAllMode) {
-          return checkboxState[v.policyViolationId] !== false;
-        } else {
-          return checkboxState[v.policyViolationId] === true;
-        }
-      }) || [];
-
-    const normalizedSelections = currentPageSelections.map((violation) => ({
-      ...violation,
-      threatLevel: violation.threatLevel ?? violation.policyThreatLevel,
-    }));
-
-    const existingIds = new Set(storedSelectedViolations.map((v) => v.policyViolationId));
-    const newSelections = normalizedSelections.filter((v) => !existingIds.has(v.policyViolationId));
-    const allSelectedViolations = [...storedSelectedViolations, ...newSelections];
-
-    const finalSelections = allSelectedViolations.filter((v) => {
-      const isInCurrentPage = violations.some((cv) => cv.policyViolationId === v.policyViolationId);
-
-      if (selectAllMode) {
-        // In selectAllMode, violations are selected unless explicitly unchecked (false)
-        return checkboxState[v.policyViolationId] !== false;
-      } else {
-        // In non-selectAll mode, keep only violations that are explicitly selected in checkboxState
-        // or violations from other pages (not in current page)
-        if (isInCurrentPage) {
-          return checkboxState[v.policyViolationId] === true;
-        }
-        return true;
-      }
-    });
-
-    dispatch(firewallBulkWaiverActions.setSelectedViolations(finalSelections));
-    dispatch(firewallBulkWaiverActions.setCheckboxState(checkboxState));
+  const handlePageChange = (pageNumber) => {
+    persistSelectionState(checkboxState, selectAllMode);
+    // NxPagination uses 0-based indexing, but backend expects 1-based
+    dispatch(actions.setCurrentPage(pageNumber + 1));
+    dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
   };
 
   const policyFilterTimeoutRef = useRef(null);
   const componentFilterTimeoutRef = useRef(null);
+  const checkboxStateRef = useRef(checkboxState);
+  const selectAllModeRef = useRef(selectAllMode);
+  const persistSelectionStateRef = useRef(persistSelectionState);
 
-  const handlePolicyFilterChange = useCallback(
-    (value) => {
-      dispatch(actions.setFilter({ filterName: 'POLICY_NAME', filterValue: value }));
+  useEffect(() => {
+    checkboxStateRef.current = checkboxState;
+  }, [checkboxState]);
 
-      if (policyFilterTimeoutRef.current) {
-        clearTimeout(policyFilterTimeoutRef.current);
+  useEffect(() => {
+    selectAllModeRef.current = selectAllMode;
+  }, [selectAllMode]);
+
+  // No deps array: intentionally runs every render to keep the ref current with the latest function.
+  useEffect(() => {
+    persistSelectionStateRef.current = persistSelectionState;
+  });
+
+  const handleFilterChange = useCallback(
+    (filterName, value, timeoutRef) => {
+      if (selectAllModeRef.current) {
+        setSelectAllMode(false);
+        setCheckboxState({});
+        dispatch(firewallBulkWaiverActions.setSelectedViolations([]));
+        dispatch(firewallBulkWaiverActions.setSelectedCount(0));
+        dispatch(firewallBulkWaiverActions.setSelectAllMode(false));
+        dispatch(firewallBulkWaiverActions.setCheckboxState({}));
+      } else {
+        persistSelectionStateRef.current(checkboxStateRef.current, false);
       }
 
-      policyFilterTimeoutRef.current = setTimeout(() => {
+      dispatch(actions.setFilter({ filterName, filterValue: value }));
+      dispatch(actions.setCurrentPage(1));
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
         dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
       }, 500);
     },
     [dispatch, repositoryId]
   );
 
+  const handlePolicyFilterChange = useCallback(
+    (value) => handleFilterChange('POLICY_NAME', value, policyFilterTimeoutRef),
+    [handleFilterChange]
+  );
+
   const handleComponentFilterChange = useCallback(
+    (value) => handleFilterChange('COMPONENT_COORDINATES', value, componentFilterTimeoutRef),
+    [handleFilterChange]
+  );
+
+  const handleComponentDetailsPolicyFilterChange = useCallback(
     (value) => {
-      dispatch(actions.setFilter({ filterName: 'COMPONENT_COORDINATES', filterValue: value }));
-
-      if (componentFilterTimeoutRef.current) {
-        clearTimeout(componentFilterTimeoutRef.current);
-      }
-
-      componentFilterTimeoutRef.current = setTimeout(() => {
-        dispatch(actions.getRepositoryComponentsForBulkWaive(repositoryId));
-      }, 500);
+      dispatch(firewallBulkWaiverActions.setComponentDetailsPolicyNameFilter(value));
     },
-    [dispatch, repositoryId]
+    [dispatch]
+  );
+
+  const handleComponentDetailsConstraintFilterChange = useCallback(
+    (value) => {
+      dispatch(firewallBulkWaiverActions.setComponentDetailsConstraintNameFilter(value));
+    },
+    [dispatch]
   );
 
   const openFilterPopover = () => {
@@ -286,17 +375,57 @@ export default function FirewallBulkWaivePage() {
     event?.stopPropagation();
     event?.preventDefault();
 
-    if (selectAllMode) {
-      setSelectAllMode(false);
-      setCheckboxState({});
-      dispatch(firewallBulkWaiverActions.setSelectedViolations([]));
-      dispatch(firewallBulkWaiverActions.setSelectedCount(0));
-      dispatch(firewallBulkWaiverActions.setSelectAllMode(false));
-      dispatch(firewallBulkWaiverActions.setCheckboxState({}));
+    if (!violations?.length) return;
+
+    const allCurrentPageSelected = violations.length > 0 && violations.every((violation) => {
+      const { policyViolationId } = violation;
+      return selectAllMode ? checkboxState[policyViolationId] !== false : checkboxState[policyViolationId] === true;
+    });
+
+    if (allCurrentPageSelected) {
+      const newState = { ...checkboxState };
+
+      violations.forEach((violation) => {
+        if (selectAllMode) {
+          newState[violation.policyViolationId] = false;
+        } else {
+          delete newState[violation.policyViolationId];
+        }
+      });
+
+      setCheckboxState(newState);
+      persistSelectionState(newState, selectAllMode);
     } else {
-      setSelectAllMode(true);
-      setCheckboxState({});
+      const newState = { ...checkboxState };
+
+      violations.forEach((violation) => {
+        if (selectAllMode) {
+          delete newState[violation.policyViolationId];
+        } else {
+          newState[violation.policyViolationId] = true;
+        }
+      });
+
+      setCheckboxState(newState);
+      persistSelectionState(newState, selectAllMode);
     }
+  };
+
+  const handleSelectAllFilteredViolations = () => {
+    const nextCheckboxState = {};
+
+    setSelectAllMode(true);
+    setCheckboxState(nextCheckboxState);
+    persistSelectionState(nextCheckboxState, true);
+  };
+
+  const handleClearAllFilteredViolations = () => {
+    setSelectAllMode(false);
+    setCheckboxState({});
+    dispatch(firewallBulkWaiverActions.setSelectedViolations([]));
+    dispatch(firewallBulkWaiverActions.setSelectedCount(0));
+    dispatch(firewallBulkWaiverActions.setSelectAllMode(false));
+    dispatch(firewallBulkWaiverActions.setCheckboxState({}));
   };
 
   const handleCancel = () => {
@@ -334,52 +463,7 @@ export default function FirewallBulkWaivePage() {
   };
 
   const handleNext = () => {
-    const normalizeViolation = (violation) => ({
-      ...violation,
-      threatLevel: violation.threatLevel ?? violation.policyThreatLevel,
-    });
-
-    let currentPageSelections;
-    if (selectAllMode) {
-      currentPageSelections = violations
-        .filter((v) => checkboxState[v.policyViolationId] !== false)
-        .map(normalizeViolation);
-    } else {
-      currentPageSelections = violations
-        .filter((v) => checkboxState[v.policyViolationId] === true)
-        .map(normalizeViolation);
-    }
-
-    const shouldStoreActualViolations = source === 'component-details' || !selectAllMode;
-
-    let allSelectedViolations;
-    if (shouldStoreActualViolations) {
-      const existingIds = new Set(storedSelectedViolations.map((v) => v.policyViolationId));
-      const newSelections = currentPageSelections.filter((v) => !existingIds.has(v.policyViolationId));
-      const combinedSelections = [...storedSelectedViolations, ...newSelections];
-
-      // Filter out any violations from the current page that are not selected
-      const currentPageIds = new Set(violations.map((v) => v.policyViolationId));
-      allSelectedViolations = combinedSelections.filter((v) => {
-        const isInCurrentPage = currentPageIds.has(v.policyViolationId);
-        if (isInCurrentPage) {
-          if (selectAllMode) {
-            return checkboxState[v.policyViolationId] !== false;
-          } else {
-            return checkboxState[v.policyViolationId] === true;
-          }
-        }
-        return true;
-      });
-    } else {
-      allSelectedViolations = currentPageSelections.slice(0, 5);
-    }
-
-    dispatch(firewallBulkWaiverActions.setSelectedViolations(allSelectedViolations));
-    dispatch(firewallBulkWaiverActions.setSelectedCount(selectedCount));
-    dispatch(firewallBulkWaiverActions.setSelectAllMode(selectAllMode));
-    dispatch(firewallBulkWaiverActions.setCheckboxState(checkboxState));
-
+    persistSelectionState(checkboxState, selectAllMode);
     dispatch(stateGo('firewall.bulkWaiveConfiguration', { repositoryId }));
   };
 
@@ -387,35 +471,41 @@ export default function FirewallBulkWaivePage() {
     return violations?.map((component, index) => {
       const policyViolationId = component.policyViolationId;
       const policyName = component.policyName;
-      const pathname = component.pathname;
       const threatLevel = component.threatLevel ?? component.policyThreatLevel;
       const onRowClick = () => {
-        setSelectedViolationId(policyViolationId);
+        dispatch(policyViolationsActions.setViolationsDetailRowClicked());
+        dispatch(policyViolationsActions.toggleShowViolationsDetailPopover());
+        dispatch(
+          policyViolationsActions.setSelectedPolicyViolation({
+            ...component,
+            policyViolationId,
+            policyName,
+            policyThreatLevel: threatLevel,
+          })
+        );
       };
       const onCheckboxClick = (event) => {
         event.stopPropagation();
         event.preventDefault();
 
         if (selectAllMode) {
-          setCheckboxState((prev) => {
-            const newState = { ...prev };
-            if (newState[policyViolationId] === false) {
-              delete newState[policyViolationId];
-            } else {
-              newState[policyViolationId] = false;
-            }
-            return newState;
-          });
+          const newState = { ...checkboxState };
+          if (newState[policyViolationId] === false) {
+            delete newState[policyViolationId];
+          } else {
+            newState[policyViolationId] = false;
+          }
+          setCheckboxState(newState);
+          persistSelectionState(newState, true);
         } else {
-          setCheckboxState((prev) => {
-            const newState = { ...prev };
-            if (newState[policyViolationId]) {
-              delete newState[policyViolationId];
-            } else {
-              newState[policyViolationId] = true;
-            }
-            return newState;
-          });
+          const newState = { ...checkboxState };
+          if (newState[policyViolationId]) {
+            delete newState[policyViolationId];
+          } else {
+            newState[policyViolationId] = true;
+          }
+          setCheckboxState(newState);
+          persistSelectionState(newState, false);
         }
       };
       const condition = getViolationCondition(component);
@@ -423,10 +513,7 @@ export default function FirewallBulkWaivePage() {
         ? checkboxState[policyViolationId] !== false
         : checkboxState[policyViolationId] === true;
 
-      const normalizedComponent = {
-        ...component,
-        threatLevel,
-      };
+      const normalizedComponent = normalizeViolation(component);
 
       return (
         <BulkWaiveTableRow
@@ -436,7 +523,7 @@ export default function FirewallBulkWaivePage() {
           onClick={onRowClick}
           onCheckboxClick={onCheckboxClick}
           isChecked={isRowChecked}
-          isCdpBulkWaive={false}
+          isComponentBulkWaive={source === 'component-details'}
           checkboxId={`checkbox-${policyViolationId}`}
         />
       );
@@ -445,32 +532,31 @@ export default function FirewallBulkWaivePage() {
 
   const deselectedCount = Object.values(checkboxState).filter((value) => value === false).length;
 
-    const hasActiveFilters =
-    componentsRequestBody?.searchFilters?.length > 0 ||
-    componentsRequestBody?.matchStateFilters?.length > 0 ||
-    componentsRequestBody?.violationStateFilters?.length > 0 ||
-    (componentsRequestBody?.threatLevelFilters &&
-      (componentsRequestBody.threatLevelFilters[0] !== 0 || componentsRequestBody.threatLevelFilters[1] !== 10));
-
-  const effectiveTotalCount =
-    source === 'component-details' || hasActiveFilters
-      ? violations?.length || 0 
-      : filteredTotalCount != null && filteredTotalCount > 0
-      ? filteredTotalCount 
-      : totalComponentCount; 
-
-  const selectedCount = selectAllMode
-    ? effectiveTotalCount - deselectedCount
-    : Object.values(checkboxState).filter((value) => value === true).length;
+  const selectedCount = selectAllMode ? effectiveTotalCount - deselectedCount : buildSelectedCount(checkboxState, false);
 
   const isAllSelected =
-    selectAllMode || (violations.length > 0 && violations.every((v) => checkboxState[v.policyViolationId]));
+    selectAllMode || (violations?.length > 0 && violations.every((v) => checkboxState[v.policyViolationId]));
+
+  const pageSize = componentsRequestBody?.pageSize || DEFAULT_PAGE_SIZE;
+  const totalPages = filteredTotalCount != null ? Math.max(1, Math.ceil(filteredTotalCount / pageSize)) : 1;
+  const showingCount = violations?.length || 0;
+  const totalVisibleCount =
+    source === 'component-details'
+      ? showingCount
+      : filteredTotalCount != null
+      ? filteredTotalCount
+      : totalComponentCount;
+  const shouldShowSelectAllFilteredAction =
+    source !== 'component-details' &&
+    totalVisibleCount != null &&
+    (selectAllMode || totalVisibleCount > showingCount);
 
   return (
     <>
       {source !== 'component-details' && (
         <RepositoryResultsComponentsFilter repositoryId={repositoryId} isBulkWaivePage={true} />
       )}
+      <FirewallPolicyViolationDetailsPopover />
       <NxPageMain id="fw-bulk-waive-page-main" className="nx-viewport-sized__container">
         <div className="fw-bulk-waive-page">
           <BulkWaiveTitle />
@@ -482,18 +568,41 @@ export default function FirewallBulkWaivePage() {
                   {source === 'component-details' && componentDisplayName && ` for ${componentDisplayName}`}
                 </NxH2>
               </NxTile.HeaderTitle>
-
-              {source !== 'component-details' && (
-                <NxTile.HeaderActions>
-                  <NxButton onClick={openFilterPopover} variant="tertiary" id="fw-bulk-waive-filter-button">
-                    <NxFontAwesomeIcon icon={faFilter} />
-                    <span>Filter</span>
-                  </NxButton>
-                </NxTile.HeaderActions>
-              )}
             </NxTile.Header>
 
             <NxTile.Content>
+              {!loading && !error && (
+                <div className="fw-bulk-waive-page__toolbar">
+                  <div className="fw-bulk-waive-page__summary">
+                    <div className="fw-bulk-waive__selected-count">
+                      {selectedCount} {selectedCount === 1 ? 'violation' : 'violations'} selected
+                    </div>
+                    {source !== 'component-details' && totalVisibleCount != null && (
+                      <div className="fw-bulk-waive-page__results-count">
+                        Showing {showingCount} of {totalVisibleCount} results
+                      </div>
+                    )}
+                  </div>
+                  <div className="fw-bulk-waive-page__actions">
+                    {source !== 'component-details' && (
+                      <NxButton onClick={openFilterPopover} variant="tertiary" id="fw-bulk-waive-filter-button">
+                        <NxFontAwesomeIcon icon={faFilter} />
+                        <span>Filter</span>
+                      </NxButton>
+                    )}
+                    {shouldShowSelectAllFilteredAction && (
+                      <NxButton
+                        variant="tertiary"
+                        id="fw-bulk-waive-select-all-filtered"
+                        onClick={selectAllMode ? handleClearAllFilteredViolations : handleSelectAllFilteredViolations}
+                      >
+                        {selectAllMode ? 'Unselect all violations' : `Select all ${totalVisibleCount} violations`}
+                      </NxButton>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <NxLoadWrapper
                 loading={loading}
                 error={error}
@@ -541,21 +650,29 @@ export default function FirewallBulkWaivePage() {
                             source !== 'component-details' ? () => handleSort('COMPONENT_COORDINATES') : undefined
                           }
                         >
-                          COMPONENT
+                          {source === 'component-details' ? 'CONSTRAINT' : 'COMPONENT'}
                         </NxTable.Cell>
                         <NxTable.Cell className="fw-bulk-waive__condition-name-cell">CONDITION</NxTable.Cell>
                         <NxTable.Cell />
                       </NxTable.Row>
-                      {source !== 'component-details' && (
-                        <NxTableRow isFilterHeader>
-                          <NxTable.Cell colSpan={2} />
-                          <NxTable.Cell className="fw-bulk-waive__filter-policy">
-                            <NxFilterInput
-                              placeholder="policy name"
-                              value={searchFiltersValues?.POLICY_NAME || ''}
-                              onChange={handlePolicyFilterChange}
-                            />
-                          </NxTable.Cell>
+                      <NxTableRow isFilterHeader>
+                        <NxTable.Cell colSpan={2} />
+                        <NxTable.Cell className="fw-bulk-waive__filter-policy">
+                          <NxFilterInput
+                            placeholder="policy name"
+                            value={
+                              source === 'component-details'
+                                ? String(componentDetailsPolicyNameFilter ?? '')
+                                : searchFiltersValues?.POLICY_NAME || ''
+                            }
+                            onChange={
+                              source === 'component-details'
+                                ? handleComponentDetailsPolicyFilterChange
+                                : handlePolicyFilterChange
+                            }
+                          />
+                        </NxTable.Cell>
+                        {source !== 'component-details' ? (
                           <NxTable.Cell className="fw-bulk-waive__filter-component" colSpan={3}>
                             <NxFilterInput
                               placeholder="component name"
@@ -563,30 +680,33 @@ export default function FirewallBulkWaivePage() {
                               onChange={handleComponentFilterChange}
                             />
                           </NxTable.Cell>
-                        </NxTableRow>
-                      )}
+                        ) : (
+                          <>
+                            <NxTable.Cell className="fw-bulk-waive__filter-constraint">
+                              <NxFilterInput
+                                placeholder="constraint name"
+                                value={String(componentDetailsConstraintNameFilter ?? '')}
+                                onChange={handleComponentDetailsConstraintFilterChange}
+                              />
+                            </NxTable.Cell>
+                            <NxTable.Cell colSpan={2} />
+                          </>
+                        )}
+                      </NxTableRow>
                     </NxTable.Head>
                     <NxTable.Body emptyMessage="No violations to display">{createRows()}</NxTable.Body>
                   </NxTable>
                 </NxTableContainer>
               </NxLoadWrapper>
 
-              {source !== 'component-details' && !loading && (currentPage > 1 || hasMoreResults) && (
-                <NxIndeterminatePagination
-                  onPrevPageSelect={handlePreviousPage}
-                  onNextPageSelect={handleNextPage}
-                  isFirstPage={currentPage === 1}
-                  isLastPage={!hasMoreResults}
-                />
+              {source !== 'component-details' && !loading && totalPages > 1 && (
+                <div className="fw-bulk-waive-page__pagination">
+                  <NxPagination currentPage={currentPage - 1} pageCount={totalPages} onChange={handlePageChange} />
+                </div>
               )}
 
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}
-              >
-                <div className="fw-bulk-waive__selected-count">
-                  {selectedCount} {selectedCount === 1 ? 'violation' : 'violations'} selected
-                </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+              <div className="fw-bulk-waive-page__footer">
+                <div className="fw-bulk-waive-page__footer-actions">
                   <NxButton variant="tertiary" onClick={handleCancel}>
                     Cancel
                   </NxButton>

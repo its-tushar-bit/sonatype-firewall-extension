@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxButton,
@@ -35,6 +35,7 @@ import {
   selectSourceContext,
   selectFirewallSelectedCount,
   selectFirewallSelectAllMode,
+  selectFirewallCheckboxState,
   selectAllFilteredViolations,
   selectLoadingAllViolations,
   selectAllViolationsError,
@@ -57,6 +58,7 @@ export default function FirewallBulkWaiveConfirmationPage() {
   const selectedViolations = useSelector(selectFirewallBulkWaiverSelectedViolations);
   const storedSelectedCount = useSelector(selectFirewallSelectedCount);
   const selectAllMode = useSelector(selectFirewallSelectAllMode);
+  const checkboxState = useSelector(selectFirewallCheckboxState);
   const selectedViolationsCount = selectAllMode ? storedSelectedCount : selectedViolations?.length || 0;
   const waiverConfiguration = useSelector(selectFirewallBulkWaiverConfiguration);
   const waiverReasons = useSelector(selectFirewallWaiverReasons);
@@ -76,15 +78,20 @@ export default function FirewallBulkWaiveConfirmationPage() {
   const currentAggregate = useSelector(selectAggregate);
   const componentsRequestBody = useSelector(selectComponentsRequestBody);
 
-  const hasActiveFilters =
-    componentsRequestBody?.searchFilters?.length > 0 ||
-    componentsRequestBody?.matchStateFilters?.length > 0 ||
-    componentsRequestBody?.violationStateFilters?.length > 0 ||
-    (componentsRequestBody?.threatLevelFilters &&
-      (componentsRequestBody.threatLevelFilters[0] !== 0 || componentsRequestBody.threatLevelFilters[1] !== 10));
+  const selectedAllFilteredViolations = useMemo(() =>
+    selectAllMode && allFilteredViolations.length > 0
+      ? allFilteredViolations.filter((violation) => checkboxState?.[violation.policyViolationId] !== false)
+      : [],
+    [selectAllMode, allFilteredViolations, checkboxState]
+  );
+  const selectedAllFilteredViolationIds = selectedAllFilteredViolations
+    .map((violation) => violation.policyViolationId)
+    .join('|');
+  const selectedViolationIds = (selectedViolations || []).map((violation) => violation.policyViolationId).join('|');
 
-  const violationsForCounts =
-    selectAllMode && allFilteredViolations.length > 0 ? allFilteredViolations : selectedViolations;
+  const violationsForCounts = selectAllMode && selectedAllFilteredViolations.length > 0
+    ? selectedAllFilteredViolations
+    : selectedViolations;
 
   const componentCount =
     selectAllMode && violationsForCounts.length <= 5
@@ -112,16 +119,28 @@ export default function FirewallBulkWaiveConfirmationPage() {
   const hasNonQuarantinedViolations = nonQuarantinedCount > 0;
 
   useEffect(() => {
-    if (selectAllMode && source !== 'component-details' && repositoryId && !hasActiveFilters) {
-      dispatch(loadAllFilteredViolations(repositoryId));
+    if (selectAllMode && source !== 'component-details' && repositoryId) {
+      dispatch(loadAllFilteredViolations(repositoryId, componentsRequestBody));
     }
-  }, [dispatch, selectAllMode, source, repositoryId, hasActiveFilters]);
+  }, [dispatch, selectAllMode, source, repositoryId, componentsRequestBody]);
 
   useEffect(() => {
-    if (selectAllMode && allFilteredViolations.length > 0 && !loadingAllViolations && !hasActiveFilters) {
-      dispatch(firewallBulkWaiverActions.setSelectedViolations(allFilteredViolations));
+    if (
+      selectAllMode &&
+      allFilteredViolations.length > 0 &&
+      !loadingAllViolations &&
+      selectedAllFilteredViolationIds !== selectedViolationIds
+    ) {
+      dispatch(firewallBulkWaiverActions.setSelectedViolations(selectedAllFilteredViolations));
     }
-  }, [dispatch, selectAllMode, allFilteredViolations, loadingAllViolations, hasActiveFilters]);
+  }, [
+    selectAllMode,
+    allFilteredViolations,
+    loadingAllViolations,
+    selectedAllFilteredViolations,
+    selectedAllFilteredViolationIds,
+    selectedViolationIds,
+  ]); // dispatch is stable (initialized once) and intentionally omitted
 
   const formatScope = () => {
     const scope = waiverConfiguration?.selectedWaiverScope;
@@ -153,7 +172,7 @@ export default function FirewallBulkWaiveConfirmationPage() {
     const expiry = waiverConfiguration?.expiryTime;
     const customExpiry = waiverConfiguration?.customExpiryTime;
 
-    if (expiry === null) return 'Never';
+    if (expiry === null || expiry === 'never') return 'Never';
     if (isCustomExpiryTimeSelected(expiry) && isCustomExpiryTimeValid(customExpiry?.value)) {
       const today = moment().startOf('day');
       const customDate = moment(customExpiry.value, 'YYYY-MM-DD');
@@ -191,7 +210,7 @@ export default function FirewallBulkWaiveConfirmationPage() {
 
   const handleSubmit = async () => {
     const violationsToSubmit =
-      selectAllMode && allFilteredViolations.length > 0 ? allFilteredViolations : selectedViolations;
+      selectAllMode && selectedAllFilteredViolations.length > 0 ? selectedAllFilteredViolations : selectedViolations;
 
     try {
       await dispatch(
@@ -298,7 +317,7 @@ export default function FirewallBulkWaiveConfirmationPage() {
 
   const retryLoadingAllViolations = () => {
     if (selectAllMode && source !== 'component-details' && repositoryId) {
-      dispatch(loadAllFilteredViolations(repositoryId));
+      dispatch(loadAllFilteredViolations(repositoryId, componentsRequestBody));
     }
   };
 
@@ -395,7 +414,7 @@ export default function FirewallBulkWaiveConfirmationPage() {
             <NxButton variant="secondary" onClick={handleBack} disabled={submitting}>
               Back
             </NxButton>
-            <NxButton variant="primary" onClick={handleSubmit} disabled={submitting}>
+            <NxButton variant="primary" onClick={handleSubmit} disabled={submitting || (selectAllMode && source !== 'component-details' && (loadingAllViolations || !!allViolationsError))}>
               {submitting ? 'Submitting...' : 'Submit'}
             </NxButton>
           </NxButtonBar>

@@ -43,7 +43,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +119,7 @@ public class ApiFirewallBulkWaiverService
       final List<PolicyWaiver> existingWaivers = policyWaiverDAO.getActiveApplicableByOwnerId(internalOwnerId);
       final Set<String> existingWaiverKeys = new HashSet<>(existingWaivers.size());
       for (PolicyWaiver waiver : existingWaivers) {
-        existingWaiverKeys.add(buildWaiverKey(waiver.getPolicyId(), waiver.getHash()));
+        existingWaiverKeys.add(buildWaiverKey(waiver.getPolicyId(), waiver.getHash(), waiver.getConstraintFactsJson()));
       }
 
       final List<String> existingViolations = new ArrayList<>();
@@ -147,7 +147,8 @@ public class ApiFirewallBulkWaiverService
           throw new NotFoundException("Cannot find a repository with ID " + repoId + ".");
         }
 
-        String waiverKey = buildWaiverKey(repositoryPolicyViolation.getPolicyId(), repositoryPolicyViolation.getHash());
+        String waiverKey = buildWaiverKey(repositoryPolicyViolation.getPolicyId(), repositoryPolicyViolation.getHash(),
+            repositoryPolicyViolation.getConstraintFactsJson());
         if (existingWaiverKeys.contains(waiverKey)) {
           existingViolations.add(violationId);
           continue;
@@ -237,9 +238,6 @@ public class ApiFirewallBulkWaiverService
       throw new BadRequestException(
           "Expire When Remediation Available Waivers can only be applied to Exact Components.");
     }
-    if (StringUtils.isBlank(waiverOptionsDTO.comment)) {
-      throw new BadRequestException("Comment is required");
-    }
   }
 
   private boolean isViolationOwnedByOwner(String repositoryId, String internalOwnerId) {
@@ -262,8 +260,12 @@ public class ApiFirewallBulkWaiverService
     return false;
   }
 
-  private String buildWaiverKey(String policyId, String hash) {
-    return policyId + ":" + (hash != null ? hash : "ALL");
+  private String buildWaiverKey(String policyId, String hash, String constraintFactsJson) {
+    return policyId + ":" + (hash != null ? hash : "ALL") + ":" + hashConstraintFactsJson(constraintFactsJson);
+  }
+
+  private String hashConstraintFactsJson(String constraintFactsJson) {
+    return constraintFactsJson != null ? DigestUtils.sha256Hex(constraintFactsJson) : "";
   }
 
   private record WaiverTelemetryData(PolicyWaiver policyWaiver, RepositoryPolicyViolation violation)

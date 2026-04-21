@@ -107,6 +107,30 @@ describe('BulkWaiveButton', () => {
     });
   });
 
+  it('should be disabled when all provided violations are already waived', () => {
+    renderComponent({
+      disabled: false,
+      violations: [
+        { waived: true },
+        { waived: true },
+      ],
+    });
+
+    expect(screen.getByRole('button', { name: 'Bulk Waive' })).toBeDisabled();
+  });
+
+  it('should be enabled when at least one violation is not waived', () => {
+    renderComponent({
+      disabled: false,
+      violations: [
+        { waived: true },
+        { waived: false },
+      ],
+    });
+
+    expect(screen.getByRole('button', { name: 'Bulk Waive' })).not.toBeDisabled();
+  });
+
   it('should not navigate when button is disabled', async () => {
     const user = userEvent.setup();
     renderComponent({ disabled: true });
@@ -151,11 +175,7 @@ describe('BulkWaiveButton', () => {
     renderComponent({ repositoryId: 'my-repo-123' });
 
     await waitFor(() => {
-      expect(checkPermissionsSpy).toHaveBeenCalledWith(
-        ['WAIVE_POLICY_VIOLATIONS'],
-        'repository',
-        'my-repo-123'
-      );
+      expect(checkPermissionsSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], 'repository', 'my-repo-123');
     });
   });
 

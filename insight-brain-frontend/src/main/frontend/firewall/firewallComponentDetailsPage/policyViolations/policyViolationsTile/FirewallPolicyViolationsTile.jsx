@@ -51,6 +51,7 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
             tabId={tabId}
             pathname={pathname}
             componentDisplayName={componentDisplayName}
+            violations={violations}
           />
           <ViewAllPoliciesWaiversButton setShowComponentWaiversPopover={setShowComponentWaiversPopover} />
         </div>

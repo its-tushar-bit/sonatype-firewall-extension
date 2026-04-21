@@ -23,6 +23,7 @@ export default function BulkWaiveButton({
   tabId = null,
   pathname = null,
   componentDisplayName = null,
+  violations = [],
 }) {
   const dispatch = useDispatch();
   const [hasPermission, setHasPermission] = useState(true);
@@ -34,6 +35,10 @@ export default function BulkWaiveButton({
         .catch(() => setHasPermission(false));
     }
   }, [repositoryId]);
+
+  // Check if there are any open (non-waived) violations
+  const hasOpenViolations = violations.some((v) => !v.waived);
+  const isButtonDisabled = disabled || (violations.length > 0 && !hasOpenViolations);
 
   const handleClick = () => {
     dispatch(
@@ -59,7 +64,7 @@ export default function BulkWaiveButton({
   }
 
   return (
-    <NxButton variant="tertiary" id="fw-bulk-waive" disabled={disabled} className={className} onClick={handleClick}>
+    <NxButton variant="tertiary" id="fw-bulk-waive" disabled={isButtonDisabled} className={className} onClick={handleClick}>
       <span>Bulk Waive</span>
     </NxButton>
   );
@@ -76,4 +81,5 @@ BulkWaiveButton.propTypes = {
   tabId: PropTypes.string,
   pathname: PropTypes.string,
   componentDisplayName: PropTypes.string,
+  violations: PropTypes.arrayOf(PropTypes.shape({ waived: PropTypes.bool })),
 };

@@ -49,6 +49,24 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
     });
   });
 
+  describe('waiver expiration display', () => {
+    it('should display "Never" when expiryTime is "never"', () => {
+      const stateWithNeverExpiry = {
+        firewallBulkWaiver: {
+          ...preloadedState.firewallBulkWaiver,
+          waiverConfiguration: {
+            ...preloadedState.firewallBulkWaiver.waiverConfiguration,
+            expiryTime: 'never',
+          },
+        },
+      };
+
+      renderComponent(stateWithNeverExpiry);
+
+      expect(screen.getByText('Never')).toBeInTheDocument();
+    });
+  });
+
   describe('filter handling', () => {
     it('should load all violations when selectAllMode is true and no active filters', () => {
       const stateWithSelectAll = {
@@ -74,10 +92,13 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
 
       renderComponent(stateWithSelectAll);
 
-      expect(loadAllFilteredViolationsSpy).toHaveBeenCalledWith('test-repo-id');
+      expect(loadAllFilteredViolationsSpy).toHaveBeenCalledWith(
+        'test-repo-id',
+        stateWithSelectAll.repositoryResultsSummaryPage.componentsRequestBody
+      );
     });
 
-    it('should NOT load all violations when filters are active', () => {
+    it('should load all filtered violations when filters are active', () => {
       const stateWithFilters = {
         firewallBulkWaiver: {
           ...preloadedState.firewallBulkWaiver,
@@ -101,7 +122,10 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
 
       renderComponent(stateWithFilters);
 
-      expect(loadAllFilteredViolationsSpy).not.toHaveBeenCalled();
+      expect(loadAllFilteredViolationsSpy).toHaveBeenCalledWith(
+        'test-repo-id',
+        stateWithFilters.repositoryResultsSummaryPage.componentsRequestBody
+      );
     });
 
     it('should NOT load all violations when source is component-details', () => {
@@ -133,7 +157,7 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
       expect(loadAllFilteredViolationsSpy).not.toHaveBeenCalled();
     });
 
-    it('should NOT load all violations when threat level filters are non-default', () => {
+    it('should load all filtered violations when threat level filters are non-default', () => {
       const stateWithThreatFilters = {
         firewallBulkWaiver: {
           ...preloadedState.firewallBulkWaiver,
@@ -157,7 +181,10 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
 
       renderComponent(stateWithThreatFilters);
 
-      expect(loadAllFilteredViolationsSpy).not.toHaveBeenCalled();
+      expect(loadAllFilteredViolationsSpy).toHaveBeenCalledWith(
+        'test-repo-id',
+        stateWithThreatFilters.repositoryResultsSummaryPage.componentsRequestBody
+      );
     });
 
     it('should display correct violations count with filters active', () => {
@@ -185,6 +212,34 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
       // Should show the count from selectedCount when filters are active
       expect(screen.getByText(/10 total violations?/i)).toBeInTheDocument();
     });
+
+    it('should exclude explicitly unchecked violations from select-all filtered results', () => {
+      const stateWithUncheckedFilteredViolation = {
+        firewallBulkWaiver: {
+          ...preloadedState.firewallBulkWaiver,
+          selectAllMode: true,
+          selectedCount: 2,
+          checkboxState: {
+            v2: false,
+          },
+          allFilteredViolations: [
+            { policyViolationId: 'v1', policyName: 'Policy 1', threatLevel: 10, componentDisplayText: 'Component 1' },
+            { policyViolationId: 'v2', policyName: 'Policy 2', threatLevel: 8, componentDisplayText: 'Component 2' },
+            { policyViolationId: 'v3', policyName: 'Policy 3', threatLevel: 7, componentDisplayText: 'Component 3' },
+          ],
+        },
+        repositoryResultsSummaryPage: {
+          ...preloadedState.repositoryResultsSummaryPage,
+        },
+        router: preloadedState.router,
+      };
+
+      renderComponent(stateWithUncheckedFilteredViolation);
+
+      expect(screen.getByText(/2 total violations/i)).toBeInTheDocument();
+      expect(screen.getByText('Critical')).toBeInTheDocument();
+      expect(screen.getByText('Severe')).toBeInTheDocument();
+    });
   });
 
   function renderComponent(additionalState = {}) {
@@ -202,6 +257,7 @@ describe('FirewallBulkWaiveConfirmationPage', () => {
         ],
         selectedCount: 3,
         selectAllMode: false,
+        checkboxState: {},
         waiverConfiguration: {
           selectedWaiverScope: {
             id: 'repo-1',

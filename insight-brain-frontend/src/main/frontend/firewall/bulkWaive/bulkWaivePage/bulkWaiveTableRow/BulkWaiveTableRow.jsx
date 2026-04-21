@@ -21,9 +21,10 @@ export default function BulkWaiveTableRow({
   onClick,
   onCheckboxClick,
   isChecked,
-  isCdpBulkWaive,
+  isComponentBulkWaive,
   checkboxId,
 }) {
+  
   return (
     <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="fw-bulk-waive__toggle-cell">
@@ -40,7 +41,7 @@ export default function BulkWaiveTableRow({
           </div>
         </NxOverflowTooltip>
       </NxTableCell>
-      {isCdpBulkWaive ? (
+      {isComponentBulkWaive ? (
         <NxTableCell className="fw-bulk-waive__constraint-name-cell">
           {isNilOrEmpty(component.constraints) ? '' : component.constraints[0].constraintName}
         </NxTableCell>
@@ -84,6 +85,6 @@ BulkWaiveTableRow.propTypes = {
   onClick: PropTypes.func.isRequired,
   onCheckboxClick: PropTypes.func.isRequired,
   isChecked: PropTypes.bool,
-  isCdpBulkWaive: PropTypes.bool,
+  isComponentBulkWaive: PropTypes.bool,
   checkboxId: PropTypes.string,
 };

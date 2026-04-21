@@ -229,10 +229,15 @@ export function loadVulnerabilityDetails() {
   };
 }
 
-export function loadFirewallPolicyVulnerabilityDetails(conditionTriggerReferenceValue) {
+export function loadFirewallPolicyVulnerabilityDetails(conditionTriggerReferenceValue, componentIdentifierParam) {
   return function (dispatch, getState) {
     const state = getState();
-    const componentIdentifier = JSON.parse(state.router.currentParams.componentIdentifier);
+    const routerComponentIdentifier = state.router.currentParams.componentIdentifier;
+    const componentIdentifier = componentIdentifierParam
+      ?? (routerComponentIdentifier ? JSON.parse(routerComponentIdentifier) : null);
+    if (!componentIdentifier) {
+      return Promise.resolve();
+    }
     return axios
       .get(getVulnerabilityJsonDetailUrl(conditionTriggerReferenceValue, componentIdentifier))
       .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))

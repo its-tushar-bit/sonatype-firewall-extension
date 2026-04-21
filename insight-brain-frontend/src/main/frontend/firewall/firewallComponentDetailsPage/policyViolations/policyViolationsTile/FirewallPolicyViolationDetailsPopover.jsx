@@ -5,11 +5,9 @@
  */
 import React, { useEffect } from 'react';
 
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { NxDrawer, NxFooter, NxButtonBar, NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 
 import PortalDrawer from 'MainRoot/react/PortalDrawer';
-import ViolationPageContainer from 'MainRoot/violation/ViolationPageContainer';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -28,10 +26,11 @@ import {
 } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsWaiverRequestWorkflowEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectRepositoryComponents } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
+import FirewallViolationPageContainer from './FirewallViolationPageContainer';
 
 export default function FirewallPolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
-  const uiRouterState = useRouterState();
 
   const toggleDrawer = () => dispatch(actions.toggleShowViolationsDetailPopover());
   const unsetRowClick = () => dispatch(actions.unsetViolationsDetailRowClicked());
@@ -41,19 +40,37 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const selectedPolicyViolation = useSelector(selectSelectedPolicyViolation);
   const redirectionProps = useSelector(selectAddWaiverFromFirewallRedirectionProps);
   const { activeWaivers } = useSelector(selectApplicableWaivers);
-  const policyViolations = useSelector(selectFirewallPolicyViolations);
+  const componentDetailsPolicyViolations = useSelector(selectFirewallPolicyViolations);
+  const bulkWaivePolicyViolations = useSelector(selectRepositoryComponents);
   const hasPermissionForAddWaivers = useSelector(selectHasPermissionToAddWaivers);
   const loading = useSelector(selectFirewallIsLoading);
   const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
 
+  // Try to find the violation in component details violations first, then fall back to bulk waive violations, or use selectedPolicyViolation directly
   const policyDetail = selectedPolicyViolation
-    ? policyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId)
+    ? componentDetailsPolicyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId) ||
+      bulkWaivePolicyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId) ||
+      selectedPolicyViolation
     : null;
+  const addWaiverRedirectionProps = {
+    ...redirectionProps,
+    repositoryId: redirectionProps?.repositoryId || selectedPolicyViolation?.repositoryId,
+    componentIdentifier: redirectionProps?.componentIdentifier || selectedPolicyViolation?.componentIdentifier,
+    componentHash: redirectionProps?.componentHash || selectedPolicyViolation?.componentHash || selectedPolicyViolation?.hash,
+    matchState: redirectionProps?.matchState || selectedPolicyViolation?.matchState || selectedPolicyViolation?.matchStateId,
+    tabId: redirectionProps?.tabId || 'violations',
+    pathname: redirectionProps?.pathname || selectedPolicyViolation?.pathname,
+    componentDisplayName:
+      redirectionProps?.componentDisplayName ||
+      selectedPolicyViolation?.componentDisplayName ||
+      selectedPolicyViolation?.componentDisplayText,
+  };
 
   const redirectToAddWaiverPage = () => {
+    if (!policyDetail) return;
     dispatch(
       stateGo(`${isStandaloneFirewall ? 'firewall' : 'repository'}.addWaiver`, {
-        ...redirectionProps,
+        ...addWaiverRedirectionProps,
         violationId: policyDetail.policyViolationId,
       })
     );
@@ -85,11 +102,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
       </NxDrawer.Header>
       <NxDrawer.Content tabIndex={0}>
         {isViolationsDetailPopoverOpen && (
-          <ViolationPageContainer
-            $state={uiRouterState}
-            selectPolicyId={selectedPolicyViolation?.policyViolationId}
-            isFromPolicyViolations
-          />
+          <FirewallViolationPageContainer selectPolicyId={selectedPolicyViolation?.policyViolationId} isFromPolicyViolations />
         )}
       </NxDrawer.Content>
       <NxFooter>

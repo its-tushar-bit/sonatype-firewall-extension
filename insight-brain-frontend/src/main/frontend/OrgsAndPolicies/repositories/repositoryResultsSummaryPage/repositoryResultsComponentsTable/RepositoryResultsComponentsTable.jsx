@@ -119,7 +119,11 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
           </NxTooltip>
           <div id="repository-report-action-buttons">
 
-          <BulkWaiveButton repositoryId={repositoryId} disabled={repositoryComponents?.length === 0} />
+          <BulkWaiveButton
+            repositoryId={repositoryId}
+            disabled={repositoryComponents?.length === 0}
+            violations={repositoryComponents}
+          />
           <NxButton onClick={openFilterPopover} variant="tertiary" id="repository-filter-popover-button">
             <NxFontAwesomeIcon icon={faFilter} />
             <span>Filter</span>

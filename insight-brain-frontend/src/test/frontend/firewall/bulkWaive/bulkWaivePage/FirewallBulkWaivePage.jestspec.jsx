@@ -6,7 +6,7 @@
 
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import FirewallBulkWaivePage from 'MainRoot/firewall/bulkWaive/bulkWaivePage/FirewallBulkWaivePage';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
@@ -14,7 +14,7 @@ import * as repositorySummaryActions from 'MainRoot/OrgsAndPolicies/repositories
 import * as firewallActions from 'MainRoot/firewall/firewallActions';
 
 describe('FirewallBulkWaivePage', () => {
-  let mockRouterState, stateGoSpy, getRepositoryComponentsSpy;
+  let mockRouterState, stateGoSpy;
 
   const mockViolationsPage1 = [
     {
@@ -30,6 +30,25 @@ describe('FirewallBulkWaivePage', () => {
       threatLevel: 8,
       pathname: '/path/to/component2',
       componentDisplayText: 'Component 2',
+    },
+  ];
+
+  const mockComponentDetailsViolations = [
+    {
+      policyViolationId: 'cv1',
+      policyName: 'Security Policy',
+      threatLevel: 10,
+      pathname: '/path/to/component',
+      componentDisplayText: 'Test Component',
+      constraints: [{ constraintName: 'CVE Constraint', conditions: [] }],
+    },
+    {
+      policyViolationId: 'cv2',
+      policyName: 'License Policy',
+      threatLevel: 5,
+      pathname: '/path/to/component',
+      componentDisplayText: 'Test Component',
+      constraints: [{ constraintName: 'License Constraint', conditions: [] }],
     },
   ];
 
@@ -63,7 +82,7 @@ describe('FirewallBulkWaivePage', () => {
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
 
     // Mock Redux actions to prevent actual API calls
-    getRepositoryComponentsSpy = jest
+    jest
       .spyOn(repositorySummaryActions.actions, 'getRepositoryComponentsForBulkWaive')
       .mockReturnValue({ type: 'GET_COMPONENTS' });
     jest.spyOn(repositorySummaryActions.actions, 'getRepositoryInformation').mockReturnValue({ type: 'GET_INFO' });
@@ -98,6 +117,22 @@ describe('FirewallBulkWaivePage', () => {
       renderComponent();
 
       expect(screen.getByText('0 violations selected')).toBeInTheDocument();
+    });
+
+    it('should display the filter action for repository results', () => {
+      renderComponent();
+
+      expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
+    });
+
+    it('should display the showing count using response totalCount', () => {
+      renderComponent({
+        violations: mockViolationsPage1,
+        filteredTotalCount: 12,
+        totalComponentCount: 20,
+      });
+
+      expect(screen.getByText('Showing 2 of 12 results')).toBeInTheDocument();
     });
   });
 
@@ -135,10 +170,23 @@ describe('FirewallBulkWaivePage', () => {
       await user.click(checkboxes[1]); // Uncheck
       expect(screen.getByText('1 violation selected')).toBeInTheDocument();
     });
+
+    it('should preserve manual selections when a filter is applied', async () => {
+      const user = userEvent.setup();
+      renderComponent();
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      await user.click(checkboxes[1]);
+      expect(screen.getByText('1 violation selected')).toBeInTheDocument();
+
+      await user.type(screen.getByPlaceholderText('component name'), 'Django');
+
+      expect(screen.getByText('1 violation selected')).toBeInTheDocument();
+    });
   });
 
   describe('select all functionality', () => {
-    it('should select all violations when clicking select-all checkbox', async () => {
+    it('should select all violations in the current page when clicking select-all checkbox', async () => {
       const user = userEvent.setup();
       renderComponent();
 
@@ -148,7 +196,7 @@ describe('FirewallBulkWaivePage', () => {
       expect(screen.getByText('2 violations selected')).toBeInTheDocument();
     });
 
-    it('should deselect all violations when clicking select-all checkbox twice', async () => {
+    it('should deselect all violations in the current page when clicking select-all checkbox twice', async () => {
       const user = userEvent.setup();
       renderComponent();
 
@@ -159,7 +207,7 @@ describe('FirewallBulkWaivePage', () => {
       expect(screen.getByText('0 violations selected')).toBeInTheDocument();
     });
 
-    it('should properly store all violations when clicking Next in selectAllMode', async () => {
+    it('should keep selectAllMode false when only the current page is selected by checkbox', async () => {
       const user = userEvent.setup();
       const { store } = renderComponent({
         violations: mockViolationsPage1,
@@ -180,33 +228,45 @@ describe('FirewallBulkWaivePage', () => {
       expect(state.firewallBulkWaiver.selectedViolations.map((v) => v.policyViolationId)).toEqual(
         expect.arrayContaining(['v1', 'v2'])
       );
-      expect(state.firewallBulkWaiver.selectAllMode).toBe(true);
+      expect(state.firewallBulkWaiver.selectAllMode).toBe(false);
     });
 
-    it('should exclude explicitly unchecked violations in selectAllMode', async () => {
+    it('should allow selecting all filtered violations from the top action', async () => {
       const user = userEvent.setup();
       const { store } = renderComponent({
         violations: mockViolationsPage1,
+        filteredTotalCount: 12,
       });
 
-      // Click select all
-      const selectAllCheckbox = screen.getAllByRole('checkbox')[0];
-      await user.click(selectAllCheckbox);
-      expect(screen.getByText('2 violations selected')).toBeInTheDocument();
-
-      // Uncheck v2
-      const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[2]); // v2
-      expect(screen.getByText('1 violation selected')).toBeInTheDocument();
+      const selectAllFilteredButton = screen.getByRole('button', { name: 'Select all 12 violations' });
+      await user.click(selectAllFilteredButton);
+      expect(screen.getByText('12 violations selected')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Unselect all violations' })).toBeInTheDocument();
 
       // Click Next
       const nextButton = screen.getByRole('button', { name: 'Next' });
       await user.click(nextButton);
 
-      // Verify only v1 is stored (v2 was explicitly unchecked)
       const state = store.getState();
-      expect(state.firewallBulkWaiver.selectedViolations).toHaveLength(1);
-      expect(state.firewallBulkWaiver.selectedViolations[0].policyViolationId).toBe('v1');
+      expect(state.firewallBulkWaiver.selectedViolations).toHaveLength(2);
+      expect(state.firewallBulkWaiver.selectAllMode).toBe(true);
+      expect(state.firewallBulkWaiver.selectedCount).toBe(12);
+    });
+
+    it('should unselect all filtered violations from the top action toggle', async () => {
+      const user = userEvent.setup();
+      renderComponent({
+        violations: mockViolationsPage1,
+        filteredTotalCount: 12,
+      });
+
+      await user.click(screen.getByRole('button', { name: 'Select all 12 violations' }));
+      expect(screen.getByText('12 violations selected')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Unselect all violations' }));
+
+      expect(screen.getByText('0 violations selected')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Select all 12 violations' })).toBeInTheDocument();
     });
 
     it('should properly store violations from component-details source in selectAllMode', async () => {
@@ -251,6 +311,15 @@ describe('FirewallBulkWaivePage', () => {
         expect.arrayContaining(['v1', 'v2'])
       );
     });
+
+    it('should hide the select-all-filtered action when all filtered results fit on the page', () => {
+      renderComponent({
+        violations: mockViolationsPage1,
+        filteredTotalCount: 2,
+      });
+
+      expect(screen.queryByRole('button', { name: 'Select all 2 violations' })).not.toBeInTheDocument();
+    });
   });
 
   describe('pagination selection bug fix', () => {
@@ -278,7 +347,7 @@ describe('FirewallBulkWaivePage', () => {
 
     it('should correctly remove deselected items when going back to previous page', async () => {
       const user = userEvent.setup();
-      const { rerender, store } = renderComponent({
+      const { store } = renderComponent({
         violations: mockViolationsPage1,
         currentPage: 2,
         hasMoreResults: false,
@@ -517,6 +586,111 @@ describe('FirewallBulkWaivePage', () => {
     });
   });
 
+  describe('component-details inline filters', () => {
+    function renderComponentDetailsSource(filterOverrides = {}) {
+      const customState = getDefaultPreloadedState({ violations: mockViolationsPage1 });
+      customState.firewallBulkWaiver.sourceContext = {
+        source: 'component-details',
+        repositoryId: 'test-repo-id',
+        componentIdentifier: 'test-component',
+        componentHash: 'test-hash',
+        matchState: 'identified',
+        pathname: '/test/path',
+        componentDisplayName: 'Test Component',
+      };
+      customState.firewallBulkWaiver = {
+        ...customState.firewallBulkWaiver,
+        ...filterOverrides,
+      };
+      customState.firewall = {
+        componentDetailsPage: {
+          policyViolations: mockComponentDetailsViolations,
+          isLoadingPolicyViolations: false,
+          policyViolationsError: null,
+        },
+      };
+      return render(<FirewallBulkWaivePage />, { preloadedState: customState });
+    }
+
+    it('should show the constraint name filter input for component-details source', () => {
+      renderComponentDetailsSource();
+
+      expect(screen.getByPlaceholderText('constraint name')).toBeInTheDocument();
+    });
+
+    it('should not show the component name filter input for component-details source', () => {
+      renderComponentDetailsSource();
+
+      expect(screen.queryByPlaceholderText('component name')).not.toBeInTheDocument();
+    });
+
+    it('should show the component name filter input for repository source', () => {
+      renderComponent();
+
+      expect(screen.getByPlaceholderText('component name')).toBeInTheDocument();
+    });
+
+    it('should show CONSTRAINT column header for component-details source', () => {
+      renderComponentDetailsSource();
+
+      expect(screen.getByRole('columnheader', { name: 'CONSTRAINT' })).toBeInTheDocument();
+    });
+
+    it('should show COMPONENT column header for repository source', () => {
+      renderComponent();
+
+      expect(screen.getByRole('columnheader', { name: 'COMPONENT' })).toBeInTheDocument();
+    });
+
+    it('should show the policy name filter input for component-details source', () => {
+      renderComponentDetailsSource();
+
+      expect(screen.getByPlaceholderText('policy name')).toBeInTheDocument();
+    });
+
+    it('should filter violations by policy name for component-details source', async () => {
+      const user = userEvent.setup();
+      renderComponentDetailsSource();
+
+      // Both violations initially visible
+      expect(screen.getAllByRole('checkbox')).toHaveLength(3); // select-all + 2 violations
+
+      await user.type(screen.getByPlaceholderText('policy name'), 'Security');
+
+      // Only the matching violation should remain
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2); // select-all + 1 match
+    });
+
+    it('should filter violations by constraint name for component-details source', async () => {
+      const user = userEvent.setup();
+      renderComponentDetailsSource();
+
+      // Both violations initially visible
+      expect(screen.getAllByRole('checkbox')).toHaveLength(3); // select-all + 2 violations
+
+      await user.type(screen.getByPlaceholderText('constraint name'), 'CVE');
+
+      // Only the matching violation should remain
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2); // select-all + 1 match
+    });
+
+    it('should apply pre-set policy name filter from Redux state', () => {
+      renderComponentDetailsSource({ componentDetailsPolicyNameFilter: 'Security Policy' });
+
+      // Only "Security Policy" violation should be visible
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2); // select-all + 1 match
+      expect(screen.getByDisplayValue('Security Policy')).toBeInTheDocument();
+    });
+
+    it('should apply pre-set constraint name filter from Redux state', () => {
+      renderComponentDetailsSource({ componentDetailsConstraintNameFilter: 'License Constraint' });
+
+      // Only the "License Constraint" violation should be visible
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2); // select-all + 1 match
+      expect(screen.getByDisplayValue('License Constraint')).toBeInTheDocument();
+    });
+  });
+
   function renderComponent(overrides = {}) {
     const defaultState = getDefaultPreloadedState(overrides);
 
@@ -530,6 +704,8 @@ describe('FirewallBulkWaivePage', () => {
       hasMoreResults = false,
       storedSelectedViolations = [],
       storedCheckboxState = {},
+      totalComponentCount = violations.length,
+      filteredTotalCount = violations.length,
     } = overrides;
 
     return {
@@ -570,6 +746,8 @@ describe('FirewallBulkWaivePage', () => {
           componentDisplayName: null,
         },
         originalAggregateState: null,
+        componentDetailsPolicyNameFilter: '',
+        componentDetailsConstraintNameFilter: '',
       },
       repositoryResultsSummaryPage: {
         repositoryInfo: {
@@ -581,8 +759,8 @@ describe('FirewallBulkWaivePage', () => {
         errorComponentsTable: null,
         currentPage,
         hasMoreResults,
-        totalComponentCount: violations.length,
-        filteredTotalCount: violations.length,
+        totalComponentCount,
+        filteredTotalCount,
         searchFiltersValues: {
           POLICY_NAME: '',
           COMPONENT_COORDINATES: '',

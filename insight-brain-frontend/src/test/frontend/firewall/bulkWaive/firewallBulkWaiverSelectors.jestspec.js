@@ -25,6 +25,8 @@ import {
   selectSubmitting,
   selectSubmitSuccess,
   selectSubmitError,
+  selectComponentDetailsPolicyNameFilter,
+  selectComponentDetailsConstraintNameFilter,
 } from 'MainRoot/firewall/bulkWaive/firewallBulkWaiverSelectors';
 
 describe('firewallBulkWaiverSelectors', () => {
@@ -71,6 +73,8 @@ describe('firewallBulkWaiverSelectors', () => {
         submitting: false,
         submitSuccess: false,
         submitError: null,
+        componentDetailsPolicyNameFilter: '',
+        componentDetailsConstraintNameFilter: '',
       },
     };
   });
@@ -247,6 +251,30 @@ describe('firewallBulkWaiverSelectors', () => {
     it('should handle null originalAggregateState', () => {
       state.firewallBulkWaiver.originalAggregateState = null;
       expect(selectOriginalAggregateState(state)).toBeNull();
+    });
+  });
+
+  describe('component-details filter selectors', () => {
+    it('selectComponentDetailsPolicyNameFilter should return empty string by default', () => {
+      const result = selectComponentDetailsPolicyNameFilter(state);
+      expect(result).toBe('');
+    });
+
+    it('selectComponentDetailsPolicyNameFilter should return the current policy name filter value', () => {
+      state.firewallBulkWaiver.componentDetailsPolicyNameFilter = 'Security Policy';
+      const result = selectComponentDetailsPolicyNameFilter(state);
+      expect(result).toBe('Security Policy');
+    });
+
+    it('selectComponentDetailsConstraintNameFilter should return empty string by default', () => {
+      const result = selectComponentDetailsConstraintNameFilter(state);
+      expect(result).toBe('');
+    });
+
+    it('selectComponentDetailsConstraintNameFilter should return the current constraint name filter value', () => {
+      state.firewallBulkWaiver.componentDetailsConstraintNameFilter = 'CVE Constraint';
+      const result = selectComponentDetailsConstraintNameFilter(state);
+      expect(result).toBe('CVE Constraint');
     });
   });
 

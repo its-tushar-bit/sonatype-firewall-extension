@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.Permission;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -585,53 +586,47 @@ public class PolicyMonitorTest
     final Stage stage = new Stage(ReleaseStageType.ID);
     PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
 
-    String scanId1 = "PolicyMonitorTest_scanId1";
-    final File scanFile1 = createScanFile(app, scanId1, "test1");
-
-    // Simulate that the report is available and evaluate policies
-    mockScanReceiptAndReport(scanId1);
-    evaluatePolicy(app.getPublicId(), scanId1, stage);
-
+    final String scanId1 = "PolicyMonitorTest_scanId1";
     final String scanId2 = "PolicyMonitorTest_scanId2";
     final String scanId3 = "PolicyMonitorTest_scanId3";
 
-    // Simulate a race condition between monitoring and policy evaluation:
-    // Plug in a SecurityManager that triggers a new policy evaluation with a new scan file when the first scan file is
-    // accessed and denies access to the first scan file. This causes the {@link PolicyMonitor} to retry the monitoring
-    // policy evaluation with the new scan file (if there wasn't a new scan file, the monitoring would fail).
-    SecurityManager originalSecurityManager = System.getSecurityManager();
+    createScanFile(app, scanId1, "test1");
+    mockScanReceiptAndReport(scanId1);
+    evaluatePolicy(app.getPublicId(), scanId1, stage);
+
+    // Exercise the retry branch in PolicyMonitor.cloneScanFile: the copy of scanFile1 must fail AFTER a
+    // newer evaluation (scanId2) has entered the DAO, so that the retry picks up the new scan id and
+    // succeeds. Spy on ScanPersistenceService so the first copyScanFile call can register the newer
+    // evaluation as a side effect and then throw, simulating the race the old SecurityManager-based
+    // test drove.
+    ScanPersistenceService realScanPersistenceService =
+        getCLMServer().getInstance(ScanPersistenceService.class);
+    ScanPersistenceService spyScanPersistenceService = Mockito.spy(realScanPersistenceService);
+
+    Field scanPersistenceServiceField = PolicyMonitor.class.getDeclaredField("scanPersistenceService");
+    scanPersistenceServiceField.setAccessible(true);
+    Object originalScanPersistenceService = scanPersistenceServiceField.get(policyMonitor);
+    scanPersistenceServiceField.set(policyMonitor, spyScanPersistenceService);
     try {
-      System.setSecurityManager(new SecurityManager()
-      {
-        private boolean enabled = true;
+      Mockito.doAnswer(invocation -> {
+        createScanFile(app, scanId2, "test2");
+        mockScanReceiptAndReport(scanId2);
+        evaluatePolicy(app.getPublicId(), scanId2, stage);
+        mockScanReceiptAndReport(scanId3);
 
-        @Override
-        public void checkRead(String file) {
-          if (enabled && file.contains(scanFile1.getName())) {
-            enabled = false;
-            createScanFile(app, scanId2, "test2");
-            mockScanReceiptAndReport(scanId2);
-            evaluatePolicy(app.getPublicId(), scanId2, stage);
-
-            // Prepare the HDS mock server to reply with scanId3 for the next uploaded scan.
-            mockScanReceiptAndReport(scanId3);
-
-            throw new SecurityException("Read denied for " + file);
-          }
-        }
-
-        @Override
-        public void checkPermission(Permission perm) {
-        }
-      });
+        // Let cloneScanFile's retry use the real implementation so it actually copies scanFile2.
+        Mockito.doCallRealMethod().when(spyScanPersistenceService).copyScanFile(any(), any());
+        throw new IOException("Simulated read failure for scan " + scanId1);
+      }).when(spyScanPersistenceService).copyScanFile(any(), any());
 
       policyMonitor.evaluate(app, policyMonitoring);
     }
     finally {
-      System.setSecurityManager(originalSecurityManager);
+      scanPersistenceServiceField.set(policyMonitor, originalScanPersistenceService);
     }
 
-    // Verify that the latest policy evaluation is for monitoring and it used the second scan file.
+    // Verify the retry recovered: last evaluation is for monitoring, uses the new scanId3, and the
+    // uploaded scan file carries the content from scanFile2 (not scanFile1).
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(),
         stage.getStageTypeId());
     assertThat(policyEvaluation.isForMonitoring()).isTrue();

@@ -27,7 +27,9 @@ public class SchedulerShutdownRequestTest
     Future<?> future = CompletableFuture.completedFuture(null);
     doReturn(future).when(mockExecutorService).submit(any(Runnable.class));
     Scheduler mockScheduler = mock(Scheduler.class);
-    SchedulerShutdownRequest schedulerShutdownRequest = new SchedulerShutdownRequest(mockScheduler, 0, null);
+    ShutdownHandler shutdownHandler = new ShutdownHandler();
+    SchedulerShutdownRequest schedulerShutdownRequest =
+        new SchedulerShutdownRequest(mockScheduler, 0, null, shutdownHandler);
 
     Future<?> result = schedulerShutdownRequest.execute(mockExecutorService);
 

@@ -1062,8 +1062,10 @@ public class ScmOnboardingServiceTest
 
     // expect server side parsing error messages
     assertThat(scmOnboardingService.validateScmHostUrl("github", "http://example.com/ ").errorMessages)
-        .isEqualTo(singletonList("Unable to parse repository URL: java.net.URISyntaxException: Illegal character in " +
-            "path at index 19: http://example.com/ "));
+        .hasSize(1)
+        .first()
+        .asString()
+        .startsWith("Unable to parse repository URL: java.net.URISyntaxException: Illegal character in path at index");
 
     // expect provider to be case insensitive
     assertThat(scmOnboardingService.validateScmHostUrl("invalid", "http://example.com/").errorMessages)

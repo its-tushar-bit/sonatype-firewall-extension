@@ -13,7 +13,7 @@ make(
     agentLabel: 'iq',
     deployBranch: 'main',
     useEventSpy: false,
-    javaVersion: 'OpenJDK 17',
+    javaVersion: 'OpenJDK 25',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.HUNDRED_BUILDS : RetentionPolicy.SHORT_TERM,
@@ -304,7 +304,7 @@ void pushMTIQImageToEcr() {
   }
 }
 
-Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
+Map<String, ?> jreleaserConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 25') {
   return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
@@ -363,34 +363,34 @@ Map<String, Closure> getParallelTests(List <String> zips) {
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
     if (!params.skipUnitA) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 A', 'OpenJDK 25', '.*/[A].*Test.class', zips)
     }
     if (!params.skipUnitB) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 B', 'OpenJDK 25', '.*/[B].*Test.class', zips)
     }
     if (!params.skipUnitDG) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 D-G', 'OpenJDK 25', '.*/[D-G].*Test.class', zips)
     }
     if (!params.skipUnitHJ) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 H-J', 'OpenJDK 25', '.*/[H-K].*Test.class', zips)
     }
     if (!params.skipUnitLN) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 L-N', 'OpenJDK 25', '.*/[L-N].*Test.class', zips)
     }
     if (!params.skipUnitOP) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 O-P', 'OpenJDK 25', '.*/[O-P].*Test.class', zips)
     }
     if (!params.skipUnitRT) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 R + T', 'OpenJDK 25', '.*/[RT].*Test.class', zips)
     }
     if (!params.skipUnitS) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 S', 'OpenJDK 25', '.*/[S].*Test.class', zips)
     }
     if (!params.skipUnitCUZ) {
-      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
+      testStages << createUnitTests('Unit and Integration Tests - OpenJDK 25 C + U-Z', 'OpenJDK 25', '.*/[CU-Z].*Test.class', zips)
     }
     if (!params.skipUnitMtiq) {
-      testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
+      testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 25', 'OpenJDK 25', zips)
     }
     if (!params.skipFrontend) {
       testStages << createFrontendTests('Frontend Tests - Jest', zips)
@@ -443,7 +443,7 @@ Map<String, Closure> createFrontendTests(String stageName, List<String> zipFiles
           // Use single thread to prevent Jest parallelization issues causing test timeouts
           mavenOptions += " --threads 1"
 
-          Map<String, ?> testConfig = testConfig(mavenOptions, null,  'OpenJDK 17')
+          Map<String, ?> testConfig = testConfig(mavenOptions, null,  'OpenJDK 25')
 
           mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jest"
         }
@@ -526,7 +526,7 @@ void copyRepo(List<String> zipFiles) {
   }
 }
 
-Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
+Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 25') {
   return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }

@@ -141,7 +141,7 @@ public class ShutdownHandler
   }
 
   public void add(final Scheduler scheduler, final ShutdownPriority shutdownPriority) {
-    addAndClean(new SchedulerShutdownRequest(scheduler, shutdownPriority.ordinal(), getOrigin()));
+    addAndClean(new SchedulerShutdownRequest(scheduler, shutdownPriority.ordinal(), getOrigin(), this));
   }
 
   public void add(final BooleanSupplier booleanSupplier) {
@@ -255,12 +255,11 @@ public class ShutdownHandler
     threadFactory.newThread(() -> exit(status)).start();
   }
 
-  // Visible for testing
-  void exit(final int status) {
+  public void exit(final int status) {
     System.exit(status);
   }
 
-  static void tryCheckedRunnable(final CheckedRunnable checkedRunnable) {
+  void tryCheckedRunnable(final CheckedRunnable checkedRunnable) {
     try {
       checkedRunnable.run();
     }
@@ -273,7 +272,7 @@ public class ShutdownHandler
       t.printStackTrace();
       log.error(t.getMessage(), t);
       // This is not gracefully shutting down but an Error has occurred, so it's safer to exit now
-      System.exit(3);
+      exit(3);
     }
   }
 }

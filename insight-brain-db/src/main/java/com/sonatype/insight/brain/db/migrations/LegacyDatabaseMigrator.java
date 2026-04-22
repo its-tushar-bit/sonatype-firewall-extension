@@ -43,8 +43,13 @@ public class LegacyDatabaseMigrator
     if (!DatabaseUtil.legacySchemaVersionTableExists(operationalDataStore) || isMigrationNeeded()) {
       log.error("\n\n\t\t\t***** Database migration is required. " +
           "Please migrate the database before starting the application! *****\n");
-      System.exit(1);
+      exit(1);
     }
+  }
+
+  // Visible for testing
+  void exit(int status) {
+    System.exit(status);
   }
 
   private static boolean isLegacyMigrationNeeded(final DataStore dataStore) {

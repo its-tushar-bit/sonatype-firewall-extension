@@ -81,7 +81,7 @@ public class TaskScheduler
 
   private final QuartzConcurrencyListener quartzConcurrencyListener;
 
-  private final ShutdownHandler shutdownHandler;
+  protected final ShutdownHandler shutdownHandler;
 
   protected final QuartzJobSchedulingService quartzJobSchedulingService;
 

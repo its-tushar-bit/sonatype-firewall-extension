@@ -84,7 +84,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.mockito.MockedStatic;
 import org.quartz.JobPersistenceException;
 
@@ -117,9 +116,6 @@ public class InsightBrainServiceTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(InsightBrainService.class);
-
-  @Rule
-  public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
 
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

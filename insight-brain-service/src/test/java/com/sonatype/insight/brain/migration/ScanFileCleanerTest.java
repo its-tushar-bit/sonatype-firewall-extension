@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.migration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.security.Permission;
 import java.time.LocalTime;
 import java.util.Date;
 import jakarta.inject.Inject;
@@ -24,7 +23,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.joda.time.DateTimeConstants;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,8 +41,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 public class ScanFileCleanerTest
     extends AbstractComponentTest
 {
-  private static final SecurityManager ORIGINAL_SECURITY_MANAGER = System.getSecurityManager();
-
   private static final long ONE_HOUR = DateTimeConstants.MILLIS_PER_HOUR;
 
   @Inject
@@ -65,11 +61,6 @@ public class ScanFileCleanerTest
   @Before
   public void before() {
     migrationTrackerDAO.deleteById(ScanFileCleaner.MARKER_ID);
-  }
-
-  @After
-  public void after() {
-    System.setSecurityManager(ORIGINAL_SECURITY_MANAGER);
   }
 
   @Override
@@ -154,92 +145,6 @@ public class ScanFileCleanerTest
     scanFileCleaner.deleteScanFiles();
 
     assertThat(Files.list(scanDir)).containsExactly(newScanFile);
-
-    assertMarkerExists();
-  }
-
-  @Test
-  public void testDeleteScanFiles_LogsWarningIfItCannotDeleteFile() throws Exception {
-    assertMarkerDoesNotExist();
-
-    Application app = tempEntity.newApplicationWithParent();
-    Path scanDir = insightWork.getScanDir(app.getId()).toPath();
-    Files.createDirectories(scanDir);
-
-    // Create two scan files older than one hour and configure a security manager that doesn't allow the deletion of one
-    // of the files.
-    Path oldScanFile1 = Files.createFile(scanDir.resolve("old-file1"));
-    Files.setLastModifiedTime(oldScanFile1, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
-    Path oldScanFile2 = Files.createFile(scanDir.resolve("old-file2"));
-    Files.setLastModifiedTime(oldScanFile2, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
-
-    System.setSecurityManager(new SecurityManager()
-    {
-      @Override
-      public void checkDelete(String file) {
-        if (file.contains("old-file1")) {
-          throw new SecurityException("Test exception");
-        }
-      }
-
-      @Override
-      public void checkPermission(Permission perm) {
-      }
-
-      @Override
-      public void checkPermission(Permission perm, Object context) {
-      }
-    });
-
-    scanFileCleaner.deleteScanFiles();
-
-    assertThat(Files.list(scanDir)).containsExactly(oldScanFile1);
-    assertThat(logOutput).atWarnLevel()
-        .contains("Error deleting scan file '" + oldScanFile1.toAbsolutePath()
-            + "': java.lang.SecurityException: Test exception");
-
-    assertMarkerExists();
-  }
-
-  @Test
-  public void testDeleteScanFiles_LogsWarningIfItCannotAccessFile() throws Exception {
-    assertMarkerDoesNotExist();
-
-    Application app = tempEntity.newApplicationWithParent();
-    Path scanDir = insightWork.getScanDir(app.getId()).toPath();
-    Files.createDirectories(scanDir);
-
-    // Create two scan files older than one hour and configure a security manager that doesn't allow access to one
-    // of the files.
-    Path oldScanFile1 = Files.createFile(scanDir.resolve("old-file1"));
-    Files.setLastModifiedTime(oldScanFile1, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
-    Path oldScanFile2 = Files.createFile(scanDir.resolve("old-file2"));
-    Files.setLastModifiedTime(oldScanFile2, FileTime.fromMillis(System.currentTimeMillis() - ONE_HOUR - 1));
-
-    System.setSecurityManager(new SecurityManager()
-    {
-      @Override
-      public void checkRead(String file) {
-        if (file.contains("old-file1")) {
-          throw new SecurityException("Test exception");
-        }
-      }
-
-      @Override
-      public void checkPermission(Permission perm) {
-      }
-
-      @Override
-      public void checkPermission(Permission perm, Object context) {
-      }
-    });
-
-    scanFileCleaner.deleteScanFiles();
-
-    assertThat(Files.list(scanDir)).containsExactly(oldScanFile1);
-    assertThat(logOutput).atWarnLevel()
-        .contains("Error accessing the last modified timestamp for scan file '"
-            + oldScanFile1.toAbsolutePath() + "': java.lang.SecurityException: Test exception");
 
     assertMarkerExists();
   }

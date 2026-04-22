@@ -581,7 +581,7 @@ Map getMavenBuildConfig() {
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')
@@ -597,7 +597,7 @@ Map getFrontEndInstallConfig() {
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')
@@ -613,7 +613,7 @@ Map getFrontEndTestConfig() {
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')
@@ -632,7 +632,7 @@ Map getMtiqBuildConfig() {
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')
@@ -648,7 +648,7 @@ Map getMtiqAssembleConfig() {
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')
@@ -666,7 +666,7 @@ void mvnDirectForTests(String mavenOptions, String goals) {
   String npmConfigFileId = 'rsc-ro-npmrc'
 
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
-    withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+    withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
         publisherStrategy: 'EXPLICIT') {
       String mvnCmdLine = "mvn jacoco:prepare-agent ${goals} jacoco:report -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
@@ -1292,7 +1292,7 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
   String npmConfigFileId = 'rsc-ro-npmrc'
 
   configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
-    withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+    withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
         publisherStrategy: 'EXPLICIT') {
       String mvnCmdLine = "mvn jacoco:prepare-agent ${goals} jacoco:report -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="

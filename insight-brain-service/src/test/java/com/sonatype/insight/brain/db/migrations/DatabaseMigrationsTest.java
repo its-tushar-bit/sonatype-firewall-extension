@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
@@ -38,10 +37,7 @@ public class DatabaseMigrationsTest
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Rule
-  public LogOutput logOutput = new LogOutput(DatabaseMigrations.class);
-
-  @Rule
-  public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
+  public LogOutput logOutput = new LogOutput(LegacyDatabaseMigrator.class);
 
   private DatabaseMigrations databaseMigrations;
 
@@ -200,12 +196,13 @@ public class DatabaseMigrationsTest
       copyExistingDatabase = "DatabaseMigrationsTest/testMigrate_ByEnvironmentVariable")
   @Category(SlowTest.class)
   public void testDesiredSchemaVersionUnmet() {
-    DatabaseMigrations databaseMigrations = new DatabaseMigrations(databaseRule);
+    LegacyDatabaseMigrator legacyMigrator = new LegacyDatabaseMigrator(databaseRule);
+    LegacyDatabaseMigrator spyMigrator = Mockito.spy(legacyMigrator);
+    Mockito.doNothing().when(spyMigrator).exit(Mockito.anyInt());
 
-    expectedExit.expectSystemExitWithStatus(1);
+    spyMigrator.validateMinimumSchemaVersion();
 
-    databaseMigrations.validateMinimumSchemaVersion();
-
+    verify(spyMigrator).exit(1);
     assertThat(logOutput).atErrorLevel()
         .contains("\n\n\t\t\t***** Database migration is required. " +
             "Please migrate the database before starting the application! *****\n");
@@ -216,12 +213,13 @@ public class DatabaseMigrationsTest
       suppressMigrations = true)
   @Category(SlowTest.class)
   public void testDesiredSchemaVersionNoSchema() {
-    DatabaseMigrations databaseMigrations = new DatabaseMigrations(databaseRule);
+    LegacyDatabaseMigrator legacyMigrator = new LegacyDatabaseMigrator(databaseRule);
+    LegacyDatabaseMigrator spyMigrator = Mockito.spy(legacyMigrator);
+    Mockito.doNothing().when(spyMigrator).exit(Mockito.anyInt());
 
-    expectedExit.expectSystemExitWithStatus(1);
+    spyMigrator.validateMinimumSchemaVersion();
 
-    databaseMigrations.validateMinimumSchemaVersion();
-
+    verify(spyMigrator).exit(1);
     assertThat(logOutput).atErrorLevel()
         .contains("\n\n\t\t\t***** Database migration is required. " +
             "Please migrate the database before starting the application! *****\n");

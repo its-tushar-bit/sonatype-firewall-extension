@@ -13,12 +13,20 @@ import org.quartz.Scheduler;
 public class SchedulerShutdownRequest
     extends WeakReferenceShutdownRequest<Scheduler>
 {
-  public SchedulerShutdownRequest(final Scheduler item, final int order, final String origin) {
+  private final ShutdownHandler shutdownHandler;
+
+  public SchedulerShutdownRequest(
+      final Scheduler item,
+      final int order,
+      final String origin,
+      final ShutdownHandler shutdownHandler)
+  {
     super(item, order, origin);
+    this.shutdownHandler = shutdownHandler;
   }
 
   @Override
   public Future<?> execute(final ExecutorService executorService, final Scheduler item) {
-    return executorService.submit(() -> ShutdownHandler.tryCheckedRunnable(() -> item.shutdown(true)));
+    return executorService.submit(() -> shutdownHandler.tryCheckedRunnable(() -> item.shutdown(true)));
   }
 }

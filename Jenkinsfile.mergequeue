@@ -80,7 +80,7 @@ Map getMavenCompileConfig() {
   opts << "-D skip-functional-test"
 
   return mavenCommon(
-      javaVersion: 'OpenJDK 17',
+      javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
       useEventSpy: false,
       mavenOptions: opts.join(' ')

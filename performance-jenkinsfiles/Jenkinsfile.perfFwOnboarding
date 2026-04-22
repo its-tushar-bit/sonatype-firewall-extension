@@ -133,7 +133,7 @@ pipeline {
                     userRemoteConfigs: [[url: 'git@github.com:sonatype/nexus-internal.git',
                                           credentialsId: sonatypeZionCredentialsId()]]])
 
-          withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+          withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
                 options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
             sh './rebuild.sh -Dmaven.repo.local="${WORKSPACE}/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate'
             sh 'mvn dependency:copy-dependencies -pl :nexus-stress-testsuite'
@@ -146,7 +146,7 @@ pipeline {
     // Build IQ
     stage('Build IQ Server') {
       steps {
-        withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+        withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
                 options: [ artifactsPublisher(disabled: true), junitPublisher(disabled: true) ]) {
           sh '''
             mvn clean install -Dmaven.repo.local="$WORKSPACE/.zion/repository" -T 1C -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dskip-obfuscate \

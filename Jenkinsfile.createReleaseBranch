@@ -50,7 +50,7 @@ pipeline {
           if (updateMain) {
             runSafely "git checkout ${DEFAULT_BRANCH}"
             def currentVersion = null
-            withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+            withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
               currentVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -1", returnStdout: true).trim()
             }
             echo "Current version on ${DEFAULT_BRANCH}: ${currentVersion}, Next version: ${NEXT_VERSION}"
@@ -75,7 +75,7 @@ pipeline {
       }
       steps {
         runSafely "git checkout ${DEFAULT_BRANCH}"
-        withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+        withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
           runSafely "./set-version.sh ${NEXT_VERSION}"
         }
 

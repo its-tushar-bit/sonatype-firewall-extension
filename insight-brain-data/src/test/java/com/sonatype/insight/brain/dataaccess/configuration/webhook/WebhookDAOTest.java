@@ -122,7 +122,7 @@ public class WebhookDAOTest
     assertThatThrownBy(
         () -> tempEntity.newWebhook("http://boom crash", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
             BadRequestException.class)
-            .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash");
+            .hasMessageStartingWith("Webhook URL is invalid: Illegal character in authority at index");
   }
 
   @Test
@@ -167,7 +167,7 @@ public class WebhookDAOTest
     webhook.setUrl("http://not valid");
 
     assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
-        .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://not valid");
+        .hasMessageStartingWith("Webhook URL is invalid: Illegal character in authority at index");
   }
 
   @Test

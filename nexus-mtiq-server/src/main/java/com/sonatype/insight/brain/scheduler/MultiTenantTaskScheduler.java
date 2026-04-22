@@ -95,7 +95,7 @@ public class MultiTenantTaskScheduler
     if (!tenantManager.get().areTenantsPreRegistered()) {
       // If this ever fails, ensure TenantManager is started BEFORE MultiTenantTaskScheduler
       System.err.println("Fatal error: Task scheduler is trying to start but tenants are not pre-registered yet");
-      System.exit(11);
+      shutdownHandler.exit(11);
     }
   }
 

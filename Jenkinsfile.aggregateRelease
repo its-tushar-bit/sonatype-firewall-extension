@@ -74,12 +74,12 @@ pipeline {
       steps {
         dir('insight-brain') {
           script {
-            def config = mavenCommon(javaVersion: 'OpenJDK 17', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
             mvn config, "versions:set -DnewVersion=${FULL_RELEASE_VERSION} -DgenerateBackupPoms=false"
 
             // Verify version was set correctly using Maven (tail -1 to skip withMaven banner)
             def pomVersion = null
-            withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'rsc-private-settings') {
+            withMaven(jdk: 'OpenJDK 25', maven: 'Maven 3.9.x', mavenSettingsConfig: 'rsc-private-settings') {
               pomVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tail -1", returnStdout: true).trim()
             }
             echo "POM version after versions:set: ${pomVersion}"
@@ -99,7 +99,7 @@ pipeline {
         dir('insight-brain') {
           script {
             def mavenOpts = "-Dskip-functional-test -DskipTests -Dspotless.apply.skip=true -Dspotless.check.skip=true -Dbuild.number=${env.BUILD_NUMBER} --threads 4"
-            def config = mavenCommon(javaVersion: 'OpenJDK 17', mavenVersion: 'Maven 3.9.x', useEventSpy: false, mavenOptions: mavenOpts)
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false, mavenOptions: mavenOpts)
 
             withSonatypeDockerRegistry() {
               withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
@@ -125,7 +125,7 @@ pipeline {
         dir('insight-brain') {
           script {
             // Use same config as build stage
-            def config = mavenCommon(javaVersion: 'OpenJDK 17', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
+            def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
 
             // Call publishRelease from jenkins-shared library (same as old release pipeline)
             publishRelease(config, null, false)

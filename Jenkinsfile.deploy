@@ -55,6 +55,9 @@ pipeline {
       }
     }
     stage('Update nginx configuration') {
+      when {
+        expression { !params.skipMarkAsLatest }
+      }
       steps {
         updateNginxConfig(params.environment)
       }

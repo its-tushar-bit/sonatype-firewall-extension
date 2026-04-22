@@ -24,7 +24,7 @@ import {
   selectRouterPrevState,
   selectRouterPrevParams,
   selectPrevStateIsAppOwnerManagementView,
-  selectIsSbomManager,
+  selectPrefixRoute,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function OwnersTreePage() {
@@ -45,13 +45,15 @@ export default function OwnersTreePage() {
     'management.view.application',
     'sbomManager.management.view.organization',
     'sbomManager.management.view.application',
+    'firewall.management.view.organization',
+    'firewall.management.view.application',
   ]);
   const prevStateWasApp = useSelector(selectPrevStateIsAppOwnerManagementView);
   const property = prevStateIncludesOwnerPage ? (prevStateWasApp ? 'applicationPublicId' : 'organizationId') : '';
 
-  const isSbomManager = useSelector(selectIsSbomManager);
+  const prefixRoute = useSelector(selectPrefixRoute);
   const backButtonHref = uiRouterState.href(
-    prevStateIncludesOwnerPage ? prevState.name : `${isSbomManager ? 'sbomManager.' : ''}management.view`,
+    prevStateIncludesOwnerPage ? prevState.name : prefixRoute('management.view'),
     prevStateIncludesOwnerPage ? { [property]: prevParams[property] } : {}
   );
 

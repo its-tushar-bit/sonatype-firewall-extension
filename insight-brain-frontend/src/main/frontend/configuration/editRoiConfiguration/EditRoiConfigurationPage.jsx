@@ -28,6 +28,7 @@ import {
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectEditRoiConfigurationPageSlice, selectHasValidationErrors } from './editRoiConfigurationPageSelectors';
 import { actions } from './editRoiConfigurationPageSlice';
@@ -44,6 +45,7 @@ const EditRoiConfigurationPage = () => {
   const hasFirewallLicense = useSelector(selectHasFirewallLicense);
   const hasValidationError = useSelector(selectHasValidationErrors);
   const { loading, error, configuration, showRestoreDefaultsModal } = useSelector(selectEditRoiConfigurationPageSlice);
+  const prefixRoute = useSelector(selectPrefixRoute);
 
   const licenseError = R.complement(R.or)(hasLifecycleLicense, hasFirewallLicense)
     ? 'Must have Lifecycle or Repository Firewall license to configure ROI metrics.'
@@ -51,7 +53,7 @@ const EditRoiConfigurationPage = () => {
 
   const loadPage = () => dispatch(actions.loadConfiguration());
 
-  const roiConfigurationPageHref = uiRouterState.href('roiConfiguration');
+  const roiConfigurationPageHref = uiRouterState.href(prefixRoute('roiConfiguration'));
 
   const openRestoreDefaultsModal = () => dispatch(actions.setShowRestoreDefaultsModal(true));
   const closeRestoreDefaultsModal = () => dispatch(actions.setShowRestoreDefaultsModal(false));

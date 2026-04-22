@@ -22,6 +22,7 @@ import * as R from 'ramda';
 
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectRoiConfigurationPageSlice } from './roiConfigurationPageSelectors';
 import { actions } from './roiConfigurationPageSlice';
@@ -37,6 +38,7 @@ const RoiConfigurationPage = () => {
   const { loading, error, configuration } = useSelector(selectRoiConfigurationPageSlice);
   const hasLifecycleLicense = useSelector(selectHasLifecycleLicense);
   const hasFirewallLicense = useSelector(selectHasFirewallLicense);
+  const prefixRoute = useSelector(selectPrefixRoute);
 
   const licenseError = R.complement(R.or)(hasLifecycleLicense, hasFirewallLicense)
     ? 'Must have Lifecycle or Repository Firewall license to configure ROI metrics.'
@@ -44,7 +46,7 @@ const RoiConfigurationPage = () => {
 
   const loadPage = () => dispatch(actions.loadConfiguration());
 
-  const editRoiConfigurationPageHref = uiRouterState.href('editRoiConfiguration');
+  const editRoiConfigurationPageHref = uiRouterState.href(prefixRoute('editRoiConfiguration'));
 
   useEffect(() => {
     loadPage();

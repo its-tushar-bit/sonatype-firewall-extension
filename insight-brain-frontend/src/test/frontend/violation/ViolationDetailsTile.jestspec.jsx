@@ -143,7 +143,8 @@ describe('ViolationDetailsTile', function () {
       ],
     };
 
-    renderComponent = (props) => render(<ViolationDetailsTile {...minimalProps} {...props} />);
+    renderComponent = (props, preloadedState) =>
+      render(<ViolationDetailsTile {...minimalProps} {...props} />, preloadedState ? { preloadedState } : undefined);
   });
 
   describe('header', function () {
@@ -401,7 +402,10 @@ describe('ViolationDetailsTile', function () {
 
     describe('when the policy owner is an org and comes from sbomManager', function () {
       it('sets the link href using the sbomManager.management.view.organization state and the org id', function () {
-        renderComponent({ isSbomManager: true });
+        const sbomManagerState = {
+          router: { currentState: { name: 'sbomManager.management.view.organization' }, currentParams: {} },
+        };
+        renderComponent({}, sbomManagerState);
 
         const policyOwner = screen.getByRole('definition', { name: 'Policy Owner' });
 
@@ -410,6 +414,26 @@ describe('ViolationDetailsTile', function () {
 
         fireEvent.click(policyOwnerLink);
         expect(stateGetMock).toHaveBeenCalledWith('sbomManager.management.view.organization');
+        expect(stateHrefMock).toHaveBeenCalledWith('theState', {
+          organizationId: '1234',
+        });
+      });
+    });
+
+    describe('when the policy owner is an org and comes from firewall', function () {
+      it('sets the link href using the firewall.management.view.organization state and the org id', function () {
+        const firewallState = {
+          router: { currentState: { name: 'firewall.management.view.organization' }, currentParams: {} },
+        };
+        renderComponent({}, firewallState);
+
+        const policyOwner = screen.getByRole('definition', { name: 'Policy Owner' });
+
+        const policyOwnerLink = within(policyOwner).getByRole('link', { name: 'polOwner' });
+        expect(policyOwnerLink).toHaveAttribute('href', '#/foo');
+
+        fireEvent.click(policyOwnerLink);
+        expect(stateGetMock).toHaveBeenCalledWith('firewall.management.view.organization');
         expect(stateHrefMock).toHaveBeenCalledWith('theState', {
           organizationId: '1234',
         });
@@ -449,7 +473,24 @@ describe('ViolationDetailsTile', function () {
     });
 
     it('sets the link href using the sbomManager.management.view.application state and the app public id', function () {
-      renderComponentWithAppProps({ isSbomManager: true });
+      const sbomManagerState = {
+        router: { currentState: { name: 'sbomManager.management.view.application' }, currentParams: {} },
+      };
+      renderComponent(
+        {
+          ...pathSet(
+            ['violationDetails', 'policyOwner'],
+            {
+              ownerName: 'polOwner',
+              ownerType: 'application',
+              ownerId: '1234',
+              ownerPublicId: 'app2',
+            },
+            minimalProps
+          ),
+        },
+        sbomManagerState
+      );
       const policyOwner = screen.getByRole('definition', { name: 'Policy Owner' });
 
       const policyOwnerLink = within(policyOwner).getByRole('link', { name: 'polOwner' });
@@ -458,6 +499,38 @@ describe('ViolationDetailsTile', function () {
       fireEvent.click(policyOwnerLink);
 
       expect(stateGetMock).toHaveBeenCalledWith('sbomManager.management.view.application');
+      expect(stateHrefMock).toHaveBeenCalledWith('theState', {
+        applicationPublicId: 'app2',
+      });
+    });
+
+    it('sets the link href using the firewall.management.view.application state and the app public id', function () {
+      const firewallState = {
+        router: { currentState: { name: 'firewall.management.view.application' }, currentParams: {} },
+      };
+      renderComponent(
+        {
+          ...pathSet(
+            ['violationDetails', 'policyOwner'],
+            {
+              ownerName: 'polOwner',
+              ownerType: 'application',
+              ownerId: '1234',
+              ownerPublicId: 'app2',
+            },
+            minimalProps
+          ),
+        },
+        firewallState
+      );
+      const policyOwner = screen.getByRole('definition', { name: 'Policy Owner' });
+
+      const policyOwnerLink = within(policyOwner).getByRole('link', { name: 'polOwner' });
+      expect(policyOwnerLink).toHaveAttribute('href', '#/foo');
+
+      fireEvent.click(policyOwnerLink);
+
+      expect(stateGetMock).toHaveBeenCalledWith('firewall.management.view.application');
       expect(stateHrefMock).toHaveBeenCalledWith('theState', {
         applicationPublicId: 'app2',
       });

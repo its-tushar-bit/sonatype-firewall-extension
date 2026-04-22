@@ -19,7 +19,9 @@ import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './P
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 import ViolationName from 'MainRoot/componentDetails/ViolationsTableTile/ViolationName';
 import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
+import { useSelector } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -38,11 +40,11 @@ export default function ViolationDetailsTile(props) {
       policyDetail,
       hasPermissionForAppWaivers,
       constraintViolations,
-      isSbomManager,
       isContainerImagesEvaluationEnabled,
       isWaiverRequestWorkflowEnabled,
     } = props,
     $state = useRouterState(),
+    prefixRoute = useSelector(selectPrefixRoute),
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
     policyExists = isFirewallContext ? !!policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
@@ -89,7 +91,7 @@ export default function ViolationDetailsTile(props) {
   function getOwnerHref(owner) {
     const ownerIdType = ownerIdTypeMap[owner.ownerType],
       ownerId = owner.ownerPublicId || owner.ownerId;
-    return $state.href($state.get(`${isSbomManager ? 'sbomManager.' : ''}management.view.${owner.ownerType}`), {
+    return $state.href($state.get(prefixRoute(`management.view.${owner.ownerType}`)), {
       [ownerIdType]: ownerId,
     });
   }
@@ -279,7 +281,6 @@ ViolationDetailsTile.propTypes = {
   isFirewallContext: PropTypes.bool,
   policyDetail: PropTypes.object,
   hasPermissionForAppWaivers: PropTypes.bool,
-  isSbomManager: PropTypes.bool,
   isContainerImagesEvaluationEnabled: PropTypes.bool,
   isWaiverRequestWorkflowEnabled: PropTypes.bool,
   constraintViolations: constraintViolationsPropType,

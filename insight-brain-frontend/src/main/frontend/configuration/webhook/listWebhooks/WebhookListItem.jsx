@@ -6,9 +6,11 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { useSelector } from 'react-redux';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { useRouterState } from '../../../react/RouterStateContext';
+import { selectPrefixRoute, selectIsFirewall } from '../../../reduxUiRouter/routerSelectors';
 import webhookPropType from '../webhookPropType';
 import { isNilOrEmpty } from '../../../util/jsUtil';
 
@@ -17,10 +19,8 @@ function WebhookListItem({ webhook, isAppWebhooksSupported }) {
   const uiRouterState = useRouterState();
   const webhookLabel = description || url;
 
-  // Determine if we're in Firewall context by checking current state
-  const currentStateName = uiRouterState.current.name || '';
-  const isFirewallContext = currentStateName.startsWith('firewall.');
-  const editWebhookState = isFirewallContext ? 'firewall.editWebhook' : 'editWebhook';
+  const prefixRoute = useSelector(selectPrefixRoute);
+  const isFirewallContext = useSelector(selectIsFirewall);
 
   const eventTypesDisplay =
     !isNilOrEmpty(eventTypes) &&
@@ -48,7 +48,7 @@ function WebhookListItem({ webhook, isAppWebhooksSupported }) {
 
   return (
     <li className="nx-list__item nx-list__item--link">
-      <NxTextLink href={uiRouterState.href(editWebhookState, { webhookId: id })} className="nx-list__link">
+      <NxTextLink href={uiRouterState.href(prefixRoute('editWebhook'), { webhookId: id })} className="nx-list__link">
         <span className="nx-list__text">{webhookLabel}</span>
         {eventTypesDisplay && <span className="nx-list__subtext">{eventTypesDisplay}</span>}
         <NxFontAwesomeIcon icon={faAngleRight} className="nx-chevron" />

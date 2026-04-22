@@ -27,10 +27,9 @@
  *
  * Once staging infrastructure is available:
  * 1. Set STAGING_INFRASTRUCTURE_READY = true below
- * 2. Update jenkins/tfc-helpers.groovy STAGING_CELL_WORKSPACES with actual workspace names
- * 3. Update jenkins/tfc-helpers.groovy STAGING_GLOBAL_WORKSPACE with actual workspace name
- * 4. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT with actual values
- * 5. Remove this comment block
+ * 2. Update STAGING_CELL_WORKSPACES and STAGING_GLOBAL_WORKSPACE below with actual workspace names
+ * 3. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT with actual values
+ * 4. Remove this comment block
  *
  * Tracked in: CLM-39452
  * ============================================================================
@@ -38,6 +37,11 @@
 
 // TODO: Change to true when staging infrastructure is ready
 def STAGING_INFRASTRUCTURE_READY = false
+
+// Staging cell workspaces — explicit allowlist
+// TODO: Replace with actual staging workspace names when infrastructure is ready
+def STAGING_CELL_WORKSPACES = ['sca_aws_staging_cell-1']  // Placeholder
+def STAGING_GLOBAL_WORKSPACE = 'sca_aws_staging_global'   // Placeholder
 
 pipeline {
   agent { label 'zion-small' }
@@ -58,7 +62,7 @@ pipeline {
     timestamps()
     buildDiscarder(logRotator(numToKeepStr: '20'))
     disableConcurrentBuilds()
-    // 15 min for TFC deployment + overhead
+    // Currently 1 workspace → 15 min is sufficient. Increase if workspaces are added.
     timeout(time: 20, unit: 'MINUTES')
   }
 
@@ -149,9 +153,8 @@ pipeline {
             echo ""
             echo "Once staging infrastructure is available:"
             echo "1. Set STAGING_INFRASTRUCTURE_READY = true in this Jenkinsfile"
-            echo "2. Update jenkins/tfc-helpers.groovy STAGING_CELL_WORKSPACES"
-            echo "3. Update jenkins/tfc-helpers.groovy STAGING_GLOBAL_WORKSPACE"
-            echo "4. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT"
+            echo "2. Update STAGING_CELL_WORKSPACES and STAGING_GLOBAL_WORKSPACE in this Jenkinsfile"
+            echo "3. Update jenkins/ecr-helpers.groovy STAGING_ECR_ACCOUNT"
             echo ""
             echo "Would deploy image tag: ${env.RESOLVED_IMAGE_TAG}"
             echo "============================================"
@@ -159,7 +162,7 @@ pipeline {
           }
 
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployToStagingCells(env.RESOLVED_IMAGE_TAG)
+          tfc.deployCells('staging', STAGING_CELL_WORKSPACES, STAGING_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG)
         }
       }
     }

@@ -7,14 +7,12 @@
 /**
  * Terraform Cloud deployment helpers for MTIQ cells.
  *
- * Used by Jenkinsfile.deploy-to-shared-dev via:
+ * Usage:
  *   def tfc = load 'jenkins/tfc-helpers.groovy'
- *   tfc.deployToCells(ecrTag)
+ *   tfc.deployCells('dev', cellWorkspaces, globalWorkspace, ecrTag)
  *
- * ── MODERN_CELL_WORKSPACES ──────────────────────────────────────────────────────────────────────
- * An explicit allowlist of Terraform Cloud workspace names that deployToCells() will deploy
- * to. The allowlist exists to prevent accidental targeting of legacy cell workspaces.
- * To add a new workspace: append its TFC workspace name to the MODERN_CELL_WORKSPACES list below.
+ * Cell workspaces and global workspace names are defined in the calling Jenkinsfile,
+ * keeping environment-specific configuration close to the job that uses it.
  *
  * ── Auto-approval safety guard ──────────────────────────────────────────────────────────────────
  * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 1 resource
@@ -29,75 +27,34 @@ import groovy.transform.Field
 @Field final String TFC_IMAGE_VARIABLE = 'ecs_container_image'
 @Field final String TFC_ECR_OUTPUT = 'global_mtiq_ecr_repository_url'
 
-// Modern cell workspaces — explicit allowlist (never target legacy cells)
-@Field final List<String> MODERN_CELL_WORKSPACES = [
-  'sca_aws_dev_cell-shared-dev'
-]
+/**
+ * Deploy to cell workspaces via Terraform Cloud.
+ *
+ * @param envName        Human-readable environment name (for log messages)
+ * @param cellWorkspaces TFC workspace names to deploy to
+ * @param globalWorkspace TFC global workspace to read ECR URL from
+ * @param ecrTag         The ECR image tag to deploy
+ */
+void deployCells(String envName, List<String> cellWorkspaces, String globalWorkspace, String ecrTag) {
+  if (!ecrTag) {
+    error "deployCells(${envName}): ecrTag parameter is required"
+  }
 
-// Staging cell workspaces — explicit allowlist
-// TODO: Replace with actual staging workspace names when infrastructure is ready
-@Field final List<String> STAGING_CELL_WORKSPACES = [
-  'sca_aws_staging_cell-1'  // Placeholder - update when staging infra is ready
-]
-
-// Staging global workspace for ECR URL
-// TODO: Replace with actual staging global workspace name when infrastructure is ready
-@Field final String STAGING_GLOBAL_WORKSPACE = 'sca_aws_staging_global'  // Placeholder
-
-void deployToCells(String ecrTag) {
-  if (MODERN_CELL_WORKSPACES.isEmpty()) {
-    echo 'No modern cell workspaces configured, skipping TFC deployment'
+  if (!cellWorkspaces) {
+    echo "No ${envName} cell workspaces configured, skipping TFC deployment"
     return
   }
 
-  if (!ecrTag) {
-    error 'deployToCells: ecrTag parameter is required'
-  }
-
   withCredentials([string(credentialsId: TFC_CREDENTIAL, variable: 'TFC_TOKEN')]) {
-    // Get ECR URL from global workspace state
-    final String globalWorkspace = 'sca_aws_dev_global'
     final String ecrUrl = tfcGetStateOutput(globalWorkspace, TFC_ECR_OUTPUT)
     if (!ecrUrl) {
       error "Could not read ${TFC_ECR_OUTPUT} from ${globalWorkspace} state"
     }
 
     final String fullImageUri = "${ecrUrl}:${ecrTag}"
-    echo "Deploying image: ${fullImageUri}"
+    echo "Deploying image to ${envName}: ${fullImageUri}"
 
-    for (String workspace : MODERN_CELL_WORKSPACES) {
-      tfcDeploy(workspace, fullImageUri)
-    }
-  }
-}
-
-/**
- * Deploy to staging cells via Terraform Cloud.
- * Uses the staging global workspace to get the ECR URL.
- *
- * @param ecrTag The ECR image tag to deploy
- */
-void deployToStagingCells(String ecrTag) {
-  if (STAGING_CELL_WORKSPACES.isEmpty()) {
-    echo 'No staging cell workspaces configured, skipping TFC deployment'
-    return
-  }
-
-  if (!ecrTag) {
-    error 'deployToStagingCells: ecrTag parameter is required'
-  }
-
-  withCredentials([string(credentialsId: TFC_CREDENTIAL, variable: 'TFC_TOKEN')]) {
-    // Get ECR URL from staging global workspace state
-    final String ecrUrl = tfcGetStateOutput(STAGING_GLOBAL_WORKSPACE, TFC_ECR_OUTPUT)
-    if (!ecrUrl) {
-      error "Could not read ${TFC_ECR_OUTPUT} from ${STAGING_GLOBAL_WORKSPACE} state"
-    }
-
-    final String fullImageUri = "${ecrUrl}:${ecrTag}"
-    echo "Deploying image to staging: ${fullImageUri}"
-
-    for (String workspace : STAGING_CELL_WORKSPACES) {
+    for (String workspace : cellWorkspaces) {
       tfcDeploy(workspace, fullImageUri)
     }
   }

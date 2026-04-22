@@ -17,6 +17,10 @@
  *             See jenkins/ecr-helpers.groovy for full documentation.
  */
 
+// Dev cell workspaces — explicit allowlist (never target legacy cells)
+def DEV_CELL_WORKSPACES = ['sca_aws_dev_cell-shared-dev']
+def DEV_GLOBAL_WORKSPACE = 'sca_aws_dev_global'
+
 pipeline {
   agent { label 'zion-small' }
 
@@ -28,7 +32,7 @@ pipeline {
     timestamps()
     buildDiscarder(logRotator(numToKeepStr: '20'))
     disableConcurrentBuilds()
-    // NOTE: must exceed 10 min × len(MODERN_CELL_WORKSPACES in tfc-helpers.groovy) + overhead.
+    // NOTE: must exceed 10 min × len(DEV_CELL_WORKSPACES) + overhead.
     // Currently 1 workspace → 15 min is sufficient. Increase if workspaces are added.
     timeout(time: 15, unit: 'MINUTES')
   }
@@ -64,7 +68,7 @@ pipeline {
       steps {
         script {
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployToCells(params.ECR_TAG)
+          tfc.deployCells('dev', DEV_CELL_WORKSPACES, DEV_GLOBAL_WORKSPACE, params.ECR_TAG)
         }
       }
     }

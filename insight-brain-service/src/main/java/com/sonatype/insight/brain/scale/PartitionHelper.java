@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.scale;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,8 @@ public class PartitionHelper
   private static final int DEFAULT_IDEAL_PARTITION_COUNT = 1;
 
   public static final int DEFAULT_PARTITION_ANALYSIS_INTERVAL_SECONDS = 60;
+
+  private static final double RESERVATION_CACHE_RATIO = 0.8;
 
   private final String category;
 
@@ -45,6 +49,8 @@ public class PartitionHelper
   private int partitionAnalysisIntervalSeconds = DEFAULT_PARTITION_ANALYSIS_INTERVAL_SECONDS;
 
   private long partitionAnalysisTimeout = -1;
+
+  private final Map<String, Long> reservationRefreshTime = new HashMap<>();
 
   private PerpetualLockManager perpetualLockManager;
 
@@ -130,6 +136,18 @@ public class PartitionHelper
     }
   }
 
+  boolean isReservationValid(String partitionId) {
+    Long refreshAt = reservationRefreshTime.get(partitionId);
+    return refreshAt != null && System.currentTimeMillis() < refreshAt;
+  }
+
+  void cacheReservation(String partitionId, int reservationSeconds) {
+    long cacheDurationMs = (long) (reservationSeconds * 1000L * RESERVATION_CACHE_RATIO);
+    if (cacheDurationMs > 0) {
+      reservationRefreshTime.put(partitionId, System.currentTimeMillis() + cacheDurationMs);
+    }
+  }
+
   public PartitionHelper withPerpetualLockManager(PerpetualLockManager perpetualLockManager) {
     this.perpetualLockManager = perpetualLockManager;
     return this;
@@ -154,6 +172,7 @@ public class PartitionHelper
   private void doPartitionAnalysis() {
     activeInstanceIds.clear();
     otherInstanceActivePartitions.clear();
+    reservationRefreshTime.clear();
 
     List<PerpetualLock> perpetualLocks = perpetualLockManager.getAllActivePerpetualLocksForCategory(category);
 

@@ -211,6 +211,50 @@ public class PartitionHelperTest
     assertThat(canTryToUse).isTrue();
   }
 
+  @Test
+  public void testReservationCache_validWithinTtl() {
+    PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA");
+
+    partitionHelper.cacheReservation("partition1", 60);
+
+    assertThat(partitionHelper.isReservationValid("partition1")).isTrue();
+  }
+
+  @Test
+  public void testReservationCache_invalidForUnknownPartition() {
+    PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA");
+
+    assertThat(partitionHelper.isReservationValid("unknown")).isFalse();
+  }
+
+  @Test
+  public void testReservationCache_notCachedWhenDurationIsZero() {
+    PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA");
+
+    partitionHelper.cacheReservation("partition1", 0);
+
+    assertThat(partitionHelper.isReservationValid("partition1")).isFalse();
+  }
+
+  @Test
+  public void testReservationCache_clearedOnPartitionAnalysis() {
+    when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory("testCategory")).thenReturn(
+        initLocks("testCategory")
+            .withHeartbeatLock("instanceA", false));
+    PartitionHelper partitionHelper = new PartitionHelper("testCategory", "instanceA")
+        .withPerpetualLockManager(mockPerpetualLockManager);
+
+    partitionHelper.cacheReservation("partition1", 60);
+
+    assertThat(partitionHelper.isReservationValid("partition1")).isTrue();
+
+    // trigger partition analysis by resetting timeout and calling canTryToUsePartition
+    partitionHelper.resetPartitionAnalysis();
+    partitionHelper.canTryToUsePartition("anyPartition");
+
+    assertThat(partitionHelper.isReservationValid("partition1")).isFalse();
+  }
+
   private PerpetualLockTestList initLocks(String category) {
     return new PerpetualLockTestList(category);
   }

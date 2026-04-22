@@ -129,8 +129,13 @@ public abstract class SelfThrottlingLoadBalancer
     return TenantThreadLocal.runAsGlobal(() -> {
       boolean result = false;
       if (partitionHelper.canTryToUsePartition(partitionKey)) {
+        if (partitionHelper.isReservationValid(partitionKey)) {
+          partitionHelper.setPartitionReservationOutcome(partitionKey, true);
+          return true;
+        }
         result = tryToReservePartition(partitionKey);
         if (result) {
+          partitionHelper.cacheReservation(partitionKey, partitionReservationSeconds);
           if (log.isDebugEnabled()) {
             log.debug("partition {} reserved", partitionKey.substring(0, 5));
           }

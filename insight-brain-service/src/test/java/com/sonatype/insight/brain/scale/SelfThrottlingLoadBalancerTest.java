@@ -207,6 +207,61 @@ public class SelfThrottlingLoadBalancerTest
     verify(mockHeartbeatPartitionManager).stop();
   }
 
+  @Test
+  public void testCanUsePartition_cachedReservationSkipsDbCall() {
+    // given: single-instance mode (no other heartbeats) with a successful reservation
+    String instanceId = testableSelfThrottlingLoadBalancer.getInstanceId();
+    Date futureDate = new Date(System.currentTimeMillis() + 60_000);
+    List<PerpetualLock> perpetualLocks = ImmutableList.of(
+        new PerpetualLock(TEST_CATEGORY, instanceId).setOwner(instanceId).setExpirationTime(futureDate));
+    when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory(TEST_CATEGORY)).thenReturn(perpetualLocks);
+    when(mockPerpetualLockManager.tryAcquireLock(
+        "somePartition", TEST_CATEGORY, instanceId,
+        TestableSelfThrottlingLoadBalancer.DEFAULT_PARTITION_RESERVATION_SECONDS)).thenReturn(true);
+
+    // when: first call acquires the lock
+    boolean firstCall = testableSelfThrottlingLoadBalancer.canUsePartition("somePartition");
+
+    // then: lock was acquired via DB
+    assertThat(firstCall).isTrue();
+    verify(mockPerpetualLockManager, times(1)).tryAcquireLock(
+        "somePartition", TEST_CATEGORY, instanceId,
+        TestableSelfThrottlingLoadBalancer.DEFAULT_PARTITION_RESERVATION_SECONDS);
+
+    // when: second call should use the cache
+    boolean secondCall = testableSelfThrottlingLoadBalancer.canUsePartition("somePartition");
+
+    // then: still returns true but did NOT call tryAcquireLock again
+    assertThat(secondCall).isTrue();
+    verify(mockPerpetualLockManager, times(1)).tryAcquireLock(
+        "somePartition", TEST_CATEGORY, instanceId,
+        TestableSelfThrottlingLoadBalancer.DEFAULT_PARTITION_RESERVATION_SECONDS);
+  }
+
+  @Test
+  public void testCanUsePartition_failedReservationNotCached() {
+    // given: single-instance mode with a failed reservation
+    String instanceId = testableSelfThrottlingLoadBalancer.getInstanceId();
+    Date futureDate = new Date(System.currentTimeMillis() + 60_000);
+    List<PerpetualLock> perpetualLocks = ImmutableList.of(
+        new PerpetualLock(TEST_CATEGORY, instanceId).setOwner(instanceId).setExpirationTime(futureDate));
+    when(mockPerpetualLockManager.getAllActivePerpetualLocksForCategory(TEST_CATEGORY)).thenReturn(perpetualLocks);
+    when(mockPerpetualLockManager.tryAcquireLock(
+        "somePartition", TEST_CATEGORY, instanceId,
+        TestableSelfThrottlingLoadBalancer.DEFAULT_PARTITION_RESERVATION_SECONDS)).thenReturn(false);
+
+    // when: first call fails to acquire
+    testableSelfThrottlingLoadBalancer.canUsePartition("somePartition");
+
+    // when: second call should retry (not cached)
+    testableSelfThrottlingLoadBalancer.canUsePartition("somePartition");
+
+    // then: tryAcquireLock was called twice (not cached on failure)
+    verify(mockPerpetualLockManager, times(2)).tryAcquireLock(
+        "somePartition", TEST_CATEGORY, instanceId,
+        TestableSelfThrottlingLoadBalancer.DEFAULT_PARTITION_RESERVATION_SECONDS);
+  }
+
   private class TestableSelfThrottlingLoadBalancer
       extends SelfThrottlingLoadBalancer
   {

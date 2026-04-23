@@ -842,11 +842,6 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>
-        <artifactId>insight-scanner-call-flow-analyzer</artifactId>
-        <version>${insight-scanner.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-test-networking</artifactId>
         <version>${insight-scanner.version}</version>
         <scope>test</scope>

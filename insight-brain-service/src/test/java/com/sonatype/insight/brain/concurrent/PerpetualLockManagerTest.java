@@ -212,6 +212,60 @@ public class PerpetualLockManagerTest
   }
 
   @Test
+  public void testTryAcquirePerpetualLock_createThrowsNonUniqueViolation_returnsFalse() {
+    // given: the row for this perpetual lock does not yet exist (so the initial SELECT FOR UPDATE
+    // returns null, and the code falls through to createPerpetualLock), and the INSERT throws a
+    // non-unique-constraint exception (e.g. a connection failure mid-statement during an Aurora
+    // failover). This is the situation that previously caused tryAcquireLock to rethrow, which in
+    // turn could kill the heartbeat scheduler via ScheduledExecutorService.scheduleAtFixedRate's
+    // "suppress future executions on exception" semantics. The contract of tryAcquireLock is
+    // boolean: it must never throw. It should log and return false so callers can retry next cycle.
+    final String lockId = "abc123";
+    final String category = "testing";
+    final String owner = "xyz456";
+    final long expiration = 30;
+    PerpetualLockDAO spyPerpetualLockDAO = spy(perpetualLockDAO);
+    perpetualLockManager = new PerpetualLockManager(spyPerpetualLockDAO);
+    // Not a unique-constraint violation -- e.g. a connection failure during failover.
+    org.postgresql.util.PSQLException psqlEx = new org.postgresql.util.PSQLException(
+        "connection terminated during failover", org.postgresql.util.PSQLState.CONNECTION_FAILURE);
+    doThrow(new DataAccessException("insert failed", psqlEx)).when(spyPerpetualLockDAO)
+        .createPerpetualLock(eq(lockId), eq(category), eq(owner), any(Date.class));
+
+    // then: must return false, never throw.
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, category, owner, expiration)).isFalse();
+  }
+
+  @Test
+  public void testTryAcquirePerpetualLock_selectAndCreateBothThrow_returnsFalse() {
+    // given: the SELECT FOR UPDATE that looks up an existing row throws (connection broken), and
+    // the subsequent fallback createPerpetualLock INSERT also throws with a non-unique violation.
+    // In the original code the SELECT exception was caught inside tryAcquireLock but the INSERT
+    // exception was rethrown, propagating out of the method. After this fix, tryAcquireLock must
+    // return false in both failure modes.
+    final String lockId = "abc123";
+    final String category = "testing";
+    final String owner = "xyz456";
+    final long expiration = 30;
+    PerpetualLockDAO spyPerpetualLockDAO = spy(perpetualLockDAO);
+    perpetualLockManager = new PerpetualLockManager(spyPerpetualLockDAO);
+
+    // Make the initial SELECT FOR UPDATE blow up.
+    doThrow(new DataAccessException("connection closed mid-select"))
+        .when(spyPerpetualLockDAO)
+        .getPerpetualLockByIdForUpdate(any(com.sonatype.insight.dataaccess.TransactionContext.class), eq(lockId));
+
+    // And make the fallback INSERT blow up with a non-unique error too.
+    org.postgresql.util.PSQLException psqlEx = new org.postgresql.util.PSQLException(
+        "connection terminated during failover", org.postgresql.util.PSQLState.CONNECTION_FAILURE);
+    doThrow(new DataAccessException("insert failed", psqlEx)).when(spyPerpetualLockDAO)
+        .createPerpetualLock(eq(lockId), eq(category), eq(owner), any(Date.class));
+
+    // then: must not propagate either exception.
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, category, owner, expiration)).isFalse();
+  }
+
+  @Test
   public void testReleasePerpetualLock() {
     String lockId = "test-lock-release";
     String owner = "test-owner";

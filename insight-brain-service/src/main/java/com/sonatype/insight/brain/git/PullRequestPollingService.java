@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.git;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.LongSupplier;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -52,6 +55,19 @@ public class PullRequestPollingService
   static final int PULL_REQUESTS_PER_MONITOR_CYCLE = 50;
 
   private static final int MAX_API_REQUESTS_PER_CYCLE = 50;
+
+  // How long a positive canPollForPullRequests result can be reused from the per-cycle cache
+  // before we must consult the load balancer again. This MUST stay comfortably below the
+  // partition-reservation safety window used by SelfThrottlingLoadBalancer (60s for SCM), so the
+  // cache never reports 'permission granted' after the underlying DB reservation could have
+  // lapsed. A long-running cycle (many slow SCM API calls) will cross this boundary and the next
+  // lookup will fall through to the load balancer; the load balancer's own renewal cache will
+  // usually satisfy that call in-memory without any DB write.
+  @VisibleForTesting
+  static final long CAN_POLL_CACHE_TTL_MILLIS = 30_000L;
+
+  @VisibleForTesting
+  public LongSupplier nowMillisSupplierForTesting = System::currentTimeMillis;
 
   private static final String POLLING = "polling";
 
@@ -225,6 +241,23 @@ public class PullRequestPollingService
     List<PullRequest> pullRequests = new ArrayList<>();
     int apiCallCount = 0;
 
+    // Cache positive canPollForPullRequests results per scmUsername for the duration of this
+    // cycle, with a TTL to ensure the cache never outlives the underlying DB partition
+    // reservation.
+    //
+    // The load balancer's canPollForPullRequests does a SELECT FOR UPDATE + UPDATE on the global
+    // perpetual_lock table (via SelfThrottlingLoadBalancer.canUsePartition). In MTIQ SaaS the
+    // same scmUsername typically maps to many -- sometimes hundreds -- of source_control rows
+    // (an org-level SCM token that every inheriting app uses). Without caching, a healthy cohort
+    // of active customers drives N-per-repo write churn on the shared lock table every cycle.
+    //
+    // The TTL matters because a cycle can legitimately run longer than the partition reservation
+    // window (MAX_API_REQUESTS_PER_CYCLE = 50 SCM calls, each potentially seconds of latency).
+    // If the cache held a positive result past the reservation's expiry, we could hand out
+    // 'permission to poll' while another instance had already re-acquired the partition. Values
+    // in this map are epoch-millis deadlines; entries are only trusted while now < deadline.
+    Map<String, Long> canPollValidUntilMillis = new HashMap<>();
+
     // make sure all the pull request poll times are as they should be; prevents us from having to put complicated
     // logic in various places to make sure poll times are updated as necessary whenever source control entries are
     // manipulated
@@ -251,7 +284,7 @@ public class PullRequestPollingService
         continue;
       }
 
-      if (canPoll(gitRepositoryInfo)) {
+      if (canPoll(gitRepositoryInfo, canPollValidUntilMillis)) {
         String org = null;
         String repo = null;
         try {
@@ -327,7 +360,7 @@ public class PullRequestPollingService
     return pullRequests;
   }
 
-  private boolean canPoll(GitRepositoryInfo gitRepositoryInfo) {
+  private boolean canPoll(GitRepositoryInfo gitRepositoryInfo, Map<String, Long> canPollValidUntilMillis) {
     if (!sourceControlUtils.isScmEnabled(gitRepositoryInfo)) {
       log.debug("PR polling will be skipped for given repo due to incomplete gitRepositoryInfo:%n" +
           "  url={}%n  provider={}%n  has token={}%n  has username={}",
@@ -347,7 +380,23 @@ public class PullRequestPollingService
       return false;
     }
 
-    return sourceControlLoadBalancer.canPollForPullRequests(getScmUsernameForPolling(gitRepositoryInfo));
+    // Consult the per-cycle cache before paying for a perpetual_lock write. The cache only
+    // remembers positive results and only for CAN_POLL_CACHE_TTL_MILLIS, ensuring it never
+    // outlives the underlying DB reservation. See getPullRequestsFromScm for the full rationale.
+    String scmUsername = getScmUsernameForPolling(gitRepositoryInfo);
+    long now = nowMillisSupplierForTesting.getAsLong();
+    Long validUntil = canPollValidUntilMillis.get(scmUsername);
+    if (validUntil != null && now < validUntil) {
+      return true;
+    }
+    boolean result = sourceControlLoadBalancer.canPollForPullRequests(scmUsername);
+    if (result) {
+      canPollValidUntilMillis.put(scmUsername, now + CAN_POLL_CACHE_TTL_MILLIS);
+    }
+    else {
+      canPollValidUntilMillis.remove(scmUsername);
+    }
+    return result;
   }
 
   private String getScmUsernameForPolling(GitRepositoryInfo gitRepositoryInfo) {

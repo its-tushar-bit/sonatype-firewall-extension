@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
@@ -21,6 +22,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scale.HeartbeatPartitionManager;
 import com.sonatype.insight.brain.scale.SelfThrottlingLoadBalancer;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
@@ -31,7 +34,12 @@ import org.mockito.MockitoAnnotations;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -453,6 +461,66 @@ public class SourceControlLoadBalancerTest
 
     // then: balancerTwo can pick up the remaining event
     assertThat(balancerTwo.acquireEventsToProcess()).hasSize(1);
+  }
+
+  @Test
+  public void testAcquireEventsToProcess_maintenanceLockRunsAsGlobalTenant() {
+    // given: a load balancer with a SPY on PerpetualLockManager so we can capture the raw thread-
+    // local tenant at the moment the maintenance lock is requested. Running as a real test tenant
+    // (via TenantTestHelper.testAsTenant) is important here -- if the thread is SINGLE_TENANT when
+    // runAsGlobal is invoked, runAsGlobal is a no-op (see TenantThreadLocal.runAsWithoutValidation)
+    // so the test couldn't distinguish "wrapped in runAsGlobal" from "not wrapped".
+    // The maintenance lock MUST be acquired against the global schema because it coordinates
+    // stale-event cleanup across all mtiq-batch instances and across tenants; without the
+    // runAsGlobal wrapper the lock row would go into whatever tenant schema the caller happened
+    // to be running under, breaking cross-tenant coordination and polluting per-tenant perpetual
+    // lock tables.
+    OperationalDataStore ods = databaseContainerRule.getOperationalDataStore();
+    PerpetualLockManager spyPerpetualLockManager = spy(new PerpetualLockManager(new PerpetualLockDAO(ods)));
+    HeartbeatPartitionManager heartbeatPartitionManager = new HeartbeatPartitionManager(spyPerpetualLockManager);
+    SourceControlLoadBalancer loadBalancer = new SourceControlLoadBalancer(
+        heartbeatPartitionManager,
+        spyPerpetualLockManager,
+        new SourceControlEventDAO(ods),
+        mock(TenantUtil.class));
+    loadBalancer.start();
+    activeLoadBalancers.add(loadBalancer);
+
+    // Capture the raw thread-local tenant at the moment tryAcquireLock is called. We must use
+    // TenantTestHelper.assertTenantSet (which reads via getTenantWithoutValidation, package-
+    // private to the tenancy package) rather than TenantThreadLocal.getTenant(); the validated
+    // form collapses everything to SINGLE_TENANT in non-MT mode and would hide whether
+    // runAsGlobal was actually invoked.
+    AtomicReference<Throwable> capturedFailure = new AtomicReference<>();
+    doAnswer(invocation -> {
+      try {
+        TenantTestHelper.assertTenantSet(Tenant.GLOBAL_TENANT);
+      }
+      catch (Throwable t) {
+        capturedFailure.set(t);
+      }
+      return invocation.callRealMethod();
+    }).when(spyPerpetualLockManager)
+        .tryAcquireLock(
+            eq(SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK),
+            anyString(),
+            anyString(),
+            anyLong());
+
+    TenantTestHelper.testAsNewTenant("maintenance-lock-test-tenant", tenant -> {
+      // Sanity-check: at the entry point we are NOT running as global. Otherwise the test would
+      // pass trivially whether or not tryGetMaintenanceLock wraps its call in runAsGlobal.
+      TenantTestHelper.assertTenantSet(tenant);
+
+      // when: acquire events to process, which internally triggers resetStaleEvents ->
+      // tryGetMaintenanceLock
+      loadBalancer.acquireEventsToProcess();
+    });
+
+    // then: the maintenance lock request was made while the thread-local tenant was global
+    assertThat(capturedFailure.get())
+        .as("tryGetMaintenanceLock should have been invoked with the global tenant active")
+        .isNull();
   }
 
   @Test

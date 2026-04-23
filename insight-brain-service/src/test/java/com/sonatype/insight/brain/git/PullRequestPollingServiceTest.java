@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -45,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -713,6 +715,100 @@ public class PullRequestPollingServiceTest
         info(
             "Sent pull request discovered event for application 'github2' with PR# '20' and commit " +
                 "'feature-commit-abc-2'"));
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_canPollCheckedAtMostOncePerScmUsernamePerCycle() throws Exception {
+    // given: three repos sharing the same SCM username. This is the common MTIQ SaaS topology:
+    // hundreds of applications inherit a single SCM token from an organization, so each cycle
+    // visits hundreds of source_control rows all with the same scmUsername. Under the original
+    // implementation every one of those visits did a SELECT FOR UPDATE + UPDATE on
+    // global.perpetual_lock (via SourceControlLoadBalancer.canPollForPullRequests -> canUsePartition),
+    // generating excessive write churn against the shared lock table. Within a single cycle the
+    // partition-reservation state for a given scmUsername is stable, so the canPoll result can
+    // safely be cached per scmUsername and re-used for every repository that maps to that user.
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("sharedUserOrg/repo-a", SourceControlProvider.GITHUB)
+        .withApplication("appA", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+
+        .forRepository("sharedUserOrg/repo-b", SourceControlProvider.GITHUB)
+        .withApplication("appB", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+
+        .forRepository("sharedUserOrg/repo-c", SourceControlProvider.GITHUB)
+        .withApplication("appC", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
+
+    // when: one polling cycle runs
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: canPollForPullRequests is invoked exactly once -- for the single shared scmUsername --
+    // regardless of how many repositories are mapped to it. (The test builder uses a GitHub repo
+    // with no username configured, so the polling service synthesizes the anonymous-poller key,
+    // which is still shared across every repo in this cycle.)
+    verify(builder.mockSourceControlLoadBalancer, times(1))
+        .canPollForPullRequests("github-anonymous-poller");
+    // and no other scmUsername was ever checked.
+    verify(builder.mockSourceControlLoadBalancer, times(1)).canPollForPullRequests(any());
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_canPollCacheIsRefreshedWhenItsTTLExpiresMidCycle() throws Exception {
+    // given: two repos sharing the same SCM username but with different orgs (so the
+    // visitAndCheckKeyAlreadyUsed dedup at the (org, repo, token) level does NOT kick in; each
+    // repo performs a real SCM API call). We simulate a slow cycle -- each API call advances the
+    // clock past the per-cycle canPoll cache TTL. This models the realistic worst case where a
+    // cycle with many slow SCM calls runs longer than the partition-reservation window; the
+    // cached canPoll=true must be re-checked, or else the polling service would hold stale
+    // 'permission to poll' past the actual DB reservation's lifetime (in multi-instance mode that
+    // can race with another batch node re-acquiring the partition).
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    final Date pullRequestCreateDate = new Date();
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("orgOne/repo-a", SourceControlProvider.GITHUB)
+        .withApplication("appA", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-a", "main-branch",
+            "commit-a", "base-a", PullRequestState.OPEN)
+
+        .forRepository("orgTwo/repo-b", SourceControlProvider.GITHUB)
+        .withApplication("appB", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(20, pullRequestCreateDate, "feature-b", "main-branch",
+            "commit-b", "base-b", PullRequestState.OPEN)
+        .build();
+
+    // Install a controllable clock on the polling service.
+    AtomicLong now = new AtomicLong(1_000_000_000L);
+    pollingService.nowMillisSupplierForTesting = now::get;
+
+    // Every SCM API call advances the clock past the cache TTL. This simulates a cycle in which
+    // each API call takes longer than the canPoll cache TTL (e.g. GitHub API rate limiting).
+    for (PullRequestInfoProvider mockClient : mockClientMap.values()) {
+      org.mockito.stubbing.Answer<List<PullRequest>> advanceClockThenReturnPrs = invocation -> {
+        now.addAndGet(PullRequestPollingService.CAN_POLL_CACHE_TTL_MILLIS + 1_000L);
+        // Determine which repo's mock this is by looking up its accumulated result set above.
+        // We just need to return an empty list to avoid re-triggering event publishing paths
+        // -- this test is purely about the canPoll cache semantics.
+        return new ArrayList<>();
+      };
+      doAnswer(advanceClockThenReturnPrs).when(mockClient)
+          .getPullRequestsSince(any(), any(OffsetDateTime.class), anyInt());
+    }
+
+    // when: one polling cycle runs across both repos
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: because the clock advanced past the TTL between the two repos, canPoll must have
+    // been re-checked for the second repo. Without TTL enforcement it would only have been
+    // called once (the Fix 4 dedup cache would still think the reservation was valid).
+    verify(builder.mockSourceControlLoadBalancer, times(2))
+        .canPollForPullRequests("github-anonymous-poller");
   }
 
   @Test

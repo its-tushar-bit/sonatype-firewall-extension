@@ -127,6 +127,16 @@ public class SelfThrottlingLoadBalancerTest
     assertThat(canUse).isTrue();
   }
 
+  // Note on prior local work: this branch previously carried two tests
+  // (testCanUsePartition_skipsRenewalWhileExistingReservationIsStillCurrent and
+  // testCanUsePartition_renewsAfterSkippableWindowExpires) that verified a local
+  // SelfThrottlingLoadBalancer-scoped renewal-skip cache, using an injectable LongSupplier clock.
+  // The same behavior is now implemented in PartitionHelper.isReservationValid /
+  // cacheReservation (merged from main), which is a cleaner location because PartitionHelper
+  // already owns the partition ownership state. testCanUsePartition_cachedReservationSkipsDbCall
+  // below is the equivalent of what those tests verified. Testing TTL *expiry* (the "renews after
+  // window" case) would require a clock hook in PartitionHelper and is left as a follow-up.
+
   @Test
   public void testStart_MultiTenant_BatchNode() {
     when(mockTenantUtil.isMultiTenant()).thenReturn(true);

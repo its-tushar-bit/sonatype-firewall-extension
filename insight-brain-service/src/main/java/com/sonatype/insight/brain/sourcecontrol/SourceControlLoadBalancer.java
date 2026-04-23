@@ -159,11 +159,16 @@ public class SourceControlLoadBalancer
     return DigestUtils.sha256Hex(String.format("%s:%s", TenantThreadLocal.getTenant().tenantSlug, scmUsername));
   }
 
+  // The maintenance lock coordinates stale-event cleanup across all mtiq-batch instances, so it
+  // must live in the shared global schema just like the heartbeat and partition-reservation locks.
+  // Without the runAsGlobal wrapper this call writes into whatever tenant schema happens to be on
+  // the calling thread, which silently breaks cross-tenant coordination and pollutes per-tenant
+  // perpetual_lock tables.
   private boolean tryGetMaintenanceLock() {
-    return perpetualLockManager.tryAcquireLock(
+    return TenantThreadLocal.runAsGlobal(() -> perpetualLockManager.tryAcquireLock(
         SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK,
         SOURCE_CONTROL_MAINTENANCE_CATEGORY,
         getInstanceId(),
-        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
+        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));
   }
 }

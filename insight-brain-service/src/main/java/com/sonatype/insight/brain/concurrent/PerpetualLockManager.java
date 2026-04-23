@@ -99,7 +99,20 @@ public class PerpetualLockManager
     }
 
     if (null == perpetualLock) {
-      acquired = createPerpetualLock(perpetualLockId, category, owner, expiration);
+      // Defensive: createPerpetualLock can rethrow DB exceptions that aren't unique-constraint
+      // violations (e.g. a connection dropped mid-statement during an Aurora failover). We must
+      // never let those propagate out of tryAcquireLock -- its contract is "returns a boolean,
+      // never throws". If this method threw, any scheduled caller using
+      // ScheduledExecutorService.scheduleAtFixedRate would be silently cancelled for the
+      // remainder of the JVM's lifetime. Log and return false; the caller will retry next cycle.
+      try {
+        acquired = createPerpetualLock(perpetualLockId, category, owner, expiration);
+      }
+      catch (Exception e) {
+        log.error("Failed to acquire perpetual lock {} for owner {}; treating as not-acquired",
+            shortIdForLogging, shortOwnerForLogging, e);
+        acquired = false;
+      }
     }
 
     return acquired;

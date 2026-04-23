@@ -56,6 +56,18 @@ public class PullRequestPollingService
 
   private static final int MAX_API_REQUESTS_PER_CYCLE = 50;
 
+  // Safety cap on total source_control entries processed per cycle. When all repos share the same
+  // org-wide key (common with GitHub App), only 1 SCM API call is made but the loop still iterates
+  // through every repo doing DB work. This cap prevents runaway cycles.
+  @VisibleForTesting
+  static final int MAX_REPOS_PER_CYCLE = 500;
+
+  // After successful processing, repos have their poll time pushed this far into the future so they
+  // are not immediately eligible for the next cycle. This matches the scheduler's discovery
+  // interval, ensuring each repo is polled at most once per interval.
+  @VisibleForTesting
+  static final long POLL_INTERVAL_MS = PullRequestPollingScheduler.PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS * 1000L;
+
   // How long a positive canPollForPullRequests result can be reused from the per-cycle cache
   // before we must consult the load balancer again. This MUST stay comfortably below the
   // partition-reservation safety window used by SelfThrottlingLoadBalancer (60s for SCM), so the
@@ -163,9 +175,9 @@ public class PullRequestPollingService
           createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest);
         }
 
-        pollingTracker.onPullRequestProcessedForApplication(app.getId(), pullRequest.getCreated());
-        log.debug("Pull request polling time updated for '{}' to {}", pullRequest.getRepository(),
-            pullRequest.getCreated());
+        // No per-app poll time update needed here: onPullRequestProcessed already advanced
+        // poll_request_poll_time for all records sharing this repo URL to now + POLL_INTERVAL_MS,
+        // and the SCM query cutoff is tracked separately in the keyCutoffTimes cache.
       }
     }
   }
@@ -264,11 +276,15 @@ public class PullRequestPollingService
     pollingTracker.initializePullRequestPollTimes();
 
     // cycle thru the repos until we find some new pull requests or run out of repos to check
-    while (pullRequests.size() < PULL_REQUESTS_PER_MONITOR_CYCLE && apiCallCount < MAX_API_REQUESTS_PER_CYCLE) {
+    int repoCount = 0;
+    while (pullRequests.size() < PULL_REQUESTS_PER_MONITOR_CYCLE && apiCallCount < MAX_API_REQUESTS_PER_CYCLE
+        && repoCount < MAX_REPOS_PER_CYCLE)
+    {
       SourceControl sourceControl = pollingTracker.getNextRepositoryToPoll();
       if (null == sourceControl) {
         break;
       }
+      repoCount++;
 
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(sourceControl.getOwnerId());
@@ -300,10 +316,12 @@ public class PullRequestPollingService
           Date currentCutoffTime =
               pollingTracker.getCachedCutoffTime(org, repo, token, sourceControl.getPullRequestPollTime());
 
+          Date nextPollTime = new Date(nowMillisSupplierForTesting.getAsLong() + POLL_INTERVAL_MS);
+
           if (pollingTracker.visitAndCheckKeyAlreadyUsed(org, repo, token)) {
-            // we've already used this key combination and any results for the given repo would have already come back.
-            // so, we just need to advance the polling times for this repo
-            pollingTracker.onPullRequestProcessed(sourceControl, org, repo, token, currentCutoffTime);
+            // We've already polled this org+token combo — just advance this repo's poll eligibility
+            // with a lightweight single-row update, skipping the expensive getByRepositoryUrl fan-out.
+            sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl.getId(), nextPollTime, 0);
           }
           else {
             PullRequestInfoProvider client = gitClientFactory.createPullRequestInfoClient(gitRepositoryInfo);
@@ -326,11 +344,11 @@ public class PullRequestPollingService
             }
 
             if (pullRequestResults.isEmpty()) {
-              pollingTracker.onPullRequestProcessed(sourceControl, org, repo, token, now);
+              pollingTracker.onPullRequestProcessed(sourceControl, org, repo, token, now, nextPollTime);
             }
             else {
               currentCutoffTime = pullRequestResults.stream().map(PullRequest::getCreated).max(Date::compareTo).get();
-              pollingTracker.onPullRequestProcessed(sourceControl, org, repo, token, currentCutoffTime);
+              pollingTracker.onPullRequestProcessed(sourceControl, org, repo, token, currentCutoffTime, nextPollTime);
             }
 
             apiCallCount++;

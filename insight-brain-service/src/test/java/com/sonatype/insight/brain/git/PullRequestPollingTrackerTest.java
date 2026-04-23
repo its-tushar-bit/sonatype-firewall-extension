@@ -398,6 +398,46 @@ public class PullRequestPollingTrackerTest
     });
   }
 
+  @Test
+  public void testOnPullRequestProcessed_setsNextPollTimeToFuture() {
+    // given: source control entry with initial values
+    long now = System.currentTimeMillis();
+    Date cutoffTime = new Date(now);
+    Date nextPollTime = new Date(now + 60_000);
+    SourceControl sourceControl = createSourceControl();
+    sourceControl.setPullRequestErrorCount(3);
+    sourceControlDAO.update(sourceControl);
+
+    // when: update poll times called with separate cutoff and poll times
+    pollingTracker.onPullRequestProcessed(sourceControl, "org", "repo", "token", cutoffTime, nextPollTime);
+
+    // then: poll time should be the future nextPollTime, NOT the cutoff time
+    sourceControl = sourceControlDAO.getById(sourceControl.getId());
+    assertThat(sourceControl.getPullRequestPollTime()).isEqualTo(nextPollTime);
+    assertThat(sourceControl.getPullRequestErrorCount()).isEqualTo(0);
+
+    // and: cutoff time cache should use the cutoffTime, not the poll time
+    Date defaultCutoff = new Date(now - (1000 * 60 * 60 * 24));
+    assertThat(pollingTracker.getCachedCutoffTime("org", "repo", "token", defaultCutoff)).isEqualTo(cutoffTime);
+  }
+
+  @Test
+  public void testOnPullRequestProcessed_2AppsSameRepoUrl_setsNextPollTimeToFuture() {
+    // given: source control entries with same repo URL
+    long now = System.currentTimeMillis();
+    Date cutoffTime = new Date(now);
+    Date nextPollTime = new Date(now + 60_000);
+    SourceControl sourceControl1 = createSourceControl("http://localhost/test/repo");
+    SourceControl sourceControl2 = createSourceControl("http://localhost/test/repo");
+
+    // when: update poll times called with separate cutoff and poll times
+    pollingTracker.onPullRequestProcessed(sourceControl1, "org", "repo", "token", cutoffTime, nextPollTime);
+
+    // then: both records should have the future poll time
+    assertThat(sourceControlDAO.getById(sourceControl1.getId()).getPullRequestPollTime()).isEqualTo(nextPollTime);
+    assertThat(sourceControlDAO.getById(sourceControl2.getId()).getPullRequestPollTime()).isEqualTo(nextPollTime);
+  }
+
   private SourceControl createSourceControl() {
     Application app = tempEntity.newApplicationWithParent();
     return tempEntity.newSourceControl(app.getId(), "http://localhost/test/" + app.getId(), "testToken",

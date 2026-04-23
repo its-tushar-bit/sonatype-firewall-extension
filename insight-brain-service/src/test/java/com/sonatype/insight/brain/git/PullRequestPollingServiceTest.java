@@ -606,14 +606,15 @@ public class PullRequestPollingServiceTest
         repo2pullRequestCreateDate, before, after,
         com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
-    // and SourceControls are updated as expected
+    // and SourceControls are updated as expected — poll times are in the future (not the PR create dates)
+    Date expectedMinPollTime = new Date(before.getTime() + PullRequestPollingService.POLL_INTERVAL_MS);
     SourceControl sourceControl1 =
         sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl.getId());
-    assertThat(sourceControl1.getPullRequestPollTime()).isEqualTo(repo1pullRequestCreateDate);
+    assertThat(sourceControl1.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
     assertThat(sourceControl1.getPullRequestErrorCount()).isEqualTo(0);
     SourceControl sourceControl2 =
         sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl.getId());
-    assertThat(sourceControl2.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl2.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
     assertThat(sourceControl2.getPullRequestErrorCount()).isEqualTo(0);
 
     // and events are emitted
@@ -695,15 +696,15 @@ public class PullRequestPollingServiceTest
         repo2pullRequestCreateDate, before, after,
         com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN);
 
-    // and SourceControls are updated as expected
-    // Both SourceControls their poll time updated to the max of pull request create time (for the two pull requests)
+    // and SourceControls are updated as expected — poll times are in the future
+    Date expectedMinPollTime = new Date(before.getTime() + PullRequestPollingService.POLL_INTERVAL_MS);
     SourceControl sourceControl1 =
         sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(0).sourceControl.getId());
-    assertThat(sourceControl1.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl1.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
     assertThat(sourceControl1.getPullRequestErrorCount()).isEqualTo(0);
     SourceControl sourceControl2 =
         sourceControlDAO.getById(testablePullRequestPollingServiceBuilder.mockRepoList.get(1).sourceControl.getId());
-    assertThat(sourceControl2.getPullRequestPollTime()).isEqualTo(repo2pullRequestCreateDate);
+    assertThat(sourceControl2.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
     assertThat(sourceControl2.getPullRequestErrorCount()).isEqualTo(0);
 
     // and events are emitted
@@ -715,6 +716,37 @@ public class PullRequestPollingServiceTest
         info(
             "Sent pull request discovered event for application 'github2' with PR# '20' and commit " +
                 "'feature-commit-abc-2'"));
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_pollTimesSetToFutureAfterProcessing() throws Exception {
+    // given: two repos in the same org (GitHub). After the API call for the first repo,
+    // the second repo uses the "already used key" path. Both should get poll times
+    // set to the future so they are NOT immediately eligible for the next cycle.
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("sharedOrg/repo-a", SourceControlProvider.GITHUB)
+        .withApplication("appFuturePollA", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+
+        .forRepository("sharedOrg/repo-b", SourceControlProvider.GITHUB)
+        .withApplication("appFuturePollB", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
+
+    // when: one polling cycle runs
+    Date beforePoll = new Date();
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: both repos have poll times in the future (at least discovery-interval seconds from now)
+    SourceControl sc1 = sourceControlDAO.getById(builder.mockRepoList.get(0).sourceControl.getId());
+    SourceControl sc2 = sourceControlDAO.getById(builder.mockRepoList.get(1).sourceControl.getId());
+
+    Date expectedMinPollTime = new Date(beforePoll.getTime() +
+        PullRequestPollingService.POLL_INTERVAL_MS);
+    assertThat(sc1.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
+    assertThat(sc2.getPullRequestPollTime()).isAfterOrEqualTo(expectedMinPollTime);
   }
 
   @Test

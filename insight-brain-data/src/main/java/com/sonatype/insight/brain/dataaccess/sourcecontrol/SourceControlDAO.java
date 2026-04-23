@@ -618,6 +618,51 @@ public class SourceControlDAO
         .execute();
   }
 
+  /**
+   * Like {@link #updatePollTimeAndErrorCounts} but only moves poll time forward. If the existing poll time is already
+   * past {@code pollTime}, it is left unchanged. Error count is always updated.
+   */
+  public void updatePollTimeForwardAndErrorCounts(String sourceControlId, Date pollTime, int errorCount) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL)
+          .set(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME,
+              DSL.when(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNull()
+                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)), pollTime)
+                  .otherwise(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
+          .set(SOURCE_CONTROL.PULL_REQUEST_ERROR_COUNT, errorCount)
+          .where(SOURCE_CONTROL.SOURCE_CONTROL_ID.eq(sourceControlId))
+          .execute();
+      tx.commit();
+    }
+  }
+
+  /**
+   * Updates poll time and error count for all source_control records sharing the given repository URL,
+   * in a single query. The poll time is only moved forward — records whose existing poll time is already
+   * past {@code pollTime} keep their current poll time, but the error count is always updated.
+   */
+  public void updatePollTimeAndErrorCountsByRepositoryUrl(String repositoryUrl, Date pollTime, int errorCount) {
+    if (repositoryUrl == null) {
+      return;
+    }
+    repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL)
+          .set(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME,
+              DSL.when(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNull()
+                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)), pollTime)
+                  .otherwise(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
+          .set(SOURCE_CONTROL.PULL_REQUEST_ERROR_COUNT, errorCount)
+          .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.eq(repositoryUrl))
+          .execute();
+      tx.commit();
+    }
+  }
+
   private void setDefaultsAsNecessary(SourceControl sourceControl) {
     if (isForRootOrganization(sourceControl)) {
       if (null == sourceControl.getRemediationPullRequestsEnabled()) {

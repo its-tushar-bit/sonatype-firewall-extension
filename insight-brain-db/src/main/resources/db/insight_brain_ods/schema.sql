@@ -842,6 +842,7 @@ CREATE TABLE source_control (
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
 CREATE INDEX source_control_normalized_repository_url_idx ON source_control(normalized_repository_url);
+CREATE INDEX source_control_pull_request_poll_time_idx ON source_control(pull_request_poll_time);
 
 -- Since 1.140
 CREATE TABLE source_control_configuration (

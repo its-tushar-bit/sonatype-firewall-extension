@@ -154,10 +154,25 @@ class PullRequestPollingTracker
    * @param cutoffTime next time to use for polling cutoff
    */
   void onPullRequestProcessed(SourceControl sourceControl, String org, String repo, String token, Date cutoffTime) {
-    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryUrl(sourceControl.getRepositoryUrl());
-    for (SourceControl sourceControlRecord : sourceControlList) {
-      updateSourceControl(sourceControlRecord, cutoffTime, 0);
-    }
+    onPullRequestProcessed(sourceControl, org, repo, token, cutoffTime, cutoffTime);
+  }
+
+  /**
+   * Overload that separates the SCM query cutoff time from the next poll eligibility time.
+   *
+   * @param cutoffTime the time to cache as the SCM query cutoff ("give me PRs since this date")
+   * @param nextPollTime the time to write to pull_request_poll_time ("don't poll this repo again until this date")
+   */
+  void onPullRequestProcessed(
+      SourceControl sourceControl,
+      String org,
+      String repo,
+      String token,
+      Date cutoffTime,
+      Date nextPollTime)
+  {
+    sourceControlDAO.updatePollTimeAndErrorCountsByRepositoryUrl(
+        sourceControl.getRepositoryUrl(), nextPollTime, 0);
     setCachedCutoffTime(org, repo, token, cutoffTime);
   }
 
@@ -169,11 +184,7 @@ class PullRequestPollingTracker
   }
 
   private void updateSourceControl(SourceControl sourceControl, Date pollTime, int errors) {
-    // Don't move the PR poll time back in time
-    if (sourceControl.getPullRequestPollTime() != null && pollTime.before(sourceControl.getPullRequestPollTime())) {
-      pollTime = sourceControl.getPullRequestPollTime();
-    }
-    sourceControlDAO.updatePollTimeAndErrorCounts(sourceControl.getId(), pollTime, errors);
+    sourceControlDAO.updatePollTimeForwardAndErrorCounts(sourceControl.getId(), pollTime, errors);
   }
 
   void initializePullRequestPollTimes() {

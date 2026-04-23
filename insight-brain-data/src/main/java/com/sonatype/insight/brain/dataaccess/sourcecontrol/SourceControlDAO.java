@@ -610,13 +610,12 @@ public class SourceControlDAO
       Date pollTime,
       int errorCount)
   {
-    SourceControl sourceControl = getById(tx, sourceControlId);
-    if (null != sourceControl) {
-      sourceControl.setPullRequestErrorCount(errorCount);
-      sourceControl.setPullRequestPollTime(pollTime);
-      // Use updateWithoutValidation since we only changed poll time and error count fields
-      updateWithoutValidation(tx, sourceControl);
-    }
+    tx.dsl()
+        .update(SOURCE_CONTROL)
+        .set(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME, pollTime)
+        .set(SOURCE_CONTROL.PULL_REQUEST_ERROR_COUNT, errorCount)
+        .where(SOURCE_CONTROL.SOURCE_CONTROL_ID.eq(sourceControlId))
+        .execute();
   }
 
   private void setDefaultsAsNecessary(SourceControl sourceControl) {

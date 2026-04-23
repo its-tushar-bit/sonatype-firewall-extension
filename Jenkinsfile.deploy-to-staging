@@ -8,7 +8,7 @@
 /**
  * Standalone pipeline for deploying MTIQ images to staging cells.
  *
- * Triggered on a cron schedule (2x/day on weekdays) and manually from Jenkins UI.
+ * Triggered automatically from push-to-staging after successful ECR promotion, and manually from Jenkins UI.
  * Reads the latest image from staging ECR and deploys via Terraform Cloud.
  *
  * Parameters:
@@ -45,13 +45,6 @@ def STAGING_GLOBAL_WORKSPACE = 'sca_aws_staging_global'   // Placeholder
 
 pipeline {
   agent { label 'zion-small' }
-
-  triggers {
-    // Schedule runs at 13:00 and 19:00 UTC
-    // - 9am ET during EDT (UTC-4): March through early November
-    // - 8am ET during EST (UTC-5): November through March
-    cron('0 13 * * 1-5\n0 19 * * 1-5')
-  }
 
   parameters {
     string(name: 'IMAGE_TAG', defaultValue: 'staging-latest',

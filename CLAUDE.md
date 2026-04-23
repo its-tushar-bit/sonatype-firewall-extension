@@ -236,7 +236,7 @@ PRs that add new database columns, change data formats, or modify API contracts 
 ### 12. Configuration and infrastructure
 - Dropwizard `config.yml` changes: verify they apply to both on-prem and MTIQ variants (PR #15172: syntax fix in MTIQ config.yml)
 - Environment-specific configs in `src/test/resources/config-*.yml`
-- Jenkinsfile changes: verify pipeline stages, parallelism, and timeout values
+- Jenkinsfile changes: verify pipeline stages, parallelism, and timeout values. See [`jenkins/DEPLOYMENT-PIPELINE.md`](jenkins/DEPLOYMENT-PIPELINE.md) for the full MTIQ deployment pipeline runbook (job flow, failure modes, rollback procedures).
 - Build profile changes (`-Pquick`, `--Pci`, `sonatype` profile): verify Spotless behavior (apply vs check)
 
 ### 13. Documentation coherence

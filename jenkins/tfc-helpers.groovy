@@ -15,8 +15,8 @@
  * keeping environment-specific configuration close to the job that uses it.
  *
  * ── Auto-approval safety guard ──────────────────────────────────────────────────────────────────
- * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 1 resource
- * destruction (the normal case for ECS task-definition replacement). Plans with more than 1
+ * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 2 resource
+ * destruction (the normal case for ECS task-definition replacement). Plans with more than 2
  * destruction are discarded and the pipeline fails to prevent unintended infrastructure teardown.
  */
 import groovy.transform.Field
@@ -183,7 +183,8 @@ void tfcDeploy(String workspaceName, String imageUri) {
       }
       final int destructions = destructionsRaw
 
-      if (destructions > 1) {
+      // Safety guard: refuse to auto-approve plans with more than 2 destructions (normal for ECS task MTIQ Server and Batch replacement)
+      if (destructions > 2) {
         httpRequest(
           url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/discard",
           httpMode: 'POST',

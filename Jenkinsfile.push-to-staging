@@ -12,6 +12,7 @@
  * The identical image bits are promoted, preserving multi-architecture support.
  *
  * Triggered as a downstream job from Jenkinsfile.test-shared-dev after successful smoke tests.
+ * On success, triggers deploy-to-staging to deploy the promoted image.
  *
  * Parameters:
  *   IMAGE_TAG - The ECR tag to promote (e.g., 202604161432-main-142-a1b2c3d4)
@@ -127,6 +128,17 @@ pipeline {
             'staging-latest'
           )
           echo "Verified: ${params.IMAGE_TAG} and staging-latest are in staging ECR"
+        }
+      }
+    }
+
+    stage('Trigger deploy-to-staging') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/deploy-to-staging',
+              parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+              wait: false,
+              propagate: false
         }
       }
     }

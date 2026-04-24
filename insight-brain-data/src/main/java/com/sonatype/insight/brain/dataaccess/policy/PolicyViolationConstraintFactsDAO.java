@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -17,6 +22,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolationConstraintFacts.POLICY_VIOLATION_CONSTRAINT_FACTS;
@@ -43,6 +49,37 @@ public class PolicyViolationConstraintFactsDAO
       insert(constraints);
 
       return constraints;
+    }
+  }
+
+  /**
+   * Batched version of {@link #createIfNotExists(String)} — selects existing rows with a single IN query and inserts
+   * missing rows with a single batch insert, rather than issuing one SELECT + one INSERT per JSON string.
+   */
+  public void createBatchIfNotExists(final Collection<String> constraintFactsJsons) {
+    if (CollectionUtils.isEmpty(constraintFactsJsons)) {
+      return;
+    }
+
+    Map<String, String> jsonById = new HashMap<>();
+    for (String json : constraintFactsJsons) {
+      Objects.requireNonNull(json, "constraintFactsJson element must not be null");
+      jsonById.put(AbstractPolicyViolation.calculateConstraintFactsId(json), json);
+    }
+
+    Set<String> existingIds = getByIds(jsonById.keySet()).stream()
+        .map(PolicyViolationConstraintFacts::getId)
+        .collect(Collectors.toSet());
+
+    List<PolicyViolationConstraintFacts> toInsert = jsonById.entrySet()
+        .stream()
+        .filter(e -> !existingIds.contains(e.getKey()))
+        .map(e -> new PolicyViolationConstraintFacts(e.getKey(), e.getValue()))
+        .toList();
+
+    if (!toInsert.isEmpty()) {
+      // ignoreDuplicateKey guards against a concurrent insert of the same hash between our SELECT and INSERT.
+      insertBatch(toInsert, true);
     }
   }
 

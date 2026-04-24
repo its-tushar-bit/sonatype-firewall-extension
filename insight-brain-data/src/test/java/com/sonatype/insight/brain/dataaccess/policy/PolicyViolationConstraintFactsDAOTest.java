@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 
 import org.junit.Before;
@@ -61,5 +64,47 @@ public class PolicyViolationConstraintFactsDAOTest
     String json = "json";
 
     dao.update(null, new PolicyViolationConstraintFacts(hash, json));
+  }
+
+  @Test
+  public void testCreateBatchIfNotExists_insertsMissingDedupsAndSkipsExisting() {
+    String preExistingJson = "[{\"pre\":\"" + UUID.randomUUID() + "\"}]";
+    String preExistingHash = AbstractPolicyViolation.calculateConstraintFactsId(preExistingJson);
+    dao.insert(new PolicyViolationConstraintFacts(preExistingHash, preExistingJson));
+
+    String newJsonA = "[{\"a\":\"" + UUID.randomUUID() + "\"}]";
+    String newJsonB = "[{\"b\":\"" + UUID.randomUUID() + "\"}]";
+    String newHashA = AbstractPolicyViolation.calculateConstraintFactsId(newJsonA);
+    String newHashB = AbstractPolicyViolation.calculateConstraintFactsId(newJsonB);
+
+    try {
+      // Input includes: pre-existing (skip), two new distinct (insert), and a duplicate of newJsonA (dedup).
+      dao.createBatchIfNotExists(List.of(preExistingJson, newJsonA, newJsonB, newJsonA));
+
+      List<PolicyViolationConstraintFacts> fetched =
+          dao.getByIds(Set.of(preExistingHash, newHashA, newHashB));
+      assertThat(fetched).hasSize(3);
+      assertThat(fetched).extracting(PolicyViolationConstraintFacts::getId)
+          .containsExactlyInAnyOrder(preExistingHash, newHashA, newHashB);
+    }
+    finally {
+      PolicyViolationConstraintFacts pre = dao.getById(preExistingHash);
+      if (pre != null) {
+        dao.delete(pre);
+      }
+      PolicyViolationConstraintFacts a = dao.getById(newHashA);
+      if (a != null) {
+        dao.delete(a);
+      }
+      PolicyViolationConstraintFacts b = dao.getById(newHashB);
+      if (b != null) {
+        dao.delete(b);
+      }
+    }
+  }
+
+  @Test
+  public void testCreateBatchIfNotExists_emptyInputIsNoOp() {
+    dao.createBatchIfNotExists(List.of());
   }
 }

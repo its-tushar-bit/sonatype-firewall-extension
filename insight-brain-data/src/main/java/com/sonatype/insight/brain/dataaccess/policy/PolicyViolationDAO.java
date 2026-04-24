@@ -111,9 +111,7 @@ public class PolicyViolationDAO
     // On H2, the fallback calls insert(tx, entity, ignoreDuplicateKey) per entity which already
     // handles storeConstraints via our insert() override.
     if (tx.dsl().dialect() != SQLDialect.H2) {
-      for (PolicyViolation entity : entities) {
-        storeConstraints(entity);
-      }
+      storeConstraintsBatch(entities);
     }
     super.insertBatch(tx, entities, ignoreDuplicateKey);
   }
@@ -123,9 +121,7 @@ public class PolicyViolationDAO
     // On H2, the fallback calls update(tx, entity) per entity which already handles storeConstraints
     // via our update() override.
     if (tx.dsl().dialect() != SQLDialect.H2) {
-      for (PolicyViolation entity : entities) {
-        storeConstraints(entity);
-      }
+      storeConstraintsBatch(entities);
     }
     super.updateBatch(tx, entities);
   }

@@ -3015,6 +3015,118 @@ public class PolicyViolationDAOTest
     assertThat(facts.getConstraintFactsJson()).contains("new-cid");
   }
 
+  @Test
+  public void testInsertBatch_multipleViolations_storesConstraintsBatched() {
+    doTestInsertBatch_multipleViolations_storesConstraintsBatched();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_multipleViolations_storesConstraintsBatched_Postgres() {
+    doTestInsertBatch_multipleViolations_storesConstraintsBatched();
+  }
+
+  private void doTestInsertBatch_multipleViolations_storesConstraintsBatched() {
+    PolicyViolation v1 = createFullyPopulatedViolation("scan-batch-multi-1");
+    PolicyViolation v2 = createFullyPopulatedViolation("scan-batch-multi-2");
+    // v2 gets distinct constraint facts
+    v2.setConstraintFacts(List.of(new ConstraintFact("cid-2", "cname-2", "cop-2")));
+
+    // v3 shares the same constraint facts as v1 (tests dedup within the batch)
+    PolicyViolation v3 = createFullyPopulatedViolation("scan-batch-multi-3");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.insertBatch(tx, List.of(v1, v2, v3), false);
+      tx.commit();
+    }
+
+    // All three should have constraint facts persisted
+    assertThat(v1.getConstraintFactsId()).isNotNull();
+    assertThat(v2.getConstraintFactsId()).isNotNull();
+    assertThat(v3.getConstraintFactsId()).isNotNull();
+
+    // v1 and v3 share the same constraint facts hash (same JSON)
+    assertThat(v1.getConstraintFactsId()).isEqualTo(v3.getConstraintFactsId());
+    assertThat(v1.getConstraintFactsId()).isNotEqualTo(v2.getConstraintFactsId());
+
+    // Verify all persisted correctly
+    assertThat(constraintFactsDAO.getById(v1.getConstraintFactsId())).isNotNull();
+    assertThat(constraintFactsDAO.getById(v2.getConstraintFactsId())).isNotNull();
+  }
+
+  @Test
+  public void testUpdateBatch_skipsAlreadyPersistedConstraints() {
+    doTestUpdateBatch_skipsAlreadyPersistedConstraints();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testUpdateBatch_skipsAlreadyPersistedConstraints_Postgres() {
+    doTestUpdateBatch_skipsAlreadyPersistedConstraints();
+  }
+
+  private void doTestUpdateBatch_skipsAlreadyPersistedConstraints() {
+    // Insert two violations
+    PolicyViolation v1 = createFullyPopulatedViolation("scan-batch-skip-1");
+    PolicyViolation v2 = createFullyPopulatedViolation("scan-batch-skip-2");
+    v2.setConstraintFacts(List.of(new ConstraintFact("skip-cid", "skip-cname", "skip-cop")));
+    dao.insert(v1);
+    dao.insert(v2);
+    String v1OriginalId = v1.getConstraintFactsId();
+    String v2OriginalId = v2.getConstraintFactsId();
+
+    // Reload from DB without loading constraint facts (simulates the skip branch:
+    // constraintFactsId is set but constraintFactsAreLoaded() returns false)
+    PolicyViolation loaded1 = dao.getById(v1.getId());
+    PolicyViolation loaded2 = dao.getById(v2.getId());
+    assertThat(loaded1.constraintFactsAreLoaded()).isFalse();
+    assertThat(loaded2.constraintFactsAreLoaded()).isFalse();
+
+    // Mutate a non-constraint field and batch update
+    loaded1.setActionTypeId(Action.ID_WARN);
+    loaded2.setActionTypeId(Action.ID_WARN);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.updateBatch(tx, List.of(loaded1, loaded2));
+      tx.commit();
+    }
+
+    // Constraint facts ids should be unchanged (skip branch worked)
+    assertThat(loaded1.getConstraintFactsId()).isEqualTo(v1OriginalId);
+    assertThat(loaded2.getConstraintFactsId()).isEqualTo(v2OriginalId);
+
+    // Verify the non-constraint field was actually updated
+    assertThat(dao.getById(v1.getId()).getActionTypeId()).isEqualTo(Action.ID_WARN);
+    assertThat(dao.getById(v2.getId()).getActionTypeId()).isEqualTo(Action.ID_WARN);
+  }
+
+  @Test
+  public void testInsertBatch_throwsWhenConstraintFactsNotLoaded() {
+    doTestInsertBatch_throwsWhenConstraintFactsNotLoaded();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testInsertBatch_throwsWhenConstraintFactsNotLoaded_Postgres() {
+    doTestInsertBatch_throwsWhenConstraintFactsNotLoaded();
+  }
+
+  // On H2 the exception comes from the per-entity fallback (storeConstraints); on Postgres it comes
+  // from storeConstraintsBatch. Both paths throw IllegalStateException for the same reason.
+  private void doTestInsertBatch_throwsWhenConstraintFactsNotLoaded() {
+    PolicyViolation violation = new PolicyViolation();
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      assertThatExceptionOfType(IllegalStateException.class)
+          .isThrownBy(() -> dao.insertBatch(tx, List.of(violation), false));
+    }
+  }
+
   private void assertAllFields(PolicyViolation expected, PolicyViolation actual) {
     assertThat(actual).usingRecursiveComparison()
         .ignoringFields(

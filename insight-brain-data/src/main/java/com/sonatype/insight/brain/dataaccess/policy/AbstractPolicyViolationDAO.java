@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -128,5 +129,42 @@ public abstract class AbstractPolicyViolationDAO<T extends AbstractPolicyViolati
         policyViolationConstraintFactsDAO.createIfNotExists(entity.getConstraintFactsJson());
     entity.setConstraintFactsId(constraints.getId());
     entity.setDeprecatedConstraintFactsJson(null);
+  }
+
+  /**
+   * Batched equivalent of {@link #storeConstraints(AbstractPolicyViolation)} — collapses the per-entity SELECT + INSERT
+   * pair down to one SELECT and one batch INSERT across the whole collection. Entities whose constraint facts are
+   * already persisted (identified by id, not loaded in memory) are skipped, matching the single-entity semantics.
+   */
+  protected void storeConstraintsBatch(final Collection<? extends T> entities) {
+    if (CollectionUtils.isEmpty(entities)) {
+      return;
+    }
+
+    List<T> entitiesToStore = new ArrayList<>();
+    List<String> jsonsToStore = new ArrayList<>();
+    for (T entity : entities) {
+      if (entity.getConstraintFactsId() != null && !entity.constraintFactsAreLoaded()) {
+        continue;
+      }
+      // Serialize once per entity — getConstraintFactsJson() re-serializes on every call.
+      String json = entity.getConstraintFactsJson();
+      entitiesToStore.add(entity);
+      jsonsToStore.add(json);
+    }
+
+    if (entitiesToStore.isEmpty()) {
+      return;
+    }
+
+    // Constraint facts are content-addressed (keyed by hash), so orphaned rows from a failed outer
+    // transaction are benign and will be reused on retry. This matches the single-entity behavior.
+    policyViolationConstraintFactsDAO.createBatchIfNotExists(jsonsToStore);
+
+    for (int i = 0; i < entitiesToStore.size(); i++) {
+      T entity = entitiesToStore.get(i);
+      entity.setConstraintFactsId(AbstractPolicyViolation.calculateConstraintFactsId(jsonsToStore.get(i)));
+      entity.setDeprecatedConstraintFactsJson(null);
+    }
   }
 }

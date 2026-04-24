@@ -44,6 +44,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -967,12 +968,12 @@ public class PullRequestPollingServiceTest
 
         if (thrownException != null) {
           doThrow(UnsupportedOperationException.class).when(mockScmRepoVisibilityService)
-              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo));
+              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo), anyBoolean());
         }
         else {
           doReturn(mockRepo.isGitRepositoryInternal || mockRepo.isGitRepositoryPrivate)
               .when(mockScmRepoVisibilityService)
-              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo));
+              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo), anyBoolean());
         }
         mockRepo.pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(mockRepo.isGitRepositoryPrivate));
 

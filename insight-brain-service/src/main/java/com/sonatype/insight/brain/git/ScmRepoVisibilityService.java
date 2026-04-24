@@ -54,8 +54,14 @@ public class ScmRepoVisibilityService
    * @return true if the repository is valid for pull requests
    */
   public boolean isRepositoryValidForPullRequestFeatures(final GitRepositoryInfo gitRepositoryInfo) {
-    return isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo) ||
-        isScmAllowedOnPublicRepositories();
+    return isRepositoryValidForPullRequestFeatures(gitRepositoryInfo, isScmAllowedOnPublicRepositories());
+  }
+
+  /**
+   * Overload that accepts a pre-computed flag to avoid repeated license checks.
+   */
+  public boolean isRepositoryValidForPullRequestFeatures(GitRepositoryInfo repo, boolean isScmAllowedOnPublicRepos) {
+    return isScmAllowedOnPublicRepos || isInternalRepository(repo) || isPrivateRepository(repo);
   }
 
   /**

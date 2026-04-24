@@ -140,6 +140,8 @@ public class PullRequestPollingService
     PullRequestPollingTracker pollingTracker =
         new PullRequestPollingTracker(sourceControlDAO, MAX_API_REQUESTS_PER_CYCLE);
 
+    final boolean isScmAllowedOnPublicRepos = scmRepoVisibilityService.isScmAllowedOnPublicRepositories();
+
     // the pull requests we get back can be for any app that the related org and key have access to
     List<PullRequest> pullRequests = getPullRequestsFromScm(pollingTracker);
     for (PullRequest pullRequest : pullRequests) {
@@ -157,7 +159,9 @@ public class PullRequestPollingService
               "  We will not comment on it.",
               pullRequest.getNumber(), pullRequest.getHead());
         }
-        else if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepositoryInfo)) {
+        else if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(
+            gitRepositoryInfo, isScmAllowedOnPublicRepos))
+        {
           log.debug("Repository is not valid for pull requests, check that it is private/internal: {}",
               gitRepositoryInfo.getRepositoryUrl());
         }

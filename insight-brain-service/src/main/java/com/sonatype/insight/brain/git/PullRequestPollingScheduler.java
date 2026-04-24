@@ -40,7 +40,7 @@ public class PullRequestPollingScheduler
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingScheduler.class);
 
-  public static final int PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS = 120;
+  public static final int PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS = 60;
 
   private static final int PULL_REQUEST_DISCOVERY_DELAY_SECONDS = 30;
 

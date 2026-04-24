@@ -162,6 +162,13 @@ pipeline {
         defaultValue: ''
     )
 
+    string(
+        name: 'allowedSalesforceAccountIdsCsv',
+        description: 'Comma-separated list of Salesforce Account IDs allowed to see this dashboard. Leave empty to make dashboard visible to all customers (default). Use \'-\' to clear the existing value.',
+        trim: true,
+        defaultValue: ''
+    )
+
     booleanParam(
       name: 'saveToS3',
       description: 'Whether to save the updated configuration to s3. Leave unchecked just to preview the changes.',
@@ -243,7 +250,8 @@ pipeline {
                 'priorityOrder': params.priorityOrder,
                 'spotlightColor': params.spotlightColor,
                 'spotlight': params.spotlight,
-                'spotlightText': params.spotlightText
+                'spotlightText': params.spotlightText,
+                'allowedSalesforceAccountIdsCsv': params.allowedSalesforceAccountIdsCsv
               ],
               'dashboardId',
               validator

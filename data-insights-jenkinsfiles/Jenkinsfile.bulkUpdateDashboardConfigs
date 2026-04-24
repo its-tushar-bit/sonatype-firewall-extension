@@ -77,7 +77,7 @@ The available attributes are:
 
 dashboardId*, groupId, accessButtonText*, category*, dashboardPath*, description*, featuresCsv*, modelsCsv*,
 previewImageFilename*, previewImageIcon*, priorityOrder*, sinceIQVersion,
-spotlight, spotlightColor, spotlightText, title*
+spotlight, spotlightColor, spotlightText, title*, allowedSalesforceAccountIdsCsv
 
 *required for new dashboards.
 

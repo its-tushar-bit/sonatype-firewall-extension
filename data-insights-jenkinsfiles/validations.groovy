@@ -11,7 +11,7 @@ def validDashboardAttributes = [
     'dashboardId', 'groupId', 'accessButtonText', 'category', 'dashboardPath',
     'description', 'featuresCsv', 'modelsCsv', 'previewImageFilename',
     'previewImageIcon', 'priorityOrder', 'sinceIQVersion', 'spotlight',
-    'spotlightColor', 'spotlightText', 'title'
+    'spotlightColor', 'spotlightText', 'title', 'allowedSalesforceAccountIdsCsv'
 ]
 
 @Field

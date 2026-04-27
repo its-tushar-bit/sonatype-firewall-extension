@@ -24,6 +24,8 @@ import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
@@ -903,6 +905,26 @@ public class OwnerDAO
   public List<String> getOwnerIds(String ownerId) {
     Owner owner = getById(ownerId);
     return getOwnerIds(owner);
+  }
+
+  /**
+   * Batch-fetches all ancestor IDs for the given application IDs using the APPLICATION_ANCESTOR view.
+   * This includes both the application IDs themselves and all their ancestor organization IDs.
+   *
+   * @return all unique ancestor IDs (application + organization) for the given applications
+   */
+  public Set<String> getAncestorIdsByApplicationIds(Set<String> applicationIds) {
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return Collections.emptySet();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return new HashSet<>(getListWithSqlInClause(applicationIds,
+          ids -> tx.dsl()
+              .selectDistinct(APPLICATION_ANCESTOR.ANCESTOR_ID)
+              .from(APPLICATION_ANCESTOR)
+              .where(APPLICATION_ANCESTOR.APPLICATION_ID.in(ids))
+              .fetchInto(String.class)));
+    }
   }
 
   public List<Owner> getAllAppsAndOrgs() {

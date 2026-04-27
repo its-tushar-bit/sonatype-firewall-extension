@@ -6,7 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -16,6 +20,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.AutoPolicyWaiverRevocation.AUTO_POLICY_WAIVER_REVOCATION;
@@ -170,6 +176,58 @@ public class AutoPolicyWaiverExclusionDAO
         .offset(offset)
         .limit(pageSize)
         .fetch(this::toEntity);
+  }
+
+  /**
+   * Batch version of {@link #getByOwnerIdPolicyViolation}, matching on OWNER_ID, AUTO_POLICY_WAIVER_ID,
+   * and POLICY_VIOLATION_ID.
+   *
+   * @param ownerIds all owner (ancestor) IDs to check against
+   * @param policyViolationToWaiverId mapping of policy violation ID to its corresponding auto-policy waiver ID
+   * @return the subset of policy violation IDs that have a matching exclusion record
+   */
+  public Set<String> getPolicyViolationIdsWithExclusions(
+      Set<String> ownerIds,
+      Map<String, String> policyViolationToWaiverId)
+  {
+    if (CollectionUtils.isEmpty(ownerIds) || MapUtils.isEmpty(policyViolationToWaiverId)) {
+      return Collections.emptySet();
+    }
+
+    Set<String> waiverIds = new HashSet<>(policyViolationToWaiverId.values());
+    Set<String> policyViolationIds = policyViolationToWaiverId.keySet();
+
+    List<ExclusionRecord> records = getListWithSqlInClause(ownerIds,
+        ownerIdPartition -> getListWithSqlInClause(waiverIds,
+            waiverIdPartition -> getListWithSqlInClause(policyViolationIds,
+                pvIdPartition -> {
+                  try (TransactionContext tx = createTransactionContext()) {
+                    return tx.dsl()
+                        .selectDistinct(
+                            AUTO_POLICY_WAIVER_REVOCATION.POLICY_VIOLATION_ID,
+                            AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID)
+                        .from(AUTO_POLICY_WAIVER_REVOCATION)
+                        .where(AUTO_POLICY_WAIVER_REVOCATION.OWNER_ID.in(ownerIdPartition))
+                        .and(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID.in(waiverIdPartition))
+                        .and(AUTO_POLICY_WAIVER_REVOCATION.POLICY_VIOLATION_ID.in(pvIdPartition))
+                        .fetch(r -> new ExclusionRecord(
+                            r.get(AUTO_POLICY_WAIVER_REVOCATION.POLICY_VIOLATION_ID),
+                            r.get(AUTO_POLICY_WAIVER_REVOCATION.AUTO_POLICY_WAIVER_ID)));
+                  }
+                })));
+
+    Set<String> result = new HashSet<>();
+    for (ExclusionRecord record : records) {
+      String expectedWaiverId = policyViolationToWaiverId.get(record.policyViolationId());
+      if (expectedWaiverId != null && record.autoPolicyWaiverId().equals(expectedWaiverId)) {
+        result.add(record.policyViolationId());
+      }
+    }
+    return result;
+  }
+
+  private record ExclusionRecord(String policyViolationId, String autoPolicyWaiverId)
+  {
   }
 
   @Override

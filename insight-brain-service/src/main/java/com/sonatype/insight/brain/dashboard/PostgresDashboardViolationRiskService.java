@@ -129,9 +129,9 @@ public class PostgresDashboardViolationRiskService
         violationStateOpen, violationStateWaived, violationStateLegacyViolation, getSqlOrderBy(orderBys), page,
         pageSize);
     if (DashboardUtils.shouldOnlyShowWaivedViolations(policyViolationStateFilter)) {
+      Set<String> excludedViolationIds = dashboardUtils.getAutoWaiverExcludedViolationIds(rows);
       rows = rows.stream()
-          .filter(dto -> !dashboardUtils.hasExistingAutoWaiverExclusion(dto.applicationId, dto.autoPolicyWaiverId,
-              dto.policyViolationId))
+          .filter(dto -> !excludedViolationIds.contains(dto.policyViolationId))
           .toList();
     }
 

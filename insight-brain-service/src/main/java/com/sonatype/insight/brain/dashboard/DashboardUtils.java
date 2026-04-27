@@ -10,16 +10,21 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
+import com.sonatype.insight.brain.dataaccess.policy.InternalDashboardViolationRiskDTO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -134,6 +139,48 @@ public class DashboardUtils
         .map(ownerId -> autoPolicyWaiverExclusionDAO.getByOwnerIdPolicyViolation(ownerId, autoPolicyWaiverId,
             policyViolationId))
         .anyMatch(Objects::nonNull);
+  }
+
+  /**
+   * Batch version of {@link #hasExistingAutoWaiverExclusion} that processes all rows in bulk.
+   * Collects unique application IDs, batch-fetches their ancestor IDs, and checks for auto-waiver
+   * exclusions in a single query instead of per-row.
+   * <p>
+   * Each policy violation is matched against its specific auto-policy waiver ID to ensure
+   * exclusion records are correctly scoped.
+   *
+   * @return the set of policy violation IDs that have an existing auto-waiver exclusion
+   */
+  public Set<String> getAutoWaiverExcludedViolationIds(List<InternalDashboardViolationRiskDTO> rows) {
+    if (CollectionUtils.isEmpty(rows)) {
+      return Collections.emptySet();
+    }
+
+    // Build mapping of policyViolationId -> autoPolicyWaiverId
+    Map<String, String> policyViolationToWaiverId = rows.stream()
+        .filter(dto -> dto.autoPolicyWaiverId != null)
+        .filter(dto -> dto.policyViolationId != null)
+        .collect(Collectors.toMap(
+            dto -> dto.policyViolationId,
+            dto -> dto.autoPolicyWaiverId,
+            // In case of duplicates, keep the first one (they should be the same)
+            (existing, replacement) -> existing));
+
+    if (policyViolationToWaiverId.isEmpty()) {
+      return Collections.emptySet();
+    }
+
+    // Extract application IDs for ancestor lookup. A second stream over rows is needed because
+    // policyViolationToWaiverId maps violationId -> waiverId, not to applicationId.
+    Set<String> applicationIds = rows.stream()
+        .filter(dto -> dto.autoPolicyWaiverId != null)
+        .filter(dto -> dto.applicationId != null)
+        .map(dto -> dto.applicationId)
+        .collect(Collectors.toSet());
+
+    Set<String> allAncestorIds = ownerDAO.getAncestorIdsByApplicationIds(applicationIds);
+
+    return autoPolicyWaiverExclusionDAO.getPolicyViolationIdsWithExclusions(allAncestorIds, policyViolationToWaiverId);
   }
 
   // Auto waiver exclusions should be accounted for when the filter is set to only display waived violations

@@ -588,6 +588,32 @@ abstract class AbstractDashboardViolationRiskServiceTest
   }
 
   @Test
+  public void testGet_FilterByWaived_DoesNotIncludeOrgLevelExcludedViolations() {
+    final String scanId = "scan-id";
+    final Organization org = tempEntity.newOrganization();
+    final Application app = tempEntity.newApplication(org.getId());
+    final Policy policy = tempEntity.newPolicy(org.getId());
+    final PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(),
+        scanId);
+    final AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(org.getId());
+    final PolicyViolation policyViolation1 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+    final PolicyViolation policyViolation2 = tempEntity.newAutoWaivedPolicyViolation(evaluation, policy, waiver);
+
+    // Create exclusion at the org level (ancestor), not the app level
+    tempEntity.newAutoPolicyWaiverExclusion(org.getId(), "", "", waiver.getId(), scanId, policyViolation1);
+
+    // The org-level exclusion should still filter out policyViolation1
+    DashboardResultsDTO<DashboardViolationRiskDTO> results = getDashboardViolationRiskService().get(Set.of(),
+        Set.of(app.getId()), Set.of(StageTypes.BUILD.getId()), Set.of(), null, null,
+        new PolicyViolationStateFilter(Set.of(PolicyViolationState.WAIVED)),
+        DashboardViolationRiskOrderByEnum.AGE.name(), null, 0, 100);
+    assertThat(results.dashboardResults)
+        .hasSize(1)
+        .extracting(dto -> dto.policyViolationId)
+        .containsExactlyInAnyOrder(policyViolation2.getId());
+  }
+
+  @Test
   public void testGet_FilterByWaived_DoesNotCheckForExcludedViolations_WhenFilteringByWaivedPlusOtherState() {
     final String scanId = "scan-id";
     final Organization org = tempEntity.newOrganization();

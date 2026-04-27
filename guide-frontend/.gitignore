@@ -1,0 +1,9 @@
+node_modules
+dist
+yarn-error.log
+
+# Node.js binaries (vendored node installations)
+node/
+
+# Vite cache
+.vite

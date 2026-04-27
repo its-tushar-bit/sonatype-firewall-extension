@@ -1,0 +1,188 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/**
+ * Design system variables for Guide SPA.
+ * Sourced from seaworthy/ui/src/app/globals.css — only the custom properties
+ * and utility classes needed by @guide/ui-core components.
+ */
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Sonatype Brand Colors */
+:root {
+  --sona-yellow: #daff02;
+  --sona-orange: #f90;
+  --sona-blue: #2d36ec;
+  --sona-navy: #090b2f;
+  --sona-white: #fbfcfa;
+  --sona-green: #00a676;
+  --sona-red: #db2b39;
+  --white: #fff;
+  --black: #000;
+}
+
+/* Radix UI Color System - Light Mode */
+:root,
+.light,
+.light-theme {
+  --blue-1: #fcfdfe;
+  --blue-2: #f6faff;
+  --blue-3: #ebf2ff;
+  --blue-4: #dceaff;
+  --blue-5: #cbe0ff;
+  --blue-6: #b6d3ff;
+  --blue-7: #9ec1fc;
+  --blue-8: #7ca8f3;
+  --blue-9: #0f4fbd;
+  --blue-10: #003eab;
+  --blue-11: #1f5ecd;
+  --blue-12: #142f5e;
+  --gray-1: #f8f9f7;
+  --gray-2: #f4f5f3;
+  --gray-3: #ebece9;
+  --gray-4: #e3e4e1;
+  --gray-5: #dbddda;
+  --gray-6: #d3d4d2;
+  --gray-7: #c8c9c6;
+  --gray-8: #b5b6b3;
+  --gray-9: #878885;
+  --gray-10: #7c7e7b;
+  --gray-11: #5e605d;
+  --gray-12: #1f201e;
+  --red-1: #fffcfc;
+  --red-2: #fff7f7;
+  --red-3: #feebec;
+  --red-4: #ffdbdc;
+  --red-5: #ffcdce;
+  --red-6: #fdbdbe;
+  --red-7: #f4a9aa;
+  --red-8: #eb8e90;
+  --red-9: #e5484d;
+  --red-10: #dc3e42;
+  --red-11: #ce2c31;
+  --red-12: #641723;
+  --tomato-1: #fbf8f8;
+  --tomato-2: #fff1ed;
+  --tomato-3: #ffe5dc;
+  --tomato-4: #ffd1c1;
+  --tomato-5: #ffc2af;
+  --tomato-6: #ffb19a;
+  --tomato-7: #fe9e85;
+  --tomato-8: #f48467;
+  --tomato-9: #fe572a;
+  --tomato-10: #f14713;
+  --tomato-11: #d73400;
+  --tomato-12: #5c2a1d;
+  --purple-2: #fbf8fd;
+  --purple-6: #dbc5f0;
+  --purple-9: #8551c0;
+  --purple-a3: #8102d512;
+  --purple-a8: #5201b36a;
+  --purple-a11: #7948af;
+}
+
+/* Radix UI Color System - Dark Mode */
+.dark,
+.dark-theme {
+  --blue-1: #071122;
+  --blue-2: #0b172d;
+  --blue-3: #042259;
+  --blue-4: #00297a;
+  --blue-5: #003490;
+  --blue-6: #0540a3;
+  --blue-7: #0d4ebc;
+  --blue-8: #0e5cde;
+  --blue-9: #0f4fbd;
+  --blue-10: #0641a4;
+  --blue-11: #83b5ff;
+  --blue-12: #c9e2ff;
+  --gray-1: #10110f;
+  --gray-2: #191a18;
+  --gray-3: #222321;
+  --gray-4: #292a28;
+  --gray-5: #31322f;
+  --gray-6: #3a3b39;
+  --gray-7: #474846;
+  --gray-8: #60615f;
+  --gray-9: #6e6f6d;
+  --gray-10: #7b7d7a;
+  --gray-11: #b3b5b2;
+  --gray-12: #eeefed;
+  --red-1: #1f1315;
+  --red-2: #291415;
+  --red-3: #3c181a;
+  --red-4: #481a1d;
+  --red-5: #541b1f;
+  --red-6: #671e22;
+  --red-7: #822025;
+  --red-8: #aa2429;
+  --red-9: #e5484d;
+  --red-10: #f2555a;
+  --red-11: #ff6369;
+  --red-12: #feecee;
+  --tomato-1: #160f0d;
+  --tomato-2: #1f1412;
+  --tomato-3: #39170f;
+  --tomato-4: #501404;
+  --tomato-5: #601b09;
+  --tomato-6: #702816;
+  --tomato-7: #893824;
+  --tomato-8: #b1492f;
+  --tomato-9: #fe572a;
+  --tomato-10: #f04918;
+  --tomato-11: #ff9576;
+  --tomato-12: #ffd5c9;
+  --purple-2: #1d1522;
+  --purple-6: #4f3568;
+  --purple-9: #8551c0;
+  --purple-a3: #b759fe2b;
+  --purple-a8: #bf85ff9f;
+  --purple-a11: #cc9eff;
+}
+
+/* Utility classes used by @guide/ui-core components */
+.bg-gray-6 {
+  background-color: var(--gray-6);
+}
+
+.truncated-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
+/* Remove Radix Tabs.List separator line */
+.rt-TabsList {
+  border-bottom: none;
+  box-shadow: none !important;
+}
+
+.rt-TabsList::after {
+  display: none !important;
+}
+
+/* Font configuration for Radix UI Themes */
+.radix-themes {
+  --default-font-family: system-ui, sans-serif;
+  --code-font-family: ui-monospace, 'Roboto Mono', consolas, 'Liberation Mono', menlo, monospace;
+}
+
+.unstyled-link {
+  text-decoration: none;
+  color: inherit;
+}

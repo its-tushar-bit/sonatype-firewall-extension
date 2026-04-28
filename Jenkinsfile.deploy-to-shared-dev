@@ -84,4 +84,13 @@ pipeline {
       }
     }
   }
+
+  post {
+    failure {
+      script {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Shared-dev deployment FAILED for ECR tag: ${params.ECR_TAG}")
+      }
+    }
+  }
 }

@@ -6,10 +6,14 @@
 @Library(['jenkins-shared', 'iq-pipeline-library']) _
 
 /**
- * Standalone pipeline for running post-deployment smoke tests against shared-dev cell.
+ * Post-deployment smoke tests against shared-dev cell.
  *
  * Triggered as a downstream job from Jenkinsfile.deploy-to-shared-dev after successful deployments.
- * Initially a no-op placeholder until smoke test tenants are provisioned (CLM-39450).
+ * Runs the mtiq-apps PostDeploymentSmokeTest against the cicd-testing tenant.
+ *
+ * Prerequisites:
+ *   - Jenkins credential 'mtiq-shared-dev-smoke-test-user' (Username with Password)
+ *   - Tenant 'cicd-testing' provisioned on shared-dev with dual (Firewall + Lifecycle) license
  *
  * Parameters:
  *   IMAGE_TAG - The ECR tag that was just deployed (for traceability/reporting)
@@ -29,7 +33,7 @@ pipeline {
   }
 
   tools {
-    jdk 'OpenJDK 25'
+    jdk 'OpenJDK 17'
   }
 
   stages {
@@ -44,12 +48,48 @@ pipeline {
       }
     }
 
+    stage('Checkout mtiq-tools') {
+      steps {
+        dir('mtiq-tools') {
+          checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'git@github.com:sonatype/mtiq-tools.git',
+                                        credentialsId: sonatypeZionCredentialsId()]]])
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        dir('mtiq-tools/mtiq-load-testing') {
+          withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+            sh 'mvn clean install -DskipTests'
+          }
+        }
+
+        dir('mtiq-tools/mtiq-apps') {
+          withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+            sh 'mvn clean install -P smoke'
+          }
+        }
+      }
+    }
+
     stage('Smoke Test') {
       steps {
-        script {
-          echo 'SKIP: Smoke test tenant not yet provisioned on shared-dev. Passing as no-op.'
-          echo "Image tag: ${params.IMAGE_TAG}"
-          // TODO: Replace with real smoke test once CLM-39450 is complete
+        dir('mtiq-tools/mtiq-load-testing') {
+          withCredentials([usernamePassword(credentialsId: 'mtiq-shared-dev-smoke-test-user',
+              usernameVariable: 'mtiqUser', passwordVariable: 'mtiqPwd')]) {
+            sh '''
+                java -jar ../mtiq-apps/target/mtiq-apps-1.0-SNAPSHOT.jar \
+                  --env=shared-dev \
+                  --id=cicd-testing \
+                  --url=https://cicd-testing.dev.iq.saas.sonatype.dev \
+                  --user=${mtiqUser} \
+                  --pwd=${mtiqPwd} \
+                  run
+                '''
+          }
         }
       }
     }
@@ -66,15 +106,17 @@ pipeline {
   }
 
   post {
+    always {
+      archiveArtifacts artifacts: 'mtiq-tools/mtiq-load-testing/**/mtiq-*-report-*.html', allowEmptyArchive: true
+    }
     success {
       echo "Smoke tests passed for image tag: ${params.IMAGE_TAG}"
-      // TODO: Uncomment when real tests are enabled (CLM-39470)
-      // archiveArtifacts 'mtiq-load-testing/**/mtiq-*-report-*.html'
     }
     failure {
       script {
         echo "Smoke tests failed for image tag: ${params.IMAGE_TAG}"
-        // TODO: Add Slack/email notification when real tests are enabled
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Shared-dev smoke tests FAILED for image tag: ${params.IMAGE_TAG}")
       }
     }
   }

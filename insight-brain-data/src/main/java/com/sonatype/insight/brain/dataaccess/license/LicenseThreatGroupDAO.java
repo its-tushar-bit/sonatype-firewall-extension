@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -36,6 +37,7 @@ import org.jooq.Table;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroup.LICENSE_THREAT_GROUP;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 
 @Named
 @Singleton
@@ -195,40 +197,58 @@ public class LicenseThreatGroupDAO
   }
 
   private void validateName(TransactionContext tx, LicenseThreatGroup licenseThreatGroup) {
+    String normalizedName = NameHelper.normalize(licenseThreatGroup.getName());
     NameHelper.validate(licenseThreatGroup.getName());
 
-    Owner owner = ownerDAO.getById(tx, licenseThreatGroup.getOwnerId());
-    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), licenseThreatGroup.getName());
-    validateNameWithinHierarchyDown(tx, owner, licenseThreatGroup.getName());
-  }
+    String ownerId = licenseThreatGroup.getOwnerId();
 
-  private void validateNameWithinHierarchyUp(final TransactionContext tx, final String parentId, final String name) {
-    if (parentId == null) {
-      return; // no parent, we're done
-    }
-
-    Organization parentOrganization = orgDAO.getByIdNotNull(tx, parentId);
-    if (getByOwnerIdAndName(tx, parentOrganization.getId(), name) != null) {
+    LicenseThreatGroup ancestorConflict = findInAncestors(tx, ownerId, normalizedName);
+    if (ancestorConflict != null) {
+      Organization parentOrg = orgDAO.getByIdNotNull(tx, ancestorConflict.getOwnerId());
       throw new InvalidLicenseThreatGroupException(
           "A license threat group with the same name already exists for the organization '"
-              + parentOrganization.getName() + "'.");
+              + parentOrg.getName() + "'.");
     }
-    validateNameWithinHierarchyUp(tx, parentOrganization.getParentOrganizationId(), name);
+
+    LicenseThreatGroup descendantConflict = findInDescendants(tx, ownerId, normalizedName);
+    if (descendantConflict != null) {
+      Owner childOwner = ownerDAO.getById(tx, descendantConflict.getOwnerId());
+      if (childOwner == null) {
+        throw new InvalidLicenseThreatGroupException(
+            "A license threat group with the same name already exists.");
+      }
+      throw new InvalidLicenseThreatGroupException(
+          "A license threat group with the same name already exists for the " + childOwner.getType() + " '"
+              + childOwner.getName() + "'.");
+    }
   }
 
-  private void validateNameWithinHierarchyDown(TransactionContext tx, Owner owner, String name) {
-    if (!owner.canHaveChildren()) {
-      return;
-    }
-    List<Owner> children = ownerDAO.getChildOwners(tx, owner);
-    for (Owner child : children) {
-      if (getByOwnerIdAndName(tx, child.getId(), name) != null) {
-        throw new InvalidLicenseThreatGroupException(
-            "A license threat group with the same name already exists for the " + child.getType() + " '"
-                + child.getName() + "'.");
-      }
-      validateNameWithinHierarchyDown(tx, child, name);
-    }
+  private LicenseThreatGroup findInAncestors(TransactionContext tx, String ownerId, String normalizedName) {
+    return toEntity(tx.dsl()
+        .select(LICENSE_THREAT_GROUP.fields())
+        .from(LICENSE_THREAT_GROUP)
+        .join(OWNER_ANCESTOR)
+        .on(OWNER_ANCESTOR.ANCESTOR_ID.eq(LICENSE_THREAT_GROUP.OWNER_ID))
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+        .and(OWNER_ANCESTOR.ANCESTOR_DISTANCE.gt(0))
+        .and(OWNER_ANCESTOR.ANCESTOR_TYPE.eq(OwnerType.ORGANIZATION.name()))
+        .and(LICENSE_THREAT_GROUP.NAME_LOWERCASE_NO_WHITESPACE.eq(normalizedName))
+        .limit(1)
+        .fetchOne());
+  }
+
+  private LicenseThreatGroup findInDescendants(TransactionContext tx, String ownerId, String normalizedName) {
+    return toEntity(tx.dsl()
+        .select(LICENSE_THREAT_GROUP.fields())
+        .from(LICENSE_THREAT_GROUP)
+        .join(OWNER_ANCESTOR)
+        .on(OWNER_ANCESTOR.OWNER_ID.eq(LICENSE_THREAT_GROUP.OWNER_ID))
+        .where(OWNER_ANCESTOR.ANCESTOR_ID.eq(ownerId))
+        .and(OWNER_ANCESTOR.ANCESTOR_DISTANCE.gt(0))
+        .and(OWNER_ANCESTOR.OWNER_TYPE.in(OwnerType.ORGANIZATION.name(), OwnerType.APPLICATION.name()))
+        .and(LICENSE_THREAT_GROUP.NAME_LOWERCASE_NO_WHITESPACE.eq(normalizedName))
+        .limit(1)
+        .fetchOne());
   }
 
   @Override

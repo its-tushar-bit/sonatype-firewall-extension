@@ -15,6 +15,7 @@ import { request as httpRequest } from 'http';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, 'src/main/frontend');
 const outDir = path.resolve(__dirname, 'target/generated-resources/webpack/assets');
+const guideOutDir = path.join(outDir, 'guide');
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -36,6 +37,7 @@ const allBundles = [
   { name: 'bundle', entry: './index.jsx' },
   { name: 'viewdetails-react', entry: './version-graph/viewdetails-react/index.jsx' },
   { name: 'version-graph-react', entry: './version-graph/version-graph-react/index.jsx' },
+  { name: 'guide', entry: './guide/index.tsx', outdir: guideOutDir, tsconfig: 'tsconfig.guide.json' },
 ];
 
 const activeBundles = allBundles;
@@ -272,6 +274,8 @@ async function buildAll() {
 
     const result = await esbuild.build({
       ...sharedBuildOptions,
+      ...bundle.outdir && { outdir: bundle.outdir },
+      ...bundle.tsconfig && { tsconfig: bundle.tsconfig },
       entryPoints: [path.resolve(srcDir, bundle.entry)],
       entryNames: bundle.name,
       metafile: true,
@@ -308,6 +312,8 @@ async function startDevServer() {
   for (const bundle of activeBundles) {
     const ctx = await esbuild.context({
       ...sharedBuildOptions,
+      ...bundle.outdir && { outdir: bundle.outdir },
+      ...bundle.tsconfig && { tsconfig: bundle.tsconfig },
       entryPoints: [path.resolve(srcDir, bundle.entry)],
       entryNames: bundle.name,
       sourcemap: 'inline',

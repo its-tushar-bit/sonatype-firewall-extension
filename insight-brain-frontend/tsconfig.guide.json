@@ -7,11 +7,9 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/main/frontend/guide/**/*.ts", "src/main/frontend/guide/**/*.tsx"]
 }

@@ -52,20 +52,25 @@
 import groovy.transform.Field
 
 @Field final String ECR_REGION = 'us-east-2'
-@Field final Map ECR_ACCOUNT = [id: '468017555316', credentialId: 'cloud-native-dev-external-id']
+@Field final Map DEV_ECR_ACCOUNT = [
+    id: '468017555316',
+    credentialId: 'cloud-native-dev-external-id',
+    role: 'jenkins'
+]
 
-// Staging ECR Account — placeholder until staging infrastructure is ready
-// TODO: Replace with actual staging account ID and credential ID when infrastructure is available
+// Staging ECR Account
 @Field final Map STAGING_ECR_ACCOUNT = [
-    id: '<PLACEHOLDER-staging-account-id>',
-    credentialId: '<PLACEHOLDER-staging-credential-id>'
+    id: '460469849438',
+    credentialId: 'aws-jenkins-role-sca',
+    role: 'JenkinsCICDRole'
 ]
 
 // Prod ECR Account — placeholder until prod infrastructure is ready
-// TODO: Replace with actual prod account ID and credential ID when infrastructure is available
+// TODO: Replace with actual prod account ID, credential ID, and role when infrastructure is available
 @Field final Map PROD_ECR_ACCOUNT = [
     id: '<PLACEHOLDER-prod-account-id>',
-    credentialId: '<PLACEHOLDER-prod-credential-id>'
+    credentialId: '<PLACEHOLDER-prod-credential-id>',
+    role: '<PLACEHOLDER-prod-role>'
 ]
 
 @Field final String ECR_REPOSITORY = 'sca-cloud/mtiq-server'
@@ -85,8 +90,8 @@ String pushToEcrCached(String branchOverride = null) {
   final String branch = rawBranch.replace('/', '_').take(95)
   final String dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
   final String ecrTag = "${dateSection}-${branch}-${env.BUILD_NUMBER}-${commitId}"
-  final String ecrRegistry = "${ECR_ACCOUNT.id}.dkr.ecr.${ECR_REGION}.amazonaws.com"
-  final String ecrRepo = "sca-cloud/mtiq-server"
+  final String ecrRegistry = "${DEV_ECR_ACCOUNT.id}.dkr.ecr.${ECR_REGION}.amazonaws.com"
+  final String ecrRepo = ECR_REPOSITORY
   final String ecrImageRef = "${ecrRegistry}/${ecrRepo}:${ecrTag}"
   final String iqVersion = getMavenProjectVersion('.')
 
@@ -94,8 +99,8 @@ String pushToEcrCached(String branchOverride = null) {
 
   dir("nexus-mtiq-server") {
     withSonatypeDockerRegistry() {
-      withAwsRole(credentialsId: ECR_ACCOUNT.credentialId, role: 'jenkins',
-                  roleAccount: ECR_ACCOUNT.id, region: ECR_REGION) {
+      withAwsRole(credentialsId: DEV_ECR_ACCOUNT.credentialId, role: DEV_ECR_ACCOUNT.role,
+                  roleAccount: DEV_ECR_ACCOUNT.id, region: ECR_REGION) {
         // Authenticate to ECR - pipe directly to avoid logging password
         // ECR_REGION and ecrRegistry are derived from constants, not user-controlled
         sh(script: "aws ecr get-login-password --region '${ECR_REGION}' | docker login --username AWS --password-stdin '${ecrRegistry}'")
@@ -112,33 +117,8 @@ String pushToEcrCached(String branchOverride = null) {
         }
 
         // Add extra tag: branch-latest (via ECR API)
-        // ImageAlreadyExistsException is tolerated (tag already points to this image),
-        // but other errors fail the build to avoid silent issues.
         final String latestTag = "${branch}-latest"
-        echo "Adding ECR tag: ${latestTag}"
-        // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
-        def output
-        withEnv(["REPOSITORY_ARG=${ecrRepo}", "IMAGE_TAG_ARG=${ecrTag}", "LATEST_TAG_ARG=${latestTag}", "REGION_ARG=${ECR_REGION}"]) {
-          output = sh(script: '''
-            MANIFEST=$(aws ecr batch-get-image \
-              --repository-name "$REPOSITORY_ARG" \
-              --image-ids "imageTag=$IMAGE_TAG_ARG" \
-              --region "$REGION_ARG" \
-              --output text \
-              --query 'images[0].imageManifest')
-            aws ecr put-image \
-              --repository-name "$REPOSITORY_ARG" \
-              --image-tag "$LATEST_TAG_ARG" \
-              --image-manifest "$MANIFEST" \
-              --region "$REGION_ARG" \
-              2>&1 || true
-          ''', returnStdout: true).trim()
-        }
-        if (output.contains('ImageAlreadyExistsException')) {
-          echo "Tag '${latestTag}' already points to this image, skipping"
-        } else if (output.contains('Error') || output.contains('error') || output.contains('denied')) {
-          error "Failed to apply ECR tag '${latestTag}': ${output}"
-        }
+        tagImageInEcr(DEV_ECR_ACCOUNT, ecrRepo, ecrTag, latestTag, ECR_REGION)
 
         echo "ECR push successful: ${ecrImageRef} (+ ${latestTag})"
       }
@@ -157,7 +137,7 @@ String pushToEcrCached(String branchOverride = null) {
  * @param region AWS region
  */
 void validateImageExists(Map account, String repository, String imageTag, String region = ECR_REGION) {
-  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+  withAwsRole(credentialsId: account.credentialId, role: account.role,
       roleAccount: account.id, region: region) {
     // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
     withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
@@ -189,7 +169,7 @@ void validateImageExists(Map account, String repository, String imageTag, String
  */
 String getImageManifest(Map account, String repository, String imageTag, String region = ECR_REGION) {
   def result = null
-  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+  withAwsRole(credentialsId: account.credentialId, role: account.role,
       roleAccount: account.id, region: region) {
     // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
     withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
@@ -222,30 +202,91 @@ String getImageManifest(Map account, String repository, String imageTag, String 
  * @param region AWS region
  */
 void putImageManifest(Map account, String repository, String imageTag, String manifest, String region = ECR_REGION) {
-  withAwsRole(credentialsId: account.credentialId, role: 'jenkins',
+  withAwsRole(credentialsId: account.credentialId, role: account.role,
       roleAccount: account.id, region: region) {
     // Write manifest to temp file to avoid shell escaping issues with large JSON
     writeFile file: 'image-manifest.json', text: manifest
 
     // Use withEnv to pass user-controlled values safely to shell (prevents shell injection)
     withEnv(["REPOSITORY_ARG=${repository}", "IMAGE_TAG_ARG=${imageTag}", "REGION_ARG=${region}"]) {
-      sh '''
+      def result = sh(script: '''
         aws ecr put-image \
           --repository-name "$REPOSITORY_ARG" \
           --image-tag "$IMAGE_TAG_ARG" \
           --image-manifest 'file://image-manifest.json' \
-          --region "$REGION_ARG"
-      '''
-    }
+          --region "$REGION_ARG" \
+          2>&1 || true
+      ''', returnStdout: true).trim()
 
-    echo "Pushed manifest with tag: ${imageTag}"
+      if (result.contains('ImageAlreadyExistsException')) {
+        echo "Tag '${imageTag}' already points to this image"
+      } else if (result.contains('"image":')) {
+        echo "Pushed manifest with tag: ${imageTag}"
+      } else {
+        error "Failed to push manifest for tag '${imageTag}': ${result}"
+      }
+    }
   }
 }
 
 /**
- * Promotes an image from one ECR account to another via manifest copy.
- * This is a cross-account operation that does NOT require Docker.
- * Preserves multi-architecture images (manifest lists).
+ * Applies an additional tag to an existing image in ECR.
+ * Tolerates ImageAlreadyExistsException (tag already points to this image).
+ * All other errors fail the build.
+ *
+ * @param account Account configuration map
+ * @param repository ECR repository name
+ * @param sourceTag Existing image tag to copy from
+ * @param newTag New tag to apply
+ * @param region AWS region
+ */
+void tagImageInEcr(Map account, String repository, String sourceTag, String newTag, String region = ECR_REGION) {
+  def manifest = getImageManifest(account, repository, sourceTag, region)
+
+  withAwsRole(credentialsId: account.credentialId, role: account.role,
+      roleAccount: account.id, region: region) {
+    writeFile file: 'image-manifest.json', text: manifest
+
+    withEnv(["REPOSITORY_ARG=${repository}", "NEW_TAG_ARG=${newTag}", "REGION_ARG=${region}"]) {
+      def result = sh(script: '''
+        aws ecr put-image \
+          --repository-name "$REPOSITORY_ARG" \
+          --image-tag "$NEW_TAG_ARG" \
+          --image-manifest 'file://image-manifest.json' \
+          --region "$REGION_ARG" \
+          2>&1 || true
+      ''', returnStdout: true).trim()
+
+      if (result.contains('ImageAlreadyExistsException')) {
+        echo "Tag '${newTag}' already points to this image, skipping"
+      } else if (result.contains('"image":')) {
+        echo "Applied tag: ${newTag}"
+      } else {
+        error "Failed to apply tag '${newTag}': ${result}"
+      }
+    }
+  }
+}
+
+/**
+ * Authenticates Docker to an ECR registry.
+ * The authentication token persists in ~/.docker/config.json for subsequent operations.
+ *
+ * @param account Account configuration map with 'id', 'credentialId', and 'role'
+ * @param region AWS region
+ */
+void authenticateToEcr(Map account, String region = ECR_REGION) {
+  final String registry = "${account.id}.dkr.ecr.${region}.amazonaws.com"
+  withAwsRole(credentialsId: account.credentialId, role: account.role,
+      roleAccount: account.id, region: region) {
+    sh "aws ecr get-login-password --region '${region}' | docker login --username AWS --password-stdin '${registry}'"
+  }
+}
+
+/**
+ * Promotes an image from one ECR account to another.
+ * Uses `docker buildx imagetools create` to copy all layers and multi-architecture
+ * manifests between registries. Requires Docker CLI with buildx (daemon not needed).
  *
  * @param sourceAccount Source account configuration map
  * @param targetAccount Target account configuration map
@@ -257,23 +298,29 @@ void putImageManifest(Map account, String repository, String imageTag, String ma
 void promoteImage(Map sourceAccount, Map targetAccount, String repository, String sourceTag,
     List<String> additionalTags = [], String region = ECR_REGION) {
 
-  echo "Promoting image ${sourceTag} from account ${sourceAccount.id} to ${targetAccount.id}"
+  final String sourceRegistry = "${sourceAccount.id}.dkr.ecr.${region}.amazonaws.com"
+  final String targetRegistry = "${targetAccount.id}.dkr.ecr.${region}.amazonaws.com"
 
-  // Step 1: Validate image exists in source
+  echo "Promoting image ${sourceTag} from ${sourceRegistry} to ${targetRegistry}"
+
   validateImageExists(sourceAccount, repository, sourceTag, region)
 
-  // Step 2: Get manifest from source
-  def manifest = getImageManifest(sourceAccount, repository, sourceTag, region)
+  // Authenticate Docker to both registries (ECR tokens persist in ~/.docker/config.json)
+  authenticateToEcr(sourceAccount, region)
+  authenticateToEcr(targetAccount, region)
 
-  // Step 3: Push manifest to target with original tag
-  putImageManifest(targetAccount, repository, sourceTag, manifest, region)
-
-  // Step 4: Apply additional tags if specified
-  for (String tag : additionalTags) {
-    putImageManifest(targetAccount, repository, tag, manifest, region)
+  // Copy image with all architectures and layers (requires Docker CLI with buildx, not the daemon)
+  withEnv(["SOURCE_IMAGE=${sourceRegistry}/${repository}:${sourceTag}",
+           "TARGET_IMAGE=${targetRegistry}/${repository}:${sourceTag}"]) {
+    sh 'docker buildx imagetools create --tag "$TARGET_IMAGE" "$SOURCE_IMAGE"'
   }
 
-  echo "Successfully promoted ${sourceTag} to account ${targetAccount.id} with tags: ${[sourceTag] + additionalTags}"
+  // Apply additional tags in target (layers now exist from the copy above)
+  for (String tag : additionalTags) {
+    tagImageInEcr(targetAccount, repository, sourceTag, tag, region)
+  }
+
+  echo "Promoted ${sourceTag} to ${targetRegistry} with tags: ${[sourceTag] + additionalTags}"
 }
 
 return this

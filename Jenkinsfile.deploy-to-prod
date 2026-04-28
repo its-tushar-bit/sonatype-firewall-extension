@@ -108,7 +108,7 @@ pipeline {
           )
 
           // Safety check: verify image has a prod-internal-verified tag
-          withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: 'jenkins',
+          withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: ecr.PROD_ECR_ACCOUNT.role,
                       roleAccount: ecr.PROD_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
             withEnv(["REPOSITORY_ARG=${ecr.ECR_REPOSITORY}", "IMAGE_TAG_ARG=${params.IMAGE_TAG}", "REGION_ARG=${ecr.ECR_REGION}"]) {
               def imageDetail = sh(script: '''

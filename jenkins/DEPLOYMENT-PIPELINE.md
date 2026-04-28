@@ -2,7 +2,7 @@
 
 This document describes the progressive deployment pipeline for MTIQ Docker images. Each stage is a standalone Jenkins job that triggers the next downstream job on success.
 
-> **Current state (April 2026):** Staging and production jobs run in **bypass mode** — infrastructure is being built by another team. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
+> **Current state (April 2026):** Staging jobs are now **active**. Production jobs remain in bypass mode until prod infrastructure is ready. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
 
 ---
 
@@ -32,7 +32,7 @@ Jenkinsfile.main (main branch build)
 ```
 
 **Key transitions:**
-- **dev → staging:** `push-to-staging` copies the image manifest across AWS accounts (no Docker required), then triggers `deploy-to-staging` to deploy the promoted image.
+- **dev → staging:** `push-to-staging` promotes the image from dev ECR to staging ECR using `docker buildx imagetools create` (requires Docker CLI with buildx on the agent), then triggers `deploy-to-staging` to deploy the promoted image.
 - **staging → prod:** `deploy-to-prod-internal` promotes from staging ECR to prod ECR, deploys, then tags the image as verified. Production release requires an operator to manually run `deploy-to-prod` with a verified tag.
 
 ---
@@ -81,9 +81,9 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Trigger** | Automatic from `test-shared-dev` |
 | **Parameter** | `IMAGE_TAG` — the dev ECR tag to promote |
 | **Timeout** | 15 minutes |
-| **What it does** | Copies the image manifest from dev ECR to staging ECR (cross-account, no Docker). Applies additional tag `staging-latest`. Verifies the promotion. |
+| **What it does** | Promotes the image from dev ECR to staging ECR using `docker buildx imagetools create` (requires Docker CLI with buildx on the agent). Applies additional tag `staging-latest`. Verifies the promotion. |
 | **Downstream** | `deploy-to-staging` (automatic) |
-| **Bypass** | `STAGING_INFRASTRUCTURE_READY = false` (CLM-39451) |
+| **Status** | Active |
 
 **Failure modes:**
 - **AWS role assumption fails:** Check IAM role trust relationships and the Jenkins credential for the staging ECR account.
@@ -96,15 +96,14 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 |---|---|
 | **Path** | `insight/MTIQ/sca-cloud/deploy-to-staging` |
 | **Trigger** | Automatic from `push-to-staging`. Also triggerable manually from Jenkins UI. |
-| **Parameter** | `IMAGE_TAG` — defaults to `staging-latest`; can specify an exact tag for manual deploys |
+| **Parameter** | `IMAGE_TAG` — the ECR tag to deploy (e.g., `202604161432-main-142-a1b2c3d4`) |
 | **Timeout** | 20 minutes |
-| **What it does** | Resolves `staging-latest` to the underlying immutable tag for traceability, then deploys to staging cell(s) via Terraform Cloud. Sends notification to `mtiq-notices` chat room. |
+| **What it does** | Validates the image tag exists in staging ECR, then deploys to staging cell(s) via Terraform Cloud. Sends notification to `mtiq-notices` chat room. |
 | **Downstream** | `test-staging` (automatic) |
-| **Bypass** | `STAGING_INFRASTRUCTURE_READY = false` (CLM-39452) |
+| **Status** | Active |
 
 **Failure modes:**
-- **staging-latest tag doesn't exist in ECR:** No image has been promoted to staging yet. Check that `push-to-staging` has run successfully at least once.
-- **Tag resolution fails:** ECR returns tags but none match the expected pattern. The job falls back to using `staging-latest` as-is.
+- **Image tag not found in staging ECR:** The image was not promoted to staging. Check that `push-to-staging` has run successfully for this tag.
 - **TFC deployment fails:** Same failure modes as `deploy-to-shared-dev` TFC deployment (workspace lookup, timeout, safety guard). Check console log for TFC UI link.
 - **Chat notification fails:** Non-fatal to the pipeline but should be investigated.
 
@@ -206,16 +205,16 @@ If this happens:
 
 ## Bypass Mode & Readiness
 
-Jobs below `deploy-to-shared-dev` are currently in bypass mode because the AWS infrastructure (ECR accounts, IAM roles, TFC workspaces) is being built by another team.
+Staging jobs are now active. Production jobs and test-staging remain in bypass mode until their infrastructure is ready.
 
-| Job | Bypass flag | Tracking ticket |
-|-----|-------------|-----------------|
-| `push-to-staging` | `STAGING_INFRASTRUCTURE_READY` | CLM-39451 |
-| `deploy-to-staging` | `STAGING_INFRASTRUCTURE_READY` | CLM-39452 |
-| `test-shared-dev` | No flag (no-op placeholder) | CLM-39450 |
-| `test-staging` | `STAGING_SMOKE_TESTS_READY` | CLM-39471 |
-| `deploy-to-prod-internal` | `PROD_INFRASTRUCTURE_READY` | CLM-39453 |
-| `deploy-to-prod` | `PROD_INFRASTRUCTURE_READY` | CLM-39454 |
+| Job | Status | Bypass flag | Tracking ticket |
+|-----|--------|-------------|-----------------|
+| `push-to-staging` | Active | — | CLM-39451 |
+| `deploy-to-staging` | Active | — | CLM-39452 |
+| `test-shared-dev` | No flag (no-op placeholder) | — | CLM-39450 |
+| `test-staging` | Bypass | `STAGING_SMOKE_TESTS_READY = false` | CLM-39471 |
+| `deploy-to-prod-internal` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39453 |
+| `deploy-to-prod` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39454 |
 
 **To enable a stage:** Set the corresponding flag to `true` in the Jenkinsfile and update any placeholder values (ECR account IDs, credentials, TFC workspace names). Each Jenkinsfile documents exactly what needs to change in its header comment.
 
@@ -251,4 +250,3 @@ Jobs below `deploy-to-shared-dev` are currently in bypass mode because the AWS i
 ### Job times out after adding workspaces
 **Symptom:** A deployment job fails with a timeout error after adding new cell workspaces.
 **Fix:** Each TFC workspace deployment takes up to 10 minutes. The job timeout must exceed `10 min × number of cell workspaces + overhead`. Update the `timeout` value in the Jenkinsfile's `options` block. Each Jenkinsfile documents the current calculation in a comment next to the timeout setting.
-

@@ -550,7 +550,9 @@ public enum SystemConfigurationPropertyFeature
 
   FIREWALL_ENTERPRISE_REPORTING(SystemConfigurationProperty.FIREWALL_ENTERPRISE_REPORTING, true),
 
-  GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false);
+  GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false),
+
+  GUIDE_UI(SystemConfigurationProperty.GUIDE_UI_ENABLED, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

@@ -76,7 +76,8 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
       SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
-      SystemConfigurationPropertyFeature.GUIDE_MCP);
+      SystemConfigurationPropertyFeature.GUIDE_MCP,
+      SystemConfigurationPropertyFeature.GUIDE_UI);
 
   private final ApiConfigFeaturesService service;
 

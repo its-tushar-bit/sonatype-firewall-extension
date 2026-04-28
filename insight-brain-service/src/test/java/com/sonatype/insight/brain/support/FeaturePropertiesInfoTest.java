@@ -119,7 +119,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(67);
+    assertThat(featureConfigNode.size()).isEqualTo(68);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -152,6 +152,7 @@ public class FeaturePropertiesInfoTest
               "firewallEnterpriseReporting": true,
               "githubAppAuthentication": false,
               "guideMcpEnabled": false,
+              "guideUiEnabled": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
               "internalFirewallOnboardingEnabled": false,
@@ -204,7 +205,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(67);
+    assertThat(featureConfigNode.size()).isEqualTo(68);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -237,6 +238,7 @@ public class FeaturePropertiesInfoTest
               "firewallEnterpriseReporting": true,
               "githubAppAuthentication": false,
               "guideMcpEnabled": false,
+              "guideUiEnabled": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
               "internalFirewallOnboardingEnabled": false,
@@ -295,7 +297,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(57)
+        .hasSize(58)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

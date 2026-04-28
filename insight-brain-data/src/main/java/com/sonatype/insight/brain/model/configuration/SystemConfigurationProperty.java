@@ -314,6 +314,8 @@ public class SystemConfigurationProperty
 
   public static final String GUIDE_MCP_ENABLED = "guideMcpEnabled";
 
+  public static final String GUIDE_UI_ENABLED = "guideUiEnabled";
+
   public static final String EVALUATION_QUEUE_CONFIG = "evaluationQueueConfig";
 
   @Id

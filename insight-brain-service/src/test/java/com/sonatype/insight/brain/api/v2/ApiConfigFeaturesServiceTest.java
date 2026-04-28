@@ -1507,6 +1507,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("exitOnFatalError", true);
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
     expectedFeatureConfigMap.put("guideMcpEnabled", false);
+    expectedFeatureConfigMap.put("guideUiEnabled", false);
 
     return expectedFeatureConfigMap;
   }

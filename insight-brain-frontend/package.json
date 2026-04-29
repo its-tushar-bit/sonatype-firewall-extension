@@ -29,7 +29,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@sonatype/react-commonmark": "^3.0.1",
     "@sonatype/react-shared-components": "^14.0.13",
-    "@sonatype/solution-switcher-react-component": "^14.2.0",
+    "@sonatype/solution-switcher-react-component": "^14.3.0",
     "@sonatype/version-graph": "^1.0.13",
     "@uirouter/core": "^6.0.6",
     "@uirouter/react": "^1.0.8",

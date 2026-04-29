@@ -67,11 +67,15 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Trigger** | Automatic from `deploy-to-shared-dev` |
 | **Parameter** | `IMAGE_TAG` — the tag that was deployed |
 | **Timeout** | 30 minutes |
-| **What it does** | Runs smoke tests against the shared-dev cell. Currently a **no-op placeholder** (CLM-39450). |
+| **What it does** | Runs smoke tests against the shared-dev cell using the mtiq-apps PostDeploymentSmokeTest CLI. Checks out mtiq-tools, builds with Maven, and runs tests against `https://cicd-testing.dev.iq.saas.sonatype.dev`. |
 | **Downstream** | `push-to-staging` (automatic) |
+| **Status** | Active |
 
 **Failure modes:**
-- Currently cannot fail in a meaningful way (no-op). When real smoke tests are enabled (CLM-39450), test failures will block promotion to staging.
+- **mtiq-tools checkout fails:** Git credentials may be expired. Check the `sonatypeZionCredentialsId()` credential.
+- **Maven build fails:** Dependency resolution or compilation issues. Check the Maven settings and repository access.
+- **Smoke test fails:** The application is not responding correctly. Check the smoke test HTML report archived in the build artifacts. Test failures block promotion to staging.
+- **Chat notification fails:** Non-fatal to the pipeline but should be investigated.
 
 ### 3. push-to-staging
 
@@ -117,11 +121,15 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Trigger** | Automatic from `deploy-to-staging` |
 | **Parameter** | `IMAGE_TAG` — the tag that was deployed |
 | **Timeout** | 30 minutes |
-| **What it does** | Runs smoke tests against staging cells. Currently a **no-op placeholder** (CLM-39471). |
+| **What it does** | Runs smoke tests against staging cells using the mtiq-apps PostDeploymentSmokeTest CLI. Checks out mtiq-tools, builds with Maven, and runs tests against `https://cicd.staging.iq.saas.sonatype.dev`. |
 | **Downstream** | `deploy-to-prod-internal` (automatic) |
+| **Status** | Active |
 
 **Failure modes:**
-- Currently cannot fail in a meaningful way (no-op). When real smoke tests are enabled (CLM-39471), test failures will block promotion to prod.
+- **mtiq-tools checkout fails:** Git credentials may be expired. Check the `sonatypeZionCredentialsId()` credential.
+- **Maven build fails:** Dependency resolution or compilation issues. Check the Maven settings and repository access.
+- **Smoke test fails:** The application is not responding correctly. Check the smoke test HTML report archived in the build artifacts. Test failures block promotion to prod-internal.
+- **Chat notification fails:** Non-fatal to the pipeline but should be investigated.
 
 ### 6. deploy-to-prod-internal
 
@@ -205,14 +213,14 @@ If this happens:
 
 ## Bypass Mode & Readiness
 
-Staging jobs are now active. Production jobs and test-staging remain in bypass mode until their infrastructure is ready.
+Staging jobs are now active. Production jobs remain in bypass mode until their infrastructure is ready.
 
 | Job | Status | Bypass flag | Tracking ticket |
 |-----|--------|-------------|-----------------|
 | `push-to-staging` | Active | — | CLM-39451 |
 | `deploy-to-staging` | Active | — | CLM-39452 |
-| `test-shared-dev` | No flag (no-op placeholder) | — | CLM-39450 |
-| `test-staging` | Bypass | `STAGING_SMOKE_TESTS_READY = false` | CLM-39471 |
+| `test-shared-dev` | Active | — | CLM-39450 |
+| `test-staging` | Active | — | CLM-39471 |
 | `deploy-to-prod-internal` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39453 |
 | `deploy-to-prod` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39454 |
 
@@ -225,6 +233,8 @@ Staging jobs are now active. Production jobs and test-staging remain in bypass m
 | Job | Channel | When |
 |-----|---------|------|
 | `deploy-to-staging` | `mtiq-notices` | Always (success or failure) |
+| `test-shared-dev` | `mtiq-notices` | Failure only |
+| `test-staging` | `mtiq-notices` | Failure only |
 | `deploy-to-prod` | `mtiq-notices` | Planned (currently commented out) |
 
 ---

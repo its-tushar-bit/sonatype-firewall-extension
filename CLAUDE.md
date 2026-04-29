@@ -79,6 +79,12 @@ In this mode the test server starts on fixed port 8072 (matching the dev server 
 
 ## Running the Application
 
+### Quick Start
+Two convenience scripts are provided for local development:
+
+- **`./local-dev-build.sh`** - Builds insight-brain-service and all dependencies (including frontend). Uses `-Pquick` to skip tests.
+- **`./local-dev-run.sh`** - Starts backend on port 8072 and frontend dev server on port 8070. Access the app at http://localhost:8070
+
 ### Server Deployment
 Run from `insight-brain-service/` directory:
 ```bash

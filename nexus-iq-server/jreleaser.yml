@@ -1,8 +1,8 @@
 environment:
   properties:
     jdkPathPrefix: 'target/jdks'
-    jdkDirectoryPrefix: 'temurin_17.0.12_7'
-    jdkFilePrefix: 'jdk-17.0.12+7'
+    jdkDirectoryPrefix: 'temurin_25.0.2_10'
+    jdkFilePrefix: 'jdk-25.0.2+10'
 
 assemble:
   jlink:
@@ -66,8 +66,6 @@ assemble:
         - jdk.dynalink
         - jdk.hotspot.agent
         - jdk.httpserver
-        - jdk.incubator.foreign
-        - jdk.incubator.vector
         - jdk.internal.ed
         - jdk.internal.jvmstat
         - jdk.internal.le
@@ -90,7 +88,6 @@ assemble:
         - jdk.naming.rmi
         - jdk.net
         - jdk.nio.mapmode
-        - jdk.random
         - jdk.sctp
         - jdk.security.auth
         - jdk.security.jgss
@@ -98,7 +95,7 @@ assemble:
         - jdk.xml.dom
         - jdk.zipfs
       java:
-        version: '17'
+        version: '25'
         groupId: com.sonatype.insight.brain
         artifactId: nexus-iq-server
         mainClass: com.sonatype.insight.brain.service.InsightBrainService

@@ -66,7 +66,7 @@ In this mode the test server starts on fixed port 8072 (matching the dev server 
 - **nexus-mtiq-server**: Multi-tenant server variant
 
 ### Technology Stack
-- **Backend**: Java 17, Dropwizard 5.x, JAX-RS, Guice DI
+- **Backend**: Java 25, Dropwizard 5.x, JAX-RS, Guice DI
 - **Database**: PostgreSQL (prod), H2 (dev/test/light prod), jOOQ
 - **Frontend**: React 19, Redux Toolkit, esbuild, SCSS
 - **Testing**: JUnit 4, Mockito, Selenium, Jest, React Testing Library
@@ -87,7 +87,7 @@ mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainSe
 Default credentials: admin/admin123
 
 ### Requirements
-- Java 17
+- Java 25
 - Maven 3.9.x
 - yarn (for frontend)
 - Docker (for tests requiring external services)

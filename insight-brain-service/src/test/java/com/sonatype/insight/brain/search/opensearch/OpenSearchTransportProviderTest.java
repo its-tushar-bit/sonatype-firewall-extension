@@ -13,6 +13,7 @@ import jakarta.inject.Provider;
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
+import com.sonatype.insight.brain.search.SearchMode;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Before;
@@ -117,6 +118,11 @@ public class OpenSearchTransportProviderTest
       @Override
       public void validate() {
         // No-op for test
+      }
+
+      @Override
+      public SearchMode getMode() {
+        return SearchMode.HYBRID;
       }
     };
     provider =

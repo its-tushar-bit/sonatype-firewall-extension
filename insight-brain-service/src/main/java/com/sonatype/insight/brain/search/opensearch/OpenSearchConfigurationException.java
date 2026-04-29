@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.search.opensearch;
 
+import com.sonatype.insight.brain.search.SearchConfigurationException;
+
 /**
  * Exception thrown when OpenSearch configuration is invalid or incomplete.
  */
 public class OpenSearchConfigurationException
-    extends RuntimeException
+    extends SearchConfigurationException
 {
   public OpenSearchConfigurationException(final String message) {
     super(message);

@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
+import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -79,5 +80,145 @@ public class SearchModuleServerStartTest
     });
     SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
     assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_http_hybridMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-hybrid-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_aws_hybridMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-hybrid-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_http_opensearchMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-opensearch-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_aws_opensearchMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-opensearch-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_aws_luceneMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-lucene-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(LuceneSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_luceneSearchConfig_luceneMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-lucene-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(LuceneSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_http_luceneMode() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-lucene-mode.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(LuceneSearchIndexClient.class);
   }
 }

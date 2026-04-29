@@ -1,0 +1,6 @@
+search:
+  type: http
+  mode: HYBRID
+  uri: https://localhost:9200
+  username: admin
+  password: password

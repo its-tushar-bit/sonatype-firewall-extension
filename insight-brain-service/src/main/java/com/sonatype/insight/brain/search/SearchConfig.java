@@ -18,9 +18,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Configuration for connection information for OpenSearch
+ * Configuration for the search backend.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = LuceneSearchConfig.class)
 @JsonSubTypes({
   @JsonSubTypes.Type(value = HttpOpenSearchConfig.class, name = "http"),
   @JsonSubTypes.Type(value = AwsHttpOpenSearchConfig.class, name = "aws"),
@@ -30,9 +30,11 @@ public interface SearchConfig
   /**
    * Validates the configuration and throws an exception if invalid.
    *
-   * @throws OpenSearchConfigurationException if the configuration is invalid
+   * @throws SearchConfigurationException if the configuration is invalid
    */
   void validate();
+
+  SearchMode getMode();
 
   /**
    * Abstract base class for OpenSearch configurations that provides common bulk indexing
@@ -41,6 +43,8 @@ public interface SearchConfig
   abstract class AbstractSearchConfig
       implements SearchConfig
   {
+    private SearchMode mode;
+
     // Common bulk indexing configuration fields
     private Integer bulkBatchSize;
 
@@ -74,6 +78,15 @@ public interface SearchConfig
      * @return the maximum allowed retry backoff in seconds
      */
     public abstract int getMaxBulkRetryBackoffSeconds();
+
+    @Override
+    public SearchMode getMode() {
+      return mode != null ? mode : SearchMode.HYBRID;
+    }
+
+    public void setMode(final SearchMode mode) {
+      this.mode = mode;
+    }
 
     public Integer getBulkBatchSize() {
       return bulkBatchSize != null ? bulkBatchSize : getDefaultBulkBatchSize();
@@ -247,6 +260,10 @@ public interface SearchConfig
 
     @Override
     public void validate() {
+      if (getMode() == SearchMode.LUCENE) {
+        return;
+      }
+
       if (domain == null) {
         throw new OpenSearchConfigurationException("AWS OpenSearch domain URI is required");
       }
@@ -370,6 +387,10 @@ public interface SearchConfig
 
     @Override
     public void validate() {
+      if (getMode() == SearchMode.LUCENE) {
+        return;
+      }
+
       if (uri == null) {
         throw new OpenSearchConfigurationException("OpenSearch URI is required");
       }

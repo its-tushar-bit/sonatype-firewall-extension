@@ -1,0 +1,8 @@
+search:
+  type: aws
+  mode: LUCENE
+  domain: https://example.com:123
+  region: us-east-1
+  maxConcurrency: 25
+  connectionTimeout: 30
+  connectionAcquisitionTimeout: 30

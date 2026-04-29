@@ -26,10 +26,12 @@ import software.amazon.awssdk.http.SdkHttpClient;
 /**
  * Guice module to bind the appropriate search classes based on the search configuration.
  * <p>
- * When OpenSearch is configured, hybrid mode is automatically enabled to provide seamless
- * fallback to Lucene during OpenSearch's initial indexing. The HybridSearchIndexClient uses
- * OpenSearch as the primary search engine and automatically falls back to Lucene if OpenSearch
- * is unavailable or still being indexed.
+ * Supports three search modes:
+ * <ul>
+ * <li>{@link SearchMode#LUCENE}: built-in Lucene only (also the default when no search config is present)</li>
+ * <li>{@link SearchMode#OPENSEARCH}: OpenSearch only, no Lucene fallback</li>
+ * <li>{@link SearchMode#HYBRID}: OpenSearch primary with automatic Lucene fallback</li>
+ * </ul>
  */
 public class SearchModule
     extends DropwizardAwareModule<InsightConfig>
@@ -50,41 +52,53 @@ public class SearchModule
   public void configure() {
     SearchConfig searchConfig = searchConfigSupplier.getSearchConfig();
     if (searchConfig == null) {
-      // No OpenSearch configuration - use Lucene only
       log.debug("Using Lucene search");
-      bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class);
-      bind(LuceneSearchIndexClient.class);
+      configureLuceneOnly();
     }
     else {
-      // Validate configuration early to fail fast on startup
       searchConfig.validate();
 
-      // When OpenSearch is configured, always bind both clients
-      // HybridSearchIndexClient will automatically use Lucene as fallback if OpenSearch is unavailable
-      // or still being indexed for the first time
-      log.debug("OpenSearch configured - using hybrid mode with automatic Lucene fallback");
-      configureHybridMode(searchConfig);
+      switch (searchConfig.getMode()) {
+        case LUCENE -> {
+          log.info("Using Lucene search");
+          configureLuceneOnly();
+        }
+        case OPENSEARCH -> {
+          log.debug("Using OpenSearch search");
+          bind(SearchConfig.class).toInstance(searchConfig);
+          configureOpenSearchTransport(searchConfig);
+          configureOpenSearchOnly();
+        }
+        case HYBRID -> {
+          log.debug("Using hybrid search (OpenSearch with Lucene fallback)");
+          bind(SearchConfig.class).toInstance(searchConfig);
+          configureOpenSearchTransport(searchConfig);
+          configureHybridMode();
+        }
+        default -> throw new IllegalStateException("Unknown search mode: " + searchConfig.getMode());
+      }
     }
   }
 
-  private void configureHybridMode(SearchConfig searchConfig) {
-    // Bind OpenSearch as the primary client
+  private void configureLuceneOnly() {
+    bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class);
+    bind(LuceneSearchIndexClient.class);
+  }
+
+  private void configureOpenSearchOnly() {
+    bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
+    bind(OpenSearchSearchIndexClient.class);
+  }
+
+  private void configureHybridMode() {
     bind(SearchIndexClient.class).annotatedWith(Names.named("primary")).to(OpenSearchSearchIndexClient.class);
     bind(OpenSearchSearchIndexClient.class);
 
-    // Bind Lucene as the secondary (fallback) client
     bind(SearchIndexClient.class).annotatedWith(Names.named("secondary")).to(LuceneSearchIndexClient.class);
     bind(LuceneSearchIndexClient.class);
 
-    // Bind the hybrid client as the main SearchIndexClient
     bind(SearchIndexClient.class).to(HybridSearchIndexClient.class);
     bind(HybridSearchIndexClient.class);
-
-    // Bind SearchConfig for OpenSearch configuration
-    bind(SearchConfig.class).toInstance(searchConfig);
-
-    // Configure OpenSearch transport and AWS SDK if needed
-    configureOpenSearchTransport(searchConfig);
   }
 
   /**

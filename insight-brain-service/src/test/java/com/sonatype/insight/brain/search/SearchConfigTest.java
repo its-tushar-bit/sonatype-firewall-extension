@@ -21,6 +21,130 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SearchConfigTest
 {
   @Test
+  public void testHttpConfig_DefaultMode() {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+
+    // When/Then
+    assertThat(config.getMode()).isEqualTo(SearchMode.HYBRID);
+  }
+
+  @Test
+  public void testHttpConfig_OpenSearchMode() {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setMode(SearchMode.OPENSEARCH);
+
+    // When/Then
+    assertThat(config.getMode()).isEqualTo(SearchMode.OPENSEARCH);
+  }
+
+  @Test
+  public void testHttpConfig_LuceneMode_SkipsValidation() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setMode(SearchMode.LUCENE);
+
+    // When/Then - LUCENE mode ignores HTTP fields, so missing uri/username/password is fine
+    assertThatCode(config::validate).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testHttpConfig_OpenSearchMode_RequiresUri() {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setMode(SearchMode.OPENSEARCH);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("URI is required");
+  }
+
+  @Test
+  public void testLuceneConfig_DefaultMode() {
+    // Given
+    LuceneSearchConfig config = new LuceneSearchConfig();
+
+    // When/Then
+    assertThat(config.getMode()).isEqualTo(SearchMode.LUCENE);
+  }
+
+  @Test
+  public void testLuceneConfig_ExplicitMode() {
+    // Given
+    LuceneSearchConfig config = new LuceneSearchConfig();
+    config.setMode(SearchMode.LUCENE);
+
+    // When/Then
+    assertThatCode(config::validate).doesNotThrowAnyException();
+    assertThat(config.getMode()).isEqualTo(SearchMode.LUCENE);
+  }
+
+  @Test
+  public void testLuceneConfig_NonLuceneMode_ThrowsException() {
+    // Given
+    LuceneSearchConfig config = new LuceneSearchConfig();
+    config.setMode(SearchMode.OPENSEARCH);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(SearchConfigurationException.class)
+        .hasMessageContaining("requires a search type");
+  }
+
+  @Test
+  public void testLuceneConfig_HybridMode_ThrowsException() {
+    LuceneSearchConfig config = new LuceneSearchConfig();
+    config.setMode(SearchMode.HYBRID);
+
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(SearchConfigurationException.class)
+        .hasMessageContaining("requires a search type");
+  }
+
+  @Test
+  public void testAwsConfig_DefaultMode() {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+
+    // When/Then
+    assertThat(config.getMode()).isEqualTo(SearchMode.HYBRID);
+  }
+
+  @Test
+  public void testAwsConfig_ExplicitMode() {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setMode(SearchMode.OPENSEARCH);
+
+    // When/Then
+    assertThat(config.getMode()).isEqualTo(SearchMode.OPENSEARCH);
+  }
+
+  @Test
+  public void testAwsConfig_LuceneMode_SkipsValidation() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setMode(SearchMode.LUCENE);
+
+    // When/Then - LUCENE mode ignores AWS fields, so missing domain/region is fine
+    assertThatCode(config::validate).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testAwsConfig_OpenSearchMode_RequiresDomain() {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setMode(SearchMode.OPENSEARCH);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("domain URI is required");
+  }
+
+  @Test
   public void testAwsConfig_Valid() throws Exception {
     // Given
     AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();

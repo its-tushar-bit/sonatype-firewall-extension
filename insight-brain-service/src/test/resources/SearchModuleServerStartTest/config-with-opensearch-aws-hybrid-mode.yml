@@ -1,0 +1,5 @@
+search:
+  type: aws
+  mode: HYBRID
+  domain: https://localhost:9200
+  region: us-east-1

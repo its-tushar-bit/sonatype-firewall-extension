@@ -1,0 +1,6 @@
+search:
+  type: http
+  mode: LUCENE
+  uri: https://localhost:9200
+  username: admin
+  password: password

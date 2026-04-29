@@ -14,8 +14,10 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.LuceneSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
+import com.sonatype.insight.brain.search.SearchMode;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.classic.Level;
@@ -649,6 +651,54 @@ public class InsightConfigurationFactoryTest
   }
 
   @Test
+  public void testBuild_OpenSearch_Http_DefaultMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-http.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.HYBRID);
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Http_OpenSearchMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-http-with-mode.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isInstanceOf(HttpOpenSearchConfig.class);
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.OPENSEARCH);
+
+    HttpOpenSearchConfig httpOpenSearchConfig = (HttpOpenSearchConfig) searchConfig;
+    assertThat(httpOpenSearchConfig.getUri()).isEqualTo(URI.create("https://example.com:123"));
+    assertThat(httpOpenSearchConfig.getUsername()).isEqualTo("john");
+    assertThat(httpOpenSearchConfig.getPassword()).isEqualTo("secret");
+  }
+
+  @Test
+  public void testBuild_LuceneSearchConfig_LuceneMode() throws Exception {
+    InsightConfig insightConfig = build("config-lucene-mode.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isInstanceOf(LuceneSearchConfig.class);
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.LUCENE);
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Http_LuceneMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-http-lucene-mode.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isInstanceOf(HttpOpenSearchConfig.class);
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.LUCENE);
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Aws_DefaultMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-aws.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.HYBRID);
+  }
+
+  @Test
   public void testBuild_OpenSearch_Aws() throws Exception {
     InsightConfig insightConfig = build("config-opensearch-aws.yml");
 
@@ -662,5 +712,27 @@ public class InsightConfigurationFactoryTest
     assertThat(awsHttpOpenSearchConfig.getMaxConcurrency()).isEqualTo(25);
     assertThat(awsHttpOpenSearchConfig.getConnectionTimeout()).isEqualTo(java.time.Duration.ofSeconds(30));
     assertThat(awsHttpOpenSearchConfig.getConnectionAcquisitionTimeout()).isEqualTo(java.time.Duration.ofSeconds(30));
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Aws_OpenSearchMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-aws-with-mode.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isInstanceOf(AwsHttpOpenSearchConfig.class);
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.OPENSEARCH);
+
+    AwsHttpOpenSearchConfig awsHttpOpenSearchConfig = (AwsHttpOpenSearchConfig) searchConfig;
+    assertThat(awsHttpOpenSearchConfig.getDomain()).isEqualTo(URI.create("https://example.com:123"));
+    assertThat(awsHttpOpenSearchConfig.getRegion()).isEqualTo("us-east-1");
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Aws_LuceneMode() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-aws-lucene-mode.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isInstanceOf(AwsHttpOpenSearchConfig.class);
+    assertThat(searchConfig.getMode()).isEqualTo(SearchMode.LUCENE);
   }
 }

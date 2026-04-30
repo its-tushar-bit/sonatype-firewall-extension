@@ -1731,6 +1731,38 @@
       </build>
     </profile>
     <profile>
+      <!--
+       Override buildsupport-sonar-coverage from the grandparent pom (buildsupport:54)
+       which pins jacoco-maven-plugin to 0.8.12 with an explicit version in <plugins>,
+       bypassing our pluginManagement override. JaCoCo 0.8.12 does not support JDK 25
+       class files (major version 69).
+       -->
+      <id>buildsupport-sonar-coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.14</version>
+            <executions>
+              <execution>
+                <id>default-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>jdks</id>
       <!--
        Downloads all target-platform JDKs and their jmod bundles into target/jdks/.

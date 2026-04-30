@@ -95,6 +95,18 @@ public class EnterpriseReportingDefaultFilterDAOTest
   }
 
   @Test
+  public void testInsert_ldapUserWithLongDn() {
+    String longDn = "cn=ldapuser,ou=ipausers,ou=users,dc=standalone,dc=localdomain";
+    String filterIdA = tempEntity.newEnterpriseReportingFilter(longDn, "My Filter", "{}").getId();
+
+    var defaultFilter = createDefaultFilter(longDn, filterIdA);
+    defaultFilterDao.insert(defaultFilter);
+
+    var persisted = defaultFilterDao.getDefaultFilterByUserId(longDn);
+    assertFilter(persisted, defaultFilter);
+  }
+
+  @Test
   public void testInsert_FailsWithNonExistentFilterId() {
     User user = tempEntity.newUser();
     final var userId = user.getId();

@@ -58,6 +58,26 @@ public class EnterpriseReportingFilterDAOTest
   }
 
   @Test
+  public void testInsert_ldapUserWithLongDn() {
+    String longDn = "cn=ldapuser,ou=ipausers,ou=users,dc=standalone,dc=localdomain";
+    var filter = createFilter(longDn, "My Filter", "{}");
+    filterDao.insert(filter);
+
+    var persisted = filterDao.getFilterByUserAndFilterId(longDn, filter.getId());
+    assertFilter(persisted, filter);
+  }
+
+  @Test
+  public void testInsert_ldapUserWithMaxLengthDn() {
+    String maxLengthDn = "cn=" + "a".repeat(233) + ",dc=example,dc=com";
+    var filter = createFilter(maxLengthDn, "My Filter", "{}");
+    filterDao.insert(filter);
+
+    var persisted = filterDao.getFilterByUserAndFilterId(maxLengthDn, filter.getId());
+    assertFilter(persisted, filter);
+  }
+
+  @Test
   public void testInsert_largeFilterPayload() {
     User user = tempEntity.newUser();
     final var userId = user.getId();

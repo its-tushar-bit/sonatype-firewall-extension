@@ -7,6 +7,11 @@ import '@testing-library/jest-dom';
 import customMatchers from './customMatchers';
 import $ from 'jquery';
 import { enableMapSet } from 'immer';
+import { TextEncoder, TextDecoder } from 'util';
+
+// Polyfill TextEncoder/TextDecoder for jsdom (react-router requires these)
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Enable Immer MapSet plugin for Redux Toolkit with Set/Map support
 enableMapSet();

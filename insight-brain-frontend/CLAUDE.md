@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Module Overview
 
-**insight-brain-frontend** is the frontend module for Nexus IQ Server, containing the user interface for all four Sonatype products: **Lifecycle**, **SBOM Manager**, **Firewall**, and **Developer**. It implements React with Redux state management.
+**insight-brain-frontend** is the frontend module for Nexus IQ Server, containing the user interface for all four Sonatype products: **Lifecycle**, **SBOM Manager**, **Firewall**, **Developer**, and **Guide**. It implements React with Redux state management.
+
+This module contains **two separate SPAs**:
+1. **Legacy IQ UI** (`src/main/frontend/index.jsx`) — the main IQ Server UI using UI Router, Redux, and `@sonatype/react-shared-components`.
+2. **Guide SPA** (`src/main/frontend/guide/index.tsx`) — a separate app using React Router, TypeScript, `@guide/ui-core`, and Radix UI Themes. See the **"Guide SPA"** section below for complete directory structure conventions, naming rules, and architectural rationale.
 
 ## Key Responsibilities
 
@@ -634,6 +638,68 @@ Frontend changes typically require updates to multiple test layers:
   - **When to update**: Any UI changes, new features, or modified user workflows
   - **Coverage**: End-to-end scenarios, cross-browser testing, API integration
   - **Important**: These tests are outside this frontend directory but are critical for validating frontend changes in production-like environments
+
+## Guide SPA
+
+### Overview
+
+The Guide SPA is a **separate single-page application** that provides the Sonatype Guide product for self-hosted (on-prem) customers. It is completely independent from the legacy IQ Server UI — it has its own entry point, routing system, build bundle, and component library.
+
+The SaaS version of Guide already exists as a Next.js application in the `seaworthy` repository. The self-hosted Guide SPA reuses the same shared UI components via `@guide/ui-core`.
+
+### Why React Router (Not UI Router)
+
+The legacy IQ Server UI uses `@uirouter/react` (a state-based router inherited from AngularJS patterns). The Guide SPA uses **React Router 7** instead:
+
+1. **API parity with Next.js**: The Guide SaaS app uses Next.js, whose routing APIs (`useRouter`, `usePathname`, `useSearchParams`, `Link`) closely mirror React Router's APIs. This 1:1 mapping means shared components in `@guide/ui-core` work in both environments with a thin adapter layer.
+2. **NavigationAdapter pattern**: `@guide/ui-core` defines a `NavigationAdapter` interface. Each host provides its own adapter:
+   - **SaaS (seaworthy)**: `NextjsNavigationProvider` — wraps Next.js `useRouter`
+   - **Self-hosted (insight-brain)**: `useReactRouterAdapter()` — wraps React Router hooks
+   - Both conform to the same interface, so all shared components work identically in both environments.
+3. **Minimal translation overhead**: Next.js and React Router share similar concepts (path-based routing, search params, `Link`). UI Router would have required a much more complex adapter with significant semantic mismatches.
+
+### Guide SPA vs Legacy IQ UI
+
+| Aspect | Legacy IQ Server UI | Guide SPA |
+|--------|-------------------|-----------|
+| Routing | UI Router (`@uirouter/react`) | React Router 7 (`react-router`) |
+| Language | JavaScript (`.jsx`) | TypeScript (`.tsx`) |
+| State management | Redux Toolkit | React Context + `@guide/ui-core` hooks |
+| Component library | `@sonatype/react-shared-components` | `@guide/ui-core` + Radix UI Themes |
+| Styling | SCSS with `iq-` prefix (BEM) | CSS Modules + Radix UI Themes |
+| Entry point | `src/main/frontend/index.jsx` | `src/main/frontend/guide/index.tsx` |
+| Build output | `target/.../assets/bundle.js` | `target/.../assets/guide/guide.js` |
+| Test pattern | `*.jestspec.jsx` | `*.jestspec.tsx` |
+
+
+### Testing Conventions for Guide Code
+
+- **Test file location**: `src/test/frontend/guide/` mirrors the source structure under `src/main/frontend/guide/`
+- **Test file naming**: `*.jestspec.tsx`
+- **Test utilities**: Use `guide/test-utils/test-utils.tsx` which wraps components with `MemoryRouter`, `Theme`, and `NavigationProvider`
+- **Path alias**: `GuideRoot/*` imports from guide source (e.g., `import { useReactRouterAdapter } from 'GuideRoot/reactRouterAdapter'`)
+- **Assertions**: Use React Testing Library queries (`getByRole`, `getByText`) — avoid `getByTestId`
+- **User interactions**: Use `userEvent`, not `fireEvent`
+
+### Shared UI Package (`@guide/ui-core`)
+
+Published from the `seaworthy` repo (`ui/packages/ui-core`). Contains:
+- **Components**: `Button`, `CVSSBadge`, `FilteredPageLayout`, `VulnerabilityResultCard`, etc.
+- **Hooks**: `useNavigate`, `useAdapterPathname`, `useAdapterSearchParams`, `useLink`, `useForm`
+- **Types**: `NavigationAdapter`, `LinkProps`, `FormProps`, `ReadonlySearchParams`
+- **Adapters**: `NavigationProvider`, `GatingProvider`
+- **Utilities**: formatters, date helpers, URL utils, constants
+
+```typescript
+import { NavigationProvider, Button } from '@guide/ui-core';
+import type { NavigationAdapter } from '@guide/ui-core';
+```
+
+### Do NOT Mix Guide and Legacy UI Code
+
+- Guide code must NOT import from `MainRoot/*`, Redux store, UI Router, or `@sonatype/react-shared-components`.
+- Legacy IQ UI code must NOT import from `GuideRoot/*`.
+- The two SPAs share no runtime state — they are separate bundles with separate entry points.
 
 ## Related Modules
 

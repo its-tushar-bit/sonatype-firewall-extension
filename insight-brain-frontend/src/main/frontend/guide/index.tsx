@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router';
 import { Theme } from '@radix-ui/themes';
 import '@radix-ui/themes/styles.css';
+import '@guide/ui-core/styles.css';
 import App from './App';
 import './globals.css';
 

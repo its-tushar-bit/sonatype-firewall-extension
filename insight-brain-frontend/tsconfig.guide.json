@@ -9,7 +9,17 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["jest", "@testing-library/jest-dom"],
+    "baseUrl": ".",
+    "paths": {
+      "GuideRoot/*": ["src/main/frontend/guide/*"]
+    }
   },
-  "include": ["src/main/frontend/guide/**/*.ts", "src/main/frontend/guide/**/*.tsx"]
+  "include": [
+    "src/main/frontend/guide/**/*.ts",
+    "src/main/frontend/guide/**/*.tsx",
+    "src/test/frontend/guide/**/*.ts",
+    "src/test/frontend/guide/**/*.tsx"
+  ]
 }

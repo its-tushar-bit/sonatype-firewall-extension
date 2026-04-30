@@ -14,19 +14,23 @@ module.exports = {
   maxWorkers: '87.5%', // 14 workers on 16-core (freed cores from reduced Postgres test parallelization)
   workerIdleMemoryLimit: '1024MB', // Increased memory per worker for better performance
   transformIgnorePatterns: [
-    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-[^/]+|internmap|delaunator|robust-predicates|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
+    '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@guide|@nivo|d3-[^/]+|internmap|delaunator|robust-predicates|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
   ],
   transform: {
     '\\.[jt]sx?$': [
       'babel-jest',
       {
-        presets: [['@babel/preset-env', { targets: { node: '16.16.0' } }], '@babel/preset-react'],
+        presets: [
+          ['@babel/preset-env', { targets: { node: '16.16.0' } }],
+          ['@babel/preset-react', { runtime: 'automatic' }],
+          '@babel/preset-typescript',
+        ],
       },
     ],
   },
-  testRegex: 'src/test/frontend/.*\\.jestspec\\.jsx?',
+  testRegex: 'src/test/frontend/.*\\.jestspec\\.[jt]sx?',
   testEnvironment: 'jsdom',
-  moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
+  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json', 'node'],
   setupFilesAfterEnv: ['<rootDir>/src/test/frontend/setupJest.js'],
   moduleNameMapper: {
     '\\.s?css$': '<rootDir>/src/test/frontend/__mocks__/styleMock.js',
@@ -40,6 +44,8 @@ module.exports = {
     '^react-virtualized-auto-sizer$': '<rootDir>/src/test/frontend/__mocks__/react-virtualized-auto-sizer.js',
     '^MainRoot/(.*)': '<rootDir>/src/main/frontend/$1',
     '^TestRoot/(.*)': '<rootDir>/src/test/frontend/$1',
+    '^GuideRoot/(.*)': '<rootDir>/src/main/frontend/guide/$1',
+    '^@guide/ui-core$': '<rootDir>/node_modules/@guide/ui-core/dist/index.js',
   },
   reporters: [
     'default',

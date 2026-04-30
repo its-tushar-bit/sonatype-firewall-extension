@@ -68,7 +68,8 @@ In this mode the test server starts on fixed port 8072 (matching the dev server 
 ### Technology Stack
 - **Backend**: Java 25, Dropwizard 5.x, JAX-RS, Guice DI
 - **Database**: PostgreSQL (prod), H2 (dev/test/light prod), jOOQ
-- **Frontend**: React 19, Redux Toolkit, esbuild, SCSS
+- **Frontend (Legacy IQ UI)**: React 19, Redux Toolkit, UI Router, esbuild, SCSS
+- **Frontend (Guide SPA)**: React 19, React Router 7, `@guide/ui-core`, Radix UI Themes, TypeScript, CSS Modules
 - **Testing**: JUnit 4, Mockito, Selenium, Jest, React Testing Library
 - **Security**: Apache Shiro, Keycloak SAML
 
@@ -147,6 +148,16 @@ Doing so would case inconsistencies in database schemas both between teammates a
 Such SQL scripts are located under `insight-brain-db/src/main/resources/db` and are prefixed by `schema_incremental_`.
 Instead of changing the existing script, a new incremental SQL script should be created to take the database schema to the desired form.
 Scripts `schema.sql` on the other hand are expected to change so databases that are created for the first time using that file get the new schema from the start.
+
+## Guide Frontend (Self-Hosted SPA)
+
+The Guide SPA is a **separate single-page application** within `insight-brain-frontend/` that provides Sonatype Guide for self-hosted customers. It is fully independent from the legacy IQ Server UI — separate entry point (`guide/index.tsx`), routing, build bundle, and component library.
+
+The SaaS version of Guide is a Next.js app in the `seaworthy` repo. The self-hosted SPA reuses the same shared UI components via `@guide/ui-core`. **React Router 7** was chosen (instead of the legacy UI Router used elsewhere in this codebase) because its APIs closely mirror Next.js routing APIs — this means the `NavigationAdapter` in `@guide/ui-core` translates cleanly to both environments with minimal overhead. Using UI Router would have required a much more complex adapter with significant semantic mismatches.
+
+Guide and legacy IQ UI code must **never cross-import** — they share no runtime state.
+
+For complete directory structure conventions, naming rules, component organization, and testing patterns, see [`insight-brain-frontend/CLAUDE.md`](insight-brain-frontend/CLAUDE.md) under the "Guide SPA" section.
 
 ## Code Review Guidelines
 

@@ -5,11 +5,16 @@
  */
 
 import { Routes, Route } from 'react-router';
+import { NavigationProvider } from '@guide/ui-core';
+import { useReactRouterAdapter } from './reactRouterAdapter';
 
 export default function App() {
+  const adapter = useReactRouterAdapter();
   return (
-    <Routes>
-      <Route path="/" element={<h1>Sonatype Guide</h1>} />
-    </Routes>
+    <NavigationProvider adapter={adapter}>
+      <Routes>
+        <Route path="/" element={<h1>Sonatype Guide</h1>} />
+      </Routes>
+    </NavigationProvider>
   );
 }

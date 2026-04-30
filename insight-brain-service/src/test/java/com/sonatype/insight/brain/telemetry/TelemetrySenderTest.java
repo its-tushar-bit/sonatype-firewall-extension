@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -37,7 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -149,5 +153,60 @@ public class TelemetrySenderTest
 
     verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class),
         eq(clientUserAgent));
+  }
+
+  @Test
+  public void testStop_drainsQueuedItems() throws Exception {
+    CountDownLatch firstItemStarted = new CountDownLatch(1);
+    CountDownLatch firstItemBlocked = new CountDownLatch(1);
+
+    // Block the submitter thread on the first item so the second item sits in the queue
+    doAnswer(invocation -> {
+      firstItemStarted.countDown();
+      firstItemBlocked.await(10, TimeUnit.SECONDS);
+      return null;
+    }).doNothing().when(mockHdsClient).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), any());
+
+    telemetrySender.start();
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.DATABASE));
+    assertThat(firstItemStarted.await(10, TimeUnit.SECONDS)).isTrue();
+
+    // Second item is now queued while submitter is still blocked on first
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.HIERARCHY_METRICS));
+
+    // This allows the submitter thread to finish its current loop and then see the interrupt
+    firstItemBlocked.countDown();
+
+    // stop() triggers the interrupt; because the first item is finished, the submitter exits
+    // and drainQueue() runs synchronously to process the second item
+    telemetrySender.stop();
+
+    verify(mockHdsClient, times(2)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), any());
+  }
+
+  @Test
+  public void testStop_completesWithinTimeout() throws Exception {
+    telemetrySender.start();
+    telemetrySender.send(new TelemetryData(TelemetryPurpose.DATABASE));
+
+    verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), any());
+
+    long startMs = System.currentTimeMillis();
+    telemetrySender.stop();
+    long elapsedMs = System.currentTimeMillis() - startMs;
+
+    assertThat(elapsedMs).isLessThan(10_000);
+  }
+
+  @Test
+  public void testStop_noItemsQueued_doesNotHang() {
+    telemetrySender.start();
+
+    long startMs = System.currentTimeMillis();
+    telemetrySender.stop();
+    long elapsedMs = System.currentTimeMillis() - startMs;
+
+    assertThat(elapsedMs).isLessThan(10_000);
+    verifyNoInteractions(mockHdsClient);
   }
 }

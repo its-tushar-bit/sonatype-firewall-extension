@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -42,13 +44,16 @@ public class DefaultTelemetrySchedulerTest
   @Mock
   private ScheduledExecutorService scheduledExecutorService;
 
+  @Mock
+  private ShutdownHandler shutdownHandler;
+
   private DefaultTelemetryScheduler defaultTelemetryScheduler;
 
   @Before
   public void before() {
     defaultTelemetryScheduler = new DefaultTelemetryScheduler(
         new DefaultTelemetryCollectorsProvider(Set.of(telemetryCollector1, telemetryCollector2)),
-        telemetrySender, scheduledExecutorService);
+        telemetrySender, shutdownHandler, scheduledExecutorService);
   }
 
   @Test
@@ -71,6 +76,7 @@ public class DefaultTelemetrySchedulerTest
     defaultTelemetrySchedulerSpy.start();
 
     verify(scheduledExecutorService).scheduleAtFixedRate(eq(telemetryRunnable), eq(0L), eq(1L), eq(TimeUnit.DAYS));
+    verify(shutdownHandler).add(eq(scheduledExecutorService), any());
   }
 
   @Test

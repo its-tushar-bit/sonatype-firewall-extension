@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -75,6 +77,8 @@ public class TelemetrySender
 
   public static final String ZIP_FILENAME = "telemetry.zip";
 
+  private static final int SHUTDOWN_TIMEOUT_MS = 5_000;
+
   @Inject
   public TelemetrySender(
       HdsClient hdsClient,
@@ -102,7 +106,33 @@ public class TelemetrySender
   public void stop() {
     if (submitter != null) {
       submitter.interrupt();
+      try {
+        submitter.join(SHUTDOWN_TIMEOUT_MS);
+      }
+      catch (InterruptedException e) {
+        log.warn("Interrupted while waiting for telemetry submitter to stop.", e);
+        Thread.currentThread().interrupt();
+      }
+      drainQueue();
       submitter = null;
+    }
+  }
+
+  @VisibleForTesting
+  void drainQueue() {
+    List<TenantAwareOneTimeRunnable> remaining = new ArrayList<>();
+    submissions.drainTo(remaining);
+    for (TenantAwareOneTimeRunnable task : remaining) {
+      try {
+        tenantUtil.validateNoCustomerTenantSet();
+        task.run();
+      }
+      catch (Exception e) {
+        log.debug("Failed to send telemetry during shutdown.", e);
+      }
+      catch (Throwable t) {
+        log.error("Unexpected error sending telemetry during shutdown.", t);
+      }
     }
   }
 

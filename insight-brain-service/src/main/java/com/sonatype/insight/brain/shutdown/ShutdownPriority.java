@@ -21,4 +21,5 @@ public enum ShutdownPriority
   POLICY_EVALUATIONS,
   NOTIFICATIONS,
   ASYNC_EVENT_BUS,
+  TELEMETRY,
 }

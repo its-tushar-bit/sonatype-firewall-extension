@@ -13,6 +13,8 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -31,27 +33,33 @@ public class DefaultTelemetryScheduler
 
   private final ScheduledExecutorService scheduledExecutorService;
 
+  private final ShutdownHandler shutdownHandler;
+
   @Inject
   public DefaultTelemetryScheduler(
       TelemetryCollectorsProvider telemetryCollectorsProvider,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      ShutdownHandler shutdownHandler)
   {
-    this(telemetryCollectorsProvider, telemetrySender, getScheduledThreadPoolExecutor());
+    this(telemetryCollectorsProvider, telemetrySender, shutdownHandler, getScheduledThreadPoolExecutor());
   }
 
   @VisibleForTesting
   DefaultTelemetryScheduler(
       TelemetryCollectorsProvider telemetryCollectorsProvider,
       TelemetrySender telemetrySender,
+      ShutdownHandler shutdownHandler,
       ScheduledExecutorService scheduledExecutorService)
   {
     super(telemetryCollectorsProvider, telemetrySender);
+    this.shutdownHandler = shutdownHandler;
     this.scheduledExecutorService = scheduledExecutorService;
   }
 
   @Override
   public void start() {
     scheduledExecutorService.scheduleAtFixedRate(getTelemetryRunnable(), 0L, 1L, TimeUnit.DAYS);
+    shutdownHandler.add(scheduledExecutorService, ShutdownPriority.TELEMETRY);
   }
 
   @VisibleForTesting

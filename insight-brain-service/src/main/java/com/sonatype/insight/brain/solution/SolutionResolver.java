@@ -43,6 +43,7 @@ public class SolutionResolver
 
   @VisibleForTesting
   static final List<String> IGNORED_PRODUCTS = ImmutableList.of(
+      ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED,
       ProductLicenseDetails.PRODUCT_SONATYPE_LIFT_PREMIUM,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_CLOUD,

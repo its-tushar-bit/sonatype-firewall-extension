@@ -5,6 +5,39 @@
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
+.swagger-ui.swagger-ui .info .title small {
+  display: none;
+}
+
+// swagger-ui .wrapper max-width, used to align the Authorize button with wrapper-constrained content
+$swagger-wrapper-max-width: 1460px;
+
+.swagger-ui.swagger-ui > div:has(> .information-container) {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.swagger-ui.swagger-ui .information-container {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.swagger-ui.swagger-ui .info {
+  margin: 0;
+}
+
+.swagger-ui.swagger-ui .scheme-container {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  width: auto;
+  margin-right: max(0px, calc((100% - #{$swagger-wrapper-max-width}) / 2));
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
 api-page {
   display: contents;
 

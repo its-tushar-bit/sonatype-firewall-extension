@@ -31,6 +31,13 @@ import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportAc
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsFirewallOrRepositoryAndNotContainerImagesEval } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { loadComponentLicenses } from 'MainRoot/firewall/firewallActions';
+import { selectIsSbomManager, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectComponentDetails as selectSbomComponentDetails,
+  selectSbomComponentDetails as selectSbomSlice,
+} from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
+import { actions as sbomComponentDetailsActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
+import { normalizeComponentIdentifier } from 'MainRoot/sbomManager/features/componentDetails/sbomLicenseUtils';
 
 const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
 
@@ -60,7 +67,8 @@ export const initialState = {
 };
 
 const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
-  const scope = getScopeWithLicenseOverride(licenseOverride) ?? licenseOverride[0] ?? null;
+  const scopeList = licenseOverride ?? [];
+  const scope = getScopeWithLicenseOverride(scopeList) ?? scopeList[0] ?? null;
   return {
     scope,
     status: scope?.licenseOverride?.status ?? null,
@@ -80,6 +88,29 @@ const startFirewallTimerToResetMaskAndReloadTileData = (dispatch, repositoryId, 
   setTimeout(() => {
     dispatch(actions.resetSubmitMaskState());
     dispatch(loadComponentLicenses(repositoryId, componentIdentifier));
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+};
+
+const startSbomManagerTimerToResetMaskAndReloadTileData = (dispatch, getState) => {
+  setTimeout(() => {
+    dispatch(actions.resetSubmitMaskState());
+    const { applicationPublicId, sbomVersion, componentHash } = selectRouterCurrentParams(getState());
+    const internalAppId = selectSbomSlice(getState())?.internalAppId;
+    dispatch(sbomComponentDetailsActions.loadComponentDetails({ internalAppId, sbomVersion, componentHash })).then(
+      (action) => {
+        if (action.meta.requestStatus === 'fulfilled') {
+          const details = action.payload;
+          dispatch(
+            sbomComponentDetailsActions.loadComponentLicenses({
+              applicationPublicId,
+              componentIdentifier: details?.componentIdentifier,
+              internalAppId,
+              sbomVersion,
+            })
+          );
+        }
+      }
+    );
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 };
 
@@ -241,7 +272,7 @@ const saveEditLicensesForm = createAsyncThunk(
   `${REDUCER_NAME}/saveEditLicensesForm`,
   (_, { getState, dispatch, rejectWithValue }) => {
     const { status, comment, scope, licenseIds } = selectEditLicensesForm(getState());
-    const { isRepositoryComponent, component, componentIdentifier } = getComponentInfo(getState);
+    const { isRepositoryComponent, isSbomManager, component, componentIdentifier } = getComponentInfo(getState);
     const { ownerType, ownerId } = scope;
     const payloadLicenseIds = isOverriddenOrSelected(status) ? licenseIds : [];
     const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
@@ -263,6 +294,8 @@ const saveEditLicensesForm = createAsyncThunk(
             component.repositoryId,
             component.componentIdentifier
           );
+        } else if (isSbomManager) {
+          startSbomManagerTimerToResetMaskAndReloadTileData(dispatch, getState);
         } else {
           startTimerToResetMaskAndReloadTileData(dispatch);
         }
@@ -276,14 +309,18 @@ const saveEditLicensesForm = createAsyncThunk(
 const getComponentInfo = (getState) => {
   let componentIdentifier, component;
   const isRepositoryComponent = selectIsFirewallOrRepositoryAndNotContainerImagesEval(getState());
+  const isSbomManager = selectIsSbomManager(getState());
   if (isRepositoryComponent) {
     component = selectFirewallComponentDetailsPageRouteParams(getState());
     componentIdentifier = JSON.parse(component?.componentIdentifier);
+  } else if (isSbomManager) {
+    component = selectSbomComponentDetails(getState());
+    componentIdentifier = normalizeComponentIdentifier(component?.componentIdentifier);
   } else {
     component = selectSelectedComponent(getState());
     componentIdentifier = component?.componentIdentifier;
   }
-  return { isRepositoryComponent, component, componentIdentifier };
+  return { isRepositoryComponent, isSbomManager, component, componentIdentifier };
 };
 
 const deleteLicenseOverride = createAsyncThunk(
@@ -291,9 +328,12 @@ const deleteLicenseOverride = createAsyncThunk(
   (_, { getState, dispatch, rejectWithValue }) => {
     const { scope } = selectEditLicensesForm(getState());
     const { ownerType, ownerId, licenseOverride } = scope;
-    const { isRepositoryComponent, component } = getComponentInfo(getState);
+    const { isRepositoryComponent, isSbomManager, component } = getComponentInfo(getState);
 
     if (!licenseOverride) {
+      if (isSbomManager) {
+        return startSbomManagerTimerToResetMaskAndReloadTileData(dispatch, getState);
+      }
       return startTimerToResetMaskAndReloadTileData(dispatch);
     }
 
@@ -306,6 +346,8 @@ const deleteLicenseOverride = createAsyncThunk(
             component.repositoryId,
             component.componentIdentifier
           );
+        } else if (isSbomManager) {
+          startSbomManagerTimerToResetMaskAndReloadTileData(dispatch, getState);
         } else {
           startTimerToResetMaskAndReloadTileData(dispatch);
         }
@@ -371,6 +413,9 @@ const componentDetailsLicenseDetectionsTileSlice = createSlice({
     [deleteLicenseOverride.fulfilled]: saveEditLicensesFormFulfilled,
     [deleteLicenseOverride.rejected]: saveEditLicensesFormFailed,
     [SELECT_COMPONENT]: always(initialState),
+    [sbomComponentDetailsActions.loadComponentLicenses.fulfilled]: loadFulfilled,
+    [sbomComponentDetailsActions.loadComponentLicenses.pending]: propSet('loading', true),
+    [sbomComponentDetailsActions.loadComponentLicenses.rejected]: loadFailed,
   },
 });
 

@@ -9,7 +9,16 @@ import reducer, {
   defaultSortConfiguration,
   policyViolationDetailsDrawerInitialState,
   sbomPolicyViolationsInitialState,
+  actions,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import {
+  getLicensesWithSyntheticFilterUrl,
+  getComponentMultiLicensesUrl,
+  getLicenseOverrideUrl,
+  getSbomMetadataUrl,
+} from 'MainRoot/util/CLMLocation';
+import { normalizeComponentIdentifier } from 'MainRoot/sbomManager/features/componentDetails/sbomLicenseUtils';
 
 describe('SBOM Manager componentDetailsSlice', function () {
   describe('sbomComponentDetailsPage/setActiveTabIndex', function () {
@@ -704,6 +713,63 @@ describe('SBOM Manager componentDetailsSlice', function () {
       expect(newState.errorInternalAppId).toBe(null);
       expect(newState.internalAppId).toBe('internalAppId123');
       expect(newState.applicationName).toBe('Application Name');
+    });
+  });
+
+  describe('sbomComponentDetailsPage/loadComponentLicenses', function () {
+    let mock;
+    const applicationPublicId = 'test-app-id';
+    const internalAppId = 'internal-app-id';
+    const sbomVersion = '1.0.0';
+    const sbomScanId = 'scan-123';
+    const componentIdentifier = {
+      format: 'maven',
+      coordinates: { groupId: 'com.example', artifactId: 'lib', version: '1.0' },
+    };
+    const normalizedCI = normalizeComponentIdentifier(componentIdentifier);
+    const componentIdentifierStr = JSON.stringify(normalizedCI);
+    const multiLicensesUrl = getComponentMultiLicensesUrl({
+      clientType: 'ci',
+      ownerType: 'application',
+      ownerId: applicationPublicId,
+      componentIdentifier: componentIdentifierStr,
+      identificationSource: 'SBOM',
+      scanId: sbomScanId,
+    });
+    const licenseOverrideUrl = getLicenseOverrideUrl('application', applicationPublicId, componentIdentifierStr);
+
+    beforeAll(() => {
+      mock = axiosMockAdapter();
+    });
+
+    it('testLoadComponentLicenses_ReturnsNullDeclaredLicensesWhenNoSbomLicenses', (done) => {
+      mock.onGet(getSbomMetadataUrl(internalAppId, sbomVersion)).reply(200, { scanId: sbomScanId });
+      mock.onGet(getLicensesWithSyntheticFilterUrl()).reply(200, []);
+      mock.onGet(multiLicensesUrl).reply(200, {
+        declaredLicenses: null,
+        observedLicenses: [],
+        effectiveLicenses: [],
+        selectableLicenses: [],
+        hiddenObservedLicenses: false,
+        supportAlpObservedLicenses: false,
+      });
+      mock.onGet(licenseOverrideUrl).reply(200, { licenseOverridesByOwner: [] });
+
+      const storeState = {
+        sbomComponentDetailsPage: {
+          loading: false,
+          loadError: null,
+          componentDetails: {},
+          componentDetailsPaginationData: null,
+        },
+        router: { currentParams: { componentHash: 'abc123' } },
+      };
+      const store = SpecUtil.mockReduxStore(storeState);
+
+      store.dispatch(actions.loadComponentLicenses({ applicationPublicId, componentIdentifier, internalAppId, sbomVersion })).then((result) => {
+        expect(result.payload.declaredLicenses).toBeNull();
+        done();
+      });
     });
   });
 

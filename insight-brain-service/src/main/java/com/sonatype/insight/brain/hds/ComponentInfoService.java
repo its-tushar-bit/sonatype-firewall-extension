@@ -27,6 +27,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
+
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentCategory;
@@ -82,6 +84,10 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
@@ -155,6 +161,10 @@ public class ComponentInfoService
 
   private final ReportDataReader reportDataReader;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  private final ThirdPartyScanDAO thirdPartyScanDAO;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -179,7 +189,9 @@ public class ComponentInfoService
       final IdUtils idUtils,
       ManualPullRequestService manualPullRequestService,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      ReportDataReader reportDataReader)
+      ReportDataReader reportDataReader,
+      ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      ThirdPartyScanDAO thirdPartyScanDAO)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -200,6 +212,8 @@ public class ComponentInfoService
     this.manualPullRequestService = manualPullRequestService;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.reportDataReader = reportDataReader;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.thirdPartyScanDAO = thirdPartyScanDAO;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -320,11 +334,27 @@ public class ComponentInfoService
       HttpServletRequest httpRequest,
       String identificationSource) throws IOException
   {
-    // Case 1: SBOM identification source with no supported formats
-    if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat()))
-    {
-      return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+    // Case 1: SBOM identification source
+    if (IdentificationSource.SBOM.getId().equals(identificationSource)) {
+      if (ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
+        // CPE/generic formats: use report data directly (not HDS-supported)
+        return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+      }
+      // HDS-supported formats: try HDS for known components, fall back to report data for unknown
+      NamedComponentDetails hdsDetails =
+          getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
+      if (hdsDetails != null && !hasOnlyUnspecifiedLicenses(hdsDetails)) {
+        return hdsDetails;
+      }
+      String resolvedScanId = resolveSbomScanId(scanId, owner);
+      if (resolvedScanId != null) {
+        NamedComponentDetails reportDetails =
+            reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), resolvedScanId);
+        if (reportDetails != null) {
+          return reportDetails;
+        }
+      }
+      return hdsDetails;
     }
 
     boolean isFromFirewallForContainers =
@@ -342,6 +372,43 @@ public class ComponentInfoService
 
     // Default case: Get details from Hosted Data Services
     return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
+  }
+
+  private String resolveSbomScanId(String scanId, Owner owner) {
+    if (owner == null) {
+      return scanId;
+    }
+    if (scanId == null) {
+      ThirdPartySbomMetadata latest = thirdPartySbomMetadataDAO.getLatestActiveByApplicationId(owner.getId());
+      if (latest != null) {
+        ThirdPartyScan scan = thirdPartyScanDAO.getByThirdPartyFileId(latest.getThirdPartyFileId());
+        if (scan != null) {
+          return scan.getScanId();
+        }
+      }
+      return null;
+    }
+    if (thirdPartySbomMetadataDAO.getByScanId(scanId) != null) {
+      return scanId;
+    }
+    ThirdPartySbomMetadata metadata =
+        thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(owner.getId(), scanId);
+    if (metadata != null) {
+      ThirdPartyScan scan = thirdPartyScanDAO.getByThirdPartyFileId(metadata.getThirdPartyFileId());
+      if (scan != null) {
+        return scan.getScanId();
+      }
+    }
+    return scanId;
+  }
+
+  private static boolean hasOnlyUnspecifiedLicenses(NamedComponentDetails details) {
+    Set<License> declared = details.getDeclaredLicenses();
+    if (declared == null || declared.isEmpty()) {
+      return true;
+    }
+    return declared.size() == 1 &&
+        UNSPECIFIED_ID.equals(declared.iterator().next().getLicenseId());
   }
 
   private NamedComponentDetails getComponentDetailsFromFirewallForContainers(

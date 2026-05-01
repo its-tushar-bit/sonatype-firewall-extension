@@ -81,7 +81,7 @@ router.stateRegistry.register({
   name: `${parentRoute}.applicationComponentOverviewByComponentIdentifier`,
   url:
     '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}' +
-    '/component/{hash}/scan/{scanId}/{tabId}',
+    '/component/{hash}/scan/{scanId}/{tabId}?identificationSource',
   component: ComponentLegalOverviewContainer,
   data: {
     title: 'Component - Legal Overview',

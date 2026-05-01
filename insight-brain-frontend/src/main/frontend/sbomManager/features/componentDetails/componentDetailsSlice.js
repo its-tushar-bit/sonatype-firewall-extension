@@ -18,6 +18,7 @@ import {
   findIndex,
   includes,
   keys,
+  map,
   pickBy,
   pipe,
   prop,
@@ -38,12 +39,17 @@ import {
   getSbomPolicyViolationReportUrl,
   getBillOfMaterialsComponentsUrl,
   getSbomVulnerabilityDetailsUrl,
+  getLicensesWithSyntheticFilterUrl,
+  getComponentMultiLicensesUrl,
+  getLicenseOverrideUrl,
 } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { selectSbomComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { COMPONENTS_PER_PAGE } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+import { normalizeComponentIdentifier } from 'MainRoot/sbomManager/features/componentDetails/sbomLicenseUtils';
+import { getSbomMetadataUrl } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'sbomComponentDetailsPage';
 
@@ -58,10 +64,12 @@ export const SORT_DIRECTION = Object.freeze({
   DEFAULT: null,
 });
 
-export const TAB_INDICES = Object.freeze({
-  VULNERABILTIY: 0,
-  POLICY_VIOLATION: 1,
-});
+export const TABS = Object.freeze(['VULNERABILITY', 'POLICY_VIOLATION', 'LEGAL']);
+
+export function getTabIndex(tabKey, isSbomPoliciesSupported) {
+  const activeTabs = isSbomPoliciesSupported ? TABS : TABS.filter((t) => t !== 'POLICY_VIOLATION');
+  return activeTabs.indexOf(tabKey);
+}
 
 export const defaultSortConfiguration = Object.freeze({
   sortBy: SORT_BY_FIELDS.cvssScore,
@@ -93,7 +101,7 @@ export const initialState = {
   loadSaveVexAnnotationFormError: null,
   loadingVulnerabilityAnalysisReferenceData: false,
   loadVulnerabilityAnalysisReferenceDataError: null,
-  activeTabIndex: TAB_INDICES.VULNERABILTIY,
+  activeTabIndex: 0,
   publicAppId: null,
   componentDetails: null,
   disclosedVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
@@ -539,6 +547,77 @@ const loadComponents = createAsyncThunk(
   }
 );
 
+const loadComponentLicenses = createAsyncThunk(
+  `${REDUCER_NAME}/loadComponentLicenses`,
+  async ({ applicationPublicId, componentIdentifier, internalAppId, sbomVersion }, { rejectWithValue }) => {
+    if (!componentIdentifier || !applicationPublicId) {
+      return {
+        licenseOverride: null,
+        declaredLicenses: null,
+        effectiveLicenses: null,
+        observedLicenses: null,
+        selectableLicenses: null,
+        allLicenses: [],
+        hiddenObservedLicenses: false,
+        supportAlpObservedLicenses: false,
+      };
+    }
+    try {
+      const ownerType = 'application';
+      const ownerId = applicationPublicId;
+      const normalizedCI = normalizeComponentIdentifier(componentIdentifier);
+      const componentIdentifierStr = JSON.stringify(normalizedCI);
+
+      let scanId = null;
+      if (internalAppId && sbomVersion) {
+        const metadataRes = await axios.get(getSbomMetadataUrl(internalAppId, sbomVersion));
+        scanId = metadataRes.data?.scanId ?? null;
+      }
+
+      const [licensesRes, multiLicensesRes, overrideRes] = await Promise.all([
+        axios.get(getLicensesWithSyntheticFilterUrl()),
+        axios.get(
+          getComponentMultiLicensesUrl({
+            clientType: 'ci',
+            ownerType,
+            ownerId,
+            componentIdentifier: componentIdentifierStr,
+            identificationSource: 'SBOM',
+            scanId,
+          })
+        ),
+        axios.get(getLicenseOverrideUrl(ownerType, ownerId, componentIdentifierStr)),
+      ]);
+
+      const allLicenses = map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName }), licensesRes.data);
+      const {
+        declaredLicenses: lifecycleDeclaredLicenses,
+        observedLicenses,
+        effectiveLicenses,
+        selectableLicenses,
+        hiddenObservedLicenses,
+        supportAlpObservedLicenses,
+      } = multiLicensesRes.data;
+      const licenseOverride = overrideRes.data.licenseOverridesByOwner;
+
+      const declaredLicenses = lifecycleDeclaredLicenses ?? null;
+
+      return {
+        licenseOverride,
+        declaredLicenses,
+        effectiveLicenses,
+        observedLicenses,
+        selectableLicenses,
+        allLicenses,
+        hiddenObservedLicenses,
+        supportAlpObservedLicenses,
+      };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -615,6 +694,7 @@ export const actions = {
   loadVulnerabilityDetails,
   loadSbomPolicyViolations,
   getVulnerabilityAnalysisReferenceData,
+  loadComponentLicenses,
   saveVexAnnotation,
   deleteVexAnnotation,
   copyVexAnnotation,

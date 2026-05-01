@@ -65,6 +65,7 @@ export default function ComponentLegalOverviewPage(props) {
     setShowLicensesModal,
     setDisplayOriginalSourcesOverrideModal,
     isSbomManager,
+    identificationSource,
   } = props;
   const $state = useRouterState();
 
@@ -80,19 +81,10 @@ export default function ComponentLegalOverviewPage(props) {
   // Use state name to determine context, not just repositoryId presence
   const prefix = isFirewallContext ? 'firewall' : isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
 
+  const effectiveIdentificationSource = identificationSource || (isSbomManager ? 'SBOM' : undefined);
+
   function load() {
-    if (hash) {
-      if (organizationId) {
-        loadComponent('organization', organizationId, hash);
-        loadAvailableScopes('organization', organizationId);
-      } else if (applicationPublicId) {
-        loadComponent('application', applicationPublicId, hash);
-        loadAvailableScopes('application', applicationPublicId);
-      } else {
-        loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash);
-        loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
-      }
-    } else if (componentIdentifier) {
+    if (componentIdentifier) {
       if (repositoryId) {
         loadComponentByComponentIdentifier(componentIdentifier, {
           repositoryId,
@@ -102,6 +94,8 @@ export default function ComponentLegalOverviewPage(props) {
         loadComponentByComponentIdentifier(componentIdentifier, {
           orgOrApp: 'application',
           ownerId: applicationPublicId,
+          scanId,
+          identificationSource: effectiveIdentificationSource,
         });
         loadAvailableScopes('application', applicationPublicId);
       } else {
@@ -110,6 +104,17 @@ export default function ComponentLegalOverviewPage(props) {
           ownerId: organizationId || 'ROOT_ORGANIZATION_ID',
         });
         loadAvailableScopes('organization', organizationId || 'ROOT_ORGANIZATION_ID');
+      }
+    } else if (hash) {
+      if (organizationId) {
+        loadComponent('organization', organizationId, hash, scanId, effectiveIdentificationSource);
+        loadAvailableScopes('organization', organizationId);
+      } else if (applicationPublicId) {
+        loadComponent('application', applicationPublicId, hash, scanId, effectiveIdentificationSource);
+        loadAvailableScopes('application', applicationPublicId);
+      } else {
+        loadComponent('organization', 'ROOT_ORGANIZATION_ID', hash, scanId, effectiveIdentificationSource);
+        loadAvailableScopes('organization', 'ROOT_ORGANIZATION_ID');
       }
     }
   }
@@ -157,6 +162,15 @@ export default function ComponentLegalOverviewPage(props) {
   };
 
   const backHref = () => {
+    // Handle SBOM Manager context
+    if (tabId === 'legal' && scanId && isSbomManager) {
+      return $state.href('sbomManager.component', {
+        applicationPublicId,
+        sbomVersion: scanId,
+        componentHash: hash,
+      });
+    }
+
     // Handle application report context (Lifecycle)
     if (tabId === 'legal' && scanId) {
       return $state.href('applicationReport.componentDetails.legal', {
@@ -334,4 +348,5 @@ ComponentLegalOverviewPage.propTypes = {
   tabId: PropTypes.string,
   scanId: PropTypes.string,
   isSbomManager: PropTypes.bool,
+  identificationSource: PropTypes.string,
 };

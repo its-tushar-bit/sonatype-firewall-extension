@@ -68,6 +68,7 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import OriginalBomViewer from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/OriginalBomViewer';
+import SbomManagerLegalTab from 'MainRoot/sbomManager/features/componentDetails/legal/SbomManagerLegalTab';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -356,6 +357,7 @@ export default function ComponentDetailsPage() {
                   <NxTabList>
                     <NxTab>Vulnerability</NxTab>
                     {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
+                    <NxTab>Legal</NxTab>
                     <NxTab>Original BOM</NxTab>
                   </NxTabList>
                   <NxTabPanel>
@@ -392,6 +394,9 @@ export default function ComponentDetailsPage() {
                       <PolicyViolationsTile applicationPublicId={applicationPublicId} sbomVersion={sbomVersion} />
                     </NxTabPanel>
                   )}
+                  <NxTabPanel>
+                    <SbomManagerLegalTab />
+                  </NxTabPanel>
                   <NxTabPanel>
                     <OriginalBomViewer
                       internalAppId={internalAppId}

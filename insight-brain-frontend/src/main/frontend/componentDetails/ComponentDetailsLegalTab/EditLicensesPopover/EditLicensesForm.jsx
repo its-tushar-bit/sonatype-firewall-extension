@@ -182,7 +182,7 @@ export default function EditLicensesForm({
 
   const selectedLicensesField = (
     <NxFieldset className="iq-edit-licenses-form__selected-licenses" label="Selected Licenses" isRequired>
-      {selectableLicenses.map((license, index) => (
+      {(selectableLicenses ?? []).map((license, index) => (
         <NxCheckbox
           key={license + index}
           id={license.LicenseId}
@@ -251,7 +251,7 @@ export default function EditLicensesForm({
         onChangeHandler={handleScopeChange}
         availableScopes={availableLicenseScopes}
         getOptionText={extractScopeOptionText}
-        currentValue={scope.ownerId}
+        currentValue={scope?.ownerId}
       />
     </NxFieldset>
   );

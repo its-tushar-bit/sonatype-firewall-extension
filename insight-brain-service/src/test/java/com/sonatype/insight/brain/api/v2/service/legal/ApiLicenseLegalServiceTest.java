@@ -336,7 +336,7 @@ public class ApiLicenseLegalServiceTest
             null,
             mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
             applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, null, idUtils,
-            null, null, null);
+            null, null, null, null, null);
     return componentInfoService;
   }
 

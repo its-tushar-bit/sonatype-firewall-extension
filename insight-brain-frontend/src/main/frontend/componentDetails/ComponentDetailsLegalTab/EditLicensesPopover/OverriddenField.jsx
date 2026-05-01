@@ -22,7 +22,7 @@ const OverriddenField = (props) => {
     };
   }, []);
 
-  const allLicensesFiltered = allLicenses.filter((license) => license.id !== 'Disabled');
+  const allLicensesFiltered = (allLicenses ?? []).filter((license) => license.id !== 'Disabled');
   const selectedTransferItems = new Set(licenseIds);
   const onSelectTransferItem = (selectedTransferItemSet) => {
     setSelectedLicenses(Array.from(selectedTransferItemSet));

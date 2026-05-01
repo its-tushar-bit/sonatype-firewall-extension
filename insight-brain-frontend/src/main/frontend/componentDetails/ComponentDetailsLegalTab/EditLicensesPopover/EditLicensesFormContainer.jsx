@@ -12,6 +12,8 @@ import {
   selectLicenseDetectionsTileDataSlice,
 } from '../LicenseDetectionsTile/licenseDetectionsTileSelectors';
 import { selectComponentIdentificationSource } from '../../componentDetailsSelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectComponentDetails as selectSbomComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 
 function mapStateToProps(state) {
   const { status, comment, licenseIds, isDirty, scope, submitError, submitMaskState } = selectEditLicensesForm(state);
@@ -26,7 +28,9 @@ function mapStateToProps(state) {
     supportAlpObservedLicenses,
     isAdvancedLegalPackSupported,
   } = selectLicenseDetectionsTileDataSlice(state);
-  const identificationSource = selectComponentIdentificationSource(state);
+  const identificationSource = selectIsSbomManager(state)
+    ? selectSbomComponentDetails(state)?.identificationSource ?? null
+    : selectComponentIdentificationSource(state);
 
   return {
     status,

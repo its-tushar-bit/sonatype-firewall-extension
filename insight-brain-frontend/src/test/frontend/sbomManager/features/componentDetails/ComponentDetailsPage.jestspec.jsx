@@ -633,10 +633,11 @@ describe('ComponentDetailsPage', () => {
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
       const tabs = screen.getAllByRole('tab');
-      expect(tabs.length).toBe(3);
+      expect(tabs.length).toBe(4);
       expect(tabs[0]).toHaveTextContent('Vulnerability');
       expect(tabs[1]).toHaveTextContent('Policy Violations');
-      expect(tabs[2]).toHaveTextContent('Original BOM');
+      expect(tabs[2]).toHaveTextContent('Legal');
+      expect(tabs[3]).toHaveTextContent('Original BOM');
     });
 
     it('should render the tooltip on hovering over the copy icon', async () => {
@@ -1040,9 +1041,10 @@ describe('ComponentDetailsPage', () => {
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
       const tabs = screen.getAllByRole('tab');
-      expect(tabs.length).toBe(2);
+      expect(tabs.length).toBe(3);
       expect(tabs[0]).toHaveTextContent('Vulnerability');
-      expect(tabs[1]).toHaveTextContent('Original BOM');
+      expect(tabs[1]).toHaveTextContent('Legal');
+      expect(tabs[2]).toHaveTextContent('Original BOM');
     });
   });
 });

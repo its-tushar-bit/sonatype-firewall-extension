@@ -41,6 +41,7 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides, originalSo
         'repositoryId',
         'scanId',
         'tabId',
+        'identificationSource',
       ],
       router.currentParams
     ),

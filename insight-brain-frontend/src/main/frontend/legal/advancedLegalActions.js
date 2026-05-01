@@ -53,15 +53,22 @@ export const setLicenseFormLicenseIds = payloadParamActionCreator(ADVANCED_LEGAL
 export const setShowUnsavedChangesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_UNSAVED_CHANGES_MODAL);
 export const setLicenseFormResetFormFields = noPayloadActionCreator(ADVANCED_LEGAL_SET_LICENSE_FORM_RESET_FORM_FIELDS);
 
-export function loadComponent(orgOrApp, ownerId, hash) {
+export function loadComponent(orgOrApp, ownerId, hash, scanId, identificationSource) {
   return (dispatch) => {
     dispatch(loadComponentRequested());
 
+    let url = getLicenseLegalComponentUrl(orgOrApp, ownerId, hash);
+    if (scanId) {
+      url += `&scanId=${encodeURIComponent(scanId)}`;
+    }
+    if (identificationSource) {
+      url += `&identificationSource=${encodeURIComponent(identificationSource)}`;
+    }
     return axios
-      .get(getLicenseLegalComponentUrl(orgOrApp, ownerId, hash))
+      .get(url)
       .then(({ data }) => {
         const componentIdentifier = JSON.stringify(data.component.componentIdentifier);
-        dispatch(loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier));
+        dispatch(loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier, scanId, identificationSource));
         dispatch(loadComponentFulfilled(data));
       })
       .catch((error) => {
@@ -73,16 +80,33 @@ export function loadComponentByComponentIdentifier(componentIdentifier, paramete
   return (dispatch) => {
     dispatch(loadComponentRequested());
 
-    return axios
-      .get(
-        getLicenseLegalComponentByComponentIdentifierUrl(componentIdentifier, parameters?.orgOrApp, parameters?.ownerId)
-      )
+    let url = getLicenseLegalComponentByComponentIdentifierUrl(
+      componentIdentifier,
+      parameters?.orgOrApp,
+      parameters?.ownerId
+    );
+    if (parameters?.scanId) {
+      url += `&scanId=${encodeURIComponent(parameters.scanId)}`;
+    }
+    if (parameters?.identificationSource) {
+      url += `&identificationSource=${encodeURIComponent(parameters.identificationSource)}`;
+    }
+    return axios.get(url)
       .then(({ data }) => {
         const componentIdentifierFromData = JSON.stringify(data.component.componentIdentifier);
         if (parameters?.repositoryId) {
           dispatch(loadMultiLicensesByRepositoryId(componentIdentifierFromData, parameters.repositoryId));
         } else if (parameters?.orgOrApp && parameters?.ownerId) {
-          dispatch(loadMultiLicenses(parameters.orgOrApp, parameters.ownerId, undefined, componentIdentifierFromData));
+          dispatch(
+            loadMultiLicenses(
+              parameters.orgOrApp,
+              parameters.ownerId,
+              undefined,
+              componentIdentifierFromData,
+              parameters.scanId,
+              parameters.identificationSource
+            )
+          );
         }
         dispatch(loadComponentFulfilled(data));
       })
@@ -110,7 +134,7 @@ export function loadAvailableScopes(ownerType, ownerId) {
   };
 }
 
-export function loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier) {
+export function loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier, scanId, identificationSource) {
   return (dispatch) => {
     dispatch(loadMultiLicensesRequested());
     const promises = [
@@ -121,6 +145,8 @@ export function loadMultiLicenses(orgOrApp, ownerId, hash, componentIdentifier) 
           ownerType: orgOrApp,
           ownerId,
           componentIdentifier,
+          scanId,
+          identificationSource,
         })
       ),
       axios.get(getLicenseOverrideLegalReviewerUrl(orgOrApp, ownerId, componentIdentifier)),

@@ -44,6 +44,7 @@ export default function ComponentDetailsLegalTab() {
             hash: hash,
             scanId: scanId,
             tabId: 'legal',
+            identificationSource,
           })
         : stateGo('applicationReport.applicationStageTypeComponentOverview', {
             applicationPublicId: applicationId,
@@ -62,6 +63,7 @@ export default function ComponentDetailsLegalTab() {
           hash: hash,
           scanId: scanId,
           tabId: 'legal',
+          identificationSource,
         })
       : uiRouterState.href(uiRouterState.get('applicationReport.applicationStageTypeComponentOverview'), {
           applicationPublicId: applicationId,

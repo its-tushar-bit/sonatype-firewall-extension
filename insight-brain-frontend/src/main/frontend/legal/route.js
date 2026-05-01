@@ -79,7 +79,7 @@ router.stateRegistry.register({
   name: 'legal.applicationComponentOverviewByComponentIdentifier',
   url:
     '/legal/component/componentIdentifier/{componentIdentifier}/application/{applicationPublicId}' +
-    '/component/{hash}/scan/{scanId}/{tabId}',
+    '/component/{hash}/scan/{scanId}/{tabId}?identificationSource',
   component: ComponentLegalOverviewContainer,
   data: {
     title: 'Component - Legal Overview',

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -201,12 +202,30 @@ public class ComponentLoader
     return licenseThreatGroupLicenses;
   }
 
+  static ComponentIdentifier normalizeComponentIdentifier(ComponentIdentifier ci) {
+    if (ci == null) {
+      return null;
+    }
+    Map<String, String> coords = ci.getCoordinates();
+    Map<String, String> normalized = new TreeMap<>();
+    for (Map.Entry<String, String> entry : coords.entrySet()) {
+      if (StringUtils.isNotBlank(entry.getValue())) {
+        normalized.put(entry.getKey(), entry.getValue());
+      }
+    }
+    if (coords.size() == normalized.size() || normalized.isEmpty()) {
+      return ci;
+    }
+    return new ComponentIdentifier(ci.getFormat(), normalized);
+  }
+
   private Map<ComponentIdentifier, LicenseOverride> getLicenseOverrides() {
     if (licenseOverridesByComponentIdentifier == null) {
       licenseOverridesByComponentIdentifier = new HashMap<>();
       for (String ownerId : getOwnerIds()) {
         for (LicenseOverride licenseOverride : licenseOverrideDAO.getByOwnerId(ownerId)) {
-          licenseOverridesByComponentIdentifier.putIfAbsent(licenseOverride.getComponentIdentifier(), licenseOverride);
+          licenseOverridesByComponentIdentifier.putIfAbsent(
+              normalizeComponentIdentifier(licenseOverride.getComponentIdentifier()), licenseOverride);
         }
       }
     }
@@ -301,7 +320,7 @@ public class ComponentLoader
     if (useLicensesJsonOverriddenLicenses) {
       return;
     }
-    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+    ComponentIdentifier componentIdentifier = normalizeComponentIdentifier(component.getComponentIdentifier());
     LicenseOverride licenseOverride = getLicenseOverrides().get(componentIdentifier);
     if (componentIdentifier != null && componentIdentifier.isMaven()) {
       // for Maven components, there can still be legacy license overrides that only use the GAV coordinates

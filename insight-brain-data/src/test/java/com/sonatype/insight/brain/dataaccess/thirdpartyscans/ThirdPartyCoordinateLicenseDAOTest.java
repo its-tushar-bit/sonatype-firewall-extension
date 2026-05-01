@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -108,6 +110,63 @@ public class ThirdPartyCoordinateLicenseDAOTest
     final ThirdPartyCoordinateLicense result = dao.getByFileCoordinateIdAndLicenseId(coord.getId(), "l1");
 
     assertThat(result.getName()).isEqualTo("n1");
+  }
+
+  @Test
+  public void testGetByComponentHash() {
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1", "sharedHash",
+            "pkg:f1/n1@v1");
+    ThirdPartyFileCoordinate coord2 =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s2", "f2", "n2", "v2", "sharedHash",
+            "pkg:f2/n2@v2");
+    ThirdPartyCoordinateLicense lic1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense lic2 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
+
+    List<ThirdPartyCoordinateLicense> results = dao.getByComponentHash("sharedHash");
+
+    assertThat(results).usingElementComparator(Comparator.comparing(ThirdPartyCoordinateLicense::getId))
+        .containsExactlyInAnyOrderElementsOf(Arrays.asList(lic1, lic2));
+  }
+
+  @Test
+  public void testGetByComponentHashes_multipleHashes() {
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1", "hash1",
+            "pkg:f1/n1@v1");
+    ThirdPartyFileCoordinate coord2 =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s2", "f2", "n2", "v2", "hash2",
+            "pkg:f2/n2@v2");
+    ThirdPartyCoordinateLicense lic1 = tempEntity.newThirdPartyCoordinateLicense(coord1, "l1", "n1", "u1");
+    ThirdPartyCoordinateLicense lic2 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
+    ThirdPartyCoordinateLicense lic3 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l3", "n3", "u3");
+
+    Map<String, List<ThirdPartyCoordinateLicense>> results = dao.getByComponentHashes(Set.of("hash1", "hash2"));
+
+    assertThat(results).containsOnlyKeys("hash1", "hash2");
+    assertThat(results.get("hash1")).usingElementComparator(Comparator.comparing(ThirdPartyCoordinateLicense::getId))
+        .containsExactly(lic1);
+    assertThat(results.get("hash2")).usingElementComparator(Comparator.comparing(ThirdPartyCoordinateLicense::getId))
+        .containsExactlyInAnyOrder(lic2, lic3);
+  }
+
+  @Test
+  public void testGetByComponentHashes_noMatch() {
+    Map<String, List<ThirdPartyCoordinateLicense>> results = dao.getByComponentHashes(Set.of("nonExistentHash"));
+
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetByComponentHash_noMatch() {
+    ThirdPartyFileCoordinate coord =
+        tempEntity.newThirdPartyFileCoordinate(tempEntity.newThirdPartyFile(), "s1", "f1", "n1", "v1", "someHash",
+            "pkg:f1/n1@v1");
+    tempEntity.newThirdPartyCoordinateLicense(coord, "l1", "n1", "u1");
+
+    List<ThirdPartyCoordinateLicense> results = dao.getByComponentHash("nonExistentHash");
+
+    assertThat(results).isEmpty();
   }
 
   private void assertThirdPartyCoordinateLicense(

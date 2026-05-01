@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
@@ -213,6 +214,8 @@ public interface DAOFactory
   ReverseProxyAuthenticationConfigurationDAO createReverseProxyAuthenticationConfigurationDAO();
 
   SamlConfigurationInternalDAO createSamlConfigurationInternalDAO();
+
+  ScanHealthConfigDAO createScanHealthConfigDAO();
 
   SystemConfigurationPropertyDAO createSystemConfigurationPropertyDAO();
 

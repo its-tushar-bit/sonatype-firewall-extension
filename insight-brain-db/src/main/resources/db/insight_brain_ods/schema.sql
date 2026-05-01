@@ -2268,3 +2268,15 @@ CREATE TABLE evaluation_queue (
   CONSTRAINT evaluation_queue_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE
 );
 CREATE INDEX evaluation_queue_priority_idx ON evaluation_queue(priority);
+
+CREATE TABLE scan_health_config (
+  scan_health_config_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  owner_type varchar(20) NOT NULL,
+  configuration_json TEXT NOT NULL,
+  create_time timestamp NOT NULL,
+  update_time timestamp NOT NULL,
+  CONSTRAINT scan_health_config_pk PRIMARY KEY (scan_health_config_id),
+  CONSTRAINT scan_health_config_owner_uk UNIQUE (owner_id, owner_type)
+);
+CREATE INDEX scan_health_config_owner_idx ON scan_health_config(owner_id);

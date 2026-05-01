@@ -26,6 +26,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -120,6 +121,8 @@ public class ApplicationDAO
 
   private final VersionEvaluationWindowDAO versionEvaluationWindowDAO;
 
+  private final ScanHealthConfigDAO scanHealthConfigDAO;
+
   private final TemporaryTableHelper temporaryTableHelper;
 
   @Inject
@@ -144,6 +147,7 @@ public class ApplicationDAO
       final CiIntegrationsConfigDao ciIntegrationsConfigDao,
       final OrganizationDAO organizationDAO,
       final VersionEvaluationWindowDAO versionEvaluationWindowDAO,
+      final ScanHealthConfigDAO scanHealthConfigDAO,
       final TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore, searchIndexManager);
@@ -165,6 +169,7 @@ public class ApplicationDAO
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
     this.organizationDAO = organizationDAO;
     this.versionEvaluationWindowDAO = versionEvaluationWindowDAO;
+    this.scanHealthConfigDAO = scanHealthConfigDAO;
     this.temporaryTableHelper = temporaryTableHelper;
   }
 
@@ -859,6 +864,9 @@ public class ApplicationDAO
 
     // Cascade to CI integrations config
     ciIntegrationsConfigDao.delete(tx, "APPLICATION", application.getId());
+
+    // Cascade to scan health config
+    scanHealthConfigDAO.deleteByOwnerId(tx, application.getId());
 
     // Cascade to SastScan table
     sastScanDAO.deleteByApplicationId(tx, application.getId());

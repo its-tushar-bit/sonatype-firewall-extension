@@ -93,6 +93,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.scanhealth.ScanHealthService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -211,6 +212,8 @@ public class ScanPolicyEvaluator
 
   private final ComponentHelper componentHelper;
 
+  private final ScanHealthService scanHealthService;
+
   @Inject
   public ScanPolicyEvaluator(
       final ReportService reportService,
@@ -248,7 +251,8 @@ public class ScanPolicyEvaluator
       final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService,
       final LicenseNameProvider licenseNameProvider,
       final ScanPersistenceService scanPersistenceService,
-      final ComponentHelper componentHelper)
+      final ComponentHelper componentHelper,
+      final ScanHealthService scanHealthService)
   {
     this.reportService = reportService;
     this.policyDAO = policyDAO;
@@ -286,6 +290,7 @@ public class ScanPolicyEvaluator
     this.licenseNameProvider = licenseNameProvider;
     this.scanPersistenceService = scanPersistenceService;
     this.componentHelper = componentHelper;
+    this.scanHealthService = scanHealthService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1732,7 +1737,22 @@ public class ScanPolicyEvaluator
     }
 
     postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
+
+    // Third-party SBOM must be activated before the zero-components check to ensure SBOM export/viewer
+    // functionality works even when the check throws BadRequestException.
     thirdPartySbomMetadataDAO.makeSbomActiveIfExist(scanId);
+
+    // CLM-39017 - Check for zero components. This check may throw BadRequestException to fail a scan,
+    // while preserving a report to alert users to scan misconfiguration and serve as a record of a build
+    // with zero components scanned.
+    //
+    // Note: This check applies to ALL scan types including continuous monitoring (CM) scans. Failing on zero
+    // components in CM mode is intentional - if a previously working scan suddenly produces zero components,
+    // it likely indicates a scanner misconfiguration or environment issue that should be investigated.
+    if (reportComponentData.components.isEmpty()) {
+      scanHealthService.failOnEvaluateResultContainingZeroComponentsIfConfigured(application);
+    }
+
     return scanPolicyEvaluatorResults;
   }
 

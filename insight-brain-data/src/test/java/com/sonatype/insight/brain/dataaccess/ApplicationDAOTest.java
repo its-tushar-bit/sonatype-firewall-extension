@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
@@ -70,11 +71,13 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfig;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -1423,6 +1426,30 @@ public class ApplicationDAOTest
 
     // verify deletion
     assertThat(ciIntegrationsConfigDao.findByOwner("APPLICATION", application.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToScanHealthConfig() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getPublicId());
+
+    ScanHealthConfigDAO scanHealthConfigDAO = daoFactory.createScanHealthConfigDAO();
+    ScanHealthConfig scanHealthConfig = new ScanHealthConfig(
+        application.getId(),
+        OwnerType.APPLICATION.toString(),
+        "{\"failOnZeroComponents\":true}");
+    scanHealthConfigDAO.save(scanHealthConfig);
+
+    // Verify config exists
+    assertThat(scanHealthConfigDAO.findByOwner(OwnerType.APPLICATION.toString(), application.getId()))
+        .isPresent();
+
+    // Delete application
+    applicationDAO.delete(application);
+
+    // Verify cascade deletion
+    assertThat(scanHealthConfigDAO.findByOwner(OwnerType.APPLICATION.toString(), application.getId()))
+        .isEmpty();
   }
 
   @Test

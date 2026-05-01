@@ -63,6 +63,7 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
@@ -558,6 +559,8 @@ public class TemporaryEntity
 
   private CallFlowAnalysisConfigDAO callFlowAnalysisConfigDAO;
 
+  private ScanHealthConfigDAO scanHealthConfigDAO;
+
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
@@ -1018,6 +1021,7 @@ public class TemporaryEntity
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
+      delete(scanHealthConfigDAO.getAll(), scanHealthConfigDAO);
       delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
       delete(scmUserMappingsDAO.getAll(), scmUserMappingsDAO);
       delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
@@ -6680,6 +6684,7 @@ public class TemporaryEntity
     autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
     autoPolicyWaiverExclusionDAO = daoFactory.createAutoPolicyWaiverExclusionDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
+    scanHealthConfigDAO = daoFactory.createScanHealthConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();
     ldapUserMappingDAO = daoFactory.createLdapUserMappingDAO();

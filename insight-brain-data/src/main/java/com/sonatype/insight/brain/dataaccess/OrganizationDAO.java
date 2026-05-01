@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplications
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -101,6 +102,8 @@ public class OrganizationDAO
 
   private final VersionEvaluationWindowDAO versionEvaluationWindowDAO;
 
+  private final ScanHealthConfigDAO scanHealthConfigDAO;
+
   @Inject
   public OrganizationDAO(
       final OperationalDataStore operationalDataStore,
@@ -121,7 +124,8 @@ public class OrganizationDAO
       final ScmUserMappingsDAO scmUserMappingsDAO,
       final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO,
       final CiIntegrationsConfigDao ciIntegrationsConfigDao,
-      final VersionEvaluationWindowDAO versionEvaluationWindowDAO)
+      final VersionEvaluationWindowDAO versionEvaluationWindowDAO,
+      final ScanHealthConfigDAO scanHealthConfigDAO)
   {
     super(operationalDataStore, searchIndexManager);
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -141,6 +145,7 @@ public class OrganizationDAO
     this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
     this.ciIntegrationsConfigDao = ciIntegrationsConfigDao;
     this.versionEvaluationWindowDAO = versionEvaluationWindowDAO;
+    this.scanHealthConfigDAO = scanHealthConfigDAO;
   }
 
   public Organization getByName(TransactionContext tx, String name) {
@@ -418,6 +423,9 @@ public class OrganizationDAO
 
     // Cascade to CI integrations config
     ciIntegrationsConfigDao.delete(tx, "ORGANIZATION", organization.getId());
+
+    // Cascade to scan health config
+    scanHealthConfigDAO.deleteByOwnerId(tx, organization.getId());
 
     versionEvaluationWindowDAO.deleteByOwnerId(tx, organization.getId());
 

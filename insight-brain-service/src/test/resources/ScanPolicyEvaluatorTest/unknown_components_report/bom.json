@@ -1,0 +1,36 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": null,
+      "matchState": "unknown",
+      "proprietary": false,
+      "hash": "unknown123hash",
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "unknown_artifact.jar"
+          }
+        ]
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "matchState": "unknown",
+      "proprietary": false,
+      "hash": "unknown456hash",
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "another_unknown.dll"
+          }
+        ]
+      }
+    }
+  ]
+}

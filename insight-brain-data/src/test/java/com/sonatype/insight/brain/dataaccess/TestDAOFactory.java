@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
@@ -236,7 +237,7 @@ public class TestDAOFactory
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, policyWaiverRequestDAOProvider,
         cpeMatchingConfigurationDAO, ciIntegrationsConfigDao, organizationDAO, versionEvaluationWindowDAO,
-        temporaryTableHelper);
+        createScanHealthConfigDAO(), temporaryTableHelper);
   }
 
   @Override
@@ -358,6 +359,11 @@ public class TestDAOFactory
     return new SamlConfigurationInternalDAO(
         dataStoreProvider.getOperationalDataStore(),
         testSamlFactory.createSamlPasswordFactory());
+  }
+
+  @Override
+  public ScanHealthConfigDAO createScanHealthConfigDAO() {
+    return new ScanHealthConfigDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override
@@ -572,7 +578,8 @@ public class TestDAOFactory
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
         scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, scmUserMappingsDAO,
-        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao, versionEvaluationWindowDAO);
+        cpeMatchingConfigurationDAO, ciIntegrationsConfigDao, versionEvaluationWindowDAO,
+        createScanHealthConfigDAO());
   }
 
   @Override

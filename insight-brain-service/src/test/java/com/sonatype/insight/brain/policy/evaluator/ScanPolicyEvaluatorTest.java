@@ -140,6 +140,8 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfigDTO;
+import com.sonatype.insight.brain.scanhealth.ScanHealthService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -184,6 +186,8 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static com.sonatype.insight.brain.jooq.generated.ods.Tables.POLICY_VIOLATION;
+import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
+import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
 import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.SecurityVulnerabilityEpssScoreConditionType;
@@ -283,6 +287,9 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private ReportService reportService;
+
+  @Inject
+  private ScanHealthService scanHealthService;
 
   @Mock
   private CurrentUser currentUser;
@@ -6608,6 +6615,118 @@ public class ScanPolicyEvaluatorTest
       assertThat(violation.getLegacyViolationTime()).isEqualTo(results.evaluation.getTime());
     });
     assertThat(results.activeViolations).isEmpty();
+  }
+
+  @Test
+  public void testEvaluate_failsOnZeroComponents_whenFeatureEnabled() {
+    // Enable fail on zero components
+    scanHealthService.saveConfiguration(
+        APPLICATION,
+        application.getId(),
+        new ScanHealthConfigDTO(true));
+
+    Policy policy = tempEntity.newPolicy(application);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Create a scan file with zero components
+    String scanId = simulateReportIsAvailable("zero_components_report");
+
+    // Evaluation should throw BadRequestException for zero components
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(
+            application, scanId, new Stage(Stage.ID_BUILD),
+            ScanTriggerType.CLI, ClientScanType.SONATYPE, false))
+        .withMessage(ScanHealthService.SCAN_FAILED_ZERO_COMPONENTS_DETECTED_MESSAGE);
+  }
+
+  @Test
+  public void testEvaluate_succeedsWithZeroComponents_whenFeatureDisabled() throws Exception {
+    // Do NOT enable fail on zero components (default is disabled)
+    Policy policy = tempEntity.newPolicy(application);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Create a scan file with zero components
+    String scanId = simulateReportIsAvailable("zero_components_report");
+
+    // Evaluation should succeed (feature disabled)
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+        application, scanId, new Stage(Stage.ID_BUILD),
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(results).isNotNull();
+    assertThat(results.allViolations).isEmpty();
+  }
+
+  @Test
+  public void testEvaluate_succeedsWithComponents_whenFeatureEnabled() throws Exception {
+    // Enable fail on zero components
+    scanHealthService.saveConfiguration(
+        APPLICATION,
+        application.getId(),
+        new ScanHealthConfigDTO(true));
+
+    Policy policy = newSecurityPolicy();
+    policyDAO.update(policy);
+
+    // Create a scan file with components
+    String scanId = simulateReportIsAvailable("report");
+
+    // Evaluation should succeed (has components)
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+        application, scanId, new Stage(Stage.ID_BUILD),
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(results).isNotNull();
+    assertThat(results.allViolations).isNotEmpty();
+  }
+
+  @Test
+  public void testEvaluate_failsOnZeroComponents_whenOrgConfigEnabled() {
+    // Enable fail on zero components at ORGANIZATION level
+    scanHealthService.saveConfiguration(
+        ORGANIZATION,
+        application.getOrganizationId(),
+        new ScanHealthConfigDTO(true));
+
+    Policy policy = tempEntity.newPolicy(application);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Create a scan file with zero components
+    String scanId = simulateReportIsAvailable("zero_components_report");
+
+    // Evaluation should throw BadRequestException - org config inherits to app
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(
+            application, scanId, new Stage(Stage.ID_BUILD),
+            ScanTriggerType.CLI, ClientScanType.SONATYPE, false))
+        .withMessage(ScanHealthService.SCAN_FAILED_ZERO_COMPONENTS_DETECTED_MESSAGE);
+  }
+
+  @Test
+  public void testEvaluate_succeedsWithOnlyUnknownComponents_whenFeatureEnabled() throws Exception {
+    // Enable fail on zero components
+    scanHealthService.saveConfiguration(
+        APPLICATION,
+        application.getId(),
+        new ScanHealthConfigDTO(true));
+
+    Policy policy = tempEntity.newPolicy(application);
+    policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Create a scan file with ONLY unknown/unrecognized components (AC4: should NOT fail)
+    String scanId = simulateReportIsAvailable("unknown_components_report");
+
+    // Evaluation should succeed - unknown components are still components (AC4)
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(
+        application, scanId, new Stage(Stage.ID_BUILD),
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(results).isNotNull();
+    assertThat(results.allViolations).isEmpty();
   }
 
   @Ignore("On-demand performance benchmark for DB batching optimizations")

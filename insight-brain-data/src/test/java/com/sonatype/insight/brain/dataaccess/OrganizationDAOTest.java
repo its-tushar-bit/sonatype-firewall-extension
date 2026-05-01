@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigD
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -56,6 +57,7 @@ import com.sonatype.insight.brain.model.configuration.CiIntegrationsConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -923,6 +925,28 @@ public class OrganizationDAOTest
     assertThat(testOrgAutoPolicyWaivers).isEmpty();
     List<AutoPolicyWaiver> otherOrgAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId("otherOrg");
     assertThat(otherOrgAutoPolicyWaivers).hasSize(2);
+  }
+
+  @Test
+  public void testCascadeDeleteToScanHealthConfig() {
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToScanHealthConfig");
+
+    ScanHealthConfigDAO scanHealthConfigDAO = daoFactory.createScanHealthConfigDAO();
+    ScanHealthConfig scanHealthConfig = new ScanHealthConfig(
+        organization.getId(),
+        OwnerType.ORGANIZATION.toString(),
+        "{\"failOnZeroComponents\":true}");
+    scanHealthConfigDAO.save(scanHealthConfig);
+
+    // Verify config exists
+    assertThat(scanHealthConfigDAO.findByOwner(OwnerType.ORGANIZATION.toString(), organization.getId()))
+        .isPresent();
+
+    dao.delete(organization);
+
+    // Verify cascade deletion
+    assertThat(scanHealthConfigDAO.findByOwner(OwnerType.ORGANIZATION.toString(), organization.getId()))
+        .isEmpty();
   }
 
   @Test

@@ -162,6 +162,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-service</artifactId>
       <classifier>tests</classifier>

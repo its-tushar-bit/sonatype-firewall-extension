@@ -171,19 +171,25 @@ public class DatabaseRuleAnnotations
     }
   }
 
-  public static boolean hasCustomSettings(final Annotation annotation) {
+  /**
+   * Returns true if the annotation has non-default settings that require re-initializing the fixture,
+   * even when the fixture type hasn't changed. Plain {@code @PostgresTest}, {@code @H2DiskTest}, or
+   * {@code @H2InMemoryTest} with all-default values returns false — the existing fixture can be reused.
+   */
+  public static boolean hasNonDefaultSettings(final Annotation annotation) {
     if (isPostgresTest(annotation)) {
-      // PostgresTest currently doesn't have `customSettings`
-      return false;
+      PostgresTest pt = getPostgresTest(annotation);
+      return pt.suppressMigrations() || pt.cleanDatabase();
     }
     else if (isH2DiskTest(annotation)) {
-      return getH2DiskTest(annotation).customSettings() != null;
+      H2DiskTest h2d = getH2DiskTest(annotation);
+      return h2d.suppressMigrations() || h2d.cleanDatabase()
+          || !h2d.customSettings().isEmpty() || !h2d.copyExistingDatabase().isEmpty();
     }
     else if (isH2InMemoryTest(annotation)) {
-      return getH2InMemoryTest(annotation).customSettings() != null;
+      H2InMemoryTest h2m = getH2InMemoryTest(annotation);
+      return h2m.suppressMigrations() || h2m.cleanDatabase() || !h2m.customSettings().isEmpty();
     }
-    else {
-      return false;
-    }
+    return false;
   }
 }

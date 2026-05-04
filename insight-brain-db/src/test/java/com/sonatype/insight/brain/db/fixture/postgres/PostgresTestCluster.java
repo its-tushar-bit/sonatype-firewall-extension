@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.db.fixture.postgres;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.StringJoiner;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.PostgresDataSourceProvider;
@@ -22,23 +27,17 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrators;
 import com.sonatype.insight.db.DatabaseConfig;
 
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.Container.ExecResult;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.utility.MountableFile;
 
 /**
  * JVM level Postgres test cluster.
  * <p>
- * Uses testcontainers.org to start <B>ONE SINGLE</B> Postgresql cluster in <B>ONE SINGLE</B> container that will live
- * for the <B>ENTIRE DURATION</B> that the JVM is executing. This SINGLE cluster/container can be used for ALL tests
- * that require a Postgres database. A new database in the cluster (not new container) will be provisioned for every
+ * Uses embedded-postgres (zonky) to start <B>ONE SINGLE</B> Postgresql cluster that will live
+ * for the <B>ENTIRE DURATION</B> that the JVM is executing. This SINGLE cluster can be used for ALL tests
+ * that require a Postgres database. A new database in the cluster (not new instance) will be provisioned for every
  * test. This approach prevents the starting and stopping of an entire Postgres cluster for every test.
- * </p>
- * <p>
- * See 'Using Singleton Containers' in the TestContainers documentation <a
- * href="https://testcontainers.com/guides/testcontainers-container-lifecycle/#_using_singleton_containers">here</a>.
  * </p>
  * <p>
  * Additionally this class will create one fully migrated database and then clone that database when a new one is
@@ -49,9 +48,6 @@ public class PostgresTestCluster
 {
   private static final Logger log = LoggerFactory.getLogger(PostgresTestCluster.class);
 
-  // This should match our minimum recommended version
-  private static final String DEFAULT_IMAGE_VERSION = "14.17-alpine";
-
   protected static final String TEMPLATE_DATABASE = "template_database";
 
   public static final String DEFAULT_NAME = "testdata";
@@ -60,27 +56,70 @@ public class PostgresTestCluster
 
   public static final String DEFAULT_PASSWORD = "testpass";
 
-  protected final PostgresTestContainer postgresTestContainer;
+  protected final EmbeddedPostgres embeddedPostgres;
+
+  protected final int port;
 
   private static PostgresTestCluster INSTANCE;
 
   public static PostgresTestCluster getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new PostgresTestCluster(DEFAULT_IMAGE_VERSION);
+      INSTANCE = new PostgresTestCluster();
     }
     return INSTANCE;
   }
 
-  protected PostgresTestCluster(final String version) {
-    this.postgresTestContainer = new PostgresTestContainer(version);
-    postgresTestContainer.start();
-    postgresTestContainer.followOutput(new Slf4jLogConsumer(log).withSeparateOutputStreams());
-    postgresTestContainer.withDatabaseName(DEFAULT_NAME);
-    postgresTestContainer.withUsername(DEFAULT_USERNAME);
-    postgresTestContainer.withPassword(DEFAULT_PASSWORD);
-    log.info("Started Postgres Test Cluster on version {} for this JVM execution.", version);
+  protected PostgresTestCluster() {
+    try {
+      this.embeddedPostgres = EmbeddedPostgres.builder()
+          .start();
+      this.port = embeddedPostgres.getPort();
+    }
+    catch (IOException e) {
+      throw new IllegalStateException("Could not start embedded postgres", e);
+    }
+
+    // Create the role used by tests (embedded-postgres starts with a superuser matching the OS user)
+    try (Connection conn = getAdminConnection("postgres");
+        Statement stmt = conn.createStatement())
+    {
+      stmt.execute("CREATE ROLE " + DEFAULT_USERNAME + " WITH LOGIN PASSWORD '" + DEFAULT_PASSWORD +
+          "' SUPERUSER CREATEDB");
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Could not create test user role", e);
+    }
+
+    log.info("Started Embedded Postgres Test Cluster on port {} for this JVM execution.", port);
 
     createFullyMigratedTemplateDatabase();
+  }
+
+  /**
+   * Get a connection to the admin database (postgres) using the embedded postgres default superuser.
+   */
+  private Connection getAdminConnection(final String databaseName) {
+    try {
+      // EmbeddedPostgres creates a default superuser named "postgres"
+      return DriverManager.getConnection(
+          "jdbc:postgresql://localhost:" + port + "/" + databaseName, "postgres", null);
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Could not get admin connection", e);
+    }
+  }
+
+  /**
+   * Get a connection using the test user credentials.
+   */
+  protected Connection getTestUserConnection(final String databaseName) {
+    try {
+      return DriverManager.getConnection(
+          "jdbc:postgresql://localhost:" + port + "/" + databaseName, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Could not get test user connection to " + databaseName, e);
+    }
   }
 
   /**
@@ -113,83 +152,61 @@ public class PostgresTestCluster
    */
   public void createNewDatabase(final String databaseName) {
     log.info("Creating new Postgres test database '{}'", databaseName);
-    try {
-      runCommand("CREATE DATABASE " + databaseName);
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Could not create new database", e);
-    }
+    runCommand("CREATE DATABASE " + databaseName + " OWNER " + DEFAULT_USERNAME);
   }
 
   public void cloneFullyMigratedTemplateDatabase(final String databaseName) {
     log.info("Creating new Postgres test database '{}' by cloning '{}", databaseName, TEMPLATE_DATABASE);
-    try {
-      // a cloned database cannot have any existing connections
-      killConnectionsToDatabase(TEMPLATE_DATABASE);
-
-      runCommand("CREATE DATABASE " + databaseName + " WITH TEMPLATE " + TEMPLATE_DATABASE + " OWNER " + getUsername());
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Could not create new test database", e);
-    }
+    // a cloned database cannot have any existing connections
+    killConnectionsToDatabase(TEMPLATE_DATABASE);
+    runCommand("CREATE DATABASE " + databaseName + " WITH TEMPLATE " + TEMPLATE_DATABASE + " OWNER " + getUsername());
   }
 
   public void destroyDatabase(final String databaseName) {
     log.info("Terminating connections and destroying Postgres test database '{}'", databaseName);
-    try {
-      // first kill all connections to this database to ensure the drop succeeds
-      killConnectionsToDatabase(databaseName);
-
-      runCommand("DROP DATABASE " + databaseName);
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Could not destroy cluster '" + databaseName + "'", e);
-    }
+    // first kill all connections to this database to ensure the drop succeeds
+    killConnectionsToDatabase(databaseName);
+    runCommand("DROP DATABASE " + databaseName);
   }
 
-  protected ExecResult runCommand(final String command) throws Exception {
-    String[] cmd = {
-      "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", postgresTestContainer.getDatabaseName(),
-      "--username", postgresTestContainer.getUsername(), "--command", command
-    };
-
-    ExecResult execResult = postgresTestContainer.execInContainer(cmd);
-    if (execResult.getExitCode() != 0) {
-      maybeHandlePsqlError(execResult);
+  /**
+   * Execute a SQL command against the default database using admin credentials.
+   * Used for DDL operations like CREATE/DROP DATABASE which cannot be run inside a transaction.
+   */
+  protected void runCommand(final String command) {
+    try (Connection conn = getAdminConnection("postgres")) {
+      conn.setAutoCommit(true);
+      try (Statement stmt = conn.createStatement()) {
+        stmt.execute(command);
+      }
     }
-    return execResult;
+    catch (Exception e) {
+      throw new IllegalStateException("Could not execute command: " + command, e);
+    }
   }
 
   private void killConnectionsToDatabase(final String database) {
-    try {
-      runCommand("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity " +
+    try (Connection conn = getAdminConnection("postgres");
+        Statement stmt = conn.createStatement())
+    {
+      stmt.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity " +
           "WHERE pg_stat_activity.datname = '" + database + "' AND pid <> pg_backend_pid()");
     }
     catch (Exception e) {
-      throw new IllegalStateException("Could not create new test database", e);
-    }
-  }
-
-  protected void maybeHandlePsqlError(final ExecResult execResult) throws Exception {
-    if (execResult.getExitCode() != 0) {
-      String message = new StringJoiner(", ").add("psql returned exit code " + execResult.getExitCode())
-          .add("stdout='" + execResult.getStdout() + "'")
-          .add("stderr='" + execResult.getStderr() + "'")
-          .toString();
-      throw new Exception(message);
+      throw new IllegalStateException("Could not kill connections to database " + database, e);
     }
   }
 
   public String getUsername() {
-    return postgresTestContainer.getUsername();
+    return DEFAULT_USERNAME;
   }
 
   public String getPassword() {
-    return postgresTestContainer.getPassword();
+    return DEFAULT_PASSWORD;
   }
 
   public String getJdbcUrl(final String databaseName) {
-    return postgresTestContainer.getJdbcUrl(databaseName);
+    return "jdbc:postgresql://localhost:" + port + "/" + databaseName;
   }
 
   public DatabaseConfig getDatabaseConfig(String databaseName) {
@@ -205,14 +222,11 @@ public class PostgresTestCluster
   public void loadSqlDump(final String databaseName, final Path sqlFile) {
     log.info("Loading SQL dump '{}' into database '{}'", sqlFile, databaseName);
     try {
-      postgresTestContainer.copyFileToContainer(MountableFile.forHostPath(sqlFile), "/tmp/" + sqlFile.getFileName());
-      String[] cmd = {
-        "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName,
-        "--username", getUsername(), "--file", "/tmp/" + sqlFile.getFileName()
-      };
-      ExecResult execResult = postgresTestContainer.execInContainer(cmd);
-      if (execResult.getExitCode() != 0) {
-        throw new Exception("psql returned " + execResult.getExitCode());
+      String sql = Files.readString(sqlFile, StandardCharsets.UTF_8);
+      try (Connection conn = getTestUserConnection(databaseName);
+          Statement stmt = conn.createStatement())
+      {
+        stmt.execute(sql);
       }
     }
     catch (Exception e) {
@@ -222,20 +236,97 @@ public class PostgresTestCluster
 
   public String dumpSchema(final String databaseName, final String schema) {
     log.info("Generating dump for schema {}", schema);
-    try {
-      String connectionUrl =
-          String.format("postgresql://%s:%s@%s:%s/%s", getUsername(), getPassword(), "127.0.0.1", "5432", databaseName);
-      String[] cmd = {
-        "/usr/local/bin/pg_dump", "--schema-only", "--schema=" + schema, "--dbname=" + connectionUrl
-      };
-      ExecResult execResult = postgresTestContainer.execInContainer(cmd);
-      if (execResult.getExitCode() != 0) {
-        throw new Exception("pg_dump returned " + execResult.getExitCode());
+    try (Connection conn = getTestUserConnection(databaseName);
+        Statement stmt = conn.createStatement())
+    {
+      StringBuilder dump = new StringBuilder();
+
+      String currentTable = null;
+      // Dump tables with columns, types, nullability, defaults — ordered deterministically
+      try (var tables = stmt.executeQuery(
+          "SELECT table_name, column_name, data_type, character_maximum_length, " +
+              "is_nullable, column_default, ordinal_position " +
+              "FROM information_schema.columns " +
+              "WHERE table_schema = '" + schema + "' " +
+              "ORDER BY table_name, ordinal_position"))
+      {
+        while (tables.next()) {
+          String tableName = tables.getString("table_name");
+          if (!tableName.equals(currentTable)) {
+            if (currentTable != null) {
+              dump.append(");\n\n");
+            }
+            currentTable = tableName;
+            dump.append("CREATE TABLE ").append(schema).append(".").append(tableName).append(" (\n");
+          }
+          else {
+            dump.append(",\n");
+          }
+          String colName = tables.getString("column_name");
+          String dataType = tables.getString("data_type");
+          Integer maxLen =
+              tables.getObject("character_maximum_length") != null ? tables.getInt("character_maximum_length") : null;
+          String nullable = tables.getString("is_nullable");
+          String colDefault = tables.getString("column_default");
+
+          dump.append("    ").append(colName).append(" ").append(dataType);
+          if (maxLen != null) {
+            dump.append("(").append(maxLen).append(")");
+          }
+          if ("NO".equals(nullable)) {
+            dump.append(" NOT NULL");
+          }
+          if (colDefault != null) {
+            dump.append(" DEFAULT ").append(colDefault);
+          }
+        }
       }
-      return execResult.getStdout();
+      if (currentTable != null) {
+        dump.append(");\n\n");
+      }
+
+      // Dump indexes
+      try (var indexes = stmt.executeQuery(
+          "SELECT indexname, indexdef FROM pg_indexes " +
+              "WHERE schemaname = '" + schema + "' ORDER BY indexname"))
+      {
+        while (indexes.next()) {
+          dump.append(indexes.getString("indexdef")).append(";\n");
+        }
+      }
+
+      // Dump constraints
+      try (var constraints = stmt.executeQuery(
+          "SELECT tc.constraint_name, tc.table_name, " +
+              "pg_get_constraintdef(c.oid) as constraint_def " +
+              "FROM information_schema.table_constraints tc " +
+              "JOIN pg_constraint c ON c.conname = tc.constraint_name " +
+              "JOIN pg_namespace n ON n.oid = c.connamespace AND n.nspname = tc.table_schema " +
+              "WHERE tc.table_schema = '" + schema + "' " +
+              "ORDER BY tc.table_name, tc.constraint_name"))
+      {
+        while (constraints.next()) {
+          dump.append("ALTER TABLE ").append(schema).append(".").append(constraints.getString("table_name"));
+          dump.append(" ADD CONSTRAINT ").append(constraints.getString("constraint_name"));
+          dump.append(" ").append(constraints.getString("constraint_def")).append(";\n");
+        }
+      }
+
+      // Dump sequences
+      try (var sequences = stmt.executeQuery(
+          "SELECT sequence_name FROM information_schema.sequences " +
+              "WHERE sequence_schema = '" + schema + "' ORDER BY sequence_name"))
+      {
+        while (sequences.next()) {
+          dump.append("CREATE SEQUENCE ").append(schema).append(".");
+          dump.append(sequences.getString("sequence_name")).append(";\n");
+        }
+      }
+
+      return dump.toString();
     }
     catch (Exception e) {
-      throw new IllegalStateException(String.format("Could dump schema %s", schema), e);
+      throw new IllegalStateException(String.format("Could not dump schema %s", schema), e);
     }
   }
 }

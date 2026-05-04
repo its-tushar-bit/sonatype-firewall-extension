@@ -90,6 +90,11 @@
       <artifactId>insight-brain-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

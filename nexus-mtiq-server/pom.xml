@@ -224,6 +224,11 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-test</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

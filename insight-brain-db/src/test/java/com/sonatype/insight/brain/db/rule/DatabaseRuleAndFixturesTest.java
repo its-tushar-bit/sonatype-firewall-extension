@@ -76,7 +76,7 @@ public class DatabaseRuleAndFixturesTest
   @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testPostgres() throws SQLException {
-    String postgresUrlPattern = "jdbc:postgresql://localhost:\\d\\d\\d\\d\\d\\/testpostgres\\?";
+    String postgresUrlPattern = "jdbc:postgresql://localhost:\\d+\\/testpostgres";
     assertDatabaseConfig(postgresUrlPattern, "testuser", "testpass");
     assertConnection(postgresUrlPattern);
   }
@@ -105,7 +105,7 @@ public class DatabaseRuleAndFixturesTest
   public void testPostgresServer_loadSqlDump_invalidDump() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> databaseRule.loadSqlDump(Paths.get(getClass().getResource("/dump-invalid.sql").toURI())))
-        .withStackTraceContaining("psql returned 3");
+        .withStackTraceContaining("Could not load SQL dump");
   }
 
   @Test

@@ -133,13 +133,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-postgresql</artifactId>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -426,7 +421,6 @@
                 <include>**/*Fixture*.class</include>
                 <include>**/*Provider*.class</include>
                 <include>**/*TestCluster*.class</include>
-                <include>**/PostgresTestContainer.class</include>
                 <include>**/AbstractDatabaseTest.class</include>
               </includes>
             </configuration>

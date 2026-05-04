@@ -131,7 +131,9 @@ public class DatabaseRule
 
   @Override
   protected boolean getLastTestHadCustomSettings(final Annotation annotation) {
-    return DatabaseRuleAnnotations.hasCustomSettings(annotation);
+    // Track non-default annotation settings so the next test re-initializes the fixture.
+    // This ensures that e.g. @PostgresTest(suppressMigrations = true) is followed by a fresh fixture.
+    return DatabaseRuleAnnotations.hasNonDefaultSettings(annotation);
   }
 
   @Override
@@ -146,7 +148,13 @@ public class DatabaseRule
 
   @Override
   protected boolean hasAnnotation() {
-    return DatabaseRuleAnnotations.hasAnyAnnotation(annotation);
+    if (!DatabaseRuleAnnotations.hasAnyAnnotation(annotation)) {
+      return false;
+    }
+    // Type changes (e.g. H2 → Postgres) are already handled by hasFixtureTypeChanged().
+    // Only require re-initialization when the annotation has non-default settings
+    // (suppressMigrations, cleanDatabase, customSettings, copyExistingDatabase).
+    return DatabaseRuleAnnotations.hasNonDefaultSettings(annotation);
   }
 
   @Override

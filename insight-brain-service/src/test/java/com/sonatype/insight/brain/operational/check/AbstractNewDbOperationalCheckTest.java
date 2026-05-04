@@ -25,6 +25,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.codahale.metrics.health.HealthCheck.Result;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,6 +69,29 @@ abstract class AbstractNewDbOperationalCheckTest
 
     databaseOperationalCheck = new NewDbConnectionOperationalCheck(operationalDataStore, dataMartDataStore,
         aggregationDataStore, thirdPartyScansDataStore);
+  }
+
+  @After
+  public void resetReadOnly() {
+    if (allDataStores == null) {
+      return;
+    }
+    // Reset default_transaction_read_only for PostgreSQL databases.
+    // The testExecute_Unhealthy_ReadOnly tests set this flag persistently on the database,
+    // and it must be reset to avoid affecting subsequent tests.
+    for (DataStore dataStore : allDataStores) {
+      if (!dataStore.isDatabaseEmbedded()) {
+        try (Connection connection = dataStore.getDataSource().getConnection();
+            Statement statement = connection.createStatement())
+        {
+          statement.execute(
+              "ALTER DATABASE " + connection.getCatalog() + " SET default_transaction_read_only = off;");
+        }
+        catch (Exception e) {
+          // Best effort cleanup
+        }
+      }
+    }
   }
 
   @Test

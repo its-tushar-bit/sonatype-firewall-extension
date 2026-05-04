@@ -46,6 +46,7 @@ module.exports = {
     '^TestRoot/(.*)': '<rootDir>/src/test/frontend/$1',
     '^GuideRoot/(.*)': '<rootDir>/src/main/frontend/guide/$1',
     '^@guide/ui-core$': '<rootDir>/node_modules/@guide/ui-core/dist/index.js',
+    '^@guide/ui-core/utils$': '<rootDir>/node_modules/@guide/ui-core/dist/utils.js',
   },
   reporters: [
     'default',

@@ -5,6 +5,7 @@
  */
 import * as esbuild from 'esbuild';
 import { sassPlugin } from 'esbuild-sass-plugin';
+import CssModulesPlugin from 'esbuild-css-modules-plugin';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -242,6 +243,7 @@ const sharedBuildOptions = {
     TestRoot: path.resolve(__dirname, 'src/test/frontend'),
   },
   plugins: [
+    CssModulesPlugin(),
     rewriteRSCImportImagePlugin(),
     sassPlugin({
       type: 'css',

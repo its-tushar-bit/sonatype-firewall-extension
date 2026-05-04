@@ -227,45 +227,13 @@ public class PolicyDAO
       final String ownerId,
       final Policy policy) throws InvalidPolicyException
   {
-    Owner owner = ownerDAO.getById(tx, ownerId);
+    List<String> conflicts = policyInternalDAO.getAncestorOrDescendantWithPolicyNameMatching(
+        tx, ownerId, policy.getName());
 
-    validateNameWithinHierarchyUp(tx, owner.getParentOwnerId(), policy);
-    validateNameWithinHierarchyDown(tx, owner, policy);
-  }
-
-  private void validateNameWithinHierarchyUp(
-      TransactionContext tx,
-      String parentId,
-      Policy policy) throws InvalidPolicyException
-  {
-    if (parentId == null) {
-      return; // no parent, we're done
-    }
-    Owner parentOwner = ownerDAO.getByIdNotNull(parentId);
-    if (policyInternalDAO.getByOwnerIdAndName(tx, parentOwner.getId(), policy.getName()) != null) {
-      throw new InvalidPolicyException("A policy with the same name already exists for " + parentOwner.getType() + " '"
-          + parentOwner.getName() + "'");
-    }
-    validateNameWithinHierarchyUp(tx, parentOwner.getParentOwnerId(), policy);
-  }
-
-  private void validateNameWithinHierarchyDown(
-      TransactionContext tx,
-      Owner owner,
-      Policy policy) throws InvalidPolicyException
-  {
-    if (!owner.canHaveChildren()) {
-      return;
-    }
-    List<Owner> childOwners = ownerDAO.getChildOwners(tx, owner);
-    for (Owner childOwner : childOwners) {
-      PolicyInternal otherPolicy = policyInternalDAO.getByOwnerIdAndName(tx, childOwner.getId(), policy.getName());
-      if (otherPolicy != null && !otherPolicy.getId().equals(policy.getId())) {
-        throw new InvalidPolicyException("A policy with the same name already exists for " + childOwner.getType()
-            + " '" + childOwner.getName() + "'");
-      }
-
-      validateNameWithinHierarchyDown(tx, childOwner, policy);
+    if (!conflicts.isEmpty()) {
+      Owner conflictingOwner = ownerDAO.getByIdNotNull(conflicts.get(0));
+      throw new InvalidPolicyException("A policy with the same name already exists for "
+          + conflictingOwner.getType() + " '" + conflictingOwner.getName() + "'");
     }
   }
 

@@ -1884,7 +1884,7 @@ SELECT
   r.repository_id,
   rma.ancestor_id,
   rma.ancestor_type,
-  rma.ancestor_distance
+  rma.ancestor_distance + 1
 FROM
   repository r
   INNER JOIN repository_manager_ancestor rma ON rma.repository_manager_id = r.repository_manager_id;

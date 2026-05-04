@@ -23,6 +23,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.Record1;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -132,6 +133,47 @@ public class PolicyInternalDAO
             .or(isDirectlyAttached))
         .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
         .fetch(r -> toEntity(r.into(POLICY)));
+  }
+
+  /**
+   * Returns the IDs of all ancestors and descendants of {@code ownerId} that have a policy
+   * matching {@code name}.
+   */
+  List<String> getAncestorOrDescendantWithPolicyNameMatching(
+      TransactionContext tx,
+      String ownerId,
+      String name)
+  {
+    String normalizedName = NameHelper.normalize(name);
+
+    var ancestor = OWNER_ANCESTOR.as("oa_ancestor");
+    var descendant = OWNER_ANCESTOR.as("oa_descendant");
+
+    // All owner IDs in the hierarchy of ownerId: ancestors (upward) UNION descendants (downward).
+    // owner_ancestor covers all owner types: ORGANIZATION, APPLICATION, REPOSITORY_CONTAINER,
+    // REPOSITORY_MANAGER, and REPOSITORY.
+    //
+    // Self-exclusion uses ANCESTOR_ID != ownerId rather than ancestor_distance > 0
+    // to be robust against future view changes and for clarity.
+    var hierarchyOwnerIds = tx.dsl()
+        .select(ancestor.ANCESTOR_ID)
+        .from(ancestor)
+        .where(ancestor.OWNER_ID.eq(ownerId))
+        .and(ancestor.ANCESTOR_ID.ne(ownerId)) // exclude self
+        .union(
+            tx.dsl()
+                .select(descendant.OWNER_ID)
+                .from(descendant)
+                .where(descendant.ANCESTOR_ID.eq(ownerId))
+                .and(descendant.OWNER_ID.ne(ownerId)));
+
+    return tx.dsl()
+        .select(POLICY.OWNER_ID)
+        .from(POLICY)
+        .where(POLICY.OWNER_ID.in(hierarchyOwnerIds))
+        .and(POLICY.NAME_LOWERCASE_NO_WHITESPACE.eq(normalizedName))
+        .orderBy(POLICY.OWNER_ID)
+        .fetch(Record1::value1);
   }
 
   List<PolicyInternal> getByOwnerId(String ownerId) {

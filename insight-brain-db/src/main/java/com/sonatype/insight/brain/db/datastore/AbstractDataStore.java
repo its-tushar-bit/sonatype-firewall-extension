@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.db.datastore;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+
 import com.sonatype.insight.db.DatabaseConfig;
+
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +65,16 @@ public abstract class AbstractDataStore
   @Override
   public void close() throws Exception {
     log.info("Closing {} data store and releasing resources.", getID());
+    if (dataSource instanceof BasicDataSource basicDataSource && !basicDataSource.isClosed()) {
+      try {
+        basicDataSource.close();
+        log.debug("Closed BasicDataSource for {} data store.", getID());
+      }
+      catch (Exception e) {
+        log.warn("Error closing BasicDataSource for {} data store: {}", getID(), e.getMessage(), e);
+      }
+    }
+    dataSource = null;
     setInitializedFalse();
     log.info("Successfully closed {} data store.", getID());
   }

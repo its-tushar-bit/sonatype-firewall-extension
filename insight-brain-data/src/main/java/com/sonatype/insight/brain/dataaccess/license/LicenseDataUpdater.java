@@ -27,8 +27,15 @@ public abstract class LicenseDataUpdater
     return updater;
   }
 
-  public static synchronized void setUpdater(LicenseDataUpdater updater) {
-    LicenseDataUpdater.updater = updater;
+  public static synchronized void setUpdater(LicenseDataUpdater newUpdater) {
+    if (updater != null && newUpdater != null) {
+      log.debug("Replacing existing LicenseDataUpdater instance");
+    }
+    updater = newUpdater;
+  }
+
+  public static synchronized void clearUpdater() {
+    updater = null;
   }
 
   public static void update(LicenseDAO licenseDAO, MultiLicenseDAO multiLicenseDAO) {

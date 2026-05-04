@@ -78,10 +78,11 @@ public abstract class BrainInjectedTest
    * {@link TemporaryEntity}
    */
   @Rule(order = 1)
-  public DatabaseContainerRule databaseContainerRule = DatabaseContainerRule.getInstance(BrainInjectedTest.class);
+  public DatabaseContainerRule databaseContainerRule =
+      DatabaseContainerRule.getInstance(AbstractBaseIntegrationTest.class);
 
   @Rule(order = 2)
-  public SearchIndexRule searchIndexRule = SearchIndexRule.getInstance(BrainInjectedTest.class);
+  public SearchIndexRule searchIndexRule = SearchIndexRule.getInstance(AbstractBaseIntegrationTest.class);
 
   @Rule(order = 3)
   public TemporaryEntity tempEntity = createTemporaryEntity();

@@ -27,8 +27,8 @@ public abstract class ExecutorThreadPools
   @Inject
   private static void injectInstance(ExecutorThreadPools executorThreadPools) {
     if (INSTANCE != null) {
-      log.error("Instance already initialized, likely because getInstance() was called before Guice" +
-          " has fully initialized. This is not supported outside of tests and should be investigated");
+      log.warn("Replacing existing ExecutorThreadPools instance. Shutting down previous pools.");
+      INSTANCE.shutdown();
     }
 
     INSTANCE = executorThreadPools;
@@ -53,4 +53,6 @@ public abstract class ExecutorThreadPools
   public abstract ForkJoinPool createThreadPool(int minThreads, int maxThreads, int defaultThreads, String configProp);
 
   public abstract Executor getThreadPool(ThreadPools pool);
+
+  public abstract void shutdown();
 }

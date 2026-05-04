@@ -128,4 +128,12 @@ public class DefaultExecutorThreadPools
         return singleThreadedPoolCache.getUnchecked(Thread.currentThread());
     }
   }
+
+  @Override
+  public void shutdown() {
+    generalUtilityThreads.shutdownNow();
+    daoForkJoinPool.shutdownNow();
+    singleThreadedPoolCache.asMap().values().forEach(ForkJoinPool::shutdownNow);
+    singleThreadedPoolCache.invalidateAll();
+  }
 }

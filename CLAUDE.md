@@ -266,6 +266,28 @@ PRs that add new database columns, change data formats, or modify API contracts 
 - Spotless formatting must be applied (`mvn spotless:apply`)
 - PRs should contain only changes related to the stated Jira ticket(s) — unrelated changes should be in separate PRs (PR #15156 revert: unrelated backend changes accidentally merged)
 
+### 15. Code reuse and query patterns
+- **IN-clause queries**: Use `AbstractSqlDAO.getListWithSqlInClause()` or `getStreamWithSqlInClause()` (`insight-brain-data/.../dataaccess/AbstractSqlDAO.java:287,326`) instead of writing manual batch-splitting logic. These handle chunking large collections automatically.
+- **No correlated subqueries**: Don't use subqueries in WHERE clauses that reference columns from the outer query — they execute once per row. Use JOINs instead: `LEFT JOIN child ON ... WHERE child.id IS NULL` instead of `WHERE id NOT IN (SELECT ... WHERE child.col = parent.col)`
+- **Batch DB operations**: Never query inside a loop. Collect IDs, then batch-fetch with IN-clause utilities.
+- **Reuse existing logic**: Before writing new pattern-matching, hostname-filtering, or permission-checking code, grep the codebase — it likely already exists and reimplementing creates drift risk.
+
+### 16. Testing philosophy
+- **Assert real state, not mock interactions**: Prefer `assertThat(pool.getActiveCount()).isEqualTo(1)` over `verify(mock).getConnection()`. Tests should verify observable behavior/state, not that the right methods were called.
+- **Don't test implementation details**: Enums, internal command construction, and static content are implementation details. Test the user-facing behavior instead.
+- **No redundant tests**: Before adding a test, check if the same scenario is already covered in the file or a sibling test class. Merge similar tests rather than creating new classes.
+- **Classify correctly**: Unit tests don't use real plumbing. Integration tests use real infrastructure. Don't mislabel.
+
+### 17. API and interface design
+- **Names must match behavior**: If a method creates two data sources, name it `createDataSources`. Return types should match existing patterns in the class.
+- **Minimize API surface**: Expose the decision, not the internals. One public method that takes raw input and returns a boolean beats two composable public methods (parse + check).
+- **Keep internal helpers off public interfaces**: Methods that are utilities for subclasses shouldn't be on the public interface.
+
+### 18. Frontend patterns
+*(Applies to the legacy IQ UI in `insight-brain-frontend/`. Guide SPA uses `@guide/ui-core` instead — see `insight-brain-frontend/CLAUDE.md`.)*
+- **Use React Shared Components (RSC)**: Use `NxTile`, `NxP`, `NxCode`, `NxH1`-`NxH3` instead of bare HTML elements. See usage examples in `insight-brain-frontend/src/main/frontend/violation/ViolationDetailsTile.jsx`.
+- **No CSS anti-patterns**: No `!important` (escape hatch, not a tool), no `vh` units (assumes page layout), no hardcoded colors (use CSS variables like `var(--nx-border-default)`), use `overflow: auto` not `overflow: scroll`.
+
 ### What NOT to flag in reviews
 - Code formatting or style (Spotless handles this)
 - Missing comments on self-explanatory code

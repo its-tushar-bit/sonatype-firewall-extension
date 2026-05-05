@@ -13,6 +13,7 @@ dependency-reduced-pom.xml
 .DS_Store
 .*.swp
 .tags
+*.log
 .vscode/
 .factorypath
 perfTemp_*/

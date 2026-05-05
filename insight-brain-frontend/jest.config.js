@@ -31,7 +31,15 @@ module.exports = {
   testRegex: 'src/test/frontend/.*\\.jestspec\\.[jt]sx?',
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json', 'node'],
-  setupFilesAfterEnv: ['<rootDir>/src/test/frontend/setupJest.js'],
+  // consoleSetup.js MUST run first to filter console output before other imports.
+  // It installs jest.spyOn on console.{error,warn,log,debug} that suppresses output
+  // when CI=true (set by frontend-maven-plugin in pom.xml), preventing ~38 MB of
+  // stack-frame noise per CI run. Locally it's a pattern-based filter with an
+  // empty allowlist by default — see that file for how to extend it.
+  setupFilesAfterEnv: [
+    '<rootDir>/src/test/frontend/consoleSetup.js',
+    '<rootDir>/src/test/frontend/setupJest.js',
+  ],
   moduleNameMapper: {
     '\\.s?css$': '<rootDir>/src/test/frontend/__mocks__/styleMock.js',
     'img/nexus_auditor.svg$': '<rootDir>/src/test/frontend/__mocks__/nexus_auditor.svg',

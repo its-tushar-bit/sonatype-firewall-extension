@@ -33,6 +33,19 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
+        <configuration>
+          <!--
+            CI=true is read by src/test/frontend/consoleSetup.js to suppress all
+            console.{error,warn,log,debug} output from Jest, eliminating ~38 MB
+            of stack-frame noise per CI log. Applied at the plugin level (not
+            just the jest execution) to match the nexus-internal frontend
+            pattern. Developers running Jest directly via `yarn jest` in watch
+            mode will have CI unset and therefore see full console output.
+          -->
+          <environmentVariables>
+            <CI>true</CI>
+          </environmentVariables>
+        </configuration>
         <executions>
           <!-- install-node-and-npm provides node/node_modules/npm/bin/node-gyp-bin/,
                which prevents yarn 1.x's _checkForGyp from corrupting the shared
@@ -84,6 +97,17 @@
             <configuration>
               <skip>${frontend.tests.skip}</skip>
               <arguments>run jest</arguments>
+              <!--
+                Duplicate of the plugin-level environmentVariables block above.
+                frontend-maven-plugin has a known Map-merge quirk where an
+                execution-level <configuration> can mask the plugin-level
+                <environmentVariables> map, so we restate CI=true here to
+                guarantee it lands in the Jest process. Both declarations are
+                intentionally kept.
+              -->
+              <environmentVariables>
+                <CI>true</CI>
+              </environmentVariables>
             </configuration>
           </execution>
         </executions>

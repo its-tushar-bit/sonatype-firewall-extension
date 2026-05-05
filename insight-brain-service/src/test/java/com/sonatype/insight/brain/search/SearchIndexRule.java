@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.search.SearchIndexRule.SearchIndexType;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexFixture;
-import com.sonatype.insight.brain.search.opensearch.OpenSearchHttpSearchIndexFixture;
 
 import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpenSearchHttpTest;
 
@@ -53,7 +52,7 @@ import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpe
  * <li>The default search index is Lucene.</li>
  * <li>Use the {@link LuceneTest} annotation for a Lucene search index. Passed to {@link LuceneSearchIndexFixture}.</li>
  * <li>Use the {@link OpenSearchHttpTest} annotation for an OpenSearch http-based search index. Passed to
- * {@link OpenSearchHttpSearchIndexFixture}.</li>
+ * OpenSearch HTTP search index (removed — OpenSearch tests require testcontainers).</li>
  * <li>Each annotation has some common options as well as some custom ones. Common options:</li>
  * <ul>
  * <li>Use the `forceClean` value on the annotations to force a new clean fixture to be provisioned</li>
@@ -106,8 +105,7 @@ public class SearchIndexRule
   @Override
   protected SearchIndexFixture createNewFixture() {
     if (type.equals(SearchIndexType.OPENSEARCH_HTTP)) {
-      return new OpenSearchHttpSearchIndexFixture(testName,
-          SearchIndexRuleAnnotations.getOpenSearchHttpTest(annotation));
+      throw new UnsupportedOperationException("OpenSearch tests have been removed");
     }
     return new LuceneSearchIndexFixture(SearchIndexRuleAnnotations.getLuceneTest(annotation));
   }

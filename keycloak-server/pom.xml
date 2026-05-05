@@ -61,10 +61,6 @@
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-crypto-default</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

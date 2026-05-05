@@ -94,6 +94,30 @@ public class RepositoryPolicyViolationDAO
         .fetch(this::toEntity);
   }
 
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnames(
+      String repositoryId,
+      List<String> pathnames)
+  {
+    if (repositoryId == null || pathnames == null || pathnames.isEmpty()) {
+      return List.of();
+    }
+    List<List<String>> partitions = com.google.common.collect.Lists.partition(pathnames, getInOperatorThreshold());
+    return partitions.stream()
+        .flatMap(partition -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            return tx.dsl()
+                .selectFrom(REPOSITORY_POLICY_VIOLATION)
+                .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+                .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition))
+                .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+                .orderBy(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(), REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+                .fetch(this::toEntity)
+                .stream();
+          }
+        })
+        .collect(java.util.stream.Collectors.toList());
+  }
+
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       TransactionContext tx,
       String repositoryId,
@@ -232,6 +256,20 @@ public class RepositoryPolicyViolationDAO
           .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
           .execute();
     }
+  }
+
+  public void stampComponentId(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final String componentId)
+  {
+    tx.dsl()
+        .update(REPOSITORY_POLICY_VIOLATION)
+        .set(REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
+        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .execute();
   }
 
   public List<RepositoryPolicyViolation> getByRepositoryIdAndPathname(String repositoryId, String pathname) {

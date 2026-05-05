@@ -24,6 +24,14 @@ import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.repository.component.QuarantinedComponentAccessPurger;
 import com.sonatype.insight.brain.repository.component.QuarantinedComponentService;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentEvaluationService;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentResource;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanStorageService;
+import com.sonatype.insight.brain.repository.hosted.HostedRepositoryQueueResource;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitor;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitoringTask;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
 
 import com.google.inject.AbstractModule;
 
@@ -55,5 +63,14 @@ public class RepositoryModule
     bind(RepositoryService.class);
     bind(RequestSafeComponentsAutoSelectMetricEventHandler.class);
     bind(RequestSafeComponentsMetricEventService.class);
+
+    bind(HostedComponentEvaluationService.class);
+    bind(HostedComponentResource.class);
+    bind(HostedComponentScanQueueConsumer.class);
+    bind(HostedComponentScanStorageService.class);
+    bind(HostedRepositoryQueueResource.class);
+    bind(HostedRepositoryMonitor.class);
+    bind(HostedRepositoryMonitoringTask.class);
+    bind(HostedRepositoryMonitorScheduler.class);
   }
 }

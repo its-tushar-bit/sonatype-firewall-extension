@@ -1,0 +1,445 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.queue;
+
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.dropwizard.servlets.tasks.Task;
+import org.apache.commons.lang3.exception.UncheckedInterruptedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Abstract base class implementing the Poll-and-Dispatch queue consumer pattern.
+ * <p>
+ * A single scheduler thread polls the database at a fixed rate ({@code scheduleAtFixedRate}).
+ * On each tick it calculates available worker-pool capacity and acquires exactly that many jobs,
+ * dispatching each to an independent worker thread. One job failure never blocks others.
+ * <p>
+ * Subclasses provide domain-specific plug-in points via abstract methods, and may optionally
+ * participate in the Dropwizard admin-port Task framework and the live-configuration
+ * ConfigurationListener framework by overriding the relevant hook methods.
+ * <p>
+ * Per-tenant isolation is achieved via {@link TenantReference}: each tenant gets its own
+ * scheduler, worker pool, and in-flight ID set.
+ * <p>
+ * <b>Retry behaviour:</b> On job failure, {@link #onJobFailure} is called. The default
+ * implementation increments a persistent retry counter. If the counter is below
+ * {@link #getMaxRetries()}, the job is unacquired back to PENDING for automatic retry on the next
+ * poll tick. Once the limit is reached the job is marked FAILED permanently. Subclasses may
+ * override {@link #onJobFailure} to change this behaviour (e.g. dead-letter queuing).
+ * <p>
+ * <b>Extending Task / ConfigurationListener:</b> Concrete subclasses that also extend
+ * Task and implement ConfigurationListener should call
+ * {@link #handleConfigurationChanged(int, long, boolean)} from their {@code configurationChanged()}
+ * implementation. This keeps the framework logic centralised here while giving subclasses full control.
+ *
+ * @param <T> the queue job type
+ */
+public abstract class AbstractPollDispatchQueueConsumer<T>
+    extends Task
+    implements TenantManaged
+{
+  private static final Logger log = LoggerFactory.getLogger(AbstractPollDispatchQueueConsumer.class);
+
+  private final ShutdownHandler shutdownHandler;
+
+  private final TenantReference<TenantScheduledThreadPoolExecutor> scheduleExecutors;
+
+  private final TenantReference<TenantThreadPoolExecutor> executors;
+
+  private final TenantReference<ScheduledFuture<?>> scheduledFutures;
+
+  private final TenantReference<AtomicBoolean> running;
+
+  private final TenantReference<Set<String>> queuedItemIds;
+
+  /**
+   * Set {@code true} in tests to prevent thread creation during unit tests.
+   * When {@code true}, {@link #register()} returns immediately without scheduling.
+   */
+  public boolean disableForTesting = false;
+
+  protected AbstractPollDispatchQueueConsumer(final String consumerName, final ShutdownHandler shutdownHandler) {
+    super(consumerName);
+    this.shutdownHandler = shutdownHandler;
+    this.scheduleExecutors = new TenantReference<>(this::createScheduledExecutorService);
+    this.executors = new TenantReference<>(this::createExecutorService);
+    this.scheduledFutures = new TenantReference<>();
+    this.running = new TenantReference<>(AtomicBoolean::new);
+    this.queuedItemIds = new TenantReference<>(ConcurrentHashMap::newKeySet);
+  }
+
+  /**
+   * Acquire up to {@code limit} pending jobs from the database, marking them IN_PROGRESS.
+   * Implementations should use {@code SELECT ... FOR UPDATE SKIP LOCKED} for concurrency safety.
+   */
+  protected abstract List<T> acquireJobs(int limit);
+
+  /** Returns the stable string ID of a job (used for in-flight tracking and unacquire). */
+  protected abstract String getJobId(T job);
+
+  /** Executes the job. Should throw on failure so the framework can apply retry logic. */
+  protected abstract void executeJob(T job) throws Exception;
+
+  /** Called after a job executes successfully (e.g. mark COMPLETE in DB). */
+  protected abstract void onJobSuccess(T job);
+
+  /**
+   * Increments the retry counter for the given job and returns the new count.
+   * Used by {@link #onJobFailure} to decide whether to retry or permanently fail the job.
+   */
+  protected abstract int incrementRetryCount(T job);
+
+  /**
+   * Unacquires a set of job IDs back to PENDING so they can be retried on the next poll.
+   * Called when a job fails but has not exceeded {@link #getMaxRetries()}, and also on
+   * graceful shutdown for jobs that were queued but not yet started.
+   */
+  protected abstract void unacquireJobs(Set<String> ids);
+
+  /**
+   * Permanently marks a job as failed after exhausting all retry attempts.
+   * Called by {@link #onJobFailure} when {@link #incrementRetryCount} reaches {@link #getMaxRetries()}.
+   */
+  protected abstract void permanentlyFailJob(T job, Exception cause);
+
+  /** Number of worker threads in the pool per tenant. */
+  protected abstract int getWorkerThreadCount();
+
+  /**
+   * Maximum number of jobs that may sit in the executor's internal queue waiting for a free
+   * worker. Combined with {@link #getWorkerThreadCount()} to calculate rows to acquire per tick.
+   */
+  protected abstract int getMaxQueuedRows();
+
+  /** How often (in milliseconds) the scheduler polls for pending work. */
+  protected abstract long getPollIntervalMs();
+
+  /**
+   * Maximum number of retry attempts before a job is permanently failed.
+   * Returning {@code Integer.MAX_VALUE} means retry indefinitely (no permanent failure).
+   */
+  protected abstract int getMaxRetries();
+
+  /** Short identifier used as thread-name prefix (e.g. {@code "HostedComponentScanQueue"}). */
+  protected abstract String getConsumerName();
+
+  /**
+   * Jitter seed string for computing the initial scheduler delay.
+   * Typically combines the application instance ID and tenant slug to spread DB contention
+   * across nodes and tenants on restart.
+   */
+  protected abstract String getJitterSeed();
+
+  /**
+   * Returns whether this consumer is currently enabled.
+   * When {@code false}, {@link #run()} is a no-op regardless of how it is triggered
+   * (scheduled poll or direct call via {@link #triggerProcessing()}).
+   * Default is {@code true}. Override to wire in live configuration.
+   */
+  protected boolean isEnabled() {
+    return true;
+  }
+
+  /**
+   * Called once in {@link #register()} before scheduling begins.
+   * Override to reset stale IN_PROGRESS rows to PENDING after a crash.
+   * Default is a no-op.
+   */
+  protected void recoverStaleJobs() {
+    // no-op by default
+  }
+
+  /**
+   * Called when scheduling is enabled or the poll interval changes.
+   * Override if the subclass needs to react to a reschedule (e.g. log the new interval).
+   */
+  protected void onReschedule(final long pollIntervalMs, final long initialDelayMs) {
+    // no-op by default
+  }
+
+  /**
+   * Triggered via {@code POST /tasks/{consumerName}} on the admin port.
+   * Forces an immediate processing run for the current tenant.
+   */
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    log.info("Manual request to run {}.", getConsumerName());
+    triggerProcessing();
+    output.write("Completed manual execution of " + getConsumerName() + ".\n");
+  }
+
+  /**
+   * Call from the subclass {@code configurationChanged()} to handle a live configuration update.
+   * Resizes the thread pool if the worker count changed, and reschedules only when the enabled
+   * flag or poll interval actually changed — avoiding unnecessary cancellation and recreation of
+   * the scheduled future when unrelated fields (e.g. maxRetries, maxQueuedRows) are updated.
+   *
+   * <pre>{@code
+   * @Override
+   * public void configurationChanged(Set<String> propertyNames) {
+   *   if (propertyNames.contains(MY_PROPERTY_KEY)) {
+   *     HostedComponentScanQueueConfig old = configs.get();
+   *     reloadConfig();
+   *     handleConfigurationChanged(newWorkerCount, newPollIntervalMs, enabled,
+   *         old.pollIntervalMilliseconds(), old.enabled());
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param newWorkerCount new desired worker thread count
+   * @param newPollIntervalMs new poll interval in milliseconds
+   * @param enabled whether the consumer should be scheduled
+   * @param oldPollIntervalMs previous poll interval — used to detect whether rescheduling is needed
+   * @param wasEnabled previous enabled state — used to detect whether rescheduling is needed
+   */
+  protected void handleConfigurationChanged(
+      final int newWorkerCount,
+      final long newPollIntervalMs,
+      final boolean enabled,
+      final long oldPollIntervalMs,
+      final boolean wasEnabled)
+  {
+    ThreadPoolExecutor executor = executors.get();
+    if (newWorkerCount > executor.getCorePoolSize()) {
+      executor.setMaximumPoolSize(newWorkerCount);
+      executor.setCorePoolSize(newWorkerCount);
+    }
+    else if (newWorkerCount < executor.getCorePoolSize()) {
+      executor.setCorePoolSize(newWorkerCount);
+      executor.setMaximumPoolSize(newWorkerCount);
+    }
+
+    if (enabled != wasEnabled || newPollIntervalMs != oldPollIntervalMs) {
+      reschedule(enabled);
+    }
+  }
+
+  @Override
+  public void register() {
+    if (disableForTesting) {
+      return;
+    }
+    recoverStaleJobs();
+    reschedule(isEnabled());
+  }
+
+  /**
+   * Triggers an immediate processing run for the current tenant.
+   * Used by the REST endpoint after enqueueing a new job to reduce latency.
+   * If the consumer is already running for this tenant the call is a no-op.
+   */
+  public void triggerProcessing() {
+    tryRun();
+  }
+
+  private void reschedule(final boolean enabled) {
+    ScheduledFuture<?> existing = scheduledFutures.get();
+    if (existing != null) {
+      existing.cancel(false);
+    }
+
+    if (enabled) {
+      long initialDelay = getInitialDelay(getJitterSeed(), getPollIntervalMs());
+      onReschedule(getPollIntervalMs(), initialDelay);
+      scheduledFutures.set(
+          scheduleExecutors.get()
+              .scheduleAtFixedRate(
+                  this::tryRun,
+                  initialDelay,
+                  getPollIntervalMs(),
+                  TimeUnit.MILLISECONDS));
+    }
+    else {
+      log.debug("{}: unscheduled — disabled by configuration.", getConsumerName());
+      scheduledFutures.set(null);
+    }
+  }
+
+  /**
+   * Computes a hash-based initial delay in {@code [0, periodInMilliseconds)}.
+   * Spreading initial delays across nodes and tenants avoids thundering-herd DB contention
+   * on restart.
+   */
+  public static long getInitialDelay(final String jitterSeed, final long periodInMilliseconds) {
+    if (periodInMilliseconds <= 0) {
+      return 0L;
+    }
+    return Integer.toUnsignedLong(jitterSeed.hashCode()) % periodInMilliseconds;
+  }
+
+  private void tryRun() {
+    try {
+      run();
+    }
+    catch (InterruptedException e) {
+      throw new UncheckedInterruptedException(e);
+    }
+  }
+
+  public void run() throws InterruptedException {
+    if (!isEnabled()) {
+      log.debug("{}: consumer is disabled, skipping poll.", getConsumerName());
+      return;
+    }
+    if (running.get().getAndSet(true)) {
+      log.debug("{}: consumer already running, skipping poll.", getConsumerName());
+      return;
+    }
+    try {
+      TenantThreadPoolExecutor executor = executors.get();
+      int rowsToAcquire = (executor.getCorePoolSize() - executor.getActiveCount())
+          + getMaxQueuedRows() - executor.getQueue().size();
+      if (rowsToAcquire <= 0) {
+        log.debug("{}: no capacity for new jobs.", getConsumerName());
+        return;
+      }
+
+      List<T> acquired = acquireJobs(rowsToAcquire);
+      if (!acquired.isEmpty()) {
+        Set<String> inflight = queuedItemIds.get();
+        acquired.forEach(job -> {
+          String jobId = getJobId(job);
+          inflight.add(jobId);
+          executor.submit(new QueueTask(jobId, () -> processJob(job), inflight::remove));
+        });
+        log.debug("{}: acquired {} jobs for processing.", getConsumerName(), acquired.size());
+      }
+    }
+    finally {
+      running.get().set(false);
+    }
+  }
+
+  private void processJob(final T job) {
+    try {
+      executeJob(job);
+      onJobSuccess(job);
+    }
+    catch (InterruptedException e) {
+      onJobFailure(job, e);
+      throw new UncheckedInterruptedException(e);
+    }
+    catch (RuntimeException e) {
+      onJobFailure(job, e);
+      throw e;
+    }
+    catch (Exception e) {
+      onJobFailure(job, e);
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Handles a job failure. Increments the persistent retry counter; if below
+   * {@link #getMaxRetries()} the job is returned to PENDING for automatic retry on the next
+   * poll tick. Once the limit is reached the job is permanently failed.
+   * <p>
+   * Override to change retry semantics (e.g. add exponential back-off, dead-letter queuing).
+   */
+  protected void onJobFailure(final T job, final Exception e) {
+    int attempts = incrementRetryCount(job);
+    if (attempts < getMaxRetries()) {
+      log.warn("{}: job id={} failed (attempt {}/{}), returning to PENDING for retry.",
+          getConsumerName(), getJobId(job), attempts, getMaxRetries(), e);
+      unacquireJobs(Set.of(getJobId(job)));
+    }
+    else {
+      log.error("{}: job id={} exhausted {} retries, marking as permanently FAILED.",
+          getConsumerName(), getJobId(job), getMaxRetries(), e);
+      permanentlyFailJob(job, e);
+    }
+  }
+
+  private TenantThreadPoolExecutor createExecutorService() {
+    int threadCount = getWorkerThreadCount();
+    TenantThreadPoolExecutor executor = new TenantThreadPoolExecutor(
+        threadCount,
+        threadCount,
+        5L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat(getConsumerName() + "-%d").build(),
+        new ThreadPoolExecutor.AbortPolicy(),
+        getConsumerName().toLowerCase(),
+        getClass().getSimpleName())
+    {
+      @Override
+      public Future<?> submit(final Runnable task) {
+        return super.submit(task);
+      }
+
+      @Override
+      public void shutdown() {
+        super.shutdown();
+        clearQueueAndUnacquireJobs();
+      }
+
+      @Override
+      public java.util.List<Runnable> shutdownNow() {
+        java.util.List<Runnable> result = super.shutdownNow();
+        clearQueueAndUnacquireJobs();
+        return result;
+      }
+
+      private void clearQueueAndUnacquireJobs() {
+        getQueue().clear();
+        Set<String> ids = queuedItemIds.remove();
+        if (ids != null && !ids.isEmpty()) {
+          unacquireJobs(ids);
+        }
+      }
+    };
+    executor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(executor);
+    return executor;
+  }
+
+  private TenantScheduledThreadPoolExecutor createScheduledExecutorService() {
+    TenantScheduledThreadPoolExecutor scheduler = new TenantScheduledThreadPoolExecutor(
+        1,
+        new ThreadFactoryBuilder()
+            .setNameFormat(getConsumerName() + "Scheduler-%d")
+            .setDaemon(true)
+            .build());
+    shutdownHandler.add(scheduler);
+    return scheduler;
+  }
+
+  public void cleanup() {
+    ScheduledFuture<?> future = scheduledFutures.remove();
+    if (future != null) {
+      future.cancel(true);
+    }
+    TenantScheduledThreadPoolExecutor scheduler = scheduleExecutors.remove();
+    if (scheduler != null) {
+      scheduler.shutdownNow();
+    }
+    TenantThreadPoolExecutor executor = executors.remove();
+    if (executor != null) {
+      executor.shutdownNow();
+    }
+    running.remove();
+  }
+}

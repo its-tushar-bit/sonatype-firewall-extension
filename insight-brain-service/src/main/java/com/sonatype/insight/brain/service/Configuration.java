@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
@@ -98,6 +99,8 @@ public class Configuration
 
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
+  private final Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider;
+
   private final Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
 
   private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
@@ -120,6 +123,7 @@ public class Configuration
       Provider<PullRequestMonitor> pullRequestMonitorProvider,
       Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
       Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
+      Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider,
       Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider,
       Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider,
       Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider,
@@ -138,6 +142,7 @@ public class Configuration
     this.pullRequestMonitorProvider = pullRequestMonitorProvider;
     this.releaseGraphCacheProviderProvider = releaseGraphCacheProviderProvider;
     this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
+    this.hostedRepositoryMonitorSchedulerProvider = hostedRepositoryMonitorSchedulerProvider;
     this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
     this.waivedComponentUpgradeSchedulerProvider = waivedComponentUpgradeSchedulerProvider;
     this.tenantUtil = tenantUtil;
@@ -307,7 +312,10 @@ public class Configuration
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
             !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
-        prop -> policyMonitorSchedulerProvider.get().schedulePolicyMonitoring());
+        prop -> {
+          policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
+          hostedRepositoryMonitorSchedulerProvider.get().reschedule();
+        });
   }
 
   private void historicalPolicyViolationTelemetryScheduleHour(

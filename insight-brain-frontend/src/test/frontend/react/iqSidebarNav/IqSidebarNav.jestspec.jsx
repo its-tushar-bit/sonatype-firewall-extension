@@ -95,7 +95,7 @@ describe('IqSidebarNav', function () {
 
     const sideBar = screen.getByRole('navigation', { name: 'global sidebar' });
 
-    const apiNav = within(sideBar).getByRole('link', { name: 'API ( NEW )' });
+    const apiNav = within(sideBar).getByRole('link', { name: 'API' });
     expect(apiNav.getAttribute('href')).toEqual('href-api');
     const icon = within(apiNav).getByRole('img', { hidden: true });
     expect(icon.getAttribute('data-icon')).toEqual('stars');
@@ -105,7 +105,25 @@ describe('IqSidebarNav', function () {
     renderComponent({ isLoggedIn: true, isProductsLoading: false, isApiPageEnabled: false });
 
     const sideBar = screen.getByRole('navigation', { name: 'global sidebar' });
-    expect(within(sideBar).queryByRole('link', { name: 'API ( NEW )' })).not.toBeInTheDocument();
+    expect(within(sideBar).queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
+  });
+
+  it('renders an NxGlobalSidebarNavigationLink for the hosted repos page if allowed', function () {
+    renderComponent({ isLoggedIn: true, isProductsLoading: false, isLicensed: true, isHostedRepositoryEvaluationEnabled: true });
+
+    const sideBar = screen.getByRole('navigation', { name: 'global sidebar' });
+
+    const hostedReposNav = within(sideBar).getByRole('link', { name: 'Hosted Repos ( NEW )' });
+    expect(hostedReposNav.getAttribute('href')).toEqual('href-hostedRepos');
+    const icon = within(hostedReposNav).getByRole('img', { hidden: true });
+    expect(icon.getAttribute('data-icon')).toEqual('database');
+  });
+
+  it('does not render an NxGlobalSidebarNavigationLink for the hosted repos page if not allowed', function () {
+    renderComponent({ isLoggedIn: true, isProductsLoading: false, isLicensed: true, isHostedRepositoryEvaluationEnabled: false });
+
+    const sideBar = screen.getByRole('navigation', { name: 'global sidebar' });
+    expect(within(sideBar).queryByRole('link', { name: 'Hosted Repos ( NEW )' })).not.toBeInTheDocument();
   });
 
   it('does not render any navigation links when none are enabled', function () {
@@ -231,7 +249,7 @@ describe('IqSidebarNav', function () {
     it('renders API link as selected when state matches', function () {
       renderComponent({ ...propsForRenderingAllLinks, ...mockSelectedLink('api') });
 
-      assertLinkPresentAndSelected('API ( NEW )');
+      assertLinkPresentAndSelected('API');
     });
 
     it('renders Dashboard link as selected when state matches', function () {

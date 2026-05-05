@@ -88,6 +88,7 @@ import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice'
 import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalSourcesFormReducer';
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
 import repositoriesConfigurationSlice from '../OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
+import hostedReposListSlice from '../hostedRepos/hostedReposListSlice';
 import repositoryResultsSummaryPageSlice from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 import namespaceConfusionProtectionTileSlice from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
 import apiPageSlice from 'MainRoot/api/apiPageSlice';
@@ -134,6 +135,8 @@ import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
 import originalBomViewerSlice from '../sbomManager/features/billOfMaterials/originalBom/originalBomViewerSlice';
 import gitHubAppConfigurationSlice from '../configuration/githubApp/gitHubAppConfigurationSlice';
+import hostedReposSlice from '../hostedRepos/hostedReposSlice';
+import repositoryComponentsSlice from '../hostedRepos/repositoryComponentsSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -221,6 +224,7 @@ export default combineReducers({
   productFeatures: productFeaturesSlice,
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
   repositories: repositoriesConfigurationSlice,
+  hostedReposList: hostedReposListSlice,
   repositoryResultsSummaryPage: repositoryResultsSummaryPageSlice,
   namespaceConfusionProtectionTile: namespaceConfusionProtectionTileSlice,
   apiPage: apiPageSlice,
@@ -266,4 +270,6 @@ export default combineReducers({
   appError: appErrorSlice,
   originalBomViewer: originalBomViewerSlice,
   gitHubAppConfiguration: gitHubAppConfigurationSlice,
+  hostedRepos: hostedReposSlice,
+  repositoryComponents: repositoryComponentsSlice,
 });

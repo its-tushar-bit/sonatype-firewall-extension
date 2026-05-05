@@ -475,6 +475,7 @@ public class RepositoryResourceTest
 
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(RepositoryDTO repositoryDTO) {
-    return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", Collections.singletonList(repositoryDTO));
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", "http://localhost:8081",
+        Collections.singletonList(repositoryDTO));
   }
 }

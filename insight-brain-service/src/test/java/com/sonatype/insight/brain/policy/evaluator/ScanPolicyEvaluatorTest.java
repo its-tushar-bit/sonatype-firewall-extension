@@ -333,6 +333,7 @@ public class ScanPolicyEvaluatorTest
     if (policyAlertHandler != null) {
       asyncEventBus.unregister(policyAlertHandler);
     }
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @Before

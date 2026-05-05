@@ -5,14 +5,24 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.dataaccess.TransactionContext;
+
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -186,4 +196,112 @@ public class RepositoryService
 
     return extraComponents.size();
   }
+
+  public HostedRepositoryListDTO getConfiguredRepositories(
+      String repositoryManagerInstanceId,
+      String searchText,
+      String format,
+      String sortBy,
+      String sortDir,
+      Integer page,
+      Integer pageSize)
+  {
+    // Firewall license is required because hosted repositories are a Firewall feature.
+    checkLicenseFeature();
+    RepositoryManager repositoryManager = getRepositoryManagerDAO().getByInstanceIdNotNull(repositoryManagerInstanceId);
+    return getConfiguredRepositories(repositoryManager, searchText, format, sortBy, sortDir, page, pageSize);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  HostedRepositoryListDTO getConfiguredRepositories(
+      @AuthzContext(Key.REPOSITORY_MANAGER) RepositoryManager repositoryManager,
+      String searchText,
+      String format,
+      String sortBy,
+      String sortDir,
+      Integer page,
+      Integer pageSize)
+  {
+    List<Repository> repositories;
+    int totalCount;
+    Map<String, Date> lastScanTimes;
+    Set<String> repositoriesWithQueuedScans;
+    try (TransactionContext tx = repositoryDAO.createTransactionContext()) {
+      totalCount = repositoryDAO.countFilteredHostedRepositories(tx, repositoryManager.getId(), searchText, format);
+      repositories = repositoryDAO.getFilteredHostedRepositories(
+          tx, repositoryManager.getId(), searchText, format, sortBy, sortDir, page, pageSize);
+      List<String> repositoryIds = repositories.stream()
+          .map(Repository::getId)
+          .collect(Collectors.toList());
+      lastScanTimes = repositoryComponentDAO.getLastScanTimesByRepositoryIds(tx, repositoryIds);
+      repositoriesWithQueuedScans = repositoryComponentDAO.getRepositoryIdsWithQueuedScans(tx, repositoryIds);
+    }
+
+    List<HostedRepositoryDTO> dtos = repositories.stream()
+        .map(repo -> {
+          HostedRepositoryDTO dto = new HostedRepositoryDTO();
+          dto.id = repo.getId();
+          dto.publicId = repo.getPublicId();
+          dto.name = repo.getName();
+          dto.format = repo.getFormat();
+          dto.type = repo.getRepositoryType();
+          dto.auditEnabled = repo.isAuditEnabled();
+          dto.quarantineEnabled = repo.isQuarantineEnabled();
+          dto.policyCompliantComponentSelectionEnabled = repo.isPolicyCompliantComponentSelectionEnabled();
+          dto.namespaceConfusionProtectionEnabled = repo.isNamespaceConfusionProtectionEnabled();
+          Date lastScanDate = lastScanTimes.get(repo.getId());
+          dto.lastScannedTime = lastScanDate != null ? lastScanDate.getTime() : null;
+          dto.hasQueuedScans = repositoriesWithQueuedScans.contains(repo.getId());
+          return dto;
+        })
+        .collect(Collectors.toList());
+
+    // lastScannedTime is derived from REPOSITORY_COMPONENT, not a column on REPOSITORY,
+    // so it cannot be sorted at the DB layer. Sort in Java after populating the field.
+    if ("lastscannedtime".equalsIgnoreCase(sortBy)) {
+      Comparator<HostedRepositoryDTO> byLastScanned;
+      if ("desc".equalsIgnoreCase(sortDir)) {
+        byLastScanned =
+            Comparator.comparing(dto -> dto.lastScannedTime, Comparator.nullsLast(Comparator.reverseOrder()));
+      }
+      else {
+        byLastScanned =
+            Comparator.comparing(dto -> dto.lastScannedTime, Comparator.nullsLast(Comparator.naturalOrder()));
+      }
+      dtos.sort(byLastScanned);
+    }
+
+    HostedRepositoryListDTO.ManagerInfo managerInfo = new HostedRepositoryListDTO.ManagerInfo();
+    managerInfo.instanceId = repositoryManager.getInstanceId();
+    managerInfo.baseUrl = repositoryManager.getBaseUrl();
+
+    HostedRepositoryListDTO result = new HostedRepositoryListDTO();
+    result.manager = managerInfo;
+    result.repositories = dtos;
+    result.totalCount = totalCount;
+    return result;
+  }
+
+  /**
+   * @since 1.169
+   */
+  public List<String> getAvailableFormats(String repositoryManagerInstanceId) {
+    checkLicenseFeature();
+    RepositoryManager repositoryManager = getRepositoryManagerDAO().getByInstanceIdNotNull(repositoryManagerInstanceId);
+    return getAvailableFormats(repositoryManager);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  List<String> getAvailableFormats(@AuthzContext(Key.REPOSITORY_MANAGER) RepositoryManager repositoryManager) {
+    List<Repository> repositories =
+        repositoryDAO.getByRepositoryManagerIdAndRepositoryType(repositoryManager.getId(), RepositoryType.hosted);
+    return repositories.stream()
+        .filter(Repository::isMonitoringEnabled)
+        .map(Repository::getFormat)
+        .filter(Objects::nonNull)
+        .distinct()
+        .sorted()
+        .collect(Collectors.toList());
+  }
+
 }

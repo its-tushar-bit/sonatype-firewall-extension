@@ -93,6 +93,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
@@ -175,7 +176,7 @@ import com.google.inject.Scopes;
  * Guice module that explicitly binds all DAO classes from the data access layer as singletons.
  *
  * <p>
- * All 172 DAO classes that have @Named or @Singleton annotations are explicitly bound here.
+ * All 174 DAO classes that have @Named or @Singleton annotations are explicitly bound here.
  * When adding a new DAO, simply add a new bind() statement in the appropriate section below.
  */
 public final class DataAccessModule
@@ -312,7 +313,8 @@ public final class DataAccessModule
     bind(PolicyWaiverRequestDAO.class).in(Scopes.SINGLETON);
     bind(RepositoryPolicyViolationDAO.class).in(Scopes.SINGLETON);
 
-    // Repository (12 DAOs)
+    // Repository (13 DAOs)
+    bind(HostedComponentScanQueueDAO.class).in(Scopes.SINGLETON);
     bind(ProprietaryComponentNamePatternDAO.class).in(Scopes.SINGLETON);
     bind(QuarantinedComponentAccessDAO.class).in(Scopes.SINGLETON);
     bind(ReevaluateCascadeProgressDAO.class).in(Scopes.SINGLETON);

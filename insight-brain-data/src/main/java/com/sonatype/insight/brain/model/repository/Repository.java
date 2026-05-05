@@ -63,6 +63,9 @@ public class Repository
   @Column(name = "related_organization_id")
   private String relatedOrganizationId;
 
+  @Column(name = "monitoring_enabled")
+  private boolean monitoringEnabled = false;
+
   public Repository() {
   }
 
@@ -186,12 +189,20 @@ public class Repository
     this.relatedOrganizationId = relatedOrganizationId;
   }
 
+  public boolean isMonitoringEnabled() {
+    return monitoringEnabled;
+  }
+
+  public void setMonitoringEnabled(final boolean monitoringEnabled) {
+    this.monitoringEnabled = monitoringEnabled;
+  }
+
   @Override
   public String toString() {
     return "Repository [id=" + id + ", repositoryManagerId=" + repositoryManagerId + ", publicId=" + publicId
         + ", repositoryType=" + repositoryType + ", format=" + format + ", auditEnabled=" + auditEnabled
         + ", quarantineEnabled=" + quarantineEnabled + ", policyCompliantComponentSelectionEnabled="
         + policyCompliantComponentSelectionEnabled + ", namespaceConfusionProtectionEnabled="
-        + namespaceConfusionProtectionEnabled + "]";
+        + namespaceConfusionProtectionEnabled + ", monitoringEnabled=" + monitoringEnabled + "]";
   }
 }

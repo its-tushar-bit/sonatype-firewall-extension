@@ -56,6 +56,9 @@ public class RepositoryPolicyViolation
   @Column(name = "active")
   private boolean active = true;
 
+  @Column(name = "component_id")
+  private String componentId;
+
   public RepositoryPolicyViolation() {
   }
 
@@ -147,5 +150,13 @@ public class RepositoryPolicyViolation
   @Override
   public String getOwnerId() {
     return getRepositoryId();
+  }
+
+  public String getComponentId() {
+    return componentId;
+  }
+
+  public void setComponentId(final String componentId) {
+    this.componentId = componentId;
   }
 }

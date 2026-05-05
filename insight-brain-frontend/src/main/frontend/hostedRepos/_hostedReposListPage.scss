@@ -1,0 +1,71 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.iq-hosted-repos-list-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--nx-color-text);
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: var(--nx-color-text-secondary);
+    margin: 0;
+  }
+
+  &__content {
+    background-color: var(--nx-color-component-background);
+    border-radius: 4px;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 16px;
+  }
+
+  &__search {
+    flex: 1;
+    max-width: 400px;
+  }
+
+  &__format-filter {
+    min-width: 150px;
+  }
+
+  &__count-bar {
+    padding: 8px 0 4px;
+  }
+
+  &__count {
+    font-size: 14px;
+    color: var(--nx-color-text-secondary);
+  }
+
+  &__table {
+    width: 100%;
+    flex: 1;
+  }
+}

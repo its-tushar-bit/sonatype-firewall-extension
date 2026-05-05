@@ -71,6 +71,12 @@ public class RepositoryComponent
   @Column(name = "auto_unquarantined")
   private Boolean autoUnquarantined;
 
+  @Column(name = "component_id")
+  private String componentId;
+
+  @Column(name = "last_evaluation_stage")
+  private String lastEvaluationStage;
+
   public RepositoryComponent() {
   }
 
@@ -207,6 +213,22 @@ public class RepositoryComponent
     return autoUnquarantined;
   }
 
+  public String getComponentId() {
+    return componentId;
+  }
+
+  public void setComponentId(final String componentId) {
+    this.componentId = componentId;
+  }
+
+  public String getLastEvaluationStage() {
+    return lastEvaluationStage;
+  }
+
+  public void setLastEvaluationStage(final String lastEvaluationStage) {
+    this.lastEvaluationStage = lastEvaluationStage;
+  }
+
   public String getDisplayName() {
     return displayName;
   }
@@ -228,4 +250,5 @@ public class RepositoryComponent
     this.unquarantineTime = unquarantineTime;
     this.autoUnquarantined = autoUnquarantined;
   }
+
 }

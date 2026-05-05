@@ -552,7 +552,9 @@ public enum SystemConfigurationPropertyFeature
 
   GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false),
 
-  GUIDE_UI(SystemConfigurationProperty.GUIDE_UI_ENABLED, false);
+  GUIDE_UI(SystemConfigurationProperty.GUIDE_UI_ENABLED, false),
+
+  HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

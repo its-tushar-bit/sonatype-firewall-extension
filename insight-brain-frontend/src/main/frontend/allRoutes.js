@@ -53,6 +53,7 @@ import './operationalReporting/route';
 // Firewall routes
 import './firewall/route';
 import './firewallOnboarding/route';
+import './hostedRepos/route';
 
 // Labs route
 import './labs/route';

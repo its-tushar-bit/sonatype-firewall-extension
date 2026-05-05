@@ -9,6 +9,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.jooq.Condition;
+import org.jooq.ResultQuery;
+import org.jooq.SortField;
+
+import com.sonatype.insight.brain.jooq.generated.ods.tables.records.RepositoryRecord;
+
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -53,6 +59,8 @@ public class RepositoryDAO
 
   private final RepositoryMigrationDAO repositoryMigrationDAO;
 
+  private final HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
+
   @Inject
   public RepositoryDAO(
       final OperationalDataStore operationalDataStore,
@@ -60,7 +68,8 @@ public class RepositoryDAO
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final Provider<OwnerDAO> ownerDAOProvider,
-      final RepositoryMigrationDAO repositoryMigrationDAO)
+      final RepositoryMigrationDAO repositoryMigrationDAO,
+      final HostedComponentScanQueueDAO hostedComponentScanQueueDAO)
   {
     super(operationalDataStore);
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
@@ -68,6 +77,7 @@ public class RepositoryDAO
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.ownerDAOProvider = ownerDAOProvider;
     this.repositoryMigrationDAO = repositoryMigrationDAO;
+    this.hostedComponentScanQueueDAO = hostedComponentScanQueueDAO;
   }
 
   @Override
@@ -326,7 +336,7 @@ public class RepositoryDAO
    * <li>Owned entities via {@link OwnerDAO#cascadeDelete(TransactionContext, com.sonatype.insight.brain.model.Owner)}
    * (policy waivers, license overrides, vulnerability overrides, etc.)</li>
    * <li>For proxy repositories: policy violations, components, and optionally migration records</li>
-   * <li>For hosted repositories: proprietary component name patterns</li>
+   * <li>For hosted repositories: scan queue entries, components, proprietary component name patterns</li>
    * </ul>
    * <p>
    * <b>Note:</b> Prior to the jOOQ migration, some operations created independent transactions
@@ -363,6 +373,12 @@ public class RepositoryDAO
         }
         break;
       case hosted:
+        // Cascade to scan queue entries (must precede component delete — no DB-level FK exists)
+        hostedComponentScanQueueDAO.deleteByRepositoryComponentIds(tx, repository.getId());
+
+        // Cascade to repository components
+        repositoryComponentDAO.deleteByRepositoryId(tx, repository.getId());
+
         // Cascade to proprietary component name patterns
         proprietaryComponentNamePatternDAO.deleteByRepository(tx, repository.getId());
         break;
@@ -416,17 +432,113 @@ public class RepositoryDAO
     }
   }
 
+  public List<Repository> getHostedRepositoriesWithMonitoringEnabled() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY)
+          .where(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
+          .and(REPOSITORY.MONITORING_ENABLED.eq(true))
+          .fetch(this::toEntity);
+    }
+  }
+
   public List<Repository> getByRepositoryManagerIdAndRepositoryType(
       String repositoryManagerId,
       RepositoryType repositoryType)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(REPOSITORY)
-          .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
-          .and(REPOSITORY.REPOSITORY_TYPE.eq(repositoryType != null ? repositoryType.name() : null))
-          .fetch(this::toEntity);
+      return getByRepositoryManagerIdAndRepositoryType(tx, repositoryManagerId, repositoryType);
     }
+  }
+
+  public List<Repository> getByRepositoryManagerIdAndRepositoryType(
+      TransactionContext tx,
+      String repositoryManagerId,
+      RepositoryType repositoryType)
+  {
+    return tx.dsl()
+        .selectFrom(REPOSITORY)
+        .where(REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId))
+        .and(REPOSITORY.REPOSITORY_TYPE.eq(repositoryType != null ? repositoryType.name() : null))
+        .fetch(this::toEntity);
+  }
+
+  /**
+   * Returns a filtered, paginated page of hosted repositories.
+   *
+   * <p>
+   * Note: when {@code sortBy} is {@code "lastScannedTime"}, DB-layer pagination still uses
+   * {@code publicId} ordering. The caller ({@code RepositoryService}) re-sorts the page in Java
+   * after populating the derived field, so cross-page ordering is correct only once the frontend
+   * wires up pagination for this sort column.
+   */
+  private Condition buildHostedRepositoryFilterCondition(
+      String repositoryManagerId,
+      String searchText,
+      String format)
+  {
+    Condition condition = REPOSITORY.REPOSITORY_MANAGER_ID.eq(repositoryManagerId)
+        .and(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
+        .and(REPOSITORY.MONITORING_ENABLED.isTrue());
+    if (StringUtils.isNotBlank(searchText)) {
+      condition = condition.and(REPOSITORY.PUBLIC_ID.containsIgnoreCase(searchText.trim()));
+    }
+    if (StringUtils.isNotBlank(format)) {
+      condition = condition.and(REPOSITORY.FORMAT.eq(format));
+    }
+    return condition;
+  }
+
+  public List<Repository> getFilteredHostedRepositories(
+      TransactionContext tx,
+      String repositoryManagerId,
+      String searchText,
+      String format,
+      String sortBy,
+      String sortDir,
+      Integer page,
+      Integer pageSize)
+  {
+    Condition condition = buildHostedRepositoryFilterCondition(repositoryManagerId, searchText, format);
+
+    boolean desc = "desc".equalsIgnoreCase(sortDir);
+    SortField<?> sortField;
+    if ("format".equalsIgnoreCase(sortBy)) {
+      sortField = desc ? REPOSITORY.FORMAT.desc().nullsLast() : REPOSITORY.FORMAT.asc().nullsLast();
+    }
+    else {
+      sortField = desc ? REPOSITORY.PUBLIC_ID.desc().nullsLast() : REPOSITORY.PUBLIC_ID.asc().nullsLast();
+    }
+
+    var ordered = tx.dsl()
+        .selectFrom(REPOSITORY)
+        .where(condition)
+        .orderBy(sortField);
+
+    ResultQuery<RepositoryRecord> query;
+    if (page != null && pageSize != null && page > 0 && pageSize > 0) {
+      query = ordered.limit(pageSize).offset((long) (page - 1) * pageSize);
+    }
+    else {
+      query = ordered;
+    }
+
+    return query.fetch(this::toEntity);
+  }
+
+  public int countFilteredHostedRepositories(
+      TransactionContext tx,
+      String repositoryManagerId,
+      String searchText,
+      String format)
+  {
+    Condition condition = buildHostedRepositoryFilterCondition(repositoryManagerId, searchText, format);
+    Integer count = tx.dsl()
+        .selectCount()
+        .from(REPOSITORY)
+        .where(condition)
+        .fetchOne(0, Integer.class);
+    return count != null ? count : 0;
   }
 
   /**

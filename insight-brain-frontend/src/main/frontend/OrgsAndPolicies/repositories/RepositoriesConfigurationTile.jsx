@@ -201,7 +201,21 @@ const RepositoriesConfigurationTile = () => {
         <NxTable.Cell className="iq-repositories-configuration-table-repository">
           {repositoryData.repositoryType === 'hosted' ? (
             <NxOverflowTooltip>
-              <div className="nx-truncate-ellipsis">{repositoryData.publicId}</div>
+              {owner?.instanceId ? (
+                <NxTextLink
+                  className="nx-truncate-ellipsis"
+                  data-testid="repositories_configuration-hosted-link"
+                  href={uiRouterState.href('hostedRepoComponents', {
+                    repositoryId: repositoryData.id,
+                    repositoryManagerId: owner.instanceId,
+                    repositoryPublicId: repositoryData.publicId,
+                  })}
+                >
+                  {repositoryData.publicId}
+                </NxTextLink>
+              ) : (
+                <div className="nx-truncate-ellipsis">{repositoryData.publicId}</div>
+              )}
             </NxOverflowTooltip>
           ) : (
             <NxOverflowTooltip>

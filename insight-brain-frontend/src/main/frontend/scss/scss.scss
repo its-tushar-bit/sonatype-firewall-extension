@@ -143,6 +143,7 @@
 @use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
 @use '../OrgsAndPolicies/repositories/repositoriesPills';
+@use '../hostedRepos/hostedReposListPage';
 @use '../navPills/navPills';
 @use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/continuousMonitoringEditor/continuousMonitoringEditor';
@@ -184,6 +185,7 @@
 @use '../manualPullRequest/createPRModal';
 @use '../modals/externalLinkModal/externalLinkModal';
 @use '../OrgsAndPolicies/publicDataSources/publicDataSourcesEditor';
+@use '../hostedRepos/hostedRepos';
 
 @use 'enterpriseAddButton';
 

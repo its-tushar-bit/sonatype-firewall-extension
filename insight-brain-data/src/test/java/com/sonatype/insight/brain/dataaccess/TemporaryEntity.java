@@ -200,6 +200,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.AggregateFile;
@@ -316,6 +317,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
+import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.roi.RoiConfiguration;
 import com.sonatype.insight.brain.model.roi.RoiConfigurationDefaultValues;
@@ -737,6 +739,8 @@ public class TemporaryEntity
 
   private EvaluationQueueDAO evaluationQueueDAO;
 
+  private HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -997,6 +1001,7 @@ public class TemporaryEntity
       delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
       delete(reevaluateCascadeProgressDAO.getAll(), reevaluateCascadeProgressDAO);
       delete(reevaluateCascadeRequestDAO.getAll(), reevaluateCascadeRequestDAO);
+      delete(hostedComponentScanQueueDAO.getAll(), hostedComponentScanQueueDAO);
       delete(repositoryDAO.getAll(), repositoryDAO);
       delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
       delete(webhookDAO.getAll(), webhookDAO);
@@ -3628,6 +3633,7 @@ public class TemporaryEntity
     repository.setAuditEnabled(false);
     repository.setQuarantineEnabled(false);
     repository.setNamespaceConfusionProtectionEnabled(namespaceConfusionProtectionEnabled);
+    repository.setMonitoringEnabled(true);
     repositoryDAO.insert(repository);
     return repository;
   }
@@ -6791,6 +6797,7 @@ public class TemporaryEntity
     versionEvaluationWindowDAO = daoFactory.createVersionEvaluationWindowDAO();
     keyValueDAO = daoFactory.createKeyValueDAO();
     evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
+    hostedComponentScanQueueDAO = daoFactory.createHostedComponentScanQueueDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6960,5 +6967,29 @@ public class TemporaryEntity
     evaluationQueue.setWorkerId(workerId);
     evaluationQueueDAO.insert(evaluationQueue);
     return evaluationQueue;
+  }
+
+  public HostedComponentScanQueue newHostedComponentScanQueue(
+      String componentId,
+      String repositoryId,
+      String status)
+  {
+    return newHostedComponentScanQueue(componentId, repositoryId, status, 5);
+  }
+
+  public HostedComponentScanQueue newHostedComponentScanQueue(
+      String componentId,
+      String repositoryId,
+      String status,
+      Integer priority)
+  {
+    HostedComponentScanQueue queueEntry = new HostedComponentScanQueue();
+    queueEntry.setComponentId(componentId);
+    queueEntry.setScanFileId("scan-file-" + UUID.randomUUID());
+    queueEntry.setStatus(status);
+    queueEntry.setPriority(priority);
+    queueEntry.setRepositoryId(repositoryId);
+    hostedComponentScanQueueDAO.insert(queueEntry);
+    return queueEntry;
   }
 }

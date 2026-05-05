@@ -11,11 +11,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -37,9 +40,11 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record2;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryComponent.REPOSITORY_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
@@ -70,6 +75,55 @@ public class RepositoryComponentDAO
     return REPOSITORY_COMPONENT;
   }
 
+  public List<RepositoryComponent> getByRepositoryIdPaged(
+      String repositoryId,
+      String filter,
+      int limit,
+      int offset)
+  {
+    if (repositoryId == null || repositoryId.isEmpty()) {
+      return List.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectFrom(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+      if (filter != null && !filter.isEmpty()) {
+        String escaped = escapeLike(filter);
+        query = query.and(
+            REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
+                .or(REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
+      }
+      return query.orderBy(REPOSITORY_COMPONENT.DISPLAY_NAME)
+          .limit(limit)
+          .offset(offset)
+          .fetch(this::toEntity);
+    }
+  }
+
+  public int countByRepositoryIdWithFilter(String repositoryId, String filter) {
+    if (repositoryId == null || repositoryId.isEmpty()) {
+      return 0;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var query = tx.dsl()
+          .selectCount()
+          .from(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId));
+      if (filter != null && !filter.isEmpty()) {
+        String escaped = escapeLike(filter);
+        query = query.and(
+            REPOSITORY_COMPONENT.DISPLAY_NAME.containsIgnoreCase(escaped)
+                .or(REPOSITORY_COMPONENT.PATHNAME.containsIgnoreCase(escaped)));
+      }
+      return query.fetchOne(0, Integer.class);
+    }
+  }
+
+  private static String escapeLike(String value) {
+    return value.replace("%", "\\%").replace("_", "\\_");
+  }
+
   public List<RepositoryComponent> getByRepositoryId(String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()
@@ -77,6 +131,21 @@ public class RepositoryComponentDAO
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
           .fetch(this::toEntity);
     }
+  }
+
+  public List<RepositoryComponent> getByRepositoryId(
+      final TransactionContext tx,
+      final String repositoryId,
+      final int limit,
+      final int offset)
+  {
+    return tx.dsl()
+        .selectFrom(REPOSITORY_COMPONENT)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .orderBy(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.asc())
+        .limit(limit)
+        .offset(offset)
+        .fetch(this::toEntity);
   }
 
   public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
@@ -91,6 +160,19 @@ public class RepositoryComponentDAO
         .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .fetchOne());
+  }
+
+  public RepositoryComponent getByRepositoryIdAndComponentId(String repositoryId, String componentId) {
+    if (componentId == null) {
+      return null;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.eq(componentId))
+          .fetchOne());
+    }
   }
 
   public List<RepositoryComponent> getByRepositoryIdAndPathnames(
@@ -898,6 +980,72 @@ public class RepositoryComponentDAO
     }
 
     entity.setDisplayName(pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")");
+  }
+
+  public Map<String, Date> getLastScanTimesByRepositoryIds(Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Map.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getLastScanTimesByRepositoryIds(tx, repositoryIds);
+    }
+  }
+
+  public Map<String, Date> getLastScanTimesByRepositoryIds(TransactionContext tx, Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Map.of();
+    }
+    return tx.dsl()
+        .select(REPOSITORY_COMPONENT.REPOSITORY_ID, DSL.max(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME))
+        .from(REPOSITORY_COMPONENT)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.in(repositoryIds))
+        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID)
+        .fetch()
+        .stream()
+        .filter(record -> record.value2() != null)
+        .collect(Collectors.toMap(
+            Record2::value1,
+            record -> new Date(record.value2().getTime())));
+  }
+
+  public Set<String> getRepositoryIdsWithQueuedScans(final Collection<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getRepositoryIdsWithQueuedScans(tx, repositoryIds);
+    }
+  }
+
+  public void stampComponentId(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final String componentId)
+  {
+    tx.dsl()
+        .update(REPOSITORY_COMPONENT)
+        .set(REPOSITORY_COMPONENT.COMPONENT_ID, componentId)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  public Set<String> getRepositoryIdsWithQueuedScans(
+      final TransactionContext tx,
+      final Collection<String> repositoryIds)
+  {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return new HashSet<>(tx.dsl()
+        .selectDistinct(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID)
+        .from(HOSTED_COMPONENT_SCAN_QUEUE)
+        .where(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID.in(repositoryIds)
+            .and(HOSTED_COMPONENT_SCAN_QUEUE.STATUS.in(
+                HostedComponentScanQueueDAO.Status.PENDING.name(),
+                HostedComponentScanQueueDAO.Status.IN_PROGRESS.name())))
+        .fetch(HOSTED_COMPONENT_SCAN_QUEUE.REPOSITORY_ID));
   }
 
   @Override

@@ -73,6 +73,11 @@ public class RepositoryResource
   static final String CONTAINER_IMAGE_REPORT_PATH =
       REPOSITORY_PATH + "containerImage/{containerImageIdOrPublicId}/report";
 
+  static final String GET_AVAILABLE_FORMATS_PATH = "repositoryManager/{repositoryManagerInstanceId}/availableFormats";
+
+  static final String UI_CONFIGURED_REPOSITORIES_PATH =
+      "{repositoryManagerInstanceId}/ui/configuredRepositories";
+
   private final RepositoryService repositoryService;
 
   private final FirewallIgnorePatternService firewallIgnorePatternService;
@@ -393,6 +398,41 @@ public class RepositoryResource
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,
         HdsClient.getClientUserAgent(request));
+  }
+
+  /**
+   * @since 1.169
+   */
+  @GET
+  @Path(UI_CONFIGURED_REPOSITORIES_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  @Timed
+  @HasFeature(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION)
+  public HostedRepositoryListDTO getUiConfiguredRepositories(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @QueryParam("searchText") String searchText,
+      @QueryParam("format") String format,
+      @QueryParam("sortBy") String sortBy,
+      @QueryParam("sortDir") String sortDir,
+      @QueryParam("page") Integer page,
+      @QueryParam("pageSize") Integer pageSize)
+  {
+    return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, searchText, format, sortBy,
+        sortDir, page, pageSize);
+  }
+
+  /**
+   * @since 1.169
+   */
+  @GET
+  @Path(GET_AVAILABLE_FORMATS_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  @Timed
+  @HasFeature(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION)
+  public List<String> getAvailableFormats(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId)
+  {
+    return repositoryService.getAvailableFormats(repositoryManagerInstanceId);
   }
 
   @GET

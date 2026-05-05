@@ -17,6 +17,7 @@ import {
   faChartArea,
   faArrowToLeft,
   faStars,
+  faDatabase,
 } from '@fortawesome/pro-regular-svg-icons';
 
 import { useRouterState } from '../RouterStateContext';
@@ -54,6 +55,7 @@ function IqSidebarNav(props) {
     isFirewallOnlyLicense,
     isAlpForSbomManagerEnabled,
     isFirewallEnterpriseReportingEnabled,
+    isHostedRepositoryEvaluationEnabled,
   } = props;
 
   const apiHref = uiRouterState.href('api');
@@ -66,6 +68,7 @@ function IqSidebarNav(props) {
   const vulnSearchHref = uiRouterState.href('vulnerabilitySearch');
   const advSearchHref = uiRouterState.href('advancedSearch');
   const legalHref = uiRouterState.href('legal.dashboard');
+  const hostedReposHref = uiRouterState.href('hostedRepos');
 
   // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
   // which may return stale data when the re-render is driven by Redux state changes
@@ -188,6 +191,25 @@ function IqSidebarNav(props) {
                 href={legalHref}
               />
             )}
+            {isLicensed && isHostedRepositoryEvaluationEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('hostedRepos')}
+                id="hosted-repos-navigation-button"
+                icon={faDatabase}
+                text={
+                  <>
+                    <span>Hosted Repos</span>
+                    <span className="iq-api-nav-link__navigation-badge">
+                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                      <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                      NEW
+                      <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                    </span>
+                  </>
+                }
+                href={hostedReposHref}
+              />
+            )}
             {isLicensed && isIntegratedEnterpriseReportingSupported && (
               <NxGlobalSidebar2NavigationLink
                 isSelected={isSelected('enterpriseReporting')}
@@ -214,17 +236,7 @@ function IqSidebarNav(props) {
                 id="api-navigation-button"
                 className="iq-api-nav-link"
                 icon={faStars}
-                text={
-                  <>
-                    <span>API</span>
-                    <span className="iq-api-nav-link__navigation-badge">
-                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                      <span className="iq-api-nav-link__tooltip-only-text"> (</span>
-                      NEW
-                      <span className="iq-api-nav-link__tooltip-only-text">)</span>
-                    </span>
-                  </>
-                }
+                text="API"
                 href={apiHref}
               />
             )}
@@ -276,5 +288,6 @@ IqSidebarNav.propTypes = {
   isStandaloneFirewall: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
   isFirewallEnterpriseReportingEnabled: PropTypes.bool,
+  isHostedRepositoryEvaluationEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

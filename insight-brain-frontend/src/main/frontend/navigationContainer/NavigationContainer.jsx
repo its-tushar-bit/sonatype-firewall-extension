@@ -27,6 +27,7 @@ import {
   selectLoadingFeatures,
   selectIsAlpForSbomManagerEnabled,
   selectIsFirewallEnterpriseReportingEnabled,
+  selectIsHostedRepositoryEvaluationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsStandaloneFirewall,
@@ -76,6 +77,7 @@ export default function NavigationContainer({ clmServerVersion }) {
   const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
   const isAlpForSbomManagerEnabled = useSelector(selectIsAlpForSbomManagerEnabled);
   const isFirewallEnterpriseReportingEnabled = useSelector(selectIsFirewallEnterpriseReportingEnabled);
+  const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isLicensed = useSelector(selectIsLicensed);
 
@@ -137,6 +139,7 @@ export default function NavigationContainer({ clmServerVersion }) {
       isFirewallOnlyLicense={isFirewallOnlyLicense}
       isAlpForSbomManagerEnabled={isAlpForSbomManagerEnabled}
       isFirewallEnterpriseReportingEnabled={isFirewallEnterpriseReportingEnabled}
+      isHostedRepositoryEvaluationEnabled={isHostedRepositoryEvaluationEnabled}
     />
   );
 }

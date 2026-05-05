@@ -189,6 +189,10 @@ public abstract class AbstractRepositoryService
     this.containerImageReportService = containerImageReportService;
   }
 
+  protected RepositoryManagerDAO getRepositoryManagerDAO() {
+    return repositoryManagerDAO;
+  }
+
   protected void checkLicenseFeature() {
     productLicense.validateFeature(requiredFeature);
   }
@@ -1228,12 +1232,28 @@ public abstract class AbstractRepositoryService
 
     validateConfigureRepositoriesRequest(configureRepositoriesRequest);
 
+    boolean repositoryManagerUpdated = false;
+
     if (!configureRepositoriesRequest.repositoryManagerProductName.equals(repositoryManager.getProductName())
         || !configureRepositoriesRequest.repositoryManagerProductVersion
             .equals(repositoryManager.getProductVersion()))
     {
       repositoryManager.setProductName(configureRepositoriesRequest.repositoryManagerProductName);
       repositoryManager.setProductVersion(configureRepositoriesRequest.repositoryManagerProductVersion);
+      repositoryManagerUpdated = true;
+    }
+
+    if (!Objects.equals(repositoryManager.getBaseUrl(), configureRepositoriesRequest.baseUrl)) {
+      repositoryManager.setBaseUrl(configureRepositoriesRequest.baseUrl);
+      repositoryManagerUpdated = true;
+    }
+
+    if (!repositoryManager.isConfigured()) {
+      repositoryManager.setConfigured(true);
+      repositoryManagerUpdated = true;
+    }
+
+    if (repositoryManagerUpdated) {
       repositoryManagerDAO.update(repositoryManager);
     }
 
@@ -1271,6 +1291,7 @@ public abstract class AbstractRepositoryService
           repository
               .setPolicyCompliantComponentSelectionEnabled(repositoryDTO.policyCompliantComponentSelectionEnabled);
           repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+          repository.setMonitoringEnabled(repositoryDTO.monitoringEnabled);
 
           if (updateLastManualConfigureTime) {
             repository.setLastManualConfigureTime(new Date());
@@ -1318,6 +1339,10 @@ public abstract class AbstractRepositoryService
           }
           if (repositoryDTO.namespaceConfusionProtectionEnabled != repository.isNamespaceConfusionProtectionEnabled()) {
             repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
+            updated = true;
+          }
+          if (repositoryDTO.monitoringEnabled != repository.isMonitoringEnabled()) {
+            repository.setMonitoringEnabled(repositoryDTO.monitoringEnabled);
             updated = true;
           }
 
@@ -1434,6 +1459,7 @@ public abstract class AbstractRepositoryService
     repositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
     repositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     repositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
+    repositoryDTO.monitoringEnabled = repository.isMonitoringEnabled();
     return repositoryDTO;
   }
 

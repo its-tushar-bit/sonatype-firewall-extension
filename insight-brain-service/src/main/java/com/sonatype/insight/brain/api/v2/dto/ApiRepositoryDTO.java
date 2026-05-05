@@ -30,6 +30,8 @@ public class ApiRepositoryDTO
 
   public boolean namespaceConfusionProtectionEnabled;
 
+  public boolean monitoringEnabled;
+
   public static RepositoryDTO toRepositoryDTO(ApiRepositoryDTO dto) {
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = dto.publicId;
@@ -39,6 +41,7 @@ public class ApiRepositoryDTO
     repositoryDTO.quarantineEnabled = dto.quarantineEnabled;
     repositoryDTO.policyCompliantComponentSelectionEnabled = dto.policyCompliantComponentSelectionEnabled;
     repositoryDTO.namespaceConfusionProtectionEnabled = dto.namespaceConfusionProtectionEnabled;
+    repositoryDTO.monitoringEnabled = dto.monitoringEnabled;
     return repositoryDTO;
   }
 
@@ -52,6 +55,7 @@ public class ApiRepositoryDTO
     repository.setQuarantineEnabled(dto.quarantineEnabled);
     repository.setPolicyCompliantComponentSelectionEnabled(dto.policyCompliantComponentSelectionEnabled);
     repository.setNamespaceConfusionProtectionEnabled(dto.namespaceConfusionProtectionEnabled);
+    repository.setMonitoringEnabled(dto.monitoringEnabled);
     return repository;
   }
 
@@ -65,6 +69,7 @@ public class ApiRepositoryDTO
     apiRepositoryDTO.quarantineEnabled = repository.isQuarantineEnabled();
     apiRepositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     apiRepositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
+    apiRepositoryDTO.monitoringEnabled = repository.isMonitoringEnabled();
     return apiRepositoryDTO;
   }
 

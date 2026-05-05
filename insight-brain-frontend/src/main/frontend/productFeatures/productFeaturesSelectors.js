@@ -352,3 +352,8 @@ export const selectDismissedPopovers = createSelector(
  */
 export const selectIsPopoverDismissed = (featureId) =>
   createSelector(selectDismissedPopovers, propOr(false, featureId));
+
+export const selectIsHostedRepositoryEvaluationEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'hosted-repository-evaluation')
+);

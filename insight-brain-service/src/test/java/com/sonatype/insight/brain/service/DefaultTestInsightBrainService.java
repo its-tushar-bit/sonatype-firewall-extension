@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConsumer;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
@@ -348,6 +350,8 @@ public class DefaultTestInsightBrainService
     getInstance(ReevaluateCascadeRequestCleaner.class).disableForTesting = true;
     getInstance(EvaluationQueueConsumer.class).disableForTesting = true;
     getInstance(EvaluationQueueProducer.class).disableForTesting = true;
+    getInstance(HostedComponentScanQueueConsumer.class).disableForTesting = true;
+    getInstance(HostedRepositoryMonitorScheduler.class).disableForTesting = true;
   }
 
   @Override

@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -88,6 +89,8 @@ import static java.util.stream.Collectors.toMap;
 public class RepositoryPolicyEvaluator
 {
   public static final String HDS_COMPONENT_DETAILS_PATH = "rest/component/details/firewall";
+
+  public static final String CONTINUOUS_MONITORING_CAUSE = "CONTINUOUS_MONITORING";
 
   // Maven pathname parsing constants
   private static final String PATH_SEPARATOR = "/";
@@ -175,8 +178,17 @@ public class RepositoryPolicyEvaluator
       Repository repository,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
+    return evaluateForMonitoring(repository, componentEvaluationDataRequestList, ComplianceStageType.ID);
+  }
+
+  public RepositoryComponentEvaluationDataList evaluateForMonitoring(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      String stageTypeId)
+  {
     return evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
-        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */, null);
+        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */, null,
+        stageTypeId);
   }
 
   public RepositoryComponentEvaluationDataList evaluateForAutomaticRelease(
@@ -195,7 +207,18 @@ public class RepositoryPolicyEvaluator
       final String clientUserAgent)
   {
     return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true /* persistEvaluationResults */,
-        clientUserAgent, false /* forMonitoring */, null);
+        clientUserAgent, false /* forMonitoring */, null, ProxyStageType.ID);
+  }
+
+  public RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      final boolean withQuarantine,
+      final String clientUserAgent,
+      final String stageTypeId)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true /* persistEvaluationResults */,
+        clientUserAgent, false /* forMonitoring */, null, stageTypeId);
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -207,7 +230,7 @@ public class RepositoryPolicyEvaluator
       boolean forMonitoring)
   {
     return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults,
-        clientUserAgent, forMonitoring, null);
+        clientUserAgent, forMonitoring, null, ProxyStageType.ID);
   }
 
   private RepositoryComponentEvaluationDataList evaluate(
@@ -219,13 +242,28 @@ public class RepositoryPolicyEvaluator
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason)
   {
+    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults,
+        clientUserAgent, forMonitoring, explicitReleaseReason, ProxyStageType.ID);
+  }
+
+  private RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      boolean withQuarantine,
+      boolean persistEvaluationResults,
+      String clientUserAgent,
+      boolean forMonitoring,
+      ReleaseReason explicitReleaseReason,
+      String stageTypeId)
+  {
     long start = System.currentTimeMillis();
 
     ComponentEvaluationDataList componentDetailsFromHdsList =
         getComponentDetailsFromHds(repository, withQuarantine, componentEvaluationDataRequestList, clientUserAgent);
 
     RepositoryComponentEvaluationDataList result = evaluate(repository, componentEvaluationDataRequestList,
-        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults, forMonitoring, explicitReleaseReason);
+        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults, forMonitoring, explicitReleaseReason,
+        stageTypeId);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
@@ -244,7 +282,7 @@ public class RepositoryPolicyEvaluator
       boolean forMonitoring)
   {
     return evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds, withQuarantine,
-        persistEvaluationResults, forMonitoring, null);
+        persistEvaluationResults, forMonitoring, null, ProxyStageType.ID);
   }
 
   private RepositoryComponentEvaluationDataList evaluate(
@@ -255,6 +293,20 @@ public class RepositoryPolicyEvaluator
       boolean persistEvaluationResults,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds, withQuarantine,
+        persistEvaluationResults, forMonitoring, explicitReleaseReason, ProxyStageType.ID);
+  }
+
+  private RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      ComponentEvaluationDataList componentDetailsFromHds,
+      boolean withQuarantine,
+      boolean persistEvaluationResults,
+      boolean forMonitoring,
+      ReleaseReason explicitReleaseReason,
+      String stageTypeId)
   {
     long start = System.currentTimeMillis();
 
@@ -353,7 +405,7 @@ public class RepositoryPolicyEvaluator
         .collect(Collectors.toList());
     final Map<List<String>, Component> lookup = mapComponentForQuickLookUp(componentsWithoutNulls);
 
-    PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
+    PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(stageTypeId),
         policies, componentsWithoutNulls, false /* forMonitoring */);
 
     Map<Component, List<PolicyAlert>> policyAlertsByComponent =
@@ -404,6 +456,7 @@ public class RepositoryPolicyEvaluator
               shouldSendNotifications,
               forMonitoring,
               explicitReleaseReason,
+              stageTypeId,
               event,
               repositoryComponentEvaluationResult.policyAlerts,
               waivedAlerts,
@@ -553,6 +606,7 @@ public class RepositoryPolicyEvaluator
       boolean isNotificationsToBeSent,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
+      String stageTypeId,
       CreateRepositoryPolicyViolationsEvent event,
       List<PolicyAlert> activeAlerts,
       List<PolicyAlert> waivedAlerts,
@@ -578,7 +632,7 @@ public class RepositoryPolicyEvaluator
       persistPolicyViolations(tx, repository, evaluationTime, component, policies,
           policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, forMonitoring, explicitReleaseReason, activeAlerts);
+          canBeQuarantined, forMonitoring, explicitReleaseReason, stageTypeId, activeAlerts);
 
       tx.commit();
 
@@ -598,6 +652,7 @@ public class RepositoryPolicyEvaluator
       boolean canBeQuarantined,
       boolean forMonitoring,
       ReleaseReason explicitReleaseReason,
+      String stageTypeId,
       List<PolicyAlert> activeAlerts)
   {
     String pathname = component.getPathnames().get(0);
@@ -633,6 +688,7 @@ public class RepositoryPolicyEvaluator
           evaluationTime);
       repositoryComponent.setQuarantineTime(quarantineTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
+      repositoryComponent.setLastEvaluationStage(stageTypeId);
       if (repositoryComponentId == null) {
         repositoryComponentDAO.insert(tx, repositoryComponent);
       }
@@ -647,6 +703,7 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setMatchStateId(component.getMatchState().getId());
       repositoryComponent.setIdentificationSourceId(component.getIdentificationSource().getId());
       repositoryComponent.setLastEvaluationTime(evaluationTime);
+      repositoryComponent.setLastEvaluationStage(stageTypeId);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
 
       if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {

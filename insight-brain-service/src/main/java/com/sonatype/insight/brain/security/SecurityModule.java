@@ -196,7 +196,9 @@ public class SecurityModule
     manager.createChain("/rest/cli/scan/*", filters);
     manager.createChain("/rest/rm/scan/*", filters);
     manager.createChain("/rest/config/proprietary", filters);
-    manager.createChain("/rest/policy/stages", filters); // licensed build stages
+    manager.createChain("/rest/policy/stages", filters);
+    String formPostFilters = String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED);
+    manager.createChain("/api/v2/repositories/**", formPostFilters);
   }
 
   @Override

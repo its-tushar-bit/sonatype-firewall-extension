@@ -299,9 +299,9 @@ public class ConfigurationInfoTest
         "maliciousUrlsPartnerAccess",
         "maxConcurrentTenantIndexCreation",
         "evaluationQueueConfig",
+        "hostedScanQueueConfig",
         "lifecycleTier");
 
-    // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
     for (ConfigurationProperty property : ConfigurationProperty.PROPERTIES) {

@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO.Status;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -50,6 +51,8 @@ import com.sonatype.insight.brain.utils.DateConverter;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+
+import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -1369,5 +1372,132 @@ public class RepositoryComponentDAOTest
 
     assertThat(result).hasSize(1);
     assertThat(result.get(0).getId()).isEqualTo(preCachedWithWaivedViolation.getId());
+  }
+
+  @Test
+  public void testGetLastScanTimesByRepositoryIds_ReturnsMaxEvaluationTimePerRepository() {
+    Date earlier = Date.from(Instant.now().minusSeconds(3600));
+    Date later = new Date();
+
+    Repository repo1 = tempEntity.newRepository();
+    Repository repo2 = tempEntity.newRepository();
+
+    tempEntity.newRepositoryComponent(repo1.getId(), earlier);
+    tempEntity.newRepositoryComponent(repo1.getId(), later);
+    tempEntity.newRepositoryComponent(repo2.getId(), earlier);
+
+    Map<String, Date> result = dao.getLastScanTimesByRepositoryIds(List.of(repo1.getId(), repo2.getId()));
+
+    assertThat(result).containsKey(repo1.getId());
+    assertThat(result).containsKey(repo2.getId());
+    assertThat(result.get(repo1.getId())).isEqualTo(later);
+    assertThat(result.get(repo2.getId())).isEqualTo(earlier);
+  }
+
+  @Test
+  public void testGetLastScanTimesByRepositoryIds_ReturnsEmptyMapForEmptyInput() {
+    assertThat(dao.getLastScanTimesByRepositoryIds(Collections.emptyList())).isEmpty();
+    assertThat(dao.getLastScanTimesByRepositoryIds(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetLastScanTimesByRepositoryIds_ExcludesRepositoriesWithNoComponents() {
+    Repository repo = tempEntity.newRepository();
+    // Repository with no components — should not appear in the result map
+
+    Map<String, Date> result = dao.getLastScanTimesByRepositoryIds(List.of(repo.getId()));
+
+    assertThat(result).doesNotContainKey(repo.getId());
+  }
+
+  @Test
+  public void testGetRepositoryIdsWithQueuedScans_ReturnsPendingAndInProgressRepositories() {
+    Repository repo1 = tempEntity.newRepository();
+    Repository repo2 = tempEntity.newRepository();
+    Repository repo3 = tempEntity.newRepository();
+
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "2.0"));
+    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "3.0"));
+
+    tempEntity.newHostedComponentScanQueue(component1.getId(), repo1.getId(), Status.PENDING.name());
+    tempEntity.newHostedComponentScanQueue(component2.getId(), repo2.getId(), Status.IN_PROGRESS.name());
+    tempEntity.newHostedComponentScanQueue(component3.getId(), repo3.getId(), Status.COMPLETED.name());
+
+    Set<String> result = dao.getRepositoryIdsWithQueuedScans(
+        List.of(repo1.getId(), repo2.getId(), repo3.getId()));
+
+    assertThat(result).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
+    assertThat(result).doesNotContain(repo3.getId());
+  }
+
+  @Test
+  public void testGetRepositoryIdsWithQueuedScans_ReturnsEmptySetForEmptyInput() {
+    assertThat(dao.getRepositoryIdsWithQueuedScans(Collections.emptyList())).isEmpty();
+    assertThat(dao.getRepositoryIdsWithQueuedScans(null)).isEmpty();
+  }
+
+  @Test
+  public void testStampComponentId_SetsComponentIdOnMatchingComponent() {
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    assertThat(component.getComponentId()).isNull();
+
+    String componentId = "test-component-id-123";
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      dao.stampComponentId(tx, repository.getId(), component.getPathname(), componentId);
+    }
+
+    RepositoryComponent updated = dao.getById(component.getId());
+    assertThat(updated.getComponentId()).isEqualTo(componentId);
+  }
+
+  @Test
+  public void testStampComponentId_DoesNotAffectOtherComponents() {
+    RepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    RepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      dao.stampComponentId(tx, repository.getId(), target.getPathname(), "stamped-id");
+    }
+
+    assertThat(dao.getById(other.getId()).getComponentId()).isNull();
+  }
+
+  @Test
+  public void testGetByRepositoryIdPaged_ReturnsPaginatedResults() {
+    for (int i = 0; i < 5; i++) {
+      tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+          ComponentIdentifier.createMavenCoordinates("g", "a", "v" + i));
+    }
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page1 = dao.getByRepositoryId(tx, repository.getId(), 3, 0);
+      List<RepositoryComponent> page2 = dao.getByRepositoryId(tx, repository.getId(), 3, 3);
+
+      assertThat(page1).hasSize(3);
+      assertThat(page2).hasSize(2);
+
+      List<String> allIds = new ArrayList<>();
+      page1.forEach(c -> allIds.add(c.getId()));
+      page2.forEach(c -> allIds.add(c.getId()));
+      assertThat(allIds).doesNotHaveDuplicates();
+    }
+  }
+
+  @Test
+  public void testGetByRepositoryIdPaged_ReturnsEmptyForOutOfBoundsOffset() {
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v1"));
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> result = dao.getByRepositoryId(tx, repository.getId(), 10, 100);
+      assertThat(result).isEmpty();
+    }
   }
 }

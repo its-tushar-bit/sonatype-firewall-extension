@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -97,8 +98,60 @@ public class RepositoryServiceAuthzTest
         null /* repositoryComponentPathnames */);
   }
 
+  @Test
+  public void testGetConfiguredRepositoriesHosted_Authorized() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    grantEvaluateComponentPermission(repositoryManager.getId());
+
+    repositoryService.getConfiguredRepositories(repositoryManager.getInstanceId(), null, null, null, null, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetConfiguredRepositoriesHosted_Unauthenticated() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+
+    repositoryService.getConfiguredRepositories(repositoryManager.getInstanceId(), null, null, null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetConfiguredRepositoriesHosted_Unauthorized() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    login();
+
+    repositoryService.getConfiguredRepositories(repositoryManager.getInstanceId(), null, null, null, null, null, null);
+  }
+
+  @Test
+  public void testGetAvailableFormats_Authorized() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    grantEvaluateComponentPermission(repositoryManager.getId());
+
+    repositoryService.getAvailableFormats(repositoryManager.getInstanceId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetAvailableFormats_Unauthenticated() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+
+    repositoryService.getAvailableFormats(repositoryManager.getInstanceId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetAvailableFormats_Unauthorized() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    login();
+
+    repositoryService.getAvailableFormats(repositoryManager.getInstanceId());
+  }
+
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest() {
-    return new ConfigureRepositoriesRequest("Nexus", "3.60.0", null /* repositories */);
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0", "http://localhost:8081", null /* repositories */);
   }
 }

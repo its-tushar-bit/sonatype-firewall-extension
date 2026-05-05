@@ -1466,6 +1466,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("expireWaiverWhenRemediationAvailable", false);
     expectedFeatureConfigMap.put("firewallEnterpriseReporting", true);
     expectedFeatureConfigMap.put("githubAppAuthentication", false);
+    expectedFeatureConfigMap.put("hostedRepositoryEvaluation", false);
     expectedFeatureConfigMap.put("innerSourceRepositoryIntegration", true);
     expectedFeatureConfigMap.put("innerSourceTransitiveWaiver", true);
     expectedFeatureConfigMap.put("internalFirewallOnboardingEnabled", false);
@@ -1811,5 +1812,69 @@ public class ApiConfigFeaturesServiceTest
     assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS)
         .getValue()).isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS)).isTrue();
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_HostedRepositoryEvaluation() {
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("hostedRepositoryEvaluation"),
+        service.getSystemConfigurationPropertyFeature("hosted-repository-evaluation"),
+        service.getSystemConfigurationPropertyFeature("Hosted-Repository-Evaluation"),
+        service.getSystemConfigurationPropertyFeature("HOSTED-REPOSITORY-EVALUATION"));
+
+    // Assert all map to HOSTED_REPOSITORY_EVALUATION
+    assertThat(actual)
+        .allMatch(feature -> feature.equals(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION));
+  }
+
+  @Test
+  public void testEnableFeature_HostedRepositoryEvaluation() {
+    service.enableFeature(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_HostedRepositoryEvaluation_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_HostedRepositoryEvaluation() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_HostedRepositoryEvaluation_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_HostedRepositoryEvaluation_DisabledByDefault() {
+    // Disabled by default
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION))
+        .isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION)).isFalse();
+  }
+
+  @Test
+  public void testIsEnabled_HostedRepositoryEvaluation() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION)
+        .getValue())
+            .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION)).isTrue();
   }
 }

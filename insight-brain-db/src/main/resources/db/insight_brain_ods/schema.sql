@@ -598,6 +598,7 @@ CREATE TABLE repository (
   format varchar(50),
   last_manual_configure_time timestamp DEFAULT NULL,
   related_organization_id varchar(50) NULL,
+  monitoring_enabled boolean DEFAULT false NOT NULL,
   CONSTRAINT repository_pk PRIMARY KEY (repository_id),
   CONSTRAINT repository_uk UNIQUE (repository_manager_id, public_id),
   CONSTRAINT repository_repository_manager_fk FOREIGN KEY (repository_manager_id) REFERENCES repository_manager(repository_manager_id),
@@ -620,6 +621,8 @@ CREATE TABLE repository_component (
   unquarantine_time timestamp,
   analyzer_features_json varchar(1000), -- the analyzer features stored in json format
   auto_unquarantined boolean,
+  component_id varchar(255),
+  last_evaluation_stage varchar(50),
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)
@@ -629,6 +632,7 @@ CREATE INDEX repository_component_repository_unquarantine_idx ON repository_comp
 CREATE INDEX repository_component_quarantine_idx ON repository_component(repository_id, quarantine_time);
 CREATE INDEX repository_component_release_quarantine_idx ON repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
 CREATE INDEX repository_component_component_coordinates_idx ON repository_component (component_id_format, component_id_coordinates_json);
+CREATE INDEX repository_component_last_evaluation_time_idx ON repository_component(last_evaluation_time);
 
 CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,
@@ -650,6 +654,7 @@ CREATE TABLE repository_policy_violation (
   policy_waiver_comment varchar(1000) NULL,
   waive_time timestamp NULL,                -- when the violation was waived
   constraint_facts_id varchar(20),
+  component_id varchar(255),
 
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
   CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
@@ -2280,3 +2285,24 @@ CREATE TABLE scan_health_config (
   CONSTRAINT scan_health_config_owner_uk UNIQUE (owner_id, owner_type)
 );
 CREATE INDEX scan_health_config_owner_idx ON scan_health_config(owner_id);
+
+CREATE TABLE hosted_component_scan_queue (
+  id varchar(255) NOT NULL,
+  component_id varchar(255) NOT NULL,
+  scan_file_id varchar(255) NOT NULL,
+  status varchar(50) NOT NULL,
+  priority integer NOT NULL DEFAULT 5,
+  acquired_at timestamp,
+  error_message varchar(2000),
+  repository_id varchar(255) NOT NULL,
+  retry_count integer NOT NULL DEFAULT 0,
+  purl varchar(2000),
+  policy_evaluation_stage varchar(50),
+  CONSTRAINT hosted_component_scan_queue_pk PRIMARY KEY (id)
+);
+CREATE INDEX hosted_component_scan_queue_component_id_idx ON hosted_component_scan_queue(component_id);
+CREATE INDEX hosted_component_scan_queue_status_idx ON hosted_component_scan_queue(status);
+CREATE INDEX hosted_component_scan_queue_priority_idx ON hosted_component_scan_queue(priority);
+CREATE INDEX hosted_component_scan_queue_status_priority_idx ON hosted_component_scan_queue(status, priority DESC);
+CREATE INDEX hosted_component_scan_queue_acquired_at_idx ON hosted_component_scan_queue(acquired_at);
+CREATE INDEX hosted_component_scan_queue_repository_id_idx ON hosted_component_scan_queue(repository_id);

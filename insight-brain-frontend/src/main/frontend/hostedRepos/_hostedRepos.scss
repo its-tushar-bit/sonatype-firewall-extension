@@ -1,0 +1,278 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-hosted-repos {
+  padding: var(--nx-spacing-4x);
+
+  &__description {
+    margin-bottom: var(--nx-spacing-6x);
+    color: var(--nx-color-text-dark);
+
+    p {
+      margin: 0 0 var(--nx-spacing-2x) 0;
+      line-height: 1.5;
+      font-size: 0.875em;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--nx-spacing-1x);
+      font-size: 0.875em;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nx-spacing-12x) var(--nx-spacing-8x);
+    text-align: center;
+    color: var(--nx-color-text-secondary);
+
+    h4 {
+      margin-bottom: 0;
+    }
+
+    p {
+      margin-top: var(--nx-spacing-2x);
+      margin-bottom: 0;
+      max-width: 700px;
+    }
+  }
+
+  &__empty-icon {
+    font-size: 3rem;
+    color: var(--nx-color-text-secondary);
+    margin-bottom: var(--nx-spacing-4x);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--nx-spacing-4x);
+    margin-top: var(--nx-spacing-4x);
+  }
+
+  &__card {
+    border: 1px solid var(--nx-color-border);
+    border-radius: var(--nx-border-radius);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-color: var(--nx-color-interactive-border-hover);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+
+  &__card-button {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nx-spacing-2x);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--nx-spacing-3x);
+    width: 100%;
+  }
+
+  &__card-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-1x);
+  }
+
+  &__card-icon {
+    color: var(--nx-color-link);
+    font-size: 1.2em;
+    background-color: var(--nx-swatch-blue-95);
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__card-title {
+    font-weight: 600;
+    color: var(--nx-color-link);
+    font-size: 1em;
+    line-height: 1.4;
+  }
+
+  &__card-url {
+    font-size: 0.875em;
+    color: var(--nx-color-text-secondary);
+    line-height: 1.3;
+    word-break: break-all;
+    font-weight: 300;
+    margin-top: var(--nx-spacing-1x);
+  }
+
+  &__card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--nx-spacing-3x) 0 0 0;
+    border-top: 1px solid var(--nx-color-border);
+    margin-top: var(--nx-spacing-3x);
+  }
+
+  &__card-count-label {
+    font-size: 0.875em;
+    color: var(--nx-color-text-secondary);
+    font-weight: 400;
+  }
+
+  &__card-count-value {
+    font-weight: 600;
+    color: var(--nx-color-link);
+    font-size: 1em;
+    background-color: var(--nx-swatch-blue-95);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  &__card-status {
+    display: flex;
+    align-items: center;
+    gap: var(--nx-spacing-2x);
+    font-size: 0.875em;
+
+    &.iq-hosted-repos__status--connected {
+      .iq-hosted-repos__status-icon {
+        color: var(--nx-color-success);
+      }
+      .iq-hosted-repos__status-label {
+        color: var(--nx-color-success);
+      }
+    }
+
+    &.iq-hosted-repos__status--disconnected {
+      .iq-hosted-repos__status-icon {
+        color: var(--nx-color-error);
+      }
+      .iq-hosted-repos__status-label {
+        color: var(--nx-color-text-dark);
+        font-weight: 400;
+      }
+    }
+  }
+
+  &__status-icon {
+    font-size: 0.75em;
+    flex-shrink: 0;
+  }
+
+  &__status-label {
+    flex-shrink: 0;
+  }
+
+  &__info-icon {
+    color: var(--nx-color-text-dark);
+    font-size: 1em;
+    cursor: help;
+    flex-shrink: 0;
+  }
+
+  &__no-value {
+    color: var(--nx-color-text-secondary);
+    font-style: italic;
+  }
+}
+
+.iq-hosted-repos-components {
+  &__back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nx-spacing-1x);
+    color: var(--nx-color-link);
+    text-decoration: none;
+    margin-bottom: var(--nx-spacing-4x);
+    font-size: 0.875rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__filter {
+    margin-bottom: var(--nx-spacing-4x);
+
+    &.nx-filter-input {
+      width: 600px;
+    }
+  }
+
+  &__col--name {
+    width: 50%;
+  }
+
+  &__col--count {
+    width: 15%;
+    text-align: center;
+  }
+
+  &__col--report {
+    width: 30%;
+  }
+
+  &__report-cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-1x);
+  }
+
+  &__report-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nx-spacing-1x);
+    margin-top: var(--nx-spacing-2x);
+  }
+
+  &__report-stage {
+    font-size: 1rem;
+    color: var(--nx-color-text-secondary);
+  }
+
+  &__report-links {
+    font-size: 0.85rem;
+    color: var(--nx-color-text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__report-link {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--nx-color-link);
+    font-size: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

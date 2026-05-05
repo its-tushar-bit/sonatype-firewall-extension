@@ -136,6 +136,9 @@ public class JobClassNameTest
         "CopyStorageTask");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.ReevaluateCascadeRequestCleaner", "ReevaluateCascadeRequestCleaner");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitoringTask",
+        "HostedRepositoryMonitoringTask");
   }
 
   @Inject

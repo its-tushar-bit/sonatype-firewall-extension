@@ -94,6 +94,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
@@ -747,8 +748,10 @@ public class TestDAOFactory
     RepositoryComponentDAO repositoryComponentDAO = createRepositoryComponentDAO();
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
     RepositoryMigrationDAO repositoryMigrationDAO = createRepositoryMigrationDAO();
+    HostedComponentScanQueueDAO hostedComponentScanQueueDAO = createHostedComponentScanQueueDAO();
     return new RepositoryDAO(dataStoreProvider.getOperationalDataStore(), proprietaryComponentNamePatternDAO,
-        repositoryPolicyViolationDAO, repositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO);
+        repositoryPolicyViolationDAO, repositoryComponentDAO, ownerDAOProvider, repositoryMigrationDAO,
+        hostedComponentScanQueueDAO);
   }
 
   @Override
@@ -766,6 +769,11 @@ public class TestDAOFactory
   @Override
   public RepositoryMigrationDAO createRepositoryMigrationDAO() {
     return new RepositoryMigrationDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public HostedComponentScanQueueDAO createHostedComponentScanQueueDAO() {
+    return new HostedComponentScanQueueDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

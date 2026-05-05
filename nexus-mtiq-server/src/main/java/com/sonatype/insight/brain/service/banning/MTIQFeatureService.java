@@ -77,7 +77,8 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
       SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
       SystemConfigurationPropertyFeature.GUIDE_MCP,
-      SystemConfigurationPropertyFeature.GUIDE_UI);
+      SystemConfigurationPropertyFeature.GUIDE_UI,
+      SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION);
 
   private final ApiConfigFeaturesService service;
 

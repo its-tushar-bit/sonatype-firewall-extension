@@ -35,6 +35,7 @@ public class ArtifactoryRepositoryResourceTest
 
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(RepositoryDTO repositoryDTO) {
-    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", Collections.singletonList(repositoryDTO));
+    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", "http://localhost:8081",
+        Collections.singletonList(repositoryDTO));
   }
 }

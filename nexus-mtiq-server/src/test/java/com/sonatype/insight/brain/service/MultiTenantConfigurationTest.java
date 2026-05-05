@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
@@ -84,6 +85,9 @@ public class MultiTenantConfigurationTest
   Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
   @Mock
+  Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider;
+
+  @Mock
   Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
 
   @Mock
@@ -105,7 +109,8 @@ public class MultiTenantConfigurationTest
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
         asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
-        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider,
+        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, hostedRepositoryMonitorSchedulerProvider,
+        automaticQuarantineReleaseSchedulerProvider,
         waivedComponentUpgradeSchedulerProvider, historicalPolicyViolationTelemetryTaskProvider, tenantUtil);
   }
 

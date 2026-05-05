@@ -107,6 +107,13 @@ import com.sonatype.insight.brain.organization.ApplicationManagementService;
 import com.sonatype.insight.brain.organization.SidebarService;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 
+import com.sonatype.insight.brain.api.v2.ApiLifecycleResource;
+import com.sonatype.insight.brain.api.v2.ApiLifecycleService;
+import com.sonatype.insight.brain.api.v2.ApiRepositoryComponentResource;
+import com.sonatype.insight.brain.api.v2.ApiRepositoryComponentService;
+import com.sonatype.insight.brain.api.v2.ApiRepositoryComponentsService;
+import com.sonatype.insight.brain.api.v2.HostedComponentQueryResource;
+
 import com.google.inject.AbstractModule;
 
 /**
@@ -227,5 +234,11 @@ public class ApiServiceBindingsModule
     bind(SourceControlUserActivityService.class);
     bind(EnterpriseReportingDefaultFilterDAO.class);
     bind(EnterpriseReportingFilterDAO.class);
+    bind(ApiRepositoryComponentsService.class);
+    bind(HostedComponentQueryResource.class);
+    bind(ApiLifecycleService.class);
+    bind(ApiLifecycleResource.class);
+    bind(ApiRepositoryComponentService.class);
+    bind(ApiRepositoryComponentResource.class);
   }
 }

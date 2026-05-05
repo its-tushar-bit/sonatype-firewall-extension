@@ -119,6 +119,32 @@ public class ScanUploader
     return receipt;
   }
 
+  public ScanReceipt uploadForRepository(
+      ScanEntity scanEntity,
+      String repositoryId,
+      String stageTypeId,
+      String clientUserAgent,
+      boolean isWebUIRequest) throws IOException
+  {
+    HdsClientAnalytics analytics = HdsClientAnalytics.forRepository(repositoryId);
+
+    validateIntegrationVersion(clientUserAgent, isWebUIRequest);
+
+    String uploadId = UUID.randomUUID().toString().replace("-", "");
+    Map<String, String> uploadMetadata = new HashMap<>();
+    uploadMetadata.put("uploadId", uploadId);
+    if (stageTypeId != null && !stageTypeId.isEmpty()) {
+      uploadMetadata.put("stageTypeId", stageTypeId);
+    }
+    Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
+    if (MapUtils.isNotEmpty(matcherConfiguration)) {
+      uploadMetadata.putAll(matcherConfiguration);
+    }
+    uploadMetadata.put("enableCpeDataMatching", Boolean.toString(false));
+
+    return client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanEntity, uploadMetadata);
+  }
+
   void augmentScanReceipt(
       String applicationPublicId,
       ScanReceipt receipt,

@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -530,9 +531,289 @@ public class RepositoryServiceTest
         .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
+  @Test
+  public void testGetConfiguredRepositories_ReturnsRepositoriesForManager() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).publicId).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(result.manager.instanceId).isEqualTo(REPO_MAN_INSTANCE_ID);
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> repositoryService.getConfiguredRepositories(
+            REPO_MAN_INSTANCE_ID, null, null, null, null, null, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_FilterBySearchText() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "maven-central", null, false);
+    tempEntity.newHostedRepository(repoManager, "npm-proxy", null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, "maven", null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("maven-central");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_FilterByFormat() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "maven-central", "maven2", false);
+    tempEntity.newHostedRepository(repoManager, "npm-proxy", "npm", false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, "npm", null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("npm-proxy");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_SortByPublicId() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "zz-repo", null, false);
+    tempEntity.newHostedRepository(repoManager, "aa-repo", null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "publicId", "asc", null, null);
+
+    assertThat(result.repositories).hasSize(2);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("aa-repo");
+    assertThat(result.repositories.get(1).publicId).isEqualTo("zz-repo");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_SortDescending() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "aa-repo", null, false);
+    tempEntity.newHostedRepository(repoManager, "zz-repo", null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "publicId", "desc", null, null);
+
+    assertThat(result.repositories).hasSize(2);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("zz-repo");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_SortByLastScannedTime() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repoA = tempEntity.newHostedRepository(repoManager, "repo-a", null, false);
+    Repository repoB = tempEntity.newHostedRepository(repoManager, "repo-b", null, false);
+    Date older = new Date(1000L);
+    Date newer = new Date(2000L);
+    // repo-b gets older scan, repo-a gets newer — so alphabetical order (a,b) differs from scan-time order (b,a)
+    tempEntity.newRepositoryComponent(repoB.getId(), "path-b", older);
+    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", newer);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "asc", null,
+            null);
+
+    assertThat(result.repositories).hasSize(2);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("repo-b");
+    assertThat(result.repositories.get(1).publicId).isEqualTo("repo-a");
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_Pagination() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "repo-1", null, false);
+    tempEntity.newHostedRepository(repoManager, "repo-2", null, false);
+    tempEntity.newHostedRepository(repoManager, "repo-3", null, false);
+
+    HostedRepositoryListDTO page1 =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "publicId", "asc", 1, 2);
+    HostedRepositoryListDTO page2 =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "publicId", "asc", 2, 2);
+
+    assertThat(page1.repositories).hasSize(2);
+    assertThat(page2.repositories).hasSize(1);
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_PageBeyondResults_ReturnsEmpty() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, 99, 10);
+
+    assertThat(result.repositories).isEmpty();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_LastScannedTimePopulated() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+    Date scanDate = new Date(5000L);
+    tempEntity.newRepositoryComponent(repo.getId(), "some-path", scanDate);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).lastScannedTime).isEqualTo(scanDate.getTime());
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_NoComponents_LastScannedTimeNull() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).lastScannedTime).isNull();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_SortByLastScannedTime_DescNullAppearsLast() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repoA = tempEntity.newHostedRepository(repoManager, "repo-a", null, false);
+    tempEntity.newHostedRepository(repoManager, "repo-b", null, false);
+    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", new Date(1000L));
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "desc", null,
+            null);
+
+    assertThat(result.repositories).hasSize(2);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("repo-a");
+    assertThat(result.repositories.get(1).lastScannedTime).isNull();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_SortByLastScannedTime_AscNullAppearsLast() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repoA = tempEntity.newHostedRepository(repoManager, "repo-a", null, false);
+    tempEntity.newHostedRepository(repoManager, "repo-b", null, false);
+    tempEntity.newRepositoryComponent(repoA.getId(), "path-a", new Date(1000L));
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, "lastscannedtime", "asc", null,
+            null);
+
+    assertThat(result.repositories).hasSize(2);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("repo-a");
+    assertThat(result.repositories.get(1).lastScannedTime).isNull();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_HasQueuedScans_True_WhenPendingEntryExists() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
+        HostedComponentScanQueueDAO.Status.PENDING.name());
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).hasQueuedScans).isTrue();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_HasQueuedScans_True_WhenInProgressEntryExists() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
+        HostedComponentScanQueueDAO.Status.IN_PROGRESS.name());
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).hasQueuedScans).isTrue();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_HasQueuedScans_False_WhenOnlyCompletedEntryExists() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repo = tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repo.getId(), "some-path");
+    tempEntity.newHostedComponentScanQueue(component.getId(), repo.getId(),
+        HostedComponentScanQueueDAO.Status.COMPLETED.name());
+
+    HostedRepositoryListDTO result =
+        repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID, null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).hasQueuedScans).isFalse();
+  }
+
+  @Test
+  public void testGetAvailableFormats_ReturnsDistinctSortedFormats() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "repo-npm-1", "npm", false);
+    tempEntity.newHostedRepository(repoManager, "repo-npm-2", "npm", false);
+    tempEntity.newHostedRepository(repoManager, "repo-maven", "maven2", false);
+
+    List<String> formats = repositoryService.getAvailableFormats(REPO_MAN_INSTANCE_ID);
+
+    assertThat(formats).containsExactly("maven2", "npm");
+  }
+
+  @Test
+  public void testGetAvailableFormats_ExcludesNullFormats() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, REPO_PUBLIC_ID, null, false);
+
+    List<String> formats = repositoryService.getAvailableFormats(REPO_MAN_INSTANCE_ID);
+
+    assertThat(formats).doesNotContainNull();
+  }
+
+  @Test
+  public void testGetConfiguredRepositories_ExcludesProxyRepositories() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "hosted-repo", "maven2", false);
+    tempEntity.newRepository(repoManager, "proxy-repo", "maven2");
+
+    HostedRepositoryListDTO result = repositoryService.getConfiguredRepositories(REPO_MAN_INSTANCE_ID,
+        null, null, null, null, null, null);
+
+    assertThat(result.repositories).hasSize(1);
+    assertThat(result.repositories.get(0).publicId).isEqualTo("hosted-repo");
+  }
+
+  @Test
+  public void testGetAvailableFormats_ExcludesProxyRepositoryFormats() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    tempEntity.newHostedRepository(repoManager, "hosted-maven", "maven2", false);
+    tempEntity.newRepository(repoManager, "proxy-npm", "npm");
+
+    List<String> formats = repositoryService.getAvailableFormats(REPO_MAN_INSTANCE_ID);
+
+    assertThat(formats).containsExactly("maven2");
+  }
+
+  @Test
+  public void testGetAvailableFormats_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> repositoryService.getAvailableFormats(REPO_MAN_INSTANCE_ID))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(List<RepositoryDTO> repositoryDTOs) {
-    return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", repositoryDTOs);
+    return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", "http://localhost:8081", repositoryDTOs);
   }
 
   @Override

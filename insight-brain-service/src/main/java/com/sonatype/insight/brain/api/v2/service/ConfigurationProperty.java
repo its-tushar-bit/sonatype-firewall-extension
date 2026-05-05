@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueConfig;
+import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConfig;
 import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -332,6 +333,25 @@ public class ConfigurationProperty
               EvaluationQueueConfig.class,
               EvaluationQueueConfig.builder().build());
           EvaluationQueueConfig merged = EvaluationQueueConfig.merge(base, overrides);
+          return ConfigurationUtils.objectToString(merged);
+        }),
+    new ConfigurationProperty(SystemConfigurationProperty.HOSTED_SCAN_QUEUE_CONFIG, Map.class,
+        (p, s) -> ConfigurationUtils.stringToObject(
+            s,
+            HostedComponentScanQueueConfig.class,
+            HostedComponentScanQueueConfig.defaultConfig()),
+        (p, o) -> {
+          if (o == null) {
+            return null;
+          }
+          @SuppressWarnings("unchecked")
+          Map<String, Object> overrides = JsonUtils.convertValue(o, Map.class);
+          String existingValue = ConfigurationUtils.getParameter(p, String.class);
+          HostedComponentScanQueueConfig base = ConfigurationUtils.stringToObject(
+              existingValue,
+              HostedComponentScanQueueConfig.class,
+              HostedComponentScanQueueConfig.defaultConfig());
+          HostedComponentScanQueueConfig merged = HostedComponentScanQueueConfig.merge(base, overrides);
           return ConfigurationUtils.objectToString(merged);
         }),
     new ConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, String.class,

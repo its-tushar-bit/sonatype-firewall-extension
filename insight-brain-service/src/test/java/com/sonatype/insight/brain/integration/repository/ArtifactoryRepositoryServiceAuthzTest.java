@@ -34,6 +34,8 @@ public class ArtifactoryRepositoryServiceAuthzTest
 
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest() {
-    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", null /* repositories */);
+    return new ConfigureRepositoriesRequest("JFrog Artifactory", "7.37.15", "http://localhost:8081", null /*
+                                                                                                           * repositories
+                                                                                                           */);
   }
 }

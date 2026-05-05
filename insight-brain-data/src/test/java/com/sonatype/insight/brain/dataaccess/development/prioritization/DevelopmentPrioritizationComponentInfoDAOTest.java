@@ -6,9 +6,6 @@
 
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +36,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@Category(SlowTest.class)
 public class DevelopmentPrioritizationComponentInfoDAOTest
     extends AbstractDbDAOTest
 {

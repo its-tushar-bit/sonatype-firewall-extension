@@ -36,7 +36,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.IQ_APP_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiCycloneDxResourceV2Test
     extends AbstractResourceTest
 {

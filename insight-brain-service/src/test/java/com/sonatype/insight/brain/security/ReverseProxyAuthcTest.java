@@ -29,8 +29,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 @RunWith(Parameterized.class)
+@Category(SlowTest.class)
 public class ReverseProxyAuthcTest
     extends AbstractBrainServiceIntegrationTest
 {

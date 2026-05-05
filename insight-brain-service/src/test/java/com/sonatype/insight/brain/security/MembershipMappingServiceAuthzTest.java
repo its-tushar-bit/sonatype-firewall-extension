@@ -22,7 +22,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.POLICY_ADMIN_ROLE_ID;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class MembershipMappingServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

@@ -37,7 +37,10 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class PullRequestLineFeedbackTest
     extends AbstractComponentTest
 {

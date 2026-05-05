@@ -60,7 +60,10 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApplicationMoveServiceTest
     extends AbstractComponentTest
 {

@@ -43,7 +43,10 @@ import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_
 import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_FORM_HEADER;
 import static com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2.REPORT_FORM_TITLE;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiLegalReportResourceV2Test
     extends AbstractResourceTest
 {

@@ -63,7 +63,10 @@ import rst.pdfbox.layout.text.annotations.Annotations.HyperlinkAnnotation;
 import rst.pdfbox.layout.util.Pair;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class PdfGeneratorTest
     extends AbstractComponentTest
 {

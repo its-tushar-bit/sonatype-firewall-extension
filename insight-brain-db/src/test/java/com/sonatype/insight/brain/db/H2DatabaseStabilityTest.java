@@ -10,12 +10,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,7 +29,6 @@ public class H2DatabaseStabilityTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "H2DatabaseStabilityTest")
-  @Category(SlowTest.class)
   public void testOpenTwice1_3_174Database() throws Exception {
     DatabaseConfig databaseConfig = databaseRule.getDatabaseConfig(DatabaseName.ods.name());
     try (Connection connection = DriverManager.getConnection(databaseConfig.getUrl(), "sa", "")) {
@@ -58,7 +55,6 @@ public class H2DatabaseStabilityTest
   @H2DiskTest(
       suppressMigrations = true,
       copyExistingDatabase = "H2DatabaseStabilityTest")
-  @Category(SlowTest.class)
   public void testLegacyTimestampFormat() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("timestamp");
     try (Connection connection = DriverManager.getConnection(databaseConfig.getUrl(), "", "");

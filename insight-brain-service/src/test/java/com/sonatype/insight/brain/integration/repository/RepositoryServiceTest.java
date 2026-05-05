@@ -46,10 +46,13 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 /**
  * @since 1.17
  */
+@Category(SlowTest.class)
 public class RepositoryServiceTest
     extends AbstractRepositoryServiceTest
 {

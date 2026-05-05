@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.search;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class LuceneIndexSearchingTest
     extends AbstractIndexSearchingTest
 {

@@ -22,6 +22,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests for ApiCiConfigurationResource REST endpoints.
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 1.201
  */
+@Category(SlowTest.class)
 public class ApiCiConfigurationResourceTest
     extends AbstractResourceTest
 {

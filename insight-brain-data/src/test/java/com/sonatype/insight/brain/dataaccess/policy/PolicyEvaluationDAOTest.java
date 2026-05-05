@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -47,7 +45,6 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class PolicyEvaluationDAOTest
     extends AbstractDbDAOTest
 {

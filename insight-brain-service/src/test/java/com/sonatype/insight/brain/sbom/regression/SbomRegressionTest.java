@@ -55,6 +55,8 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 /**
  * <p>
@@ -81,6 +83,7 @@ import static org.awaitility.Awaitility.await;
  * </ul>
  */
 @RunWith(Parameterized.class)
+@Category(SlowTest.class)
 public class SbomRegressionTest
     extends AbstractResourceTest
 {

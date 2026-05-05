@@ -12,7 +12,10 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ArtifactoryRepositoryServiceAuthzTest
     extends AbstractRepositoryServiceAuthzTest
 {

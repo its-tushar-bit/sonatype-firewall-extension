@@ -60,9 +60,13 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {

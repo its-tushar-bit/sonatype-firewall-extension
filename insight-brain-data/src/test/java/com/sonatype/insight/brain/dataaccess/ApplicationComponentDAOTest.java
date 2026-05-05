@@ -43,9 +43,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
-@Category(SlowTest.class)
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
 {

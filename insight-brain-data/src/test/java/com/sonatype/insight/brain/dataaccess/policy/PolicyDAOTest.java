@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,7 +49,6 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class PolicyDAOTest
     extends AbstractDbDAOTest
 {

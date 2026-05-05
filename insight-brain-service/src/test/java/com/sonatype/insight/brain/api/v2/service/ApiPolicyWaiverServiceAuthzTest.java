@@ -31,7 +31,10 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiPolicyWaiverServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

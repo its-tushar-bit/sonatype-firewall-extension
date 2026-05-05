@@ -8,16 +8,13 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-@Category(SlowTest.class)
 public class DatabaseAccessTest
     extends AbstractDbDAOTest
 {
@@ -35,7 +32,6 @@ public class DatabaseAccessTest
 
   @Test(timeout = 20000)
   @H2DiskTest
-  @Category(SlowTest.class)
   public void testConcurrentDatabaseAccess() throws Exception {
     Organization org = new Organization("testConcurrentDatabaseAccess");
     organizationDAO.insert(org);

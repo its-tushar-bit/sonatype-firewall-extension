@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.db.migrations;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +27,6 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-@Category(SlowTest.class)
 public class MigrationScriptsTest
     extends AbstractDatabaseTest
 {

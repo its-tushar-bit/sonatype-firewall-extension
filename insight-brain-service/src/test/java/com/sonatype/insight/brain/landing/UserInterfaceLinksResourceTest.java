@@ -41,7 +41,10 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksResource.ASSE
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
 {

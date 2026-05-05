@@ -76,7 +76,10 @@ import static com.sonatype.insight.brain.model.repository.RepositoryContainer.RE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiPolicyWaiverRequestServiceTest
     extends AbstractComponentTest
 {

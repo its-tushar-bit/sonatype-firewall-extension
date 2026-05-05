@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +26,7 @@ import org.junit.experimental.categories.Category;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @PostgresTest(suppressMigrations = true)
-@Category({PostgresTestCategory.class, SlowTest.class})
+@Category(PostgresTestCategory.class)
 public class TemporaryTableHelperTest
     extends AbstractDatabaseTest
 {

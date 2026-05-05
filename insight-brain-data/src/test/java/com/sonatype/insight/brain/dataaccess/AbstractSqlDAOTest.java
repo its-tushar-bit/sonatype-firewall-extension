@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,12 +15,10 @@ import org.jooq.Table;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.MigrationTracker.MIGRATION_TRACKER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class AbstractSqlDAOTest
     extends AbstractDbDAOTest
 {

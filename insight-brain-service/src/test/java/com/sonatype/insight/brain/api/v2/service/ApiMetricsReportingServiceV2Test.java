@@ -46,7 +46,10 @@ import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolati
 import static com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDataHelper.waived;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiMetricsReportingServiceV2Test
     extends AbstractComponentTest
 {

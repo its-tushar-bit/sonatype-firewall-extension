@@ -6,9 +6,6 @@
 
 package com.sonatype.insight.brain.dataaccess;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -20,7 +17,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ApplicationCountHistoryDAOTest
     extends AbstractDbDAOTest
 {

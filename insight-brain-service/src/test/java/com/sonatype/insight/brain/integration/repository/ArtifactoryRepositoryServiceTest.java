@@ -11,7 +11,10 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ArtifactoryRepositoryServiceTest
     extends AbstractRepositoryServiceTest
 {

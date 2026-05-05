@@ -26,7 +26,10 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
 import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class UserServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

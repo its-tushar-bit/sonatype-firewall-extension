@@ -24,10 +24,14 @@ import com.sonatype.insight.lqa.LqaFormat;
 
 import com.github.packageurl.PackageURL.StandardTypes;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Category(SlowTest.class)
 /**
  * @since 1.69
  */

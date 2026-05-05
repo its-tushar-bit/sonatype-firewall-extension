@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Date;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
@@ -24,7 +22,6 @@ import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class SqlDAOTest
     extends AbstractDbDAOTest
 {

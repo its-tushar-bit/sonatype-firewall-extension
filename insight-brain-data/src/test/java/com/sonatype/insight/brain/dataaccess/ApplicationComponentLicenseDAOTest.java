@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import java.util.Collections;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -32,7 +29,6 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class ApplicationComponentLicenseDAOTest
     extends AbstractDbDAOTest
 {

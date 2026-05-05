@@ -7,6 +7,8 @@
 
 properties([
     parameters([
+        string(name: 'environment', defaultValue: '', description: 'Target environment (e.g. Staging, Production)'),
+        run(name: 'releaseBuild', filter: 'STABLE', projectName: 'insight/insight-brain/aggregate-release', description: 'The aggregate release build to deploy.'),
         booleanParam(name: 'skipMarkAsLatest', defaultValue: false, description: 'Skip: Mark as latest version')
     ])
 ])

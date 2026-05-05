@@ -80,6 +80,7 @@ public class TenantConfigurationServiceTest
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(MALICIOUS_URLS_PARTNER_ACCESS, false);
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(EVALUATION_QUEUE_CONFIG,
         JsonUtils.convertValue(EvaluationQueueConfig.builder().build(), Map.class));
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(LIFECYCLE_TIER, "Pro");
   }
 
   private static final Map<String, Object> EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES = new HashMap<>();

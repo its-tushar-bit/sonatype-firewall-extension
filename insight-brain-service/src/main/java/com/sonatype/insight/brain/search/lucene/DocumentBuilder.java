@@ -60,6 +60,17 @@ import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABIL
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_SEVERITY;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_POLICY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL;
 
 public class DocumentBuilder
 {
@@ -126,6 +137,28 @@ public class DocumentBuilder
   private Optional<Field> applicationVersion = Optional.empty();
 
   private Optional<Field> sbomSpecification = Optional.empty();
+
+  private Optional<Field> policyViolationId = Optional.empty();
+
+  private Optional<Field> policyViolationThreatCategory = Optional.empty();
+
+  private Optional<Field[]> policyViolationThreatLevel = Optional.empty();
+
+  private Optional<Field> policyViolationPolicyName = Optional.empty();
+
+  private Optional<Field> policyViolationPolicyId = Optional.empty();
+
+  private Optional<Field> policyViolationWaiverStatus = Optional.empty();
+
+  private Optional<Field> policyViolationConstraintName = Optional.empty();
+
+  private Optional<Field> componentEffectiveLicenseId = Optional.empty();
+
+  private Optional<Field> componentEffectiveLicenseName = Optional.empty();
+
+  private Optional<Field> componentLicenseThreatGroupName = Optional.empty();
+
+  private Optional<Field[]> componentLicenseThreatLevel = Optional.empty();
 
   public DocumentBuilder(ItemType itemType) {
     document = new Document();
@@ -349,6 +382,80 @@ public class DocumentBuilder
     return this;
   }
 
+  public DocumentBuilder setPolicyViolationId(final String policyViolationId) {
+    this.policyViolationId = Optional.of(new TextField(POLICY_VIOLATION_ID.label, policyViolationId, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationThreatCategory(final PolicyThreatCategory threatCategory) {
+    this.policyViolationThreatCategory =
+        Optional.of(new TextField(POLICY_VIOLATION_THREAT_CATEGORY.label, threatCategory.getName(), Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationThreatLevel(final int threatLevel) {
+    this.policyViolationThreatLevel = Optional.of(new Field[]{
+      new IntPoint(POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel),
+      new StoredField(POLICY_VIOLATION_THREAT_LEVEL.label, threatLevel)});
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationPolicyName(final String policyName) {
+    this.policyViolationPolicyName =
+        Optional.of(new TextField(POLICY_VIOLATION_POLICY_NAME.label, policyName, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationPolicyId(final String policyId) {
+    this.policyViolationPolicyId = Optional.of(new TextField(POLICY_VIOLATION_POLICY_ID.label, policyId, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationWaiverStatus(final String waiverStatus) {
+    this.policyViolationWaiverStatus =
+        Optional.of(new TextField(POLICY_VIOLATION_WAIVER_STATUS.label, waiverStatus, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setPolicyViolationConstraintName(final String constraintName) {
+    if (constraintName != null) {
+      this.policyViolationConstraintName =
+          Optional.of(new TextField(POLICY_VIOLATION_CONSTRAINT_NAME.label, constraintName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setComponentEffectiveLicenseId(final String licenseId) {
+    this.componentEffectiveLicenseId =
+        Optional.of(new TextField(COMPONENT_EFFECTIVE_LICENSE_ID.label, licenseId, Store.YES));
+    return this;
+  }
+
+  public DocumentBuilder setComponentEffectiveLicenseName(final String licenseName) {
+    if (licenseName != null) {
+      this.componentEffectiveLicenseName =
+          Optional.of(new TextField(COMPONENT_EFFECTIVE_LICENSE_NAME.label, licenseName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setComponentLicenseThreatGroupName(final String threatGroupName) {
+    if (threatGroupName != null) {
+      this.componentLicenseThreatGroupName =
+          Optional.of(new TextField(COMPONENT_LICENSE_THREAT_GROUP_NAME.label, threatGroupName, Store.YES));
+    }
+    return this;
+  }
+
+  public DocumentBuilder setComponentLicenseThreatLevel(final Integer threatLevel) {
+    if (threatLevel != null) {
+      this.componentLicenseThreatLevel = Optional.of(new Field[]{
+        new IntPoint(COMPONENT_LICENSE_THREAT_LEVEL.label, threatLevel),
+        new StoredField(COMPONENT_LICENSE_THREAT_LEVEL.label, threatLevel)});
+    }
+    return this;
+  }
+
   public Document build() {
     organizationId.ifPresent(this::setFields);
     organizationName.ifPresent(this::setFields);
@@ -381,6 +488,17 @@ public class DocumentBuilder
     parentOrganizationIds.ifPresent(this::setFields);
     applicationVersion.ifPresent(this::setFields);
     sbomSpecification.ifPresent(this::setFields);
+    policyViolationId.ifPresent(this::setFields);
+    policyViolationThreatCategory.ifPresent(this::setFields);
+    policyViolationThreatLevel.ifPresent(this::setFields);
+    policyViolationPolicyName.ifPresent(this::setFields);
+    policyViolationPolicyId.ifPresent(this::setFields);
+    policyViolationWaiverStatus.ifPresent(this::setFields);
+    policyViolationConstraintName.ifPresent(this::setFields);
+    componentEffectiveLicenseId.ifPresent(this::setFields);
+    componentEffectiveLicenseName.ifPresent(this::setFields);
+    componentLicenseThreatGroupName.ifPresent(this::setFields);
+    componentLicenseThreatLevel.ifPresent(this::setFields);
     return document;
   }
 

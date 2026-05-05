@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { buildSearchQuery } from 'MainRoot/advancedSearch/utils';
+import { buildSearchQuery, getQueryBuilderGroups } from 'MainRoot/advancedSearch/utils';
 
 describe('buildSearchQuery', () => {
   it('returns empty string for empty array', () => {
@@ -241,5 +241,47 @@ describe('buildSearchQuery', () => {
     expect(buildSearchQuery(searchItems)).toBe(
       'componentName:*log4j* AND vulnerabilityId:"CVE-2021" OR applicationName:*my-app* '
     );
+  });
+});
+
+describe('getQueryBuilderGroups', () => {
+  it('should include Policy Violation group with 6 fields', () => {
+    const groups = getQueryBuilderGroups(false);
+    const pvGroup = groups.find((g) => g.label === 'Policy Violation');
+    expect(pvGroup).toBeDefined();
+    expect(pvGroup.show).toBe(true);
+    expect(pvGroup.prefixList).toHaveLength(6);
+    expect(pvGroup.prefixList.map((p) => p.value)).toEqual([
+      'policyViolationPolicyName',
+      'policyViolationPolicyId',
+      'policyViolationThreatCategory',
+      'policyViolationThreatLevel',
+      'policyViolationWaiverStatus',
+      'policyViolationConstraintName',
+    ]);
+  });
+
+  it('should include License group with 4 fields', () => {
+    const groups = getQueryBuilderGroups(false);
+    const licenseGroup = groups.find((g) => g.label === 'License');
+    expect(licenseGroup).toBeDefined();
+    expect(licenseGroup.show).toBe(true);
+    expect(licenseGroup.prefixList).toHaveLength(4);
+    expect(licenseGroup.prefixList.map((p) => p.value)).toEqual([
+      'componentEffectiveLicenseId',
+      'componentEffectiveLicenseName',
+      'componentLicenseThreatGroupName',
+      'componentLicenseThreatLevel',
+    ]);
+  });
+
+  it('should include Policy Violation and License groups in SBOM Manager mode', () => {
+    const groups = getQueryBuilderGroups(true);
+    const pvGroup = groups.find((g) => g.label === 'Policy Violation');
+    const licenseGroup = groups.find((g) => g.label === 'License');
+    expect(pvGroup).toBeDefined();
+    expect(pvGroup.show).toBe(true);
+    expect(licenseGroup).toBeDefined();
+    expect(licenseGroup.show).toBe(true);
   });
 });

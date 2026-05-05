@@ -51,7 +51,14 @@ public abstract class SearchRowFactory
     SECURITY_ISSUE("Security Issue"),
     SECURITY_ISSUE_ID("Security Issue ID"),
     STAGE("Stage"),
-    SBOM_SPECIFICATION("SBOM Specification");
+    SBOM_SPECIFICATION("SBOM Specification"),
+    POLICY_VIOLATION_NAME("Policy Name"),
+    POLICY_VIOLATION_THREAT_CATEGORY("Violation Threat Category"),
+    POLICY_VIOLATION_THREAT_LEVEL_EXPORT("Violation Threat Level"),
+    POLICY_VIOLATION_WAIVER_STATUS("Waiver Status"),
+    COMPONENT_EFFECTIVE_LICENSE("Component Effective License"),
+    COMPONENT_LICENSE_THREAT_GROUP("Component License Threat Group"),
+    COMPONENT_LICENSE_THREAT_LEVEL_EXPORT("Component License Threat Level");
 
     private final String header;
 
@@ -131,6 +138,26 @@ public abstract class SearchRowFactory
         }
         addColumns(row, searchResultItemDTO, baseUrl,
             APPLICATION, APPLICATION_LINK, APPLICATION_VERSION, SBOM_SPECIFICATION);
+        break;
+      case POLICY_VIOLATION:
+        if (searchResultItemDTO.organizationName != null) {
+          addColumns(row, searchResultItemDTO, baseUrl, ORGANIZATION, ORGANIZATION_LINK);
+        }
+        addColumns(row, searchResultItemDTO, baseUrl,
+            APPLICATION, APPLICATION_LINK, COMPONENT_NAME,
+            POLICY_VIOLATION_NAME, POLICY_VIOLATION_THREAT_CATEGORY,
+            POLICY_VIOLATION_THREAT_LEVEL_EXPORT, POLICY_VIOLATION_WAIVER_STATUS,
+            STAGE, APPLICATION_VERSION, SBOM_SPECIFICATION);
+        break;
+      case LEGAL_VIOLATION:
+        if (searchResultItemDTO.organizationName != null) {
+          addColumns(row, searchResultItemDTO, baseUrl, ORGANIZATION, ORGANIZATION_LINK);
+        }
+        addColumns(row, searchResultItemDTO, baseUrl,
+            APPLICATION, APPLICATION_LINK, COMPONENT_NAME,
+            COMPONENT_EFFECTIVE_LICENSE, COMPONENT_LICENSE_THREAT_GROUP,
+            COMPONENT_LICENSE_THREAT_LEVEL_EXPORT,
+            STAGE, APPLICATION_VERSION, SBOM_SPECIFICATION);
         break;
       default:
         log.error("Unexpected row in advanced search export, item type: {}", searchResultItemDTO.itemType);
@@ -230,6 +257,31 @@ public abstract class SearchRowFactory
         break;
       case SBOM_SPECIFICATION:
         value = searchResultItemDTO.sbomSpecification;
+        break;
+      case POLICY_VIOLATION_NAME:
+        value = searchResultItemDTO.policyViolationPolicyName;
+        break;
+      case POLICY_VIOLATION_THREAT_CATEGORY:
+        value = searchResultItemDTO.policyViolationThreatCategory;
+        break;
+      case POLICY_VIOLATION_THREAT_LEVEL_EXPORT:
+        value = searchResultItemDTO.policyViolationThreatLevel == null
+            ? ""
+            : String.valueOf(searchResultItemDTO.policyViolationThreatLevel);
+        break;
+      case POLICY_VIOLATION_WAIVER_STATUS:
+        value = searchResultItemDTO.policyViolationWaiverStatus;
+        break;
+      case COMPONENT_EFFECTIVE_LICENSE:
+        value = searchResultItemDTO.componentEffectiveLicenseName;
+        break;
+      case COMPONENT_LICENSE_THREAT_GROUP:
+        value = searchResultItemDTO.componentLicenseThreatGroupName;
+        break;
+      case COMPONENT_LICENSE_THREAT_LEVEL_EXPORT:
+        value = searchResultItemDTO.componentLicenseThreatLevel == null
+            ? ""
+            : String.valueOf(searchResultItemDTO.componentLicenseThreatLevel);
         break;
       default:
         log.error("Unexpected header in advanced search export row: {}", header);

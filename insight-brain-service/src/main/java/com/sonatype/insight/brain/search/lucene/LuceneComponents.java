@@ -68,6 +68,10 @@ public class LuceneComponents
         new PointsConfig(numberFormat, Integer.class));
     pointsConfigsByFieldName.put(FieldIdentifier.VULNERABILITY_SEVERITY.label,
         new PointsConfig(numberFormat, Float.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
+    pointsConfigsByFieldName.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label,
+        new PointsConfig(numberFormat, Integer.class));
     StandardQueryParser queryParser = new StandardQueryParser(newAnalyzerForSearch());
     queryParser.setPointsConfigMap(pointsConfigsByFieldName);
     queryParser.setAllowLeadingWildcard(true);

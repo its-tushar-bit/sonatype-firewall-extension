@@ -32,19 +32,25 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -70,6 +76,7 @@ import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -138,6 +145,9 @@ public abstract class AbstractIndexSearchingTest
   private SearchIndexChangeDAO searchIndexChangeDAO;
 
   @Inject
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
   private InsightWork insightWork;
 
   @Mock
@@ -164,6 +174,11 @@ public abstract class AbstractIndexSearchingTest
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
+  }
+
+  @Override
+  protected void setUpTestLicenseThreatGroups() {
+    // Skip default Root Org LTGs — policy violation tests create their own isolated LTGs
   }
 
   @Before
@@ -1245,6 +1260,27 @@ public abstract class AbstractIndexSearchingTest
           assertThat(hdsVuln6.sbomSpecification).isEqualTo("CycloneDx");
           assertThat(hdsVuln6.vulnerabilityId).isEqualTo("sonatype-2020-1579");
           assertThat(hdsVuln6.componentName).isEqualTo("prismjs : 1.27.0");
+        },
+        legalViolation1 -> {
+          assertThat(legalViolation1.itemType).isEqualTo("LEGAL_VIOLATION");
+          assertThat(legalViolation1.organizationName).isEqualTo("org");
+          assertThat(legalViolation1.applicationPublicId).isEqualTo("app");
+          assertThat(legalViolation1.componentName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.4");
+          assertThat(legalViolation1.componentEffectiveLicenseId).isEqualTo("Apache-2.0");
+        },
+        legalViolation2 -> {
+          assertThat(legalViolation2.itemType).isEqualTo("LEGAL_VIOLATION");
+          assertThat(legalViolation2.organizationName).isEqualTo("org");
+          assertThat(legalViolation2.applicationPublicId).isEqualTo("app");
+          assertThat(legalViolation2.componentName).isEqualTo("prismjs : 1.27.0");
+          assertThat(legalViolation2.componentEffectiveLicenseId).isEqualTo("MIT");
+        },
+        legalViolation3 -> {
+          assertThat(legalViolation3.itemType).isEqualTo("LEGAL_VIOLATION");
+          assertThat(legalViolation3.organizationName).isEqualTo("org");
+          assertThat(legalViolation3.applicationPublicId).isEqualTo("app");
+          assertThat(legalViolation3.componentName).isEqualTo("prismjs : 1.27.0");
+          assertThat(legalViolation3.componentEffectiveLicenseId).isEqualTo("Not-Supported");
         });
   }
 
@@ -1472,6 +1508,506 @@ public abstract class AbstractIndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, tag.getDescription())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue())).isEmpty();
+  }
+
+  // --- Policy Violation & Legal Violation test helpers ---
+
+  private PolicyEvaluation setupPolicyViolationTestData(Application app) throws Exception {
+    String orgId = app.getOrganizationId();
+    PolicyEvaluation evaluation = newAppReport(app.getId(), Stage.ID_BUILD, "pvtReport001",
+        "/IndexSearchingTest/policyViolationReport");
+
+    Policy pLegalCopyleft = tempEntity.newPolicy(orgId, "Legal - Copyleft");
+    Policy pSecurityCritical = tempEntity.newPolicy(orgId, "Security - Critical");
+    Policy pQualityStandards = tempEntity.newPolicy(orgId, "Quality - Standards");
+    Policy pLegalNonStandard = tempEntity.newPolicy(orgId, "Legal - Non-Standard");
+
+    tempEntity.newPolicyViolation(evaluation, pLegalCopyleft, 8, PolicyThreatCategory.LICENSE,
+        ComponentIdentifier.createMavenCoordinates("com.lodash", "lodash", "4.17.15"),
+        "hashPvtLodash000000", null);
+    tempEntity.newPolicyViolation(evaluation, pSecurityCritical, 10, PolicyThreatCategory.SECURITY,
+        ComponentIdentifier.createMavenCoordinates("org.apache.logging", "log4j-core", "2.14.0"),
+        "hashPvtLog4j00000000", null);
+
+    PolicyWaiver waiver = tempEntity.newWaiver(pQualityStandards.getId(), orgId);
+    tempEntity.newWaivedPolicyViolation(evaluation, pQualityStandards, 3, PolicyThreatCategory.QUALITY,
+        ComponentIdentifier.createMavenCoordinates("net.busybox", "busybox", "1.33"),
+        "hashPvtBusybox000000", waiver);
+
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(orgId);
+    PolicyWaiver waiverForAuto = tempEntity.newWaiver(pLegalNonStandard.getId(), orgId);
+    PolicyViolation pvAutoWaived = tempEntity.newWaivedPolicyViolation(
+        evaluation, pLegalNonStandard, 6, PolicyThreatCategory.LICENSE,
+        ComponentIdentifier.createMavenCoordinates("org.openssl", "openssl", "3.0"),
+        "hashPvtOpenssl00000", waiverForAuto);
+    pvAutoWaived.setAutoPolicyWaiverId(autoWaiver.getId());
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.update(tx, pvAutoWaived);
+      tx.commit();
+    }
+
+    tempEntity.newLicenseThreatGroup(orgId, "Copyleft", 9, "GPL-3.0", "GPL-2.0");
+    tempEntity.newLicenseThreatGroup(orgId, "Permissive", 1, "MIT", "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(orgId, "Non-Standard", 5, "OpenSSL");
+
+    return evaluation;
+  }
+
+  private void assertPolicyViolationFields(
+      SearchResultItemDTO result,
+      String expectedPolicyName,
+      String expectedThreatCategory,
+      int expectedThreatLevel,
+      String expectedWaiverStatus)
+  {
+    assertThat(result.itemType).isEqualTo(ItemType.POLICY_VIOLATION.name());
+    assertThat(result.policyViolationPolicyName).isEqualTo(expectedPolicyName);
+    assertThat(result.policyViolationThreatCategory).isEqualTo(expectedThreatCategory);
+    assertThat(result.policyViolationThreatLevel).isEqualTo(expectedThreatLevel);
+    assertThat(result.policyViolationWaiverStatus).isEqualTo(expectedWaiverStatus);
+  }
+
+  private void assertLegalViolationFields(
+      SearchResultItemDTO result,
+      String expectedLicenseId,
+      String expectedLicenseName,
+      String expectedThreatGroupName,
+      int expectedThreatLevel)
+  {
+    assertThat(result.itemType).isEqualTo(ItemType.LEGAL_VIOLATION.name());
+    assertThat(result.componentEffectiveLicenseId).isEqualTo(expectedLicenseId);
+    assertThat(result.componentEffectiveLicenseName).isEqualTo(expectedLicenseName);
+    assertThat(result.componentLicenseThreatGroupName).isEqualTo(expectedThreatGroupName);
+    assertThat(result.componentLicenseThreatLevel).isEqualTo(expectedThreatLevel);
+  }
+
+  // --- IT-1: Search by policy violation policy name ---
+  @Test
+  public void testSearchByField_PolicyViolationPolicyName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_POLICY_NAME,
+        "\"Legal - Copyleft\"");
+    assertThat(results).hasSize(1);
+    assertPolicyViolationFields(results.get(0), "Legal - Copyleft", "license", 8, "Active");
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtLodash000000");
+    assertThat(results.get(0).organizationId).isEqualTo(org.getId());
+    assertThat(results.get(0).applicationId).isEqualTo(app.getId());
+    assertThat(results.get(0).policyEvaluationStage).isNotNull();
+  }
+
+  // --- IT-2: Search by policy violation threat category ---
+  @Test
+  public void testSearchByField_PolicyViolationThreatCategory() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY,
+        "\"license\"");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLodash000000", "hashPvtOpenssl00000");
+  }
+
+  // --- IT-3: Search by policy violation threat level range ---
+  @Test
+  public void testSearchByField_PolicyViolationThreatLevel_RangeQuery() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search("policyViolationThreatLevel:[7 TO 10]");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLodash000000", "hashPvtLog4j00000000");
+  }
+
+  // --- IT-4: Search by waiver status Active ---
+  @Test
+  public void testSearchByField_PolicyViolationWaiverStatus_Active() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS,
+        "\"Active\"");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLodash000000", "hashPvtLog4j00000000");
+  }
+
+  // --- IT-5: Search by waiver status Waived ---
+  @Test
+  public void testSearchByField_PolicyViolationWaiverStatus_Waived() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS,
+        "\"Waived\"");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtBusybox000000");
+  }
+
+  // --- IT-6: Search by waiver status AutoWaived ---
+  @Test
+  public void testSearchByField_PolicyViolationWaiverStatus_AutoWaived() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS,
+        "\"AutoWaived\"");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtOpenssl00000");
+  }
+
+  // --- IT-7: Combine violation search with component name ---
+  @Test
+  public void testSearchByField_PolicyViolation_CombinedWithComponentName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(
+        "policyViolationThreatCategory:\"license\" AND componentName:*lodash*");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtLodash000000");
+  }
+
+  // --- IT-8: Combine violation search with application name ---
+  @Test
+  public void testSearchByField_PolicyViolation_CombinedWithApplicationName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(
+        "policyViolationThreatCategory:\"security\" AND applicationName:\"" + app.getName() + "\"");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtLog4j00000000");
+  }
+
+  // --- IT-9: Non-existent policy returns empty ---
+  @Test
+  public void testSearchByField_PolicyViolation_NonExistentPolicy() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.POLICY_VIOLATION_POLICY_NAME,
+        "\"Non-Existent Policy\"");
+    assertThat(results).isEmpty();
+  }
+
+  // --- IT-10: Search by effective license ID ---
+  @Test
+  public void testSearchByField_EffectiveLicenseId() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID,
+        "\"GPL-3.0\"");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtLinux00000000");
+    assertThat(results.get(0).itemType).isEqualTo(ItemType.LEGAL_VIOLATION.name());
+  }
+
+  // --- IT-11: Search by effective license name ---
+  @Test
+  public void testSearchByField_EffectiveLicenseName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME,
+        "\"OpenSSL\"");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtOpenssl00000");
+  }
+
+  // --- IT-12: Search by license threat group name ---
+  @Test
+  public void testSearchByField_LicenseThreatGroupName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME,
+        "\"Copyleft\"");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLinux00000000", "hashPvtBusybox000000");
+  }
+
+  // --- IT-13: Search by high license threat level range ---
+  @Test
+  public void testSearchByField_LicenseThreatLevel_HighRange() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search("componentLicenseThreatLevel:[7 TO 10]");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLinux00000000", "hashPvtBusybox000000");
+  }
+
+  // --- IT-14: Search by low license threat level range ---
+  @Test
+  public void testSearchByField_LicenseThreatLevel_LowRange() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search("componentLicenseThreatLevel:[0 TO 2]");
+    assertThat(results).hasSize(4);
+    assertThat(results).extracting(r -> r.componentHash)
+        .containsExactlyInAnyOrder("hashPvtLog4j00000000", "hashPvtLodash000000",
+            "hashPvtDual00000000", "hashPvtDual00000000");
+  }
+
+  // --- IT-15: Combine license search with component name ---
+  @Test
+  public void testSearchByField_LegalViolation_CombinedWithComponentName() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(
+        "componentLicenseThreatGroupName:\"Copyleft\" AND componentName:*linux*");
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).componentHash).isEqualTo("hashPvtLinux00000000");
+  }
+
+  // --- IT-16: Multiple licenses produce multiple documents ---
+  @Test
+  public void testSearchByField_LegalViolation_MultipleLicenses() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(
+        "componentName:*dual-licensed* AND itemType:LEGAL_VIOLATION");
+    assertThat(results).hasSize(2);
+    assertThat(results).extracting(r -> r.componentEffectiveLicenseId)
+        .containsExactlyInAnyOrder("MIT", "Apache-2.0");
+  }
+
+  // --- IT-17: Component with no licenses produces no LEGAL_VIOLATION docs ---
+  @Test
+  public void testSearchByField_LegalViolation_NoLicenses() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(
+        "componentName:\"unknown-comp\" AND itemType:LEGAL_VIOLATION");
+    assertThat(results).isEmpty();
+  }
+
+  // --- IT-18: Verify all fields on a LEGAL_VIOLATION result ---
+  @Test
+  public void testResultFields_LegalViolation() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> results = search(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID,
+        "\"MIT\"");
+    assertThat(results).isNotEmpty();
+    SearchResultItemDTO mitResult = results.stream()
+        .filter(r -> "hashPvtLodash000000".equals(r.componentHash))
+        .findFirst()
+        .orElseThrow();
+    assertLegalViolationFields(mitResult, "MIT", "MIT", "Permissive", 1);
+    assertThat(mitResult.organizationId).isEqualTo(org.getId());
+    assertThat(mitResult.organizationName).isEqualTo(org.getName());
+    assertThat(mitResult.applicationId).isEqualTo(app.getId());
+    assertThat(mitResult.applicationName).isEqualTo(app.getName());
+    assertThat(mitResult.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(mitResult.componentHash).isEqualTo("hashPvtLodash000000");
+    assertThat(mitResult.componentName).isNotNull();
+    assertThat(mitResult.policyEvaluationStage).isNotNull();
+  }
+
+  // --- IT-19: Cross-field query (violation + vulnerability) ---
+  @Test
+  public void testSearchByFieldsFromDifferentDocumentTypes_ViolationAndVulnerability() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> pvResults = search(
+        "policyViolationThreatCategory:\"security\"");
+    assertThat(pvResults).extracting(r -> r.itemType)
+        .containsOnly(ItemType.POLICY_VIOLATION.name());
+    assertThat(pvResults).hasSize(1);
+
+    List<SearchResultItemDTO> svResults = search(
+        "vulnerabilitySeverity:[9 TO 10]");
+    assertThat(svResults).extracting(r -> r.itemType)
+        .containsOnly(ItemType.SECURITY_VULNERABILITY.name());
+    assertThat(svResults).hasSize(1);
+  }
+
+  // --- IT-20: allComponents=false does not exclude new types ---
+  @Test
+  public void testSearchByField_AllComponentsFalse_DoesNotExcludeNewTypes() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> pvResults = search(
+        "policyViolationThreatCategory:\"license\"", false);
+    assertThat(pvResults).isNotEmpty();
+    assertThat(pvResults).extracting(r -> r.itemType)
+        .containsOnly(ItemType.POLICY_VIOLATION.name());
+
+    List<SearchResultItemDTO> lvResults = search(
+        "componentLicenseThreatGroupName:\"Copyleft\"", false);
+    assertThat(lvResults).isNotEmpty();
+    assertThat(lvResults).extracting(r -> r.itemType)
+        .containsOnly(ItemType.LEGAL_VIOLATION.name());
+  }
+
+  // --- IT-21: Search by itemType to filter to specific document types ---
+  @Test
+  public void testSearchByField_ItemType_PolicyViolationAndLegalViolation() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> pvResults = search(FieldIdentifier.ITEM_TYPE, "POLICY_VIOLATION");
+    assertThat(pvResults).isNotEmpty();
+    assertThat(pvResults).allSatisfy(
+        r -> assertThat(r.itemType).isEqualTo(ItemType.POLICY_VIOLATION.name()));
+    assertThat(pvResults).hasSize(4);
+
+    List<SearchResultItemDTO> lvResults = search(FieldIdentifier.ITEM_TYPE, "LEGAL_VIOLATION");
+    assertThat(lvResults).isNotEmpty();
+    assertThat(lvResults).allSatisfy(
+        r -> assertThat(r.itemType).isEqualTo(ItemType.LEGAL_VIOLATION.name()));
+    assertThat(lvResults).hasSize(7);
+  }
+
+  // --- IT-26: Incremental update rebuilds policy violation docs ---
+  @Test
+  public void testIncrementalUpdate_PolicyEvaluation_RebuildsPolicyViolationDocs() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> initialResults = search(FieldIdentifier.ITEM_TYPE, "POLICY_VIOLATION");
+    assertThat(initialResults).hasSize(4);
+
+    Policy extraPolicy = tempEntity.newPolicy(org.getId(), "Extra - Policy");
+    tempEntity.newPolicyViolation(evaluation, extraPolicy, 7, PolicyThreatCategory.OTHER,
+        ComponentIdentifier.createMavenCoordinates("com.dual", "dual-licensed", "1.0"),
+        "hashPvtDual00000000", null);
+
+    try (TransactionContext tx = searchIndexChangeDAO.createTransactionContext()) {
+      tx.begin();
+      searchIndexChangeDAO.insert(tx,
+          new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION, app.getId() + ":" + Stage.ID_BUILD));
+      tx.commit();
+    }
+    indexChanges();
+
+    List<SearchResultItemDTO> updatedResults = search(FieldIdentifier.ITEM_TYPE, "POLICY_VIOLATION");
+    assertThat(updatedResults).hasSize(5);
+  }
+
+  // --- IT-27: Incremental update rebuilds legal violation docs ---
+  @Test
+  public void testIncrementalUpdate_PolicyEvaluation_RebuildsLegalViolationDocs() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> initialResults = search(FieldIdentifier.ITEM_TYPE, "LEGAL_VIOLATION");
+    int initialCount = initialResults.size();
+    assertThat(initialCount).isGreaterThan(0);
+
+    try (TransactionContext tx = searchIndexChangeDAO.createTransactionContext()) {
+      tx.begin();
+      searchIndexChangeDAO.insert(tx,
+          new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION, app.getId() + ":" + Stage.ID_BUILD));
+      tx.commit();
+    }
+    indexChanges();
+
+    List<SearchResultItemDTO> updatedResults = search(FieldIdentifier.ITEM_TYPE, "LEGAL_VIOLATION");
+    assertThat(updatedResults).hasSize(initialCount);
+  }
+
+  // --- IT-28: Incremental update does not affect SECURITY_VULNERABILITY docs ---
+  @Test
+  public void testIncrementalUpdate_PolicyEvaluation_ExistingDocsUnaffected() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation evaluation = setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> svBefore = search(FieldIdentifier.ITEM_TYPE, "SECURITY_VULNERABILITY");
+    int svCount = svBefore.size();
+
+    try (TransactionContext tx = searchIndexChangeDAO.createTransactionContext()) {
+      tx.begin();
+      searchIndexChangeDAO.insert(tx,
+          new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION, app.getId() + ":" + Stage.ID_BUILD));
+      tx.commit();
+    }
+    indexChanges();
+
+    List<SearchResultItemDTO> svAfter = search(FieldIdentifier.ITEM_TYPE, "SECURITY_VULNERABILITY");
+    assertThat(svAfter).hasSize(svCount);
+  }
+
+  // --- IT-29: Full re-index includes all document types ---
+  @Test
+  public void testFullReindex_IncludesNewDocumentTypes() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    setupPolicyViolationTestData(app);
+    index();
+
+    List<SearchResultItemDTO> pvResults = search(FieldIdentifier.ITEM_TYPE, "POLICY_VIOLATION");
+    assertThat(pvResults).isNotEmpty();
+
+    List<SearchResultItemDTO> lvResults = search(FieldIdentifier.ITEM_TYPE, "LEGAL_VIOLATION");
+    assertThat(lvResults).isNotEmpty();
+
+    List<SearchResultItemDTO> svResults = search(FieldIdentifier.ITEM_TYPE, "SECURITY_VULNERABILITY");
+    assertThat(svResults).isNotEmpty();
   }
 
   @BeforeClass

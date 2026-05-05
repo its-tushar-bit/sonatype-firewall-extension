@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import AdvancedSearchCriteriaEasyBuilder from 'MainRoot/advancedSearch/AdvancedSearchCriteriaEasyBuilder';
 
 describe('AdvancedSearchCriteriaEasyBuilder', () => {
@@ -154,6 +155,25 @@ describe('AdvancedSearchCriteriaEasyBuilder', () => {
 
     // This test would need to be expanded based on how the operator dropdown works
     // The actual implementation would depend on the NxStatefulDropdown component behavior
+  });
+
+  it('renders tooltips on select field dropdown items', async () => {
+    const user = userEvent.setup();
+    renderComponent(
+      {
+        searchItems: [{ operator: 'OR', field: { value: '', label: '' }, value: '', isExactMatch: false }],
+      },
+      initialState
+    );
+
+    const selectFieldButton = screen.getByRole('button', { name: 'Select Field' });
+    await user.click(selectFieldButton);
+
+    const dropdownButtons = screen.getAllByRole('button', { name: /.*/ }).filter((btn) => btn.title && btn.title !== '');
+    expect(dropdownButtons.length).toBeGreaterThan(0);
+    dropdownButtons.forEach((btn) => {
+      expect(btn).toHaveAttribute('title', btn.textContent);
+    });
   });
 
   it('handles exact match toggle', () => {

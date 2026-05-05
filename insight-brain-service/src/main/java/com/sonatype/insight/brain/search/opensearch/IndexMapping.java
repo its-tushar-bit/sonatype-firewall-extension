@@ -93,6 +93,19 @@ public class IndexMapping
 
     propertyMappings.put(FieldIdentifier.SBOM_SPECIFICATION.label, createProperty("keyword"));
 
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label, createProperty("integer"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_POLICY_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_POLICY_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME.label, createProperty("keyword"));
+
+    propertyMappings.put(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label, createProperty("integer"));
+
     propertyMappings.put(CREATED_AT_EPOCH_MS, createProperty("long"));
 
     return propertyMappings;

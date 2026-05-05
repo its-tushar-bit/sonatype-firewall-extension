@@ -1,0 +1,130 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "log4j-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.logging",
+          "version": "2.14.0"
+        }
+      },
+      "hash": "hashPvtLog4j00000000",
+      "declaredLicenses": ["Apache-2.0"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["Apache-2.0"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "linux-kernel",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.linux",
+          "version": "5.10"
+        }
+      },
+      "hash": "hashPvtLinux00000000",
+      "declaredLicenses": ["GPL-3.0"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["GPL-3.0"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "busybox",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "net.busybox",
+          "version": "1.33"
+        }
+      },
+      "hash": "hashPvtBusybox000000",
+      "declaredLicenses": ["GPL-2.0"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["GPL-2.0"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "lodash",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.lodash",
+          "version": "4.17.15"
+        }
+      },
+      "hash": "hashPvtLodash000000",
+      "declaredLicenses": ["MIT"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["MIT"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "openssl",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.openssl",
+          "version": "3.0"
+        }
+      },
+      "hash": "hashPvtOpenssl00000",
+      "declaredLicenses": ["OpenSSL"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["OpenSSL"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "dual-licensed",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.dual",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashPvtDual00000000",
+      "declaredLicenses": ["MIT", "Apache-2.0"],
+      "observedLicenses": [],
+      "effectiveLicenses": ["MIT", "Apache-2.0"],
+      "matchState": "exact",
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "unknown-comp",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.unknown",
+          "version": "1.0"
+        }
+      },
+      "hash": "hashPvtUnknown0000",
+      "declaredLicenses": [],
+      "observedLicenses": [],
+      "effectiveLicenses": [],
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

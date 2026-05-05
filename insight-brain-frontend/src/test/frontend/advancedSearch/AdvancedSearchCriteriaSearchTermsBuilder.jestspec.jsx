@@ -99,4 +99,34 @@ describe('AdvancedSearchCriteriaSearchTermsBuilder', () => {
     expect(screen.getByRole('button', { name: /Add organizationId to search query/i })).toBeVisible();
     expect(screen.getByRole('button', { name: /Add componentName to search query/i })).toBeVisible();
   });
+
+  it('renders Policy Violation and License group headers and tags', () => {
+    renderComponent({}, initialState);
+
+    expect(screen.getByRole('heading', { name: 'Policy Violation' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'License' })).toBeVisible();
+
+    expect(screen.getByRole('button', { name: /Add policyViolationPolicyName to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add policyViolationWaiverStatus to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add componentEffectiveLicenseId to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add componentLicenseThreatGroupName to search query/i })).toBeVisible();
+  });
+
+  it('renders Policy Violation and License tags in SBOM Manager mode', () => {
+    const sbomManagerState = {
+      ...initialState,
+      router: {
+        currentState: { name: 'sbomManager.advancedSearch' },
+      },
+    };
+    renderComponent({}, sbomManagerState);
+
+    expect(screen.getByRole('heading', { name: 'Policy Violation' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'License' })).toBeVisible();
+
+    expect(screen.getByRole('button', { name: /Add policyViolationPolicyName to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add policyViolationWaiverStatus to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add componentEffectiveLicenseId to search query/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add componentLicenseThreatGroupName to search query/i })).toBeVisible();
+  });
 });

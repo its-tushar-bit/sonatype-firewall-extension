@@ -563,8 +563,10 @@ public abstract class AbstractSearchServiceTest
     List<String> actualItemTypes = results.stream().map(e -> e.itemType).collect(toList());
     List<String> expectedItemTypes = Arrays.stream(ItemType.values()).map(Enum::name).collect(toList());
 
-    // TODO temporary until SBOM Advanced Search is fully implemented
+    // TODO CLM-39528: enable once default test data includes SBOM imports and policy evaluations
     expectedItemTypes.remove("SBOM_METADATA");
+    expectedItemTypes.remove("POLICY_VIOLATION");
+    expectedItemTypes.remove("LEGAL_VIOLATION");
     assertThat(actualItemTypes).containsExactlyInAnyOrderElementsOf(expectedItemTypes);
 
     StreamingOutput stream =
@@ -576,7 +578,7 @@ public abstract class AbstractSearchServiceTest
 
     assertThat(export).hasSize(8);
     assertThat(export.size() - 1).isEqualTo(results.size());
-    assertThat(export.get(0).split(",")).hasSize(16);
+    assertThat(export.get(0).split(",")).hasSize(23);
 
     Map<String, List<List<String>>> items = export.stream()
         .skip(1)
@@ -615,7 +617,7 @@ public abstract class AbstractSearchServiceTest
       baos = new ByteArrayOutputStream();
       stream.write(baos);
       export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
-      assertThat(export.get(0).split(";")).hasSize(16);
+      assertThat(export.get(0).split(";")).hasSize(23);
     }
     finally {
       configurationService.deleteConfigurationInDatabaseNoAuthz(
@@ -680,13 +682,14 @@ public abstract class AbstractSearchServiceTest
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
-    assertThat(results).hasSize(7);
+    assertThat(results).hasSize(13);
     assertThat(find(results, ItemType.ORGANIZATION,
         s -> Organization.ROOT_ORGANIZATION_ID.equals(s.organizationId))).hasSize(1);
     assertThat(find(results, ItemType.ORGANIZATION, s -> org.getId().equals(s.organizationId))).hasSize(1);
     assertThat(find(results, ItemType.APPLICATION, s -> app.getId().equals(s.applicationId))).hasSize(1);
     assertThat(find(results, ItemType.SBOM_METADATA, s -> "1.0".equals(s.applicationVersion))).hasSize(1);
     assertThat(find(results, ItemType.SBOM_METADATA, s -> "1.1".equals(s.applicationVersion))).hasSize(1);
+    assertThat(find(results, ItemType.LEGAL_VIOLATION, s -> true)).hasSize(6);
     List<SearchResultItemDTO> securityVulnerabilities =
         find(results, ItemType.SECURITY_VULNERABILITY, s -> "n v1".equals(s.componentName));
     assertThat(securityVulnerabilities).hasSize(1);
@@ -740,7 +743,7 @@ public abstract class AbstractSearchServiceTest
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
-    assertThat(results).hasSize(9);
+    assertThat(results).hasSize(15);
     assertThat(find(results, ItemType.ORGANIZATION,
         s -> Organization.ROOT_ORGANIZATION_ID.equals(s.organizationId))).hasSize(1);
     assertThat(find(results, ItemType.ORGANIZATION, s -> org.getId().equals(s.organizationId))).hasSize(1);
@@ -749,6 +752,7 @@ public abstract class AbstractSearchServiceTest
         1);
     assertThat(find(results, ItemType.COMPONENT_LABEL, s -> label.getId().equals(s.componentLabelId))).hasSize(1);
     assertThat(find(results, ItemType.POLICY, s -> policy.getId().equals(s.policyId))).hasSize(1);
+    assertThat(find(results, ItemType.LEGAL_VIOLATION, s -> true)).hasSize(6);
     assertThat(find(results, ItemType.SECURITY_VULNERABILITY, s -> "n v1".equals(s.componentName))).isEmpty();
     assertThat(
         find(results, ItemType.SECURITY_VULNERABILITY, s -> StringUtils.isNotBlank(s.applicationVersion))).isEmpty();
@@ -803,9 +807,9 @@ public abstract class AbstractSearchServiceTest
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
         .collect(groupingBy(l -> l.get(0)));
     items.values().forEach(list -> list.sort(Comparator.comparing(Object::toString)));
-    assertThat(rows).hasSize(8);
+    assertThat(rows).hasSize(14);
     assertThat(rows.size() - 1).isEqualTo(results.size());
-    assertThat(items).hasSize(5);
+    assertThat(items).hasSize(6);
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo("Root Organization");
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(2)).contains(Organization.ROOT_ORGANIZATION_ID);
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(1)).isEqualTo(org.getName());
@@ -881,9 +885,9 @@ public abstract class AbstractSearchServiceTest
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
         .collect(groupingBy(l -> l.get(0)));
     items.values().forEach(list -> list.sort(Comparator.comparing(Object::toString)));
-    assertThat(rows).hasSize(10);
+    assertThat(rows).hasSize(16);
     assertThat(rows.size() - 1).isEqualTo(results.size());
-    assertThat(items).hasSize(7);
+    assertThat(items).hasSize(8);
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo("Root Organization");
     assertThat(items.get(ItemType.ORGANIZATION.name()).get(1).get(1)).isEqualTo(org.getName());
     assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app.getName());

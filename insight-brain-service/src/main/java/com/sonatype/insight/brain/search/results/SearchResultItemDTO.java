@@ -80,6 +80,28 @@ public class SearchResultItemDTO
 
   public Integer policyThreatLevel;
 
+  public String policyViolationId;
+
+  public String policyViolationThreatCategory;
+
+  public Integer policyViolationThreatLevel;
+
+  public String policyViolationPolicyName;
+
+  public String policyViolationPolicyId;
+
+  public String policyViolationWaiverStatus;
+
+  public String policyViolationConstraintName;
+
+  public String componentEffectiveLicenseId;
+
+  public String componentEffectiveLicenseName;
+
+  public String componentLicenseThreatGroupName;
+
+  public Integer componentLicenseThreatLevel;
+
   public int resultIndex;
 
   public SearchResultItemDTO() {
@@ -131,5 +153,20 @@ public class SearchResultItemDTO
     policyThreatCategory = document.get(FieldIdentifier.POLICY_THREAT_CATEGORY.label);
     String policyThreatLevelString = document.get(FieldIdentifier.POLICY_THREAT_LEVEL.label);
     policyThreatLevel = policyThreatLevelString == null ? null : Integer.valueOf(policyThreatLevelString);
+    policyViolationId = document.get(FieldIdentifier.POLICY_VIOLATION_ID.label);
+    policyViolationThreatCategory = document.get(FieldIdentifier.POLICY_VIOLATION_THREAT_CATEGORY.label);
+    String policyViolationThreatLevelString = document.get(FieldIdentifier.POLICY_VIOLATION_THREAT_LEVEL.label);
+    policyViolationThreatLevel =
+        policyViolationThreatLevelString == null ? null : Integer.valueOf(policyViolationThreatLevelString);
+    policyViolationPolicyName = document.get(FieldIdentifier.POLICY_VIOLATION_POLICY_NAME.label);
+    policyViolationPolicyId = document.get(FieldIdentifier.POLICY_VIOLATION_POLICY_ID.label);
+    policyViolationWaiverStatus = document.get(FieldIdentifier.POLICY_VIOLATION_WAIVER_STATUS.label);
+    policyViolationConstraintName = document.get(FieldIdentifier.POLICY_VIOLATION_CONSTRAINT_NAME.label);
+    componentEffectiveLicenseId = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_ID.label);
+    componentEffectiveLicenseName = document.get(FieldIdentifier.COMPONENT_EFFECTIVE_LICENSE_NAME.label);
+    componentLicenseThreatGroupName = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_GROUP_NAME.label);
+    String componentLicenseThreatLevelString = document.get(FieldIdentifier.COMPONENT_LICENSE_THREAT_LEVEL.label);
+    componentLicenseThreatLevel =
+        componentLicenseThreatLevelString == null ? null : Integer.valueOf(componentLicenseThreatLevelString);
   }
 }

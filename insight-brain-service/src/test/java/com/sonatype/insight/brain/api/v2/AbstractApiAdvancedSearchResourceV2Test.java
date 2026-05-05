@@ -186,7 +186,10 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
     assertThat(csvExportSearchHeaders).isEqualTo(
         Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
             APPLICATION_CATEGORY_LINK, COMPONENT_LABEL, COMPONENT_LABEL_LINK, POLICY, THREAT, POLICY_LINK,
-            COMPONENT_NAME, REPORT, SECURITY_ISSUE, STAGE)
+            COMPONENT_NAME, REPORT, SECURITY_ISSUE, STAGE,
+            POLICY_VIOLATION_NAME, POLICY_VIOLATION_THREAT_CATEGORY, POLICY_VIOLATION_THREAT_LEVEL_EXPORT,
+            POLICY_VIOLATION_WAIVER_STATUS,
+            COMPONENT_EFFECTIVE_LICENSE, COMPONENT_LICENSE_THREAT_GROUP, COMPONENT_LICENSE_THREAT_LEVEL_EXPORT)
             .stream()
             .map(SearchRowFactory.Header::getHeader)
             .toArray(String[]::new));
@@ -260,10 +263,111 @@ public abstract class AbstractApiAdvancedSearchResourceV2Test
     assertThat(csvExportSearchHeaders).isEqualTo(
         Arrays.asList(ITEM_TYPE, ORGANIZATION, ORGANIZATION_LINK, APPLICATION, APPLICATION_LINK, APPLICATION_CATEGORY,
             APPLICATION_CATEGORY_LINK, POLICY, THREAT, POLICY_LINK, COMPONENT_NAME, SECURITY_ISSUE,
-            SECURITY_ISSUE_ID, APPLICATION_VERSION, SBOM_SPECIFICATION)
+            SECURITY_ISSUE_ID, APPLICATION_VERSION, SBOM_SPECIFICATION,
+            POLICY_VIOLATION_NAME, POLICY_VIOLATION_THREAT_CATEGORY, POLICY_VIOLATION_THREAT_LEVEL_EXPORT,
+            POLICY_VIOLATION_WAIVER_STATUS,
+            COMPONENT_EFFECTIVE_LICENSE, COMPONENT_LICENSE_THREAT_GROUP, COMPONENT_LICENSE_THREAT_LEVEL_EXPORT)
             .stream()
             .map(SearchRowFactory.Header::getHeader)
             .toArray(String[]::new));
+  }
+
+  @Test
+  public void testGetExportResults_PolicyViolation_LifecycleMode() throws Exception {
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("query", "itemType:POLICY_VIOLATION")
+        .get();
+    assertResponseStatus(200, response);
+    String headerLine = response.getBodyText().split("\n")[0];
+    String[] csvExportSearchHeaders = Arrays.stream(headerLine.split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).contains(
+        ITEM_TYPE.getHeader(),
+        ORGANIZATION.getHeader(),
+        APPLICATION.getHeader(),
+        COMPONENT_NAME.getHeader(),
+        POLICY_VIOLATION_NAME.getHeader(),
+        POLICY_VIOLATION_THREAT_CATEGORY.getHeader(),
+        POLICY_VIOLATION_THREAT_LEVEL_EXPORT.getHeader(),
+        POLICY_VIOLATION_WAIVER_STATUS.getHeader(),
+        STAGE.getHeader());
+  }
+
+  @Test
+  public void testGetExportResults_LegalViolation_LifecycleMode() throws Exception {
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("query", "itemType:LEGAL_VIOLATION")
+        .get();
+    assertResponseStatus(200, response);
+    String headerLine = response.getBodyText().split("\n")[0];
+    String[] csvExportSearchHeaders = Arrays.stream(headerLine.split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).contains(
+        ITEM_TYPE.getHeader(),
+        ORGANIZATION.getHeader(),
+        APPLICATION.getHeader(),
+        COMPONENT_NAME.getHeader(),
+        COMPONENT_EFFECTIVE_LICENSE.getHeader(),
+        COMPONENT_LICENSE_THREAT_GROUP.getHeader(),
+        COMPONENT_LICENSE_THREAT_LEVEL_EXPORT.getHeader(),
+        STAGE.getHeader());
+  }
+
+  @Test
+  public void testGetExportResults_PolicyViolation_SBOMManagerMode() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("query", "itemType:POLICY_VIOLATION")
+        .query("mode", "sbomManager")
+        .get();
+    assertResponseStatus(200, response);
+    String headerLine = response.getBodyText().split("\n")[0];
+    String[] csvExportSearchHeaders = Arrays.stream(headerLine.split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).contains(
+        ITEM_TYPE.getHeader(),
+        APPLICATION.getHeader(),
+        COMPONENT_NAME.getHeader(),
+        POLICY_VIOLATION_NAME.getHeader(),
+        POLICY_VIOLATION_THREAT_CATEGORY.getHeader(),
+        POLICY_VIOLATION_THREAT_LEVEL_EXPORT.getHeader(),
+        POLICY_VIOLATION_WAIVER_STATUS.getHeader(),
+        APPLICATION_VERSION.getHeader(),
+        SBOM_SPECIFICATION.getHeader());
+  }
+
+  @Test
+  public void testGetExportResults_LegalViolation_SBOMManagerMode() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("query", "itemType:LEGAL_VIOLATION")
+        .query("mode", "sbomManager")
+        .get();
+    assertResponseStatus(200, response);
+    String headerLine = response.getBodyText().split("\n")[0];
+    String[] csvExportSearchHeaders = Arrays.stream(headerLine.split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).contains(
+        ITEM_TYPE.getHeader(),
+        APPLICATION.getHeader(),
+        COMPONENT_NAME.getHeader(),
+        COMPONENT_EFFECTIVE_LICENSE.getHeader(),
+        COMPONENT_LICENSE_THREAT_GROUP.getHeader(),
+        COMPONENT_LICENSE_THREAT_LEVEL_EXPORT.getHeader(),
+        APPLICATION_VERSION.getHeader(),
+        SBOM_SPECIFICATION.getHeader());
   }
 
   @Override

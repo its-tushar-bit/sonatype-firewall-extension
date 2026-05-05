@@ -25,6 +25,18 @@ export default function AdvancedSearchHelp(props) {
         'Search by vulnerability (starts with a specific value. * here means any number of any characters)'
       )}
       {helpRow('applicationName:nexus*', 'Search by application name')}
+      {helpRow(
+        'policyViolationPolicyName:"License-Copyleft"',
+        'Find components violating a specific policy'
+      )}
+      {helpRow(
+        'componentLicenseThreatLevel:[8 TO 10]',
+        'Find components with high-threat licenses'
+      )}
+      {helpRow(
+        'policyViolationThreatCategory:license AND policyViolationWaiverStatus:"Active"',
+        'Find license policy violations with active waivers'
+      )}
       {!isSbomManager && (
         <>
           {helpRow(

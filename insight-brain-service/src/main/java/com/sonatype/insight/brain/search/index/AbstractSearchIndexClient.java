@@ -285,6 +285,35 @@ public abstract class AbstractSearchIndexClient
         return APPLICATION_NAME;
       case NON_VULNERABLE_COMPONENT:
         return COMPONENT_NAME;
+      case POLICY_VIOLATION:
+        if (Stream.of(POLICY_VIOLATION_ID, POLICY_VIOLATION_POLICY_NAME, POLICY_VIOLATION_POLICY_ID,
+            POLICY_VIOLATION_THREAT_CATEGORY, POLICY_VIOLATION_THREAT_LEVEL, POLICY_VIOLATION_WAIVER_STATUS,
+            POLICY_VIOLATION_CONSTRAINT_NAME)
+            .anyMatch(field -> fieldNames.contains(field.label)))
+        {
+          return POLICY_VIOLATION_POLICY_NAME;
+        }
+        if (Stream.of(COMPONENT_FORMAT, COMPONENT_HASH, COMPONENT_NAME)
+            .anyMatch(field -> fieldNames.contains(field.label))
+            || fieldNames.stream().anyMatch(fieldName -> fieldName.startsWith(COMPONENT_COORDINATE.label)))
+        {
+          return COMPONENT_NAME;
+        }
+        return APPLICATION_NAME;
+      case LEGAL_VIOLATION:
+        if (Stream.of(COMPONENT_EFFECTIVE_LICENSE_ID, COMPONENT_EFFECTIVE_LICENSE_NAME,
+            COMPONENT_LICENSE_THREAT_GROUP_NAME, COMPONENT_LICENSE_THREAT_LEVEL)
+            .anyMatch(field -> fieldNames.contains(field.label)))
+        {
+          return COMPONENT_EFFECTIVE_LICENSE_ID;
+        }
+        if (Stream.of(COMPONENT_FORMAT, COMPONENT_HASH, COMPONENT_NAME)
+            .anyMatch(field -> fieldNames.contains(field.label))
+            || fieldNames.stream().anyMatch(fieldName -> fieldName.startsWith(COMPONENT_COORDINATE.label)))
+        {
+          return COMPONENT_NAME;
+        }
+        return APPLICATION_NAME;
       default:
         throw new IllegalArgumentException("Unsupported item type " + itemType);
     }

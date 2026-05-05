@@ -9,10 +9,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -23,13 +27,18 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -41,8 +50,12 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -60,6 +73,7 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -134,6 +148,14 @@ public class DocumentBuilderHelper
 
   private final ShutdownHandler shutdownHandler;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
+  private final MultiLicenseDAO multiLicenseDAO;
+
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO;
+
   @Inject
   public DocumentBuilderHelper(
       final LabelDAO labelDAO,
@@ -149,7 +171,11 @@ public class DocumentBuilderHelper
       final ComponentLoaderFactory componentLoaderFactory,
       final ReportService reportService,
       final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO,
+      final MultiLicenseDAO multiLicenseDAO,
+      final LicenseThreatGroupDAO licenseThreatGroupDAO)
   {
     this.labelDAO = labelDAO;
     this.organizationDAO = organizationDAO;
@@ -167,6 +193,10 @@ public class DocumentBuilderHelper
     this.evalExecutors = new TenantReference<>();
     this.componentExecutors = new TenantReference<>();
     this.shutdownHandler = shutdownHandler;
+    this.policyViolationDAO = policyViolationDAO;
+    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
+    this.licenseThreatGroupDAO = licenseThreatGroupDAO;
   }
 
   // Visible for testing
@@ -419,13 +449,15 @@ public class DocumentBuilderHelper
         return Collections.emptyList();
       }
 
-      return componentLoaderFactory.createComponentLoader(application)
+      List<Component> components = componentLoaderFactory.createComponentLoader(application)
           .getAll(
               licenseReportEntry.buf,
               securityReportEntry.buf,
               bomReportEntry.buf,
-              dependenciesReportEntry.buf)
-          .stream()
+              dependenciesReportEntry.buf);
+
+      // Build security vulnerability documents (existing behavior)
+      List<Document> securityVulnerabilityDocs = components.stream()
           .map(component -> CompletableFuture.supplyAsync(
               () -> buildApplicationComponentVulnerabilityDocuments(
                   indexingContext,
@@ -445,6 +477,48 @@ public class DocumentBuilderHelper
                     .flatMap(List::stream)
                     .toList();
               }));
+
+      // Build policy violation documents
+      List<PolicyViolation> violations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(
+          application.getId(), stageType.getId());
+      Map<String, String> constraintNameByFactsId = loadConstraintNames(violations);
+      List<Document> policyViolationDocs = buildPolicyViolationDocuments(
+          organization, parentOrganizations, application, stageType, scanId, violations, constraintNameByFactsId);
+
+      // Batch-load license threat groups for all components
+      Set<String> allLicenseIds = components.stream()
+          .map(Component::getLicenseIds)
+          .filter(ids -> ids != null)
+          .flatMap(Set::stream)
+          .collect(Collectors.toSet());
+      Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId;
+      if (!allLicenseIds.isEmpty()) {
+        List<String> ownerIds = parentOrganizations.stream()
+            .map(Organization::getId)
+            .collect(Collectors.toList());
+        try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+          threatGroupsByLicenseId = licenseThreatGroupDAO.getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(
+              tx, ownerIds, allLicenseIds);
+        }
+      }
+      else {
+        threatGroupsByLicenseId = Collections.emptyMap();
+      }
+
+      // Build legal violation documents
+      List<Document> legalViolationDocs = new ArrayList<>();
+      for (Component component : components) {
+        legalViolationDocs.addAll(buildLegalViolationDocuments(
+            indexingContext, organization, parentOrganizations, application, stageType, scanId, component,
+            threatGroupsByLicenseId));
+      }
+
+      // Combine all documents
+      List<Document> allDocs = new ArrayList<>();
+      allDocs.addAll(securityVulnerabilityDocs);
+      allDocs.addAll(policyViolationDocs);
+      allDocs.addAll(legalViolationDocs);
+      return allDocs;
     }
     catch (UncheckedIOException e) {
       log.error("Error parsing report files at {}",
@@ -596,6 +670,261 @@ public class DocumentBuilderHelper
       vulnDescByVulnId.put(vulnerability.getRefId(), description);
       return description;
     }
+  }
+
+  /**
+   * Derives the waiver status for a policy violation.
+   */
+  private static String deriveWaiverStatus(PolicyViolation violation) {
+    if (violation.getAutoPolicyWaiverId() != null) {
+      return "AutoWaived";
+    }
+    if (violation.getWaiveTime() != null) {
+      return "Waived";
+    }
+    return "Active";
+  }
+
+  /**
+   * Loads constraint names for policy violations by constraint facts ID.
+   */
+  private Map<String, String> loadConstraintNames(List<PolicyViolation> violations) {
+    if (CollectionUtils.isEmpty(violations)) {
+      return Collections.emptyMap();
+    }
+
+    Set<String> constraintFactsIds = new HashSet<>();
+    for (PolicyViolation violation : violations) {
+      if (violation.getConstraintFactsId() != null) {
+        constraintFactsIds.add(violation.getConstraintFactsId());
+      }
+    }
+
+    if (constraintFactsIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    List<PolicyViolationConstraintFacts> factsList = policyViolationConstraintFactsDAO.getByIds(constraintFactsIds);
+    Map<String, String> constraintNameByFactsId = new HashMap<>();
+
+    for (PolicyViolationConstraintFacts facts : factsList) {
+      String constraintName = extractFirstConstraintName(facts.getConstraintFactsJson());
+      if (constraintName != null) {
+        constraintNameByFactsId.put(facts.getId(), constraintName);
+      }
+    }
+    return constraintNameByFactsId;
+  }
+
+  /**
+   * Extracts the first constraint name from constraint facts JSON.
+   */
+  private String extractFirstConstraintName(String constraintFactsJson) {
+    if (constraintFactsJson == null || constraintFactsJson.isEmpty()) {
+      return null;
+    }
+    try {
+      ConstraintFact[] facts =
+          com.sonatype.insight.json.store.JsonUtils.parse(constraintFactsJson, ConstraintFact[].class);
+      if (facts != null && facts.length > 0 && facts[0].getConstraintName() != null) {
+        return facts[0].getConstraintName();
+      }
+    }
+    catch (Exception e) {
+      log.warn("Failed to parse constraint facts JSON: {}", e.getMessage());
+    }
+    return null;
+  }
+
+  /**
+   * Builds POLICY_VIOLATION documents for each policy violation.
+   */
+  private List<Document> buildPolicyViolationDocuments(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      List<PolicyViolation> violations,
+      Map<String, String> constraintNameByFactsId)
+  {
+    if (CollectionUtils.isEmpty(violations)) {
+      return Collections.emptyList();
+    }
+
+    List<Document> documents = new ArrayList<>();
+    for (PolicyViolation violation : violations) {
+      Document doc = buildPolicyViolationDocument(
+          organization, parentOrganizations, application, stageType, reportId, violation, constraintNameByFactsId);
+      if (doc != null) {
+        documents.add(doc);
+      }
+    }
+    return documents;
+  }
+
+  /**
+   * Builds a single POLICY_VIOLATION document.
+   */
+  private Document buildPolicyViolationDocument(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      PolicyViolation violation,
+      Map<String, String> constraintNameByFactsId)
+  {
+    if (violation == null) {
+      return null;
+    }
+
+    String constraintName = null;
+    if (violation.getConstraintFactsId() != null) {
+      constraintName = constraintNameByFactsId.get(violation.getConstraintFactsId());
+    }
+
+    DocumentBuilder builder = new DocumentBuilder(ItemType.POLICY_VIOLATION)
+        .setOwner(application)
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organization.getName())
+        .setPolicyEvaluationStage(stageType)
+        .setReportId(reportId)
+        .setPolicyViolationId(violation.getId())
+        .setPolicyViolationThreatLevel(violation.getThreatLevel())
+        .setPolicyViolationWaiverStatus(deriveWaiverStatus(violation))
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations);
+
+    if (violation.getPolicyId() != null) {
+      builder.setPolicyViolationPolicyId(violation.getPolicyId());
+    }
+    if (violation.getPolicyName() != null) {
+      builder.setPolicyViolationPolicyName(violation.getPolicyName());
+    }
+
+    if (violation.getHash() != null) {
+      builder.setComponentHash(violation.getHash());
+    }
+    if (violation.getComponentIdentifier() != null) {
+      builder.setComponentFormat(violation.getComponentIdentifier().getFormat())
+          .setComponentCoordinates(violation.getComponentIdentifier())
+          .setComponentName(
+              ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier()).toString());
+    }
+    if (violation.getThreatCategory() != null) {
+      builder.setPolicyViolationThreatCategory(violation.getThreatCategory());
+    }
+    if (constraintName != null) {
+      builder.setPolicyViolationConstraintName(constraintName);
+    }
+
+    return builder.build();
+  }
+
+  /**
+   * Builds LEGAL_VIOLATION documents for each license associated with a component.
+   */
+  private List<Document> buildLegalViolationDocuments(
+      IndexingContext indexingContext,
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId)
+  {
+    if (component == null) {
+      return Collections.emptyList();
+    }
+
+    Set<String> licenseIds = component.getLicenseIds();
+    if (CollectionUtils.isEmpty(licenseIds)) {
+      return Collections.emptyList();
+    }
+
+    List<Document> documents = new ArrayList<>();
+    Map<String, String> licenseNameCache = indexingContext.getLicenseNameById();
+
+    for (String licenseId : licenseIds) {
+      String cachedName = licenseNameCache.computeIfAbsent(licenseId, id -> {
+        MultiLicense license = multiLicenseDAO.getById(id);
+        return license != null && license.getShortDisplayName() != null ? license.getShortDisplayName() : "";
+      });
+      String licenseName = cachedName.isEmpty() ? null : cachedName;
+
+      List<LicenseThreatGroup> threatGroups = threatGroupsByLicenseId.get(licenseId);
+
+      if (!CollectionUtils.isEmpty(threatGroups)) {
+        for (LicenseThreatGroup threatGroup : threatGroups) {
+          Document doc = buildLegalViolationDocument(
+              organization, parentOrganizations, application, stageType, reportId, component,
+              licenseId, licenseName, threatGroup);
+          if (doc != null) {
+            documents.add(doc);
+          }
+        }
+      }
+      else {
+        Document doc = buildLegalViolationDocument(
+            organization, parentOrganizations, application, stageType, reportId, component,
+            licenseId, licenseName, null);
+        if (doc != null) {
+          documents.add(doc);
+        }
+      }
+    }
+    return documents;
+  }
+
+  /**
+   * Builds a single LEGAL_VIOLATION document.
+   */
+  private Document buildLegalViolationDocument(
+      Organization organization,
+      Collection<Organization> parentOrganizations,
+      Application application,
+      StageType stageType,
+      String reportId,
+      Component component,
+      String licenseId,
+      String licenseName,
+      LicenseThreatGroup threatGroup)
+  {
+    if (component == null || licenseId == null) {
+      return null;
+    }
+
+    DocumentBuilder builder = new DocumentBuilder(ItemType.LEGAL_VIOLATION)
+        .setOwner(application)
+        .setOrganizationId(application.getOrganizationId())
+        .setOrganizationName(organization.getName())
+        .setPolicyEvaluationStage(stageType)
+        .setReportId(reportId)
+        .setComponentEffectiveLicenseId(licenseId)
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations);
+
+    if (component.getHash() != null) {
+      builder.setComponentHash(component.getHash());
+    }
+    if (component.getComponentIdentifier() != null) {
+      builder.setComponentFormat(component.getComponentIdentifier().getFormat())
+          .setComponentCoordinates(component)
+          .setComponentName(component.getDisplayNameFromIdentifier());
+    }
+
+    if (licenseName != null) {
+      builder.setComponentEffectiveLicenseName(licenseName);
+    }
+
+    if (threatGroup != null) {
+      builder.setComponentLicenseThreatGroupName(threatGroup.getName())
+          .setComponentLicenseThreatLevel(threatGroup.getThreatLevel());
+    }
+
+    return builder.build();
   }
 
   public List<Document> buildSbomSVDocs(

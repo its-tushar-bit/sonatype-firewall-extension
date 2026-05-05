@@ -45,6 +45,13 @@ public class SearchRowFactoryTest
     searchResultItemDTO.policyThreatCategory = "testPolicyThreatCategory";
     searchResultItemDTO.policyThreatLevel = 999;
     searchResultItemDTO.sbomSpecification = "testSbomSpecification";
+    searchResultItemDTO.policyViolationPolicyName = "testPolicyViolationName";
+    searchResultItemDTO.policyViolationThreatCategory = "testViolationThreatCategory";
+    searchResultItemDTO.policyViolationThreatLevel = 8;
+    searchResultItemDTO.policyViolationWaiverStatus = "Active";
+    searchResultItemDTO.componentEffectiveLicenseName = "testEffectiveLicenseName";
+    searchResultItemDTO.componentLicenseThreatGroupName = "testLicenseThreatGroupName";
+    searchResultItemDTO.componentLicenseThreatLevel = 7;
   }
 
   @Test
@@ -53,7 +60,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -67,7 +74,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -82,7 +89,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -99,7 +106,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -117,7 +124,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo("https://test.base.url/ui/links/application/testApplicationPublicId/management");
@@ -134,7 +141,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -153,7 +160,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo("https://test.base.url/ui/links/application/testApplicationPublicId/management");
@@ -171,7 +178,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -193,7 +200,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo("https://test.base.url/ui/links/application/testApplicationPublicId/management");
@@ -212,7 +219,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo("https://test.base.url/ui/links/organization/testOrganizationId/management");
@@ -233,7 +240,7 @@ public class SearchRowFactoryTest
 
     List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(16);
+    assertThat(row).hasSize(23);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo("https://test.base.url/ui/links/application/testApplicationPublicId/management");
@@ -251,7 +258,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -266,7 +273,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -284,7 +291,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -302,7 +309,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -318,7 +325,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo(
@@ -333,7 +340,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -353,7 +360,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo(
@@ -371,7 +378,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -394,7 +401,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo(
@@ -413,7 +420,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -435,7 +442,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo(
@@ -453,7 +460,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
     assertThat(row.get(2)).isEqualTo(
@@ -474,7 +481,7 @@ public class SearchRowFactoryTest
 
     List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
 
-    assertThat(row).hasSize(15);
+    assertThat(row).hasSize(22);
     assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
     assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
     assertThat(row.get(4)).isEqualTo(
@@ -483,6 +490,115 @@ public class SearchRowFactoryTest
     assertThat(row.get(14)).isEqualTo(searchResultItemDTO.sbomSpecification);
 
     checkColumnsAreEmpty(row, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_normalMode_PolicyViolation_withOrganization() {
+    searchResultItemDTO.itemType = ItemType.POLICY_VIOLATION.name();
+
+    List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(23);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(12)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(16)).isEqualTo(searchResultItemDTO.policyViolationPolicyName);
+    assertThat(row.get(17)).isEqualTo(searchResultItemDTO.policyViolationThreatCategory);
+    assertThat(row.get(18)).isEqualTo(String.valueOf(searchResultItemDTO.policyViolationThreatLevel));
+    assertThat(row.get(19)).isEqualTo(searchResultItemDTO.policyViolationWaiverStatus);
+    assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_normalMode_PolicyViolation_withOutOrganization() {
+    searchResultItemDTO.itemType = ItemType.POLICY_VIOLATION.name();
+    searchResultItemDTO.organizationName = null;
+
+    List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(23);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(12)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(16)).isEqualTo(searchResultItemDTO.policyViolationPolicyName);
+    assertThat(row.get(17)).isEqualTo(searchResultItemDTO.policyViolationThreatCategory);
+    assertThat(row.get(18)).isEqualTo(String.valueOf(searchResultItemDTO.policyViolationThreatLevel));
+    assertThat(row.get(19)).isEqualTo(searchResultItemDTO.policyViolationWaiverStatus);
+    assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
+    checkColumnsAreEmpty(row, 1, 2);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_normalMode_LegalViolation_withOrganization() {
+    searchResultItemDTO.itemType = ItemType.LEGAL_VIOLATION.name();
+
+    List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(23);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(12)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(20)).isEqualTo(searchResultItemDTO.componentEffectiveLicenseName);
+    assertThat(row.get(21)).isEqualTo(searchResultItemDTO.componentLicenseThreatGroupName);
+    assertThat(row.get(22)).isEqualTo(String.valueOf(searchResultItemDTO.componentLicenseThreatLevel));
+    assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_normalMode_LegalViolation_withOutOrganization() {
+    searchResultItemDTO.itemType = ItemType.LEGAL_VIOLATION.name();
+    searchResultItemDTO.organizationName = null;
+
+    List<String> row = lifecycleSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(23);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(12)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(20)).isEqualTo(searchResultItemDTO.componentEffectiveLicenseName);
+    assertThat(row.get(21)).isEqualTo(searchResultItemDTO.componentLicenseThreatGroupName);
+    assertThat(row.get(22)).isEqualTo(String.valueOf(searchResultItemDTO.componentLicenseThreatLevel));
+    assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyEvaluationStage);
+    checkColumnsAreEmpty(row, 1, 2);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_sbomManagerMode_PolicyViolation_withOrganization() {
+    searchResultItemDTO.itemType = ItemType.POLICY_VIOLATION.name();
+
+    List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(22);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(10)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(15)).isEqualTo(searchResultItemDTO.policyViolationPolicyName);
+    assertThat(row.get(16)).isEqualTo(searchResultItemDTO.policyViolationThreatCategory);
+    assertThat(row.get(17)).isEqualTo(String.valueOf(searchResultItemDTO.policyViolationThreatLevel));
+    assertThat(row.get(18)).isEqualTo(searchResultItemDTO.policyViolationWaiverStatus);
+    assertThat(row.get(13)).isEqualTo(searchResultItemDTO.applicationVersion);
+    assertThat(row.get(14)).isEqualTo(searchResultItemDTO.sbomSpecification);
+  }
+
+  @Test
+  public void testSearchRowFactory_create_sbomManagerMode_LegalViolation_withOrganization() {
+    searchResultItemDTO.itemType = ItemType.LEGAL_VIOLATION.name();
+
+    List<String> row = sbomSearchRowFactory.create(searchResultItemDTO, BASE_URL);
+
+    assertThat(row).hasSize(22);
+    assertThat(row.get(0)).isEqualTo(searchResultItemDTO.itemType);
+    assertThat(row.get(1)).isEqualTo(searchResultItemDTO.organizationName);
+    assertThat(row.get(3)).isEqualTo(searchResultItemDTO.applicationName);
+    assertThat(row.get(10)).isEqualTo(searchResultItemDTO.componentName);
+    assertThat(row.get(19)).isEqualTo(searchResultItemDTO.componentEffectiveLicenseName);
+    assertThat(row.get(20)).isEqualTo(searchResultItemDTO.componentLicenseThreatGroupName);
+    assertThat(row.get(21)).isEqualTo(String.valueOf(searchResultItemDTO.componentLicenseThreatLevel));
+    assertThat(row.get(13)).isEqualTo(searchResultItemDTO.applicationVersion);
+    assertThat(row.get(14)).isEqualTo(searchResultItemDTO.sbomSpecification);
   }
 
   private void checkColumnsAreEmpty(List<String> row, int... columnIndexes) {

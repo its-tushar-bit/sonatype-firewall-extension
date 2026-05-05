@@ -38,7 +38,20 @@ public enum FieldIdentifier
   POLICY_THREAT_LEVEL("policyThreatLevel"),
   PARENT_ORGANIZATION_NAME("parentOrganizationName"),
   PARENT_ORGANIZATION_ID("parentOrganizationId"),
-  SBOM_SPECIFICATION("sbomSpecification");
+  SBOM_SPECIFICATION("sbomSpecification"),
+
+  POLICY_VIOLATION_ID("policyViolationId"),
+  POLICY_VIOLATION_THREAT_CATEGORY("policyViolationThreatCategory"),
+  POLICY_VIOLATION_THREAT_LEVEL("policyViolationThreatLevel"),
+  POLICY_VIOLATION_POLICY_NAME("policyViolationPolicyName"),
+  POLICY_VIOLATION_POLICY_ID("policyViolationPolicyId"),
+  POLICY_VIOLATION_WAIVER_STATUS("policyViolationWaiverStatus"),
+  POLICY_VIOLATION_CONSTRAINT_NAME("policyViolationConstraintName"),
+
+  COMPONENT_EFFECTIVE_LICENSE_ID("componentEffectiveLicenseId"),
+  COMPONENT_EFFECTIVE_LICENSE_NAME("componentEffectiveLicenseName"),
+  COMPONENT_LICENSE_THREAT_GROUP_NAME("componentLicenseThreatGroupName"),
+  COMPONENT_LICENSE_THREAT_LEVEL("componentLicenseThreatLevel");
 
   public final String label;
 

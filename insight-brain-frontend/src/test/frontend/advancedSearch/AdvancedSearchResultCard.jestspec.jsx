@@ -45,10 +45,91 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.queryByRole('cell', { name: 'Application Category' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Component Name' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Component Label' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'License' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'Threat Group' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'Policy Violation' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Security Issue' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Vulnerability Description' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Version' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Policy' })).not.toBeInTheDocument();
+  });
+
+  it('displays License and Threat Group rows when data is present', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      applicationName: 'testApp',
+      componentEffectiveLicenseName: 'Apache License 2.0',
+      componentLicenseThreatGroupName: 'Liberal',
+      componentLicenseThreatLevel: 0,
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult });
+
+    expect(screen.getByRole('cell', { name: 'License' })).toBeVisible();
+    expect(screen.getByText('Apache License 2.0')).toBeVisible();
+    expect(screen.getByRole('cell', { name: 'Threat Group' })).toBeVisible();
+    expect(screen.getByText(/0 - Liberal/)).toBeVisible();
+  });
+
+  it('hides License row when grouped by COMPONENT_EFFECTIVE_LICENSE_NAME', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      componentEffectiveLicenseName: 'Apache License 2.0',
+    };
+
+    renderComponent({
+      searchResultItem: componentTypeResult,
+      groupIdentifier: 'COMPONENT_EFFECTIVE_LICENSE_NAME',
+    });
+
+    expect(screen.queryByRole('cell', { name: 'License' })).not.toBeInTheDocument();
+  });
+
+  it('hides Threat Group row when grouped by COMPONENT_LICENSE_THREAT_GROUP_NAME', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      componentLicenseThreatGroupName: 'Copyleft',
+      componentLicenseThreatLevel: 5,
+    };
+
+    renderComponent({
+      searchResultItem: componentTypeResult,
+      groupIdentifier: 'COMPONENT_LICENSE_THREAT_GROUP_NAME',
+    });
+
+    expect(screen.queryByRole('cell', { name: 'Threat Group' })).not.toBeInTheDocument();
+  });
+
+  it('displays Policy Violation row with threat level and waiver status when data is present', () => {
+    const componentTypeResult = {
+      itemType: 'POLICY_VIOLATION',
+      applicationName: 'testApp',
+      policyViolationPolicyName: 'License-Copyleft',
+      policyViolationThreatLevel: 8,
+      policyViolationWaiverStatus: 'Active',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult });
+
+    expect(screen.getByRole('cell', { name: 'Policy Violation' })).toBeVisible();
+    expect(screen.getByText(/8 -/)).toBeVisible();
+    expect(screen.getByText(/License-Copyleft/)).toBeVisible();
+    expect(screen.getByText(/\(Active\)/)).toBeVisible();
+  });
+
+  it('hides Policy Violation row when grouped by POLICY_VIOLATION_POLICY_NAME', () => {
+    const componentTypeResult = {
+      itemType: 'POLICY_VIOLATION',
+      policyViolationPolicyName: 'License-Copyleft',
+      policyViolationThreatLevel: 8,
+    };
+
+    renderComponent({
+      searchResultItem: componentTypeResult,
+      groupIdentifier: 'POLICY_VIOLATION_POLICY_NAME',
+    });
+
+    expect(screen.queryByRole('cell', { name: 'Policy Violation' })).not.toBeInTheDocument();
   });
 
   it('passes the correct parameters to construct the SBOM Manager org link', () => {
@@ -186,6 +267,7 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.queryByRole('cell', { name: 'Component Name' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Organization' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Policy' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: 'Policy Violation' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Version' })).not.toBeInTheDocument();
   });
 

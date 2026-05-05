@@ -155,6 +155,72 @@ export const getQueryBuilderGroups = (isSbomManager) => {
       ],
     },
     {
+      label: 'Policy Violation',
+      value: 'policyViolation',
+      show: true,
+      example: '"License-Copyleft"',
+      prefixList: [
+        {
+          value: 'policyViolationPolicyName',
+          label: 'Policy Violation Name',
+          example: '"License-Copyleft"',
+          show: true,
+        },
+        {
+          value: 'policyViolationPolicyId',
+          label: 'Policy Violation Policy ID',
+          example: 'abc-123-def-456',
+          show: true,
+        },
+        {
+          value: 'policyViolationThreatCategory',
+          label: 'Violation Threat Category',
+          example: 'Legal',
+          show: true,
+        },
+        { value: 'policyViolationThreatLevel', label: 'Violation Threat Level', example: '[7 TO 10]', show: true },
+        { value: 'policyViolationWaiverStatus', label: 'Violation Waiver Status', example: 'Active', show: true },
+        {
+          value: 'policyViolationConstraintName',
+          label: 'Violation Constraint',
+          example: '"License Threat Group"',
+          show: true,
+        },
+      ],
+    },
+    {
+      label: 'License',
+      value: 'license',
+      show: true,
+      example: 'Apache-2.0',
+      prefixList: [
+        {
+          value: 'componentEffectiveLicenseId',
+          label: 'Component Effective License ID',
+          example: 'Apache-2.0',
+          show: true,
+        },
+        {
+          value: 'componentEffectiveLicenseName',
+          label: 'Component Effective License Name',
+          example: '"Apache License 2.0"',
+          show: true,
+        },
+        {
+          value: 'componentLicenseThreatGroupName',
+          label: 'Component License Threat Group',
+          example: '"Copyleft"',
+          show: true,
+        },
+        {
+          value: 'componentLicenseThreatLevel',
+          label: 'Component License Threat Level',
+          example: '[8 TO 10]',
+          show: true,
+        },
+      ],
+    },
+    {
       label: 'Other',
       value: 'other',
       show: !isSbomManager,

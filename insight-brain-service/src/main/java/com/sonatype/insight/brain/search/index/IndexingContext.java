@@ -27,6 +27,8 @@ public abstract class IndexingContext
 
   private final Map<String, String> vulnDescByVulnId = new ConcurrentHashMap<>();
 
+  private final Map<String, String> licenseNameById = new ConcurrentHashMap<>();
+
   private final ConversionHelper conversionHelper;
 
   public IndexingContext(final OwnerDAO ownerDAO, final ConversionHelper conversionHelper) {
@@ -36,6 +38,10 @@ public abstract class IndexingContext
 
   public Map<String, String> getVulnDescByVulnId() {
     return vulnDescByVulnId;
+  }
+
+  public Map<String, String> getLicenseNameById() {
+    return licenseNameById;
   }
 
   public void addOwners(final Collection<? extends Owner> owners) {

@@ -15,7 +15,7 @@ import {
   faText,
   faUniversity,
 } from '@fortawesome/pro-regular-svg-icons';
-import { faHexagon, faTag } from '@fortawesome/pro-solid-svg-icons';
+import { faGavel, faHexagon, faShieldAlt, faTag } from '@fortawesome/pro-solid-svg-icons';
 import { faTableTree } from '@fortawesome/pro-light-svg-icons';
 import { NxFontAwesomeIcon, NxTextLink, NxThreatIndicator } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
@@ -35,6 +35,13 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
     applicationCategory = searchResultItem.applicationCategoryName,
     componentName = searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
     componentLabel = searchResultItem.componentLabelId,
+    license = searchResultItem.componentEffectiveLicenseName && groupIdentifier !== 'COMPONENT_EFFECTIVE_LICENSE_NAME',
+    licenseThreatGroup =
+      searchResultItem.componentLicenseThreatGroupName &&
+      searchResultItem.componentLicenseThreatLevel !== undefined &&
+      groupIdentifier !== 'COMPONENT_LICENSE_THREAT_GROUP_NAME',
+    policyViolation =
+      searchResultItem.policyViolationPolicyName && groupIdentifier !== 'POLICY_VIOLATION_POLICY_NAME',
     report = searchResultItem.policyEvaluationStage,
     securityIssue = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
     vulnerabilityDescription = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
@@ -190,6 +197,52 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
                 </NxTextLink>
               )}
               {searchResultItem.componentLabelDescription && ` - ${searchResultItem.componentLabelDescription}`}
+            </td>
+          </tr>
+        )}
+
+        {license && (
+          <tr className="nx-table-row">
+            <td className="nx-cell">
+              <NxFontAwesomeIcon icon={faGavel} />
+            </td>
+            <td className="nx-cell">License</td>
+            <td className="nx-cell">{searchResultItem.componentEffectiveLicenseName}</td>
+          </tr>
+        )}
+
+        {licenseThreatGroup && (
+          <tr className="nx-table-row">
+            <td className="nx-cell">
+              <NxFontAwesomeIcon icon={faShieldAlt} />
+            </td>
+            <td className="nx-cell">Threat Group</td>
+            <td className="nx-cell">
+              <NxThreatIndicator policyThreatLevel={searchResultItem.componentLicenseThreatLevel} />
+              <span>
+                {searchResultItem.componentLicenseThreatLevel} - {searchResultItem.componentLicenseThreatGroupName}
+              </span>
+            </td>
+          </tr>
+        )}
+
+        {policyViolation && (
+          <tr className="nx-table-row">
+            <td className="nx-cell">
+              <NxFontAwesomeIcon icon={faUniversity} />
+            </td>
+            <td className="nx-cell">Policy Violation</td>
+            <td className="nx-cell">
+              {searchResultItem.policyViolationThreatLevel !== undefined && (
+                <>
+                  <NxThreatIndicator policyThreatLevel={searchResultItem.policyViolationThreatLevel} />
+                  {searchResultItem.policyViolationThreatLevel} -{' '}
+                </>
+              )}
+              {searchResultItem.policyViolationPolicyName}
+              {searchResultItem.policyViolationWaiverStatus && (
+                <span> ({searchResultItem.policyViolationWaiverStatus})</span>
+              )}
             </td>
           </tr>
         )}

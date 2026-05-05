@@ -32,6 +32,7 @@ function SearchRow({ searchItem, index, setField, setValue, removeSearchItem }) 
               <button
                 className="nx-dropdown-button"
                 key={prefix.value}
+                title={prefix.label}
                 onClick={() => setField({ index, value: prefix })}
               >
                 {prefix.label}

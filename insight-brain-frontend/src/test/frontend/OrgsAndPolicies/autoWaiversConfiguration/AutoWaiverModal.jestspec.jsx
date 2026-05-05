@@ -34,6 +34,7 @@ describe('Auto Waiver Modal Component', () => {
       productFeatures: {
         'developer-dashboard': true,
         'auto-waivers': true,
+        'auto-waiver-management': true,
       },
     },
   };
@@ -240,6 +241,7 @@ describe('Auto Waiver Modal Component', () => {
           productFeatures: {
             'developer-dashboard': true,
             'auto-waivers': true,
+            'auto-waiver-management': true,
           },
         },
       };

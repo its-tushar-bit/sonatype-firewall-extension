@@ -20,6 +20,9 @@ describe('DashboardWaiverRequestsTable', () => {
 
   beforeEach(() => {
     state = {
+      productFeatures: {
+        productFeatures: { 'waiver-request-workflow': true },
+      },
       dashboard: {
         waiverRequests: {
           results: [

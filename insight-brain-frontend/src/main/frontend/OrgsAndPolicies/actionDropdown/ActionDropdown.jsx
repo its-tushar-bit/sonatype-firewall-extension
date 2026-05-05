@@ -39,6 +39,7 @@ import {
   faUpload,
   faRandom,
 } from '@fortawesome/free-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 
 import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { actions as contactActions } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
@@ -57,6 +58,7 @@ import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelect
 import {
   selectIsEvaluateApplicationAvailable,
   selectIsLegacyViolationSupported,
+  selectHasCustomPolicies,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectCalculatedEnabled } from '../legacyViolationSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -101,6 +103,7 @@ const ActionDropdown = () => {
   const legacyViolationDisabled = !isLegacyViolationSupported || !isLegacyViolationEnabled;
   const LegacyViolationTooltip = legacyViolationDisabled ? NxTooltip : NxOverflowTooltip;
   const isSbomManager = useSelector(selectIsSbomManager);
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
   const uiRouterState = useRouterState();
 
   const openReport = (stageTypeId) => {
@@ -231,14 +234,16 @@ const ActionDropdown = () => {
         )}
 
         {isOrg && !isSbomManager && (
-          <button
-            id="import-policies-link"
-            onClick={() => dispatch(importPoliciesActions.openModal())}
-            className="nx-dropdown-button"
-          >
-            <NxFontAwesomeIcon icon={faDownload} />
-            <span>Import Policies</span>
-          </button>
+          <NxTooltip title={!hasCustomPolicies ? 'Enterprise Feature' : ''}>
+            <button
+              id="import-policies-link"
+              onClick={() => dispatch(importPoliciesActions.openModal())}
+              className="nx-dropdown-button"
+            >
+              <NxFontAwesomeIcon icon={hasCustomPolicies ? faDownload : faLock} />
+              <span>{hasCustomPolicies ? 'Import Policies' : 'Preview Import Policies'}</span>
+            </button>
+          </NxTooltip>
         )}
 
         {!isRootOrg && (

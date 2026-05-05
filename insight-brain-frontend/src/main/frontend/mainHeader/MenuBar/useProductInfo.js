@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { useSelector } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectIsPro, selectIsEnterprise } from 'MainRoot/productFeatures/productTierSelectors';
 
 const DEVELOPER = 'developer';
 const FIREWALL = 'firewall';
@@ -42,6 +44,16 @@ const PRODUCT_ICONS = {
     darkPath: require('MainRoot/productIcons/sonatype-lifecycle-logo-nav-dark.svg'),
     altText: 'Lifecycle',
   },
+  LIFECYCLE_PRO: {
+    lightPath: require('MainRoot/productIcons/sonatype-lifecycle-pro-logo-nav.svg'),
+    darkPath: require('MainRoot/productIcons/sonatype-lifecycle-pro-logo-nav-dark.svg'),
+    altText: 'Lifecycle Pro',
+  },
+  LIFECYCLE_ENTERPRISE: {
+    lightPath: require('MainRoot/productIcons/sonatype-lifecycle-enterprise-logo-nav.svg'),
+    darkPath: require('MainRoot/productIcons/sonatype-lifecycle-enterprise-logo-nav-dark.svg'),
+    altText: 'Lifecycle Enterprise',
+  },
   SONATYPE: {
     lightPath: null,
     darkPath: null,
@@ -56,6 +68,8 @@ const PRODUCT_ICONS = {
 
 export function useProductInfo(product) {
   const uiRouterState = useRouterState();
+  const isPro = useSelector(selectIsPro);
+  const isEnterprise = useSelector(selectIsEnterprise);
   switch (product) {
     case DEVELOPER:
       return {
@@ -74,7 +88,7 @@ export function useProductInfo(product) {
       };
     case LIFECYCLE:
       return {
-        ...PRODUCT_ICONS.LIFECYCLE,
+        ...(isPro ? PRODUCT_ICONS.LIFECYCLE_PRO : isEnterprise ? PRODUCT_ICONS.LIFECYCLE_ENTERPRISE : PRODUCT_ICONS.LIFECYCLE),
         href: uiRouterState.href('dashboard.overview.violations'),
       };
     case SONATYPE_UNLICENSED:

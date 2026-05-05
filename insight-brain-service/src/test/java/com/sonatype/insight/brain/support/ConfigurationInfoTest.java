@@ -298,7 +298,8 @@ public class ConfigurationInfoTest
         "exitOnFatalError",
         "maliciousUrlsPartnerAccess",
         "maxConcurrentTenantIndexCreation",
-        "evaluationQueueConfig");
+        "evaluationQueueConfig",
+        "lifecycleTier");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

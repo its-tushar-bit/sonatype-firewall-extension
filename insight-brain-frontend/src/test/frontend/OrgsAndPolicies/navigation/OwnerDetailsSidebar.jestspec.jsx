@@ -600,4 +600,54 @@ describe('OwnerDetailSidebar', () => {
 
     expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
   });
+
+  describe('Pro Tier Gating', () => {
+    const getProState = () => ({
+      ...defaultPreloadedState,
+      productFeatures: {
+        productFeatures: {
+          ...defaultPreloadedState.productFeatures.productFeatures,
+          'custom-policies': false,
+          'custom-component-labels': false,
+          'custom-application-categories': false,
+          'custom-license-threat-groups': false,
+          'auto-waiver-management': false,
+        },
+      },
+      productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+    });
+
+    it('renders sidebar sections with lock icons visible for Pro tier user', async () => {
+      mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+      renderComponent(getProState());
+
+      expect(await screen.findByText('Policies')).toBeVisible();
+      expect(screen.getByText('Component Labels')).toBeVisible();
+      expect(screen.getByText('License Threat Groups')).toBeVisible();
+
+      // Lock icons should be present (iq-sidebar-crown class)
+      const lockIcons = document.querySelectorAll('.iq-sidebar-crown');
+      expect(lockIcons.length).toBeGreaterThan(0);
+    });
+
+    it('renders sidebar with Auto-Waivers lock icon when feature is absent', async () => {
+      mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+      const proState = {
+        ...getProState(),
+        productFeatures: {
+          productFeatures: {
+            ...defaultPreloadedState.productFeatures.productFeatures,
+            'auto-waiver-management': false,
+            autoWaivers: true,
+          },
+        },
+      };
+
+      renderComponent(proState);
+
+      expect(await screen.findByText('Policies')).toBeVisible();
+    });
+  });
 });

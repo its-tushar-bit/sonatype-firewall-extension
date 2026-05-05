@@ -25,11 +25,15 @@ import {
 } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectHasAutoWaiverManagement } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
+import TierTag from 'MainRoot/react/shared/TierTag';
 import { actions as autoWaiverActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverModalSlice';
 import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectApplicableAutoWaivers } from 'MainRoot/OrgsAndPolicies/autoWaiversSelectors';
 import { faPlus, faTrash } from '@fortawesome/pro-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 import LicenseLockScreenForAutoWaivers from './LicenseLockScreenForAutoWaivers';
 import DeleteAutoWaiverModal from './DeleteAutoWaiverModal';
 import AutoWaiverModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverModal';
@@ -48,6 +52,7 @@ const AutoWaiversConfiguration = () => {
   const { loading, loadError, productFeatures } = useSelector(selectProductFeaturesSlice);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
   const isSbomManager = useSelector(selectIsSbomManager);
 
   const doLoad = () => {
@@ -75,6 +80,7 @@ function AutoWaiversConfigurationContents() {
   const MAX_LOCAL_WAIVERS = 3;
 
   const dispatch = useDispatch();
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
 
   const doLoad = () => dispatch(actions.loadApplicableAutoWaivers());
 
@@ -102,23 +108,41 @@ function AutoWaiversConfigurationContents() {
   return (
     <div data-testid="auto-waivers-configuration">
       <NxPageTitle>
-        <NxH1>Automated Waivers</NxH1>
+        <NxH1>
+          Automated Waivers
+          {!hasAutoWaiverManagement && <TierTag>Enterprise Feature</TierTag>}
+        </NxH1>
         <NxPageTitle.Description>
           Limit disruptions by deprioritizing low-threat violations until a remediation path is available.
         </NxPageTitle.Description>
       </NxPageTitle>
-      <NxTile>
+      <NxTile className={!hasAutoWaiverManagement ? 'iq-banner-flush-top' : ''}>
+        {!hasAutoWaiverManagement && (
+          <EnterpriseFullWidthBanner
+            description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
+          />
+        )}
         <NxTile.Header>
           <NxH2>Configured Auto-Waivers</NxH2>
           <NxTile.HeaderActions>
-            <NxTooltip title={waiverCreationDisabled ? 'Max. configurations reached' : ''}>
+            <NxTooltip title={!hasAutoWaiverManagement ? 'Enterprise Feature' : waiverCreationDisabled ? 'Max. configurations reached' : ''}>
               <NxButton
                 variant={'tertiary'}
                 className={classNames({ disabled: waiverCreationDisabled })}
                 onClick={handleNewAutoWaiverClick}
               >
-                <NxFontAwesomeIcon icon={faPlus}></NxFontAwesomeIcon>
-                <span>New Auto-Waiver</span>
+                {!hasAutoWaiverManagement && (
+                  <>
+                    <NxFontAwesomeIcon icon={faLock} className="iq-auto-waiver-lock-icon"></NxFontAwesomeIcon>
+                    <span className="iq-auto-waiver-btn-text">Preview Add Auto Waiver</span>
+                  </>
+                )}
+                {hasAutoWaiverManagement && (
+                  <>
+                    <NxFontAwesomeIcon icon={faPlus}></NxFontAwesomeIcon>
+                    <span>New Auto-Waiver</span>
+                  </>
+                )}
               </NxButton>
             </NxTooltip>
           </NxTile.HeaderActions>
@@ -141,22 +165,28 @@ function AutoWaiversConfigurationContents() {
               error={loadError}
               retryHandler={doLoad}
             >
-              {localWaivers.map((autoWaiver) => (
-                <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
-              ))}
+              {!hasAutoWaiverManagement ? (
+                <PreviewAutoWaiverRow />
+              ) : (
+                <>
+                  {localWaivers.map((autoWaiver) => (
+                    <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
+                  ))}
 
-              {Object.keys(inheritedWaivers).map((parent) => {
-                return (
-                  <React.Fragment key={parent}>
-                    <NxTable.Row className="iq-inherited-waiver-header">
-                      <NxTable.Cell colSpan={6}>Inherited from {parent}</NxTable.Cell>
-                    </NxTable.Row>
-                    {inheritedWaivers[parent].map((autoWaiver) => (
-                      <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+                  {Object.keys(inheritedWaivers).map((parent) => {
+                    return (
+                      <React.Fragment key={parent}>
+                        <NxTable.Row className="iq-inherited-waiver-header">
+                          <NxTable.Cell colSpan={6}>Inherited from {parent}</NxTable.Cell>
+                        </NxTable.Row>
+                        {inheritedWaivers[parent].map((autoWaiver) => (
+                          <AutoWaiversConfigurationRow key={autoWaiver.autoPolicyWaiverId} autoWaiver={autoWaiver} />
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </>
+              )}
             </NxTable.Body>
           </NxTable>
         </NxTile.Content>
@@ -238,5 +268,47 @@ AutoWaiversConfigurationRow.propTypes = {
     isInherited: PropTypes.bool.isRequired,
   }).isRequired,
 };
+
+function PreviewAutoWaiverRow() {
+  const uiStateRouter = useRouterState();
+  const router = useSelector(selectRouterSlice);
+
+  // Get current owner info from router state to build proper preview href
+  const { currentParams } = router || {};
+  const ownerType = currentParams?.organizationId ? 'organization' : 'application';
+  const ownerId = currentParams?.organizationId || currentParams?.applicationId || 'ROOT_ORGANIZATION_ID';
+
+  // Generate href to auto-waiver details page for preview
+  const { to, params } = deriveEditRoute(router, 'auto-waiver-details', {
+    ownerType: ownerType,
+    autoWaiverOwnerId: ownerId,
+    autoWaiverId: 'preview-auto-waiver',
+  });
+  const href = uiStateRouter.href(to, params);
+
+  return (
+    <NxTable.Row className="iq-auto-waiver-preview-row">
+      <NxTable.Cell>{formatDate(Date.now())}</NxTable.Cell>
+      <NxTable.Cell>Organization Name</NxTable.Cell>
+      <NxTable.Cell>
+        <NxThreatIndicator policyThreatLevel={3} />
+        <span>3</span>
+      </NxTable.Cell>
+      <NxTable.Cell>Not Reachable; No Path Forward</NxTable.Cell>
+      <NxTable.Cell>
+        <NxTextLink href={href}>View</NxTextLink>
+      </NxTable.Cell>
+      <NxTable.Cell hasIcon className="iq-auto-waiver-delete-cell">
+        <NxButton
+          variant={'icon-only'}
+          className="iq-auto-waiver-delete-button disabled"
+          disabled
+        >
+          <NxFontAwesomeIcon icon={faTrash} />
+        </NxButton>
+      </NxTable.Cell>
+    </NxTable.Row>
+  );
+}
 
 export default AutoWaiversConfiguration;

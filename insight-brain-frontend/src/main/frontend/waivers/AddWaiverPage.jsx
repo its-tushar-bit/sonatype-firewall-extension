@@ -122,8 +122,11 @@ export default function AddWaiverPage(props) {
     };
   };
 
+
+
   return (
     <main id="add-waiver-page" className="nx-page-main">
+
       <AddAndRequestWaiversBackButton {...backButtonProps} />
       <div className="nx-page-title">
         <h1 className="nx-h1">Add Waiver</h1>

@@ -6,6 +6,7 @@
 import React from 'react';
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as ltgSelectors from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
@@ -24,6 +25,7 @@ describe('LicenseThreatGroup', () => {
     removeLicenseThreatGroupSpy;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomLicenseThreatGroups').mockReturnValue(true);
     selectIsLoadingSpy = jest.spyOn(ltgSelectors, 'selectIsLoading').mockReturnValue(false);
     selectLicenseThreatGroupLoadErrorSpy = jest
       .spyOn(ltgSelectors, 'selectLicenseThreatGroupLoadError')
@@ -138,7 +140,7 @@ describe('LicenseThreatGroup', () => {
     it('renders tile with the correct page title', () => {
       renderComponent();
 
-      expect(screen.getByText('New License Threat Group')).toBeVisible();
+      expect(screen.getByText('License Threat Group Settings')).toBeVisible();
     });
 
     it('delete button is not present on the page', () => {
@@ -156,7 +158,7 @@ describe('LicenseThreatGroup', () => {
     it('renders tile with the correct page title', () => {
       renderComponent();
 
-      expect(screen.getByText('Edit License Threat Group')).toBeVisible();
+      expect(screen.getByText('License Threat Group Settings')).toBeVisible();
     });
 
     it('calls removeLicenseThreatGroup on remove button click', () => {
@@ -170,6 +172,31 @@ describe('LicenseThreatGroup', () => {
       fireEvent.click(modalDeleteButton);
 
       expect(removeLicenseThreatGroupSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      jest.spyOn(productFeaturesSelectors, 'selectHasCustomLicenseThreatGroups').mockReturnValue(false);
+      selectLicenseThreatGroupIsEditModeSpy.mockReturnValue(true);
+    });
+
+    it('shows mode switch with Default and Custom buttons when editing', () => {
+      renderComponent();
+      expect(screen.getByText('Default')).toBeVisible();
+      expect(screen.getByText('Custom')).toBeVisible();
+    });
+
+    it('does not show Delete button for Pro tier user', () => {
+      renderComponent();
+      expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+    });
+
+    it('shows heading in create mode without mode switch', () => {
+      selectLicenseThreatGroupIsEditModeSpy.mockReturnValue(false);
+      renderComponent();
+      expect(screen.getByText('License Threat Group Settings')).toBeVisible();
+      expect(screen.queryByText('Default')).not.toBeInTheDocument();
     });
   });
 });

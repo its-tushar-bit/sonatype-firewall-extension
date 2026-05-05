@@ -131,4 +131,18 @@ describe('AddOrRequestWaiverButton', () => {
       expect(requestWaiverButton).toBe(null);
     });
   });
+
+  describe('Pro Tier Gating', () => {
+    it('shows lock icon on Request Waiver button when isRequestWaiverGated is true', () => {
+      renderComponent({ hasPermissionForAppWaivers: false, isRequestWaiverGated: true });
+      const requestButton = screen.getByRole('button', { name: /Request Waiver/ });
+      expect(requestButton).toBeVisible();
+    });
+
+    it('shows lock icon on Add Waiver button when isRequestWaiverGated is true', () => {
+      renderComponent({ isRequestWaiverGated: true });
+      const addButton = screen.getByRole('button', { name: /Add Waiver/ });
+      expect(addButton).toBeVisible();
+    });
+  });
 });

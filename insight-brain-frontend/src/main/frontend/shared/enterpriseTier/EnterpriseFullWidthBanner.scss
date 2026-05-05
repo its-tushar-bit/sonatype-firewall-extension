@@ -1,0 +1,145 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+/**
+ * Full-width enterprise feature banner.
+ *
+ * Key design decisions:
+ * 1. Negative margins to bleed banner to tile edges
+ * 2. Parent tile must remove top padding (see .iq-hide-form-footer)
+ * 3. H3 title with inline "Enterprise Feature" tag
+ * 4. Gray background (#F4F4F4) with light gray border (#CECECA)
+ * 5. 6x spacing below banner before form content
+ * 6. Vertical layout with header and message sections
+ */
+.iq-enterprise-full-width-banner {
+  // Negative margins to extend banner to tile edges
+  margin-left: calc(-1 * var(--nx-spacing-6x));
+  margin-right: calc(-1 * var(--nx-spacing-6x));
+  margin-top: 0;
+  margin-bottom: var(--nx-spacing-6x);
+
+  // Visual styling
+  background-color: #f4f4f4 !important;
+  border: 1px solid #cececa !important;
+  border-radius: 6px;
+  padding: var(--nx-spacing-6x);
+
+  // Layout: vertical with header and message
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-2x);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: #1a1a1a !important;
+    border: 1px solid #666666 !important;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-2x);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--nx-spacing-2x);
+
+    .nx-h3 {
+      margin: 0;
+    }
+
+    .iq-tier-tag {
+      margin-left: 0 !important;
+    }
+  }
+
+  &__message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-2x);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--nx-color-text);
+  }
+}
+
+/**
+ * Removes top padding to make banner sit flush to top edge.
+ * Use with EnterpriseFullWidthBanner component.
+ */
+.iq-banner-flush-top {
+  // Remove top padding from tile itself
+  &.nx-tile {
+    padding-top: 0;
+  }
+
+  // Remove top padding from tile content
+  .nx-tile__content {
+    padding-top: 0;
+  }
+
+  // Remove top padding from form elements
+  .nx-form {
+    padding-top: 0;
+  }
+
+  .nx-stateful-form__form-content {
+    padding-top: 0;
+  }
+
+  // Remove top margin from first child to ensure banner is flush to top
+  .nx-tile__content > :first-child {
+    margin-top: 0;
+  }
+}
+
+/**
+ * Legacy class - kept for backward compatibility.
+ * Use iq-banner-flush-top + iq-enterprise-mode-footer instead.
+ */
+.iq-hide-form-footer {
+  // Hide footer if needed (legacy from component labels)
+  .nx-footer {
+    display: none;
+  }
+
+  // Remove top padding from tile itself
+  &.nx-tile {
+    padding-top: 0;
+  }
+
+  // Remove top padding from tile content
+  .nx-tile__content {
+    padding-top: 0;
+  }
+
+  // Remove top padding from form elements
+  .nx-form {
+    padding-top: 0;
+  }
+
+  .nx-stateful-form__form-content {
+    padding-top: 0;
+  }
+
+  // Remove top margin from first child to ensure banner is flush to top
+  .nx-tile__content > :first-child {
+    margin-top: 0;
+  }
+}
+
+/**
+ * Enterprise feature info alert with fixed width.
+ * Used at the bottom of editor forms for categories, labels, policies, etc.
+ */
+.iq-enterprise-mode-footer {
+  .nx-alert {
+    max-width: 800px;
+  }
+}

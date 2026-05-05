@@ -10,6 +10,7 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as ownerSummarySelectors from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import router from 'MainRoot/router/routerInstance';
 
@@ -49,6 +50,7 @@ describe('LabelsTile', () => {
       payload: [],
     });
 
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomComponentLabels').mockReturnValue(true);
     goToCreateLabelSpy = jest.spyOn(actions, 'goToCreateLabel');
 
     renderComponent = () => render(<LabelsTile />);
@@ -177,6 +179,24 @@ describe('LabelsTile', () => {
       expect(screen.getByText('Inherited from ownerNameInherited')).toBeVisible();
       expect(listItems[1]).toHaveTextContent('inherited title');
       expect(listItems[1]).not.toHaveAttribute('href');
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      jest.spyOn(productFeaturesSelectors, 'selectHasCustomComponentLabels').mockReturnValue(false);
+      renderComponent = () => render(<LabelsTile />);
+    });
+
+    it('shows lock icon instead of plus icon when custom-component-labels feature is absent', () => {
+      renderComponent();
+      expect(screen.getByText('Preview Add a Label')).toBeVisible();
+      expect(screen.queryByText('Add a Label')).not.toBeInTheDocument();
+    });
+
+    it('shows Enterprise Feature tooltip text on the add label button', () => {
+      renderComponent();
+      expect(screen.getByText('Preview Add a Label')).toBeVisible();
     });
   });
 });

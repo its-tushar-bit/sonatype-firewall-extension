@@ -7,6 +7,8 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { any, compose, map, path, prop, propEq, isEmpty, not } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
+import { createTierGatedDirtySelector } from 'MainRoot/productFeatures/tierGateUtils';
+import { selectHasCustomAppCategories } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectAssignApplicationCategoriesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
@@ -49,7 +51,13 @@ export const selectAssignAppCategoriesSubmitMaskState = createSelector(
   prop('submitMaskState')
 );
 
-export const selectIsDirty = createSelector(selectAssignApplicationCategoriesSlice, prop('isDirty'));
+const selectIsDirtyInternal = createSelector(selectAssignApplicationCategoriesSlice, prop('isDirty'));
+export const selectIsDirty = createTierGatedDirtySelector(selectIsDirtyInternal, selectHasCustomAppCategories);
+
+export const selectPreviewAppliedMockIds = createSelector(
+  selectAssignApplicationCategoriesSlice,
+  (slice) => slice?.previewAppliedMockIds ?? []
+);
 
 export const selectCategories = createSelector(
   selectApplicableCategories,

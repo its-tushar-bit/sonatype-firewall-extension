@@ -7,12 +7,15 @@ import { createSelector } from '@reduxjs/toolkit';
 import { prop, isNil } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { createTierGatedDirtySelector } from 'MainRoot/productFeatures/tierGateUtils';
+import { selectHasCustomLicenseThreatGroups } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectLicenseThreatGroupSlice = createSelector(selectOrgsAndPoliciesSlice, prop('licenseThreatGroups'));
 export const selectIsLoading = createSelector(selectLicenseThreatGroupSlice, prop('loading'));
 export const selectLicenseThreatGroupLoadError = createSelector(selectLicenseThreatGroupSlice, prop('loadError'));
 export const selectLicenseThreatGroupSubmitError = createSelector(selectLicenseThreatGroupSlice, prop('submitError'));
-export const selectLicenseThreatGroupIsDirty = createSelector(selectLicenseThreatGroupSlice, prop('isDirty'));
+const selectLicenseThreatGroupIsDirtyInternal = createSelector(selectLicenseThreatGroupSlice, prop('isDirty'));
+export const selectLicenseThreatGroupIsDirty = createTierGatedDirtySelector(selectLicenseThreatGroupIsDirtyInternal, selectHasCustomLicenseThreatGroups);
 export const selectSubmitMaskState = createSelector(selectLicenseThreatGroupSlice, prop('submitMaskState'));
 export const selectDeleteMaskState = createSelector(selectLicenseThreatGroupSlice, prop('deleteMaskState'));
 export const selectDeleteError = createSelector(selectLicenseThreatGroupSlice, prop('deleteError'));

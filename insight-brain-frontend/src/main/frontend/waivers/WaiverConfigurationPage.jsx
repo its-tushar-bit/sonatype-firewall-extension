@@ -49,9 +49,12 @@ import { loadAddWaiverData } from './waiverActions';
 import { find, propEq } from 'ramda';
 import { cancelBulkWaive, goToBulkWaivePage, goToWaiverConfirmationPage } from './waiverActions';
 import BulkWaiveTitle from './BulkWaiveTitle';
+import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 
 export default function WaiverConfigurationPage() {
   const dispatch = useDispatch();
+  const hasBulkWaivers = useSelector(selectHasBulkWaivers);
   const selectedViolations = useSelector(selectBulkWaiverSelectedViolations);
   const selectedViolationsCount = selectedViolations.length;
   const waiverReasons = useSelector(selectWaiverReasons);
@@ -192,7 +195,12 @@ export default function WaiverConfigurationPage() {
       <NxLoadWrapper loading={loading} error={error()} retryHandler={doLoad}>
         <BulkWaiveTitle />
 
-        <NxTile>
+        <NxTile className={!hasBulkWaivers ? 'iq-banner-flush-top' : ''}>
+          {!hasBulkWaivers && (
+            <EnterpriseFullWidthBanner
+              description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
+            />
+          )}
           <NxTile.Header>
             <NxTile.HeaderTitle>
               <NxH2>Waiver configuration for {selectedViolationsCount} selected violations</NxH2>

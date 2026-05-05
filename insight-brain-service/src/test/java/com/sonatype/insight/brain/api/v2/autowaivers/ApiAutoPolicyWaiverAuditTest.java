@@ -43,7 +43,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testAddApiAutoPolicyWaiver_Application() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Application app = tempEntity.newApplicationWithParent();
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
@@ -69,7 +69,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testAddApiAutoPolicyWaiver_Organization() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Organization organization = tempEntity.newOrganization();
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
@@ -95,7 +95,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testAddApiAutoPolicyWaiver_Unauthorized() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Application app = tempEntity.newApplicationWithParent();
 
     ApiAutoPolicyWaiverDTO dto = new ApiAutoPolicyWaiverDTO();
@@ -120,7 +120,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testUpdateApiAutoPolicyWaiver_Application() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
@@ -142,7 +142,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testUpdateApiAutoPolicyWaiver_Organization() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
 
@@ -164,7 +164,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testUpdateApiAutoPolicyWaiver_Unauthorized() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
@@ -186,7 +186,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testDeleteApiAutoPolicyWaiver_Application() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
 
@@ -202,7 +202,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testDeleteApiAutoPolicyWaiver_Organization() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
 
@@ -218,7 +218,7 @@ public class ApiAutoPolicyWaiverAuditTest
 
   @Test
   public void testDeleteApiAutoPolicyWaiver_Unauthorized() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
     restRequest().with(unauthorizedUser())

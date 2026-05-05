@@ -7,6 +7,7 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize } from '../util/jsUtil';
+import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import moment from 'moment';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../util/CommonServices';
@@ -77,6 +78,11 @@ export const WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED = 'WAIVERS_LOAD_SIMILAR_WAIVERS
 
 export const WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME = 'WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME';
 
+export const WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL = 'WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL';
+export const WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL = 'WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL';
+export const showEnterpriseWaiverFeaturesModal = noPayloadActionCreator(WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL);
+export const hideEnterpriseWaiverFeaturesModal = noPayloadActionCreator(WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL);
+
 const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
 const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
 const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
@@ -137,7 +143,7 @@ export const saveWaiverAndRedirect = (
   expiration,
   waiverReasonId,
   expireWhenRemediationAvailable
-) => (dispatch) =>
+) => (dispatch, getState) =>
   saveWaiver(
     policyViolationId,
     waiverScope,
@@ -149,7 +155,14 @@ export const saveWaiverAndRedirect = (
     waiverReasonId,
     expireWhenRemediationAvailable
   )
-    .then(() => dispatch(returnToAddOrRequestWaiverOriginPage()))
+    .then(() => {
+      dispatch(returnToAddOrRequestWaiverOriginPage());
+      if (!selectHasBulkWaivers(getState())) {
+        setTimeout(() => {
+          dispatch(showEnterpriseWaiverFeaturesModal());
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      }
+    })
     .catch((err) => dispatch(saveWaiverFailed(err)));
 
 export const saveWaiverAndLoadPolicyViolationData = (

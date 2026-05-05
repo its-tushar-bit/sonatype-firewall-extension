@@ -24,9 +24,10 @@ import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverStat
 import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -109,6 +110,7 @@ public class ApiAutoPolicyWaiverResource
     return apiAutoPolicyWaiverService.getAutoPolicyWaivers(ownerType, ownerId);
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @POST
   @Path("/v2/" + OWNERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -144,6 +146,7 @@ public class ApiAutoPolicyWaiverResource
     return apiAutoPolicyWaiverService.addAutoPolicyWaivers(ownerType, ownerId, autoPolicyWaivers);
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @POST
   @Path(OWNERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -178,6 +181,7 @@ public class ApiAutoPolicyWaiverResource
     return apiAutoPolicyWaiverService.addAutoPolicyWaiver(ownerType, ownerId, autoPolicyWaiverDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @PUT
   @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -214,6 +218,7 @@ public class ApiAutoPolicyWaiverResource
         autoPolicyWaiverDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @DELETE
   @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
   @Audited(AuditEvent.DELETE_AUTO_WAIVER)

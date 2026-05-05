@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/productFeatures/productFeaturesSlice';
+import reducer, { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('productFeatures slice', () => {
   describe('productFeatures/fetchProductFeaturesIfNeeded/fulfilled', () => {
@@ -24,6 +24,62 @@ describe('productFeatures slice', () => {
       expect(newState.productFeatures.enforcement).toBe(true);
       expect(newState.productFeatures.firewall).toBe(true);
       expect(newState.productFeatures.automation).toBe(true);
+    });
+  });
+
+  // CLM-39601: Enterprise preview mode actions
+  describe('setEnterprisePreviewMode', () => {
+    it('sets isEnterprisePreviewMode to true', () => {
+      const state = Object.freeze({
+        loading: false,
+        loadError: null,
+        productFeatures: {},
+        isEnterprisePreviewMode: false,
+      });
+
+      const newState = reducer(state, actions.setEnterprisePreviewMode(true));
+      expect(newState.isEnterprisePreviewMode).toBe(true);
+    });
+
+    it('sets isEnterprisePreviewMode to false', () => {
+      const state = Object.freeze({
+        loading: false,
+        loadError: null,
+        productFeatures: {},
+        isEnterprisePreviewMode: true,
+      });
+
+      const newState = reducer(state, actions.setEnterprisePreviewMode(false));
+      expect(newState.isEnterprisePreviewMode).toBe(false);
+    });
+  });
+
+  describe('dismissPopover', () => {
+    it('sets dismissedPopovers[featureId] to true', () => {
+      const state = {
+        loading: false,
+        loadError: null,
+        productFeatures: {},
+        isEnterprisePreviewMode: false,
+        dismissedPopovers: {},
+      };
+
+      const newState = reducer(state, actions.dismissPopover('constraints'));
+      expect(newState.dismissedPopovers.constraints).toBe(true);
+    });
+
+    it('preserves existing dismissals when a new featureId is dismissed', () => {
+      const state = {
+        loading: false,
+        loadError: null,
+        productFeatures: {},
+        isEnterprisePreviewMode: false,
+        dismissedPopovers: { constraints: true },
+      };
+
+      const newState = reducer(state, actions.dismissPopover('labels'));
+      expect(newState.dismissedPopovers.constraints).toBe(true);
+      expect(newState.dismissedPopovers.labels).toBe(true);
     });
   });
 });

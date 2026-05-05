@@ -10,6 +10,7 @@
 @use './NotificationsMenu/NotificationsMenu';
 @use './SolutionSwitcherContainer/SolutionSwitcherContainer';
 @use './SystemPreferencesMenu/SystemPreferencesMenu';
+@use './TierBadge/TierBadge';
 
 menu-bar {
   display: contents;

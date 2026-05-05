@@ -44,7 +44,7 @@ public class ApiAutoPolicyWaiverResourceTest
   public void setUp() {
     autoPolicyWaiverDAO = lookup(AutoPolicyWaiverDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
-    licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
   }
 
   @After

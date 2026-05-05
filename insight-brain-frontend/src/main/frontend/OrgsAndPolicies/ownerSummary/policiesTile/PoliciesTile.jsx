@@ -6,6 +6,8 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import { selectHasCustomPolicies } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   NxH2,
   NxTile,
@@ -14,6 +16,7 @@ import {
   NxLoadWrapper,
   NxList,
   NxTableContainer,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { always, compose, propEq, reject, when, complement, isNil } from 'ramda';
 
@@ -59,6 +62,7 @@ export default function PoliciesTile() {
   }, [entityId]);
 
   const goToCreatePolicy = () => dispatch(actions.goToCreatePolicy());
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
 
   const stagesNumber = `policy-tile__stages-num--${actionStages ? actionStages.length : 7}`;
 
@@ -77,10 +81,12 @@ export default function PoliciesTile() {
           </NxTile.Headings>
           <NxTile.HeaderActions>
             {isSbomManager ? null : (
-              <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-                <NxFontAwesomeIcon icon={faPlus} />
-                <span>Add a Policy</span>
-              </NxButton>
+              <NxTooltip title={!hasCustomPolicies ? 'Enterprise Feature' : ''}>
+                <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
+                  <NxFontAwesomeIcon icon={!hasCustomPolicies ? faLock : faPlus} />
+                  <span>{!hasCustomPolicies ? 'Preview Add a Policy' : 'Add a Policy'}</span>
+                </NxButton>
+              </NxTooltip>
             )}
           </NxTile.HeaderActions>
         </NxTile.Header>

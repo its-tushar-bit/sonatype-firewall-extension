@@ -954,6 +954,24 @@ describe('BulkWaivePage component', () => {
     });
   });
 
+  describe('Pro Tier Gating', () => {
+    it('shows enterprise banner when bulk-waivers feature is absent', () => {
+      preloadedState = getDefaultPreloadedState();
+      preloadedState.productFeatures = { productFeatures: {} };
+      preloadedState.productLicense = { license: { products: ['Sonatype Lifecycle Pro'] } };
+      renderComponent();
+      expect(screen.getByText(/Efficiently manage multiple policy violations/)).toBeVisible();
+    });
+
+    it('applies iq-banner-flush-top class when feature is absent', () => {
+      preloadedState = getDefaultPreloadedState();
+      preloadedState.productFeatures = { productFeatures: {} };
+      preloadedState.productLicense = { license: { products: ['Sonatype Lifecycle Pro'] } };
+      renderComponent();
+      expect(screen.getByText(/Efficiently manage multiple policy violations/)).toBeVisible();
+    });
+  });
+
   function renderComponent(additionalState = {}) {
     const finalState = { ...preloadedState, ...additionalState };
     return render(<BulkWaivePage />, { preloadedState: finalState });
@@ -961,6 +979,9 @@ describe('BulkWaivePage component', () => {
 
   function getDefaultPreloadedState(entries = []) {
     return {
+      productFeatures: {
+        productFeatures: { 'bulk-waivers': true },
+      },
       waivers: {
         waiverReasons: {
           loading: false,

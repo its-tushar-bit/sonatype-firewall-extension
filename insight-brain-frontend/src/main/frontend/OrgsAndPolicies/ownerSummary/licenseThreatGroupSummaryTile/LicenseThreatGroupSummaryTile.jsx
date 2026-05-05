@@ -7,7 +7,9 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { NxButton, NxTile, NxLoadWrapper, NxH2, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import { selectHasCustomLicenseThreatGroups } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { NxButton, NxTile, NxLoadWrapper, NxH2, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { prop } from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
@@ -23,6 +25,7 @@ export default function LicenseThreatGroupSummaryTile() {
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadApplicableLicenseThreatGroups());
   const goToNewLTG = () => dispatch(actions.goToCreateLTG());
+  const hasCustomLicenseThreatGroups = useSelector(selectHasCustomLicenseThreatGroups);
 
   const applicableLTGs = useSelector(selectApplicableLicenseThreatGroup);
   const entityId = useSelector(selectEntityId);
@@ -44,10 +47,12 @@ export default function LicenseThreatGroupSummaryTile() {
           </NxTile.HeaderTitle>
           {currentOwnerType === 'organization' ? (
             <NxTile.HeaderActions>
-              <NxButton variant="tertiary" onClick={goToNewLTG} id="add-ltg-button">
-                <NxFontAwesomeIcon icon={faPlus} />
-                <span>Add a Threat Group</span>
-              </NxButton>
+              <NxTooltip title={!hasCustomLicenseThreatGroups ? 'Enterprise Feature' : ''}>
+                <NxButton variant="tertiary" onClick={goToNewLTG} id="add-ltg-button">
+                  <NxFontAwesomeIcon icon={!hasCustomLicenseThreatGroups ? faLock : faPlus} />
+                  <span>{!hasCustomLicenseThreatGroups ? 'Preview Add a Threat Group' : 'Add a Threat Group'}</span>
+                </NxButton>
+              </NxTooltip>
             </NxTile.HeaderActions>
           ) : null}
         </NxTile.Header>

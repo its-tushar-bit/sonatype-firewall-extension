@@ -35,3 +35,20 @@
     margin-bottom: 0;
   }
 }
+
+.iq-auto-waiver-modal--pro-tier {
+  .nx-footer {
+    .nx-form__submit-btn {
+      display: none;
+    }
+  }
+
+  // Make enterprise banner flush with modal content
+  .nx-modal-content {
+    padding-top: 0;
+
+    > :first-child {
+      margin-top: 0;
+    }
+  }
+}

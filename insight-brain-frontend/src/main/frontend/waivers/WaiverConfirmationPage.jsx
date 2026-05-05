@@ -16,6 +16,7 @@ import {
   NxThreatCounter,
   NxForm,
   NxInfoAlert,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import {
   selectBulkWaiverSelectedViolations,
@@ -30,6 +31,9 @@ import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 import { goToBulkWaivePage, cancelBulkWaive, goToWaiverConfigurationPage } from './waiverActions';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import BulkWaiveTitle from './BulkWaiveTitle';
+import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
+
 
 export default function WaiverConfirmationPage() {
   const dispatch = useDispatch();
@@ -39,6 +43,7 @@ export default function WaiverConfirmationPage() {
   const waiverReasons = useSelector(selectWaiverReasons);
   const hasMixedViolations = useSelector(selectHasMixedViolations);
   const { submitMaskState, submitError } = useSelector((state) => state.waivers.bulkWaive);
+  const hasBulkWaivers = useSelector(selectHasBulkWaivers);
   const componentCount = new Set(selectedViolations.map((violation) => violation.derivedComponentName)).size;
 
   const getPolicyThreatLevelCounts = () => {
@@ -158,15 +163,22 @@ export default function WaiverConfirmationPage() {
   return (
     <NxPageMain className="iq-bulk-waiver-confirmation-page">
       <BulkWaiveTitle />
-      <NxTile>
+      <NxTile className={!hasBulkWaivers ? 'iq-banner-flush-top' : ''}>
+        {!hasBulkWaivers && (
+          <EnterpriseFullWidthBanner
+            description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
+          />
+        )}
         <NxForm
-          onSubmit={onSubmit}
+          onSubmit={hasBulkWaivers ? onSubmit : undefined}
           showValidationErrors={false}
           submitError={submitError}
           submitMaskState={submitMaskState}
-          submitBtnText="Submit"
+          submitBtnText={hasBulkWaivers ? 'Submit' : undefined}
           additionalFooterBtns={additionalFooterBtns}
+          className={!hasBulkWaivers ? 'iq-enterprise-mode-footer' : ''}
         >
+
           <NxTile.Header>
             <NxTile.HeaderTitle>
               <NxH2>Confirmation</NxH2>
@@ -223,6 +235,12 @@ export default function WaiverConfirmationPage() {
               </NxReadOnly>
             </NxFieldset>
           </NxTile.Content>
+          {!hasBulkWaivers && (
+            <NxInfoAlert>
+              This is an Enterprise feature. Changes can&apos;t be saved. Go back to{' '}
+              <NxTextLink onClick={cancelClick}>Application Report</NxTextLink>
+            </NxInfoAlert>
+          )}
         </NxForm>
       </NxTile>
     </NxPageMain>

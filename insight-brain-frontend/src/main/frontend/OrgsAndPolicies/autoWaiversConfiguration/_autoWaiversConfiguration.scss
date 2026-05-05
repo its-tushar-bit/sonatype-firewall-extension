@@ -39,3 +39,27 @@
     padding: var(--nx-spacing-base);
   }
 }
+
+// Enterprise preview mode lock icon styling
+.iq-auto-waiver-lock-icon {
+  color: var(--nx-color-text);
+  margin-right: var(--nx-spacing-2x);
+}
+
+.iq-auto-waiver-btn-text {
+  margin-left: 0; // Lock icon already has margin-right
+}
+
+// Preview row styling for enterprise mode
+.iq-auto-waiver-preview-row {
+  opacity: 0.7;
+}
+
+// Fix enterprise banner full width in viewport-sized auto-waiver details tile
+#auto-waiver-details.iq-banner-flush-top .iq-enterprise-full-width-banner {
+  margin-left: calc(-1 * var(--nx-tile-spacing));
+  margin-right: calc(-1 * var(--nx-tile-spacing));
+  border-radius: 0;
+}
+
+

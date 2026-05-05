@@ -27,6 +27,8 @@ import {
   WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL,
   WAIVERS_RESET_ADD_WAIVER_DATA,
   WAIVERS_ADD_WAIVER_SET_REASON,
+  WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL,
+  WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL,
 } from './waiverActions';
 
 const initState = Object.freeze({
@@ -36,6 +38,7 @@ const initState = Object.freeze({
   submitMaskState: null,
   submitError: null,
   showUnsavedChangesModal: false,
+  showEnterpriseWaiverFeaturesModal: false,
   // data
   waiverComments: Object.freeze(initialState('')),
   availableWaiverScopes: null,
@@ -182,6 +185,8 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SET_REASON]: setWaiverReason,
   [WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME]: setCustomExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
+  [WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({ ...state, showEnterpriseWaiverFeaturesModal: true }),
+  [WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({ ...state, showEnterpriseWaiverFeaturesModal: false }),
   [WAIVERS_RESET_ADD_WAIVER_DATA]: always(initState),
   [UI_ROUTER_ON_FINISH]: always(initState),
 };

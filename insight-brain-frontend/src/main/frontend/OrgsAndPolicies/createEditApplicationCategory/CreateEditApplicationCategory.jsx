@@ -5,6 +5,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
 import {
   NxStatefulForm,
   NxPageTitle,
@@ -16,7 +17,12 @@ import {
   NxFormGroup,
   NxModal,
   NxWarningAlert,
+  NxFontAwesomeIcon,
+  NxInfoAlert,
+  NxTextLink,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from './createEditApplicationCategoriesSlice';
@@ -32,10 +38,16 @@ import {
   selectDeleteMaskState,
   selectAssociatedApplicationNames,
   selectTagPolicyList,
+  selectIsEditMode,
 } from './createEditApplicationCategoriesSelectors';
 
 import { backendToRscColorMap, rscToBackendColorMap } from '../utility/util';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import ApplicationCategoryReadOnlyView from './ApplicationCategoryReadOnlyView';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
+import { selectHasCustomAppCategories, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import './_CreateEditApplicationCategory.scss';
 
 const getValidationMessage = (isDirty, validationError) => {
   if (!isDirty) {
@@ -72,8 +84,13 @@ export default function CreateEditApplicationCategory() {
   const { categoryId } = useSelector(selectRouterCurrentParams);
   const associatedApplicationNames = useSelector(selectAssociatedApplicationNames);
   const tagPolicyList = useSelector(selectTagPolicyList);
+  const isEditMode = useSelector(selectIsEditMode);
+  const isEnterprisePreviewMode = useSelector(selectIsEnterprisePreviewMode);
+  const hasCustomAppCategories = useSelector(selectHasCustomAppCategories);
+  const isFeatureGated = !hasCustomAppCategories;
 
-  const { color, description, name } = useSelector(selectCurrentCategory);
+  const currentCategory = useSelector(selectCurrentCategory);
+  const { color, description, name } = currentCategory;
 
   const saveCategoryColor = (color) => dispatch(actions.setCategoryColor(color));
   const onChangeName = (val) => dispatch(actions.setCategoryName(val));
@@ -81,6 +98,28 @@ export default function CreateEditApplicationCategory() {
   const saveCategory = () => dispatch(actions.saveApplicationCategory());
   const removeCategory = () => dispatch(actions.removeApplicationCategory());
   const doLoad = () => dispatch(actions.loadCategoryEditor());
+  const handleToggleMode = () => {
+    const newMode = !isEnterprisePreviewMode;
+    // Zero dirty synchronously so the router navigation guard (which reads the
+    // raw state path) does not fire the unsaved-changes modal for non-saveable
+    // preview edits made before the toggle.
+    dispatch(actions.resetIsDirty());
+    dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
+    if (newMode) {
+      doLoad(); // Reload for clean Custom view
+    }
+    else {
+      doLoad(); // Reload to discard Custom edits
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Reset preview mode on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(productFeaturesActions.setEnterprisePreviewMode(false));
+    };
+  }, [dispatch]);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const openDeleteModal = () => setIsDeleteModalOpen(true);
@@ -111,17 +150,38 @@ export default function CreateEditApplicationCategory() {
 
   return (
     <>
-      <NxPageTitle>
-        <NxH1>{categoryId ? 'Edit' : 'New'} Application Category</NxH1>
-        {!categoryId && (
-          <NxPageTitle.Description>
-            Applications with similar attributes can be grouped and categorized, which then can be used to apply
-            policies to a subset of applications through inheritance.
-          </NxPageTitle.Description>
+      <div className="iq-application-category-editor__header">
+        <NxPageTitle>
+          <NxH1>Application Category Settings</NxH1>
+        </NxPageTitle>
+        {isFeatureGated && isEditMode && (
+          <div className="iq-application-category-editor__mode-switch">
+            <NxButton
+              variant={!isEnterprisePreviewMode ? 'primary' : 'secondary'}
+              onClick={() => !isEnterprisePreviewMode || handleToggleMode()}
+              className="iq-application-category-editor__mode-button iq-application-category-editor__mode-button--left"
+            >
+              Default
+            </NxButton>
+            <NxTooltip title="Enterprise Feature">
+              <NxButton
+                variant={isEnterprisePreviewMode ? 'primary' : 'secondary'}
+                onClick={() => isEnterprisePreviewMode || handleToggleMode()}
+                className="iq-application-category-editor__mode-button iq-application-category-editor__mode-button--right"
+              >
+                Custom <NxFontAwesomeIcon icon={faLock} />
+              </NxButton>
+            </NxTooltip>
+          </div>
         )}
-      </NxPageTitle>
+      </div>
 
-      <NxTile>
+      <NxTile
+        className={classNames({
+          'iq-banner-flush-top': isFeatureGated && (isEnterprisePreviewMode || !isEditMode),
+          'iq-enterprise-mode-footer': isFeatureGated,
+        })}
+      >
         <NxStatefulForm
           id="create-edit-category"
           onSubmit={saveCategory}
@@ -134,7 +194,11 @@ export default function CreateEditApplicationCategory() {
           validationErrors={getValidationMessage(isDirty, validationError)}
           submitError={submitError}
           additionalFooterBtns={
-            categoryId ? (
+            isEditMode && isEnterprisePreviewMode ? (
+              <NxButton variant="secondary" onClick={() => window.history.back()} type="button">
+                Back
+              </NxButton>
+            ) : categoryId && !isFeatureGated ? (
               <NxButton id="delete-category-button" variant="tertiary" onClick={openDeleteModal} type="button">
                 Delete
               </NxButton>
@@ -142,27 +206,71 @@ export default function CreateEditApplicationCategory() {
           }
         >
           <NxTile.Content>
-            <NxFormGroup id="editor-category-name" label="Category Name" isRequired>
-              <NxTextInput onChange={onChangeName} {...name} validatable={true} />
-            </NxFormGroup>
+            {isFeatureGated && !isEnterprisePreviewMode && isEditMode ? (
+              <ApplicationCategoryReadOnlyView category={currentCategory} />
+            ) : isFeatureGated ? (
+              <>
+                <EnterpriseFullWidthBanner
+                  title="Custom Application Categories"
+                  description="Create custom categories to organize applications according to your business needs."
+                />
+                <NxFormGroup id="editor-category-name" label="Category Name" isRequired>
+                  <NxTextInput onChange={onChangeName} {...name} validatable={true} />
+                </NxFormGroup>
 
-            <NxFormGroup id="editor-category-description" label="Brief Description" isRequired>
-              <NxTextInput
-                className="nx-text-input--long"
-                onChange={onChangeDescription}
-                {...description}
-                validatable={true}
-                type="textarea"
-              />
-            </NxFormGroup>
+                <NxFormGroup id="editor-category-description" label="Brief Description" isRequired>
+                  <NxTextInput
+                    className="nx-text-input--long"
+                    onChange={onChangeDescription}
+                    {...description}
+                    validatable={true}
+                    type="textarea"
+                  />
+                </NxFormGroup>
 
-            <NxColorPicker
-              id="editor-category-color-picker"
-              label="Color"
-              value={backendToRscColorMap[color]}
-              onChange={(value) => saveCategoryColor(rscToBackendColorMap[value])}
-              isRequired
-            />
+                <NxColorPicker
+                  id="editor-category-color-picker"
+                  label="Color"
+                  value={backendToRscColorMap[color]}
+                  onChange={(value) => saveCategoryColor(rscToBackendColorMap[value])}
+                  isRequired
+                />
+
+                {(isEditMode && isEnterprisePreviewMode || !isEditMode) && (
+                  <NxInfoAlert>
+                    This is an Enterprise feature. Changes can&apos;t be saved.
+                    {isEditMode && (
+                      <>
+                        {' '}
+                        <NxTextLink onClick={handleToggleMode}>Return to Lifecycle Pro</NxTextLink>
+                      </>
+                    )}
+                  </NxInfoAlert>
+                )}
+              </>
+            ) : (
+              <>
+                <NxFormGroup id="editor-category-name" label="Category Name" isRequired>
+                  <NxTextInput onChange={onChangeName} {...name} validatable={true} />
+                </NxFormGroup>
+                <NxFormGroup id="editor-category-description" label="Brief Description" isRequired>
+                  <NxTextInput
+                    className="nx-text-input--long"
+                    onChange={onChangeDescription}
+                    {...description}
+                    validatable={true}
+                    type="textarea"
+                  />
+                </NxFormGroup>
+                <NxColorPicker
+                  id="editor-category-color-picker"
+                  label="Color"
+                  value={backendToRscColorMap[color]}
+                  onChange={(value) => saveCategoryColor(rscToBackendColorMap[value])}
+                  isRequired
+                />
+              </>
+            )}
           </NxTile.Content>
         </NxStatefulForm>
       </NxTile>

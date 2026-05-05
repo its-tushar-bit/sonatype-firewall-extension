@@ -40,6 +40,8 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -120,6 +122,14 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_TEAMS_EDITION = "Teams Edition";
 
+  public static final String PRODUCT_LIFECYCLE_PRO = "Lifecycle Pro";
+
+  public static final String PRODUCT_LIFECYCLE_ENTERPRISE = "Lifecycle Enterprise";
+
+  private static final String TIER_PRO = "Pro";
+
+  private static final String TIER_ENTERPRISE = "Enterprise";
+
   private static final Set<String> LIFECYCLE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
       ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
       ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
@@ -169,6 +179,8 @@ public class CLMLicenseManager
 
   private final DeveloperEnablementService developerEnablementService;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
   public CLMLicenseManager(
       final InsightConfig config,
@@ -183,11 +195,13 @@ public class CLMLicenseManager
       final AuditRecorder auditRecorder,
       final TaskScheduler taskScheduler,
       final DeveloperEnablementService developerEnablementService,
-      final Set<ProductLicenseListener> productLicenseListeners)
+      final Set<ProductLicenseListener> productLicenseListeners,
+      final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.applicationDAO = applicationDAO;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.productLicense = productLicense;
     this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
@@ -570,6 +584,10 @@ public class CLMLicenseManager
     return LIFECYCLE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
+  private static boolean hasAnyLifecycleProduct(Set<String> products) {
+    return !Collections.disjoint(LIFECYCLE_PRODUCTS, products);
+  }
+
   public static boolean hasSbomManagerProduct(ProductLicense productLicense) {
     return SBOM_MANAGER_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
@@ -588,6 +606,19 @@ public class CLMLicenseManager
 
   private String getProductEdition() {
     Set<String> products = getProducts();
+
+    // Check tier for lifecycle products
+    if (hasAnyLifecycleProduct(products)) {
+      String normalizedTier = normalizeTier(getLifecycleTier());
+      if (TIER_PRO.equalsIgnoreCase(normalizedTier)) {
+        return PRODUCT_LIFECYCLE_PRO;
+      }
+      else if (TIER_ENTERPRISE.equalsIgnoreCase(normalizedTier)) {
+        return PRODUCT_LIFECYCLE_ENTERPRISE;
+      }
+    }
+
+    // Legacy/null tier or non-lifecycle products — return original product edition
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       return PRODUCT_LIFECYCLE;
     }
@@ -976,6 +1007,15 @@ public class CLMLicenseManager
       stageTypes.addAll(allStagesWithoutCompliance);
     }
 
+    // Lifecycle tiering (CLM-39600): Enterprise-only features (custom policies, labels, categories,
+    // license threat groups, auto-waivers, waiver requests, bulk waivers) are granted based on the
+    // license tier property. Pro gets base Lifecycle features only. Enterprise and Legacy (including
+    // all pre-tiering SKUs) get the full set. HDS can override individual features for Pro customers.
+    if (hasAnyLifecycleProduct(products)) {
+      String tier = getLifecycleTier();
+      applyTierFeatures(tier, features);
+    }
+
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //
@@ -990,7 +1030,14 @@ public class CLMLicenseManager
         LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING, //
         LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS, //
         LicensedFeature.CPE_MATCHING, //
-        LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS //
+        LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS, //
+        LicensedFeature.CUSTOM_POLICIES, //
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES, //
+        LicensedFeature.CUSTOM_COMPONENT_LABELS, //
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS, //
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT, //
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW, //
+        LicensedFeature.BULK_WAIVERS //
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {
@@ -1009,6 +1056,51 @@ public class CLMLicenseManager
   private static void addDevelopmentFeatures(final Set<LicensedFeature> features) {
     features.add(LicensedFeature.API_PAGE);
     features.add(LicensedFeature.DEVELOPER_DASHBOARD);
+  }
+
+  private String getLifecycleTier() {
+    try {
+      SystemConfigurationProperty prop =
+          systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.LIFECYCLE_TIER);
+      return prop != null ? prop.getValue() : null;
+    }
+    catch (Exception e) {
+      log.warn("Could not read LifecycleTier config, defaulting to Legacy", e);
+      return null;
+    }
+  }
+
+  private static String normalizeTier(String tier) {
+    return tier != null ? tier.trim() : null;
+  }
+
+  private static void applyTierFeatures(String tier, Set<LicensedFeature> features) {
+    String normalizedTier = normalizeTier(tier);
+
+    if (TIER_PRO.equalsIgnoreCase(normalizedTier)) {
+      return;
+    }
+
+    if (TIER_ENTERPRISE.equalsIgnoreCase(normalizedTier)) {
+      addEnterpriseTierFeatures(features);
+      return;
+    }
+
+    // Legacy / null / unknown — currently same as Enterprise, can diverge later
+    if (normalizedTier != null) {
+      log.info("Unrecognized lifecycle tier '{}', treating as Legacy (Enterprise features granted)", normalizedTier);
+    }
+    addEnterpriseTierFeatures(features);
+  }
+
+  private static void addEnterpriseTierFeatures(final Set<LicensedFeature> features) {
+    features.add(LicensedFeature.CUSTOM_POLICIES);
+    features.add(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES);
+    features.add(LicensedFeature.CUSTOM_COMPONENT_LABELS);
+    features.add(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS);
+    features.add(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+    features.add(LicensedFeature.WAIVER_REQUEST_WORKFLOW);
+    features.add(LicensedFeature.BULK_WAIVERS);
   }
 
   private static void addLifecycleFeatures(final Set<LicensedFeature> features) {

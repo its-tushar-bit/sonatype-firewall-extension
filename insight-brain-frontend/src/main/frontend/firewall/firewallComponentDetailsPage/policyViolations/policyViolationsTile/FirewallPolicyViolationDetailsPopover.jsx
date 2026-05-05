@@ -25,7 +25,10 @@ import {
   selectHasPermissionToAddWaivers,
 } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsWaiverRequestWorkflowEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsWaiverRequestWorkflowEnabled,
+  selectHasWaiverRequestWorkflow,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectRepositoryComponents } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import FirewallViolationPageContainer from './FirewallViolationPageContainer';
 
@@ -45,6 +48,10 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const hasPermissionForAddWaivers = useSelector(selectHasPermissionToAddWaivers);
   const loading = useSelector(selectFirewallIsLoading);
   const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
+  const hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow);
+
+  // Config flag OFF → button hidden (existing behavior). Config flag ON + no entitlement → button with lock icon.
+  const effectiveWaiverRequestEnabled = isWaiverRequestWorkflowEnabled && hasWaiverRequestWorkflow;
 
   // Try to find the violation in component details violations first, then fall back to bulk waive violations, or use selectedPolicyViolation directly
   const policyDetail = selectedPolicyViolation
@@ -119,7 +126,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
               hasPermissionForAppWaivers={hasPermissionForAddWaivers}
               isFirewallOrRepository
-              isWaiverRequestWorkflowEnabled={isWaiverRequestWorkflowEnabled}
+              isWaiverRequestWorkflowEnabled={effectiveWaiverRequestEnabled}
               onClickAddWaiver={redirectToAddWaiverPage}
               onClickRequestWaiver={() => {}}
             />

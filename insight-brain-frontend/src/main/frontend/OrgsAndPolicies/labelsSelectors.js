@@ -8,6 +8,8 @@ import { prop, isNil } from 'ramda';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 import { hasValidationErrors, GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
+import { createTierGatedDirtySelector } from 'MainRoot/productFeatures/tierGateUtils';
+import { selectHasCustomComponentLabels } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectLabelsSlice = createSelector(selectOrgsAndPoliciesSlice, prop('labels'));
 export const selectApplicableLabels = createSelector(selectLabelsSlice, prop('applicableLabels'));
@@ -15,7 +17,8 @@ export const selectInheritedLabelsOpen = createSelector(selectLabelsSlice, prop(
 export const selectLabelsLoading = createSelector(selectLabelsSlice, prop('loading'));
 export const selectLabelsLoadError = createSelector(selectLabelsSlice, prop('loadError'));
 export const selectLabelsSubmitError = createSelector(selectLabelsSlice, prop('submitError'));
-export const selectLabelsIsDirty = createSelector(selectLabelsSlice, prop('isDirty'));
+const selectLabelsIsDirtyInternal = createSelector(selectLabelsSlice, prop('isDirty'));
+export const selectLabelsIsDirty = createTierGatedDirtySelector(selectLabelsIsDirtyInternal, selectHasCustomComponentLabels);
 export const selectLabelsSubmitMaskState = createSelector(selectLabelsSlice, prop('submitMaskState'));
 export const selectLabelsIsEditMode = createSelector(
   selectRouterCurrentParams,

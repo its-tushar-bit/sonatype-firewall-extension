@@ -47,7 +47,7 @@ describe('Auto Waivers Configuration Component', () => {
   });
 
   beforeEach(() => {
-    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers']);
+    axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers', 'auto-waiver-management']);
 
     renderComponent = (preloadedState) =>
       render(<AutoWaiversConfiguration />, { preloadedState: preloadedState || defaultPreloadedState });
@@ -392,6 +392,27 @@ describe('Auto Waivers Configuration Component', () => {
 
     const deleteConfirmationModal = await screen.findByTestId('iq-delete-auto-waiver-modal');
     expect(deleteConfirmationModal).toBeInTheDocument();
+  });
+
+  describe('Pro Tier Gating', () => {
+    const proState = {
+      ...defaultPreloadedState,
+      productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+    };
+
+    beforeEach(() => {
+      axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['developer-dashboard', 'auto-waivers']);
+    });
+
+    it('shows Enterprise Feature tag when auto-waiver-management feature is absent', async () => {
+      renderComponent(proState);
+      expect(await screen.findByText('Enterprise Feature')).toBeVisible();
+    });
+
+    it('shows enterprise banner when auto-waiver-management feature is absent', async () => {
+      renderComponent(proState);
+      expect(await screen.findByText(/Automatically apply waivers/)).toBeVisible();
+    });
   });
 });
 

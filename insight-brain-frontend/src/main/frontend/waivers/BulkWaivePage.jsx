@@ -47,6 +47,8 @@ import ReportFilterPopover from 'MainRoot/applicationReport/ReportFilterPopover'
 import { selectBulkWaiverCheckboxState } from './bulkWaiverSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import BulkWaiveTitle from './BulkWaiveTitle';
+import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 
 const getDirection = (sortConfig, key) => {
   return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
@@ -66,6 +68,7 @@ export default function BulkWaivePage() {
   const constraintFilter = getSubstringFiltersProp('constraintName');
   const sortConfiguration = useSelector(selectSortConfiguration);
   const routerParams = useSelector(selectRouterCurrentParams);
+  const hasBulkWaivers = useSelector(selectHasBulkWaivers);
   const isCdpBulkWaive = !!routerParams.hash;
   const constraintOrComponentName = isCdpBulkWaive ? 'constraintName' : 'derivedComponentName';
 
@@ -270,7 +273,14 @@ export default function BulkWaivePage() {
       <NxPageMain id="bulk-waive-page-container" className="nx-viewport-sized__container">
         <NxLoadWrapper error={loadError} loading={isLoading} retryHandler={retryHandler}>
           <BulkWaiveTitle />
-          <NxTile className="nx-viewport-sized__container">
+          <NxTile
+            className={`nx-viewport-sized__container${!hasBulkWaivers ? ' iq-banner-flush-top' : ''}`}
+          >
+            {!hasBulkWaivers && (
+              <EnterpriseFullWidthBanner
+                description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
+              />
+            )}
             <NxTile.Header>
               <NxTile.HeaderTitle>
                 <NxH2>Choose violations to Waive</NxH2>

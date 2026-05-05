@@ -29,7 +29,9 @@ import {
   selectIsStandaloneDeveloper,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
-import { selectIsExpireWhenRemediationAvailableWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsExpireWhenRemediationAvailableWaiversEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectCurrentUser } from 'MainRoot/user/userSessionSelectors';
 
 function mapStateToProps(state) {

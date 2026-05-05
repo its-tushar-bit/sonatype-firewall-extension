@@ -17,6 +17,7 @@ describe('EditPolicySummary', () => {
   let renderComponent;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomPolicies').mockReturnValue(true);
     renderComponent = () => render(<EditPolicySummary />);
   });
 
@@ -133,5 +134,17 @@ describe('EditPolicySummary', () => {
     expect(legacyViolationTitle).not.toBeInTheDocument();
     expect(legacyViolationSubtitle).not.toBeInTheDocument();
     expect(legacyViolationCheckboxText).not.toBeInTheDocument();
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('makes policy name input read-only when custom-policies feature is absent', () => {
+      jest.spyOn(productFeaturesSelectors, 'selectHasCustomPolicies').mockReturnValue(false);
+      jest.spyOn(policySelectors, 'selectHasEditIqPermission').mockReturnValue(true);
+
+      renderComponent();
+
+      const policyNameInput = screen.getByRole('textbox');
+      expect(policyNameInput).toBeDisabled();
+    });
   });
 });

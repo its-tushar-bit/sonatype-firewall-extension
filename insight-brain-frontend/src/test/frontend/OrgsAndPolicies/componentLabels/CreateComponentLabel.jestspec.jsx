@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
@@ -16,6 +17,7 @@ describe('CreateComponentLabel create', () => {
   let renderComponent, selectLabelsLoadingSpy, selectLabelsLoadErrorSpy, saveLabelSpy, setLabelNameSpy;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomComponentLabels').mockReturnValue(true);
     selectLabelsLoadingSpy = jest.spyOn(labelsSelectors, 'selectLabelsLoading').mockReturnValue(false);
     selectLabelsLoadErrorSpy = jest.spyOn(labelsSelectors, 'selectLabelsLoadError').mockReturnValue(null);
 
@@ -28,7 +30,7 @@ describe('CreateComponentLabel create', () => {
   it('renders tile with the correct page title', () => {
     renderComponent();
 
-    expect(screen.getByText('New Component Label')).toBeVisible();
+    expect(screen.getByText('Component Label Settings')).toBeVisible();
   });
 
   it('renders loading indicator', () => {
@@ -82,6 +84,7 @@ describe('CreateComponentLabel edit', () => {
   let renderComponent, saveLabelSpy, setLabelNameSpy, removeLabelSpy;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomComponentLabels').mockReturnValue(true);
     jest.spyOn(labelsSelectors, 'selectLabelsLoadError').mockReturnValue(null);
     jest.spyOn(labelsSelectors, 'selectLabelsLoading').mockReturnValue(false);
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
@@ -110,7 +113,7 @@ describe('CreateComponentLabel edit', () => {
   it('renders tile with the correct page title', () => {
     renderComponent();
 
-    expect(screen.getByText('Edit Component Label')).toBeVisible();
+    expect(screen.getByText('Component Label Settings')).toBeVisible();
   });
 
   it('initial update label not trigger', () => {
@@ -181,5 +184,40 @@ describe('CreateComponentLabel edit', () => {
     fireEvent.click(modalDeleteButton);
 
     expect(removeLabelSpy).toHaveBeenCalled();
+  });
+});
+
+describe('CreateComponentLabel Pro Tier Gating', () => {
+  beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomComponentLabels').mockReturnValue(false);
+    jest.spyOn(labelsSelectors, 'selectLabelsLoadError').mockReturnValue(null);
+    jest.spyOn(labelsSelectors, 'selectLabelsLoading').mockReturnValue(false);
+    jest.spyOn(labelsSelectors, 'selectLabelsIsEditMode').mockReturnValue(true);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ labelId: '123' });
+    jest.spyOn(actions, 'loadLabelsEditor').mockReturnValue({
+      type: 'labels/loadLabelsEditor/fulfilled',
+      payload: {
+        currentLabel: { color: 'light-red', description: 'desc', label: 'test' },
+        sublings: [],
+      },
+    });
+  });
+
+  it('shows mode switch with Default and Custom buttons when editing', () => {
+    render(<CreateComponentLabel />);
+    expect(screen.getByText('Default')).toBeVisible();
+    expect(screen.getByText('Custom')).toBeVisible();
+  });
+
+  it('does not show Delete button for Pro tier user', () => {
+    render(<CreateComponentLabel />);
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('shows Enterprise Feature banner in create mode', () => {
+    jest.spyOn(labelsSelectors, 'selectLabelsIsEditMode').mockReturnValue(false);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({});
+    render(<CreateComponentLabel />);
+    expect(screen.getByText('Component Label Settings')).toBeVisible();
   });
 });

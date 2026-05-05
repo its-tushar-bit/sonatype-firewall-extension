@@ -726,6 +726,36 @@ describe('WaiverConfigurationPage component', () => {
     });
   });
 
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      const base = getDefaultPreloadedState();
+      preloadedState = {
+        ...base,
+        productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        addWaiver: { loading: false, loadError: null, availableWaiverScopes: ['APPLICATION'] },
+        waivers: {
+          ...base.waivers,
+          bulkWaive: {
+            ...base.waivers.bulkWaive,
+            selectedViolations: [
+              { policyViolationId: 'v1', componentIdentifier: { coordinates: {} }, threatLevel: 5 },
+            ],
+          },
+        },
+      };
+    });
+
+    it('shows enterprise banner when bulk-waivers feature is absent', () => {
+      renderComponent();
+      expect(screen.getByText(/Efficiently manage multiple policy violations/)).toBeVisible();
+    });
+
+    it('renders page with enterprise banner visible', () => {
+      renderComponent();
+      expect(screen.getByText(/Efficiently manage multiple policy violations/)).toBeVisible();
+    });
+  });
+
   function renderComponent(additionalState = {}) {
     const finalState = { ...preloadedState, ...additionalState };
     return render(<WaiverConfigurationPage />, { preloadedState: finalState });
@@ -733,6 +763,9 @@ describe('WaiverConfigurationPage component', () => {
 
   function getDefaultPreloadedState() {
     return {
+      productFeatures: {
+        productFeatures: { 'bulk-waivers': true },
+      },
       waivers: {
         waiverReasons: {
           loading: false,

@@ -36,6 +36,7 @@ import {
   NxModal,
   NxPageTitle,
   NxTile,
+  NxDivider,
   NxErrorAlert,
   NxList,
   NxFontAwesomeIcon,
@@ -44,15 +45,28 @@ import {
   NxFormGroup,
   NxTextInput,
   nxTextInputStateHelpers,
+  NxButtonBar,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import EditPolicySummary from './editPolicySummary/EditPolicySummary';
 import EditPolicyInheritance from './editPolicyInheritance/EditPolicyInheritance';
 import ConstraintsEditor from './constraints/ConstraintsEditor';
 import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotificationsEditor';
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
+import PolicyReadOnlyView from './PolicyReadOnlyView';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 import { selectEntityId, selectOwnerProperties } from '../orgsAndPoliciesSelectors';
-import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import {
+  selectIsRepositoriesRelated,
+  selectIsSbomManager,
+  selectRouterCurrentParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectHasFirewallLicense,
+  selectHasLifecycleLicense,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
+import { selectHasCustomPolicies, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { faLock, faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import './PolicyEditor.scss';
@@ -76,6 +90,7 @@ export default function PolicyEditor() {
   const submitError = useSelector(selectSubmitError);
   const submitMaskState = useSelector(selectCurrentSubmitMaskState);
   const entityId = useSelector(selectEntityId);
+  const { policyId } = useSelector(selectRouterCurrentParams);
   const overrideNeedsToBeAdded = useSelector(selectOverrideNeedsToBeAdded);
   const overrideNeedsToBeRemoved = useSelector(selectOverrideNeedsToBeRemoved);
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
@@ -86,6 +101,35 @@ export default function PolicyEditor() {
 
   const hasLifecycleLicense = useSelector(selectHasLifecycleLicense);
   const hasFirewallLicense = useSelector(selectHasFirewallLicense);
+
+  const isEnterprisePreviewMode = useSelector(selectIsEnterprisePreviewMode);
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
+  const isFeatureGated = !hasCustomPolicies;
+
+  const handleToggleMode = () => {
+    const newMode = !isEnterprisePreviewMode;
+    // Zero dirty synchronously so the router navigation guard (which reads the
+    // raw state path) does not fire the unsaved-changes modal for non-saveable
+    // preview edits made before the toggle.
+    dispatch(actions.resetIsDirty());
+    dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
+    if (newMode) {
+      // Switching to Custom — reload from server so Custom starts clean
+      loadPolicyEditor();
+    }
+    else {
+      // Switching back to Lifecycle Pro — reload from server to discard Custom edits + scroll to top
+      loadPolicyEditor();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Reset preview mode on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(productFeaturesActions.setEnterprisePreviewMode(false));
+    };
+  }, [dispatch]);
 
   const showInheritedSection = isOrgOwner || isRepoContainerOwner || isRepoManagerOwner;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
@@ -136,7 +180,7 @@ export default function PolicyEditor() {
 
   useEffect(() => {
     loadPolicyEditor();
-  }, [entityId]);
+  }, [entityId, policyId]);
 
   const OWNER_TYPE_ID_MAP = {
     application: `applicationPublicId`,
@@ -160,10 +204,32 @@ export default function PolicyEditor() {
 
   return (
     <div id="policy-editor-summary">
-      <NxPageTitle>
-        <NxH1>{dirtyPolicy?.id ? (isInherited ? 'View' : 'Edit') : 'New'} Policy</NxH1>
-        {isSbomManager && <NxFontAwesomeIcon icon={faLock} data-testid="policy-editor-lock-icon" />}
-      </NxPageTitle>
+      <div className="iq-policy-editor__header">
+        <NxPageTitle>
+          <NxH1>Policy Settings</NxH1>
+          {isSbomManager && <NxFontAwesomeIcon icon={faLock} data-testid="policy-editor-lock-icon" />}
+        </NxPageTitle>
+        {isFeatureGated && dirtyPolicy?.id && (
+          <div className="iq-policy-editor__mode-switch">
+            <NxButton
+              variant={!isEnterprisePreviewMode ? 'primary' : 'secondary'}
+              onClick={() => !isEnterprisePreviewMode || handleToggleMode()}
+              className="iq-policy-editor__mode-button iq-policy-editor__mode-button--left"
+            >
+              Default
+            </NxButton>
+            <NxTooltip title="Enterprise Feature">
+              <NxButton
+                variant={isEnterprisePreviewMode ? 'primary' : 'secondary'}
+                onClick={() => isEnterprisePreviewMode || handleToggleMode()}
+                className="iq-policy-editor__mode-button iq-policy-editor__mode-button--right"
+              >
+                Custom <NxFontAwesomeIcon icon={faLock} />
+              </NxButton>
+            </NxTooltip>
+          </div>
+        )}
+      </div>
 
       {isSbomManager && dirtyPolicy && (
         <NxInfoAlert>
@@ -182,7 +248,12 @@ export default function PolicyEditor() {
         </NxInfoAlert>
       )}
 
-      <NxTile>
+      <NxTile
+        className={classNames({
+          'iq-banner-flush-top': isFeatureGated && (isEnterprisePreviewMode || !dirtyPolicy?.id),
+          'iq-enterprise-mode-footer': isFeatureGated && (isEnterprisePreviewMode || !dirtyPolicy?.id),
+        })}
+      >
         <NxStatefulForm
           onSubmit={onSave}
           submitBtnText={dirtyPolicy?.id ? 'Update' : 'Create'}
@@ -197,7 +268,7 @@ export default function PolicyEditor() {
           validationErrors={getValidationErrors()}
           submitError={submitError}
           additionalFooterBtns={
-            dirtyPolicy?.id && !isInherited && !isSbomManager ? (
+            dirtyPolicy?.id && !isInherited && !isSbomManager && !isEnterprisePreviewMode && !isFeatureGated ? (
               <NxButton
                 id="delete-policy-button"
                 variant="tertiary"
@@ -208,15 +279,69 @@ export default function PolicyEditor() {
                 <NxFontAwesomeIcon icon={faTrashAlt} />
                 <span>Delete Policy</span>
               </NxButton>
-            ) : null
+            ) : !dirtyPolicy?.id && !isEnterprisePreviewMode ? (
+              <NxButton variant="secondary" onClick={() => window.history.back()} type="button">
+                Back
+              </NxButton>
+            ) : undefined
           }
         >
           <NxTile.Content>
-            <EditPolicySummary />
-            {showInheritedSection && <EditPolicyInheritance />}
-            <ConstraintsEditor />
+            {isFeatureGated && !isEnterprisePreviewMode && dirtyPolicy?.id ? (
+              <>
+                {/* Default Settings: Read-only Summary and Constraints; Editable Inheritance; Editable Actions and Notifications */}
+                <PolicyReadOnlyView
+                  policy={dirtyPolicy}
+                  showActionsAndNotifications={false}
+                  showSummary={true}
+                  showInheritance={false}
+                  showConstraints={false}
+                />
+                <NxDivider />
+                {showInheritedSection && <EditPolicyInheritance />}
+                <PolicyReadOnlyView
+                  policy={dirtyPolicy}
+                  showActionsAndNotifications={false}
+                  showSummary={false}
+                  showInheritance={false}
+                  showConstraints={true}
+                  showConstraintsPopover={true}
+                  onSwitchToCustomMode={handleToggleMode}
+                />
+                <NxDivider />
+              </>
+            ) : isFeatureGated ? (
+              <>
+                {/* Custom Settings: Editable Summary, Inheritance, and Constraints */}
+                <EnterpriseFullWidthBanner
+                  title="Custom Policies"
+                  description="Define and enforce policies that match your organization's risk and compliance needs."
+                />
+                <EditPolicySummary previewMode />
+                {showInheritedSection && <EditPolicyInheritance />}
+                <ConstraintsEditor hidePopover previewMode />
+              </>
+            ) : (
+              <>
+                <EditPolicySummary />
+                {showInheritedSection && <EditPolicyInheritance />}
+                <ConstraintsEditor />
+              </>
+            )}
+            {/* Actions and Notifications: Editable in BOTH Default and Custom Settings */}
             {!isSbomManager && <PolicyActionsEditor />}
             <PolicyNotificationsEditor />
+            {isFeatureGated && (isEnterprisePreviewMode || !dirtyPolicy?.id) && (
+              <NxInfoAlert>
+                This is an Enterprise feature. Changes can&apos;t be saved.
+                {dirtyPolicy?.id && (
+                  <>
+                    {' '}
+                    <NxTextLink onClick={handleToggleMode}>Return to Lifecycle Pro</NxTextLink>
+                  </>
+                )}
+              </NxInfoAlert>
+            )}
           </NxTile.Content>
         </NxStatefulForm>
       </NxTile>

@@ -435,6 +435,16 @@ describe('ViolationsTableTile component', () => {
 
   function getDefaultPreloadedState() {
     return {
+      productFeatures: {
+        productFeatures: {
+          'bulk-waivers': true,
+          'auto-waiver-management': true,
+        },
+        isEnterprisePreviewMode: false,
+      },
+      addWaiver: {
+        showEnterpriseWaiverFeaturesModal: false,
+      },
       waivers: {
         bulkWaive: {
           checkboxState: {},

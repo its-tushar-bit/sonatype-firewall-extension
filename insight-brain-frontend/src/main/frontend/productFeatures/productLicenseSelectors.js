@@ -14,6 +14,8 @@ export const PRODUCT_LICENSES = Object.freeze({
     'Sonatype Lifecycle SaaS',
     'Sonatype Lifecycle Cloud',
     'Sonatype Lifecycle Foundation',
+    'Sonatype Lifecycle Pro',
+    'Sonatype Lifecycle Enterprise',
   ],
   firewall: [
     'Sonatype Repository Firewall',
@@ -44,6 +46,20 @@ export const selectIsFirewallOnlyLicense = createSelector(selectProducts, isFire
 export const selectHasLifecycleLicense = createSelector(
   selectProducts,
   R.any(R.includes(R.__, PRODUCT_LICENSES.lifecycle))
+);
+
+// Tier-gated Lifecycle products — excludes Foundation which is not subject to Pro/Enterprise tiers.
+const TIER_GATED_LIFECYCLE_PRODUCTS = [
+  'Sonatype Lifecycle',
+  'Sonatype Lifecycle SaaS',
+  'Sonatype Lifecycle Cloud',
+  'Sonatype Lifecycle Pro',
+  'Sonatype Lifecycle Enterprise',
+];
+
+export const selectHasTierGatedLifecycleLicense = createSelector(
+  selectProducts,
+  R.any(R.includes(R.__, TIER_GATED_LIFECYCLE_PRODUCTS))
 );
 
 export const selectHasFirewallLicense = createSelector(

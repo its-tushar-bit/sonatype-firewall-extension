@@ -28,6 +28,9 @@ export const initialState = {
   loadAppliedCategoriesError: null,
   appliedCategories: [],
   originalAppliedCategories: [],
+  // Ephemeral: mock enterprise category IDs the Pro user has ticked in Custom
+  // preview mode. Never flows into the save payload and never marks isDirty.
+  previewAppliedMockIds: [],
   isDirty: false,
   submitError: null,
   submitMaskState: null,
@@ -119,7 +122,7 @@ const saveAppliedCategories = createAsyncThunk(
 );
 
 const updateAppliedCategories = curryN(2, function updateAppliedCategories(state, { payload }) {
-  const newPayload = omit(['isApplied'])(payload);
+  const newPayload = omit(['isApplied', 'isEnterpriseMock'])(payload);
   const newAppliedCategories = ifElse(
     find(propEq('id', newPayload.id)),
     without([newPayload]),
@@ -127,6 +130,16 @@ const updateAppliedCategories = curryN(2, function updateAppliedCategories(state
   )(state.appliedCategories);
   return computeIsDirty(propSet('appliedCategories', newAppliedCategories, state));
 });
+
+// Toggle a mock enterprise category's previewed-applied state. Never touches
+// appliedCategories / originalAppliedCategories, so the form never becomes
+// dirty from mock clicks and the mock IDs never flow to the save payload.
+const togglePreviewMockApplied = (state, { payload: id }) => {
+  const previewAppliedMockIds = state.previewAppliedMockIds || [];
+  state.previewAppliedMockIds = previewAppliedMockIds.includes(id)
+    ? previewAppliedMockIds.filter((existing) => existing !== id)
+    : [...previewAppliedMockIds, id];
+};
 
 const computeIsDirty = (state) => {
   const { appliedCategories, originalAppliedCategories } = state;
@@ -148,6 +161,8 @@ const assignApplicationCategoriesSlice = createSlice({
   initialState,
   reducers: {
     updateAppliedCategories,
+    togglePreviewMockApplied,
+    resetIsDirty: propSet('isDirty', false),
     saveMaskTimerDone: propSet('submitMaskState', null),
   },
   extraReducers: {

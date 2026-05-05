@@ -26,10 +26,10 @@ import {
   selectHasEditIqPermission,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
-import { selectIsLegacyViolationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsLegacyViolationSupported, selectHasCustomPolicies } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-export default function EditPolicySummary() {
+export default function EditPolicySummary({ previewMode = false }) {
   const dispatch = useDispatch();
 
   const name = useSelector(selectCurrentPolicyName);
@@ -39,7 +39,8 @@ export default function EditPolicySummary() {
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isSbomManager = useSelector(selectIsSbomManager);
-  const readOnly = isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission || isSbomManager;
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
+  const readOnly = previewMode ? false : (isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies);
   const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
   const legacyViolationAllowed = useSelector(selectCurrentLegacyViolationAllowed);
 

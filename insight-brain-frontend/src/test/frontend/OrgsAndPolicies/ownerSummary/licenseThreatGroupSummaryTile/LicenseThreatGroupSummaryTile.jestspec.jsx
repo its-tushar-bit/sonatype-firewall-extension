@@ -39,6 +39,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = rootOrganizationLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -95,6 +96,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = rootOrganizationLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -148,6 +150,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = organizationWithoutLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -201,6 +204,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = organizationWithMultipleLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.organization',
@@ -254,6 +258,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = applicationWithoutLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.application',
@@ -305,6 +310,7 @@ describe('LicenseThreatGroupSummaryTile', () => {
       ownerType = applicationWithLtgsByOwnerPayload.ownerType;
 
       preloadedState = {
+        productFeatures: { productFeatures: { 'custom-license-threat-groups': true } },
         router: {
           currentState: {
             name: 'management.view.application',
@@ -346,6 +352,47 @@ describe('LicenseThreatGroupSummaryTile', () => {
         const addButton = await screen.queryByRole('button', { name: 'Add a Threat Group' });
         expect(addButton).not.toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    beforeAll(() => {
+      ownerName = 'Test Org';
+      ownerId = 'test-org-id';
+      ownerType = 'organization';
+
+      preloadedState = {
+        productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+            },
+          },
+        },
+      };
+    });
+
+    it('shows lock icon and preview text when custom-license-threat-groups feature is absent', async () => {
+      axiosMock.onGet().reply(200, { licenseThreatGroupsByOwner: [] });
+      renderComponent(preloadedState);
+      const button = await screen.findByRole('button', { name: 'Preview Add a Threat Group' });
+      expect(button).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Add a Threat Group' })).not.toBeInTheDocument();
     });
   });
 });

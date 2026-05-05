@@ -175,6 +175,10 @@ export const initialState = {
   originalPolicy: null,
   originalCategories: null,
   categories: null,
+  // Ephemeral: enterprise mock category IDs the Pro user has ticked in
+  // Custom preview mode for the inheritance picker. Never touches
+  // state.categories and never marks isDirty.
+  previewAppliedCategoryIds: [],
   hasPolicyCategories: false,
   originalHasPolicyCategories: false,
   siblings: [],
@@ -559,6 +563,8 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.originalOverrideActionsFlag = overrideActionsFlag;
   state.overrideNotificationsFlag = overrideNotificationsFlag;
   state.originalOverrideNotificationsFlag = overrideNotificationsFlag;
+  // Clear any Pro preview mock selections on load so Default mode starts clean
+  state.previewAppliedCategoryIds = [];
 };
 
 const loadPolicyEditorFailed = (state, { payload }) => {
@@ -952,6 +958,18 @@ const toggleCategoryIsApplied = (state, { payload: index }) => {
   return newState;
 };
 
+// Toggle a mock enterprise category in the inheritance picker while in
+// Pro Custom preview mode. Never touches state.categories — and in particular
+// never invokes the index-based lens above with a -1 index from findIndex,
+// which ramda treats as "last element" and would silently flip a real
+// category. Mock clicks are visual-only and never mark the policy dirty.
+const togglePreviewCategoryIsApplied = (state, { payload: id }) => {
+  const ids = state.previewAppliedCategoryIds || [];
+  state.previewAppliedCategoryIds = ids.includes(id)
+    ? ids.filter((existing) => existing !== id)
+    : [...ids, id];
+};
+
 const togglePolicyActionsOverrideAllowed = (state) => {
   const currentPolicyActionsOverrideAllowed = state.currentPolicy.policyActionsOverrideAllowed;
   if (currentPolicyActionsOverrideAllowed) {
@@ -1251,7 +1269,9 @@ const policySlice = createSlice({
     setHasPolicyCategories(state, payload) {
       return reduxPropSet('hasPolicyCategories', state, payload);
     },
+    resetIsDirty: propSet('isDirty', false),
     toggleCategoryIsApplied,
+    togglePreviewCategoryIsApplied,
     toggleLegacyViolationAllowed: toggleField('legacyViolationAllowed'),
     togglePolicyActionsOverrideAllowed,
     togglePolicyNotificationsOverrideAllowed,

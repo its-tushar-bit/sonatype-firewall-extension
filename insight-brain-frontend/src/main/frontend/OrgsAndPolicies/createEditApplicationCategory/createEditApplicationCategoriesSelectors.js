@@ -10,6 +10,8 @@ import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 import { hasValidationErrors, GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
 import { selectOwnersFlattenEntries } from '../ownerSideNav/ownerSideNavSelectors';
+import { createTierGatedDirtySelector } from 'MainRoot/productFeatures/tierGateUtils';
+import { selectHasCustomAppCategories } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectApplicationCategoriesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
@@ -20,7 +22,8 @@ export const selectAppCategoryOwners = createSelector(selectApplicationCategorie
 export const selectIsLoading = createSelector(selectApplicationCategoriesSlice, prop('loading'));
 export const selectLoadError = createSelector(selectApplicationCategoriesSlice, prop('loadError'));
 export const selectSubmitError = createSelector(selectApplicationCategoriesSlice, prop('submitError'));
-export const selectIsDirty = createSelector(selectApplicationCategoriesSlice, prop('isDirty'));
+const selectIsDirtyInternal = createSelector(selectApplicationCategoriesSlice, prop('isDirty'));
+export const selectIsDirty = createTierGatedDirtySelector(selectIsDirtyInternal, selectHasCustomAppCategories);
 export const selectCurrentCategory = createSelector(selectApplicationCategoriesSlice, prop('currentCategory'));
 export const selectDeleteModal = createSelector(selectApplicationCategoriesSlice, prop('deleteModal'));
 export const selectTagPolicyList = createSelector(selectDeleteModal, prop('tagPolicyList'));

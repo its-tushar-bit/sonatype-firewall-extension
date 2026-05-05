@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as categorySelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
@@ -21,6 +22,7 @@ describe('CreateEditApplicationCategory create', () => {
     setCategoryDescriptionSpy;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomAppCategories').mockReturnValue(true);
     selectIsLoadingSpy = jest.spyOn(categorySelectors, 'selectIsLoading').mockReturnValue(false);
     selectLoadErrorSpy = jest.spyOn(categorySelectors, 'selectLoadError').mockReturnValue(null);
 
@@ -34,7 +36,7 @@ describe('CreateEditApplicationCategory create', () => {
   it('renders tile with the correct page title', () => {
     renderComponent();
 
-    expect(screen.getByText('New Application Category')).toBeVisible();
+    expect(screen.getByText('Application Category Settings')).toBeVisible();
   });
 
   it('renders loading indicator', () => {
@@ -117,6 +119,7 @@ describe('CreateEditApplicationCategory edit', () => {
   let renderComponent, saveApplicationCategorySpy, setCategoryNameSpy, removeCategorySpy;
 
   beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomAppCategories').mockReturnValue(true);
     jest.spyOn(categorySelectors, 'selectLoadError').mockReturnValue(null);
     jest.spyOn(categorySelectors, 'selectIsLoading').mockReturnValue(false);
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
@@ -145,7 +148,7 @@ describe('CreateEditApplicationCategory edit', () => {
   it('renders tile with the correct page title', () => {
     renderComponent();
 
-    expect(screen.getByText('Edit Application Category')).toBeVisible();
+    expect(screen.getByText('Application Category Settings')).toBeVisible();
   });
 
   it('doesn"t allow to update category without any changes', () => {
@@ -216,5 +219,40 @@ describe('CreateEditApplicationCategory edit', () => {
     fireEvent.click(modalDeleteButton);
 
     expect(removeCategorySpy).toHaveBeenCalled();
+  });
+});
+
+describe('CreateEditApplicationCategory Pro Tier Gating', () => {
+  beforeEach(() => {
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomAppCategories').mockReturnValue(false);
+    jest.spyOn(categorySelectors, 'selectLoadError').mockReturnValue(null);
+    jest.spyOn(categorySelectors, 'selectIsLoading').mockReturnValue(false);
+    jest.spyOn(categorySelectors, 'selectIsEditMode').mockReturnValue(true);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ categoryId: '123' });
+    jest.spyOn(actions, 'loadCategoryEditor').mockReturnValue({
+      type: 'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
+      payload: {
+        currentCategory: { color: 'light-red', description: 'desc', name: 'test' },
+        siblings: [],
+      },
+    });
+  });
+
+  it('shows mode switch with Default and Custom buttons when editing', () => {
+    render(<CreateEditApplicationCategory />);
+    expect(screen.getByText('Default')).toBeVisible();
+    expect(screen.getByText('Custom')).toBeVisible();
+  });
+
+  it('does not show Delete button for Pro tier user', () => {
+    render(<CreateEditApplicationCategory />);
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('shows Enterprise Feature banner in create mode', () => {
+    jest.spyOn(categorySelectors, 'selectIsEditMode').mockReturnValue(false);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({});
+    render(<CreateEditApplicationCategory />);
+    expect(screen.getByText('Application Category Settings')).toBeVisible();
   });
 });

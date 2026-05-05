@@ -64,7 +64,7 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
   @Before
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
-    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Mockito.reset(reportService);
   }
 

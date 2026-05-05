@@ -28,8 +28,9 @@ import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -177,6 +178,7 @@ public class ApiLabelResource
     return labelService.getApplicableContexts(ownerType, ownerId, labelId);
   }
 
+  @RequiresEntitlement(LicensedFeature.CUSTOM_COMPONENT_LABELS)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -203,6 +205,7 @@ public class ApiLabelResource
     return labelService.addLabel(ownerType, ownerId, labelDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.CUSTOM_COMPONENT_LABELS)
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -229,6 +232,7 @@ public class ApiLabelResource
     return labelService.updateLabel(ownerType, ownerId, labelDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.CUSTOM_COMPONENT_LABELS)
   @DELETE
   @Path("{labelId}")
   @Audited(AuditEvent.DELETE_LABEL)

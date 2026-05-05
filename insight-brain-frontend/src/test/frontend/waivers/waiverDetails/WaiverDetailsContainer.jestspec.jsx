@@ -13,6 +13,9 @@ describe('WaiverDetailsContainer', () => {
   let renderComponent, routerContextMock;
 
   const defaultPreloadedState = {
+    productFeatures: {
+      productFeatures: { 'auto-waiver-management': true },
+    },
     router: {
       currentState: {
         name: 'waiver.details',

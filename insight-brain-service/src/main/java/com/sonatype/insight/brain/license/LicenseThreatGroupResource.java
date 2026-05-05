@@ -23,10 +23,11 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -41,7 +42,9 @@ public class LicenseThreatGroupResource
   private final LicenseThreatGroupService licenseThreatGroupService;
 
   @Inject
-  public LicenseThreatGroupResource(final LicenseThreatGroupService licenseThreatGroupService) {
+  public LicenseThreatGroupResource(
+      final LicenseThreatGroupService licenseThreatGroupService)
+  {
     this.licenseThreatGroupService = licenseThreatGroupService;
   }
 
@@ -67,6 +70,7 @@ public class LicenseThreatGroupResource
     return licenseThreatGroupService.getApplicableLicenseThreatGroups(ownerType, ownerId);
   }
 
+  @RequiresEntitlement(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -82,6 +86,7 @@ public class LicenseThreatGroupResource
     return licenseThreatGroupService.addLicenseThreatGroup(ownerId, licenseThreatGroup);
   }
 
+  @RequiresEntitlement(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS)
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -97,6 +102,7 @@ public class LicenseThreatGroupResource
   @DELETE
   @Path("{licenseThreatGroupId}")
   @Audited(AuditEvent.DELETE_LICENSE_THREAT_GROUP)
+  @RequiresEntitlement(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS)
   public void deleteLicenseThreatGroup(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("ownerId") String ownerId,

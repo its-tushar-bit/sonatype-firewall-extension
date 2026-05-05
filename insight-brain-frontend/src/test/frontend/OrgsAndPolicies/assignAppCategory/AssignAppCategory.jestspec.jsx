@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as assignAppCategoriesSelectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
@@ -32,6 +33,7 @@ describe('Assign Application Categories Component', () => {
       .spyOn(assignAppCategoriesSelectors, 'selectLoadApplicableCategoriesError')
       .mockReturnValue(null);
 
+    jest.spyOn(productFeaturesSelectors, 'selectHasCustomAppCategories').mockReturnValue(true);
     jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').mockReturnValue(ownerName);
 
     selectCategoriesSpy = jest.spyOn(assignAppCategoriesSelectors, 'selectCategories').mockReturnValue([

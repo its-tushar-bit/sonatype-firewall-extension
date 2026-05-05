@@ -7,6 +7,8 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { find, propEq, filter, curryN, isEmpty } from 'ramda';
 import { faPlus, faTag } from '@fortawesome/free-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import { selectHasCustomComponentLabels } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   NxH2,
   NxH3,
@@ -16,6 +18,7 @@ import {
   NxList,
   NxLoadWrapper,
   NxCollapsibleItems,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { backendToRscColorMap } from 'MainRoot/OrgsAndPolicies/utility/util';
@@ -47,6 +50,7 @@ export default function LabelsTile() {
 
   const doLoad = () => dispatch(actions.loadApplicableLabels());
   const goToCreateLabel = () => dispatch(actions.goToCreateLabel());
+  const hasCustomComponentLabels = useSelector(selectHasCustomComponentLabels);
 
   const editLabelHref = (labelId) => {
     const { to, params } = deriveEditRoute(router, 'label', { labelId });
@@ -153,10 +157,12 @@ export default function LabelsTile() {
             <NxTile.HeaderSubtitle>available to {ownerName} policies</NxTile.HeaderSubtitle>
           </NxTile.Headings>
           <NxTile.HeaderActions>
-            <NxButton variant="tertiary" id="add-label-button" onClick={goToCreateLabel}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              <span>Add a Label</span>
-            </NxButton>
+            <NxTooltip title={!hasCustomComponentLabels ? 'Enterprise Feature' : ''}>
+              <NxButton variant="tertiary" id="add-label-button" onClick={goToCreateLabel}>
+                <NxFontAwesomeIcon icon={!hasCustomComponentLabels ? faLock : faPlus} />
+                <span>{!hasCustomComponentLabels ? 'Preview Add a Label' : 'Add a Label'}</span>
+              </NxButton>
+            </NxTooltip>
           </NxTile.HeaderActions>
         </NxTile.Header>
         <NxTile.Content>{renderLists(applicableLabels)}</NxTile.Content>

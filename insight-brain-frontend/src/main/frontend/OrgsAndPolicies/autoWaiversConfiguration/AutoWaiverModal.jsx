@@ -25,6 +25,9 @@ import { selectAutoWaiverModalSlice, selectAutoWaiverDetails } from './autoWaive
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import AutoWaiverScopeDropdownSelector from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverScopeDropdownSelector';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { selectHasAutoWaiverManagement } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
+import TierTag from 'MainRoot/react/shared/TierTag';
 import './_autoWaiverModal.scss';
 
 const UPGRADE_PATH_IS_NOT_AVAILABLE_TEXT = 'Upgrade Path is not available';
@@ -37,6 +40,7 @@ export default function AutoWaiverModal() {
     selectAutoWaiverModalSlice
   );
   const waiverModal = useSelector(selectAutoWaiverDetails);
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
   const reachability = waiverModal.reachability;
   const pathForward = waiverModal.pathForward;
   const threatLevel = waiverModal.threatLevel;
@@ -52,7 +56,7 @@ export default function AutoWaiverModal() {
 
   const additionalFooterButtons = (
     <NxButton variant="tertiary" type="button" className="nx-form__cancel-btn" onClick={closeModalWithCheck}>
-      Cancel
+      {hasAutoWaiverManagement ? 'Cancel' : 'Close'}
     </NxButton>
   );
 
@@ -87,9 +91,10 @@ export default function AutoWaiverModal() {
           onCancel={closeModalWithCheck}
           aria-labelledby="modal-header-text"
           data-testid="iq-auto-waiver-modal"
+          className={!hasAutoWaiverManagement ? 'iq-auto-waiver-modal--pro-tier' : ''}
         >
           <NxStatefulForm
-            onSubmit={isEditMode ? saveAutoWaiver : createAutoWaiver}
+            onSubmit={hasAutoWaiverManagement ? (isEditMode ? saveAutoWaiver : createAutoWaiver) : undefined}
             submitMaskState={submitMaskState}
             submitBtnText={isEditMode ? 'Update' : 'Create'}
             submitError={submitError}
@@ -97,9 +102,17 @@ export default function AutoWaiverModal() {
             additionalFooterBtns={additionalFooterButtons}
           >
             <NxModal.Header>
-              <NxH2 id="modal-header-text">{getHeaderTitle()}</NxH2>
+              <NxH2 id="modal-header-text">
+                {getHeaderTitle()}
+                {!hasAutoWaiverManagement && <TierTag>Enterprise Feature</TierTag>}
+              </NxH2>
             </NxModal.Header>
             <NxModal.Content>
+              {!hasAutoWaiverManagement && (
+                <EnterpriseFullWidthBanner
+                  description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
+                />
+              )}
               <NxP>Automatically waive policy violations when the following conditions are met:</NxP>
 
               <div className="iq-auto-waiver-modal__container">

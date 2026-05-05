@@ -36,6 +36,13 @@ import {
   selectIsSAMLEnabled,
   selectIsUserManagementPagesEnabled,
   selectIsGithubAppAuthenticationEnabled,
+  selectHasCustomPolicies,
+  selectHasCustomAppCategories,
+  selectHasCustomComponentLabels,
+  selectHasCustomLicenseThreatGroups,
+  selectHasAutoWaiverManagement,
+  selectHasWaiverRequestWorkflow,
+  selectHasBulkWaivers,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -391,6 +398,63 @@ describe('productFeaturesSelectors', () => {
 
     it('returns false if github-app-authentication not present', () => {
       expect(selectIsGithubAppAuthenticationEnabled(mockState)).toBe(false);
+    });
+  });
+
+  // CLM-39600: Enterprise tier entitlement selectors
+  describe('Enterprise tier entitlement selectors', () => {
+    const entitlementSelectors = [
+      { selector: selectHasCustomPolicies, feature: 'custom-policies' },
+      { selector: selectHasCustomAppCategories, feature: 'custom-application-categories' },
+      { selector: selectHasCustomComponentLabels, feature: 'custom-component-labels' },
+      { selector: selectHasCustomLicenseThreatGroups, feature: 'custom-license-threat-groups' },
+      { selector: selectHasAutoWaiverManagement, feature: 'auto-waiver-management' },
+      { selector: selectHasWaiverRequestWorkflow, feature: 'waiver-request-workflow' },
+      { selector: selectHasBulkWaivers, feature: 'bulk-waivers' },
+    ];
+
+    const withTierGatedLifecycle = (state) =>
+      assocPath(['productLicense', 'license', 'products'], ['Sonatype Lifecycle'], state);
+
+    entitlementSelectors.forEach(({ selector, feature }) => {
+      describe(`select for ${feature}`, () => {
+        it(`returns true when ${feature} is present (Lifecycle)`, () => {
+          const state = withTierGatedLifecycle(assocPath(['productFeatures', 'productFeatures', feature], true, mockState));
+          expect(selector(state)).toBe(true);
+        });
+
+        it(`returns false when ${feature} is not present (Lifecycle Pro)`, () => {
+          expect(selector(withTierGatedLifecycle(mockState))).toBe(false);
+        });
+
+        it(`returns true when not a tier-gated Lifecycle product (Foundation)`, () => {
+          const state = assocPath(['productLicense', 'license', 'products'], ['Sonatype Lifecycle Foundation'], mockState);
+          expect(selector(state)).toBe(true);
+        });
+
+        it(`returns true when no Lifecycle license (Firewall-only)`, () => {
+          expect(selector(mockState)).toBe(true);
+        });
+      });
+    });
+  });
+
+  // CLM-39601: Enterprise preview mode selector
+  describe('selectIsEnterprisePreviewMode', () => {
+    const { selectIsEnterprisePreviewMode } = require('MainRoot/productFeatures/productFeaturesSelectors');
+
+    it('returns true when isEnterprisePreviewMode is true', () => {
+      mockState.productFeatures.isEnterprisePreviewMode = true;
+      expect(selectIsEnterprisePreviewMode(mockState)).toBe(true);
+    });
+
+    it('returns false when isEnterprisePreviewMode is false', () => {
+      mockState.productFeatures.isEnterprisePreviewMode = false;
+      expect(selectIsEnterprisePreviewMode(mockState)).toBe(false);
+    });
+
+    it('returns false when isEnterprisePreviewMode is not present (default)', () => {
+      expect(selectIsEnterprisePreviewMode(mockState)).toBe(false);
     });
   });
 });

@@ -11,7 +11,9 @@ import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/appli
 import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
+  selectHasAutoWaiverManagement,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -21,6 +23,7 @@ export default function AutoWaiversTile() {
   const dispatch = useDispatch();
   const isDeveloperEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
   const uiStateRouter = useRouterState();
   const router = useSelector(selectRouterSlice);
   const { to, params } = deriveEditRoute(router, 'auto-waivers-config');
@@ -53,6 +56,21 @@ export default function AutoWaiversTile() {
 
   if (!isDeveloperEnabled || !isAutoWaiversEnabled || isSbomManager) {
     return null;
+  }
+
+  if (!hasAutoWaiverManagement) {
+    return (
+      <NxTile
+        id="owner-pill-auto-waivers-configuration"
+        data-testid="iq-auto-waivers-tile"
+        className="iq-banner-flush-top"
+      >
+        <EnterpriseFullWidthBanner
+          title="Auto-Waivers"
+          description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
+        />
+      </NxTile>
+    );
   }
 
   return (

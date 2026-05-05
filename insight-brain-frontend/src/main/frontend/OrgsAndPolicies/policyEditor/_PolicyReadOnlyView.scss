@@ -1,0 +1,224 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-policy-readonly-view {
+  display: flex;
+  flex-direction: column;
+
+  &__section {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__summary-row {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 0;
+
+    .nx-read-only {
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+  }
+
+  &__threat-level {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__legacy-violations {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--nx-color-text);
+  }
+
+  &__inheritance {
+    line-height: 1.6;
+  }
+
+  &__inheritance-text {
+    margin-bottom: 0.75rem;
+  }
+
+  &__inheritance-overrides {
+    margin-top: 1rem;
+  }
+
+  &__overrides-list {
+    list-style: disc;
+    margin: 0.5rem 0 0 1.5rem;
+    padding: 0;
+  }
+
+  &__constraints,
+  &__notifications {
+    width: 100%;
+  }
+
+  &__constraints-list,
+  &__notifications-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__constraint-item {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--nx-swatch-grey-98);
+    border-radius: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__constraint-name {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  &__constraint-description {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--nx-swatch-grey-30);
+  }
+
+  &__notification-item {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    line-height: 1.6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__notification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.625rem;
+    background-color: var(--nx-swatch-white);
+    border: 1px solid var(--nx-swatch-grey-70);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  &__actions-table {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  &__action-stage {
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  &__action-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  &__action-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  &__action-icon {
+    font-size: 1rem;
+
+    &--fail {
+      color: var(--nx-swatch-red-40);
+    }
+
+    &--warn {
+      color: var(--nx-swatch-orange-40);
+    }
+  }
+}
+
+// Enterprise Upsell Popover Styles
+.iq-enterprise-popover {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: var(--nx-spacing-4x);
+  min-width: 320px;
+  max-width: 400px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  pointer-events: auto;
+  animation: slide-in-from-right 0.3s ease-out forwards;
+
+  @keyframes slide-in-from-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .iq-enterprise-popover__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--nx-swatch-grey-50);
+    font-size: 14px;
+
+    &:hover {
+      color: var(--nx-swatch-grey-20);
+    }
+  }
+
+  .iq-enterprise-popover__text {
+    font-size: var(--nx-font-size-s);
+    line-height: 1.6;
+    color: #333333;
+    margin: 0;
+    padding-right: 24px;
+
+    .nx-text-link {
+      color: #0066cc;
+
+      &:hover {
+        color: #0052a3;
+      }
+    }
+  }
+
+  .iq-enterprise-popover__highlight {
+    font-weight: 700;
+  }
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-grey-10);
+    border-color: var(--nx-swatch-grey-30);
+
+    .iq-enterprise-popover__text {
+      color: var(--nx-color-text);
+    }
+  }
+}

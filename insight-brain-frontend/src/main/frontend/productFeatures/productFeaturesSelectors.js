@@ -11,6 +11,7 @@ import {
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { PROVIDER_TYPES, SOURCE_CONTROL_OPTIONS } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
+import { selectHasTierGatedLifecycleLicense } from './productLicenseSelectors';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
 export const selectProductFeatures = createSelector(selectProductFeaturesSlice, prop('productFeatures'));
@@ -317,3 +318,37 @@ export const selectIsGithubAppAuthenticationEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'github-app-authentication')
 );
+
+// Tier gating only applies to tier-gated Lifecycle products (excludes Foundation).
+// Non-tier-gated products (Firewall, Foundation, SBOM Manager) always get full access.
+// For tier-gated Lifecycle: returns false when absent (Pro), true when present (Enterprise/Legacy).
+const createEntitlementSelector = (featureKey) =>
+  createSelector(selectHasTierGatedLifecycleLicense, selectProductFeatures, (hasTierGatedLifecycle, features) =>
+    !hasTierGatedLifecycle || propOr(false, featureKey)(features)
+  );
+
+export const selectHasCustomPolicies = createEntitlementSelector('custom-policies');
+export const selectHasCustomAppCategories = createEntitlementSelector('custom-application-categories');
+export const selectHasCustomComponentLabels = createEntitlementSelector('custom-component-labels');
+export const selectHasCustomLicenseThreatGroups = createEntitlementSelector('custom-license-threat-groups');
+export const selectHasAutoWaiverManagement = createEntitlementSelector('auto-waiver-management');
+export const selectHasWaiverRequestWorkflow = createEntitlementSelector('waiver-request-workflow');
+export const selectHasBulkWaivers = createEntitlementSelector('bulk-waivers');
+
+export const selectIsEnterprisePreviewMode = createSelector(
+  selectProductFeaturesSlice,
+  propOr(false, 'isEnterprisePreviewMode')
+);
+
+export const selectDismissedPopovers = createSelector(
+  selectProductFeaturesSlice,
+  propOr({}, 'dismissedPopovers')
+);
+
+/**
+ * Returns a selector that resolves to `true` when the upsell popover for the given
+ * featureId has been dismissed in the current page-load. State is Redux-ephemeral,
+ * so it resets on page refresh (session reload) by design.
+ */
+export const selectIsPopoverDismissed = (featureId) =>
+  createSelector(selectDismissedPopovers, propOr(false, featureId));

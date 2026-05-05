@@ -26,9 +26,10 @@ import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExcl
 import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverExclusionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -59,6 +60,7 @@ public class ApiAutoPolicyWaiverExclusionResource
     this.apiAutoPolicyWaiverExclusionService = apiAutoPolicyWaiverExclusionService;
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @POST
   @Path(OWNERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -99,6 +101,7 @@ public class ApiAutoPolicyWaiverExclusionResource
         .addAutoPolicyWaiverExclusion(ownerType, ownerId, autoPolicyWaiverExclusionDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.AUTO_WAIVER_MANAGEMENT)
   @DELETE
   @Path(BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH)
   @Audited(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION)

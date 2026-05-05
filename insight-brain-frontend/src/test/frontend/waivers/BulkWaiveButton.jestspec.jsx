@@ -15,6 +15,9 @@ describe('BulkWaiveButton', () => {
   let axiosMock, stateGoSpy;
 
   const defaultPreloadedState = {
+    productFeatures: {
+      productFeatures: { 'bulk-waivers': true },
+    },
     waivers: {
       bulkWaive: {
         checkboxState: {},
@@ -358,6 +361,27 @@ describe('BulkWaiveButton', () => {
       expect(await screen.findByRole('button', { name: 'Bulk Waive' })).toBeInTheDocument();
 
       expect(axiosMock.history.get[0].url).toBe(getApplicationSummaryUrl('app-123'));
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('shows EnterpriseLockButton with Preview Bulk Waive when bulk-waivers feature is absent', async () => {
+      const proState = {
+        ...defaultPreloadedState,
+        productFeatures: { productFeatures: {} },
+        productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        waivers: {
+          ...defaultPreloadedState.waivers,
+          permissions: {
+            loading: {},
+            error: {},
+            byApplicationId: { 'test-app-id': true },
+          },
+        },
+      };
+
+      renderComponent({ skipPermissionCheck: true }, proState);
+      expect(await screen.findByRole('button', { name: 'Preview Bulk Waive' })).toBeVisible();
     });
   });
 });

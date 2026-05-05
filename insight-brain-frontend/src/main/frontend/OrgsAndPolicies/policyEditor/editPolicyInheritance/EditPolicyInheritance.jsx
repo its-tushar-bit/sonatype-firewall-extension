@@ -33,10 +33,13 @@ import {
   selectIsOrgOwner,
   selectIsRepositoryContainerOwner,
   selectIsRepositoryManagerOwner,
+  selectPreviewAppliedCategoryIds,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
+import enterpriseCategories from 'MainRoot/OrgsAndPolicies/shared/enterpriseCategories';
 
 export default function EditPolicyInheritance() {
   const dispatch = useDispatch();
@@ -48,7 +51,22 @@ export default function EditPolicyInheritance() {
   const currentPolicy = useSelector(selectCurrentPolicy);
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
-  const hasCategories = categories?.length;
+  const isEnterprisePreviewMode = useSelector(selectIsEnterprisePreviewMode);
+  const previewAppliedCategoryIds = useSelector(selectPreviewAppliedCategoryIds);
+  // In Pro Custom preview mode, pad the picker with mock enterprise categories
+  // so the user sees what the feature would offer. hasCategories also needs to
+  // account for mocks so the "Applications of the specified…" radio is enabled
+  // even when no real categories exist at this owner.
+  const hasCategories = categories?.length || (isEnterprisePreviewMode && enterpriseCategories.length);
+  const pickerItems = isEnterprisePreviewMode
+    ? [
+        ...(categories ?? []),
+        ...enterpriseCategories.map((c) => ({
+          ...c,
+          isApplied: previewAppliedCategoryIds.includes(c.id),
+        })),
+      ]
+    : categories;
   const showActionsOverridesConfirmationModal = useSelector(selectShowActionsOverridesConfirmationModal);
   const showNotificationsOverridesConfirmationModal = useSelector(selectShowNotificationsOverridesConfirmationModal);
   const actionsOverridesCount = useSelector(selectActionsOverridesCount);
@@ -59,6 +77,13 @@ export default function EditPolicyInheritance() {
   const isSbomManager = useSelector(selectIsSbomManager);
 
   const onCategoryToggled = (category) => {
+    if (category?.isEnterpriseMock) {
+      // Visual-only preview toggle — never mutates state.categories / dirty.
+      // Also avoids the ramda lensPath(-1) trap that would silently flip the
+      // last real category if a mock id were sent to toggleCategoryIsApplied.
+      dispatch(policyActions.togglePreviewCategoryIsApplied(category.id));
+      return;
+    }
     const categoryIndexForToggle = categories.findIndex(propEq('id', category.id));
     dispatch(policyActions.toggleCategoryIsApplied(categoryIndexForToggle));
   };
@@ -148,7 +173,7 @@ export default function EditPolicyInheritance() {
           {hasPolicyCategories && (
             <IqAssociationEditor
               label="Application Categories:"
-              items={categories}
+              items={pickerItems}
               selectedParam="isApplied"
               description="name"
               icon="hexagon"

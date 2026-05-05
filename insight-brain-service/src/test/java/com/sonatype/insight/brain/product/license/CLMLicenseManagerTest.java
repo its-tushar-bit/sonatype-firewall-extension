@@ -24,6 +24,7 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -370,7 +371,14 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
   }
 
   @Test
@@ -419,7 +427,14 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
   }
 
   @Test
@@ -471,7 +486,14 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
   }
 
   @Test
@@ -867,7 +889,14 @@ public class CLMLicenseManagerTest
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
   }
 
   @Test
@@ -2485,6 +2514,128 @@ public class CLMLicenseManagerTest
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
     assertThat(CLMLicenseManager.hasSbomManagerProduct(productLicense)).isFalse();
+  }
+
+  // ---- Tier-based enterprise features tests ----
+
+  @Test
+  public void testGetFeatures_Lifecycle_ProTier_NoEnterpriseFeatures() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Pro"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
+  }
+
+  @Test
+  public void testGetFeatures_Lifecycle_EnterpriseTier_HasEnterpriseFeatures() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Enterprise"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
+  }
+
+  @Test
+  public void testGetFeatures_Lifecycle_LegacyTier_HasEnterpriseFeatures() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Legacy"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
+  }
+
+  @Test
+  public void testGetFeatures_Lifecycle_NullTier_HasEnterpriseFeatures() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.CUSTOM_COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+        LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+        LicensedFeature.BULK_WAIVERS);
+  }
+
+  @Test
+  public void testGetFeatures_Lifecycle_ProTier_HdsOverride_GrantsEnterpriseFeature() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Pro"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CUSTOM_POLICIES));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.CUSTOM_POLICIES);
+    assertThat(productLicense.getFeatures()).doesNotContain(
+        LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+        LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+  }
+
+  @Test
+  public void testGetFeatures_Firewall_NotAffectedByTier() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Pro"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(
+        LicensedFeature.CUSTOM_POLICIES,
+        LicensedFeature.BULK_WAIVERS);
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.FIREWALL);
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProTier_ProductEdition() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Pro"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_PRO);
+  }
+
+  @Test
+  public void testGetLicenseSummary_EnterpriseTier_ProductEdition() throws Exception {
+    systemConfigurationPropertyDAO.insert(
+        new SystemConfigurationProperty(SystemConfigurationProperty.LIFECYCLE_TIER, "Enterprise"));
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_ENTERPRISE);
+  }
+
+  @Test
+  public void testGetLicenseSummary_NullTier_ProductEditionIsLegacy() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
   }
 
   private static String suffix(final String suffix) {

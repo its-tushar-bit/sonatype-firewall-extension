@@ -110,18 +110,24 @@ describe('applicationCategoriesSelectors', () => {
   });
 
   describe('selectIsDirty', () => {
-    it('is composed from the following selector', () => {
-      expect(selectIsDirty.dependencies).toEqual([selectApplicationCategoriesSlice]);
-    });
-
-    it('selects isDirty', () => {
-      const applicationCategoriesSlice = {
-        isDirty: true,
-      };
-
-      const selected = selectIsDirty.resultFunc(applicationCategoriesSlice);
+    it('returns true when form is dirty and feature is entitled', () => {
+      // hasFeature=true, isDirty=true
+      const selected = selectIsDirty.resultFunc(true, true);
 
       expect(selected).toBe(true);
+    });
+
+    it('returns false when form is not dirty', () => {
+      const selected = selectIsDirty.resultFunc(true, false);
+
+      expect(selected).toBe(false);
+    });
+
+    it('returns false when feature is gated, even if raw form is dirty', () => {
+      // hasFeature=false, isDirty=true — Pro user on a non-saveable preview form
+      const selected = selectIsDirty.resultFunc(false, true);
+
+      expect(selected).toBe(false);
     });
   });
 

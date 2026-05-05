@@ -13,6 +13,7 @@ import {
   NxList,
   NxLoadWrapper,
   NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
@@ -41,7 +42,8 @@ import { actions as createEditApplicationCategoriesActions } from 'MainRoot/Orgs
 import { curryN, isEmpty } from 'ramda';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
-import { selectIsOrgsAndAppsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsOrgsAndAppsEnabled, selectHasCustomAppCategories } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 
 export default function ApplicationCategoriesTile() {
   const dispatch = useDispatch();
@@ -73,6 +75,7 @@ export default function ApplicationCategoriesTile() {
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
 
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
+  const hasCustomAppCategories = useSelector(selectHasCustomAppCategories);
 
   const loadAssignableCategories = () => dispatch(assignApplicationCategoriesActions.loadApplicableCategories());
   const loadAppliedCategories = () => dispatch(assignApplicationCategoriesActions.loadAppliedCategories());
@@ -223,8 +226,8 @@ export default function ApplicationCategoriesTile() {
     </>
   ) : (
     <>
-      <NxFontAwesomeIcon icon={faPlus} />
-      <span>Add a Category</span>
+      <NxFontAwesomeIcon icon={!hasCustomAppCategories ? faLock : faPlus} />
+      <span>{!hasCustomAppCategories ? 'Preview Add a Category' : 'Add a Category'}</span>
     </>
   );
 
@@ -248,15 +251,16 @@ export default function ApplicationCategoriesTile() {
               <NxTile.HeaderSubtitle>{subtitleText}</NxTile.HeaderSubtitle>
             </NxTile.Headings>
             <NxTile.HeaderActions>
-              <NxButton
-                variant="tertiary"
-                onClick={headerButtonAction}
-                className={isEditDisabled ? 'disabled' : ''}
-                id="add-category-button"
-                title={isEditDisabled ? 'No application categories defined.' : ''}
-              >
-                {editButtonText}
-              </NxButton>
+              <NxTooltip title={!hasCustomAppCategories ? 'Enterprise Feature' : (isEditDisabled ? 'No application categories defined.' : '')}>
+                <NxButton
+                  variant="tertiary"
+                  onClick={headerButtonAction}
+                  className={isEditDisabled ? 'disabled' : ''}
+                  id="add-category-button"
+                >
+                  {editButtonText}
+                </NxButton>
+              </NxTooltip>
             </NxTile.HeaderActions>
           </NxTile.Header>
           <NxTile.Content>{renderContent()}</NxTile.Content>

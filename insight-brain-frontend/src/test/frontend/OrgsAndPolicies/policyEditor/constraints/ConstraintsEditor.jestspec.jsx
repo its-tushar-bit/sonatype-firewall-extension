@@ -207,7 +207,7 @@ describe('ConstraintsEditor', () => {
   });
 
   it('adds a constraint when the add constraint button is clicked', () => {
-    renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState });
+    renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState, productFeatures: { productFeatures: { 'custom-policies': true } } });
 
     let constraintListEditable = screen.getAllByTestId('editable-constraint');
     const addConstraintBtn = screen.getByText('Add Constraint');
@@ -220,7 +220,7 @@ describe('ConstraintsEditor', () => {
   });
 
   it('removes a constraint when clicking the delete button', () => {
-    renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState });
+    renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState, productFeatures: { productFeatures: { 'custom-policies': true } } });
 
     let constraintListEditable = screen.getAllByTestId('editable-constraint');
     const deleteConstraintBtn = within(constraintListEditable[0]).getAllByRole('button')[0];
@@ -230,5 +230,19 @@ describe('ConstraintsEditor', () => {
 
     constraintListEditable = screen.getAllByTestId('editable-constraint');
     expect(constraintListEditable.length).toBe(1);
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('disables Add Constraint button when custom-policies feature is absent', () => {
+      renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState, productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } } });
+      const addConstraintBtn = screen.getByText('Add Constraint');
+      expect(addConstraintBtn.closest('button')).toBeDisabled();
+    });
+
+    it('makes constraints read-only when custom-policies feature is absent', () => {
+      renderComponent({ orgsAndPolicies: orgsAndPoliciesInitialState, productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } } });
+      const constraintListEditable = screen.getAllByTestId('editable-constraint');
+      expect(constraintListEditable.length).toBe(2);
+    });
   });
 });

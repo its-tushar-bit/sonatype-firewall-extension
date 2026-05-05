@@ -1,0 +1,48 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-tier-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  background-color: white;
+  color: var(--nx-swatch-blue-50);
+  border: 1px solid var(--nx-swatch-indigo-90);
+  margin-left: var(--nx-spacing-4x);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-blue-20);
+    color: var(--nx-swatch-blue-90);
+    border-color: var(--nx-swatch-indigo-30);
+  }
+}
+
+// When TierTag sits inline next to an H1/H2 title, it needs:
+//  1. A left margin gap — RSC's `.nx-h1 > :first-child { margin-left: 0 }`
+//     rule matches because text is a text node and TierTag is the sole
+//     element child, so re-assert the gap with a more specific selector.
+//  2. Proper vertical centering — baseline alignment makes the short pill
+//     sit along the H1 text baseline and read as visually lower. Promote
+//     the heading to flex so we can use align-items: center.
+.nx-h1,
+.nx-h2 {
+  &:has(> .iq-tier-tag) {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: var(--nx-spacing-4x);
+  }
+
+  > .iq-tier-tag {
+    margin-left: 0;
+  }
+}
+

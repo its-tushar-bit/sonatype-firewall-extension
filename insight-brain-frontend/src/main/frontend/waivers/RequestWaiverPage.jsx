@@ -17,6 +17,8 @@ import {
   NxDateInput,
   NxTooltip,
   NxErrorAlert,
+  NxInfoAlert,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
@@ -52,7 +54,12 @@ import {
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
-import { selectIsExpireWhenRemediationAvailableWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsExpireWhenRemediationAvailableWaiversEnabled,
+  selectHasWaiverRequestWorkflow,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import TierTag from 'MainRoot/react/shared/TierTag';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
 import { actions } from './requestWaiverSlice';
 import { loadAddWaiverData as loadAddWaiverDataAction, returnToAddOrRequestWaiverOriginPage } from './waiverActions';
@@ -81,6 +88,7 @@ import {
 
 const RequestWaiversPage = () => {
   const dispatch = useDispatch();
+  const hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow);
 
   const currentParams = useSelector(selectRouterCurrentParams);
   const { policyWaiverRequestId } = currentParams || {};
@@ -341,7 +349,10 @@ const RequestWaiversPage = () => {
     <NxPageMain id="request-waiver-page">
       <AddAndRequestWaiversBackButton {...backButtonProps} />
       <NxPageTitle>
-        <NxH1>Request Waiver</NxH1>
+        <NxH1>
+          Request Waiver
+          {!hasWaiverRequestWorkflow && <TierTag>Enterprise Feature</TierTag>}
+        </NxH1>
       </NxPageTitle>
 
       {/* Display error alert when waiver request is rejected */}
@@ -353,7 +364,12 @@ const RequestWaiversPage = () => {
         </NxErrorAlert>
       )}
 
-      <NxTile>
+      <NxTile className={!hasWaiverRequestWorkflow ? 'iq-hide-form-footer iq-banner-flush-top' : ''}>
+        {!hasWaiverRequestWorkflow && (
+          <EnterpriseFullWidthBanner
+            description="Enable your team to request waivers for policy violations with structured workflows and approval processes."
+          />
+        )}
         <NxTile.Content>
           <LoadWrapper
             loading={loading || addWaiverDataLoading || selectedWaiverScopeLoading || isLoadingWaiverRequestDetails}
@@ -523,6 +539,12 @@ const RequestWaiversPage = () => {
             )}
           </LoadWrapper>
         </NxTile.Content>
+        {!hasWaiverRequestWorkflow && (
+          <NxInfoAlert>
+            This is an Enterprise feature. Changes can&apos;t be saved. Go back to{' '}
+            <NxTextLink onClick={cancelAction}>Component Details</NxTextLink>
+          </NxInfoAlert>
+        )}
       </NxTile>
     </NxPageMain>
   );

@@ -30,10 +30,11 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWai
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -123,6 +124,7 @@ public class ApiPolicyWaiverResource
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
   }
 
+  @RequiresEntitlement(LicensedFeature.BULK_WAIVERS)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_WAIVER)

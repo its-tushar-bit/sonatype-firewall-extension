@@ -291,14 +291,7 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.DEVELOPER_VERSION_UPPER_BOUND))
             .filter(f -> !f.equals(LicensedFeature.GUIDE))
             .filter(f -> !f.equals(LicensedFeature.GUIDE_MCP))
-            .filter(f -> !f.equals(LicensedFeature.GUIDE_SEARCH))
-            .filter(f -> !f.equals(LicensedFeature.CUSTOM_POLICIES))
-            .filter(f -> !f.equals(LicensedFeature.CUSTOM_APPLICATION_CATEGORIES))
-            .filter(f -> !f.equals(LicensedFeature.CUSTOM_COMPONENT_LABELS))
-            .filter(f -> !f.equals(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS))
-            .filter(f -> !f.equals(LicensedFeature.AUTO_WAIVER_MANAGEMENT))
-            .filter(f -> !f.equals(LicensedFeature.WAIVER_REQUEST_WORKFLOW))
-            .filter(f -> !f.equals(LicensedFeature.BULK_WAIVERS)),
+            .filter(f -> !f.equals(LicensedFeature.GUIDE_SEARCH)),
         stream(NonLicensedFeature.values())
             .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS)))
         .flatMap(i -> i)

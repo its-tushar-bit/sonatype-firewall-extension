@@ -75,7 +75,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     autoPolicyWaiverExclusionDAO = lookup(AutoPolicyWaiverExclusionDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
-    licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
     Mockito.reset(reportService);
   }
 

@@ -202,7 +202,8 @@ public abstract class AbstractPolicyEditorTest
         LicensedFeature.DASHBOARD,
         LicensedFeature.POLICY_MANAGEMENT,
         LicensedFeature.POLICY_READ_ONLY,
-        LicensedFeature.COMPONENT_LABELS);
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.CUSTOM_POLICIES);
 
     tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Banned", 10);
     tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Liberal", 0);
@@ -400,7 +401,7 @@ public abstract class AbstractPolicyEditorTest
   public void testLifecycle_rendersCorrectlyWithSbomManagerSupport() {
     setFeatures(LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.POLICY_GRANDFATHERING, LicensedFeature.ENFORCEMENT, LicensedFeature.SBOM_MANAGER,
-        LicensedFeature.ORGS_AND_APPS, LicensedFeature.NOTIFICATIONS);
+        LicensedFeature.ORGS_AND_APPS, LicensedFeature.NOTIFICATIONS, LicensedFeature.CUSTOM_POLICIES);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
 
     String ownerId = currentOwner.getId();
@@ -630,7 +631,7 @@ public abstract class AbstractPolicyEditorTest
 
     refresh();
 
-    PolicyEditorPage.title().shouldHave(text("Edit"));
+    PolicyEditorPage.title().shouldHave(text("Policy Settings"));
     summary.policyName().input().shouldBe(visible).shouldHave(value("updated name"));
     summary.legacyViolationCheckbox().shouldBe(visible).shouldBe(selected);
     ThreatDropdownSelector.selectedThreatLabel().shouldBe(text("6"));
@@ -1638,7 +1639,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect() {
     waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner));
-    PolicyEditorPage.title().shouldHave(text("New"));
+    PolicyEditorPage.title().shouldHave(text("Policy Settings"));
 
     assertNewPolicyStateIsCorrect_summarySection();
     assertNewPolicyStateIsCorrect_inheritanceSection();
@@ -1727,7 +1728,7 @@ public abstract class AbstractPolicyEditorTest
       boolean legacyViolationReadOnly)
   {
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
-    PolicyEditorPage.title().shouldHave(text(isReadOnly ? "View" : "Edit"));
+    PolicyEditorPage.title().shouldHave(text("Policy Settings"));
 
     assertEditPolicyStateIsCorrect_summarySection(policy, isReadOnly, legacyViolationReadOnly);
     assertEditPolicyStateIsCorrect_inheritanceSection(category1, category2, isReadOnly);

@@ -22,6 +22,7 @@ import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/Rea
 import { useSelector } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectHasWaiverRequestWorkflow } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -45,6 +46,7 @@ export default function ViolationDetailsTile(props) {
     } = props,
     $state = useRouterState(),
     prefixRoute = useSelector(selectPrefixRoute),
+    hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow),
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
     policyExists = isFirewallContext ? !!policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
@@ -141,6 +143,7 @@ export default function ViolationDetailsTile(props) {
                     variant={activeWaivers?.length ? 'secondary' : 'primary'}
                     hasPermissionForAppWaivers={hasPermissionForAppWaivers}
                     isWaiverRequestWorkflowEnabled={isWaiverRequestWorkflowEnabled}
+                    isRequestWaiverGated={!hasWaiverRequestWorkflow}
                     onClickAddWaiver={redirectToAddWaiverPage}
                     onClickRequestWaiver={redirectToRequestWaiverPage}
                   />

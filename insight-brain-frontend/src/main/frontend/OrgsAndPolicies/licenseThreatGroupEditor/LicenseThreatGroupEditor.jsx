@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import classNames from 'classnames';
 import {
   NxStatefulForm,
   NxPageTitle,
@@ -16,8 +17,12 @@ import {
   NxModal,
   NxFontAwesomeIcon,
   NxWarningAlert,
+  NxInfoAlert,
+  NxTextLink,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 import { actions } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSlice';
 import {
   selectIsLoading,
@@ -31,10 +36,17 @@ import {
   selectDeleteMaskState,
   selectDeleteError,
   selectAvailableLicenses,
+
+  selectLicenseThreatGroupId,
 } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import LtgTransferList from './LtgTransferList';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import LicenseThreatGroupReadOnlyView from './LicenseThreatGroupReadOnlyView';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
+import { selectHasCustomLicenseThreatGroups, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import './_LicenseThreatGroupEditor.scss';
 
 const getValidationMessage = (isDirty, validationError) => {
   if (!isDirty) {
@@ -66,6 +78,33 @@ export default function LicenseThreatGroupEditor() {
   const deleteError = useSelector(selectDeleteError);
   const validationError = useSelector(selectValidationError);
   const allLicenses = useSelector(selectAvailableLicenses);
+  const isEnterprisePreviewMode = useSelector(selectIsEnterprisePreviewMode);
+  const licenseThreatGroupId = useSelector(selectLicenseThreatGroupId);
+  const hasCustomLicenseThreatGroups = useSelector(selectHasCustomLicenseThreatGroups);
+  const isFeatureGated = !hasCustomLicenseThreatGroups;
+
+  const handleToggleMode = () => {
+    const newMode = !isEnterprisePreviewMode;
+    // Zero dirty synchronously so the router navigation guard (which reads the
+    // raw state path) does not fire the unsaved-changes modal for non-saveable
+    // preview edits made before the toggle.
+    dispatch(actions.resetIsDirty());
+    dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
+    if (newMode) {
+      doLoad(); // Reload for clean Custom view
+    }
+    else {
+      doLoad(); // Reload to discard Custom edits
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Reset preview mode on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(productFeaturesActions.setEnterprisePreviewMode(false));
+    };
+  }, [dispatch]);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -79,14 +118,42 @@ export default function LicenseThreatGroupEditor() {
 
   useEffect(() => {
     doLoad();
-  }, []);
+  }, [licenseThreatGroupId]);
 
   return (
     <>
-      <NxPageTitle>
-        <NxH1>{isEditMode ? 'Edit' : 'New'} License Threat Group</NxH1>
-      </NxPageTitle>
-      <NxTile id="license-threat-group-editor">
+      <div className="iq-license-threat-group-editor__header">
+        <NxPageTitle>
+          <NxH1>License Threat Group Settings</NxH1>
+        </NxPageTitle>
+        {isFeatureGated && isEditMode && (
+          <div className="iq-license-threat-group-editor__mode-switch">
+            <NxButton
+              variant={!isEnterprisePreviewMode ? 'primary' : 'secondary'}
+              onClick={() => !isEnterprisePreviewMode || handleToggleMode()}
+              className="iq-license-threat-group-editor__mode-button iq-license-threat-group-editor__mode-button--left"
+            >
+              Default
+            </NxButton>
+            <NxTooltip title="Enterprise Feature">
+              <NxButton
+                variant={isEnterprisePreviewMode ? 'primary' : 'secondary'}
+                onClick={() => isEnterprisePreviewMode || handleToggleMode()}
+                className="iq-license-threat-group-editor__mode-button iq-license-threat-group-editor__mode-button--right"
+              >
+                Custom <NxFontAwesomeIcon icon={faLock} />
+              </NxButton>
+            </NxTooltip>
+          </div>
+        )}
+      </div>
+      <NxTile
+        id="license-threat-group-editor"
+        className={classNames({
+          'iq-banner-flush-top': isFeatureGated && (isEnterprisePreviewMode || !isEditMode),
+          'iq-enterprise-mode-footer': isFeatureGated,
+        })}
+      >
         <NxStatefulForm
           onSubmit={saveLicenseThreatGroup}
           submitBtnText={isEditMode ? 'Update' : 'Create'}
@@ -98,29 +165,69 @@ export default function LicenseThreatGroupEditor() {
           validationErrors={getValidationMessage(isDirty, validationError)}
           submitError={submitError}
           additionalFooterBtns={
-            isEditMode ? (
+            isEditMode && !isEnterprisePreviewMode && !isFeatureGated ? (
               <NxButton id="delete-ltg-button" onClick={openDeleteModal} variant="tertiary" type="button">
                 Delete
               </NxButton>
-            ) : null
+            ) : isEnterprisePreviewMode || !isEditMode ? (
+              <NxButton variant="secondary" onClick={() => window.history.back()} type="button">
+                Back
+              </NxButton>
+            ) : undefined
           }
         >
-          <NxTile.Content>
-            <div className="nx-form-row">
-              <NxFormGroup id="editor-label-name" label="Group Name" isRequired>
-                <NxTextInput validatable={true} {...dirtyLTG.name} onChange={setLicenseThreatGroupName} />
-              </NxFormGroup>
-              <ThreatDropdownSelector
-                threatLevel={dirtyLTG.threatLevel}
-                onSelectThreatLevel={setLicenseThreatGroupThreatLevel}
+          {isFeatureGated && !isEnterprisePreviewMode && isEditMode ? (
+            <LicenseThreatGroupReadOnlyView licenseThreatGroup={dirtyLTG} allLicenses={allLicenses} />
+          ) : isFeatureGated ? (
+            <NxTile.Content>
+              <EnterpriseFullWidthBanner
+                title="Custom License Threat Groups"
+                description="Define license risk based on your legal standards to improve accuracy and reduce manual review."
               />
-            </div>
-            <LtgTransferList
-              licenseIds={dirtyLTG.licenseIds}
-              allLicenses={allLicenses}
-              setSelectedLicenses={setPickedLicenses}
-            />
-          </NxTile.Content>
+              <div className="nx-form-row">
+                <NxFormGroup id="editor-label-name" label="Group Name" isRequired>
+                  <NxTextInput validatable={true} {...dirtyLTG.name} onChange={setLicenseThreatGroupName} />
+                </NxFormGroup>
+                <ThreatDropdownSelector
+                  threatLevel={dirtyLTG.threatLevel}
+                  onSelectThreatLevel={setLicenseThreatGroupThreatLevel}
+                />
+              </div>
+              <LtgTransferList
+                licenseIds={dirtyLTG.licenseIds}
+                allLicenses={allLicenses}
+                setSelectedLicenses={setPickedLicenses}
+              />
+              {(isEnterprisePreviewMode || !isEditMode) && (
+                <NxInfoAlert>
+                  This is an Enterprise feature. Changes can&apos;t be saved.
+                  {isEditMode && (
+                    <>
+                      {' '}
+                      <NxTextLink onClick={handleToggleMode}>Return to Lifecycle Pro</NxTextLink>
+                    </>
+                  )}
+                </NxInfoAlert>
+              )}
+            </NxTile.Content>
+          ) : (
+            <NxTile.Content>
+              <div className="nx-form-row">
+                <NxFormGroup id="editor-label-name" label="Group Name" isRequired>
+                  <NxTextInput validatable={true} {...dirtyLTG.name} onChange={setLicenseThreatGroupName} />
+                </NxFormGroup>
+                <ThreatDropdownSelector
+                  threatLevel={dirtyLTG.threatLevel}
+                  onSelectThreatLevel={setLicenseThreatGroupThreatLevel}
+                />
+              </div>
+              <LtgTransferList
+                licenseIds={dirtyLTG.licenseIds}
+                allLicenses={allLicenses}
+                setSelectedLicenses={setPickedLicenses}
+              />
+            </NxTile.Content>
+          )}
         </NxStatefulForm>
       </NxTile>
       {isDeleteModalOpen && (

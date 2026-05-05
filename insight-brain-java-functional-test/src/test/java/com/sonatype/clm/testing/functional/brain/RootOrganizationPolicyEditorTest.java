@@ -64,7 +64,8 @@ public class RootOrganizationPolicyEditorTest
   public void testQuarantineWarningOnCreatePolicy() {
     setFeatures(LicensedFeature.RELEASE_INTEGRITY, LicensedFeature.HYGIENE, LicensedFeature.POLICY_MONITORING,
         LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.POLICY_READ_ONLY, LicensedFeature.ENFORCEMENT,
-        LicensedFeature.NOTIFICATIONS, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.DASHBOARD);
+        LicensedFeature.NOTIFICATIONS, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.DASHBOARD,
+        LicensedFeature.CUSTOM_POLICIES);
 
     refreshOrOpen(OwnerSummaryPage.url(rootOrganization));
     OwnerSummaryPage.policyTile().addPolicyButton().click();

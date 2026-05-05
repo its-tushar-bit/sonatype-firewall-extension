@@ -5,12 +5,16 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
+import { selectHasCustomComponentLabels } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { NxLoadWrapper, NxSubmitMask } from '@sonatype/react-shared-components';
 
 import { componentDetailsTagsPropTypes } from '../ComponentDetailsHeader';
 import TransferList from '../TransferList/TransferList';
 import RemoveLabelModal from './RemoveLabelModal/RemoveLabelModalContainer';
 import ApplyLabelModalContainer from './ApplyLabelModal/ApplyLabelModalContainer';
+import EnterprisePopover from 'MainRoot/shared/enterpriseTier/EnterprisePopover';
+import './_ManageComponentLabels.scss';
 
 export default function ManageComponentLabels({
   applicableLabels = [],
@@ -23,12 +27,31 @@ export default function ManageComponentLabels({
   applyLabelMaskState,
 }) {
   const selectedLabelsSet = new Set(selectedLabels.map(({ id }) => id));
-  const available = applicableLabels.filter((item) => !selectedLabelsSet.has(item.id)) || [];
+
+  const hasCustomComponentLabels = useSelector(selectHasCustomComponentLabels);
+  const labelsToUse = applicableLabels;
+  const available = labelsToUse.filter((item) => !selectedLabelsSet.has(item.id)) || [];
   const selected = selectedLabels || [];
 
   useEffect(() => {
     loadApplicableLabels();
   }, []);
+
+  const handleViewCustomLabels = () => {
+    // ROOT_ORGANIZATION_ID is the actual backend ID for the root org (see Organization.java)
+    window.location.href = '/assets/#/management/edit/organization/ROOT_ORGANIZATION_ID/label';
+  };
+
+  const transferListContent = (
+    <div>
+      <TransferList
+        available={available}
+        selected={selected}
+        onAddItem={handleAddLabelTag}
+        onRemoveItem={handleRemoveLabelTag}
+      />
+    </div>
+  );
 
   return (
     <Fragment>
@@ -48,12 +71,19 @@ export default function ManageComponentLabels({
             <div className="nx-tile-content">
               <RemoveLabelModal />
               <ApplyLabelModalContainer />
-              <TransferList
-                available={available}
-                selected={selected}
-                onAddItem={handleAddLabelTag}
-                onRemoveItem={handleRemoveLabelTag}
-              />
+              {!hasCustomComponentLabels ? (
+                <EnterprisePopover
+                  featureId="labels"
+                  highlightText="Go beyond default labels"
+                  content="—create your own labels to organize components and prioritize what matters most."
+                  linkText="View custom component labels"
+                  onLinkClick={handleViewCustomLabels}
+                >
+                  {transferListContent}
+                </EnterprisePopover>
+              ) : (
+                transferListContent
+              )}
             </div>
           </div>
         )}

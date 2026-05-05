@@ -61,6 +61,9 @@ describe('Auto Waiver Details', function () {
     };
 
     initialState = {
+      productFeatures: {
+        productFeatures: { 'auto-waiver-management': true },
+      },
       router: {
         currentParams: {
           autoWaiverId,

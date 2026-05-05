@@ -1113,6 +1113,22 @@ describe('WaiverConfirmationPage component', () => {
     });
   });
 
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      preloadedState = getDefaultPreloadedState();
+    });
+
+    it('shows enterprise banner when bulk-waivers feature is absent', () => {
+      renderComponent({ productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } } });
+      expect(screen.getByText(/This is an Enterprise feature/)).toBeVisible();
+    });
+
+    it('shows changes cannot be saved message for Pro tier user', () => {
+      renderComponent({ productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } } });
+      expect(screen.getByText(/Changes can't be saved/)).toBeVisible();
+    });
+  });
+
   function renderComponent(additionalState = {}) {
     const finalState = { ...preloadedState, ...additionalState };
     return render(<WaiverConfirmationPage />, { preloadedState: finalState });
@@ -1120,6 +1136,9 @@ describe('WaiverConfirmationPage component', () => {
 
   function getDefaultPreloadedState() {
     return {
+      productFeatures: {
+        productFeatures: { 'bulk-waivers': true },
+      },
       waivers: {
         waiverReasons: {
           loading: false,

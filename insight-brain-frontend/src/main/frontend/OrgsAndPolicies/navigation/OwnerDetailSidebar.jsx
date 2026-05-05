@@ -18,6 +18,7 @@ import {
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPlus, faPencilAlt, faTag, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -58,6 +59,11 @@ import {
   selectIsDeveloperDashboardEnabled,
   selectIsAutoWaiversEnabled,
   selectIsCpeMatchingSupported,
+  selectHasCustomPolicies,
+  selectHasCustomAppCategories,
+  selectHasCustomComponentLabels,
+  selectHasCustomLicenseThreatGroups,
+  selectHasAutoWaiverManagement,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -120,6 +126,12 @@ export default function OwnerDetailSidebar() {
   const isWaivers = useSelector(selectIsWaivers);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
+
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
+  const hasCustomAppCategories = useSelector(selectHasCustomAppCategories);
+  const hasCustomComponentLabels = useSelector(selectHasCustomComponentLabels);
+  const hasCustomLicenseThreatGroups = useSelector(selectHasCustomLicenseThreatGroups);
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
   const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
   const isPublicDataSources = useSelector(selectIsPublicDataSources);
   const isFirewall = useSelector(selectIsFirewall);
@@ -214,7 +226,7 @@ export default function OwnerDetailSidebar() {
           triggerContent="Application Categories"
           className={isCategory ? 'active' : ''}
         >
-          <NxTooltip title={isApp && !areAnyCategoriesDefined ? 'No application categories defined.' : ''}>
+          <NxTooltip title={!isApp && !hasCustomAppCategories ? 'Enterprise Feature' : (isApp && !areAnyCategoriesDefined ? 'No application categories defined.' : '')}>
             <NxCollapsibleItems.Child role="menuitem">
               <NxTextLink
                 className={isCategory && !categoryId ? 'selected' : ''}
@@ -222,7 +234,8 @@ export default function OwnerDetailSidebar() {
                 disabled={isApp && !areAnyCategoriesDefined}
               >
                 <NxFontAwesomeIcon icon={isApp ? faPencilAlt : faPlus} />
-                {isApp ? 'Assign App Categories' : 'New Category'}
+                <span>{isApp ? 'Assign App Categories' : 'New Category'}</span>
+                {!isApp && !hasCustomAppCategories && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
               </NxTextLink>
             </NxCollapsibleItems.Child>
           </NxTooltip>
@@ -255,12 +268,15 @@ export default function OwnerDetailSidebar() {
           className={isPolicy ? 'active' : ''}
         >
           {!isSbomManager && (
-            <NxCollapsibleItems.Child role="menuitem">
-              <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
-                <NxFontAwesomeIcon icon={faPlus} />
-                New Policy
-              </NxTextLink>
-            </NxCollapsibleItems.Child>
+            <NxTooltip title={!hasCustomPolicies ? 'Enterprise Feature' : ''}>
+              <NxCollapsibleItems.Child role="menuitem">
+                <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
+                  <NxFontAwesomeIcon icon={faPlus} />
+                  <span>New Policy</span>
+                  {!hasCustomPolicies && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+                </NxTextLink>
+              </NxCollapsibleItems.Child>
+            </NxTooltip>
           )}
           {policies &&
             sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
@@ -323,12 +339,15 @@ export default function OwnerDetailSidebar() {
           triggerContent="Component Labels"
           className={`label-list-menu label-group ${isLabel ? 'active' : ''}`}
         >
-          <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink className={isLabel && !labelId ? 'selected' : ''} href={`${linkMainHref}/label`}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              New Component Label
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
+          <NxTooltip title={!hasCustomComponentLabels ? 'Enterprise Feature' : ''}>
+            <NxCollapsibleItems.Child role="menuitem">
+              <NxTextLink className={isLabel && !labelId ? 'selected' : ''} href={`${linkMainHref}/label`}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>New Component Label</span>
+                {!hasCustomComponentLabels && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+              </NxTextLink>
+            </NxCollapsibleItems.Child>
+          </NxTooltip>
           {labels?.map(({ label, id, color }) => (
             <NxOverflowTooltip key={label}>
               <NxCollapsibleItems.Child role="menuitem">
@@ -354,15 +373,18 @@ export default function OwnerDetailSidebar() {
           triggerContent="License Threat Groups"
           className={isLicenseThreatGroup ? 'active' : ''}
         >
-          <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink
-              className={isLicenseThreatGroup && !licenseThreatGroupId ? 'selected' : ''}
-              href={`${linkMainHref}/licenseThreatGroup`}
-            >
-              <NxFontAwesomeIcon icon={faPlus} />
-              New License Threat Group
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
+          <NxTooltip title={!hasCustomLicenseThreatGroups ? 'Enterprise Feature' : ''}>
+            <NxCollapsibleItems.Child role="menuitem">
+              <NxTextLink
+                className={isLicenseThreatGroup && !licenseThreatGroupId ? 'selected' : ''}
+                href={`${linkMainHref}/licenseThreatGroup`}
+              >
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>New License Threat Group</span>
+                {!hasCustomLicenseThreatGroups && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+              </NxTextLink>
+            </NxCollapsibleItems.Child>
+          </NxTooltip>
           {licenseThreatGroups &&
             sort((a, b) => b.threatLevel - a.threatLevel, licenseThreatGroups).map(({ name, id, threatLevel }) => (
               <NxOverflowTooltip key={name}>
@@ -433,14 +455,17 @@ export default function OwnerDetailSidebar() {
       </NxCollapsibleItems>
       {/* Waivers */}
       {!isRepositoriesRelated && isDeveloperDashboardEnabled && !isSbomManager && !isFirewall && isAutoWaiverEnabled && (
-        <NxCollapsibleItems.Child role="menuitem">
-          <NxTextLink
-            className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`}
-            href={`${linkMainHref}/autowaivers`}
-          >
-            Auto-Waivers
-          </NxTextLink>
-        </NxCollapsibleItems.Child>
+        <NxTooltip title={!hasAutoWaiverManagement ? 'Enterprise Feature' : ''}>
+          <NxCollapsibleItems.Child role="menuitem">
+            <NxTextLink
+              className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`}
+              href={`${linkMainHref}/autowaivers`}
+            >
+              <span>Auto-Waivers</span>
+              {!hasAutoWaiverManagement && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+            </NxTextLink>
+          </NxCollapsibleItems.Child>
+        </NxTooltip>
       )}
       {isCpeMatchingSupported && !isSbomManagerOnlyLicense && !isFirewall && (
         <NxCollapsibleItems.Child>

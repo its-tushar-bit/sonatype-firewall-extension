@@ -14,6 +14,8 @@ import {
   selectPermissionsError,
 } from './bulkWaiverSelectors';
 import { goToBulkWaivePage } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseLockButton } from 'MainRoot/shared/enterpriseTier';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
 /**
@@ -29,6 +31,7 @@ import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 export default function BulkWaiveButton({ disabled, publicId, className = '', skipPermissionCheck = false }) {
   const dispatch = useDispatch();
   const canWaivePolicyViolations = useSelector((state) => selectCanWaivePolicyViolations(state, publicId));
+  const hasBulkWaivers = useSelector(selectHasBulkWaivers);
   const permissionsLoading = useSelector((state) => selectPermissionsLoading(state, publicId));
   const permissionsError = useSelector((state) => selectPermissionsError(state, publicId));
 
@@ -56,6 +59,10 @@ export default function BulkWaiveButton({ disabled, publicId, className = '', sk
 
   if (!canWaivePolicyViolations) {
     return null;
+  }
+
+  if (!hasBulkWaivers) {
+    return <EnterpriseLockButton label="Preview Bulk Waive" onClick={handleClick} variant="tertiary" />;
   }
 
   return (

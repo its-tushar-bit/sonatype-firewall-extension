@@ -9,6 +9,7 @@ import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 
 import { formatDate } from '../../../util/dateUtils';
+import { TIER_LIFECYCLE_PRO, TIER_LIFECYCLE_ENTERPRISE } from 'MainRoot/productFeatures/productTierSelectors';
 
 export const EXPIRATION_DATE_FORMAT = 'MMMM DD, YYYY';
 const mkLimit = (name, count) => ({ name, count });
@@ -60,6 +61,14 @@ export default function ProductLicenseInfo({ license }) {
               </dd>
             ))}
           </div>
+          {(license.productEdition === TIER_LIFECYCLE_PRO || license.productEdition === TIER_LIFECYCLE_ENTERPRISE) && (
+            <div className="nx-read-only__item">
+              <dt className="nx-read-only__label">Tier</dt>
+              <dd className="nx-read-only__data" id="license-tier">
+                {license.productEdition === TIER_LIFECYCLE_PRO ? 'Pro' : 'Enterprise'}
+              </dd>
+            </div>
+          )}
           <div className="nx-read-only__item iq-product-license__days-remaining">
             <dt className="nx-read-only__label">Days Remaining</dt>
             <dd className="nx-read-only__data visual-testing-ignore" id="license-days-to-expiration">

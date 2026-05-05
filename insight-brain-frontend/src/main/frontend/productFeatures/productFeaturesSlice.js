@@ -23,6 +23,8 @@ export const initialState = {
   loading: false,
   loadError: null,
   productFeatures: {},
+  isEnterprisePreviewMode: false,
+  dismissedPopovers: {},
 };
 
 const fetchProductFeaturesIfNeededFulfilled = (state, { payload }) => {
@@ -99,9 +101,21 @@ const loadIsOauth2Enabled = createAsyncThunk(`${REDUCER_NAME}/loadIsOauth2Enable
   axios.get(getOAuth2Enabled(), { waitForLogin: false }).then(pipe(prop('data'), includes('oauth2-enabled')))
 );
 
+const setEnterprisePreviewMode = (state, { payload }) => {
+  state.isEnterprisePreviewMode = payload;
+};
+
+const dismissPopover = (state, { payload: featureId }) => {
+  state.dismissedPopovers[featureId] = true;
+};
+
 const productFeaturesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
+  reducers: {
+    setEnterprisePreviewMode,
+    dismissPopover,
+  },
   extraReducers: {
     [fetchProductFeaturesIfNeeded.fulfilled]: fetchProductFeaturesIfNeededFulfilled,
     [fetchProductFeaturesIfNeeded.pending]: fetchProductFeaturesIfNeededPending,

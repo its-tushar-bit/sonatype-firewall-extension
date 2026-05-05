@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxTile,
@@ -18,6 +18,8 @@ import {
   NxButton,
   NxTooltip,
 } from '@sonatype/react-shared-components';
+import { selectHasAutoWaiverManagement } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 
 import AutoWaiverExclusionLogTable from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverExclusionLogTable';
 import AutoWaiverModal from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverModal';
@@ -57,6 +59,27 @@ export default function AutoWaiverDetails() {
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);
   const isWaiverDetailsPage = currentRouteName === 'waiver.details' || currentRouteName === FIREWALL_WAIVER_DETAILS;
+  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
+
+  // Check if this is a preview waiver (enterprise preview mode)
+  const isPreviewWaiver = routerCurrentParams?.autoWaiverId === 'preview-auto-waiver';
+
+  // Mock data for preview waiver
+  const mockPreviewWaiver = useMemo(() => ({
+    createTime: Date.now(),
+    pathForward: true,
+    reachability: true,
+    threatLevel: 3,
+    scopesOperatorAny: true,
+    ownerId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
+    ownerName: 'Organization Name',
+    ownerType: 'organization',
+    publicId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
+    autoPolicyWaiverId: 'preview-auto-waiver',
+  }), [routerCurrentParams]);
+
+  // Use mock data if preview waiver, otherwise use real details
+  const waiverDetails = isPreviewWaiver ? mockPreviewWaiver : details;
 
   const {
     createTime,
@@ -69,7 +92,7 @@ export default function AutoWaiverDetails() {
     ownerType,
     publicId,
     autoPolicyWaiverId,
-  } = details || {};
+  } = waiverDetails || {};
   const formatDate = (date) => moment(date).format('MMMM D, YYYY');
 
   const applicableAutoWaivers = useSelector(selectApplicableAutoWaivers);
@@ -123,7 +146,10 @@ export default function AutoWaiverDetails() {
   };
 
   useEffect(() => {
-    loadAutoWaiverDetails();
+    // Skip loading for preview waiver
+    if (!isPreviewWaiver) {
+      loadAutoWaiverDetails();
+    }
   }, []);
 
   useEffect(() => {
@@ -140,12 +166,22 @@ export default function AutoWaiverDetails() {
 
   return (
     <>
-      <NxTile className="nx-viewport-sized" id="auto-waiver-details" data-testid="auto-waiver-details">
+      <NxTile
+        className={`nx-viewport-sized ${!hasAutoWaiverManagement ? 'iq-banner-flush-top' : ''}`}
+        id="auto-waiver-details"
+        data-testid="auto-waiver-details"
+      >
+        {!hasAutoWaiverManagement && (
+          <EnterpriseFullWidthBanner
+            title="Auto-Waivers"
+            description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
+          />
+        )}
         <NxTile.Header>
           <NxTile.HeaderTitle>
             <NxH2>Auto-Waiver Details</NxH2>
           </NxTile.HeaderTitle>
-          {!isWaiverDetailsPage && (
+          {!isWaiverDetailsPage && !isPreviewWaiver && hasAutoWaiverManagement && (
             <NxTile.HeaderActions>
               <NxTooltip title={isInherited ? 'Cannot edit an inherited auto-waiver' : ''}>
                 <NxButton variant="tertiary" className={isInherited ? 'disabled' : ''} onClick={handleEditClick}>
@@ -161,7 +197,7 @@ export default function AutoWaiverDetails() {
             </NxTile.HeaderActions>
           )}
         </NxTile.Header>
-        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadAutoWaiverDetails}>
+        <NxLoadWrapper loading={!isPreviewWaiver && isLoading} error={!isPreviewWaiver && loadError} retryHandler={loadAutoWaiverDetails}>
           <div>
             {/* Policy */}
             <NxReadOnly className="iq-auto-waiver-details__policy">

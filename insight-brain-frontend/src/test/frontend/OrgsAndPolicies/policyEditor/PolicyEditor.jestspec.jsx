@@ -70,6 +70,7 @@ describe('PolicyEditorSpec', () => {
       productFeatures: {
         productFeatures: {
           firewall: true,
+          'custom-policies': true,
         },
       },
     };
@@ -226,8 +227,7 @@ describe('PolicyEditorSpec', () => {
       setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
       setSbomState();
       renderComponent(sbomState);
-      expect(await screen.findByRole('heading', { name: 'Edit Policy' })).toBeVisible();
-      expect(await screen.queryByRole('heading', { name: 'New Policy' })).not.toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Policy Settings' })).toBeVisible();
     });
 
     it('does not render Delete button under SBOM Manager', async () => {
@@ -296,7 +296,7 @@ describe('PolicyEditorSpec', () => {
 
           const updateButton = await screen.findByText('Update');
           const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
-          const policyTitle = screen.getByText('Edit Policy');
+          const policyTitle = screen.getByText('Policy Settings');
           expect(policyTitle).toBeVisible();
           expect(updateButton).toBeVisible();
           fireEvent.click(updateButton);
@@ -581,7 +581,7 @@ describe('PolicyEditorSpec', () => {
         renderComponent(initState);
         const updateButton = await screen.findByText('Create');
         const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-        const policyTitle = screen.getByText('New Policy');
+        const policyTitle = screen.getByText('Policy Settings');
         expect(policyTitle).toBeVisible();
         expect(updateButton).toBeVisible();
         fireEvent.click(updateButton);
@@ -595,7 +595,7 @@ describe('PolicyEditorSpec', () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
         renderComponent(initState);
         let updateButton = await screen.findByText('Create');
-        const policyTitle = screen.getByText('New Policy');
+        const policyTitle = screen.getByText('Policy Settings');
 
         expect(policyTitle).toBeVisible();
         expect(updateButton).toBeVisible();
@@ -1293,7 +1293,7 @@ describe('PolicyEditorSpec', () => {
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-      const policyTitle = screen.getByText('View Policy');
+      const policyTitle = screen.getByText('Policy Settings');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
       expect(updateButton).not.toHaveAttribute('aria-label');
@@ -1326,7 +1326,7 @@ describe('PolicyEditorSpec', () => {
       let updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-      const policyTitle = screen.getByText('View Policy');
+      const policyTitle = screen.getByText('Policy Settings');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
       expect(deleteButton).toBeNull();
@@ -1342,7 +1342,7 @@ describe('PolicyEditorSpec', () => {
       let updateButton = await screen.findByText('Update');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-      const policyTitle = screen.getByText('View Policy');
+      const policyTitle = screen.getByText('Policy Settings');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
       expect(deleteButton).toBeNull();
@@ -1499,7 +1499,7 @@ describe('PolicyEditorSpec', () => {
       let updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-      const policyTitle = screen.getByText('View Policy');
+      const policyTitle = screen.getByText('Policy Settings');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
       expect(deleteButton).toBeNull();
@@ -1523,7 +1523,7 @@ describe('PolicyEditorSpec', () => {
       let updateButton = await screen.findByText('Update');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
       const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
-      const policyTitle = screen.getByText('View Policy');
+      const policyTitle = screen.getByText('Policy Settings');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
       expect(deleteButton).toBeNull();
@@ -1813,5 +1813,48 @@ describe('PolicyEditorSpec', () => {
     const updateButton = await screen.findByText('Update');
     expect(updateButton).toBeVisible();
     expect(updateButton).toHaveClass('disabled');
+  });
+
+  describe('Pro Tier Gating', () => {
+    const proTierState = () => {
+      initState.productFeatures = { productFeatures: { firewall: true } };
+      initState.productLicense = { license: { products: ['Sonatype Lifecycle Pro'] } };
+    };
+
+    it('shows mode switch with Default and Custom buttons when editing existing policy', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      proTierState();
+      renderComponent(initState);
+
+      expect(await screen.findByText('Default')).toBeVisible();
+      expect(screen.getByText('Custom')).toBeVisible();
+    });
+
+    it('does not show Delete button for Pro tier user', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      proTierState();
+      renderComponent(initState);
+
+      await screen.findByText('Policy Settings');
+      expect(screen.queryByRole('button', { name: 'Delete Policy' })).not.toBeInTheDocument();
+    });
+
+    it('shows lock icon on the Custom button', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      proTierState();
+      renderComponent(initState);
+
+      const customButton = await screen.findByText('Custom');
+      expect(customButton).toBeVisible();
+    });
+
+    it('does not show mode switch when creating a new policy', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, null);
+      proTierState();
+      renderComponent(initState);
+
+      await screen.findByText('Policy Settings');
+      expect(screen.queryByText('Default')).not.toBeInTheDocument();
+    });
   });
 });

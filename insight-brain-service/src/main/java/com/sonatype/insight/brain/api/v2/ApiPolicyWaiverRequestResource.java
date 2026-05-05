@@ -23,9 +23,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverRequestService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +58,7 @@ public class ApiPolicyWaiverRequestResource
     this.apiPolicyWaiverRequestService = apiPolicyWaiverRequestService;
   }
 
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -98,6 +100,7 @@ public class ApiPolicyWaiverRequestResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.REVIEW_WAIVER_REQUEST)
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
   @Path(POLICY_WAIVER_REQUEST_REVIEW_PATH)
   @Operation(
       description = "Use this method to approve or reject a policy waiver request." + //
@@ -158,6 +161,7 @@ public class ApiPolicyWaiverRequestResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_WAIVER_REQUEST)
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
   @Path(POLICY_WAIVER_REQUEST_ID_PATH)
   @Operation(
       description = "Use this method to update a policy waiver request." //

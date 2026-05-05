@@ -5,7 +5,11 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
 import { NxLoadWrapper, NxButton } from '@sonatype/react-shared-components';
+import { selectHasBulkWaivers, selectHasAutoWaiverManagement } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import EnterpriseWaiverFeaturesModal from 'MainRoot/waivers/EnterpriseWaiverFeaturesModal';
+import { hideEnterpriseWaiverFeaturesModal } from 'MainRoot/waivers/waiverActions';
 
 import PolicyViolationsTable from './PolicyViolationsTable';
 import BulkWaiveButton from 'MainRoot/waivers/BulkWaiveButton';
@@ -60,6 +64,9 @@ export default function ViolationsTableTile({
   isFirewall,
   ...tableProps
 }) {
+  const dispatch = useDispatch();
+  const showEnterpriseWaiverModal = useSelector((state) => state.addWaiver?.showEnterpriseWaiverFeaturesModal);
+
   useEffect(() => {
     setViolationType(violationType);
   }, [violationType]);
@@ -74,6 +81,11 @@ export default function ViolationsTableTile({
   );
 
   return (
+    <>
+    <EnterpriseWaiverFeaturesModal
+      isOpen={showEnterpriseWaiverModal || false}
+      onClose={() => dispatch(hideEnterpriseWaiverFeaturesModal())}
+    />
     <section className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
@@ -105,6 +117,7 @@ export default function ViolationsTableTile({
         </NxLoadWrapper>
       </div>
     </section>
+    </>
   );
 }
 

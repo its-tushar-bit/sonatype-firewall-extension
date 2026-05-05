@@ -69,6 +69,7 @@ import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.product.license.RequiresEntitlement;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -294,6 +295,7 @@ public class PolicyResource
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CREATE_POLICY)
+  @RequiresEntitlement(LicensedFeature.CUSTOM_POLICIES)
   public Policy addPolicy(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
@@ -452,6 +454,7 @@ public class PolicyResource
   @Path("{policyId}")
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.DELETE_POLICY)
+  @RequiresEntitlement(LicensedFeature.CUSTOM_POLICIES)
   public void deletePolicy(
       @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
@@ -494,6 +497,7 @@ public class PolicyResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.IMPORT)
+  @RequiresEntitlement(LicensedFeature.CUSTOM_POLICIES)
   public Response importPolicies(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,

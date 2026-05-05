@@ -23,6 +23,10 @@ describe('assignApplicationCategoriesSelectors', () => {
 
   beforeEach(() => {
     mockState = {
+      productFeatures: {
+        productFeatures: {},
+        isEnterprisePreviewMode: false,
+      },
       orgsAndPolicies: {
         root: {
           ownerName: 'alpine test',

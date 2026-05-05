@@ -92,6 +92,7 @@ describe('ActionDropdown', () => {
         productFeatures: {
           'cli-integration': true,
           'policy-grandfathering': true,
+          'custom-policies': true,
         },
       },
     };
@@ -208,6 +209,13 @@ describe('ActionDropdown', () => {
 
     it('on Org level', async () => {
       renderComponent({
+        productFeatures: {
+          productFeatures: {
+            'cli-integration': true,
+            'policy-grandfathering': true,
+            'custom-policies': true,
+          },
+        },
         router: {
           currentParams: { '#': null, organizationId: 'cb53' },
           currentState: {
@@ -309,6 +317,13 @@ describe('ActionDropdown', () => {
 
     it('on RootOrg level', async () => {
       renderComponent({
+        productFeatures: {
+          productFeatures: {
+            'cli-integration': true,
+            'policy-grandfathering': true,
+            'custom-policies': true,
+          },
+        },
         router: {
           currentParams: { '#': null, organizationId: 'ROOT_ORGANIZATION_ID' },
           currentState: {
@@ -848,5 +863,32 @@ describe('ActionDropdown', () => {
     expect(stageReport).toBeVisible();
     expect(releaseReport).toBeVisible();
     expect(operateReport).toBeVisible();
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('shows lock icon and preview text for Import Policies when custom-policies feature is absent', async () => {
+      const proState = {
+        ...defaultPreloadedState,
+        router: {
+          currentState: { name: 'management.view.organization' },
+          currentParams: { organizationId: 'a28' },
+        },
+        productFeatures: {
+          productFeatures: {
+            'cli-integration': true,
+            'policy-grandfathering': true,
+          },
+        },
+        productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+      };
+
+      renderComponent(proState);
+
+      const actionsButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionsButton);
+
+      expect(await screen.findByText('Preview Import Policies')).toBeVisible();
+      expect(screen.queryByText('Import Policies')).not.toBeInTheDocument();
+    });
   });
 });

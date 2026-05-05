@@ -8,6 +8,10 @@ import router from 'MainRoot/router/routerInstance';
 import { OwnerManagerViewWrapper } from 'MainRoot/owner.manager/state/OwnerManagerViewWrapper';
 import { OwnerManagerEditWrapper } from 'MainRoot/owner.manager/state/OwnerManagerEditWrapper';
 import { selectIsDirty as policyEditorSelectIsDirty } from './policySelectors';
+import { selectLabelsIsDirty } from './labelsSelectors';
+import { selectLicenseThreatGroupIsDirty } from './licenseThreatGroupSelectors';
+import { selectIsDirty as applicationCategoriesSelectIsDirty } from './createEditApplicationCategory/createEditApplicationCategoriesSelectors';
+import { selectIsDirty as assignApplicationCategoriesSelectIsDirty } from './assignApplicationCategoriesSelectors';
 
 // Import React components for routes
 import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
@@ -126,7 +130,7 @@ ownerTypes.forEach((ownerType) => {
     component: CreateComponentLabel,
     data: {
       title: `${ownerType.name} Labels`,
-      isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
+      isDirty: selectLabelsIsDirty,
     },
   });
 
@@ -136,7 +140,7 @@ ownerTypes.forEach((ownerType) => {
     component: CreateComponentLabel,
     data: {
       title: `${ownerType.name} Labels`,
-      isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
+      isDirty: selectLabelsIsDirty,
     },
   });
 
@@ -256,7 +260,7 @@ router.stateRegistry.register({
   component: CreateEditApplicationCategory,
   data: {
     title: 'Organization Category',
-    isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
+    isDirty: applicationCategoriesSelectIsDirty,
   },
 });
 
@@ -266,7 +270,7 @@ router.stateRegistry.register({
   component: CreateEditApplicationCategory,
   data: {
     title: 'Organization Category',
-    isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
+    isDirty: applicationCategoriesSelectIsDirty,
   },
 });
 
@@ -276,7 +280,7 @@ router.stateRegistry.register({
   component: LicenseThreatGroupEditor,
   data: {
     title: 'Organization License Threat Group',
-    isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
+    isDirty: selectLicenseThreatGroupIsDirty,
   },
 });
 
@@ -286,7 +290,7 @@ router.stateRegistry.register({
   component: LicenseThreatGroupEditor,
   data: {
     title: 'Organization License Threat Group',
-    isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
+    isDirty: selectLicenseThreatGroupIsDirty,
   },
 });
 
@@ -307,6 +311,6 @@ router.stateRegistry.register({
   component: AssignAppCategory,
   data: {
     title: 'Application Categories',
-    isDirty: ['orgsAndPolicies', 'applicationCategories', 'assign', 'isDirty'],
+    isDirty: assignApplicationCategoriesSelectIsDirty,
   },
 });

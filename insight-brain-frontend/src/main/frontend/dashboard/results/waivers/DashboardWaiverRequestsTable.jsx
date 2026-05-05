@@ -23,6 +23,8 @@ import DashboardWaiverRequestsTableRow from './DashboardWaiverRequestsTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { selectHasWaiverRequestWorkflow } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
 import { waiverRequestStatus } from 'MainRoot/util/waiverUtils';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -47,6 +49,7 @@ export default function DashboardWaiverRequestsTable() {
   const waiverRequests = useSelector(selectWaiverRequests);
   const waiverReasonsState = useSelector(selectWaiverReasonsState);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+  const hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow);
   const {
     loading: filterLoading,
     needsAcknowledgement,
@@ -112,6 +115,15 @@ export default function DashboardWaiverRequestsTable() {
       loadWaiverRequests();
     }
   }, [filterLoading, needsAcknowledgement]);
+
+  if (!hasWaiverRequestWorkflow) {
+    return (
+      <EnterpriseFullWidthBanner
+        title="Waiver Requests"
+        description="Enable your team to request waivers for policy violations with structured workflows and approval processes."
+      />
+    );
+  }
 
   return (
     <>

@@ -27,6 +27,8 @@ import {
   selectRouterCurrentParams,
 } from '../reduxUiRouter/routerSelectors';
 import { DOES_NOT_EXIST_OPERATOR } from './utility/constants';
+import { createTierGatedDirtySelector } from 'MainRoot/productFeatures/tierGateUtils';
+import { selectHasCustomPolicies } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectPoliciesByOwner as mainSelectPoliciesByOwner,
   selectOrgsAndPoliciesSlice,
@@ -318,7 +320,8 @@ const selectIsCategoriesDirty = createSelector(
   ({ categories, originalCategories }) => !equals(categories, originalCategories)
 );
 
-export const selectIsDirty = createSelector(
+// Internal dirty selector that computes the actual dirty state
+const selectIsDirtyInternal = createSelector(
   selectPolicySlice,
   selectObservedPropsAreDirty,
   selectActionsAreDirty,
@@ -363,11 +366,19 @@ export const selectIsDirty = createSelector(
   }
 );
 
+// Wrapped selector that suppresses dirty in Enterprise preview mode for Pro users
+export const selectIsDirty = createTierGatedDirtySelector(selectIsDirtyInternal, selectHasCustomPolicies);
+
 export const selectHasPolicyCategories = createSelector(selectPolicySlice, prop('hasPolicyCategories'));
 
 export const selectOriginalCategories = createSelector(selectPolicySlice, prop('originalCategories'));
 
 export const selectCategories = createSelector(selectPolicySlice, prop('categories'));
+
+export const selectPreviewAppliedCategoryIds = createSelector(
+  selectPolicySlice,
+  (slice) => slice?.previewAppliedCategoryIds ?? []
+);
 
 export const selectOriginalHasPolicyCategories = createSelector(selectPolicySlice, prop('originalHasPolicyCategories'));
 

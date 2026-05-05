@@ -147,8 +147,13 @@ function checkLicenseInfo(stateService, transitionService) {
   }
 
   function onLicenseFailure(err) {
-    cancelUnlicensedStateChangeHandler = transitionService.onStart({}, unlicensedStateChangeHandler);
     if (err?.response?.status === 402) {
+      // Differentiate entitlement failures (tier-gated features) from license failures
+      const code = err?.response?.data?.code;
+      if (code === 'ENTITLEMENT_REQUIRED') {
+        return Promise.reject(err); // Let calling code handle inline upsell
+      }
+      cancelUnlicensedStateChangeHandler = transitionService.onStart({}, unlicensedStateChangeHandler);
       stateService.go('productlicense');
     } else {
       return Promise.reject(err);

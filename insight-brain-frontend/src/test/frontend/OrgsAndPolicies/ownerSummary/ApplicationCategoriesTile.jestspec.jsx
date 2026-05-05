@@ -424,4 +424,25 @@ describe('ApplicationCategoriesTile', () => {
       expect(title).toBeNull();
     });
   });
+
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      jest.spyOn(productFeaturesSelectors, 'selectIsOrgsAndAppsEnabled').mockReturnValue(true);
+      jest.spyOn(productFeaturesSelectors, 'selectHasCustomAppCategories').mockReturnValue(false);
+      isAppSpy.mockReturnValue(false);
+      isOrgSpy.mockReturnValue(true);
+      selectLoadingSpy.mockReturnValue(false);
+    });
+
+    it('shows lock icon and preview text when custom-application-categories feature is absent', () => {
+      renderComponent();
+      expect(screen.getByText('Preview Add a Category')).toBeVisible();
+      expect(screen.queryByText('Add a Category')).not.toBeInTheDocument();
+    });
+
+    it('shows Enterprise Feature tooltip on the edit button', () => {
+      renderComponent();
+      expect(screen.getByText('Preview Add a Category')).toBeVisible();
+    });
+  });
 });

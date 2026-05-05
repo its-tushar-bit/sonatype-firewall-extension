@@ -18,6 +18,7 @@ import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.FeatureContext;
 import jakarta.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.product.license.entitlement.EntitlementRequiredException;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -46,8 +47,15 @@ public class LicenseAwareContainerDynamicFeature
 
     private final LicensedFeature feature;
 
-    public Filter(LicensedFeature feature) {
+    private final LicensedFeature entitlement;
+
+    public Filter(LicensedFeature feature, LicensedFeature entitlement) {
       this.feature = feature;
+      this.entitlement = entitlement;
+    }
+
+    private boolean isLifecycleProduct() {
+      return CLMLicenseManager.hasLifecycleProduct(productLicense);
     }
 
     @Override
@@ -58,6 +66,12 @@ public class LicenseAwareContainerDynamicFeature
         productLicense.validate();
         if (feature != null) {
           productLicense.validateFeature(feature);
+        }
+        // Entitlement check only applies to Lifecycle products (Pro/Enterprise/Legacy).
+        // Non-Lifecycle products (Firewall, SBOM Manager, etc.) skip this check entirely
+        // because tier-gated features are Lifecycle-specific.
+        if (entitlement != null && isLifecycleProduct() && !productLicense.hasFeature(entitlement)) {
+          throw new EntitlementRequiredException(entitlement);
         }
       }
       catch (InvalidLicenseException e) {
@@ -98,6 +112,9 @@ public class LicenseAwareContainerDynamicFeature
       ep = resourceClass.getAnnotation(ProductLicenseEnforcementPoint.class);
     }
 
-    featureContext.register(new Filter(ep != null ? ep.value() : null));
+    RequiresEntitlement entitlementAnnotation = resourceMethod.getAnnotation(RequiresEntitlement.class);
+    LicensedFeature entitlement = entitlementAnnotation != null ? entitlementAnnotation.value() : null;
+
+    featureContext.register(new Filter(ep != null ? ep.value() : null, entitlement));
   }
 }

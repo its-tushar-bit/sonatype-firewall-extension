@@ -31,11 +31,13 @@ import {
 import ReadOnlyConstraint from './ReadOnlyConstraint';
 import EditableConstraint from './EditableConstraint';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectHasCustomPolicies } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { EnterprisePopover } from 'MainRoot/shared/enterpriseTier';
 import { ageValidator, constraintNameValidator } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
-export default function ConstraintsEditor() {
+export default function ConstraintsEditor({ hidePopover = false, previewMode = false }) {
   const dispatch = useDispatch();
 
   const editConstraintMap = useSelector(selectEditConstraintMap);
@@ -46,7 +48,8 @@ export default function ConstraintsEditor() {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isSbomManager = useSelector(selectIsSbomManager);
-  const readOnly = isInherited || !hasEditIqPermission || isSbomManager;
+  const hasCustomPolicies = useSelector(selectHasCustomPolicies);
+  const readOnly = previewMode ? false : (isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies);
 
   const setConstraint = (constraints) => dispatch(policyActions.setConstraint(constraints));
   const setCondition = (constraints) => dispatch(policyActions.setCondition(constraints));
@@ -160,7 +163,7 @@ export default function ConstraintsEditor() {
     setMultiInputConditionValue({ constraintIndex, dataType, valueTypeId, conditionIndex, value });
   }
 
-  return (
+  const constraintsContent = (
     <div id="policy-edit-constraints">
       <NxH2>Constraints</NxH2>
       <NxList className="edit-constraint__form">
@@ -216,4 +219,19 @@ export default function ConstraintsEditor() {
       <NxDivider />
     </div>
   );
+
+  if (!hasCustomPolicies && !hidePopover) {
+    return (
+      <EnterprisePopover
+        highlightText="Customize policy constraints"
+        content="to match your organization's risk tolerance and enforce standards more precisely."
+        linkText="Go to enterprise custom policy"
+        featureId="constraints"
+      >
+        {constraintsContent}
+      </EnterprisePopover>
+    );
+  }
+
+  return constraintsContent;
 }

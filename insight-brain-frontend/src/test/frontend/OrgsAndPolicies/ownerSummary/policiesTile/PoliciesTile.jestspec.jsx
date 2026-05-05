@@ -64,6 +64,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -161,6 +162,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -258,6 +260,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -356,6 +359,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -464,6 +468,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -556,6 +561,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -648,6 +654,7 @@ describe('PoliciesTile', () => {
           productFeatures: {
             firewall: firewallSupported,
             enforcement: enforcementSupported,
+            'custom-policies': true,
           },
         },
         orgsAndPolicies: {
@@ -752,6 +759,7 @@ describe('PoliciesTile', () => {
             productFeatures: {
               firewall: firewallSupported,
               enforcement: enforcementSupported,
+            'custom-policies': true,
             },
           },
           orgsAndPolicies: {
@@ -828,6 +836,7 @@ describe('PoliciesTile', () => {
             productFeatures: {
               firewall: firewallSupported,
               enforcement: enforcementSupported,
+            'custom-policies': true,
             },
           },
           orgsAndPolicies: {
@@ -930,6 +939,80 @@ describe('PoliciesTile', () => {
     it('should hide Add Policy Button', async () => {
       renderComponent(preloadedState);
       expect(await screen.queryByRole('button', { name: 'Add a Policy' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    beforeAll(() => {
+      ownerName = rootOrganizationPoliciesByOwnerPayload.ownerName;
+      ownerId = rootOrganizationPoliciesByOwnerPayload.ownerId;
+      ownerType = rootOrganizationPoliciesByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: true,
+            enforcement: true,
+          },
+        },
+        productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+    });
+
+    it('shows lock icon instead of plus icon when custom-policies feature is absent', async () => {
+      renderComponent(preloadedState);
+      const button = await screen.findByRole('button', { name: 'Preview Add a Policy' });
+      expect(button).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Add a Policy' })).not.toBeInTheDocument();
+    });
+
+    it('shows Enterprise Feature tooltip on the add policy button', async () => {
+      renderComponent(preloadedState);
+      await screen.findByRole('button', { name: 'Preview Add a Policy' });
+      expect(screen.getByText('Preview Add a Policy')).toBeVisible();
     });
   });
 });

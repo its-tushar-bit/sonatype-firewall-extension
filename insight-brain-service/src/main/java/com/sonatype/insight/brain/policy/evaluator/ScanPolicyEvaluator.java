@@ -585,9 +585,14 @@ public class ScanPolicyEvaluator
         autoWaiversByIdForReevaluation = Collections.emptyMap();
       }
 
+      boolean autoWaiverEntitlementMissing = !productLicense.hasFeature(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+      if (autoWaiverEntitlementMissing) {
+        log.debug("Auto-waiver processing skipped: AUTO_WAIVER_MANAGEMENT entitlement not present");
+      }
       List<AutoPolicyWaiver> allAutoWaiversForOwners = skipAutoWaiversForReevaluation
-          ? Collections.emptyList()
-          : autoPolicyWaiverDAO.getByOwnerIds(ownerIds);
+          || autoWaiverEntitlementMissing
+              ? Collections.emptyList()
+              : autoPolicyWaiverDAO.getByOwnerIds(ownerIds);
       List<AutoPolicyWaiver> prefetchedAutoPolicyWaivers =
           AutoPolicyWaiverUtil.getApplicableAutoPolicyWaivers(allAutoWaiversForOwners);
       List<AutoPolicyWaiverExclusion> prefetchedAutoPolicyWaiverExclusions =

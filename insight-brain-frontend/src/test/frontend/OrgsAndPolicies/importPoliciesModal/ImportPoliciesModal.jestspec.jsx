@@ -11,6 +11,9 @@ import 'TestRoot/SpecUtil';
 
 describe('ImportPoliciesModal', () => {
   const defaultPreloadedState = {
+    productFeatures: {
+      productFeatures: { 'custom-policies': true },
+    },
     orgsAndPolicies: {
       ownerActions: {
         importPolicies: {
@@ -51,6 +54,9 @@ describe('ImportPoliciesModal', () => {
 
   it('renders error on submitError', () => {
     renderComponent({
+      productFeatures: {
+        productFeatures: { 'custom-policies': true },
+      },
       orgsAndPolicies: {
         ownerActions: {
           importPolicies: {
@@ -75,5 +81,39 @@ describe('ImportPoliciesModal', () => {
     expect(closeButton).not.toHaveClass('disabled');
     fireEvent.click(closeButton);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('shows Enterprise Feature tag when custom-policies feature is absent', () => {
+      renderComponent({
+        productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        orgsAndPolicies: {
+          ownerActions: {
+            importPolicies: {
+              submitError: null,
+              isModalOpen: true,
+              ownerFile: { isPristine: true, files: null },
+            },
+          },
+        },
+      });
+      expect(screen.getByText('Enterprise Feature')).toBeVisible();
+    });
+
+    it('shows enterprise banner when custom-policies feature is absent', () => {
+      renderComponent({
+        productFeatures: { productFeatures: {} }, productLicense: { license: { products: ['Sonatype Lifecycle Pro'] } },
+        orgsAndPolicies: {
+          ownerActions: {
+            importPolicies: {
+              submitError: null,
+              isModalOpen: true,
+              ownerFile: { isPristine: true, files: null },
+            },
+          },
+        },
+      });
+      expect(screen.getByText(/Request Demo/)).toBeVisible();
+    });
   });
 });

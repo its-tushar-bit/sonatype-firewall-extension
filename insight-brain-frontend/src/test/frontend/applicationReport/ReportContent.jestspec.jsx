@@ -9,6 +9,7 @@ import { render, screen, fireEvent, within, axiosMockAdapter, userEvent } from '
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -90,6 +91,7 @@ describe('ReportContent component', function () {
     jest.spyOn(applicationReportSelectors, 'selectAllComponentsList').mockReturnValue(displayedEntries);
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(routerCurrentParams);
 
+    jest.spyOn(productFeaturesSelectors, 'selectHasBulkWaivers').mockReturnValue(true);
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
 
     renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
@@ -348,6 +350,17 @@ describe('ReportContent component', function () {
         expect(waiveAllViolationsButton).toBeInTheDocument();
         expect(waiveAllViolationsButton).toBeDisabled();
       });
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    it('shows Preview Bulk Waive button instead of Bulk Waive when feature is absent', async () => {
+      jest.spyOn(productFeaturesSelectors, 'selectHasBulkWaivers').mockReturnValue(false);
+
+      renderComponent();
+
+      expect(await screen.findByRole('button', { name: 'Preview Bulk Waive' })).toBeVisible();
+      expect(screen.queryByRole('button', { name: 'Bulk Waive' })).not.toBeInTheDocument();
     });
   });
 });

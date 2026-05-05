@@ -48,6 +48,7 @@ describe('AutoWaiversTile', () => {
   beforeEach(() => {
     jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
+    jest.spyOn(productFeaturesSelectors, 'selectHasAutoWaiverManagement').mockReturnValue(true);
     jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue({
       href: jest.fn().mockReturnValue('editPageHref'),
     });
@@ -230,6 +231,23 @@ describe('AutoWaiversTile', () => {
 
       expect(await screen.findByRole('heading', { name: 'Auto-Waivers' })).toBeInTheDocument();
       expect(screen.getByText('1 local, 2 inherited')).toBeInTheDocument();
+    });
+  });
+
+  describe('Pro Tier Gating', () => {
+    beforeEach(() => {
+      jest.spyOn(productFeaturesSelectors, 'selectHasAutoWaiverManagement').mockReturnValue(false);
+    });
+
+    it('shows enterprise banner instead of auto-waivers content when feature is absent', () => {
+      renderComponent();
+      expect(screen.getAllByRole('heading', { name: 'Auto-Waivers' }).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Automatically apply waivers/)).toBeInTheDocument();
+    });
+
+    it('does not show loading indicator or waiver data', () => {
+      renderComponent();
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
   });
 });

@@ -8,6 +8,22 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from 'GuideRoot/auth/AuthProvider';
 import * as loginApi from 'GuideRoot/auth/loginApi';
 import type { SessionResponse } from 'GuideRoot/auth/loginApi';
+import * as ssoOnlyModeModule from 'GuideRoot/auth/ssoOnlyMode';
+
+
+jest.mock('GuideRoot/auth/ssoOnlyMode', () => ({
+  fetchIsSsoOnlyEnabled: jest.fn().mockResolvedValue(false),
+}));
+
+function mockWindowLocation(pathname = '/') {
+  const assignSpy = jest.fn();
+  Object.defineProperty(window, 'location', {
+    value: { ...window.location, pathname, assign: assignSpy, origin: 'http://localhost' },
+    writable: true,
+    configurable: true,
+  });
+  return assignSpy;
+}
 
 function AuthConsumer() {
   const { status, user, ssoConfig, login, authFetch } = useAuth();
@@ -277,5 +293,82 @@ describe('AuthProvider', () => {
     );
 
     consoleSpy.mockRestore();
+  });
+
+  describe('SSO-only mode', () => {
+    const unauthWithSaml: SessionResponse = {
+      authenticated: false,
+      user: null,
+      sessionTimeoutMs: null,
+      ssoConfig: { type: 'SAML', loginUrl: '/saml/login' },
+    };
+
+    it('auto-redirects to IdP when SSO-only is enabled', async () => {
+      jest.spyOn(loginApi, 'fetchSession').mockResolvedValue(unauthWithSaml);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(true);
+      const assignSpy = mockWindowLocation('/');
+
+      render(
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(assignSpy).toHaveBeenCalled();
+      });
+      expect(assignSpy.mock.calls[0][0]).toContain('/saml/login');
+    });
+
+    it('does NOT auto-redirect when on /backupLogin', async () => {
+      jest.spyOn(loginApi, 'fetchSession').mockResolvedValue(unauthWithSaml);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(true);
+      const assignSpy = mockWindowLocation('/backupLogin');
+
+      render(
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+      });
+      expect(assignSpy).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-redirect when SSO-only is disabled', async () => {
+      jest.spyOn(loginApi, 'fetchSession').mockResolvedValue(unauthWithSaml);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(false);
+      const assignSpy = mockWindowLocation('/');
+
+      render(
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+      });
+      expect(assignSpy).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-redirect when no ssoConfig', async () => {
+      jest.spyOn(loginApi, 'fetchSession').mockResolvedValue(unauthenticatedSession);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(true);
+      const assignSpy = mockWindowLocation('/');
+
+      render(
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+      });
+      expect(assignSpy).not.toHaveBeenCalled();
+    });
   });
 });

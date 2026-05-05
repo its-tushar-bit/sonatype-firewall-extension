@@ -83,6 +83,34 @@ export async function submitLogin(username: string, password: string): Promise<v
   });
 
   if (!response.ok) {
-    throw new Error(response.status === 401 ? 'Invalid username or password' : `Login failed (${response.status})`);
+    throw new Error(await extractErrorMessage(response));
   }
+}
+
+const MAX_ERROR_LENGTH = 200;
+
+async function extractErrorMessage(response: Response): Promise<string> {
+  try {
+    const body = await response.clone().json();
+    if (typeof body?.message === 'string') {
+      return truncate(body.message);
+    }
+  } catch {
+    // JSON parse failed, try text
+  }
+
+  try {
+    const text = await response.text();
+    if (text.trim()) {
+      return truncate(text.trim());
+    }
+  } catch {
+    // text extraction failed
+  }
+
+  return response.status === 401 ? 'Invalid username or password' : `Login failed (${response.status})`;
+}
+
+function truncate(value: string): string {
+  return value.length > MAX_ERROR_LENGTH ? value.slice(0, MAX_ERROR_LENGTH) + '…' : value;
 }

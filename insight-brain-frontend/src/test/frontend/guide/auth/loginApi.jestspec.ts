@@ -197,5 +197,60 @@ describe('loginApi', () => {
 
       await expect(submitLogin('admin', 'pass')).rejects.toThrow('Network error');
     });
+
+    it('throws with backend JSON error message on 401', async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        mockResponse(
+          JSON.stringify({ message: 'Authentication failed due to LDAP timeout' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+
+      await expect(submitLogin('admin', 'pass')).rejects.toThrow(
+        'Authentication failed due to LDAP timeout'
+      );
+    });
+
+    it('throws with backend JSON error message on 403', async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        mockResponse(
+          JSON.stringify({ message: 'User token has expired' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+
+      await expect(submitLogin('admin', 'pass')).rejects.toThrow(
+        'User token has expired'
+      );
+    });
+
+    it('throws with plain text error body when JSON parsing fails', async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        mockResponse(
+          'Missing credentials',
+          { status: 401, headers: { 'Content-Type': 'text/plain' } }
+        )
+      );
+
+      await expect(submitLogin('admin', 'pass')).rejects.toThrow('Missing credentials');
+    });
+
+    it('falls back to generic 401 message when body is empty', async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        mockResponse(null, { status: 401 })
+      );
+
+      await expect(submitLogin('admin', 'pass')).rejects.toThrow(
+        'Invalid username or password'
+      );
+    });
+
+    it('falls back to generic status message for non-401 with empty body', async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        mockResponse(null, { status: 500 })
+      );
+
+      await expect(submitLogin('admin', 'pass')).rejects.toThrow('Login failed (500)');
+    });
   });
 });

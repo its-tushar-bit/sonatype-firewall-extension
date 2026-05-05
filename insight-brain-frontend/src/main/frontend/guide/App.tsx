@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Routes, Route } from 'react-router';
+import { Routes, Route, Navigate } from 'react-router';
 import { NavigationProvider } from '@guide/ui-core';
 import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
@@ -33,12 +33,33 @@ function AuthGate() {
   );
 }
 
+function BackupLogin() {
+  const { status, ssoConfig, login } = useAuth();
+
+  if (status === 'loading') {
+    return (
+      <Flex align="center" justify="center" style={{ minHeight: '100vh' }}>
+        <Spinner size="3" />
+      </Flex>
+    );
+  }
+
+  if (status === 'authenticated') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <LoginPage login={login} ssoConfig={ssoConfig} />;
+}
+
 export default function App() {
   const adapter = useReactRouterAdapter();
   return (
     <AuthProvider>
       <NavigationProvider adapter={adapter}>
-        <AuthGate />
+        <Routes>
+          <Route path="/backupLogin" element={<BackupLogin />} />
+          <Route path="*" element={<AuthGate />} />
+        </Routes>
       </NavigationProvider>
     </AuthProvider>
   );

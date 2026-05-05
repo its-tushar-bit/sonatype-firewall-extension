@@ -12,10 +12,9 @@ import jakarta.inject.Inject;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
+
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -56,9 +55,6 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   @Inject
   private RepositoryDAO repositoryDAO;
-
-  @Inject
-  private OrganizationDAO organizationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -229,14 +225,11 @@ public abstract class AbstractRepositoryServiceAuthzTest
     repository.setFormat("docker");
 
     String pathname = "containerImage-tag";
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplicationWithParent(organization.getId(), pathname);
+    Application application = tempEntity.newApplicationWithParent("test-app-" + tempEntity.uuid(), pathname);
     grantEvaluateComponentPermission(application.getId());
 
     repository.setRelatedOrganizationId(application.getOrganizationId());
     repositoryDAO.update(repository);
-    organization.setRelatedRepositoryId(repository.getId());
-    organizationDAO.update(organization);
 
     getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(), pathname, null);
   }
@@ -263,13 +256,10 @@ public abstract class AbstractRepositoryServiceAuthzTest
     repository.setFormat("docker");
 
     String pathname = "containerImage-tag";
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplicationWithParent(organization.getId(), pathname);
+    Application application = tempEntity.newApplicationWithParent("test-app-" + tempEntity.uuid(), pathname);
 
     repository.setRelatedOrganizationId(application.getOrganizationId());
     repositoryDAO.update(repository);
-    organization.setRelatedRepositoryId(repository.getId());
-    organizationDAO.update(organization);
 
     getRepositoryService().removeComponent(MANUAL_REPO_MAN_INSTANCE_ID, repository.getPublicId(), pathname, null);
   }

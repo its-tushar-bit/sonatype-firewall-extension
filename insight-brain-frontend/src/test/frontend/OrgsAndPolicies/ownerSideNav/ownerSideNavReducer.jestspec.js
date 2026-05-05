@@ -257,6 +257,26 @@ describe('ownerSideNavSlice reducer', () => {
         expect(ownersMap.childOrg1.organizationIds.length).toBe(0);
       });
 
+      it('removes org with missing applicationIds/organizationIds without TypeError (CLM-30626 collision scenario)', () => {
+        // Before fix: when an app's publicId matched an org's UUID, the org entry in ownersMap
+        // was overwritten by the app entry (which has no applicationIds/organizationIds fields),
+        // causing "Cannot read properties of undefined" when collectOwnerIdsToDelete tried to read them.
+        const state = {
+          ownersMap: {
+            root: { id: 'root', type: 'organization', organizationIds: ['childOrg'], applicationIds: [] },
+            childOrg: { id: 'childOrg', type: 'organization', parentOrganizationId: 'root' },
+            // childOrg intentionally has no applicationIds/organizationIds to simulate the corrupted entry
+          },
+          flattenEntries: { organizations: [], applications: [], repositories: [], repositoryManagers: [] },
+        };
+
+        const result = reducer(state, { type: 'ownerSideNav/removeOrganizationFromOwnerHierarchy', payload: 'childOrg' });
+        // org is removed from ownersMap
+        expect(result.ownersMap.childOrg).toBeUndefined();
+        // org is removed from parent's organizationIds list
+        expect(result.ownersMap.root.organizationIds).not.toContain('childOrg');
+      });
+
       it('removes organization and its children from limited owners map', () => {
         const { ownersMap } = reducer(limitedStateMock, {
           type: 'ownerSideNav/removeOrganizationFromOwnerHierarchy',

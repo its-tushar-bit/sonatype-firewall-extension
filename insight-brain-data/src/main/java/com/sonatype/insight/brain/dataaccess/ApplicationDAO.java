@@ -591,6 +591,16 @@ public class ApplicationDAO
     if (getByPublicId(tx, application.getPublicId()) != null) {
       throw new InvalidApplicationException(application.getPublicId() + " is already used as an ID.");
     }
+    if (getById(tx, application.getPublicId()) != null) {
+      throw new InvalidApplicationException(
+          application.getPublicId() + " is already used as an internal ID and cannot be used as a public ID.");
+    }
+    if (organizationDAO.getById(tx, application.getPublicId()) != null) {
+      throw new InvalidApplicationException(
+          application.getPublicId() + " is already used as an internal ID and cannot be used as a public ID.");
+    }
+    // Note: repository and repositoryManager internal IDs are system-generated UUIDs never entered by users,
+    // so the probability of collision is negligible and we intentionally omit those checks here.
 
     // Generate ID if not set (from AbstractSqlDAO)
     String id = application.getId();
@@ -640,6 +650,17 @@ public class ApplicationDAO
       log.info("Application ID: {}, Changing public ID from {} to {}.", existingApplication.getId(),
           existingApplication.getPublicId(),
           application.getPublicId());
+      Application collidingById = getById(tx, application.getPublicId());
+      if (collidingById != null && !collidingById.getId().equals(application.getId())) {
+        throw new InvalidApplicationException(
+            application.getPublicId() + " is already used as an internal ID and cannot be used as a public ID.");
+      }
+      if (organizationDAO.getById(tx, application.getPublicId()) != null) {
+        throw new InvalidApplicationException(
+            application.getPublicId() + " is already used as an internal ID and cannot be used as a public ID.");
+      }
+      // Note: repository and repositoryManager internal IDs are system-generated UUIDs never entered by users,
+      // so the probability of collision is negligible and we intentionally omit those checks here.
     }
     if (!changeParent && !existingApplication.getOrganizationId().equals(application.getOrganizationId())) {
       throw new InvalidApplicationException("Cannot change the parent organization of an application.");

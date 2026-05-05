@@ -1053,8 +1053,7 @@ public class ApiAutoPolicyWaiverServiceTest
   public void testAllMethods_AutoPolicyWaiverIsDisabled() {
     SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
 
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplicationWithParent(organization.getId());
+    Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
     ApiAutoPolicyWaiverDTO dto = ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
 

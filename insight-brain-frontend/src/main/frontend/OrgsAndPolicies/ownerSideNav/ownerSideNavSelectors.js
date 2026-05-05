@@ -87,6 +87,7 @@ function findDescendantsByParentId(ownersMap, parentId) {
 
   while (!isEmpty(parentOrganizations)) {
     const parent = ownersMap[parentOrganizations.shift()];
+    if (!parent) continue;
 
     if (!isNilOrEmpty(parent.applicationIds)) {
       applicationIds.push(...parent.applicationIds);

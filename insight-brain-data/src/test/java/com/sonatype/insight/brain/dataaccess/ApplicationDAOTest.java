@@ -689,6 +689,43 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testInsert_PublicIdMatchesExistingApplicationInternalId_ThrowsException() {
+    // publicId = another app's internal UUID — must be rejected (CLM-30626)
+    Application newApp = new Application(application.getId(), "Test App CLM-30626-A", organization.getId());
+    assertThatThrownBy(() -> applicationDAO.insert(newApp))
+        .isInstanceOf(InvalidApplicationException.class)
+        .hasMessageContaining("already used as an internal ID");
+  }
+
+  @Test
+  public void testInsert_PublicIdMatchesOrganizationInternalId_ThrowsException() {
+    // publicId = an org's internal UUID — the real crash scenario in CLM-30626
+    Application newApp = new Application(organization.getId(), "Test App CLM-30626-B", organization.getId());
+    assertThatThrownBy(() -> applicationDAO.insert(newApp))
+        .isInstanceOf(InvalidApplicationException.class)
+        .hasMessageContaining("already used as an internal ID");
+  }
+
+  @Test
+  public void testUpdate_PublicIdMatchesApplicationInternalId_ThrowsException() {
+    // changing publicId to another app's internal UUID — must be rejected (CLM-30626)
+    Application other = tempEntity.newApplicationWithParent();
+    application.setPublicId(other.getId());
+    assertThatThrownBy(() -> applicationDAO.update(application))
+        .isInstanceOf(InvalidApplicationException.class)
+        .hasMessageContaining("already used as an internal ID");
+  }
+
+  @Test
+  public void testUpdate_PublicIdMatchesOrganizationInternalId_ThrowsException() {
+    // changing publicId to an org's internal UUID — the real crash scenario in CLM-30626
+    application.setPublicId(organization.getId());
+    assertThatThrownBy(() -> applicationDAO.update(application))
+        .isInstanceOf(InvalidApplicationException.class)
+        .hasMessageContaining("already used as an internal ID");
+  }
+
+  @Test
   @Override
   public void testInsert_ValidateNameLength() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);

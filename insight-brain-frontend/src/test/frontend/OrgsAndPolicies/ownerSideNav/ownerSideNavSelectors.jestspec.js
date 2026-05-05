@@ -419,5 +419,21 @@ describe('ownerSideNavSelectors', () => {
         repositoryIds: ['repo1a', 'repo1b', 'repo2a', 'repo2b'],
       });
     });
+
+    it('does not crash when ownersMap entry referenced in organizationIds is missing (CLM-30626)', () => {
+      const brokenOwnersMap = {
+        root: {
+          id: 'root',
+          type: 'organization',
+          organizationIds: ['missingOrg'],
+          applicationIds: [],
+          repositoryIds: [],
+          repositoryManagerIds: [],
+          repositoryContainerId: null,
+        },
+      };
+
+      expect(() => selectAllDescendantsByParentId.resultFunc(brokenOwnersMap, 'root')).not.toThrow();
+    });
   });
 });

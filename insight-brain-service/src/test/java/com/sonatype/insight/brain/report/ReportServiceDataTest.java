@@ -63,7 +63,7 @@ public class ReportServiceDataTest
   @Test
   public void testWriteLicenseThreatsToReportFile() throws Exception {
     Organization org = tempEntity.newOrganization("testWriteLicenseThreatsToReportFile");
-    Application app = tempEntity.newApplication(org.getId(), org.getId());
+    Application app = tempEntity.newApplication(org.getId());
     tempEntity.newLicenseThreatGroup(app.getId(), "My group 1", 0, "Apache-2.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(org.getId(), "My group 2", 5, "GPL-2.0");
     tempEntity.newLicenseThreatGroup(org.getParentOrganizationId(), "My group 3", 9, "GPL-3.0");

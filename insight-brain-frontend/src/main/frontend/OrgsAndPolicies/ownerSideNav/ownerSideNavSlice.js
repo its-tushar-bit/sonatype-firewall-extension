@@ -280,8 +280,9 @@ function collectOwnerIdsToDelete(ownersMap, orgIds, acc) {
   acc.push(...orgIds);
   for (const orgId of orgIds) {
     const org = ownersMap[orgId];
-    acc.push(...org.applicationIds);
-    collectOwnerIdsToDelete(ownersMap, org.organizationIds, acc);
+    if (!org) continue;
+    acc.push(...(org.applicationIds || []));
+    collectOwnerIdsToDelete(ownersMap, org.organizationIds || [], acc);
   }
 }
 

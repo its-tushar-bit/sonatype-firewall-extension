@@ -199,8 +199,7 @@ public class CiConfigurationServiceTest
   @Test
   public void testSetConfiguration_application() throws Exception {
     // Given: Valid CI configuration for an application
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplicationWithParent(org.getId());
+    Application app = tempEntity.newApplicationWithParent();
 
     ApiCiConfigurationDto config = createConfig("CI");
 

@@ -151,6 +151,30 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <!-- Override default to exclude Postgres tests (run H2/unit tests first) -->
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <excludedGroups>PostgresTestCategory,SlowTest</excludedGroups>
+            </configuration>
+          </execution>
+          <!-- Run Postgres tests together to avoid fixture thrashing -->
+          <execution>
+            <id>postgres-tests</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <groups>PostgresTestCategory</groups>
+              <excludedGroups>SlowTest</excludedGroups>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- jOOQ Code Generation Plugin -->
       <plugin>
         <groupId>org.jooq</groupId>

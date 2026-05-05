@@ -74,7 +74,7 @@ if (!currentBuild.fullProjectName.endsWith('/main')) {
 }
 
 mavenSnapshotPipeline(
-    agentLabel: 'iq',
+    agentLabel: 'iq-large',
     deployBranch: 'main',
     // Experimental pipeline — never deploy SNAPSHOTs from here while we're evaluating
     // the new build shape. Flip to the default (isDeployBranch(env, 'main')) once we
@@ -293,7 +293,7 @@ private String buildOptions() {
   // Run Surefire (unit) tests across all modules, including MTIQ. Skip the
   // Failsafe integration-test phase — those are the slow tests currently fanned
   // out across distributed agents by Jenkinsfile.main's getParallelTests().
-  opts << '-DskipITs'
+  // opts << '-DskipITs'
   // Exclude any tests annotated with the SlowTest category. Matches the
   // "proper unit tests" definition already used by
   // Jenkinsfile.feature#buildDistributedSurefireTestMavenOptions.

@@ -868,9 +868,31 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
           </systemPropertyVariables>
         </configuration>
         <executions>
+          <!-- Run Postgres tests first: all 37 share vanilla server config, zero server restarts -->
           <execution>
+            <id>postgres-integration-tests</id>
             <goals>
               <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <groups>PostgresTestCategory</groups>
+              <excludedGroups>SlowTest</excludedGroups>
+            </configuration>
+          </execution>
+          <!-- Run remaining integration tests second -->
+          <execution>
+            <id>standard-integration-tests</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <excludedGroups>PostgresTestCategory,SlowTest</excludedGroups>
+            </configuration>
+          </execution>
+          <!-- Verify all results -->
+          <execution>
+            <id>verify-all</id>
+            <goals>
               <goal>verify</goal>
             </goals>
           </execution>

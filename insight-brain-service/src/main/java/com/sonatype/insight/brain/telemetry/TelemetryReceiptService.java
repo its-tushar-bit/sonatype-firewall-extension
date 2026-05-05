@@ -39,6 +39,10 @@ public class TelemetryReceiptService
 
   private static final String PROD_HDS_URL = "https://clm.sonatype.com";
 
+  private static final int MIN_CAPTURE_HOURS = 1;
+
+  private static final int MAX_CAPTURE_HOURS = 24;
+
   private final Configuration configuration;
 
   private final TenantReference<LocalDateTime> telemetryCaptureExpirationTime = new TenantReference<>();
@@ -57,11 +61,7 @@ public class TelemetryReceiptService
   }
 
   public int enable(int hours) {
-    if (!isForLocalhost()) {
-      return 0;
-    }
-
-    final var captureHours = hours > 24 ? 24 : (Math.max(hours, 1));
+    final var captureHours = Math.min(Math.max(hours, MIN_CAPTURE_HOURS), MAX_CAPTURE_HOURS);
     final var now = LocalDateTime.now();
     telemetryCaptureStartTime.set(now);
     final var expirationTime = now.plusHours(captureHours);
@@ -72,32 +72,27 @@ public class TelemetryReceiptService
 
   public TelemetryReceiptsDTO getReceipts(List<String> purposesToDetail) {
     var receiptDTOS = new ArrayList<TelemetryReceiptDTO>();
-    Set<TelemetryPurpose> detailPurposes = Set.of();
+    Set<TelemetryPurpose> detailPurposes = toPurposeCodeList(purposesToDetail);
+    var zone = ZoneId.systemDefault();
 
-    if (isForLocalhost()) {
-      detailPurposes = toPurposeCodeList(purposesToDetail);
-      var zone = ZoneId.systemDefault();
+    for (TelemetryReceipt receipt : telemetryReceipts.get()) {
+      var submitTime = LocalDateTime.ofInstant(
+          Instant.ofEpochMilli(receipt.submitTimeMs), zone);
 
-      for (TelemetryReceipt receipt : telemetryReceipts.get()) {
-        var submitTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(receipt.submitTimeMs), zone);
+      var queueTimeMs = receipt.sentTimeMs > 0 ? receipt.sentTimeMs - receipt.submitTimeMs : -1;
+      var httpTimeMs = receipt.completeTimeMs > 0 ? receipt.completeTimeMs - receipt.sentTimeMs : -1;
+      var errorMessage = receipt.errorResult != null
+          ? receipt.errorResult.getMessage()
+          : null;
 
-        var queueTimeMs = receipt.sentTimeMs > 0 ? receipt.sentTimeMs - receipt.submitTimeMs : -1;
-        var httpTimeMs = receipt.completeTimeMs > 0 ? receipt.completeTimeMs - receipt.sentTimeMs : -1;
-        var errorMessage = receipt.errorResult != null
-            ? receipt.errorResult.getMessage()
-            : null;
+      var telemetryDataByPurpose = receipt.telemetryData.stream()
+          .collect(Collectors.groupingBy(
+              TelemetryData::getPurpose,
+              () -> new TreeMap<>(Comparator.comparing(TelemetryPurpose::name)),
+              Collectors.toList()));
 
-        // group raw TelemetryData by purpose
-        var telemetryDataByPurpose = receipt.telemetryData.stream()
-            .collect(Collectors.groupingBy(
-                TelemetryData::getPurpose,
-                () -> new TreeMap<>(Comparator.comparing(TelemetryPurpose::name)),
-                Collectors.toList()));
-
-        receiptDTOS.add(new TelemetryReceiptDTO(
-            submitTime, queueTimeMs, httpTimeMs, errorMessage, telemetryDataByPurpose));
-      }
+      receiptDTOS.add(new TelemetryReceiptDTO(
+          submitTime, queueTimeMs, httpTimeMs, errorMessage, telemetryDataByPurpose));
     }
 
     return new TelemetryReceiptsDTO(
@@ -110,7 +105,7 @@ public class TelemetryReceiptService
   }
 
   public TelemetryReceipt onTelemetrySubmitted(List<TelemetryData> telemetryData) {
-    if (!isForLocalhost() || !shouldCapture(telemetryData)) {
+    if (!shouldCapture(telemetryData)) {
       return NO_RECEIPT;
     }
 

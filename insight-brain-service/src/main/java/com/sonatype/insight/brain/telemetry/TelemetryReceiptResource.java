@@ -28,6 +28,9 @@ import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryRec
 import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceiptsDTO;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+
 import com.codahale.metrics.annotation.Timed;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,6 +58,7 @@ public class TelemetryReceiptResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public Response getTelemetryReceipts(@QueryParam("detail") @DefaultValue("") String purposesToDetail) {
     List<String> purposes = StringUtils.isEmpty(purposesToDetail)
         ? Collections.emptyList()
@@ -73,6 +77,7 @@ public class TelemetryReceiptResource
   @GET
   @Path(TELEMETRY_RECEIPTS_DISABLE_PATH)
   @Produces(MediaType.TEXT_PLAIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public String disableTelemetryReceipts() {
     receiptService.disable();
     return "Telemetry receipts disabled";
@@ -81,16 +86,12 @@ public class TelemetryReceiptResource
   @GET
   @Path(TELEMETRY_RECEIPTS_ENABLE_PATH)
   @Produces(MediaType.TEXT_PLAIN)
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public String enableTelemetryReceipts(
       @QueryParam("hours") @DefaultValue("1") int hours)
   {
     var enabledHours = receiptService.enable(hours);
-    if (enabledHours > 0) {
-      return String.format("Telemetry receipts enabled for %d hour(s)", enabledHours);
-    }
-    else {
-      return "Telemetry receipts can only be enabled for instances running as localhost";
-    }
+    return String.format("Telemetry receipts enabled for %d hour(s)", enabledHours);
   }
 
   private String telemetryReceiptsToJson(TelemetryReceiptsDTO receiptsDTO) {

@@ -140,7 +140,7 @@ public class TelemetrySenderTest
 
     verify(mockHdsClient, timeout(10000)).post(eq(TelemetrySender.RESOURCE_PATH), any(HttpEntity.class), eq(null));
     await().atMost(Duration.ofSeconds(10))
-        .untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains("Failed to send telemetry.", exception));
+        .untilAsserted(() -> assertThat(logOutput).atErrorLevel().contains("Failed to send telemetry.", exception));
   }
 
   @Test

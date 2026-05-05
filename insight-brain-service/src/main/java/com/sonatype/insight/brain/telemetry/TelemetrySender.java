@@ -158,7 +158,7 @@ public class TelemetrySender
       submissions.add(new TenantAwareOneTimeRunnable(() -> submitTelemetry(telemetrySubmission, telemetryReceipt)));
     }
     catch (Exception e) {
-      log.debug("Failed to send telemetry.", e);
+      log.warn("Failed to send telemetry.", e);
     }
   }
 

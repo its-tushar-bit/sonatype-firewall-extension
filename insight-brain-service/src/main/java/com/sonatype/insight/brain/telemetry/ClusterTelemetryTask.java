@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -14,6 +15,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -66,36 +68,55 @@ public class ClusterTelemetryTask
   @Override
   public void execute(JobExecutionContext context) {
     execute(() -> {
+      long taskStartMs = System.currentTimeMillis();
+      int collectorCount = 0;
+      int totalRecords = 0;
+      int failedCollectors = 0;
+
       for (TelemetryCollector clusterTelemetryCollector : clusterTelemetryCollectors) {
-        log.debug("Sending telemetry for {}", clusterTelemetryCollector.getClass().getSimpleName());
         long start = System.currentTimeMillis();
 
-        if (clusterTelemetryCollector instanceof PaginatedTelemetryCollector paginatedTelemetryCollector) {
-          sendPaginatedTelemetry(paginatedTelemetryCollector);
+        try {
+          if (clusterTelemetryCollector instanceof PaginatedTelemetryCollector paginatedTelemetryCollector) {
+            totalRecords += sendPaginatedTelemetry(paginatedTelemetryCollector);
+          }
+          else {
+            List<TelemetryData> data = clusterTelemetryCollector.collectAllData(context);
+            telemetrySender.send(data);
+            totalRecords += data.size();
+          }
+          collectorCount++;
+          log.info("Sent telemetry for {} in {}ms", clusterTelemetryCollector.getClass().getSimpleName(),
+              System.currentTimeMillis() - start);
         }
-        else {
-          telemetrySender.send(clusterTelemetryCollector.collectAllData(context));
+        catch (Exception e) {
+          failedCollectors++;
+          log.warn("Failed to send telemetry for {} in {}ms", clusterTelemetryCollector.getClass().getSimpleName(),
+              System.currentTimeMillis() - start, e);
         }
-
-        long stop = System.currentTimeMillis();
-        log.debug("Telemetry for {} sent in {}ms", clusterTelemetryCollector.getClass(), stop - start);
       }
+
+      int totalCollectors = clusterTelemetryCollectors.size();
+      long taskElapsedMs = System.currentTimeMillis() - taskStartMs;
+      // Counts reflect successful collection and enqueueing — use rest/telemetry/receipts for delivery confirmation
+      log.info(
+          "Cluster telemetry task completed: {} of {} collectors succeeded, {} failed, {} records queued, {}ms elapsed",
+          collectorCount, totalCollectors, failedCollectors, totalRecords, taskElapsedMs);
     }, log, TELEMETRY_SEND_ERROR);
   }
 
-  private void sendPaginatedTelemetry(PaginatedTelemetryCollector paginatedTelemetryCollector) {
-    try {
-      log.trace("Sending first page of telemetry for {}", paginatedTelemetryCollector.getClass());
-      telemetrySender.send(paginatedTelemetryCollector.firstPage());
-      while (paginatedTelemetryCollector.hasMoreData()) {
-        log.trace("Sending next page of telemetry for {}", paginatedTelemetryCollector.getClass());
-        telemetrySender.send(paginatedTelemetryCollector.nextPage());
-      }
-      log.trace("All pages of telemetry for {} sent", paginatedTelemetryCollector.getClass());
+  private int sendPaginatedTelemetry(PaginatedTelemetryCollector paginatedTelemetryCollector) {
+    int recordCount = 0;
+    log.trace("Sending first page of telemetry for {}", paginatedTelemetryCollector.getClass());
+    telemetrySender.send(paginatedTelemetryCollector.firstPage());
+    recordCount++;
+    while (paginatedTelemetryCollector.hasMoreData()) {
+      log.trace("Sending next page of telemetry for {}", paginatedTelemetryCollector.getClass());
+      telemetrySender.send(paginatedTelemetryCollector.nextPage());
+      recordCount++;
     }
-    catch (Exception e) {
-      log.error("Skipping telemetry collection for {} due to an error", paginatedTelemetryCollector.getClass(), e);
-    }
+    log.trace("All pages of telemetry for {} sent", paginatedTelemetryCollector.getClass());
+    return recordCount;
   }
 
   @Override

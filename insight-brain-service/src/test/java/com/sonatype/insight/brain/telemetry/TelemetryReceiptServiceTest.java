@@ -39,8 +39,8 @@ public class TelemetryReceiptServiceTest
 
   @Before
   public void setUp() {
-    asProdHds(true); // default to prod HDS - tests can override
-    asLocalhost(false); // default to not localhost - tests can override
+    asProdHds(true);
+    asBaseUrl("https://app.sonatype.com");
   }
 
   @Test
@@ -59,25 +59,25 @@ public class TelemetryReceiptServiceTest
   }
 
   @Test
-  public void testEnable_notLocalhost() {
+  public void testEnable_nonLocalhost() {
     // given:
-    asLocalhost(false);
+    asBaseUrl("https://app.sonatype.com");
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
 
     // when:
     var enabledHours = testSubject.enable(1);
 
-    // then:
+    // then: enable works regardless of host
+    assertThat(enabledHours).isEqualTo(1);
     var receipts = testSubject.getReceipts(List.of(""));
-    assertThat(enabledHours).isZero();
     assertThat(receipts.isLocalEnv()).isFalse();
-    assertThat(receipts.captureExpirationTime()).isNull();
+    assertThat(receipts.captureExpirationTime()).isNotNull();
   }
 
   @Test
-  public void testEnable_isLocalhost() {
+  public void testEnable_localhost() {
     // given:
-    asLocalhost(true);
+    asBaseUrl("http://localhost:8080");
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
 
     final var enableHours = 1;
@@ -100,7 +100,6 @@ public class TelemetryReceiptServiceTest
   @Test
   public void testEnable_minMaxHours() {
     // given:
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
     final var minBeforeExpirationTime = LocalDateTime.now().plusHours(1).minusSeconds(1);
     final var minAfterExpirationTime = LocalDateTime.now().plusHours(1).plusMinutes(1);
@@ -131,7 +130,6 @@ public class TelemetryReceiptServiceTest
   @Test
   public void testGetReceipts_detailPurposes() {
     // given: set of purposes including an invalid one
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
     testSubject.enable(1);
 
@@ -156,7 +154,6 @@ public class TelemetryReceiptServiceTest
 
   @Test
   public void testDisable() {
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
 
     // when:
@@ -180,7 +177,6 @@ public class TelemetryReceiptServiceTest
   @Test
   public void testOnTelemetrySubmitted_notEnabled() {
     // given: telemetry service not enabled
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
 
     // when:
@@ -195,7 +191,6 @@ public class TelemetryReceiptServiceTest
   @Test
   public void testOnTelemetrySubmitted() throws InterruptedException {
     // given: telemetry service enabled
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
     testSubject.enable(1);
 
@@ -238,7 +233,6 @@ public class TelemetryReceiptServiceTest
   @Test
   public void testOnTelemetrySubmitted_withError() {
     // given: telemetry service enabled and telemetry submitted with simulated error
-    asLocalhost(true);
     final var testSubject = new TelemetryReceiptService(mockConfiguration);
     testSubject.enable(1);
 
@@ -270,8 +264,8 @@ public class TelemetryReceiptServiceTest
     return receiptService.onTelemetrySubmitted(telemetryData);
   }
 
-  private void asLocalhost(boolean isLocalEnv) {
-    when(mockConfiguration.getBaseUrl()).thenReturn(isLocalEnv ? "http://localhost:8080" : "https://app.sonatype.com");
+  private void asBaseUrl(String baseUrl) {
+    when(mockConfiguration.getBaseUrl()).thenReturn(baseUrl);
   }
 
   private void asProdHds(boolean useProdHds) {

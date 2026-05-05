@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.telemetry.model.TelemetryData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,28 @@ public abstract class TelemetryScheduler
   }
 
   protected void sendTelemetry(List<TelemetryCollector> telemetryCollectors) {
+    long startMs = System.currentTimeMillis();
+    int collectorCount = 0;
+    int totalRecords = 0;
+    int failedCollectors = 0;
+
     for (TelemetryCollector telemetryCollector : telemetryCollectors) {
       try {
-        telemetrySender.send(telemetryCollector.collectAllData());
+        List<TelemetryData> data = telemetryCollector.collectAllData();
+        telemetrySender.send(data);
+        totalRecords += data.size();
+        collectorCount++;
       }
       catch (Exception e) {
-        log.debug("Unable to send telemetry for collector {}", telemetryCollector, e);
+        failedCollectors++;
+        log.warn("Unable to send telemetry for collector {}", telemetryCollector, e);
       }
     }
+
+    long elapsedMs = System.currentTimeMillis() - startMs;
+    int totalCollectors = telemetryCollectors.size();
+    // Counts reflect successful collection and enqueueing — use rest/telemetry/receipts for delivery confirmation
+    log.info("Telemetry schedule completed: {} of {} collectors succeeded, {} failed, {} records queued, {}ms elapsed",
+        collectorCount, totalCollectors, failedCollectors, totalRecords, elapsedMs);
   }
 }

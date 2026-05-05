@@ -224,6 +224,12 @@ public abstract class AbstractBaseIntegrationTest
   private static Class<? extends AbstractBaseIntegrationTest> binderConfigurationClass =
       AbstractBaseIntegrationTest.class;
 
+  // Track the DatabaseContainer identity the server was created with.
+  // When other test hierarchies (e.g. BrainInjectedTest) re-initialize the shared
+  // DatabaseContainerRule fixture, the container reference changes. This lets us detect
+  // the stale-server scenario even when isFixtureReusable() returns true.
+  private static Object serverDatabaseContainerIdentity;
+
   protected static JiraClient mockJiraClient = mock(JiraClient.class);
 
   private static JiraClientFactory mockJiraClientFactory = mock(JiraClientFactory.class);
@@ -317,6 +323,7 @@ public abstract class AbstractBaseIntegrationTest
       testCLMServer = new TestCLMServer(getInsightBrainServiceFactory(), isProxyRequiredToReachHds(), getBrainModules(),
           configurator, hdsMockServer, databaseContainerRule.getDatabaseContainer());
       testCLMServer.start();
+      serverDatabaseContainerIdentity = databaseContainerRule.getDatabaseContainer();
     }
 
     setBaseUrl("http://localhost");
@@ -368,6 +375,14 @@ public abstract class AbstractBaseIntegrationTest
         log.info("Test IQ server is not reusable due to different binder configuration. Will restart test IQ server.");
         stopIqServer = true;
       }
+
+      // If the database container changed (e.g., a BrainInjectedTest subclass re-initialized
+      // the shared DatabaseContainerRule fixture between AbstractBaseIntegrationTest tests),
+      // the server's Guice-injected singletons hold stale data source references.
+      if (databaseContainerRule.getDatabaseContainer() != serverDatabaseContainerIdentity) {
+        log.info("Test IQ server is not reusable due to database container change. Will restart test IQ server.");
+        stopIqServer = true;
+      }
     }
 
     AbstractBaseIntegrationTest.binderConfigurationClass = binderConfigurationClass;
@@ -381,6 +396,7 @@ public abstract class AbstractBaseIntegrationTest
     if (testCLMServer != null) {
       testCLMServer.stop();
       testCLMServer = null;
+      serverDatabaseContainerIdentity = null;
     }
   }
 

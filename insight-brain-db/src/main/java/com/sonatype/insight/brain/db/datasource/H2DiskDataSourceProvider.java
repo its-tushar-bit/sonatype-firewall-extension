@@ -11,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -33,13 +35,33 @@ public class H2DiskDataSourceProvider
   }
 
   public void shutDownDatabase() {
-    // attempt to shut down each one
     dataSources.forEach((id, dataSource) -> {
+      if (dataSource instanceof BasicDataSource bds && bds.isClosed()) {
+        log.debug("Skipping SHUTDOWN for data store '{}' — pool already closed", id);
+        return;
+      }
       try (Connection connection = dataSource.getConnection()) {
         connection.createStatement().execute("SHUTDOWN");
       }
       catch (SQLException e) {
         throw new RuntimeException(e);
+      }
+    });
+  }
+
+  /**
+   * Close all DBCP2 connection pools managed by this provider.
+   * Called after SHUTDOWN commands have been sent to each H2 database.
+   */
+  public void closeAllDataSources() {
+    dataSources.forEach((id, dataSource) -> {
+      if (dataSource instanceof BasicDataSource bds && !bds.isClosed()) {
+        try {
+          bds.close();
+        }
+        catch (Exception e) {
+          log.warn("Error closing pool for data store '{}': {}", id, e.getMessage());
+        }
       }
     });
   }

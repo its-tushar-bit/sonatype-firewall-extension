@@ -7,11 +7,15 @@ package com.sonatype.insight.brain.db.fixture.postgres;
 
 import java.nio.file.Path;
 
+import javax.sql.DataSource;
+
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datasource.PostgresDataSourceProvider;
 import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
 import com.sonatype.insight.db.DatabaseConfig;
+
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +80,31 @@ public class PostgresDatabaseFixture
 
   @Override
   public void close() {
+    closeDataSourcePool();
     postgresTestCluster.destroyDatabase(databaseName);
+  }
+
+  /**
+   * Close the DBCP2 connection pool before the database is dropped.
+   * This prevents stale connections from surviving in a reused Surefire JVM
+   * when the fixture is re-initialized (e.g., switching between H2 and Postgres test classes).
+   * Without this, the pool retains connections to the now-deleted database,
+   * causing "database does not exist" errors in subsequent tests.
+   */
+  private void closeDataSourcePool() {
+    if (dataSourceProvider == null) {
+      return;
+    }
+    DataSource ds = dataSourceProvider.getDataSource(databaseConfig, "close");
+    if (ds instanceof BasicDataSource basicDataSource && !basicDataSource.isClosed()) {
+      try {
+        basicDataSource.close();
+        log.info("Closed connection pool for database '{}'", databaseName);
+      }
+      catch (Exception e) {
+        log.warn("Error closing connection pool for database '{}': {}", databaseName, e.getMessage(), e);
+      }
+    }
   }
 
   @Override

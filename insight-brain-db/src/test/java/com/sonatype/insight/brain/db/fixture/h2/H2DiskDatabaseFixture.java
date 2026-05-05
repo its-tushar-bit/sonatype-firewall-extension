@@ -84,6 +84,7 @@ public class H2DiskDatabaseFixture
   public void close() throws Exception {
     log.info("Shutting down H2-disk test databases and deleting '{}'", tempDir.getRoot().getAbsolutePath());
     dataSourceProvider.shutDownDatabase();
+    dataSourceProvider.closeAllDataSources();
     tempDir.delete();
   }
 

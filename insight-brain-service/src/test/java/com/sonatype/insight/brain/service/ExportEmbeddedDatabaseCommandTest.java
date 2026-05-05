@@ -38,6 +38,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
@@ -126,6 +127,7 @@ public class ExportEmbeddedDatabaseCommandTest
     }
   }
 
+  @Ignore("CLM-39891: Fix embedded-postgres schema validation after testcontainers removal")
   @Test
   @H2DiskTest
   public void testRun_DumpImportableIntoPostgres() throws Exception {

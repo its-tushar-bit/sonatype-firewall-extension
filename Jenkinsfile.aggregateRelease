@@ -102,6 +102,7 @@ pipeline {
             def config = mavenCommon(javaVersion: 'OpenJDK 25', mavenVersion: 'Maven 3.9.x', useEventSpy: false, mavenOptions: mavenOpts)
 
             withSonatypeDockerRegistry() {
+              withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
                 // Use withCodeSigningCredentials and -Prelease profile like publishRelease does
                 withCodeSigningCredentials('gnupg', null, config) {
                   def releaseConfig = config + [mavenOptions: config.mavenOptions + ' -Prelease']
@@ -109,6 +110,7 @@ pipeline {
                 }
                 mvn config, ' -pl :insight-brain -Pjdks -Pjenkins'
                 mvn config, ' -pl :nexus-iq-server jreleaser:assemble'
+              }
             }
           }
         }

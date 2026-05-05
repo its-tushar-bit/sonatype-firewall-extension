@@ -95,6 +95,11 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
 
     if (fixture != null && !fixture.isFixtureReusable()) {
       closePreviousFixture();
+      // The fixture was destroyed — mark dirty so the next test's before() re-initializes it.
+      // Without this, fixtureNeedsReinitialization() may return false (e.g. when hasAnnotation()
+      // returns false for default @H2DiskTest settings after PR #15866), leaving the next test
+      // with a dead fixture whose pools and databases have already been closed.
+      isCurrentFixtureDirty = true;
     }
   }
 

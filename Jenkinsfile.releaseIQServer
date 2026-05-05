@@ -40,12 +40,25 @@ pipeline {
   agent { label InsightConstants.AGENT_LABEL }
 
   environment {
-    minorVersion = "${parseVersion(params.releaseVersion)?.minor}"
+    minorVersion = "${params.releaseVersion ? parseVersion(params.releaseVersion)?.minor : ''}"
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!env.aggregateReleaseBuild_NUMBER) {
+            error "aggregateReleaseBuild parameter is required but was not provided or resolved to null. " +
+                  "Select a STABLE aggregate-release build before triggering this pipeline."
+          }
+          if (!params.releaseVersion) {
+            error "releaseVersion parameter is required but was not provided."
+          }
+        }
+      }
+    }
     stage('Confirm Start') {
       steps {
         input message: 'This will start the release process. Continue?', ok: 'Yes, Continue'

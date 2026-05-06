@@ -629,7 +629,8 @@ public class SourceControlDAO
           .update(SOURCE_CONTROL)
           .set(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME,
               DSL.when(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNull()
-                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)), pollTime)
+                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)),
+                  DSL.val(pollTime, SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
                   .otherwise(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
           .set(SOURCE_CONTROL.PULL_REQUEST_ERROR_COUNT, errorCount)
           .where(SOURCE_CONTROL.SOURCE_CONTROL_ID.eq(sourceControlId))
@@ -654,7 +655,8 @@ public class SourceControlDAO
           .update(SOURCE_CONTROL)
           .set(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME,
               DSL.when(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.isNull()
-                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)), pollTime)
+                  .or(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME.le(pollTime)),
+                  DSL.val(pollTime, SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
                   .otherwise(SOURCE_CONTROL.PULL_REQUEST_POLL_TIME))
           .set(SOURCE_CONTROL.PULL_REQUEST_ERROR_COUNT, errorCount)
           .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.eq(repositoryUrl))

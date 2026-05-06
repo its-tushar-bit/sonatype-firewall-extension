@@ -14,16 +14,12 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;
-import com.sonatype.insight.brain.utils.DateUtils;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import static com.sonatype.insight.brain.db.jooq.DialectHelper.POSTGRES_UNIQUE_CONSTRAINT_VIOLATION;
 
 /**
  * A perpetual lock is a lock that 'expires' but can be perpetually 'renewed' by the current owner of the lock without
@@ -67,55 +63,23 @@ public class PerpetualLockManager
       final long expiresInXSeconds)
   {
     validateArgs(perpetualLockId, category, owner, expiresInXSeconds);
-    boolean acquired = false;
-    final String shortIdForLogging = shorten(perpetualLockId);
-    final String shortOwnerForLogging = shorten(owner);
     final Date expiration = new Date(System.currentTimeMillis() + 1_000 * expiresInXSeconds);
     log.trace("Trying to acquire perpetual lock {} on behalf of {} to expire in {} seconds.",
-        shortIdForLogging, shortOwnerForLogging, expiresInXSeconds);
-    PerpetualLock perpetualLock = null;
+        shorten(perpetualLockId), shorten(owner), expiresInXSeconds);
 
-    TransactionContext txn = null;
-
+    // Must never throw: callers using ScheduledExecutorService.scheduleAtFixedRate would be
+    // silently cancelled for the remainder of the JVM's lifetime on an uncaught exception.
     try {
-      txn = perpetualLockDAO.createTransactionContext();
-      txn.begin();
-      perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, perpetualLockId);
-      if (null != perpetualLock) {
-        log.trace("Perpetual lock {} exists - owner: {}, exp. time: {}.", shortIdForLogging,
-            shortOwnerForLogging, perpetualLock.getExpirationTime());
-        acquired = reservePerpetualLock(txn, perpetualLockId, owner,
-            DateUtils.max(perpetualLock.getExpirationTime(), expiration));
-      }
-      txn.commit();
+      boolean acquired = perpetualLockDAO.tryAcquireOrRenewLock(perpetualLockId, category, owner, expiration);
+      log.trace("Perpetual lock {} on behalf of {} {} acquired.",
+          shorten(perpetualLockId), shorten(owner), acquired ? "was" : "was NOT");
+      return acquired;
     }
     catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error("Failed to acquire perpetual lock {} for owner {}; treating as not-acquired",
+          shorten(perpetualLockId), shorten(owner), e);
+      return false;
     }
-    finally {
-      if (null != txn) {
-        txn.close();
-      }
-    }
-
-    if (null == perpetualLock) {
-      // Defensive: createPerpetualLock can rethrow DB exceptions that aren't unique-constraint
-      // violations (e.g. a connection dropped mid-statement during an Aurora failover). We must
-      // never let those propagate out of tryAcquireLock -- its contract is "returns a boolean,
-      // never throws". If this method threw, any scheduled caller using
-      // ScheduledExecutorService.scheduleAtFixedRate would be silently cancelled for the
-      // remainder of the JVM's lifetime. Log and return false; the caller will retry next cycle.
-      try {
-        acquired = createPerpetualLock(perpetualLockId, category, owner, expiration);
-      }
-      catch (Exception e) {
-        log.error("Failed to acquire perpetual lock {} for owner {}; treating as not-acquired",
-            shortIdForLogging, shortOwnerForLogging, e);
-        acquired = false;
-      }
-    }
-
-    return acquired;
   }
 
   public void releasePerpetualLock(String perpetualLockId, String owner) {
@@ -131,45 +95,6 @@ public class PerpetualLockManager
     if (null != perpetualLock) {
       perpetualLockDAO.delete(perpetualLock);
     }
-  }
-
-  private boolean createPerpetualLock(String perpetualLockId, String category, String owner, Date expiration) {
-    boolean acquired = false;
-    final String shortIdForLogging = shorten(perpetualLockId);
-    final String shortOwnerForLogging = shorten(owner);
-    log.trace("Perpetual lock {} does not exist yet.  Creating...", shortIdForLogging);
-    try {
-      perpetualLockDAO.createPerpetualLock(perpetualLockId, category, owner, expiration);
-      acquired = true;
-      log.trace("Perpetual lock {} created and acquired on behalf of {}.", shortIdForLogging, shortOwnerForLogging);
-    }
-    catch (org.jooq.exception.DataAccessException e) {
-      if (!(e.getCause() instanceof org.postgresql.util.PSQLException psqlEx
-          && POSTGRES_UNIQUE_CONSTRAINT_VIOLATION.equals(psqlEx.getSQLState())))
-      {
-        throw e;
-      }
-      // a simultaneous request to reserve this same lock beat us to it; may have come from a different
-      // instance or a different caller in this same instance, so we'll check to see if we can reserve it
-      // instead of just assuming we can't
-      log.trace("Perpetual lock {} already exists.  Will try to reserve it now on behalf of {}.",
-          shortIdForLogging, shortOwnerForLogging);
-      acquired = reservePerpetualLock(null, perpetualLockId, owner, expiration);
-    }
-    return acquired;
-  }
-
-  private boolean reservePerpetualLock(TransactionContext txn, String perpetualLockId, String owner, Date expiration) {
-    boolean acquired = false;
-    if (null != txn) {
-      acquired = 1 == perpetualLockDAO.reservePerpetualLock(txn, perpetualLockId, owner, expiration);
-    }
-    else {
-      acquired = 1 == perpetualLockDAO.reservePerpetualLock(perpetualLockId, owner, expiration);
-    }
-    log.trace("Perpetual lock {} on behalf of {} {} acquired.", shorten(perpetualLockId), shorten(owner),
-        acquired ? "was" : "was NOT");
-    return acquired;
   }
 
   private String shorten(String source) {

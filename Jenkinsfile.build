@@ -317,5 +317,6 @@ private String buildOptions() {
 }
 
 private boolean shouldNotify() {
-  return env.BRANCH_NAME == 'main' || env.BRANCH_NAME?.startsWith('gh-readonly-queue')
+  // Slack/chat notifications temporarily disabled.
+  return false
 }

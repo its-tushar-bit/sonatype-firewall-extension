@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
+import org.apache.shiro.web.servlet.Cookie.SameSiteOptions;
 import org.apache.shiro.web.servlet.SimpleCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +71,12 @@ public class AntiCsrfFilter
 
   private final Configuration configuration;
 
+  private final FrameEmbeddingDetector frameEmbeddingDetector;
+
   @Inject
-  private AntiCsrfFilter(Configuration configuration) {
+  AntiCsrfFilter(Configuration configuration, FrameEmbeddingDetector frameEmbeddingDetector) {
     this.configuration = configuration;
+    this.frameEmbeddingDetector = frameEmbeddingDetector;
   }
 
   @Override
@@ -140,6 +144,12 @@ public class AntiCsrfFilter
     csrfCookie.setPath("/");
     csrfCookie.setHttpOnly(false);
     csrfCookie.setSecure(request.isSecure());
+    // Use SameSite=None only when IQ is HTTPS AND embedding in third-party iframes is enabled:
+    // browsers reject SameSite=None without Secure (Chrome 80+, Firefox 79+). For HTTP or
+    // non-iframe deployments, Lax is sufficient (CSRF token is read by same-origin JS only).
+    csrfCookie.setSameSite(frameEmbeddingDetector.isFrameEmbeddingEnabled() && request.isSecure()
+        ? SameSiteOptions.NONE
+        : SameSiteOptions.LAX);
     csrfCookie.saveTo(request, response);
   }
 

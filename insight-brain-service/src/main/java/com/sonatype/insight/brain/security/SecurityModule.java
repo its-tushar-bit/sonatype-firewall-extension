@@ -247,8 +247,10 @@ public class SecurityModule
       // customize cookie name to avoid clash with other webapps running on same host+contextRoot
       sessionManager.getSessionIdCookie().setName(SESSION_COOKIE_NAME);
 
-      // Disable Shiro's default of adding SameSite=LAX. We want to add SameSite=NONE, but for https requests only
-      // since it only works in conjunction with the Secure flag. This is done in SecureCookiesFilter
+      // Disable Shiro's default SameSite=LAX. SecureCookiesFilter sets SameSite per-request:
+      // SameSite=None when cross-origin iframe embedding is enabled (frameAncestorsAllowlist non-empty)
+      // or when the request is a SAML cross-site POST callback (/saml/**),
+      // SameSite=Lax otherwise on secure paths. Non-secure requests are left unchanged.
       sessionManager.getSessionIdCookie().setSameSite(null);
     }
 

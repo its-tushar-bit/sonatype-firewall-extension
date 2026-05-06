@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.FilterChain;
@@ -14,6 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.SecurityUtils;
@@ -34,6 +36,13 @@ public class SessionExpirationCookieFilter
 {
   public static final String EXPIRATION_COOKIE_NAME = "IQ-SESSION-EXPIRATION-TIMESTAMP";
 
+  private final FrameEmbeddingDetector frameEmbeddingDetector;
+
+  @Inject
+  public SessionExpirationCookieFilter(FrameEmbeddingDetector frameEmbeddingDetector) {
+    this.frameEmbeddingDetector = frameEmbeddingDetector;
+  }
+
   @Override
   protected void doFilterInternal(
       ServletRequest request,
@@ -46,9 +55,17 @@ public class SessionExpirationCookieFilter
     if (session != null) {
       long timeout = session.getTimeout();
       long lastAccess = session.getLastAccessTime().getTime();
+      HttpServletRequest httpRequest = (HttpServletRequest) request;
       HttpServletResponse httpResponse = (HttpServletResponse) response;
       Cookie cookie = new Cookie(EXPIRATION_COOKIE_NAME, Long.toString(timeout + lastAccess));
       cookie.setPath("/");
+      cookie.setSecure(httpRequest.isSecure());
+      // Use SameSite=None only when IQ is HTTPS AND embedding in third-party iframes is enabled:
+      // browsers reject SameSite=None without Secure (Chrome 80+, Firefox 79+). For HTTP or
+      // non-iframe deployments, Lax is sufficient (on HTTP it's effectively a no-op — browsers
+      // default to Lax anyway).
+      cookie.setAttribute("SameSite",
+          frameEmbeddingDetector.isFrameEmbeddingEnabled() && httpRequest.isSecure() ? "None" : "Lax");
 
       httpResponse.addCookie(cookie);
     }

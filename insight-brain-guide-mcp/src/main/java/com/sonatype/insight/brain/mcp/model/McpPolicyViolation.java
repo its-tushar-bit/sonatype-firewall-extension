@@ -3,14 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.mcp;
+package com.sonatype.insight.brain.mcp.model;
 
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.List;
 
-@Named
-@Singleton
-public class McpToolCallHandler
+public record McpPolicyViolation(
+    String policyName,
+    int threatLevel,
+    String actionType,
+    List<String> reasons,
+    boolean waived)
 {
-  // Tool dispatch logic will be added in GUIDE-1821
 }

@@ -55,6 +55,8 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.mcp.McpModule;
 import com.sonatype.insight.brain.mcp.McpServletProvider;
+import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.mcp.search.SearchApiClient;
 import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.search.opensearch.SingleTenantIndexConfigProvider;
@@ -615,7 +617,9 @@ public class InsightBrainService
 
     if (SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled()) {
       McpServletProvider mcpProvider = injector.getInstance(McpServletProvider.class);
-      mcpProvider.initialize();
+      SearchApiClient searchApiClient = injector.getInstance(SearchApiClient.class);
+      PolicyAnnotator policyAnnotator = injector.getInstance(PolicyAnnotator.class);
+      mcpProvider.initialize(searchApiClient, policyAnnotator);
       var mcpReg = env.servlets().addServlet("mcp", mcpProvider.getServlet());
       mcpReg.addMapping("/mcp", "/mcp/*");
     }

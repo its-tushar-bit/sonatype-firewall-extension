@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.mcp;
 
 import com.google.inject.AbstractModule;
+import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.mcp.search.SearchApiClient;
 
 public class McpModule
     extends AbstractModule
@@ -13,6 +15,7 @@ public class McpModule
   @Override
   protected void configure() {
     bind(McpServletProvider.class);
-    bind(McpToolCallHandler.class);
+    bind(SearchApiClient.class).to(SearchApiClientImpl.class);
+    bind(PolicyAnnotator.class).to(McpPolicyAnnotator.class);
   }
 }

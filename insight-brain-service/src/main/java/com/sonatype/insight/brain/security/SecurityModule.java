@@ -139,6 +139,7 @@ public class SecurityModule
         "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcJWT, authcBasic, " +
         "saml, apiAccessControlFilter, requireAuth";
+    manager.createChain("/mcp", apiFilters);
     manager.createChain("/mcp/**", apiFilters);
     manager.createChain("/api/**", apiFilters);
 

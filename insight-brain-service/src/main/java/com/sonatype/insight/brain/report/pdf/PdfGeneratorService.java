@@ -17,6 +17,7 @@ import jakarta.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -47,9 +48,14 @@ import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Named
 public class PdfGeneratorService
 {
+  private static final Logger log = LoggerFactory.getLogger(PdfGeneratorService.class);
+
   private final ApplicationDAO applicationDAO;
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
@@ -151,19 +157,30 @@ public class PdfGeneratorService
   public ReportPdfEntity generateSbomReport(Application app, String scanId, String sbomVersion) throws IOException {
     ApiReportRawDataDTOV2 reportRawData =
         augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true));
-    PdfData pdfData = sbomExporterProvider.get(getSbomExportParams(app, sbomVersion, reportRawData)).exportPdf();
+    ApiReportPolicyDataDTOV2 policyData;
+    try {
+      policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId, false);
+    }
+    catch (Exception e) {
+      log.warn("No policy violations data found for application {} and scanId {}", app.getPublicId(), scanId, e);
+      policyData = new ApiReportPolicyDataDTOV2();
+    }
+    PdfData pdfData =
+        sbomExporterProvider.get(getSbomExportParams(app, sbomVersion, reportRawData, policyData)).exportPdf();
     return generateReport(app, scanId, pdfData, true, Context.SBOM);
   }
 
   private SbomExportParams getSbomExportParams(
       Application app,
       String sbomVersion,
-      final ApiReportRawDataDTOV2 reportRawData)
+      final ApiReportRawDataDTOV2 reportRawData,
+      final ApiReportPolicyDataDTOV2 policyData)
   {
     ThirdPartySbomMetadata sbomMetadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(app.getId(), sbomVersion);
     return SbomExportParams.newSbomExporterParams(sbomMetadata)
         .withReportRawData(reportRawData)
+        .withPolicyData(policyData)
         .withExportSpecification(ExportSpecification.PDF);
   }
 

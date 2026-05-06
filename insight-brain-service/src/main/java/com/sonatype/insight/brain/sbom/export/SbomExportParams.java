@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
@@ -90,6 +91,8 @@ public class SbomExportParams
 
   ApiReportRawDataDTOV2 reportRawData = null;
 
+  ApiReportPolicyDataDTOV2 policyData = null;
+
   private SbomExportParams(final ThirdPartySbomMetadata sbomMetadata) {
     this.sbomMetadata = sbomMetadata;
   }
@@ -106,6 +109,10 @@ public class SbomExportParams
     return reportRawData;
   }
 
+  public ApiReportPolicyDataDTOV2 getPolicyData() {
+    return policyData;
+  }
+
   public static SbomExportParams newSbomExporterParams(ThirdPartySbomMetadata sbomMetadata) {
     Objects.requireNonNull(sbomMetadata);
     return new SbomExportParams(sbomMetadata);
@@ -113,6 +120,11 @@ public class SbomExportParams
 
   public SbomExportParams withReportRawData(ApiReportRawDataDTOV2 reportRawData) {
     this.reportRawData = reportRawData;
+    return this;
+  }
+
+  public SbomExportParams withPolicyData(ApiReportPolicyDataDTOV2 policyData) {
+    this.policyData = policyData;
     return this;
   }
 

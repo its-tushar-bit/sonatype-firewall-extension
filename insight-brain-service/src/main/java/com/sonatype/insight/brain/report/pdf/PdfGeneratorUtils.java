@@ -7,8 +7,14 @@ package com.sonatype.insight.brain.report.pdf;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import org.apache.commons.io.IOUtils;
@@ -24,17 +30,39 @@ import org.knowm.xchart.internal.chartpart.Chart;
 
 public final class PdfGeneratorUtils
 {
+  private static final ConcurrentMap<String, File> FONT_FILE_CACHE = new ConcurrentHashMap<>();
+
   private PdfGeneratorUtils() {
     throw new UnsupportedOperationException();
   }
 
   static PDType0Font loadPDType0Font(PDDocument pdDocument, String fontFileName) {
-    try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
-        .getResourceAsStream("assets/fonts/" + fontFileName))
-    {
-      return PDType0Font.load(pdDocument, inputStream);
+    File fontFile = FONT_FILE_CACHE.compute(fontFileName, (name, existing) -> {
+      if (existing != null && existing.exists()) {
+        return existing;
+      }
+      try (InputStream is = PdfGeneratorUtils.class.getClassLoader()
+          .getResourceAsStream("assets/fonts/" + name))
+      {
+        if (is == null) {
+          throw new RuntimeException("Font resource not found on classpath: assets/fonts/" + name);
+        }
+        File tempFile = Files.createTempFile("font-", "-" + name).toFile();
+        tempFile.deleteOnExit();
+        Files.copy(is, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return tempFile;
+      }
+      catch (RuntimeException e) {
+        throw e;
+      }
+      catch (Exception e) {
+        throw new RuntimeException("Failed to load font " + name, e);
+      }
+    });
+    try (InputStream fis = new FileInputStream(fontFile)) {
+      return PDType0Font.load(pdDocument, fis);
     }
-    catch (Exception e) {
+    catch (IOException e) {
       throw new RuntimeException("Failed to load font " + fontFileName, e);
     }
   }

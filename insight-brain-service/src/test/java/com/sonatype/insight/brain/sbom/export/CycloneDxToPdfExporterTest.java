@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -129,7 +133,7 @@ public class CycloneDxToPdfExporterTest
     PdfComponent c1 = pdfData.components.stream()
         .filter(c -> c.displayName.contains("Microsoft.Extensions.ApiDescription.Server 3.0.0"))
         .findFirst()
-        .get();
+        .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
     assertThat(c1.displayName).isEqualTo("Microsoft.Extensions.ApiDescription.Server 3.0.0");
     assertThat(c1.matchState).isEqualTo("exact");
     assertThat(c1.policyViolations).hasSize(4);
@@ -176,7 +180,10 @@ public class CycloneDxToPdfExporterTest
     assertThat(pdfData.sbomMetadata.specVersion).isEqualTo("1.5");
     assertThat(pdfData.sbomMetadata.fileFormat).isEqualTo("xml");
 
-    PdfComponent c1 = pdfData.components.stream().filter(c -> c.displayName.contains("log4j")).findFirst().get();
+    PdfComponent c1 = pdfData.components.stream()
+        .filter(c -> c.displayName.contains("log4j"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
     assertThat(c1.displayName).isEqualTo("log4j : log4j : 1.2.8");
     assertThat(c1.matchState).isEqualTo("exact");
     assertThat(c1.policyViolations).hasSize(0);
@@ -186,7 +193,10 @@ public class CycloneDxToPdfExporterTest
     assertThat(c1.securityIssues.stream().map(s -> s.reference)).contains("CVE-2022-23307");
 
     PdfComponent c2 =
-        pdfData.components.stream().filter(c -> c.displayName.contains("jackson-databind")).findFirst().get();
+        pdfData.components.stream()
+            .filter(c -> c.displayName.contains("jackson-databind"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
     assertThat(c2.displayName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.9");
     assertThat(c2.matchState).isEqualTo("exact");
     assertThat(c2.policyViolations).hasSize(0);
@@ -241,13 +251,19 @@ public class CycloneDxToPdfExporterTest
     // Then
     assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
 
-    PdfComponent c1 = pdfData.components.stream().filter(c -> c.displayName.contains("log4j")).findFirst().get();
+    PdfComponent c1 = pdfData.components.stream()
+        .filter(c -> c.displayName.contains("log4j"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
     assertThat(c1.displayName).isEqualTo("log4j : log4j : 1.2.8");
     assertThat(c1.policyViolations).hasSize(0);
     assertThat(c1.effectiveLicenses.stream().map(c -> c.name)).containsExactlyInAnyOrder(expected1);
 
     PdfComponent c2 =
-        pdfData.components.stream().filter(c -> c.displayName.contains("jackson-databind")).findFirst().get();
+        pdfData.components.stream()
+            .filter(c -> c.displayName.contains("jackson-databind"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
     assertThat(c2.displayName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.9");
 
     assertThat(c2.effectiveLicenses).hasSize(1);
@@ -278,5 +294,45 @@ public class CycloneDxToPdfExporterTest
     assertThat(pdfData.sbomMetadata.fileFormat).isEqualTo("xml");
 
     assertThat(pdfData.components).isEmpty();
+  }
+
+  @Test
+  public void testExportPdf_withPrefetchedPolicyData() throws Exception {
+    File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
+    ThirdPartySbomMetadata sbomMetadata =
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
+        "pkg:maven/log4j/log4j@1.2.8?type=jar", "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1");
+    setupCoordinateSecurityEntity(fc1, "CVE-2022-23307", "name=CVE-2022-23307", "HIGH", "502", "CVSSV3",
+        "NVD", 8.8d, null);
+
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    policyData.components = new ArrayList<>();
+    ApiReportComponentPolicyViolationsDTOV2 violationComponent = new ApiReportComponentPolicyViolationsDTOV2();
+    violationComponent.hash = "3640dd71069d7986c9a1";
+    violationComponent.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+        new PackageUrlIdentifier("pkg:maven/log4j/log4j@1.2.8?type=jar").toComponentIdentifier());
+    ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
+    violation.policyName = "Prefetched-Policy";
+    violation.policyThreatLevel = 9;
+    violation.policyThreatCategory = "SECURITY";
+    violationComponent.violations.add(violation);
+    policyData.components.add(violationComponent);
+
+    SbomExportParams exportParams = withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON);
+    exportParams.withPolicyData(policyData);
+    exporter.setExportParams(exportParams);
+
+    PdfData pdfData = exporter.exportPdf();
+
+    PdfComponent c1 = pdfData.components.stream()
+        .filter(c -> c.displayName.contains("log4j"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("expected component not found in PDF output"));
+    assertThat(c1.policyViolations).hasSize(1);
+    assertThat(c1.policyViolations.get(0).policyName).isEqualTo("Prefetched-Policy");
+    assertThat(c1.policyViolations.get(0).policyThreatLevel).isEqualTo(9);
+    assertThat(c1.policyViolations.get(0).policyThreatCategory).isEqualTo("SECURITY");
   }
 }

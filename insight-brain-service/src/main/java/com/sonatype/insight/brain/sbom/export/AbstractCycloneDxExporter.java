@@ -179,6 +179,9 @@ public abstract class AbstractCycloneDxExporter
           .collect(Collectors.groupingBy(ThirdPartyCoordinateSecurity::getFileCoordinateId));
       Application app = applicationDAO.getByIdNotNull(exportParams.sbomMetadata.getApplicationId());
 
+      Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> vexByCoordinateSecurityId =
+          prefetchVexData(vulnerabilities);
+
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
         List<ThirdPartyCoordinateSecurity> sonatypeComponentVulnerabilities = vulnerabilities
             .getOrDefault(sonatypeComponent.getId(), Collections.emptyList());
@@ -225,7 +228,7 @@ public abstract class AbstractCycloneDxExporter
 
           // Merge sonatype vulnerabilities into bom
           mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList,
-              newBomVulnerabilities);
+              newBomVulnerabilities, vexByCoordinateSecurityId);
 
           // If no new licenses were recovered from db, skip merge process (left current licenses unaltered)
           // Update any legacy property names in the current licenses
@@ -263,6 +266,26 @@ public abstract class AbstractCycloneDxExporter
     return bom;
   }
 
+  private Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> prefetchVexData(
+      Map<String, List<ThirdPartyCoordinateSecurity>> vulnerabilitiesByFileCoordinate)
+  {
+    Set<String> allCoordinateSecurityIds = vulnerabilitiesByFileCoordinate.values()
+        .stream()
+        .flatMap(List::stream)
+        .map(ThirdPartyCoordinateSecurity::getId)
+        .collect(Collectors.toSet());
+    if (allCoordinateSecurityIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> result = new HashMap<>();
+    thirdPartyVulnerabilityExploitabilityExchangeDAO
+        .getListByCoordinateSecurityIds(allCoordinateSecurityIds)
+        .forEach(vex -> result
+            .computeIfAbsent(vex.getCoordinateSecurityId(), k -> new ArrayList<>())
+            .add(vex));
+    return result;
+  }
+
   protected Bom mergeCurrentDatabaseState(Bom bom) {
     return mergeCurrentDatabaseState(bom, null);
   }
@@ -282,14 +305,15 @@ public abstract class AbstractCycloneDxExporter
       Component bomComponent,
       List<ThirdPartyCoordinateSecurity> sonatypeVulnerabilities,
       List<Vulnerability> bomVulnerabilities,
-      MultiValuedMap<String, Vulnerability> newBomVulnerabilities)
+      MultiValuedMap<String, Vulnerability> newBomVulnerabilities,
+      Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> vexByCoordinateSecurityId)
   {
     for (ThirdPartyCoordinateSecurity sonatypeVulnerability : sonatypeVulnerabilities) {
       Optional<Vulnerability> vulnerabilityFromBom;
       vulnerabilityFromBom = findMatchingBomVulnerability(bomComponent, bomVulnerabilities, sonatypeVulnerability);
 
       ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation =
-          thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(
+          findVexByCoordinateSecurityIdAndRefId(vexByCoordinateSecurityId,
               sonatypeVulnerability.getId(), sonatypeVulnerability.getRefId());
       if (vulnerabilityFromBom.isPresent()) {
         updateOrSplitExistingVulnerability(bomComponent, sonatypeVulnerability, vulnerabilityFromBom.get(),
@@ -299,6 +323,24 @@ public abstract class AbstractCycloneDxExporter
         createNewBomVulnerability(bomComponent, sonatypeVulnerability, newBomVulnerabilities, sonatypeVexInformation);
       }
     }
+  }
+
+  private static ThirdPartyVulnerabilityExploitabilityExchange findVexByCoordinateSecurityIdAndRefId(
+      Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> vexByCoordinateSecurityId,
+      String coordinateSecurityId,
+      String refId)
+  {
+    if (refId == null) {
+      return null;
+    }
+    List<ThirdPartyVulnerabilityExploitabilityExchange> candidates =
+        vexByCoordinateSecurityId.getOrDefault(coordinateSecurityId, Collections.emptyList());
+    for (ThirdPartyVulnerabilityExploitabilityExchange vex : candidates) {
+      if (refId.equals(vex.getRefId())) {
+        return vex;
+      }
+    }
+    return null;
   }
 
   private void updateOrSplitExistingVulnerability(
@@ -729,33 +771,36 @@ public abstract class AbstractCycloneDxExporter
    */
   private MultiValuedMap<String, PdfComponentPolicyViolation> getPolicyViolationsData() {
     MultiValuedMap<String, PdfComponentPolicyViolation> mapped = new ArrayListValuedHashMap<>();
-    Application app = getApplication();
-    ThirdPartyScan tpScan = getThirdPartyScan();
-    if (tpScan != null) {
-      try {
-        ApiReportPolicyDataDTOV2 data =
-            apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId(), false);
-        if (data != null && data.components != null) {
-          for (ApiReportComponentPolicyViolationsDTOV2 reportViolationDto : data.components) {
-            for (ApiReportPolicyViolationDTOV2 reportPolicyViolation : reportViolationDto.violations) {
-              PdfComponentPolicyViolation pdfViolation = new PdfComponentPolicyViolation();
-              pdfViolation.policyThreatLevel = reportPolicyViolation.policyThreatLevel;
-              pdfViolation.policyName = reportPolicyViolation.policyName;
-              pdfViolation.policyThreatCategory = reportPolicyViolation.policyThreatCategory;
-              pdfViolation.waived = reportPolicyViolation.waived;
-              pdfViolation.legacyViolation = reportPolicyViolation.legacyViolation;
-              if (reportViolationDto.componentIdentifier != null) {
-                String purl = PackageUrlIdentifier.fromComponentIdentifier(
-                    reportViolationDto.componentIdentifier.toComponentIdentifier()).getPackageUrl();
-                mapped.put(purl, pdfViolation);
-              }
-              mapped.put(reportViolationDto.hash, pdfViolation);
-            }
-          }
+    ApiReportPolicyDataDTOV2 data = exportParams.getPolicyData();
+    if (data == null) {
+      Application app = getApplication();
+      ThirdPartyScan tpScan = getThirdPartyScan();
+      if (tpScan != null) {
+        try {
+          data = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), tpScan.getScanId(), false);
+        }
+        catch (Exception e) {
+          log.debug("Failed to get policy violations data for application {} and scanId {}",
+              app.getPublicId(), tpScan.getScanId(), e);
         }
       }
-      catch (Exception e) {
-        log.debug("No report data found for application {} and scanId {}", app.getPublicId(), tpScan.getScanId());
+    }
+    if (data != null && data.components != null) {
+      for (ApiReportComponentPolicyViolationsDTOV2 reportViolationDto : data.components) {
+        for (ApiReportPolicyViolationDTOV2 reportPolicyViolation : reportViolationDto.violations) {
+          PdfComponentPolicyViolation pdfViolation = new PdfComponentPolicyViolation();
+          pdfViolation.policyThreatLevel = reportPolicyViolation.policyThreatLevel;
+          pdfViolation.policyName = reportPolicyViolation.policyName;
+          pdfViolation.policyThreatCategory = reportPolicyViolation.policyThreatCategory;
+          pdfViolation.waived = reportPolicyViolation.waived;
+          pdfViolation.legacyViolation = reportPolicyViolation.legacyViolation;
+          if (reportViolationDto.componentIdentifier != null) {
+            String purl = PackageUrlIdentifier.fromComponentIdentifier(
+                reportViolationDto.componentIdentifier.toComponentIdentifier()).getPackageUrl();
+            mapped.put(purl, pdfViolation);
+          }
+          mapped.put(reportViolationDto.hash, pdfViolation);
+        }
       }
     }
     return mapped;

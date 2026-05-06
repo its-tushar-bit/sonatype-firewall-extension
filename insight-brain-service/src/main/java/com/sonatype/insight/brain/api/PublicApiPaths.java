@@ -22,6 +22,9 @@ public class PublicApiPaths
 
   public static final String POLICY_RESOURCE_PATH = API_VERSION_PATH_V2 + "policies";
 
+  public static final String POLICY_EXPORT_RESOURCE_PATH =
+      API_VERSION_PATH_V2 + "policy/{ownerType: application|organization|repository}/{ownerId}";
+
   public static final String CYCLONE_DX_RESOURCE_PATH = API_VERSION_PATH_V2 + "cycloneDx";
 
   public static final String SPDX_RESOURCE_PATH = API_VERSION_PATH_V2 + "spdx";

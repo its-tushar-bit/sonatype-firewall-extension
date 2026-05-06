@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.label;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +101,25 @@ public class LabelDAO
       labels.addAll(getByOwnerId(tx, owner.getId()));
     }
     return labels;
+  }
+
+  public List<Label> getByOwnerIds(Collection<String> ownerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIds(tx, ownerIds);
+    }
+  }
+
+  public List<Label> getByOwnerIds(TransactionContext tx, Collection<String> ownerIds) {
+    if (ownerIds == null || ownerIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return getListWithSqlInClause(ownerIds,
+        ids -> tx.dsl()
+            .selectFrom(LABEL)
+            .where(LABEL.OWNER_ID.in(ids))
+            .orderBy(LABEL.LABEL_LOWERCASE)
+            .fetchInto(Label.class),
+        getDataStore());
   }
 
   /**

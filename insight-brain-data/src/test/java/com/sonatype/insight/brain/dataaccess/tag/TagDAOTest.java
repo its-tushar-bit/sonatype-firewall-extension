@@ -586,6 +586,30 @@ public class TagDAOTest
         .containsExactlyInAnyOrder(tag1, tag2, tag3);
   }
 
+  @Test
+  public void testGetByOrganizationIds() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Tag tag1 = tempEntity.newTag(org1.getId());
+    Tag tag2 = tempEntity.newTag(org1.getId());
+    Tag tag3 = tempEntity.newTag(org2.getId());
+
+    List<Tag> tags = dao.getByOrganizationIds(Arrays.asList(org1.getId(), org2.getId()));
+
+    assertThat(tags).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(tag1, tag2, tag3);
+  }
+
+  @Test
+  public void testGetByOrganizationIds_Null() {
+    assertThat(dao.getByOrganizationIds(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByOrganizationIds_Empty() {
+    assertThat(dao.getByOrganizationIds(Collections.emptyList())).isEmpty();
+  }
+
   private void assertInsertTagWithDuplicateName(String orgId, String tagName, Organization expectedOrg) {
     // Add a tag with a case-/whitespace-equivalent name
     Tag tag = new Tag(orgId, tagName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH), "description");

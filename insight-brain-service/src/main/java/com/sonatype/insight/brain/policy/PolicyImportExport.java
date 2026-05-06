@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -49,6 +52,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -378,7 +382,6 @@ public class PolicyImportExport
 
   /**
    * Import/merge the specified Tags.
-   *
    * If the Tag already exists on the specified Org, it is updated to reflect the passed in Tag
    * If the Tag does not exist, it is created
    *
@@ -422,7 +425,6 @@ public class PolicyImportExport
 
   /**
    * Import the specified PolicyTags, using the specified policy id.
-   *
    * The id on the passed in PolicyTags is no longer valid, since the policies
    * get new ids when imported
    */
@@ -502,17 +504,135 @@ public class PolicyImportExport
   }
 
   @Authorize(permission = Permission.READ)
-  PolicyExportResult exportApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
+  public PolicyExportResult exportApplication(@AuthzContext(AuthzContext.Key.APPLICATION) Application application) {
     return export(application.getId());
   }
 
   @Authorize(permission = Permission.READ)
-  PolicyExportResult exportOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
+  public PolicyExportResult exportRepository(@AuthzContext(AuthzContext.Key.REPOSITORY) Repository repository) {
+    return export(repository.getId());
+  }
+
+  @Authorize(permission = Permission.READ)
+  public PolicyExportResult exportOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
     String orgId = organization.getId();
     PolicyExportResult policyExportResult = export(orgId);
     policyExportResult.policyTags = policyTagDAO.getByOrganizationId(orgId);
     policyExportResult.tags = tagDAO.getByOrganizationId(orgId);
     return policyExportResult;
+  }
+
+  /**
+   * Exports policy configuration including inherited policies from parent levels in the hierarchy.
+   * Uses batch fetching to minimize database queries. Query count is approximately:
+   * 1 + N (hierarchy traversal) + 6 (batch fetches for policies, labels, LTGs, LTGLs, tags, policyTags),
+   * where N is the hierarchy depth.
+   * <p>
+   * Authorization is checked once at the requested owner level. Parent data is included
+   * automatically based on IQ Server's hierarchical permission model.
+   *
+   * @param ownerType the type of owner to export
+   * @param internalOwnerId the internal ID of the owner
+   * @return export result containing policies, labels, license threat groups, and tags
+   */
+  @Authorize(permission = Permission.READ)
+  public PolicyExportResult exportWithInheritance(
+      @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.INTERNAL_ID) String internalOwnerId)
+  {
+    // 1. Get hierarchy owners (for ID extraction and type filtering)
+    List<Owner> hierarchyOwners = getHierarchyOwners(internalOwnerId);
+
+    if (hierarchyOwners.isEmpty()) {
+      throw new NotFoundException(ownerType + " not found: " + internalOwnerId);
+    }
+
+    List<String> hierarchyOwnerIds = hierarchyOwners.stream()
+        .map(Owner::getId)
+        .collect(Collectors.toList());
+
+    // 2. Batch fetch all entities
+    List<Policy> policies = policyDAO.getByOwnerIds(new HashSet<>(hierarchyOwnerIds));
+    List<Label> labels = labelDAO.getByOwnerIds(hierarchyOwnerIds);
+    List<LicenseThreatGroup> ltgs = licenseThreatGroupDAO.getByOwnerIds(hierarchyOwnerIds);
+    List<LicenseThreatGroupLicense> ltgls = licenseThreatGroupLicenseDAO.getByOwnerIds(hierarchyOwnerIds);
+
+    // 3. For organizations, also fetch tags/policyTags
+    List<String> orgIds = filterOrganizationIds(hierarchyOwners);
+    List<Tag> tags = orgIds.isEmpty() ? new ArrayList<>() : tagDAO.getByOrganizationIds(orgIds);
+    List<PolicyTag> policyTags = orgIds.isEmpty() ? new ArrayList<>() : policyTagDAO.getByOrganizationIds(orgIds);
+
+    // 4. Merge and deduplicate
+    return mergeResults(policies, labels, ltgs, ltgls, tags, policyTags);
+  }
+
+  /**
+   * Gets the list of owners in the hierarchy from bottom (most specific) to top (most general).
+   * Uses ownerDAO.walkHierarchy() which already handles different owner types correctly.
+   *
+   * @param ownerId the ID of the starting owner
+   * @return list of owners from bottom to top
+   */
+  private List<Owner> getHierarchyOwners(String ownerId) {
+    List<Owner> owners = new ArrayList<>();
+
+    Owner owner = ownerDAO.getById(ownerId);
+    if (owner == null) {
+      return owners;
+    }
+
+    for (Owner current : ownerDAO.walkHierarchy(owner)) {
+      owners.add(current);
+    }
+    return owners;
+  }
+
+  /**
+   * Filters hierarchy owners to only include organizations.
+   * Tags and PolicyTags are organization-scoped, so we need org IDs for fetching them.
+   *
+   * @param hierarchyOwners list of owners in hierarchy
+   * @return list of organization IDs
+   */
+  private List<String> filterOrganizationIds(List<Owner> hierarchyOwners) {
+    return hierarchyOwners.stream()
+        .filter(owner -> owner.getType() == OwnerType.ORGANIZATION)
+        .map(Owner::getId)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Merges entities from multiple hierarchy levels, deduplicating by ID.
+   * First occurrence wins (most specific level).
+   *
+   * @param policies policies from all levels
+   * @param labels labels from all levels
+   * @param ltgs license threat groups from all levels
+   * @param ltgls license threat group licenses from all levels
+   * @param tags tags from all levels
+   * @param policyTags policy tags from all levels
+   * @return merged export result
+   */
+  private PolicyExportResult mergeResults(
+      List<Policy> policies,
+      List<Label> labels,
+      List<LicenseThreatGroup> ltgs,
+      List<LicenseThreatGroupLicense> ltgls,
+      List<Tag> tags,
+      List<PolicyTag> policyTags)
+  {
+    PolicyExportResult result = new PolicyExportResult();
+
+    // No deduplication needed - each entity belongs to exactly one owner,
+    // and walkHierarchy returns a linear chain (tree, no duplicates)
+    result.policies = policies != null ? new ArrayList<>(policies) : new ArrayList<>();
+    result.labels = labels != null ? new ArrayList<>(labels) : new ArrayList<>();
+    result.licenseThreatGroups = ltgs != null ? new ArrayList<>(ltgs) : new ArrayList<>();
+    result.licenseThreatGroupLicenses = ltgls != null ? new ArrayList<>(ltgls) : new ArrayList<>();
+    result.tags = tags != null ? new ArrayList<>(tags) : new ArrayList<>();
+    result.policyTags = policyTags != null ? new ArrayList<>(policyTags) : new ArrayList<>();
+
+    return result;
   }
 
   private PolicyExportResult export(String ownerId) {

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.ValidationResult;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -54,6 +56,7 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.Lists;
@@ -64,6 +67,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @since 1.7
@@ -744,5 +748,156 @@ public class PolicyImportExportTest
 
     policyImportExport.importOrganization(toOrg, policyExportResult);
     assertThat(licenseThreatGroupDAO.getByOwnerIdAndName(toOrg.getId(), emptyLTG.getName())).isNotNull();
+  }
+
+  // ==================== exportWithInheritance Tests ====================
+
+  @Test
+  public void testExportWithInheritance_SingleLevel() {
+    // Given: Organization with policies only at its level
+    Policy policy = tempEntity.newPolicy(fromOrg);
+
+    // When: Exporting with inheritance (single level)
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.ORGANIZATION, fromOrg.getId());
+
+    // Then: Returns direct policies only
+    assertThat(result.policies).hasSize(1);
+    assertThat(result.policies.get(0).getId()).isEqualTo(policy.getId());
+  }
+
+  @Test
+  public void testExportWithInheritance_TwoLevels_ApplicationToOrg() {
+    // Given: Organization with Policy A, Application with Policy B
+    Policy orgPolicy = tempEntity.newPolicy(fromOrg);
+    Policy appPolicy = tempEntity.newPolicy(fromApp);
+
+    // When: Exporting application with inheritance
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.APPLICATION, fromApp.getId());
+
+    // Then: Returns both application and organization policies
+    assertThat(result.policies).hasSize(2);
+    List<String> policyIds = result.policies.stream().map(Policy::getId).collect(Collectors.toList());
+    assertThat(policyIds).containsExactlyInAnyOrder(orgPolicy.getId(), appPolicy.getId());
+
+    // And: Policies preserve their original ownerId
+    Policy resultAppPolicy =
+        result.policies.stream().filter(p -> p.getId().equals(appPolicy.getId())).findFirst().orElse(null);
+    Policy resultOrgPolicy =
+        result.policies.stream().filter(p -> p.getId().equals(orgPolicy.getId())).findFirst().orElse(null);
+    assertThat(resultAppPolicy.getOwnerId()).isEqualTo(fromApp.getId());
+    assertThat(resultOrgPolicy.getOwnerId()).isEqualTo(fromOrg.getId());
+  }
+
+  @Test
+  public void testExportWithInheritance_LabelsFromMultipleOwners() {
+    // Given: Organization with Label A, Application with Label B
+    Label orgLabel = tempEntity.newLabel(fromOrg.getId(), "org-label");
+    Label appLabel = tempEntity.newLabel(fromApp.getId(), "app-label");
+
+    // When: Exporting application with inheritance
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.APPLICATION, fromApp.getId());
+
+    // Then: Returns both labels
+    assertThat(result.labels).hasSize(2);
+    List<String> labelIds = result.labels.stream().map(Label::getId).collect(Collectors.toList());
+    assertThat(labelIds).containsExactlyInAnyOrder(orgLabel.getId(), appLabel.getId());
+  }
+
+  @Test
+  public void testExportWithInheritance_TagsOnlyFromOrganizations() {
+    // Given: Organization with tags and policy-tag associations
+    Policy orgPolicy = tempEntity.newPolicy(fromOrg);
+    Tag tag = tempEntity.newTag(fromOrg.getId(), "tag1");
+    PolicyTag policyTag = tempEntity.newPolicyTag(orgPolicy.getId(), tag.getId());
+
+    // When: Exporting application with inheritance
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.APPLICATION, fromApp.getId());
+
+    // Then: Tags are included (from parent org)
+    assertThat(result.tags).hasSize(1);
+    assertThat(result.tags.get(0).getId()).isEqualTo(tag.getId());
+    assertThat(result.policyTags).hasSize(1);
+    assertThat(result.policyTags.get(0).getId()).isEqualTo(policyTag.getId());
+  }
+
+  @Test
+  public void testExportWithInheritance_MultiplePolicies() {
+    // Given: Multiple unique policies at the org level
+    Policy policy1 = tempEntity.newPolicy(fromOrg);
+    Policy policy2 = tempEntity.newPolicy(fromOrg);
+
+    // When: Exporting with inheritance
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.ORGANIZATION, fromOrg.getId());
+
+    // Then: Both policies are included (ROOT org policies may also be present)
+    List<String> policyIds = result.policies.stream()
+        .map(Policy::getId)
+        .collect(Collectors.toList());
+    assertThat(policyIds).contains(policy1.getId(), policy2.getId());
+  }
+
+  @Test
+  public void testExportWithInheritance_EmptyResult() {
+    // Given: Organization with no policies, labels, etc.
+    Organization emptyOrg = tempEntity.newOrganization();
+
+    // When: Exporting with inheritance
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.ORGANIZATION, emptyOrg.getId());
+
+    // Then: Returns empty lists for policies, labels, tags (but may have inherited LTGs from root)
+    assertThat(result.policies).isEmpty();
+    assertThat(result.labels).isEmpty();
+    assertThat(result.tags).isEmpty();
+    assertThat(result.policyTags).isEmpty();
+  }
+
+  @Test
+  public void testExportWithInheritance_OrganizationNotFound() {
+    // Given: A non-existent organization ID
+    String nonExistentId = "non-existent-org-id-" + System.currentTimeMillis();
+
+    // When/Then: NotFoundException is thrown
+    assertThatThrownBy(() -> policyImportExport.exportWithInheritance(
+        OwnerType.ORGANIZATION, nonExistentId))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("organization not found");
+  }
+
+  @Test
+  public void testExportWithInheritance_ApplicationNotFound() {
+    // Given: A non-existent application ID
+    String nonExistentId = "non-existent-app-id-" + System.currentTimeMillis();
+
+    // When/Then: NotFoundException is thrown
+    assertThatThrownBy(() -> policyImportExport.exportWithInheritance(
+        OwnerType.APPLICATION, nonExistentId))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("application not found");
+  }
+
+  @Test
+  public void testExportWithInheritance_Repository() {
+    // Given: Repository hierarchy - Repository -> RepositoryManager -> RepositoryContainer -> ROOT Org
+    // This test verifies the repository hierarchy chain is correctly walked
+    Repository repository = tempEntity.newRepository();
+    Policy repoPolicy = tempEntity.newPolicy(repository);
+
+    // When: Exporting with inheritance from repository
+    PolicyExportResult result = policyImportExport.exportWithInheritance(
+        OwnerType.REPOSITORY, repository.getId());
+
+    // Then: Policies from repository and its hierarchy are returned
+    // Verify the repository's own policy is included
+    List<String> resultPolicyIds = result.policies.stream()
+        .map(Policy::getId)
+        .collect(Collectors.toList());
+    assertThat(resultPolicyIds).contains(repoPolicy.getId());
+    // Note: ROOT org policies may also be included due to hierarchy inheritance
   }
 }

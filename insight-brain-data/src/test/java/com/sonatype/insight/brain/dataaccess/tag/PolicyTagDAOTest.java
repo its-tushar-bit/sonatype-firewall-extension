@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,6 +137,65 @@ public class PolicyTagDAOTest
 
     assertPolicyTags(org1PolicyTags, dao.getByOrganizationId(org1.getId()));
     assertPolicyTags(org2PolicyTags, dao.getByOrganizationId(org2.getId()));
+  }
+
+  @Test
+  public void testGetByOrganizationIds() {
+    Organization org1 = tempEntity.newOrganization("org1");
+    Organization org2 = tempEntity.newOrganization("org2");
+    Organization org3 = tempEntity.newOrganization("org3"); // No policy tags for this org
+
+    List<PolicyTag> org1PolicyTags = new ArrayList<>();
+    List<PolicyTag> org2PolicyTags = new ArrayList<>();
+
+    Policy policy1 = tempEntity.newPolicy(org1);
+    Policy policy2 = tempEntity.newPolicy(org1);
+    Policy policy3 = tempEntity.newPolicy(org2);
+    Policy policy4 = tempEntity.newPolicy(org2);
+
+    // Create tags and apply to policies for org1
+    org1PolicyTags.add(tempEntity.newPolicyTag(policy1.getId(), tempEntity.newTag(org1.getId()).getId()));
+    org1PolicyTags.add(tempEntity.newPolicyTag(policy2.getId(), tempEntity.newTag(org1.getId()).getId()));
+    org1PolicyTags.add(tempEntity.newPolicyTag(policy1.getId(), tempEntity.newTag(org1.getId()).getId()));
+
+    // Create tags and apply to policies for org2
+    org2PolicyTags.add(tempEntity.newPolicyTag(policy3.getId(), tempEntity.newTag(org2.getId()).getId()));
+    org2PolicyTags.add(tempEntity.newPolicyTag(policy4.getId(), tempEntity.newTag(org2.getId()).getId()));
+
+    // Batch fetch for org1 and org2
+    List<PolicyTag> batchResults = dao.getByOrganizationIds(Arrays.asList(org1.getId(), org2.getId()));
+    assertThat(batchResults).hasSize(org1PolicyTags.size() + org2PolicyTags.size());
+
+    // Verify all expected policy tags are in the batch results
+    Set<String> expectedIds = new HashSet<>();
+    for (PolicyTag pt : org1PolicyTags) {
+      expectedIds.add(pt.getId());
+    }
+    for (PolicyTag pt : org2PolicyTags) {
+      expectedIds.add(pt.getId());
+    }
+
+    Set<String> actualIds = new HashSet<>();
+    for (PolicyTag pt : batchResults) {
+      actualIds.add(pt.getId());
+    }
+    assertThat(actualIds).isEqualTo(expectedIds);
+  }
+
+  @Test
+  public void testGetByOrganizationIds_EmptyCollection() {
+    assertThat(dao.getByOrganizationIds(Collections.emptyList())).isEmpty();
+    assertThat(dao.getByOrganizationIds(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByOrganizationIdsWithNonMatchingIds() {
+    Policy policy = tempEntity.newPolicy(organization);
+    tempEntity.newPolicyTag(policy.getId(), tempEntity.newTag(organization.getId()).getId());
+
+    // Query with non-existent organization IDs
+    List<PolicyTag> results = dao.getByOrganizationIds(Arrays.asList("non-existent-org-1", "non-existent-org-2"));
+    assertThat(results).isEmpty();
   }
 
   private void assertPolicyTag(String policyId, String tagId, PolicyTag actual) {

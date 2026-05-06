@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -100,6 +101,25 @@ public class TagDAO
         .where(TAG.ORGANIZATION_ID.eq(organizationId))
         .orderBy(TAG.NAME_LOWERCASE_NO_WHITESPACE)
         .fetchInto(Tag.class);
+  }
+
+  public List<Tag> getByOrganizationIds(Collection<String> organizationIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOrganizationIds(tx, organizationIds);
+    }
+  }
+
+  public List<Tag> getByOrganizationIds(TransactionContext tx, Collection<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return getListWithSqlInClause(organizationIds,
+        ids -> tx.dsl()
+            .selectFrom(TAG)
+            .where(TAG.ORGANIZATION_ID.in(ids))
+            .orderBy(TAG.NAME_LOWERCASE_NO_WHITESPACE)
+            .fetchInto(Tag.class),
+        getDataStore());
   }
 
   public Tag getByOrganizationIdAndName(TransactionContext tx, String organizationId, String name) {

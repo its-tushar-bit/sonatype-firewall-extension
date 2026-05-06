@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +84,28 @@ public class PolicyTagDAO
           .fetch()
           .map(this::toEntity);
     }
+  }
+
+  public List<PolicyTag> getByOrganizationIds(Collection<String> organizationIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOrganizationIds(tx, organizationIds);
+    }
+  }
+
+  public List<PolicyTag> getByOrganizationIds(TransactionContext tx, Collection<String> organizationIds) {
+    if (organizationIds == null || organizationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return getListWithSqlInClause(organizationIds,
+        ids -> tx.dsl()
+            .select(POLICY_TAG.fields())
+            .from(POLICY_TAG)
+            .join(TAG)
+            .on(POLICY_TAG.TAG_ID.eq(TAG.TAG_ID))
+            .where(TAG.ORGANIZATION_ID.in(ids))
+            .fetch()
+            .map(this::toEntity),
+        getDataStore());
   }
 
   public PolicyTag getByPolicyIdAndTagId(String policyId, String tagId) {

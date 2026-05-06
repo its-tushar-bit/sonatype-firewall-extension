@@ -480,6 +480,32 @@ public class LabelDAOTest
   }
 
   @Test
+  public void testGetByOwnerIds() {
+    Label label1 = tempEntity.newLabel(organization.getParentOrganizationId(), "parent-org-label");
+    Label label2 = tempEntity.newLabel(organization.getId(), "org-label");
+    Label label3 = tempEntity.newLabel(application.getId(), "app-label");
+
+    // Fetch labels for multiple owners at once
+    List<String> ownerIds = Arrays.asList(organization.getId(), application.getId());
+    List<Label> labels = labelDAO.getByOwnerIds(ownerIds);
+
+    // Should return labels from both owners
+    assertLabels(Arrays.asList(label2, label3), labels);
+  }
+
+  @Test
+  public void testGetByOwnerIds_EmptyCollection() {
+    List<Label> labels = labelDAO.getByOwnerIds(Collections.emptyList());
+    assertThat(labels).isEmpty();
+  }
+
+  @Test
+  public void testGetByOwnerIds_NullCollection() {
+    List<Label> labels = labelDAO.getByOwnerIds(null);
+    assertThat(labels).isEmpty();
+  }
+
+  @Test
   public void testGetByIdNotNull() {
     assertThatThrownBy(() -> labelDAO.getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
         .hasMessage("Label with ID fake id does not exist.");

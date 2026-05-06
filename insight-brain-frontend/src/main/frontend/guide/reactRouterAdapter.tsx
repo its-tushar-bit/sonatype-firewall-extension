@@ -38,7 +38,7 @@ const FormAdapter = forwardRef<HTMLFormElement, FormProps>(
       navigate(queryString ? `${action}${separator}${queryString}` : action);
     };
     return (
-      <form ref={ref} onSubmit={handleSubmit} {...props}>
+      <form ref={ref} action={action} onSubmit={handleSubmit} {...props}>
         {children}
       </form>
     );
@@ -50,7 +50,12 @@ export function useReactRouterAdapter(): NavigationAdapter {
   const nav = useNavigate();
   return useMemo(
     () => ({
-      navigate: (url: string) => nav(url),
+      navigate: (url: string, options?: { scroll?: boolean; replace?: boolean }) => {
+        nav(url, {
+          replace: options?.replace,
+          preventScrollReset: options?.scroll === false,
+        });
+      },
       usePathname: () => useLocation().pathname,
       useSearchParams: () => useRouterSearchParams()[0],
       Link: LinkAdapter,

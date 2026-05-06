@@ -524,6 +524,45 @@ public class ScanPolicyEvaluatorTest
     assertThat(inactiveViolations).isEmpty();
   }
 
+  /**
+   * Verifies that auto-waivers are NOT applied when the AUTO_WAIVER_MANAGEMENT entitlement is absent
+   * (e.g., Lifecycle Pro tier, license expired). Even if auto-waiver rows exist in the database (left
+   * over from a previous Enterprise entitlement or other source), scan evaluation must not apply them.
+   *
+   * <p>
+   * This locks in the defense-in-depth check in {@code ScanPolicyEvaluator} that guards against
+   * license expiry and misconfiguration scenarios (CLM-39600).
+   */
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_AutoWaiverManagementEntitlementMissing() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTO_WAIVER_MANAGEMENT);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).isEmpty();
+
+    assertThat(results.activeViolations).hasSize(20).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getPolicyId()).isEqualTo(licensePolicy.getId());
+      assertThat(activeViolation.getLegacyViolationTime()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverComment()).isNull();
+    });
+
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations).isEmpty();
+  }
+
   @Test
   public void testEvaluate_Results_AutoWaivedViolations_PathForward_NoVersionChanges() throws Exception {
     doReturn(Pair.of(Collections.emptyList(), null))

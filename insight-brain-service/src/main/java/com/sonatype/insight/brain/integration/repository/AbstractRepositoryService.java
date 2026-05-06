@@ -106,7 +106,7 @@ public abstract class AbstractRepositoryService
 
   protected final RepositoryComponentDAO repositoryComponentDAO;
 
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+  protected final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   protected final ProductLicense productLicense;
 

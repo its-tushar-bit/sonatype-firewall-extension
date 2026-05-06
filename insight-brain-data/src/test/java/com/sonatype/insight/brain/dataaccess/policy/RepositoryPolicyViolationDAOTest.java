@@ -169,6 +169,58 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  public void testHasActiveMalwareWaivedViolation_returnsTrueWhenActiveWaivedViolationExistsForPathname() {
+    final String pathname = "pathname";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, true, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(dao.hasActiveMalwareWaivedViolation(repository.getId(), pathname)).isTrue();
+  }
+
+  @Test
+  public void testHasActiveMalwareWaivedViolation_returnsFalseWhenViolationIsNotWaived() {
+    final String pathname = "pathname";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, false, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(dao.hasActiveMalwareWaivedViolation(repository.getId(), pathname)).isFalse();
+  }
+
+  @Test
+  public void testHasActiveMalwareWaivedViolation_returnsFalseWhenPathnameDoesNotMatch() {
+    final String pathname = "pathname";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, true, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(dao.hasActiveMalwareWaivedViolation(repository.getId(), "differentpathname")).isFalse();
+  }
+
+  @Test
+  public void testHasActiveMalwareWaivedViolation_returnsFalseForDifferentRepository() {
+    final String pathname = "pathname";
+
+    Repository otherRepository = tempEntity.newRepository(repositoryManager);
+    tempEntity.newRepositoryPolicyViolation(otherRepository.getId(), 5, pathname, true, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(dao.hasActiveMalwareWaivedViolation(repository.getId(), pathname)).isFalse();
+  }
+
+  @Test
+  public void testHasActiveMalwareWaivedViolation_returnsFalseWhenWaivedViolationIsNotMalware() {
+    final String pathname = "pathname";
+
+    // A waived license violation must not be treated as a malware waiver
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, pathname, true, "policyId",
+        "License-Use-Prohibited", null /* componentIdentifier */);
+
+    assertThat(dao.hasActiveMalwareWaivedViolation(repository.getId(), pathname)).isFalse();
+  }
+
+  @Test
   public void testGetActiveByRepositoryIdAndPathnameAndWaived_WithTransactionContext() {
     final String pathname = "pathname";
 

@@ -35,4 +35,6 @@ abstract class AbstractRepositoryResource
   static final String CONFIGURE_REPOSITORIES_PATH = "{repositoryManagerInstanceId}/configureRepositories";
 
   static final String GET_CONFIGURED_REPOSITORIES_PATH = "{repositoryManagerInstanceId}/getConfiguredRepositories";
+
+  static final String IS_COMPONENT_WAIVED_PATH = REPOSITORY_PATH + "components/isComponentWaived";
 }

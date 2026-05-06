@@ -871,6 +871,51 @@ public class RepositoryServiceTest
         .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
+  @Test
+  public void testIsMalwareWaived_returnsTrueWhenActiveWaivedViolationExistsForPathname() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repoManager, REPO_PUBLIC_ID, true);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "somepath", true, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(repositoryService.isMalwareWaived(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath")).isTrue();
+  }
+
+  @Test
+  public void testIsMalwareWaived_returnsFalseWhenViolationIsNotWaived() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repoManager, REPO_PUBLIC_ID, true);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "somepath", false, "policyId",
+        "Security-Malicious", null /* componentIdentifier */);
+
+    assertThat(repositoryService.isMalwareWaived(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath")).isFalse();
+  }
+
+  @Test
+  public void testIsMalwareWaived_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> repositoryService.isMalwareWaived(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath"))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
+  public void testIsMalwareWaived_returnsFalseWhenRepositoryDoesNotExist() {
+    assertThat(repositoryService.isMalwareWaived("nonexistent-instance", REPO_PUBLIC_ID, "somepath")).isFalse();
+  }
+
+  @Test
+  public void testIsMalwareWaived_returnsFalseWhenPathnameIsNull() {
+    tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    assertThat(repositoryService.isMalwareWaived(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null)).isFalse();
+  }
+
+  @Test
+  public void testIsMalwareWaived_returnsFalseWhenPathnameIsEmpty() {
+    tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    assertThat(repositoryService.isMalwareWaived(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "")).isFalse();
+  }
+
   @Override
   protected ConfigureRepositoriesRequest createConfigureRepositoriesRequest(List<RepositoryDTO> repositoryDTOs) {
     return new ConfigureRepositoriesRequest("Nexus", "3.60.0-01", "http://localhost:8081", repositoryDTOs);

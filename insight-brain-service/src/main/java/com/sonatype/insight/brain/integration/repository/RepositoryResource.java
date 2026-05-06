@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * @since 1.17.0
@@ -494,5 +495,17 @@ public class RepositoryResource
   {
     return repositoryContainerImageService.getContainerImageReportUrl(repositoryManagerInstanceId, repositoryPublicId,
         containerImageIdOrPublicId);
+  }
+
+  @GET
+  @Path(IS_COMPONENT_WAIVED_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public boolean isComponentWaived(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @QueryParam("pathname") @NotBlank String pathname)
+  {
+    return repositoryService.isMalwareWaived(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 }

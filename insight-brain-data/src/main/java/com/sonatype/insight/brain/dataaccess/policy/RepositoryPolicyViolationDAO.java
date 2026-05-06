@@ -218,6 +218,20 @@ public class RepositoryPolicyViolationDAO
     }
   }
 
+  public boolean hasActiveMalwareWaivedViolation(String repositoryId, String pathname) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectCount()
+          .from(REPOSITORY_POLICY_VIOLATION)
+          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(true))
+          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .and(REPOSITORY_POLICY_VIOLATION.POLICY_NAME.eq("Security-Malicious"))
+          .fetchOne(0, Integer.class) > 0;
+    }
+  }
+
   public List<RepositoryPolicyViolation> getActiveWaivedRepositoryPolicyViolations(
       final Collection<String> repositoryIds)
   {

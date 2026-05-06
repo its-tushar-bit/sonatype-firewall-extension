@@ -306,4 +306,21 @@ public class RepositoryService
         .collect(Collectors.toList());
   }
 
+  public boolean isMalwareWaived(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
+    checkLicenseFeature();
+    if (pathname == null || pathname.isBlank()) {
+      return false;
+    }
+    Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(
+        repositoryManagerInstanceId, repositoryPublicId);
+    if (repository == null) {
+      return false;
+    }
+    return isMalwareWaived(repository, pathname);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  boolean isMalwareWaived(@AuthzContext(Key.REPOSITORY) Repository repository, String pathname) {
+    return repositoryPolicyViolationDAO.hasActiveMalwareWaivedViolation(repository.getId(), pathname);
+  }
 }

@@ -119,8 +119,10 @@ public class RepositoryService
     log.debug("Evaluating components for repository {}:{} ({})", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
 
+    boolean quarantineEnabled = componentEvaluationDataRequestList != null &&
+        componentEvaluationDataRequestList.quarantineEnabled;
     return evaluateComponents(repository, repositoryManagerInstanceId, componentEvaluationDataRequestList,
-        false, false, clientUserAgent);
+        quarantineEnabled, false, clientUserAgent);
   }
 
   private Repository getOrCreateRepository(String repositoryManagerInstanceId, String repositoryPublicId) {

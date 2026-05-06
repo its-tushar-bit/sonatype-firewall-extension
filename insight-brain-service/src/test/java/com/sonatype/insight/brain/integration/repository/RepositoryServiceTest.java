@@ -520,6 +520,63 @@ public class RepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponentsAdhoc_QuarantinedComponentReturnsQuarantineTrue() {
+    Repository repo = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    // Pre-insert a quarantined component in the DB at the path we will request
+    String pathname = "maven2/com/example/foo/1.0/foo-1.0.jar";
+    String hash = "somehash";
+    RepositoryComponent quarantinedComponent =
+        tempEntity.newRepositoryComponent(repo.getId(), pathname, new Date() /* quarantineTime */, null);
+    // Update hash to match what we'll send in the request
+    quarantinedComponent.setHash(hash);
+    repositoryComponentDAO.update(quarantinedComponent);
+
+    RepositoryComponentEvaluationDataRequest componentRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", pathname, hash);
+    RepositoryComponentEvaluationDataRequestList requestList =
+        newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentRequest));
+    requestList.quarantineEnabled = true;
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("com.example", "foo", "1.0");
+    ComponentEvaluationDataList hdsResult1 = new ComponentEvaluationDataList();
+    hdsResult1.components.add(createComponentEvaluationData(
+        componentIdentifier, hash, MatchState.EXACT, 0, Collections.emptySet(), Collections.emptySet(),
+        Collections.emptyList(), 0));
+    mockHdsRequest(requestList, hdsResult1, true /* quarantineEnabled → quarantineHdsClient */);
+
+    RepositoryComponentEvaluationDataList result =
+        repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, requestList, null);
+
+    assertThat(result.componentEvalResults).hasSize(1);
+    assertThat(result.componentEvalResults.get(0).quarantine).isTrue();
+  }
+
+  @Test
+  public void testEvaluateComponentsAdhoc_NonQuarantinedComponentReturnsQuarantineFalse() {
+    tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    RepositoryComponentEvaluationDataRequest componentRequest =
+        new RepositoryComponentEvaluationDataRequest("npm", "foobar", "hash");
+    RepositoryComponentEvaluationDataRequestList requestList =
+        newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentRequest));
+    requestList.quarantineEnabled = true;
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foobar", "1.0.0");
+    ComponentEvaluationDataList hdsResult2 = new ComponentEvaluationDataList();
+    hdsResult2.components.add(createComponentEvaluationData(
+        componentIdentifier, "hash", MatchState.EXACT, 0, Collections.emptySet(), Collections.emptySet(),
+        Collections.emptyList(), 0));
+    mockHdsRequest(requestList, hdsResult2, true /* quarantineEnabled → quarantineHdsClient */);
+
+    RepositoryComponentEvaluationDataList result =
+        repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, requestList, null);
+
+    assertThat(result.componentEvalResults).hasSize(1);
+    assertThat(result.componentEvalResults.get(0).quarantine).isFalse();
+  }
+
+  @Test
   public void testEvaluateComponentsAdhoc_MissingLicenseFeature() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =

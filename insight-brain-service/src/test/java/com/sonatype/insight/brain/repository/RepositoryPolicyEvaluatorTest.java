@@ -1821,4 +1821,79 @@ public class RepositoryPolicyEvaluatorTest
 
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
+
+  @Test
+  public void testEvaluate_Adhoc_QuarantinedComponentReturnsTrue() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponent quarantinedComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "quarantined/path", new Date());
+    quarantinedComponent.setQuarantineTime(new Date());
+    repositoryComponentDAO.update(quarantinedComponent);
+
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    request.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    request.quarantineEnabled = true;
+    request.components.add(new RepositoryComponentEvaluationDataRequest(
+        "maven2", quarantinedComponent.getPathname(), quarantinedComponent.getHash()));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        quarantinedComponent.getComponentIdentifier(), quarantinedComponent.getHash(),
+        MatchState.EXACT, 0, null, null, Collections.emptyList(), 1));
+
+    RepositoryComponentEvaluationDataList result =
+        repositoryPolicyEvaluator.evaluate(repository, request, hdsResult, true /* withQuarantine */,
+            false /* persistEvaluationResults */, false /* forMonitoring */);
+
+    assertThat(result.componentEvalResults.get(0).quarantine).isTrue();
+  }
+
+  @Test
+  public void testEvaluate_Adhoc_NonQuarantinedComponentReturnsFalse() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponent nonQuarantinedComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "normal/path", new Date());
+    repositoryComponentDAO.update(nonQuarantinedComponent);
+
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    request.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    request.quarantineEnabled = true;
+    request.components.add(new RepositoryComponentEvaluationDataRequest(
+        "maven2", nonQuarantinedComponent.getPathname(), nonQuarantinedComponent.getHash()));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        nonQuarantinedComponent.getComponentIdentifier(), nonQuarantinedComponent.getHash(),
+        MatchState.EXACT, 0, null, null, Collections.emptyList(), 1));
+
+    RepositoryComponentEvaluationDataList result =
+        repositoryPolicyEvaluator.evaluate(repository, request, hdsResult, true /* withQuarantine */,
+            false /* persistEvaluationResults */, false /* forMonitoring */);
+
+    assertThat(result.componentEvalResults.get(0).quarantine).isFalse();
+  }
+
+  @Test
+  public void testEvaluate_Adhoc_NonExistingComponentReturnsFalse() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    request.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    request.quarantineEnabled = true;
+    request.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", "nonexistent/path", "nonexistentHash"));
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), "nonexistentHash",
+        MatchState.EXACT, 0, null, null, Collections.emptyList(), 1));
+
+    RepositoryComponentEvaluationDataList result =
+        repositoryPolicyEvaluator.evaluate(repository, request, hdsResult, true /* withQuarantine */,
+            false /* persistEvaluationResults */, false /* forMonitoring */);
+
+    assertThat(result.componentEvalResults.get(0).quarantine).isFalse();
+  }
 }

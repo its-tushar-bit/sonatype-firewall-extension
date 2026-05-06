@@ -35,7 +35,7 @@ public class ManualPullRequestServiceAuthzTest
 
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE, VALID_DEPENDENCY_TYPE,
-            app, null);
+            app, null, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
   }
@@ -47,7 +47,7 @@ public class ManualPullRequestServiceAuthzTest
 
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE, VALID_DEPENDENCY_TYPE,
-            app, null);
+            app, null, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
   }
@@ -58,7 +58,7 @@ public class ManualPullRequestServiceAuthzTest
 
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE, VALID_DEPENDENCY_TYPE,
-            app, null);
+            app, null, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
   }

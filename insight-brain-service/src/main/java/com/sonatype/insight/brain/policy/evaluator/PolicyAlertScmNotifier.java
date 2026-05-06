@@ -93,11 +93,12 @@ public class PolicyAlertScmNotifier
       final Application app,
       final String scanId,
       final Stage stage,
-      final List<PolicyNotification> policyNotifications)
+      final List<PolicyNotification> policyNotifications,
+      final String scannedBranchName)
   {
     pullRequestInvoker.execute(scanId, () -> {
       try {
-        internalSendNotification(app, scanId, stage, policyNotifications);
+        internalSendNotification(app, scanId, stage, policyNotifications, scannedBranchName);
       }
       catch (final Exception e) {
         log.error("Unable to send PullRequest notification for application {} and scan {} in stage {}",
@@ -110,7 +111,8 @@ public class PolicyAlertScmNotifier
       final Application app,
       final String scanId,
       final Stage stage,
-      final List<PolicyNotification> policyNotifications)
+      final List<PolicyNotification> policyNotifications,
+      final String scannedBranchName)
   {
     Map<ComponentIdentifier, Boolean> directDependencies =
         fetchDirectDependenciesMap(app, scanId, stage.getStageTypeId());
@@ -131,7 +133,8 @@ public class PolicyAlertScmNotifier
             componentIdentifier,
             remediationVersionDTOSupplier,
             notifications,
-            isDirectDependency);
+            isDirectDependency,
+            scannedBranchName);
       }
       catch (IOException e) {
         throw new UncheckedIOException(e);

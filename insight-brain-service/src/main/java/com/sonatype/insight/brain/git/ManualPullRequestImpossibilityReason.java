@@ -44,4 +44,6 @@ public enum ManualPullRequestImpossibilityReason
   UNSUPPORTED_OWNER_TYPE,
 
   NOT_SUPPORTED_FOR_MTIQ,
+
+  NON_DEFAULT_BRANCH,
 }

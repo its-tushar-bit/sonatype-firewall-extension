@@ -113,7 +113,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
-            app, remediationDto);
+            app, remediationDto, null);
 
     assertThat(result).isEmpty();
   }
@@ -130,7 +130,7 @@ public class ManualPullRequestServiceTest
           manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
               VALID_DEPENDENCY_TYPE,
               app,
-              remediationDto);
+              remediationDto, null);
 
       assertThat(result).isEmpty();
     }
@@ -141,7 +141,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
-            app, null);
+            app, null, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
   }
@@ -153,7 +153,7 @@ public class ManualPullRequestServiceTest
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
             app,
-            remediationDto);
+            remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
   }
@@ -171,7 +171,7 @@ public class ManualPullRequestServiceTest
       }
       result =
           manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, stageType.getId(),
-              VALID_DEPENDENCY_TYPE, app, remediationDto);
+              VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
       assertThat(result).isEmpty();
     }
@@ -189,7 +189,7 @@ public class ManualPullRequestServiceTest
     for (StageType stageType : invalidStageTypes) {
       result =
           manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, stageType.getId(),
-              VALID_DEPENDENCY_TYPE, app, remediationDto);
+              VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_STAGE);
     }
@@ -203,14 +203,14 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             DependencyType.TRANSITIVE,
-            app, remediationDto);
+            app, remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_DEPENDENCY_TYPE);
 
     result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             DependencyType.INNER_SOURCE,
-            app, remediationDto);
+            app, remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_DEPENDENCY_TYPE);
   }
@@ -227,7 +227,7 @@ public class ManualPullRequestServiceTest
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(format, coordinates);
       Optional<ManualPullRequestImpossibilityReason> result =
           manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE, VALID_DEPENDENCY_TYPE,
-              app, remediationDto);
+              app, remediationDto, null);
 
       assertThat(result).isEmpty();
     }
@@ -247,7 +247,7 @@ public class ManualPullRequestServiceTest
       ComponentIdentifier componentIdentifier = new ComponentIdentifier(format, coordinates);
       Optional<ManualPullRequestImpossibilityReason> result =
           manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE, VALID_DEPENDENCY_TYPE,
-              app, remediationDto);
+              app, remediationDto, null);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_FORMAT);
     }
@@ -266,7 +266,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
-            app, remediationDto);
+            app, remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
   }
@@ -283,7 +283,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
-            app, remediationDto);
+            app, remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
   }
@@ -299,7 +299,7 @@ public class ManualPullRequestServiceTest
         manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
             VALID_DEPENDENCY_TYPE,
             repository,
-            remediationDto);
+            remediationDto, null);
 
     assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.UNSUPPORTED_OWNER_TYPE);
   }
@@ -334,7 +334,7 @@ public class ManualPullRequestServiceTest
               manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
                   VALID_DEPENDENCY_TYPE,
                   tenantApp,
-                  remediationDto);
+                  remediationDto, null);
 
           assertThat(result).isEmpty();
         }
@@ -375,7 +375,7 @@ public class ManualPullRequestServiceTest
             manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
                 VALID_DEPENDENCY_TYPE,
                 tenantApp,
-                remediationDto);
+                remediationDto, null);
 
         assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
       });
@@ -396,7 +396,7 @@ public class ManualPullRequestServiceTest
           manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
               VALID_DEPENDENCY_TYPE,
               app,
-              remediationDto);
+              remediationDto, null);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }
@@ -414,7 +414,7 @@ public class ManualPullRequestServiceTest
           manualPullRequestService.isManualPullRequestPossible(componentIdentifier, VALID_STAGE,
               VALID_DEPENDENCY_TYPE,
               app,
-              remediationDto);
+              remediationDto, null);
 
       assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NO_REMEDIATION_VERSION_AVAILABLE);
     }
@@ -498,7 +498,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, app, remediationDto);
+            VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
     assertThat(result).isEmpty();
     assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
@@ -522,7 +522,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, app, remediationDto);
+            VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
     assertThat(result).isPresent()
         .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
@@ -549,7 +549,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, app, remediationDto);
+            VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
     assertThat(result).isPresent()
         .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
@@ -583,7 +583,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, app, remediationDto);
+            VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
     assertThat(result).isPresent()
         .contains(ManualPullRequestImpossibilityReason.SCM_NOT_CONFIGURED);
@@ -619,7 +619,7 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, childApp, remediationDto);
+            VALID_DEPENDENCY_TYPE, childApp, remediationDto, null);
 
     assertThat(result).isEmpty();
     assertThat(sourceControl.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
@@ -640,11 +640,50 @@ public class ManualPullRequestServiceTest
     Optional<ManualPullRequestImpossibilityReason> result =
         manualPullRequestService.isManualPullRequestPossible(
             SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-            VALID_DEPENDENCY_TYPE, app, remediationDto);
+            VALID_DEPENDENCY_TYPE, app, remediationDto, null);
 
     assertThat(result).isEmpty();
     assertThat(sourceControl.getAuthenticationType()).isNull();
     assertThat(sourceControl.getToken()).isNotNull();
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_NonDefaultBranch() {
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE,
+            app, remediationDto, "feature/some-branch");
+
+    assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NON_DEFAULT_BRANCH);
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_True_MatchingDefaultBranch() {
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE,
+            app, remediationDto, "main");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_True_NullBranch() {
+    ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+    remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+    Optional<ManualPullRequestImpossibilityReason> result =
+        manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+            VALID_DEPENDENCY_TYPE,
+            app, remediationDto, null);
+
+    assertThat(result).isEmpty();
   }
 
   private GitHubApp createTestGitHubApp(String ownerId) {

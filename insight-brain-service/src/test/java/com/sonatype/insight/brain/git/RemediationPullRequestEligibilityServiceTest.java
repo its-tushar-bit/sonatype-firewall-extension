@@ -80,7 +80,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_success() throws PlexusCipherException {
     setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent, false, true);
+        application, stage, mavenComponent, false, true, null);
     assertThat(result).isTrue();
   }
 
@@ -88,7 +88,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_unsupportedStage() {
     Stage developStage = new Stage(Stage.ID_DEVELOP);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, developStage, mavenComponent, false, true);
+        application, developStage, mavenComponent, false, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
@@ -99,7 +99,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, pypiComponent, false, true);
+        application, stage, pypiComponent, false, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -109,7 +109,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_innerSource_success() throws PlexusCipherException {
     setupSourceControl(true);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent, true, true);
+        application, stage, mavenComponent, true, true, null);
     assertThat(result).isTrue();
   }
 
@@ -117,7 +117,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_innerSource_unsupportedStage() {
     Stage developStage = new Stage(Stage.ID_DEVELOP);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, developStage, mavenComponent, true, true);
+        application, developStage, mavenComponent, true, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
@@ -128,7 +128,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, pypiComponent, true, true);
+        application, stage, pypiComponent, true, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -137,7 +137,8 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForAutoPullRequest_innerSource_innerSourceUpdatesDisabled() throws PlexusCipherException {
     setupSourceControl(false);
-    boolean result = eligibilityService.isEligibleForAutoPullRequest(application, stage, mavenComponent, true, true);
+    boolean result =
+        eligibilityService.isEligibleForAutoPullRequest(application, stage, mavenComponent, true, true, null);
     assertThat(result).isFalse();
     assertThat(pullRequestFeatureCheckLogOutput).atDebugLevel()
         .contains("InnerSource Pull Requests have been explicitly disabled");
@@ -146,7 +147,7 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForAutoPullRequest_nonDirectDependency() {
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent, false, false);
+        application, stage, mavenComponent, false, false, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput)
         .atDebugLevel()
@@ -158,7 +159,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForManualPullRequest_success() throws PlexusCipherException {
     setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, stage, mavenComponent, true);
+        application, stage, mavenComponent, true, null);
     assertThat(result).isTrue();
   }
 
@@ -167,7 +168,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, stage, pypiComponent, true);
+        application, stage, pypiComponent, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -176,7 +177,7 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForManualPullRequest_unsupportedStage() {
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, new Stage(Stage.ID_DEVELOP), mavenComponent, true);
+        application, new Stage(Stage.ID_DEVELOP), mavenComponent, true, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
@@ -185,7 +186,7 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForManualPullRequest_nonDirectDependency() {
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, stage, mavenComponent, false);
+        application, stage, mavenComponent, false, null);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput)
         .atDebugLevel()
@@ -249,6 +250,122 @@ public class RemediationPullRequestEligibilityServiceTest
 
     boolean result = eligibilityService.isRemediationWaitingOrDone(application.getId(), branchName);
     assertThat(result).isFalse();
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_nonDefaultBranch() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, false, true, "feature/my-branch");
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("scanned branch 'feature/my-branch' differs from default branch");
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_nullBranch_allowed() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, false, true, null);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_emptyBranch_allowed() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, false, true, "");
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_matchingBranch_allowed() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, false, true, "master");
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testIsEligibleForManualPullRequest_nonDefaultBranch() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForManualPullRequest(
+        application, stage, mavenComponent, true, "feature/other");
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("scanned branch 'feature/other' differs from default branch");
+  }
+
+  @Test
+  public void testIsEligibleForManualPullRequest_nullBranch_allowed() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForManualPullRequest(
+        application, stage, mavenComponent, true, null);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_nullBranch() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault(null, "main")).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_emptyBranch() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("", "main")).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_matchingBranch() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("main", "main")).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_differentBranch() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("feature/x", "main")).isTrue();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_refsHeadsPrefix_scanned() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("refs/heads/main", "main"))
+        .isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_refsHeadsPrefix_default() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("main", "refs/heads/main"))
+        .isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_refsHeadsPrefix_both() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault(
+        "refs/heads/main", "refs/heads/main")).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_refsHeadsPrefix_different() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault(
+        "refs/heads/feature", "refs/heads/main")).isTrue();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_caseSensitive() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("Main", "main")).isTrue();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_blankBranch() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("  ", "main")).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_nullDefault() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("feature", null)).isFalse();
+  }
+
+  @Test
+  public void testIsScannedBranchNonDefault_blankDefault() {
+    assertThat(RemediationPullRequestEligibilityService.isScannedBranchNonDefault("feature", "  ")).isFalse();
   }
 
   private void setupSourceControl(boolean innerSourceAutomatedUpdatesEnabled) throws PlexusCipherException {

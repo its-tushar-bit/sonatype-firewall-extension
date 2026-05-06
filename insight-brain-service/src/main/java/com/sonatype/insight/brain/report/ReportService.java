@@ -856,9 +856,13 @@ public class ReportService
         new RemediationVersionDTO(latestReleaseVersion.getLatestVersion(),
             ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
     try {
+      PolicyEvaluation evaluation =
+          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+      String scannedBranchName = evaluation != null ? evaluation.getBranchName() : null;
       automatedPullRequestCreationService.createAutomatedRemediationPullRequest(application, scanId,
           new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName()),
-          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList(), true);
+          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList(), true,
+          scannedBranchName);
     }
     catch (Exception e) {
       log.error("Failed to create automated remediation pull request for InnerSource component {} for application {}.",

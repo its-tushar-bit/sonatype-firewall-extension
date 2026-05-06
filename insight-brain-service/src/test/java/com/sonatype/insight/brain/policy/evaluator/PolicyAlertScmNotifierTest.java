@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
+import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.model.Application;
@@ -78,7 +79,8 @@ public class PolicyAlertScmNotifierTest
   private ShutdownHandler mockShutdownHandler;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(AutomatedPullRequestCreationService.class);
+  public LogOutput logOutput = new LogOutput(AutomatedPullRequestCreationService.class,
+      RemediationPullRequestEligibilityService.class);
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
@@ -125,7 +127,7 @@ public class PolicyAlertScmNotifierTest
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(any(), eq(application.getId())))
         .thenReturn(Optional.empty());
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotification());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotification(), null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -141,7 +143,7 @@ public class PolicyAlertScmNotifierTest
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(any(), eq(application.getId())))
         .thenReturn(Optional.of(remediationVersion));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotification());
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotification(), null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -176,7 +178,7 @@ public class PolicyAlertScmNotifierTest
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(component2), eq(application.getId())))
         .thenReturn(Optional.of(remediationVersionDTO2));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     assertShutDownEventAndJoin(5000);
 
@@ -211,7 +213,7 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId())))
             .thenReturn(Optional.of(remediationVersionDTO));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -235,7 +237,7 @@ public class PolicyAlertScmNotifierTest
     // Transitive Dependency
     mockDependencyType(transitiveDependency, false);
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -259,7 +261,7 @@ public class PolicyAlertScmNotifierTest
         eq(application.getId())))
             .thenReturn(Optional.of(remediationVersionDTO));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -287,7 +289,7 @@ public class PolicyAlertScmNotifierTest
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(component), eq(application.getId())))
         .thenReturn(Optional.of(remediationVersionDTO));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     assertShutDownEventAndJoin(1000);
 
@@ -338,7 +340,7 @@ public class PolicyAlertScmNotifierTest
 
     List<PolicyNotification> notifications = List.of(buildPolicyNotification(unsupportedComponent));
 
-    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, null);
 
     List<SourceControlEvent> all = sourceControlEventDAO.getAll();
     assertThat(all).isEmpty();
@@ -348,6 +350,20 @@ public class PolicyAlertScmNotifierTest
         .contains(
             "Component '" + unsupportedComponent + "' in application '" + application.getPublicId() +
                 "' is not eligible for automated PR");
+  }
+
+  @Test
+  public void testSendNotification_nonDefaultBranch_shouldNotCreatePR() throws Exception {
+    List<PolicyNotification> notifications = buildPolicyNotification();
+
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications, "feature/clm-37819");
+
+    assertShutDownEventAndJoin(1000);
+
+    List<SourceControlEvent> all = sourceControlEventDAO.getAll();
+    assertThat(all).isEmpty();
+    assertThat(logOutput).atDebugLevel()
+        .contains("scanned branch 'feature/clm-37819' differs from default branch");
   }
 
   private List<PolicyNotification> buildPolicyNotification() {

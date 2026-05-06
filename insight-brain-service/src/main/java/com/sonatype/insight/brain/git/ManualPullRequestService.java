@@ -103,7 +103,8 @@ public class ManualPullRequestService
       final String stageId,
       final DependencyType dependencyType,
       final Owner owner,
-      final ApiComponentRemediationValueDTO remediationDto)
+      final ApiComponentRemediationValueDTO remediationDto,
+      final String scannedBranchName)
   {
     if (!SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()) {
       return Optional.of(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
@@ -173,6 +174,15 @@ public class ManualPullRequestService
 
     GitRepositoryInfo gitRepositoryInfo =
         SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, owner.getId());
+
+    if (gitRepositoryInfo != null &&
+        RemediationPullRequestEligibilityService.isScannedBranchNonDefault(scannedBranchName,
+            gitRepositoryInfo.baseBranch))
+    {
+      log.debug("Manual PR not possible for application '{}': scanned branch '{}' differs from default branch '{}'",
+          owner.getId(), scannedBranchName, gitRepositoryInfo.baseBranch);
+      return Optional.of(ManualPullRequestImpossibilityReason.NON_DEFAULT_BRANCH);
+    }
 
     if (gitRepositoryInfo != null) {
       if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitRepositoryInfo.authenticationType)) {

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,8 @@ public class RemediationPullRequestEligibilityService
       final Stage stage,
       final ComponentIdentifier componentIdentifier,
       final boolean isInnerSourceComponent,
-      final boolean isDirectDependency)
+      final boolean isDirectDependency,
+      final String scannedBranchName)
   {
     try {
       if (!isEligibleForPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
@@ -72,6 +74,12 @@ public class RemediationPullRequestEligibilityService
 
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
       if (gitRepositoryInfo == null) {
+        return false;
+      }
+
+      if (isScannedBranchNonDefault(scannedBranchName, gitRepositoryInfo.baseBranch)) {
+        log.debug("PR not eligible for application '{}': scanned branch '{}' differs from default branch '{}'",
+            app.getPublicId(), scannedBranchName, gitRepositoryInfo.baseBranch);
         return false;
       }
 
@@ -89,7 +97,8 @@ public class RemediationPullRequestEligibilityService
       final Application app,
       final Stage stage,
       final ComponentIdentifier componentIdentifier,
-      final boolean isDirectDependency)
+      final boolean isDirectDependency,
+      final String scannedBranchName)
   {
     try {
       if (!isEligibleForPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
@@ -97,8 +106,17 @@ public class RemediationPullRequestEligibilityService
       }
 
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
-      return gitRepositoryInfo != null &&
-          manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo).isEmpty();
+      if (gitRepositoryInfo == null) {
+        return false;
+      }
+
+      if (isScannedBranchNonDefault(scannedBranchName, gitRepositoryInfo.baseBranch)) {
+        log.debug("PR not eligible for application '{}': scanned branch '{}' differs from default branch '{}'",
+            app.getPublicId(), scannedBranchName, gitRepositoryInfo.baseBranch);
+        return false;
+      }
+
+      return manualPullRequestFeatureCheck.isManualPullRequestFeatureSupported(gitRepositoryInfo).isEmpty();
     }
     catch (Exception e) {
       log.debug("Error checking eligibility for manual PR for application '{}' component '{}'",
@@ -164,5 +182,21 @@ public class RemediationPullRequestEligibilityService
     }
 
     return isFormatSupported(componentIdentifier.getFormat());
+  }
+
+  static boolean isScannedBranchNonDefault(final String scannedBranchName, final String baseBranch) {
+    if (StringUtils.isBlank(scannedBranchName) || StringUtils.isBlank(baseBranch)) {
+      return false;
+    }
+    String normalizedScanned = stripRefsHeadsPrefix(scannedBranchName);
+    String normalizedDefault = stripRefsHeadsPrefix(baseBranch);
+    return !normalizedScanned.equals(normalizedDefault);
+  }
+
+  private static String stripRefsHeadsPrefix(final String branchName) {
+    if (branchName != null && branchName.startsWith("refs/heads/")) {
+      return branchName.substring("refs/heads/".length());
+    }
+    return branchName != null ? branchName : "";
   }
 }

@@ -1592,7 +1592,8 @@ public class ReportServiceTest
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
             eq(Collections.emptyList()),
-            eq(true));
+            eq(true),
+            any());
   }
 
   @Test
@@ -1632,7 +1633,8 @@ public class ReportServiceTest
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
             eq(Collections.emptyList()),
-            eq(true));
+            eq(true),
+            any());
   }
 
   @Test

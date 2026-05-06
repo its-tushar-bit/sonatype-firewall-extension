@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.git.ManualPullRequestService;
@@ -69,6 +70,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -153,6 +155,8 @@ public class ComponentInfoService
 
   private final ManualPullRequestService manualPullRequestService;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   private final MultiLicenseDAO multiLicenseDAO;
 
   private final IdUtils idUtils;
@@ -191,7 +195,8 @@ public class ComponentInfoService
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ReportDataReader reportDataReader,
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      ThirdPartyScanDAO thirdPartyScanDAO)
+      ThirdPartyScanDAO thirdPartyScanDAO,
+      PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -214,6 +219,7 @@ public class ComponentInfoService
     this.reportDataReader = reportDataReader;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -671,9 +677,10 @@ public class ComponentInfoService
           owner, stageId, componentDetailsLoader, sourceEndpoint);
     }
 
+    String scannedBranchName = resolveScannedBranchName(owner.getId(), scanId);
     AutomatedRemediationStatusDTO remediationStatusDTO =
         getAutomatedRemediationStatusDTO(componentIdentifier, stageId, dependencyType, owner,
-            remediationDto);
+            remediationDto, scannedBranchName);
 
     return new ComponentVersionInfoDTO(
         componentDetailsDTOs,
@@ -687,7 +694,8 @@ public class ComponentInfoService
       String stageId,
       DependencyType dependencyType,
       Owner owner,
-      ApiComponentRemediationValueDTO remediationDto)
+      ApiComponentRemediationValueDTO remediationDto,
+      String scannedBranchName)
   {
     Optional<ApiVersionChangeOptionDTO> suggestedVersion = Optional.ofNullable(remediationDto)
         .flatMap((remediation) -> componentRemediationService.getApplicableVersionChangeFromAllType(
@@ -705,11 +713,19 @@ public class ComponentInfoService
     Optional<ManualPullRequestImpossibilityReason> manualPRDisabledReason =
         manualPullRequestService.isManualPullRequestPossible(componentIdentifier, stageId, dependencyType,
             owner,
-            remediationDto);
+            remediationDto, scannedBranchName);
     if (manualPRDisabledReason.isEmpty()) {
       return new AutomatedRemediationStatusDTO.ManualPullRequestPossibleDTO();
     }
     return new AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO(manualPRDisabledReason.get());
+  }
+
+  private String resolveScannedBranchName(final String ownerId, final String scanId) {
+    if (scanId == null) {
+      return null;
+    }
+    PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(ownerId, scanId);
+    return evaluation != null ? evaluation.getBranchName() : null;
   }
 
   private Optional<AutomatedRemediationStatusDTO> getPullRequestStatus(

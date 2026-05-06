@@ -155,7 +155,9 @@ public class ManualPullRequestCreationService
       throw new BadRequestException("The provided scan ID does not match the latest evaluation for the stage.");
     }
 
-    if (!eligibilityService.isEligibleForManualPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
+    if (!eligibilityService.isEligibleForManualPullRequest(app, stage, componentIdentifier, isDirectDependency,
+        policyEvaluation.getBranchName()))
+    {
       scmOperationMetrics.recordPrCreationIneligible(NOT_ELIGIBLE);
       throw new BadRequestException(
           "Manual pull request creation is not eligible for application " + app.getPublicId() +

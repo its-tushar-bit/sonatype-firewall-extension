@@ -16,8 +16,10 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+import com.sonatype.insight.brain.metrics.ScmPrIneligibleReason;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -86,7 +88,8 @@ public class AutomatedPullRequestCreationServiceTest
   private SourceControlEventDAO sourceControlEventDAO;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(AutomatedPullRequestCreationService.class);
+  public LogOutput logOutput = new LogOutput(AutomatedPullRequestCreationService.class,
+      RemediationPullRequestEligibilityService.class);
 
   private Application application;
 
@@ -140,7 +143,8 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true);
+        true,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAllByApplicationId(application.getId());
     assertThat(eventList).hasSize(1);
@@ -170,7 +174,8 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        false);
+        false,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).isEmpty();
@@ -195,7 +200,8 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true);
+        true,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).isEmpty();
@@ -220,7 +226,8 @@ public class AutomatedPullRequestCreationServiceTest
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true);
+        true,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).hasSize(1);
@@ -250,7 +257,8 @@ public class AutomatedPullRequestCreationServiceTest
         npmComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true);
+        true,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).isEmpty();
@@ -274,11 +282,77 @@ public class AutomatedPullRequestCreationServiceTest
         npmComponent,
         () -> Optional.of(remediationVersionDTO),
         notifications,
-        true);
+        true,
+        null);
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
     assertThat(eventList).hasSize(1);
     assertThat(logOutput).atDebugLevel().contains("non-golden PRs explicitly enabled");
+    verifyNoInteractions(mockScmOperationMetrics);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_nonDefaultBranch_shouldNotCreatePR() throws IOException {
+    RemediationVersionDTO remediationVersionDTO = new RemediationVersionDTO(DEFAULT_REMEDIATION_VERSION,
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        mavenComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        true,
+        "feature/my-branch");
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).isEmpty();
+    assertThat(logOutput).atDebugLevel()
+        .contains("scanned branch 'feature/my-branch' differs from default branch");
+    verify(mockScmOperationMetrics).recordPrCreationIneligible(ScmPrIneligibleReason.NOT_ELIGIBLE);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_nullBranch_shouldCreatePR() throws IOException {
+    RemediationVersionDTO remediationVersionDTO = new RemediationVersionDTO(DEFAULT_REMEDIATION_VERSION,
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        mavenComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        true,
+        null);
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).hasSize(1);
+    verifyNoInteractions(mockScmOperationMetrics);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_matchingBranchWithRefsPrefix_shouldCreatePR() throws IOException {
+    RemediationVersionDTO remediationVersionDTO = new RemediationVersionDTO(DEFAULT_REMEDIATION_VERSION,
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        mavenComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        true,
+        "refs/heads/master");
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).hasSize(1);
     verifyNoInteractions(mockScmOperationMetrics);
   }
 

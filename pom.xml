@@ -91,7 +91,7 @@
     <opensearch-client.version>2.25.0</opensearch-client.version>
     <!-- Used transitively by various dependencies. OpenSearch requires it to be declared. -->
     <apache.httpclient5.version>5.4.4</apache.httpclient5.version>
-    <netty-version>4.1.132.Final</netty-version>
+    <netty-version>4.1.133.Final</netty-version>
 
     <!--
       Properties for functional test docker container used by insight-brain-java-functional-test

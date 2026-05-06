@@ -186,3 +186,18 @@ body {
   text-decoration: none;
   color: inherit;
 }
+
+/* Dark theme is the default - set root variables to dark theme values */
+:root {
+  --color-background: var(--gray-1);
+  --color-panel: var(--gray-2);
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  /* py="4" (16px) + IconButton size="2" (32px) + py="4" (16px) = 64px — matches seaworthy */
+  --header-height: 64px;
+}
+
+/* Ensure dark theme colors are applied by default */
+html {
+  background-color: var(--gray-1);
+  color: var(--gray-12);
+}

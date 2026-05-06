@@ -243,7 +243,7 @@ const sharedBuildOptions = {
     TestRoot: path.resolve(__dirname, 'src/test/frontend'),
   },
   plugins: [
-    CssModulesPlugin(),
+    CssModulesPlugin({ localsConvention: 'camelCaseOnly', filter: /src\/main\/frontend\/guide\/.*\.module\.css$/ }),
     rewriteRSCImportImagePlugin(),
     sassPlugin({
       type: 'css',

@@ -11,14 +11,24 @@ import { Theme } from '@radix-ui/themes';
 import '@radix-ui/themes/styles.css';
 import '@guide/ui-core/styles.css';
 import App from './App';
+import { ThemeProvider, useTheme } from './layout/ThemeProvider';
 import './globals.css';
+
+function ThemedApp() {
+  const { resolvedTheme } = useTheme();
+  return (
+    <Theme appearance={resolvedTheme} accentColor="indigo" panelBackground="solid">
+      <App />
+    </Theme>
+  );
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>
-      <Theme appearance="dark" accentColor="indigo" panelBackground="solid">
-        <App />
-      </Theme>
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
     </HashRouter>
   </StrictMode>
 );

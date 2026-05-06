@@ -10,6 +10,7 @@ import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { LoginPage } from './auth/LoginPage';
+import { AppShell } from './layout/AppShell';
 
 function AuthGate() {
   const { status, ssoConfig, login } = useAuth();
@@ -27,9 +28,13 @@ function AuthGate() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<h1>Sonatype Guide</h1>} />
-    </Routes>
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<h1>Sonatype Guide</h1>} />
+        <Route path="/components" element={<h1>Components</h1>} />
+        <Route path="/vulnerabilities" element={<h1>Vulnerabilities</h1>} />
+      </Routes>
+    </AppShell>
   );
 }
 

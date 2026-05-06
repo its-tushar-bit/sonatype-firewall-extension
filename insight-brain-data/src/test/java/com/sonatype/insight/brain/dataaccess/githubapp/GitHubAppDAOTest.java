@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
@@ -174,6 +176,25 @@ public class GitHubAppDAOTest
     assertThat(updatedApp2.isActive()).isTrue();
   }
 
+  @Test
+  public void testActivateGitHubApp_UpdatesLastUpdatedAtOnDeactivatedSiblings() {
+    var org = tempEntity.newOrganization();
+    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
+    GitHubApp app2 = createGitHubApp(org.getId(), 200L, false);
+    Date app2OriginalLastUpdatedAt = gitHubAppDAO.getById(app2.getId()).getLastUpdatedAt();
+    Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+
+    gitHubAppDAO.activateGitHubApp(org.getId(), app2.getId());
+
+    GitHubApp deactivated = gitHubAppDAO.getById(app1.getId());
+    GitHubApp activated = gitHubAppDAO.getById(app2.getId());
+
+    // deactivated sibling must have its LAST_UPDATED_AT refreshed so the 7-day cleanup window starts now
+    assertThat(deactivated.getLastUpdatedAt().toInstant()).isAfterOrEqualTo(before);
+    // activated app must not have its LAST_UPDATED_AT changed
+    assertThat(activated.getLastUpdatedAt()).isEqualTo(app2OriginalLastUpdatedAt);
+  }
+
   @Test(expected = com.sonatype.insight.error.exception.NotFoundException.class)
   public void testActivateGitHubApp_ThrowsExceptionWhenAppNotFound() {
     var org = tempEntity.newOrganization();
@@ -201,6 +222,18 @@ public class GitHubAppDAOTest
     var org = tempEntity.newOrganization();
 
     gitHubAppDAO.deactivateAllForOwner(org.getId());
+  }
+
+  @Test
+  public void testDeactivateAllForOwner_UpdatesLastUpdatedAt() {
+    var org = tempEntity.newOrganization();
+    GitHubApp app = createGitHubApp(org.getId(), 100L, true);
+    Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+
+    gitHubAppDAO.deactivateAllForOwner(org.getId());
+
+    GitHubApp updated = gitHubAppDAO.getById(app.getId());
+    assertThat(updated.getLastUpdatedAt().toInstant()).isAfterOrEqualTo(before);
   }
 
   private GitHubApp createGitHubApp(String ownerId, long installationId, boolean isActive) {
@@ -268,5 +301,47 @@ public class GitHubAppDAOTest
     assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
     assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
     assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testFindInactive_ReturnsInactiveRecords() {
+    var org = tempEntity.newOrganization();
+    GitHubApp inactive = createGitHubAppWithLastUpdated(org.getId(), 100L, false, new Date());
+
+    var results = gitHubAppDAO.findInactive();
+
+    assertThat(results).extracting(GitHubApp::getId).contains(inactive.getId());
+  }
+
+  @Test
+  public void testFindInactive_ExcludesActiveRecords() {
+    var org = tempEntity.newOrganization();
+    GitHubApp active = createGitHubAppWithLastUpdated(org.getId(), 200L, true, new Date());
+
+    var results = gitHubAppDAO.findInactive();
+
+    assertThat(results).extracting(GitHubApp::getId).doesNotContain(active.getId());
+  }
+
+  private GitHubApp createGitHubAppWithLastUpdated(
+      String ownerId,
+      long installationId,
+      boolean isActive,
+      Date lastUpdatedAt)
+  {
+    appIdCounter++;
+    GitHubApp gitHubApp = new GitHubApp();
+    gitHubApp.setId(UUID.randomUUID().toString());
+    gitHubApp.setOwnerId(ownerId);
+    gitHubApp.setAppId(appIdCounter);
+    gitHubApp.setSlug("test-app");
+    gitHubApp.setGithubOrganizationName("test-org");
+    gitHubApp.setLastUpdatedAt(lastUpdatedAt);
+    gitHubApp.setClientId("Iv1.1234567890abcdef");
+    gitHubApp.setClientSecret("client-secret-test");
+    gitHubApp.setPrivateKey("test-private-key");
+    gitHubApp.setInstallationId(installationId);
+    gitHubApp.setActive(isActive);
+    return tempEntity.newGitHubApp(gitHubApp);
   }
 }

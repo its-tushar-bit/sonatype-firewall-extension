@@ -59,6 +59,11 @@ public class JobLogger
         "Scheduling daily task for job {}, jobKey '{}', next execution time: {}.");
   }
 
+  static JobLogger weekly(final Function<InsightJob, Date> nextExecutionTime, InsightJob insightJob, JobKey jobKey) {
+    return new JobLogger(nextExecutionTime, insightJob, jobKey,
+        "Scheduling weekly task for job {}, jobKey '{}', next execution time: {}.");
+  }
+
   static JobLogger oneTime(
       final Function<InsightJob, Date> nextExecutionTime,
       final InsightJob insightJob,

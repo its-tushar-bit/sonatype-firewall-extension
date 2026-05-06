@@ -179,6 +179,17 @@ public class GitHubAppDeletionServiceTest
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
+  @Test
+  public void testDelete_InactiveGitHubApp_DeletesSuccessfully() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID, false);
+
+    deletionService.delete(gitHubApp);
+
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId())).isNull();
+    verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
+  }
+
   private GitHubApp createGitHubApp(String ownerId) {
     return createGitHubApp(ownerId, TEST_VALID_INSTALLATION_ID, true);
   }

@@ -95,6 +95,16 @@ public class GitHubAppDeletionService
     deleteGitHubAppInstallation(gitHubApp);
   }
 
+  public void delete(final GitHubApp gitHubApp) {
+    if (gitHubApp == null) {
+      log.debug("No GitHubApp provided - may have been deleted already");
+      return;
+    }
+    log.info("Deleting GitHubApp and related data for owner {}", gitHubApp.getOwnerId());
+    deleteGitHubAppInstallationViaApi(gitHubApp);
+    deleteGitHubAppInstallation(gitHubApp);
+  }
+
   private void deleteGitHubAppInstallation(final GitHubApp gitHubApp) {
     installationStateDAO.deleteByGitHubAppId(gitHubApp.getId());
     gitHubAppDAO.delete(gitHubApp);

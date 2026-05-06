@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -209,6 +210,9 @@ public class GitHubAppDAO
         .set(GITHUB_APP.IS_ACTIVE,
             DSL.when(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId), true)
                 .otherwise(false))
+        .set(GITHUB_APP.LAST_UPDATED_AT,
+            DSL.when(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId), GITHUB_APP.LAST_UPDATED_AT)
+                .otherwise(DSL.now().coerce(Date.class)))
         .where(GITHUB_APP.OWNER_ID.eq(ownerId))
         .execute();
 
@@ -235,7 +239,20 @@ public class GitHubAppDAO
     tx.dsl()
         .update(GITHUB_APP)
         .set(GITHUB_APP.IS_ACTIVE, false)
+        .set(GITHUB_APP.LAST_UPDATED_AT, new Date())
         .where(GITHUB_APP.OWNER_ID.eq(ownerId))
         .execute();
+  }
+
+  public List<GitHubApp> findInactive() {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(GITHUB_APP)
+          .where(GITHUB_APP.IS_ACTIVE.eq(false))
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
+    }
   }
 }

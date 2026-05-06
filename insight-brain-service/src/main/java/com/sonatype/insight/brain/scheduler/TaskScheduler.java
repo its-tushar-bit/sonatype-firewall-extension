@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -202,6 +203,20 @@ public class TaskScheduler
         .build();
 
     scheduleTask(insightJob, job, JobLogger.daily(this::getNextExecutionTime, insightJob, job.getKey()), trigger);
+  }
+
+  public void scheduleWeeklyTask(InsightJob insightJob, DayOfWeek dayOfWeek, LocalTime localTime) {
+    // DayOfWeek.getValue() returns 1 (Mon) – 7 (Sun); Calendar uses 1 (Sun) – 7 (Sat)
+    int calendarDay = (dayOfWeek.getValue() % 7) + 1;
+    CronScheduleBuilder schedule =
+        CronScheduleBuilder.weeklyOnDayAndHourAndMinute(calendarDay, localTime.getHour(), localTime.getMinute())
+            .withMisfireHandlingInstructionDoNothing();
+    JobDetail job = newJob(insightJob).build();
+    Trigger trigger = TriggerBuilder.newTrigger()
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+        .withSchedule(schedule)
+        .build();
+    scheduleTask(insightJob, job, JobLogger.weekly(this::getNextExecutionTime, insightJob, job.getKey()), trigger);
   }
 
   public void scheduleOneTimeTask(InsightJob insightJob) {

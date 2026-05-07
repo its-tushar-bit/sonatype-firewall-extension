@@ -265,7 +265,7 @@ public enum SystemConfigurationPropertyFeature
    * Self-Hosted: PR creation is always enabled (at the feature flag level) for self-hosted.
    * SaaS: PR creation can be controlled via feature flag or environment variable.
    */
-  SAAS_LIFECYCLE_SCM_PRS_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED, false)
+  SAAS_LIFECYCLE_SCM_PRS_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED, true)
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {

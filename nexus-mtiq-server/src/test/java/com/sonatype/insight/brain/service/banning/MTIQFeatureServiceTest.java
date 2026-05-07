@@ -248,6 +248,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING,
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED,
         SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED,
+        SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED,
         SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION,
         SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT,
         SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE,

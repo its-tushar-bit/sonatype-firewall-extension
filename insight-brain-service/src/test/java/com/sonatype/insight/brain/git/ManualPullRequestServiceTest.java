@@ -309,51 +309,9 @@ public class ManualPullRequestServiceTest
     try {
       TenantTestHelper.initMultiTenantMode();
       TenantTestHelper.testAsNewTenant("test-tenant", tenant -> {
-        try {
-          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
-
-          assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isTrue();
-
-          Organization tenantOrg = tempEntity.newOrganization("test-org");
-          Application tenantApp = tempEntity.newApplication(tenantOrg.getId());
-          grantPermission(tenantApp.getId(), Permission.CREATE_PULL_REQUESTS);
-
-          SourceControl sourceControl = new SourceControl();
-          sourceControl.setOwnerId(tenantApp.getId());
-          sourceControl.setRepositoryUrl("https://github.com/test/repo");
-          sourceControl.setProvider(SourceControlProvider.GITHUB);
-          sourceControl.setBaseBranch("main");
-          sourceControl.setManualPullRequestsEnabled(true);
-          sourceControl.setToken(passwordHandler.encryptPassword("testToken"));
-          tempEntity.newSourceControl(sourceControl);
-
-          ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
-          remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
-
-          Optional<ManualPullRequestImpossibilityReason> result =
-              manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
-                  VALID_DEPENDENCY_TYPE,
-                  tenantApp,
-                  remediationDto, null);
-
-          assertThat(result).isEmpty();
-        }
-        finally {
-          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
-        }
-      });
-    }
-    finally {
-      TenantTestHelper.resetAfterTest();
-    }
-  }
-
-  @Test
-  public void testIsManualPullRequestPossible_False_WhenSaasLifecycleScmPrsDisabledInMultiTenant() {
-    try {
-      TenantTestHelper.initMultiTenantMode();
-      TenantTestHelper.testAsNewTenant("test-tenant", tenant -> {
-        assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isFalse();
+        // PRs are enabled by default in MTIQ (enabledWhenAbsent = true); explicit set clears any stale DB state
+        SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
+        assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isTrue();
 
         Organization tenantOrg = tempEntity.newOrganization("test-org");
         Application tenantApp = tempEntity.newApplication(tenantOrg.getId());
@@ -377,7 +335,51 @@ public class ManualPullRequestServiceTest
                 tenantApp,
                 remediationDto, null);
 
-        assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
+        assertThat(result).isEmpty();
+      });
+    }
+    finally {
+      TenantTestHelper.resetAfterTest();
+    }
+  }
+
+  @Test
+  public void testIsManualPullRequestPossible_False_WhenSaasLifecycleScmPrsDisabledInMultiTenant() {
+    try {
+      TenantTestHelper.initMultiTenantMode();
+      TenantTestHelper.testAsNewTenant("test-tenant", tenant -> {
+        try {
+          // Explicitly disable to simulate tenant opt-out (default is now enabled)
+          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
+          assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isFalse();
+
+          Organization tenantOrg = tempEntity.newOrganization("test-org");
+          Application tenantApp = tempEntity.newApplication(tenantOrg.getId());
+          grantPermission(tenantApp.getId(), Permission.CREATE_PULL_REQUESTS);
+
+          SourceControl sourceControl = new SourceControl();
+          sourceControl.setOwnerId(tenantApp.getId());
+          sourceControl.setRepositoryUrl("https://github.com/test/repo");
+          sourceControl.setProvider(SourceControlProvider.GITHUB);
+          sourceControl.setBaseBranch("main");
+          sourceControl.setManualPullRequestsEnabled(true);
+          sourceControl.setToken(passwordHandler.encryptPassword("testToken"));
+          tempEntity.newSourceControl(sourceControl);
+
+          ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
+          remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
+
+          Optional<ManualPullRequestImpossibilityReason> result =
+              manualPullRequestService.isManualPullRequestPossible(SUPPORTED_FORMAT_MAVEN_COORDINATES, VALID_STAGE,
+                  VALID_DEPENDENCY_TYPE,
+                  tenantApp,
+                  remediationDto, null);
+
+          assertThat(result).isPresent().contains(ManualPullRequestImpossibilityReason.NOT_SUPPORTED_FOR_MTIQ);
+        }
+        finally {
+          SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
+        }
       });
     }
     finally {

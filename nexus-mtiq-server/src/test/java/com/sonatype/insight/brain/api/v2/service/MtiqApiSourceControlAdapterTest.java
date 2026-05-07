@@ -39,13 +39,9 @@ public class MtiqApiSourceControlAdapterTest
   }
 
   @Test
-  public void convertFromDTO_whenNeitherEnvVarNorFeatureFlagSet() {
-    // Ensure environment variable is not set (EnvironmentVariables rule clears all by default)
-    // Ensure database feature flag is not set (default state)
-    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
-
-    // Verify that neither env var nor database flag enable the feature
-    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isFalse();
+  public void convertFromDTO_whenDefaultState_prsEnabledByDefault() {
+    // With no env var and no database override, PRs are enabled by default (enabledWhenAbsent = true)
+    assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isTrue();
 
     ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
     apiSourceControlDTO.id = "id";
@@ -75,11 +71,11 @@ public class MtiqApiSourceControlAdapterTest
     assertThat(sourceControl.getToken()).isEqualTo("TOKEN");
     assertThat(sourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
     assertThat(sourceControl.getBaseBranch()).isEqualTo("master");
-    // When neither env var nor feature flag are set, PRs should be DISABLED in MTIQ
-    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(false);
-    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(false);
-    assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(false);
-    assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(false);
+    // When default (no override), PRs are enabled in MTIQ
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(true);
+    assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
     assertThat(sourceControl.getPullRequestCommentingEnabled()).isEqualTo(true);
     assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isEqualTo(true);
@@ -89,10 +85,12 @@ public class MtiqApiSourceControlAdapterTest
   }
 
   @Test
-  public void convertFromDTO_whenFeatureFlagEnabled() {
-    // Enable the feature flag for this test
-    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
+  public void convertFromDTO_whenFeatureFlagExplicitlyDisabled() {
+    // Explicitly disable the feature flag to simulate tenant opt-out
+    SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
     try {
+      assertThat(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.isEnabled()).isFalse();
+
       ApiSourceControlDTO apiSourceControlDTO = new ApiSourceControlDTO();
       apiSourceControlDTO.id = "id";
       apiSourceControlDTO.ownerId = "ownerId";
@@ -121,20 +119,21 @@ public class MtiqApiSourceControlAdapterTest
       assertThat(sourceControl.getToken()).isEqualTo("TOKEN");
       assertThat(sourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
       assertThat(sourceControl.getBaseBranch()).isEqualTo("master");
-      assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
+      // When explicitly disabled, PRs should be DISABLED in MTIQ
+      assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(false);
+      assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(false);
+      assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(false);
+      assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(false);
       assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);
       assertThat(sourceControl.getPullRequestCommentingEnabled()).isEqualTo(true);
       assertThat(sourceControl.getSourceControlEvaluationsEnabled()).isEqualTo(true);
       assertThat(sourceControl.getSourceControlScanTarget()).isEqualTo("/target/*");
       assertThat(sourceControl.getSshEnabled()).isTrue();
       assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
-      assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(true);
-      assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(true);
-      assertThat(sourceControl.getNonGoldenPullRequestsEnabled()).isEqualTo(true);
     }
     finally {
-      // Reset the feature flag to its default state
-      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(false);
+      // Reset the feature flag to its default state (enabled)
+      SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.setEnabled(true);
     }
   }
 

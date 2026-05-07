@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.health.ServerBootHealthCheck;
+import com.sonatype.insight.brain.mcp.McpModule;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.search.SearchModule;
@@ -366,6 +367,7 @@ public class MultiTenantInsightBrainService
     modules.add(new ScannerModule());
     modules.add(new AuthenticationModule());
     modules.add(new TelemetryModule());
+    modules.add(new McpModule());
 
     return modules;
   }

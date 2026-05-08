@@ -11,6 +11,7 @@ import { useReactRouterAdapter } from './reactRouterAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { LoginPage } from './auth/LoginPage';
 import { AppShell } from './layout/AppShell';
+import { ComponentsTestPage } from './components/ComponentsTestPage';
 
 function AuthGate() {
   const { status, ssoConfig, login } = useAuth();
@@ -31,7 +32,7 @@ function AuthGate() {
     <AppShell>
       <Routes>
         <Route path="/" element={<h1>Sonatype Guide</h1>} />
-        <Route path="/components" element={<h1>Components</h1>} />
+        <Route path="/components" element={<ComponentsTestPage />} />
         <Route path="/vulnerabilities" element={<h1>Vulnerabilities</h1>} />
       </Routes>
     </AppShell>

@@ -1584,10 +1584,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "6.7.2"
 
-"@guide/ui-core@1.2.0":
-  version "1.2.0"
-  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@guide/ui-core/-/ui-core-1.2.0.tgz#f6d13ac90d53ffe5115a930a8e1198a7b5a1fe63"
-  integrity sha512-SWPfznWwjxoE2NlTDjRTylGjhy8GfbIdpelS6FO9jiu6GKuYuP6esm6oN3GjRODQrLoFw16vuwQClzoanlOcyg==
+"@guide/ui-core@1.2.2":
+  version "1.2.2"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@guide/ui-core/-/ui-core-1.2.2.tgz#78df3e15c6b0e6107d3d6cb2c78e578245ef8d87"
+  integrity sha512-Yn77RDA1mHRIgaSSHc303M8yDp1E5RwNOB3Jj6q6EpBT5TDfVy5GrDOx+ZRhMbE4Wj2n1D9sQ5BkFoIbUwnXjw==
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"

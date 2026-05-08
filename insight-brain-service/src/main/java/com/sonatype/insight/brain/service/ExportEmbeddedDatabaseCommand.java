@@ -19,6 +19,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
 
@@ -53,6 +54,11 @@ public class ExportEmbeddedDatabaseCommand
   private static final String DATE_PREFIX = "DATE ";
 
   private static final String STRINGDECODE_PREFIX = "STRINGDECODE(";
+
+  // Tracker entries for async migrations that only apply to Postgres (e.g. partial indexes).
+  // These must be excluded from the H2 export so the migrations run after import into Postgres.
+  static final Set<String> H2_EXPORT_EXCLUDED_TRACKERS = Set.of(
+      "PolicyViolationIndexAsyncDbMigration");
 
   ExportEmbeddedDatabaseCommand() {
     super("export-embedded-db", "Exports the embedded database to a SQL file for import into an external database.");
@@ -168,7 +174,12 @@ public class ExportEmbeddedDatabaseCommand
         String sql = results.getString(1);
         try {
           if (sql.startsWith("INSERT INTO ")) {
-            insertStatements.add(sql);
+            if (isExcludedMigrationTracker(sql)) {
+              log.debug("Excluding Postgres-only migration tracker from export: {}", sql);
+            }
+            else {
+              insertStatements.add(sql);
+            }
           }
           else if (sql.startsWith("CREATE UNIQUE INDEX ")) {
             // unique constraints should be used instead, which will result in the creation of a unique index;
@@ -383,5 +394,18 @@ public class ExportEmbeddedDatabaseCommand
       builder.append(c);
       nextCharIsEscaped = !nextCharIsEscaped && c == '\\';
     }
+  }
+
+  static boolean isExcludedMigrationTracker(String sql) {
+    String upper = sql.toUpperCase();
+    if (!upper.contains(".MIGRATION_TRACKER(")) {
+      return false;
+    }
+    for (String tracker : H2_EXPORT_EXCLUDED_TRACKERS) {
+      if (sql.contains("'" + tracker + "'")) {
+        return true;
+      }
+    }
+    return false;
   }
 }

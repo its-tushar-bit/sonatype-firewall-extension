@@ -69,4 +69,25 @@ public class ExportEmbeddedDatabaseCommandTransformTest
         "-1, NULL, TRUE, 2.0, 'abc', STRINGDECODE('xyz'), TIMESTAMP '2019-06-14 19:25:51.334', DATE '2024-02-23'"))
             .isEqualTo("-1\t\\N\tTRUE\t2.0\tabc\txyz\t2019-06-14 19:25:51.334\t2024-02-23");
   }
+
+  @Test
+  public void testIsExcludedMigrationTracker_excludesPostgresOnlyTracker() {
+    assertThat(ExportEmbeddedDatabaseCommand.isExcludedMigrationTracker(
+        "INSERT INTO INSIGHT_BRAIN_ODS.MIGRATION_TRACKER(MIGRATION_TRACKER_ID) VALUES('PolicyViolationIndexAsyncDbMigration');"))
+            .isTrue();
+  }
+
+  @Test
+  public void testIsExcludedMigrationTracker_keepsOtherTrackers() {
+    assertThat(ExportEmbeddedDatabaseCommand.isExcludedMigrationTracker(
+        "INSERT INTO INSIGHT_BRAIN_ODS.MIGRATION_TRACKER(MIGRATION_TRACKER_ID) VALUES('DisplayNameForFileCoordinateAsyncDbMigration');"))
+            .isFalse();
+  }
+
+  @Test
+  public void testIsExcludedMigrationTracker_ignoresNonTrackerInserts() {
+    assertThat(ExportEmbeddedDatabaseCommand.isExcludedMigrationTracker(
+        "INSERT INTO INSIGHT_BRAIN_ODS.POLICY_VIOLATION(POLICY_VIOLATION_ID) VALUES('abc');"))
+            .isFalse();
+  }
 }

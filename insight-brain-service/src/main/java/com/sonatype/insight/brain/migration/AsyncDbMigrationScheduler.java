@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.AllTenantsJob;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.model.HasStringId;
 
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
@@ -26,10 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AsyncDbMigrationScheduler runs all the async database migrations, that extend the {@link AsyncDbMigration} class.
- * The migrations are run in order of their priority determined by the
- * {@link AsyncDbMigration#migrationPriority()} method.
- * -
+ * Runs all async database migrations that extend {@link AbstractAsyncDbMigration}.
+ * Migrations are run in order of their priority determined by
+ * {@link AbstractAsyncDbMigration#migrationPriority()}.
+ * <p>
  * This implements AllTenantsJob therefore when in multi-tenant mode, the migrator runs all the migrations for each
  * tenant on a batch node.
  * The migrations will only run on a single node in a multi-node cluster.
@@ -47,11 +46,11 @@ public class AsyncDbMigrationScheduler
 
   private final TaskScheduler taskScheduler;
 
-  private final Set<AsyncDbMigration<? extends HasStringId>> jobs;
+  private final Set<AbstractAsyncDbMigration> jobs;
 
   @Inject
   public AsyncDbMigrationScheduler(
-      final Set<AsyncDbMigration<? extends HasStringId>> jobs,
+      final Set<AbstractAsyncDbMigration> jobs,
       final TaskScheduler taskScheduler)
   {
     super(TASK_PATH);

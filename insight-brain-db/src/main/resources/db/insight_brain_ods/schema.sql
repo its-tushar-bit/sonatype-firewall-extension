@@ -896,7 +896,10 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-confi
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('simple-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('obsoletescanfiles-cleaned');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('repository-component-display-name');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('PolicyViolationConstraintFactsJsonAsyncDbMigration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('DisplayNameForFileCoordinateAsyncDbMigration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('PolicyViolationIndexAsyncDbMigration');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

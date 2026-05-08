@@ -35,11 +35,11 @@ public class AsyncDbMigrationSchedulerTest
 
   private AsyncDbMigrationScheduler underTest;
 
-  private AsyncDbMigration<? extends HasStringId> asyncDbMigrationOne;
+  private AbstractAsyncDbMigration asyncDbMigrationOne;
 
-  private AsyncDbMigration<? extends HasStringId> asyncDbMigrationTwo;
+  private AbstractAsyncDbMigration asyncDbMigrationTwo;
 
-  private AsyncDbMigration<? extends HasStringId> asyncDbMigrationThree;
+  private AbstractAsyncDbMigration asyncDbMigrationThree;
 
   @Before
   public void setup() {
@@ -47,7 +47,7 @@ public class AsyncDbMigrationSchedulerTest
     asyncDbMigrationTwo = spy(new TestEmptyAsyncDbMigration("migrationTwo", 2));
     asyncDbMigrationThree = spy(new TestEmptyAsyncDbMigration("migrationThree", 1));
 
-    Set<AsyncDbMigration<? extends HasStringId>> mockAsyncDbMigrations =
+    Set<AbstractAsyncDbMigration> mockAsyncDbMigrations =
         Set.of(asyncDbMigrationOne, asyncDbMigrationTwo, asyncDbMigrationThree);
     underTest = new AsyncDbMigrationScheduler(mockAsyncDbMigrations, taskScheduler);
   }

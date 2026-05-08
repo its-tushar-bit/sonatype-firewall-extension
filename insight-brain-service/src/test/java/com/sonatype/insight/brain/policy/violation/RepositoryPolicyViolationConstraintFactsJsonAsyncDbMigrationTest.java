@@ -59,8 +59,10 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
 
     // Ensure the migration tracker does not exist
     MigrationTracker migrationTracker = migrationTrackerDAO.getById(underTest.getMigrationName());
-    migrationTrackerDAO.delete(migrationTracker);
-    assertThat(migrationTracker).isNull();
+    if (migrationTracker != null) {
+      migrationTrackerDAO.delete(migrationTracker);
+    }
+    assertThat(migrationTrackerDAO.getById(underTest.getMigrationName())).isNull();
 
     underTest.runMigration();
 
@@ -78,7 +80,9 @@ public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigrationTest
   public void testMigration_doesNotRun_whenTrackerExists() throws Exception {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
     RepositoryPolicyViolation policyViolation = createPolicyViolation(constraintFacts);
-    migrationTrackerDAO.insertTracker(underTest.getMigrationName());
+    if (!migrationTrackerDAO.isTrackerPresent(underTest.getMigrationName())) {
+      migrationTrackerDAO.insertTracker(underTest.getMigrationName());
+    }
 
     underTest.runMigration();
 

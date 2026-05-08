@@ -11,9 +11,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-import com.sonatype.insight.brain.migration.AsyncDbMigration;
-import com.sonatype.insight.model.HasStringId;
-
+import com.sonatype.insight.brain.migration.AbstractAsyncDbMigration;
 import com.sonatype.insight.brain.migration.AdminInitialPasswordMigrator;
 import com.sonatype.insight.brain.migration.AsyncDbMigrationScheduler;
 import com.sonatype.insight.brain.migration.BaseUrlConfigurationMigrator;
@@ -27,7 +25,10 @@ import com.sonatype.insight.brain.migration.MarkerFileMigrator;
 import com.sonatype.insight.brain.migration.PolicyCoordinatesConditionTypeMigrator;
 import com.sonatype.insight.brain.migration.PolicyDroolsCodeMigrator;
 import com.sonatype.insight.brain.migration.PolicyJsonMigrator;
+import com.sonatype.insight.brain.migration.PolicyViolationIndexAsyncDbMigration;
 import com.sonatype.insight.brain.migration.PolicySecurityVulnerabilityConditionTypeMigrator;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationConstraintFactsJsonAsyncDbMigration;
+import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration;
 import com.sonatype.insight.brain.migration.PolicyWaiverComponentPurlMigrator;
 import com.sonatype.insight.brain.migration.ProductLicenseMigrator;
 import com.sonatype.insight.brain.migration.ProprietaryConfigMigrator;
@@ -64,6 +65,7 @@ public class MigrationModule
     bind(PolicyCoordinatesConditionTypeMigrator.class).in(Singleton.class);
     bind(PolicyDroolsCodeMigrator.class).in(Singleton.class);
     bind(PolicyJsonMigrator.class).in(Singleton.class);
+    bind(PolicyViolationIndexAsyncDbMigration.class).in(Singleton.class);
     bind(PolicySecurityVulnerabilityConditionTypeMigrator.class).in(Singleton.class);
     bind(PolicyWaiverComponentPurlMigrator.class).in(Singleton.class);
     bind(ProductLicenseMigrator.class).in(Singleton.class);
@@ -81,14 +83,21 @@ public class MigrationModule
   }
 
   /**
-   * Provides a set of AsyncDbMigration instances.
-   * This replaces Sisu's automatic collection of @Named AsyncDbMigration components.
+   * Provides a set of AbstractAsyncDbMigration instances. This replaces Sisu's automatic collection of @Named
+   * AsyncDbMigration components.
    */
   @Provides
   @Singleton
-  public Set<AsyncDbMigration<? extends HasStringId>> provideAsyncDbMigrations(
-      DisplayNameForFileCoordinateAsyncDbMigration displayNameMigration)
+  public Set<AbstractAsyncDbMigration> provideAsyncDbMigrations(
+      PolicyViolationConstraintFactsJsonAsyncDbMigration policyViolationConstraintFactsMigration,
+      RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration repoPolicyViolationConstraintFactsMigration,
+      DisplayNameForFileCoordinateAsyncDbMigration displayNameMigration,
+      PolicyViolationIndexAsyncDbMigration policyViolationIndexMigration)
   {
-    return Set.of(displayNameMigration);
+    return Set.of(
+        policyViolationConstraintFactsMigration,
+        repoPolicyViolationConstraintFactsMigration,
+        displayNameMigration,
+        policyViolationIndexMigration);
   }
 }

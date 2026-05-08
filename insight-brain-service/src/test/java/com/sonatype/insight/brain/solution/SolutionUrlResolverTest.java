@@ -42,6 +42,7 @@ public class SolutionUrlResolverTest
     String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, false);
     String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, false);
     String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, false);
+    String guideUrl = urlResolver.getUrlForSolution(Solution.GUIDE, false);
 
     // then:
     assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
@@ -49,6 +50,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
   }
 
   @Test
@@ -67,6 +69,7 @@ public class SolutionUrlResolverTest
     String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, false);
     String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, false);
     String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, false);
+    String guideUrl = urlResolver.getUrlForSolution(Solution.GUIDE, false);
 
     // then:
     assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
@@ -74,6 +77,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
   }
 
   @Test
@@ -95,6 +99,7 @@ public class SolutionUrlResolverTest
     String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, allowRelativePaths);
     String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, allowRelativePaths);
     String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, allowRelativePaths);
+    String guideUrl = urlResolver.getUrlForSolution(Solution.GUIDE, allowRelativePaths);
 
     // then:
     assertThat(developerUrl).isEqualTo("/ui/links/developer/dashboard");
@@ -102,6 +107,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("/ui/links/sbomManager/dashboard");
+    assertThat(guideUrl).isEqualTo("/ui/links/guide/dashboard");
   }
 
   @Test
@@ -122,6 +128,7 @@ public class SolutionUrlResolverTest
     String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, relativePathsNotAllowed);
     String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, relativePathsNotAllowed);
     String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, relativePathsNotAllowed);
+    String guideUrl = urlResolver.getUrlForSolution(Solution.GUIDE, relativePathsNotAllowed);
 
     // then:
     assertThat(developerUrl).isBlank();
@@ -129,6 +136,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isBlank();
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isBlank();
+    assertThat(guideUrl).isBlank();
   }
 
   @Test
@@ -147,6 +155,7 @@ public class SolutionUrlResolverTest
     String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, true);
     String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, true);
     String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, true);
+    String guideUrl = urlResolver.getUrlForSolution(Solution.GUIDE, true);
 
     // then: only lifecycle has an alternative path
     assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
@@ -154,5 +163,6 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/reports");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
   }
 }

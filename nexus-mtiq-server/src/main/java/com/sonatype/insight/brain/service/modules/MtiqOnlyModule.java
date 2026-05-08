@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.opensearch.MultiTenantIndexConfigProvider;
+import com.sonatype.insight.brain.product.license.CreditAwareProductLicense;
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
 import com.sonatype.insight.brain.product.license.MultiTenantProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -158,6 +159,7 @@ public class MtiqOnlyModule
     // MTIQ-specific license overrides - only the bindings that differ
     bind(ProductLicense.class).to(MultiTenantProductLicense.class);
     bind(DefaultProductLicense.class).to(MultiTenantProductLicense.class);
+    bind(CreditAwareProductLicense.class).to(MultiTenantProductLicense.class);
 
     // Admin API resources and services
     bind(ConfigFeaturesResource.class);

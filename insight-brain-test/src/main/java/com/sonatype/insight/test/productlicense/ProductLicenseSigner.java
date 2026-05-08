@@ -62,6 +62,12 @@ public class ProductLicenseSigner
         signature.update(signedProductLicenseDetailsDTO.maxSboms.toString().getBytes(StandardCharsets.UTF_8));
       }
 
+      if (signedProductLicenseDetailsDTO.creditAmount != null) {
+        signature.update(signedProductLicenseDetailsDTO.creditAmount.stripTrailingZeros()
+            .toPlainString()
+            .getBytes(StandardCharsets.UTF_8));
+      }
+
       signature.update(licenseFingerprint.getBytes(StandardCharsets.UTF_8));
 
       // Create signature and save it in the DTO.

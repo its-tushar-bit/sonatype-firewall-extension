@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.math.BigDecimal;
 import java.util.Properties;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 public class LicenseInfo
     extends LicenseSummary
@@ -28,6 +32,9 @@ public class LicenseInfo
 
   public Integer sbomLimitToDisplay;
 
+  @JsonSerialize(using = ToStringSerializer.class)
+  public BigDecimal creditAmountToDisplay;
+
   public String contactName;
 
   public String contactCompany;
@@ -49,6 +56,7 @@ public class LicenseInfo
       Integer applicationLimitToDisplay,
       Integer applicationCountToDisplay,
       Integer sbomLimitToDisplay,
+      BigDecimal creditAmountToDisplay,
       String contactName,
       String contactCompany,
       String contactEmail,
@@ -65,6 +73,7 @@ public class LicenseInfo
     this.applicationLimitToDisplay = applicationLimitToDisplay;
     this.applicationCountToDisplay = applicationCountToDisplay;
     this.sbomLimitToDisplay = sbomLimitToDisplay;
+    this.creditAmountToDisplay = creditAmountToDisplay;
     this.contactName = contactName;
     this.contactCompany = contactCompany;
     this.contactEmail = contactEmail;

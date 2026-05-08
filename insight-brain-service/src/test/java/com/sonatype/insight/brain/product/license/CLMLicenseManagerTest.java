@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
@@ -84,6 +85,9 @@ public class CLMLicenseManagerTest
   private ProductLicense productLicense;
 
   @Inject
+  private CreditAwareProductLicense creditAwareProductLicense;
+
+  @Inject
   private ProductLicenseDetailsCache productLicenseDetailsCache;
 
   @Inject
@@ -140,6 +144,10 @@ public class CLMLicenseManagerTest
     return licenseDetails -> licenseDetails.maxSboms = maxSboms;
   }
 
+  private Consumer<SignedProductLicenseDetailsDTO> withCreditAmount(BigDecimal creditAmount) {
+    return licenseDetails -> licenseDetails.creditAmount = creditAmount;
+  }
+
   private Consumer<SignedProductLicenseDetailsDTO> withStages(StageType... stages) {
     return licenseDetails -> Stream.of(stages).forEach(stage -> licenseDetails.stageIds.add(stage.getId()));
   }
@@ -182,7 +190,8 @@ public class CLMLicenseManagerTest
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
-        .withMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
+        .withMessage("License does not permit use of feature '" + CLMFeature.ID + "', '"
+            + FirewallFeature.ID + "', or '" + GuideFeature.ID + "'");
 
     assertThat(productLicense.getFingerprint()).isNull();
   }
@@ -1328,6 +1337,16 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense_GuideFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE));
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
   public void testInstallLicense_LegacyVersion() {
     licenseManager.setVersion(0);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -1472,6 +1491,17 @@ public class CLMLicenseManagerTest
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
         .withMessageContaining(
             "SBOM Manager feature requires use of an external database, please retry using an external database.");
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_GuideFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE));
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
     assertThat(productLicense.isValid()).isFalse();
   }
 
@@ -2639,6 +2669,176 @@ public class CLMLicenseManagerTest
     installLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
+  }
+
+  @Test
+  public void testHasGuideProduct() {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    assertThat(CLMLicenseManager.hasGuideProduct(productLicense)).isTrue();
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK);
+    assertThat(CLMLicenseManager.hasGuideProduct(productLicense)).isFalse();
+  }
+
+  @Test
+  public void testGetFeatures_GuideSelfHosted() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGetFeatures_GuideSelfHosted_viaGuideProductsProperty() throws Exception {
+    licenseManager.setProducts("");
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
+        ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionGuide() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_GUIDE);
+  }
+
+  @Test
+  public void testGetLicenseInfo_ProductEditionGuide() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    assertThat(info.products).containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_GUIDE));
+  }
+
+  /**
+   * Tests the defensive LEGACY model path for Guide licenses.
+   * Guide licenses should always be CREDIT_BASED, but the LEGACY switch handles this defensively.
+   */
+  @Test
+  public void testGetLicenseInfo_GuideWithLegacyModel_surfacesCreditAmount() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    // No licensing model set - defaults to LEGACY
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("500")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    // Defensive LEGACY path should still surface creditAmount
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("500"));
+  }
+
+  @Test
+  public void testGetLicenseInfo_CreditBasedLicensing_withNullCreditAmount() throws Exception {
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_CREDIT_BASED);
+    licenseManager.setApplicationLimit(100);
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.creditAmountToDisplay).isNull();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.licensedUsersToDisplay).isNull();
+    assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isNull();
+  }
+
+  @Test
+  public void testGetLicenseInfo_GuideSelfHostedWithCreditBased() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL,
+        ProductLicenseDetails.LICENSING_CREDIT_BASED);
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("1000"));
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.licensedUsersToDisplay).isNull();
+    assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isNull();
+  }
+
+  @Test
+  public void testGetCreditAmount() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));
+    installLicense();
+    assertThat(creditAwareProductLicense.getCreditAmount()).isEqualTo(new BigDecimal("1000"));
+  }
+
+  @Test
+  public void testGetStageTypes_GuideSelfHosted() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder(
+        StageTypes.DEVELOP,
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGuideSelfHosted_allFeaturesRejected_throwsException() {
+    clmLicenseManager.uninstallLicense();
+    licenseManager.setForceVerificationFailure(true);
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessage("License does not permit use of feature '" + CLMFeature.ID + "', '"
+            + FirewallFeature.ID + "', or '" + GuideFeature.ID + "'");
+  }
+
+  @Test
+  public void testGuideSelfHosted_guideOnlyFeature_accepted() throws Exception {
+    licenseManager.setAllowedFeatureIds(GuideFeature.ID);
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGuideSelfHosted_clmFeature_accepted() throws Exception {
+    licenseManager.setAllowedFeatureIds(CLMFeature.ID);
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGuideSelfHosted_firewallFeature_accepted() throws Exception {
+    licenseManager.setAllowedFeatureIds(FirewallFeature.ID);
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
   }
 
   private static String suffix(final String suffix) {

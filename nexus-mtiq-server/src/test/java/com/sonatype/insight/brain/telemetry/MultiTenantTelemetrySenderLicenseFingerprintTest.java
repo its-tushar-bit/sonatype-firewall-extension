@@ -155,4 +155,18 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
 
     hdsMockServer.reset();
   }
+
+  /**
+   * Credit is a self-hosted-only feature. MultiTenantProductLicense's credit methods are no-ops.
+   */
+  @Test
+  public void testMultiTenantProductLicense_creditMethodsAreNoOps() {
+    MultiTenantProductLicense mtLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
+
+    // setCreditAmount is a no-op - should not throw
+    mtLicense.setCreditAmount(new java.math.BigDecimal("1000"));
+
+    // getCreditAmount always returns null
+    assertThat(mtLicense.getCreditAmount()).isNull();
+  }
 }

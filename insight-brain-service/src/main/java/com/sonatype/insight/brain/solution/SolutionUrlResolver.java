@@ -24,12 +24,14 @@ import org.apache.commons.lang3.StringUtils;
 public class SolutionUrlResolver
 {
   @VisibleForTesting
-  static final Map<Solution, String> SOLUTION_PATH_MAP = ImmutableMap.of(
-      Solution.DEVELOPER, UserInterfaceLinksHelper.getDeveloperHomePath(),
-      Solution.FIREWALL, UserInterfaceLinksHelper.getFirewallHomePath(),
-      Solution.LIFECYCLE, UserInterfaceLinksHelper.getLifecycleHomePath(),
-      Solution.REPO_MANAGER, "",
-      Solution.SBOM_MANAGER, UserInterfaceLinksHelper.getSbomManagerHomePath());
+  static final Map<Solution, String> SOLUTION_PATH_MAP = new ImmutableMap.Builder<Solution, String>()
+      .put(Solution.DEVELOPER, UserInterfaceLinksHelper.getDeveloperHomePath())
+      .put(Solution.FIREWALL, UserInterfaceLinksHelper.getFirewallHomePath())
+      .put(Solution.GUIDE, UserInterfaceLinksHelper.getGuideHomePath())
+      .put(Solution.LIFECYCLE, UserInterfaceLinksHelper.getLifecycleHomePath())
+      .put(Solution.REPO_MANAGER, "")
+      .put(Solution.SBOM_MANAGER, UserInterfaceLinksHelper.getSbomManagerHomePath())
+      .build();
 
   private final Configuration configuration;
 

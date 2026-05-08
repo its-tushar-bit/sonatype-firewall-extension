@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.configuration.webhook.WebhookService;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.BranchMonitorExecutor;
 import com.sonatype.insight.brain.git.DefaultBranchMonitorExecutor;
+import com.sonatype.insight.brain.product.license.CreditAwareProductLicense;
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -69,6 +70,7 @@ public class IqOnlyModule
     bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     bind(DefaultProductLicense.class);
     bind(ProductLicense.class).to(DefaultProductLicense.class);
+    bind(CreditAwareProductLicense.class).to(DefaultProductLicense.class);
     bind(AwsCredentialsProvider.class).toProvider(DefaultInsightAwsCredentialProvider.class);
     bind(BranchMonitorExecutor.class).to(DefaultBranchMonitorExecutor.class);
     bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);

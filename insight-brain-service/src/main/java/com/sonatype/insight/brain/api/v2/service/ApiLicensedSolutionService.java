@@ -24,11 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 public class ApiLicensedSolutionService
 {
-  private static final Map<Solution, String> SOLUTION_ID_MAPPING = ImmutableMap.of(
-      Solution.DEVELOPER, "developer",
-      Solution.FIREWALL, "firewall",
-      Solution.LIFECYCLE, "lifecycle",
-      Solution.SBOM_MANAGER, "sbom");
+  private static final Map<Solution, String> SOLUTION_ID_MAPPING = new ImmutableMap.Builder<Solution, String>()
+      .put(Solution.DEVELOPER, "developer")
+      .put(Solution.FIREWALL, "firewall")
+      .put(Solution.GUIDE, "guide")
+      .put(Solution.LIFECYCLE, "lifecycle")
+      .put(Solution.SBOM_MANAGER, "sbom")
+      .build();
 
   private final SolutionResolver solutionResolver;
 

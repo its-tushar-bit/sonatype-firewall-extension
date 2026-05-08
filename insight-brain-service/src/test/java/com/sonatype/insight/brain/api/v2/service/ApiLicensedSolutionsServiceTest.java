@@ -16,11 +16,10 @@ import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.solution.SolutionUrlResolver;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,10 +27,6 @@ import static org.mockito.Mockito.when;
 
 public class ApiLicensedSolutionsServiceTest
 {
-  @Before
-  public void setup() {
-    MockitoAnnotations.openMocks(this);
-  }
 
   @Test
   public void testGetLicensedSolutions_expectRelativeUrls() {
@@ -46,8 +41,8 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = true;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with relative URLs
-    assertThat(licensedSolutions).hasSize(4); // repo manager not currently supported
+    // then: results have all solutions with relative URLs (Guide excluded: GUIDE_UI flag requires integration context)
+    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "/ui/links/developer/dashboard")
         .containsEntry("firewall", "/ui/links/firewall/dashboard")
@@ -68,8 +63,8 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = false;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with full URLs
-    assertThat(licensedSolutions).hasSize(4); // repo manager not currently supported
+    // then: results have all solutions with full URLs (Guide excluded: GUIDE_UI flag requires integration context)
+    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
@@ -90,8 +85,8 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = true;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with full URLs
-    assertThat(licensedSolutions).hasSize(4); // repo manager not currently supported
+    // then: results have all solutions with full URLs (Guide excluded: GUIDE_UI flag requires integration context)
+    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
@@ -140,6 +135,8 @@ public class ApiLicensedSolutionsServiceTest
   private SolutionResolver createSolutionResolver(boolean withProducts) {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(any())).thenReturn(withProducts);
+    // Guide requires GUIDE_UI feature flag backed by a DAO — exclude from unit tests
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(false);
     return new SolutionResolver(productLicense);
   }
 

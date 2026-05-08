@@ -3,14 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.solution;
+package com.sonatype.insight.brain.product.license;
 
-public enum Solution
+import java.math.BigDecimal;
+
+public interface CreditAwareProductLicense
 {
-  DEVELOPER,
-  FIREWALL,
-  GUIDE,
-  LIFECYCLE,
-  REPO_MANAGER,
-  SBOM_MANAGER
+  void setCreditAmount(BigDecimal creditAmount);
+
+  BigDecimal getCreditAmount();
 }

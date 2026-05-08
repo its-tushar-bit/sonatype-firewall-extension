@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class DefaultProductLicense
-    implements ProductLicense
+    implements ProductLicense, CreditAwareProductLicense
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultProductLicense.class);
 
@@ -68,6 +69,8 @@ public class DefaultProductLicense
 
     private final Integer maxSboms;
 
+    private final BigDecimal creditAmount;
+
     public ProductLicenseData(
         String fingerprint,
         long expirationTimestamp,
@@ -81,7 +84,8 @@ public class DefaultProductLicense
         Integer maxApplications,
         Integer maxUsers,
         Integer maxFirewallUsers,
-        Integer maxSboms)
+        Integer maxSboms,
+        BigDecimal creditAmount)
     {
       this.fingerprint = fingerprint;
       this.expirationTimestamp = expirationTimestamp;
@@ -96,6 +100,7 @@ public class DefaultProductLicense
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
       this.maxSboms = maxSboms;
+      this.creditAmount = creditAmount;
     }
   }
 
@@ -123,7 +128,7 @@ public class DefaultProductLicense
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
         Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModels,
-        maxApplications, maxUsers, maxFirewallUsers, maxSboms);
+        maxApplications, maxUsers, maxFirewallUsers, maxSboms, null);
   }
 
   /**
@@ -259,6 +264,20 @@ public class DefaultProductLicense
     return getProductLicenseData().maxSboms;
   }
 
+  @Override
+  public void setCreditAmount(BigDecimal creditAmount) {
+    ProductLicenseData current = getProductLicenseData();
+    productLicenseData = new ProductLicenseData(
+        current.fingerprint, current.expirationTimestamp, current.contactName, current.contactCompany,
+        current.contactEmail, current.products, current.features, current.stageTypes, current.licensingModels,
+        current.maxApplications, current.maxUsers, current.maxFirewallUsers, current.maxSboms, creditAmount);
+  }
+
+  @Override
+  public BigDecimal getCreditAmount() {
+    return getProductLicenseData().creditAmount;
+  }
+
   ProductLicenseData getProductLicenseData() {
     return productLicenseData;
   }
@@ -266,6 +285,6 @@ public class DefaultProductLicense
   @NotNull
   static ProductLicenseData initialProductLicenseData() {
     return new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(),
-        Collections.emptySet(), Collections.singleton(ProductLicensingModel.APP_BASED), 0, 0, 0, 0);
+        Collections.emptySet(), Collections.singleton(ProductLicensingModel.APP_BASED), 0, 0, 0, 0, null);
   }
 }

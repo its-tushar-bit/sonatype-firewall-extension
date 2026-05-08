@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Set;
 import jakarta.annotation.Priority;
@@ -61,11 +62,22 @@ public class MultiTenantProductLicense
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
         Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModels,
-        maxApplications, maxUsers, maxFirewallUsers, maxSboms));
+        maxApplications, maxUsers, maxFirewallUsers, maxSboms, null));
   }
 
   @Override
   ProductLicenseData getProductLicenseData() {
     return productLicenseData.get();
+  }
+
+  // Credit is a self-hosted-only feature. MTIQ never uses credit-based licensing, so these methods are no-ops.
+  @Override
+  public void setCreditAmount(BigDecimal creditAmount) {
+    // no-op: credit is not applicable to multi-tenant deployments
+  }
+
+  @Override
+  public BigDecimal getCreditAmount() {
+    return null; // credit is not applicable to multi-tenant deployments
   }
 }

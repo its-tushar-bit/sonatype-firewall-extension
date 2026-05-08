@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -43,7 +44,6 @@ public class SolutionResolver
 
   @VisibleForTesting
   static final List<String> IGNORED_PRODUCTS = ImmutableList.of(
-      ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED,
       ProductLicenseDetails.PRODUCT_SONATYPE_LIFT_PREMIUM,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE,
       ProductLicenseDetails.PRODUCT_MALWARE_DEFENSE_CLOUD,
@@ -65,6 +65,9 @@ public class SolutionResolver
 
   private static final List<String> REPO_MANAGER_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_NEXUS);
+
+  private static final List<String> GUIDE_PRODUCTS = ImmutableList.of(
+      ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
 
   private static final List<String> SBOM_MANAGER_PRODUCTS = ImmutableList.of(
       ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -111,6 +114,10 @@ public class SolutionResolver
 
     if (hasAnyProduct(SBOM_MANAGER_PRODUCTS)) {
       licensedSolutions.add(Solution.SBOM_MANAGER);
+    }
+
+    if (hasAnyProduct(GUIDE_PRODUCTS) && SystemConfigurationPropertyFeature.GUIDE_UI.isEnabled()) {
+      licensedSolutions.add(Solution.GUIDE);
     }
 
     return licensedSolutions;

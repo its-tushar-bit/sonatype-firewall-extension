@@ -23,6 +23,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMFeature;
+import com.sonatype.insight.brain.product.license.GuideFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.sonatype.licensing.LicensingException;
@@ -149,6 +150,11 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setForceVerificationFailure(forceVerificationFailure);
   }
 
+  public void setAllowedFeatureIds(String... featureIds) {
+    wasChanged = true;
+    mockProductLicenseManager.allowedFeatureIds = new HashSet<>(Arrays.asList(featureIds));
+  }
+
   public void setForceUninstallFailure(boolean forceUninstallFailure) {
     wasChanged = true;
     mockProductLicenseManager.setForceUninstallFailure(forceUninstallFailure);
@@ -211,6 +217,8 @@ public class TestProductLicenseManager
 
     private boolean forceVerificationFailure;
 
+    private Set<String> allowedFeatureIds;
+
     public MockProductLicenseManager() {
       properties.put(ProductLicenseDetails.PROPERTY_VERSION, "1");
       properties.put(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, "45");
@@ -245,6 +253,7 @@ public class TestProductLicenseManager
     private ProductLicenseKey createKey() {
       Map<String, org.sonatype.licensing.feature.Feature> featureMap = new HashMap<>();
       featureMap.put(CLMFeature.ID, new CLMFeature());
+      featureMap.put(GuideFeature.ID, new GuideFeature());
       Properties properties = new Properties();
       if (products != null) {
         properties.put(ProductLicenseDetails.PROPERTY_PRODUCTS, String.join(",", products));
@@ -307,6 +316,9 @@ public class TestProductLicenseManager
     @Override
     public void verifyFeature(final ProductLicenseKey key, final org.sonatype.licensing.feature.Feature feature) {
       if (forceVerificationFailure) {
+        throw new LicensingException("License does not permit use of feature '" + feature.getId() + "'");
+      }
+      if (allowedFeatureIds != null && !allowedFeatureIds.contains(feature.getId())) {
         throw new LicensingException("License does not permit use of feature '" + feature.getId() + "'");
       }
     }

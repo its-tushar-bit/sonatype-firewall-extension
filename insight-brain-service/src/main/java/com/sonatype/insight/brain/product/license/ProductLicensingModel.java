@@ -10,5 +10,6 @@ public enum ProductLicensingModel
   LEGACY,
   USER_BASED,
   APP_BASED,
-  SBOM_BASED
+  SBOM_BASED,
+  CREDIT_BASED
 }

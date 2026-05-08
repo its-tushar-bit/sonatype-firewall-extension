@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.Signature;
@@ -60,6 +61,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import org.sonatype.licensing.LicensingException;
+import org.sonatype.licensing.feature.AbstractFeature;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseContent;
@@ -130,6 +132,8 @@ public class CLMLicenseManager
 
   private static final String TIER_ENTERPRISE = "Enterprise";
 
+  public static final String PRODUCT_GUIDE = "Guide";
+
   private static final Set<String> LIFECYCLE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
       ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
       ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
@@ -138,6 +142,8 @@ public class CLMLicenseManager
       ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
   private static final Set<String> LEGAL_PACK_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+
+  private static final Set<String> GUIDE_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
 
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
@@ -158,6 +164,8 @@ public class CLMLicenseManager
   private final ApplicationDAO applicationDAO;
 
   private final ProductLicense productLicense;
+
+  private final CreditAwareProductLicense creditAwareProductLicense;
 
   private final ProductLicenseDetailsCache productLicenseDetailsCache;
 
@@ -187,6 +195,7 @@ public class CLMLicenseManager
       final MigrationTrackerDAO migrationTrackerDAO,
       final ApplicationDAO applicationDAO,
       final ProductLicense productLicense,
+      final CreditAwareProductLicense creditAwareProductLicense,
       final ProductLicenseDetailsCache productLicenseDetailsCache,
       final ProductLicenseManager licenseManager,
       final LicenseFingerprinter licenseFingerprinter,
@@ -203,6 +212,7 @@ public class CLMLicenseManager
     this.applicationDAO = applicationDAO;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.productLicense = productLicense;
+    this.creditAwareProductLicense = creditAwareProductLicense;
     this.productLicenseDetailsCache = productLicenseDetailsCache;
     this.licenseManager = licenseManager;
     this.licenseFingerprinter = licenseFingerprinter;
@@ -259,9 +269,20 @@ public class CLMLicenseManager
       }
       recordSupportForExternalDatabase();
     }
-    if (config.isDatabaseEmbedded() && licenseDetails.features.contains(LicensedFeature.SBOM_MANAGER.name())) {
+    validateExternalDatabaseForFeature(licenseDetails);
+  }
+
+  private void validateExternalDatabaseForFeature(SignedProductLicenseDetailsDTO licenseDetails) {
+    if (!config.isDatabaseEmbedded()) {
+      return;
+    }
+    if (licenseDetails.features.contains(LicensedFeature.SBOM_MANAGER.name())) {
       throw new ExternalDatabaseNotSupportedException(
           "SBOM Manager feature requires use of an external database, please retry using an external database.");
+    }
+    if (licenseDetails.features.contains(LicensedFeature.GUIDE.name())) {
+      throw new ExternalDatabaseNotSupportedException(
+          "Guide feature requires use of an external database, please retry using an external database.");
     }
   }
 
@@ -353,10 +374,7 @@ public class CLMLicenseManager
       throw new ExternalDatabaseNotSupportedException("The product license does not support use of an external database"
           + ", please reconfigure IQ Server to use the embedded database before installing the license.");
     }
-    if (config.isDatabaseEmbedded() && licenseDetails.features.contains(LicensedFeature.SBOM_MANAGER.name())) {
-      throw new ExternalDatabaseNotSupportedException(
-          "SBOM Manager feature requires use of an external database, please retry using an external database.");
-    }
+    validateExternalDatabaseForFeature(licenseDetails);
     licenseManager.installLicense(new ByteArrayInputStream(licenseData));
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
     populateLicenseCache(licenseKey, licenseDetails, true);
@@ -389,6 +407,12 @@ public class CLMLicenseManager
 
       if (licenseDetails.maxSboms != null) {
         signature.update(licenseDetails.maxSboms.toString().getBytes(StandardCharsets.UTF_8));
+      }
+
+      if (licenseDetails.creditAmount != null) {
+        signature.update(licenseDetails.creditAmount.stripTrailingZeros()
+            .toPlainString()
+            .getBytes(StandardCharsets.UTF_8));
       }
 
       signature.update(licenseFingerprint.getBytes(StandardCharsets.UTF_8));
@@ -500,6 +524,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_TEAMS_EDITION:
         marketingNameSuffix = PRODUCT_TEAMS_EDITION;
         break;
+      case ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED:
+        marketingNameSuffix = PRODUCT_GUIDE;
+        break;
       default:
         return null;
     }
@@ -520,6 +547,7 @@ public class CLMLicenseManager
     Integer licensedUsersToDisplay = null;
     Integer firewallUsersToDisplay = null;
     Integer sbomLimitToDisplay = null;
+    BigDecimal creditAmountToDisplay = null;
 
     for (ProductLicensingModel model : licensingModels) {
       switch (model) {
@@ -548,6 +576,11 @@ public class CLMLicenseManager
             case PRODUCT_SBOM_MANAGER_SAAS:
               sbomLimitToDisplay = productLicense.getMaxSboms();
               break;
+            case PRODUCT_GUIDE:
+              // Defensive: Guide licenses should always be CREDIT_BASED (tested by
+              // testGetLicenseInfo_GuideWithLegacyModel_surfacesCreditAmount), but handle LEGACY just in case.
+              creditAmountToDisplay = creditAwareProductLicense.getCreditAmount();
+              break;
             default:
               // no limits to display
           }
@@ -561,6 +594,9 @@ public class CLMLicenseManager
         case USER_BASED:
           licensedUsersToDisplay = productLicense.getMaxUsers();
           firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
+          break;
+        case CREDIT_BASED:
+          creditAmountToDisplay = creditAwareProductLicense.getCreditAmount();
           break;
         default:
           throw new IllegalStateException("Unknown licensing model: " + model);
@@ -576,7 +612,7 @@ public class CLMLicenseManager
 
     return new LicenseInfo(productLicense.getFingerprint(), productLicense.getExpirationTimestamp(),
         licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
-        sbomLimitToDisplay, productLicense.getContactName(), productLicense.getContactCompany(),
+        sbomLimitToDisplay, creditAmountToDisplay, productLicense.getContactName(), productLicense.getContactCompany(),
         productLicense.getContactEmail(), products, properties, productEdition);
   }
 
@@ -594,6 +630,10 @@ public class CLMLicenseManager
 
   public static boolean hasAdvancedLegalPackProduct(ProductLicense productLicense) {
     return LEGAL_PACK_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
+  }
+
+  public static boolean hasGuideProduct(ProductLicense productLicense) {
+    return GUIDE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
   private String[] getProductLicenseProductsMarketingNames() {
@@ -670,6 +710,9 @@ public class CLMLicenseManager
     else if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
       return PRODUCT_TEAMS_EDITION;
     }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)) {
+      return PRODUCT_GUIDE;
+    }
     // Keep this last since we do not have a true standalone edition of Developer yet
     else if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
       return PRODUCT_SONATYPE_DEVELOPMENT;
@@ -679,18 +722,23 @@ public class CLMLicenseManager
   }
 
   private void validateFeatures(final ProductLicenseKey key) {
-    try {
-      licenseManager.verifyFeature(key, new CLMFeature());
+    if (!verifyAnyFeature(key, new CLMFeature(), new FirewallFeature(), new GuideFeature())) {
+      throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "', '"
+          + FirewallFeature.ID + "', or '" + GuideFeature.ID + "'");
     }
-    catch (LicensingException ex) {
+  }
+
+  private boolean verifyAnyFeature(final ProductLicenseKey key, AbstractFeature... features) {
+    for (AbstractFeature feature : features) {
       try {
-        licenseManager.verifyFeature(key, new FirewallFeature());
+        licenseManager.verifyFeature(key, feature);
+        return true;
       }
-      catch (LicensingException nestedEx) {
-        throw new LicensingException("License does not permit use of feature '" + CLMFeature.ID + "' or '"
-            + FirewallFeature.ID + "'");
+      catch (LicensingException e) {
+        // Try next feature
       }
     }
+    return false;
   }
 
   private void populateLicenseCache(
@@ -713,6 +761,7 @@ public class CLMLicenseManager
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
     Integer maxSboms = licenseDetails.maxSboms;
+    BigDecimal creditAmount = licenseDetails.creditAmount;
 
     Set<String> products = getProducts(key);
 
@@ -994,6 +1043,13 @@ public class CLMLicenseManager
 
       stageTypes.add(StageTypes.COMPLIANCE);
     }
+    if (products.contains(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)) {
+      features.add(LicensedFeature.GUIDE);
+      features.add(LicensedFeature.GUIDE_MCP);
+      features.add(LicensedFeature.GUIDE_SEARCH);
+
+      stageTypes.add(StageTypes.DEVELOP);
+    }
 
     stageTypes.add(StageTypes.PROXY);
 
@@ -1050,6 +1106,7 @@ public class CLMLicenseManager
     }
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModels, applicationCount,
         maxUsers, maxFirewallUsers, maxSboms);
+    creditAwareProductLicense.setCreditAmount(creditAmount);
     notifyListeners();
   }
 
@@ -1167,9 +1224,13 @@ public class CLMLicenseManager
 
   private Set<String> getProducts(ProductLicenseKey key) {
     Set<String> products = new LinkedHashSet<>();
-    String value = getProperty(key, ProductLicenseDetails.PROPERTY_PRODUCTS);
-    if (value != null) {
-      Collections.addAll(products, value.split("\\s*,\\s*"));
+    String clmProducts = getProperty(key, ProductLicenseDetails.PROPERTY_PRODUCTS);
+    if (clmProducts != null && !clmProducts.isBlank()) {
+      Collections.addAll(products, clmProducts.split("\\s*,\\s*"));
+    }
+    String guideProducts = getProperty(key, ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS);
+    if (guideProducts != null && !guideProducts.isBlank()) {
+      Collections.addAll(products, guideProducts.split("\\s*,\\s*"));
     }
     return products;
   }
@@ -1192,6 +1253,9 @@ public class CLMLicenseManager
             break;
           case ProductLicenseDetails.LICENSING_SBOM_BASED:
             models.add(ProductLicensingModel.SBOM_BASED);
+            break;
+          case ProductLicenseDetails.LICENSING_CREDIT_BASED:
+            models.add(ProductLicensingModel.CREDIT_BASED);
             break;
           default:
             throw new LicensingException("Invalid licensing model: " + p);

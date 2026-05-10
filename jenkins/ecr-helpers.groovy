@@ -116,14 +116,14 @@ String pushToEcrCached(String branchOverride = null) {
           '''
         }
 
-        // Add extra tag: branch-latest (via ECR API)
-        final String latestTag = "${branch}-latest"
-        tagImageInEcr(DEV_ECR_ACCOUNT, ecrRepo, ecrTag, latestTag, ECR_REGION)
-
-        echo "ECR push successful: ${ecrImageRef} (+ ${latestTag})"
+        echo "ECR push successful: ${ecrImageRef}"
       }
     }
   }
+
+  final String latestTag = "${branch}-latest"
+  tagImageInEcr(DEV_ECR_ACCOUNT, ecrRepo, ecrTag, latestTag, ECR_REGION)
+  echo "Tagged ${latestTag} in dev ECR"
 
   return ecrTag
 }

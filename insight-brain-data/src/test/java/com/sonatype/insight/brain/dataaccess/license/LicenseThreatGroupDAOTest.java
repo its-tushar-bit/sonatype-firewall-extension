@@ -530,4 +530,51 @@ public class LicenseThreatGroupDAOTest
     assertThatThrownBy(() -> getDao().update(nameable1)).isInstanceOf(InvalidLicenseThreatGroupException.class)
         .hasMessageContaining("A license threat group with the same name already exists.");
   }
+
+  @Test
+  public void testGetLicenseIdThreatGroupsByLicenseIdsWithHierarchy_returnsGroupsFromAllLevels() {
+    tempEntity.newLicenseThreatGroup(application.getId(), "App Group", 3, "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Org Group", 7, "MIT", "Apache-2.0");
+    tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "Root Group", 9, "GPL-3.0");
+
+    Map<String, List<LicenseThreatGroup>> result =
+        licenseThreatGroupDAO.getLicenseIdThreatGroupsByLicenseIdsWithHierarchy(
+            application.getId(), Set.of("Apache-2.0", "MIT", "GPL-3.0", "Nonexistent"));
+
+    // Apache-2.0 is in both App Group and Org Group
+    assertThat(result.get("Apache-2.0")).extracting(LicenseThreatGroup::getName)
+        .containsExactlyInAnyOrder("App Group", "Org Group");
+
+    // MIT is only in Org Group
+    assertThat(result.get("MIT")).extracting(LicenseThreatGroup::getName)
+        .containsExactly("Org Group");
+
+    // GPL-3.0 is only in Root Group
+    assertThat(result.get("GPL-3.0")).extracting(LicenseThreatGroup::getName)
+        .containsExactly("Root Group");
+
+    // Nonexistent license has no entry
+    assertThat(result).doesNotContainKey("Nonexistent");
+  }
+
+  @Test
+  public void testGetLicenseIdThreatGroupsByLicenseIdsWithHierarchy_emptyInput() {
+    Map<String, List<LicenseThreatGroup>> result =
+        licenseThreatGroupDAO.getLicenseIdThreatGroupsByLicenseIdsWithHierarchy(
+            application.getId(), Collections.emptySet());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testGetLicenseIdThreatGroupsByLicenseIdsWithHierarchy_noMatchingGroups() {
+    // Create groups that don't match the queried license IDs
+    tempEntity.newLicenseThreatGroup(application.getId(), "Unrelated Group", 5, "BSD-3-Clause");
+
+    Map<String, List<LicenseThreatGroup>> result =
+        licenseThreatGroupDAO.getLicenseIdThreatGroupsByLicenseIdsWithHierarchy(
+            application.getId(), Set.of("Apache-2.0", "MIT"));
+
+    assertThat(result).isEmpty();
+  }
 }

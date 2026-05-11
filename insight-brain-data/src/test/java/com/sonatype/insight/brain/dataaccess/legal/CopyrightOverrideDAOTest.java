@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.List;
+import java.util.Map;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -174,5 +177,106 @@ public class CopyrightOverrideDAOTest
         .isThrownBy(() -> dao.update(copyrightOverride))
         .withMessageContaining(
             "Cannot update copyright override with id " + copyrightOverride.getId() + " because it does not exist.");
+  }
+
+  // ---- Batch hierarchy tests ----
+
+  @Test
+  public void testBatchGetWithHierarchy_emptyComponentList() {
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of());
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_noOverridesExist() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+    assertThat(result).doesNotContainKey(ci);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_directOverrideAtApp() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(ci, application.getId(), "hash1");
+    CopyrightOverride override1 = tempEntity.newCopyrightOverride("origHash1", "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+    CopyrightOverride override2 = tempEntity.newCopyrightOverride("origHash2", "hash2", "content2",
+        ComponentLegalPartStatus.DISABLED, componentCopyright.getId());
+
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(override1, override2);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_inheritsFromOrg() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentCopyright componentCopyright = tempEntity.newComponentCopyright(ci, organization.getId(), "hash1");
+    CopyrightOverride override = tempEntity.newCopyrightOverride("origHash1", "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, componentCopyright.getId());
+
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(override);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_closestAncestorWins() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    // Override at root org
+    ComponentCopyright rootCopyright =
+        tempEntity.newComponentCopyright(ci, Organization.ROOT_ORGANIZATION_ID, "rootHash");
+    tempEntity.newCopyrightOverride("origRoot", "hashRoot", "rootContent",
+        ComponentLegalPartStatus.ENABLED, rootCopyright.getId());
+
+    // Override at org level (closer)
+    ComponentCopyright orgCopyright = tempEntity.newComponentCopyright(ci, organization.getId(), "orgHash");
+    CopyrightOverride orgOverride = tempEntity.newCopyrightOverride("origOrg", "hashOrg", "orgContent",
+        ComponentLegalPartStatus.ENABLED, orgCopyright.getId());
+
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(orgOverride);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_multipleComponents() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier ci3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    ComponentCopyright cc1 = tempEntity.newComponentCopyright(ci1, organization.getId(), "hash1");
+    CopyrightOverride override1 = tempEntity.newCopyrightOverride("origHash1", "hash1", "content1",
+        ComponentLegalPartStatus.ENABLED, cc1.getId());
+
+    ComponentCopyright cc2 = tempEntity.newComponentCopyright(ci2, Organization.ROOT_ORGANIZATION_ID, "hash2");
+    CopyrightOverride override2 = tempEntity.newCopyrightOverride("origHash2", "hash2", "content2",
+        ComponentLegalPartStatus.ENABLED, cc2.getId());
+
+    // ci3: no override
+
+    Map<ComponentIdentifier, List<CopyrightOverride>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci1, ci2, ci3));
+
+    assertThat(result).containsKey(ci1);
+    assertThat(result.get(ci1)).usingRecursiveFieldByFieldElementComparator().containsExactly(override1);
+    assertThat(result).containsKey(ci2);
+    assertThat(result.get(ci2)).usingRecursiveFieldByFieldElementComparator().containsExactly(override2);
+    assertThat(result).doesNotContainKey(ci3);
   }
 }

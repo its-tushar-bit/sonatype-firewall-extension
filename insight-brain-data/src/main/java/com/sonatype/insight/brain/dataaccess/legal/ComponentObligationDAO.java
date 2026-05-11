@@ -6,18 +6,26 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import org.jooq.Record;
+import org.jooq.Row2;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -29,6 +37,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -198,6 +207,81 @@ public class ComponentObligationDAO
     }
 
     return componentObligationsAddressed;
+  }
+
+  /**
+   * Batch fetches obligations for multiple components with hierarchy resolution.
+   * Obligations accumulate from all hierarchy levels, with the closest ancestor winning per obligation_name.
+   *
+   * @param ownerId the owner (application) ID to resolve hierarchy from
+   * @param componentIdentifiers the components to fetch obligations for
+   * @return map from ComponentIdentifier to list of ComponentObligation; components with no obligations are not
+   *         included
+   */
+  public Map<ComponentIdentifier, List<ComponentObligation>> batchGetWithHierarchy(
+      String ownerId,
+      Collection<ComponentIdentifier> componentIdentifiers)
+  {
+    if (CollectionUtils.isEmpty(componentIdentifiers)) {
+      return Collections.emptyMap();
+    }
+
+    var co = COMPONENT_OBLIGATION;
+    var oa = OWNER_ANCESTOR;
+
+    // Fetch all obligations at all hierarchy levels, then keep closest per obligation_name in Java.
+    // obligation_name is NOT NULL on this table.
+    List<Record> rows = getListWithSqlInClause(componentIdentifiers, chunk -> {
+      List<Row2<String, String>> componentRows = chunk.stream()
+          .map(ComponentIdentifierAdapter::toComponentRow)
+          .toList();
+      try (TransactionContext tx = createTransactionContext()) {
+        return new ArrayList<>(tx.dsl()
+            .select(
+                co.COMPONENT_OBLIGATION_ID,
+                co.COMPONENT_ID_FORMAT,
+                co.COMPONENT_ID_COORDINATES_JSON,
+                co.OWNER_ID,
+                co.OBLIGATION_NAME,
+                co.COMMENT,
+                co.STATUS,
+                co.LEGAL_CONTENT_HASH,
+                co.LAST_UPDATED_BY_USERNAME,
+                co.LAST_UPDATED_AT,
+                oa.ANCESTOR_DISTANCE)
+            .from(co)
+            .join(oa)
+            .on(co.OWNER_ID.eq(oa.ANCESTOR_ID))
+            .where(oa.OWNER_ID.eq(ownerId))
+            .and(DSL.row(co.COMPONENT_ID_FORMAT, co.COMPONENT_ID_COORDINATES_JSON).in(componentRows))
+            .fetch());
+      }
+    }, 2, 1);
+
+    // Group by component, then deduplicate by obligation_name keeping the closest ancestor.
+    // Unlike LegalFileOverrideDAO (which accumulates all rows at the closest level), obligations are
+    // unique per (owner, component, name), so at most one row exists per distance — no multi-row
+    // accumulation is needed.
+    Map<ComponentIdentifier, Map<String, Record>> byComponentAndName = new HashMap<>();
+    for (Record row : rows) {
+      ComponentIdentifier ci = ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(
+          row.get(co.COMPONENT_ID_FORMAT), row.get(co.COMPONENT_ID_COORDINATES_JSON));
+      String name = row.get(co.OBLIGATION_NAME);
+
+      byComponentAndName.computeIfAbsent(ci, k -> new HashMap<>())
+          .merge(name, row,
+              (existing, candidate) -> candidate.get(oa.ANCESTOR_DISTANCE) < existing.get(oa.ANCESTOR_DISTANCE)
+                  ? candidate
+                  : existing);
+    }
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result = new HashMap<>();
+    byComponentAndName.forEach(
+        (ci, nameMap) -> result.put(ci, nameMap.values()
+            .stream()
+            .map(row -> row.into(ComponentObligation.class))
+            .toList()));
+    return result;
   }
 
   @Override

@@ -178,11 +178,31 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return super.getInOperatorThreshold(operationalDataStore);
   }
 
+  protected int getPartitionSize(int paramsPerElement, int extraParams) {
+    return super.getPartitionSize(operationalDataStore, paramsPerElement, extraParams);
+  }
+
   protected <E, U> List<U> getListWithSqlInClause(
       Collection<E> inClauseValues,
       Function<Collection<E>, List<U>> getter)
   {
     return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore);
+  }
+
+  /**
+   * Variant for queries where each list element contributes multiple bind parameters (e.g. row-value expressions),
+   * or where the query has additional bind parameters outside the IN clause.
+   *
+   * @param paramsPerElement Number of bind parameters each list element contributes.
+   * @param extraParams Number of additional bind parameters in the query outside the IN clause.
+   */
+  protected <E, U> List<U> getListWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, List<U>> getter,
+      int paramsPerElement,
+      int extraParams)
+  {
+    return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore, paramsPerElement, extraParams);
   }
 
   /**
@@ -194,6 +214,20 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       Function<Collection<E>, Stream<U>> getter)
   {
     return super.getStreamWithSqlInClause(inClauseValues, getter, operationalDataStore);
+  }
+
+  /**
+   * Stream variant for queries where each list element contributes multiple bind parameters.
+   *
+   * @see #getListWithSqlInClause(Collection, Function, int, int)
+   */
+  protected <E, U> Stream<U> getStreamWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, Stream<U>> getter,
+      int paramsPerElement,
+      int extraParams)
+  {
+    return super.getStreamWithSqlInClause(inClauseValues, getter, operationalDataStore, paramsPerElement, extraParams);
   }
 
   public List<T> getByIds(Collection<String> ids) {

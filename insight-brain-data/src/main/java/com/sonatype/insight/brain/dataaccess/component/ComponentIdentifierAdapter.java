@@ -25,6 +25,9 @@ import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Row2;
+
+import static org.jooq.impl.DSL.row;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_ARTIFACT_ID;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.MAVEN_CLASSIFIER;
@@ -220,5 +223,13 @@ public class ComponentIdentifierAdapter
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  /**
+   * Converts a ComponentIdentifier to a jOOQ Row2 tuple of (format, coordinatesJson)
+   * suitable for use in SQL IN clauses.
+   */
+  public static Row2<String, String> toComponentRow(ComponentIdentifier componentIdentifier) {
+    return row(componentIdentifier.getFormat(), toJson(componentIdentifier.getCoordinates()));
   }
 }

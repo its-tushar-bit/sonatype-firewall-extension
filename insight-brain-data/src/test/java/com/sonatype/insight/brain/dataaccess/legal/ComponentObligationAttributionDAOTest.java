@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -351,5 +353,108 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierWithHierarchy(application.getId(),
         componentIdentifier)).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
             .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+  }
+
+  // ---- Batch hierarchy tests ----
+
+  @Test
+  public void testBatchGetWithHierarchy_emptyComponentList() {
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of());
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_accumulatesFromAllLevels() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    tempEntity.newComponentObligationAttribution(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root content", "rootHash");
+    tempEntity.newComponentObligationAttribution(ci, organization.getId(),
+        "SOURCE", "org content", "orgHash");
+
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(2);
+    assertThat(result.get(ci))
+        .extracting(ComponentObligationAttribution::getObligationName)
+        .containsExactlyInAnyOrder("NOTICE", "SOURCE");
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_closestWinsPerName() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    tempEntity.newComponentObligationAttribution(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root content", "rootHash");
+    ComponentObligationAttribution orgAttribution = tempEntity.newComponentObligationAttribution(ci,
+        organization.getId(), "NOTICE", "org content", "orgHash");
+
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(1);
+    assertThat(result.get(ci).getFirst().getId()).isEqualTo(orgAttribution.getId());
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_noAttributionsExist() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).doesNotContainKey(ci);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_nullObligationNameDeduplication() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    // Null-named attribution at root
+    tempEntity.newComponentObligationAttribution(ci, Organization.ROOT_ORGANIZATION_ID,
+        null, "root null-named content", "rootHash");
+    // Null-named attribution at org (closer - should win)
+    ComponentObligationAttribution orgNullAttribution = tempEntity.newComponentObligationAttribution(ci,
+        organization.getId(), null, "org null-named content", "orgHash");
+    // Named attribution at root (different name, should also appear)
+    ComponentObligationAttribution rootNamedAttribution = tempEntity.newComponentObligationAttribution(ci,
+        Organization.ROOT_ORGANIZATION_ID, "NOTICE", "root NOTICE content", "rootHash2");
+
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(2);
+    assertThat(result.get(ci))
+        .extracting(ComponentObligationAttribution::getId)
+        .containsExactlyInAnyOrder(orgNullAttribution.getId(), rootNamedAttribution.getId());
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_multipleComponentsDifferentLevels() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier ci3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    // ci1: only at root org
+    ComponentObligationAttribution attr1 = tempEntity.newComponentObligationAttribution(ci1,
+        Organization.ROOT_ORGANIZATION_ID, "NOTICE", "root content", "hash1");
+    // ci2: at app level (direct)
+    ComponentObligationAttribution attr2 = tempEntity.newComponentObligationAttribution(ci2,
+        application.getId(), "SOURCE", "app content", "hash2");
+    // ci3: no data at all
+
+    Map<ComponentIdentifier, List<ComponentObligationAttribution>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci1, ci2, ci3));
+
+    assertThat(result).containsKey(ci1);
+    assertThat(result.get(ci1).getFirst().getId()).isEqualTo(attr1.getId());
+    assertThat(result).containsKey(ci2);
+    assertThat(result.get(ci2).getFirst().getId()).isEqualTo(attr2.getId());
+    assertThat(result).doesNotContainKey(ci3);
   }
 }

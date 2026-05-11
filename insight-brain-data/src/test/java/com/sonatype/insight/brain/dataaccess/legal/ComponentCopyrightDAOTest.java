@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.legal;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -226,5 +228,107 @@ public class ComponentCopyrightDAOTest
     assertThat(copyrightOverrideDAO.getById(copyrightOverride2.getId())).isNull();
     assertThat(dao.getById(otherComponentCopyright.getId())).isNotNull();
     assertThat(copyrightOverrideDAO.getById(otherCopyrightOverride.getId())).isNotNull();
+  }
+
+  // ---- Batch tests ----
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_emptyList() {
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(application.getId(), List.of());
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_directLookup() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+
+    ComponentCopyright appCopyright = tempEntity.newComponentCopyright(ci1, application.getId(), "appHash");
+    // ci2 only at org level - should NOT be found (no hierarchy)
+    tempEntity.newComponentCopyright(ci2, organization.getId(), "orgHash");
+
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(application.getId(), List.of(ci1, ci2));
+
+    assertThat(result).containsKey(ci1);
+    assertThat(result.get(ci1).getId()).isEqualTo(appCopyright.getId());
+    assertThat(result).doesNotContainKey(ci2);
+  }
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_noDataForAnyComponent() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+
+    // No copyright data exists at all
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(application.getId(), List.of(ci1, ci2));
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_multipleComponentsAtSameOwner() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier ci3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    ComponentCopyright copyright1 = tempEntity.newComponentCopyright(ci1, organization.getId(), "hash1");
+    ComponentCopyright copyright2 = tempEntity.newComponentCopyright(ci2, organization.getId(), "hash2");
+    ComponentCopyright copyright3 = tempEntity.newComponentCopyright(ci3, organization.getId(), "hash3");
+
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(organization.getId(), List.of(ci1, ci2, ci3));
+
+    assertThat(result).hasSize(3);
+    assertThat(result.get(ci1).getId()).isEqualTo(copyright1.getId());
+    assertThat(result.get(ci2).getId()).isEqualTo(copyright2.getId());
+    assertThat(result.get(ci3).getId()).isEqualTo(copyright3.getId());
+  }
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_mixOfFoundAndNotFound() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier ci3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    // Only ci1 and ci3 have copyrights at the queried owner
+    ComponentCopyright copyright1 = tempEntity.newComponentCopyright(ci1, application.getId(), "hash1");
+    ComponentCopyright copyright3 = tempEntity.newComponentCopyright(ci3, application.getId(), "hash3");
+    // ci2 has data at a different owner but not at the queried one
+    tempEntity.newComponentCopyright(ci2, organization.getId(), "hash2");
+
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(application.getId(), List.of(ci1, ci2, ci3));
+
+    assertThat(result).hasSize(2);
+    assertThat(result.get(ci1).getId()).isEqualTo(copyright1.getId());
+    assertThat(result).doesNotContainKey(ci2);
+    assertThat(result.get(ci3).getId()).isEqualTo(copyright3.getId());
+  }
+
+  @Test
+  public void testBatchGetByOwnerIdAndComponentIdentifiers_dataAtMultipleHierarchyLevels_onlyReturnsExactOwner() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    // Copyright exists at root org, org, AND app levels for the same component
+    tempEntity.newComponentCopyright(ci, Organization.ROOT_ORGANIZATION_ID, "rootHash");
+    tempEntity.newComponentCopyright(ci, organization.getId(), "orgHash");
+    ComponentCopyright appCopyright = tempEntity.newComponentCopyright(ci, application.getId(), "appHash");
+
+    // Batch query at app level should return ONLY the app-level record
+    Map<ComponentIdentifier, ComponentCopyright> result =
+        dao.batchGetByOwnerIdAndComponentIdentifiers(application.getId(), List.of(ci));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(ci).getId()).isEqualTo(appCopyright.getId());
+    assertThat(result.get(ci).getOwnerId()).isEqualTo(application.getId());
+
+    // Batch query at org level should return ONLY the org-level record
+    result = dao.batchGetByOwnerIdAndComponentIdentifiers(organization.getId(), List.of(ci));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(ci).getOwnerId()).isEqualTo(organization.getId());
   }
 }

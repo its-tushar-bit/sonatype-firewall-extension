@@ -5,15 +5,24 @@
  */
 package com.sonatype.insight.brain.dataaccess.legal;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import org.apache.commons.collections4.CollectionUtils;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import org.jooq.Row2;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -107,6 +116,43 @@ public class ComponentCopyrightDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerIdAndComponentIdentifierWithHierarchy(tx, ownerId, componentIdentifier);
     }
+  }
+
+  /**
+   * Batch fetches component copyright records for multiple components at the specified ownerId
+   * (no hierarchy resolution).
+   *
+   * @param ownerId the owner ID to look up directly
+   * @param componentIdentifiers the components to fetch copyrights for
+   * @return map from ComponentIdentifier to ComponentCopyright; components with no record are not included
+   */
+  public Map<ComponentIdentifier, ComponentCopyright> batchGetByOwnerIdAndComponentIdentifiers(
+      String ownerId,
+      Collection<ComponentIdentifier> componentIdentifiers)
+  {
+    if (CollectionUtils.isEmpty(componentIdentifiers)) {
+      return Collections.emptyMap();
+    }
+
+    List<ComponentCopyright> copyrights = getListWithSqlInClause(componentIdentifiers, chunk -> {
+      List<Row2<String, String>> componentRows = chunk.stream()
+          .map(ComponentIdentifierAdapter::toComponentRow)
+          .toList();
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(COMPONENT_COPYRIGHT)
+            .where(COMPONENT_COPYRIGHT.OWNER_ID.eq(ownerId))
+            .and(DSL.row(COMPONENT_COPYRIGHT.COMPONENT_ID_FORMAT, COMPONENT_COPYRIGHT.COMPONENT_ID_COORDINATES_JSON)
+                .in(componentRows))
+            .fetchInto(ComponentCopyright.class);
+      }
+    }, 2, 1);
+
+    Map<ComponentIdentifier, ComponentCopyright> result = new HashMap<>();
+    for (ComponentCopyright copyright : copyrights) {
+      result.put(copyright.getComponentIdentifier(), copyright);
+    }
+    return result;
   }
 
   @Override

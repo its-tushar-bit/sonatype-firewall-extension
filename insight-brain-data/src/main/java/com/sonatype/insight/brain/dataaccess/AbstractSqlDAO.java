@@ -275,6 +275,21 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   /**
+   * Computes the maximum number of list elements that can safely fit in one query, given the database's total
+   * parameter limit, how many bind parameters each element uses, and how many extra bind parameters exist outside
+   * the IN clause.
+   *
+   * @param dataStore The data store (determines H2 vs PostgreSQL threshold).
+   * @param paramsPerElement Number of bind parameters each list element contributes (1 for simple IN, 2+ for
+   *          row-value).
+   * @param extraParams Number of additional bind parameters outside the IN clause.
+   */
+  protected int getPartitionSize(DataStore dataStore, int paramsPerElement, int extraParams) {
+    int threshold = getInOperatorThreshold(dataStore);
+    return Math.max(1, (threshold - extraParams) / paramsPerElement);
+  }
+
+  /**
    * This method should be used for queries that use an "IN" clause. H2 and Postgres limit the number of elements in
    * "IN" clauses. This method breaks the list of values into partitions, runs the given query on each partition and
    * merges the results from all partitions.
@@ -282,35 +297,46 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    * @param <E> The type of the values in the list to be used in the "IN" clause.
    * @param inClauseValues List of values to be used in the "IN" clause.
    * @param getter Function to be used to query the values.
-   * @param dataStore A related set of data/tables
+   * @param dataStore A related set of data/tables.
    */
   protected <E, U> List<U> getListWithSqlInClause(
       Collection<E> inClauseValues,
       Function<Collection<E>, List<U>> getter,
       DataStore dataStore)
   {
+    return getListWithSqlInClause(inClauseValues, getter, dataStore, 1, PARAMETER_BUFFER);
+  }
+
+  /**
+   * Variant for queries where each list element contributes multiple bind parameters (e.g. row-value expressions),
+   * or where the query has additional bind parameters outside the IN clause.
+   *
+   * @param <E> The type of the values in the list to be used in the "IN" clause.
+   * @param inClauseValues List of values to be used in the "IN" clause.
+   * @param getter Function to be used to query the values.
+   * @param dataStore A related set of data/tables.
+   * @param paramsPerElement Number of bind parameters each list element contributes (e.g. 2 for row-value tuples).
+   * @param extraParams Number of additional bind parameters in the query outside the IN clause (e.g. ownerId, type).
+   */
+  protected <E, U> List<U> getListWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, List<U>> getter,
+      DataStore dataStore,
+      int paramsPerElement,
+      int extraParams)
+  {
     if (CollectionUtils.isEmpty(inClauseValues)) {
       return List.of();
     }
-    int inOperatorThreshold = getInOperatorThreshold(dataStore);
-    if (inClauseValues.size() >= inOperatorThreshold) {
-      List<E> inClauseValuesList;
-      if (inClauseValues instanceof List<E>) {
-        inClauseValuesList = (List<E>) inClauseValues;
-      }
-      else {
-        inClauseValuesList = new ArrayList<>(inClauseValues);
-      }
-
-      // Some tests set the inOperatorThreshold to a low value. This prevents the partition size from being negative.
-      int partitionSize = Math.max(1, inOperatorThreshold - PARAMETER_BUFFER);
-      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, partitionSize);
-
-      return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
+    int partitionSize = getPartitionSize(dataStore, paramsPerElement, extraParams);
+    // Uses > (not >=) intentionally: partitionSize is computed so that exactly partitionSize elements
+    // produce exactly threshold bind params, which is safe (PG limit is inclusive).
+    if (inClauseValues.size() > partitionSize) {
+      return getStreamWithSqlInClause(inClauseValues, chunk -> getter.apply(chunk).stream(),
+          dataStore, paramsPerElement, extraParams)
+              .collect(toList());
     }
-    else {
-      return getter.apply(inClauseValues);
-    }
+    return getter.apply(inClauseValues);
   }
 
   /**
@@ -328,11 +354,26 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
       Function<Collection<E>, Stream<U>> getter,
       DataStore dataStore)
   {
+    return getStreamWithSqlInClause(inClauseValues, getter, dataStore, 1, PARAMETER_BUFFER);
+  }
+
+  /**
+   * Stream variant for queries where each list element contributes multiple bind parameters.
+   *
+   * @see #getListWithSqlInClause(Collection, Function, DataStore, int, int)
+   */
+  protected <E, U> Stream<U> getStreamWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, Stream<U>> getter,
+      DataStore dataStore,
+      int paramsPerElement,
+      int extraParams)
+  {
     if (CollectionUtils.isEmpty(inClauseValues)) {
       return Stream.of();
     }
-    int inOperatorThreshold = getInOperatorThreshold(dataStore);
-    if (inClauseValues.size() >= inOperatorThreshold) {
+    int partitionSize = getPartitionSize(dataStore, paramsPerElement, extraParams);
+    if (inClauseValues.size() > partitionSize) {
       List<E> inClauseValuesList;
       if (inClauseValues instanceof List<E>) {
         inClauseValuesList = (List<E>) inClauseValues;
@@ -341,10 +382,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
         inClauseValuesList = new ArrayList<>(inClauseValues);
       }
 
-      int partitionSize = Math.max(1, inOperatorThreshold - PARAMETER_BUFFER);
-      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, partitionSize);
-
-      return inClauseValuesPartitions.stream().flatMap(getter);
+      return Lists.partition(inClauseValuesList, partitionSize).stream().flatMap(getter);
     }
     else {
       return getter.apply(inClauseValues);

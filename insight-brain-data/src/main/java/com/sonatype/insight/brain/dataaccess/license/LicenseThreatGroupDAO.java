@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.license;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Record;
 import org.jooq.SelectFieldOrAsterisk;
 import org.jooq.Table;
 
@@ -101,15 +104,46 @@ public class LicenseThreatGroupDAO
   }
 
   /**
-   * Queries the {@link LicenseThreatGroup}s for a given set of license IDs for a given list of owner IDs and its
-   * hierarchy.
-   *
-   * @param tx Current transaction.
-   * @param ownerIds Owner IDs in which the hierarchical query should start from.
-   * @param licenseIds License IDs to check.
-   * @return A {@link Map} where the key is each license ID and as the value is the list of {@link LicenseThreatGroup}
-   *         containing that license ID.
+   * Queries license threat groups for the given license IDs across the full owner hierarchy.
+   * Uses OWNER_ANCESTOR to resolve the hierarchy in a single query.
    */
+  public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByLicenseIdsWithHierarchy(
+      String ownerId,
+      Set<String> licenseIds)
+  {
+    if (CollectionUtils.isEmpty(licenseIds)) {
+      return Collections.emptyMap();
+    }
+
+    List<Record> rows = getListWithSqlInClause(new ArrayList<>(licenseIds), chunk -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        List<SelectFieldOrAsterisk> selectFields = new ArrayList<>();
+        selectFields.add(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID);
+        selectFields.addAll(Arrays.asList(LICENSE_THREAT_GROUP.fields()));
+
+        return new ArrayList<Record>(tx.dsl()
+            .select(selectFields)
+            .from(LICENSE_THREAT_GROUP)
+            .join(LICENSE_THREAT_GROUP_LICENSE)
+            .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+            .join(OWNER_ANCESTOR)
+            .on(LICENSE_THREAT_GROUP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+            .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+            .and(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID.in(chunk))
+            .fetch());
+      }
+    }, 1, 1); // 1 param per licenseId, 1 extra param for ownerId
+
+    Map<String, List<LicenseThreatGroup>> licenseIdAndThreatGroups = new HashMap<>();
+    for (var record : rows) {
+      String licenseId = record.get(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID);
+      LicenseThreatGroup ltg = record.into(LICENSE_THREAT_GROUP).into(LicenseThreatGroup.class);
+      licenseIdAndThreatGroups.computeIfAbsent(licenseId, k -> new ArrayList<>()).add(ltg);
+    }
+
+    return licenseIdAndThreatGroups;
+  }
+
   public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(
       TransactionContext tx,
       List<String> ownerIds,

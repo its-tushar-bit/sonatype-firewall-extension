@@ -103,6 +103,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
+import com.sonatype.insight.brain.dataaccess.legal.SourceLinkOverrideDAO;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -221,6 +222,9 @@ public class ApiLicenseLegalServiceTest
   private ComponentLegalService mockComponentLegalService;
 
   @Mock
+  private SourceLinkOverrideDAO mockSourceLinkOverrideDAO;
+
+  @Mock
   private TelemetrySender telemetrySenderMock;
 
   @Captor
@@ -304,6 +308,7 @@ public class ApiLicenseLegalServiceTest
     binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
     binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);
+    binder.bind(SourceLinkOverrideDAO.class).toInstance(mockSourceLinkOverrideDAO);
     super.configure(binder);
   }
 
@@ -1546,9 +1551,19 @@ public class ApiLicenseLegalServiceTest
               }
               return sourceLinksForComponents;
             });
-    when(mockComponentLegalService.getSourceLinksOverridesFromComponentIdentifier(anyString(),
-        any(ComponentIdentifier.class)))
-            .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
+    when(mockSourceLinkOverrideDAO.batchGetWithHierarchy(anyString(), any()))
+        .thenAnswer(invocation -> {
+          Collection<ComponentIdentifier> components = invocation.getArgument(1);
+          Map<ComponentIdentifier, List<SourceLinkOverride>> overridesByComponent = new HashMap<>();
+          for (ComponentIdentifier comp : components) {
+            List<SourceLinkOverride> overrides = Arrays.stream(legalSourceLinks)
+                .map(dto -> new SourceLinkOverride(dto.content, dto.originalContent,
+                    dto.status, "sourceLink-" + dto.content.hashCode()))
+                .toList();
+            overridesByComponent.put(comp, overrides);
+          }
+          return overridesByComponent;
+        });
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
         stageId == null

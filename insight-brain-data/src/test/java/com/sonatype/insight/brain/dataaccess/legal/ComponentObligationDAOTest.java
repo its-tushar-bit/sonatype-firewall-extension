@@ -374,4 +374,139 @@ public class ComponentObligationDAOTest
     assertThat(result.get(componentIdentifier1)).containsExactlyInAnyOrder("name2", "name4");
     assertThat(result.get(componentIdentifier2)).containsExactly("name5");
   }
+
+  // ---- Batch hierarchy tests ----
+
+  @Test
+  public void testBatchGetWithHierarchy_emptyComponentList() {
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of());
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_accumulatesFromAllLevels() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root comment", ObligationStatus.OPEN, "rootHash");
+    tempEntity.newComponentObligation(ci, organization.getId(),
+        "SOURCE", "org comment", ObligationStatus.FULFILLED, "orgHash");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(2);
+    assertThat(result.get(ci))
+        .extracting(ComponentObligation::getObligationName)
+        .containsExactlyInAnyOrder("NOTICE", "SOURCE");
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_closestWinsPerName() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root comment", ObligationStatus.OPEN, "rootHash");
+    ComponentObligation orgObligation = tempEntity.newComponentObligation(ci, organization.getId(),
+        "NOTICE", "org comment", ObligationStatus.FULFILLED, "orgHash");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(1);
+    assertThat(result.get(ci).getFirst().getId()).isEqualTo(orgObligation.getId());
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_multipleComponents() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+
+    ComponentObligation ob1 = tempEntity.newComponentObligation(ci1, organization.getId(),
+        "NOTICE", "comment1", ObligationStatus.OPEN, "hash1");
+    ComponentObligation ob2 = tempEntity.newComponentObligation(ci2, application.getId(),
+        "SOURCE", "comment2", ObligationStatus.FLAGGED, "hash2");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci1, ci2));
+
+    assertThat(result.get(ci1).getFirst().getId()).isEqualTo(ob1.getId());
+    assertThat(result.get(ci2).getFirst().getId()).isEqualTo(ob2.getId());
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_noObligationsExist() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).doesNotContainKey(ci);
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_multipleComponentsMixOfPresenceAndAbsence() {
+    ComponentIdentifier ci1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier ci2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier ci3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    // ci1: obligations at root and org (closest wins per name)
+    tempEntity.newComponentObligation(ci1, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root comment", ObligationStatus.OPEN, "rootHash");
+    ComponentObligation ob1Org = tempEntity.newComponentObligation(ci1, organization.getId(),
+        "NOTICE", "org comment", ObligationStatus.FULFILLED, "orgHash");
+    ComponentObligation ob1Root = tempEntity.newComponentObligation(ci1, Organization.ROOT_ORGANIZATION_ID,
+        "SOURCE", "root source comment", ObligationStatus.OPEN, "rootHash2");
+
+    // ci2: no obligations at all
+    // ci3: obligation at app level only
+    ComponentObligation ob3 = tempEntity.newComponentObligation(ci3, application.getId(),
+        "DISTRIBUTE", "app comment", ObligationStatus.FLAGGED, "appHash");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci1, ci2, ci3));
+
+    assertThat(result).containsKey(ci1);
+    assertThat(result.get(ci1)).hasSize(2);
+    assertThat(result.get(ci1))
+        .extracting(ComponentObligation::getId)
+        .containsExactlyInAnyOrder(ob1Org.getId(), ob1Root.getId());
+
+    assertThat(result).doesNotContainKey(ci2);
+
+    assertThat(result).containsKey(ci3);
+    assertThat(result.get(ci3)).hasSize(1);
+    assertThat(result.get(ci3).getFirst().getId()).isEqualTo(ob3.getId());
+  }
+
+  @Test
+  public void testBatchGetWithHierarchy_multipleObligationNamesSameComponentMixedDistances() {
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    // NOTICE at root and org: org wins
+    tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root NOTICE", ObligationStatus.OPEN, "rootNotice");
+    ComponentObligation orgNotice = tempEntity.newComponentObligation(ci, organization.getId(),
+        "NOTICE", "org NOTICE", ObligationStatus.FULFILLED, "orgNotice");
+
+    // SOURCE only at root: root wins (no closer)
+    ComponentObligation rootSource = tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "SOURCE", "root SOURCE", ObligationStatus.OPEN, "rootSource");
+
+    // DISTRIBUTE only at app: direct match
+    ComponentObligation appDistribute = tempEntity.newComponentObligation(ci, application.getId(),
+        "DISTRIBUTE", "app DISTRIBUTE", ObligationStatus.FLAGGED, "appDistribute");
+
+    Map<ComponentIdentifier, List<ComponentObligation>> result =
+        dao.batchGetWithHierarchy(application.getId(), List.of(ci));
+
+    assertThat(result).containsKey(ci);
+    assertThat(result.get(ci)).hasSize(3);
+    assertThat(result.get(ci))
+        .extracting(ComponentObligation::getId)
+        .containsExactlyInAnyOrder(orgNotice.getId(), rootSource.getId(), appDistribute.getId());
+  }
 }

@@ -44,6 +44,44 @@ public class RuntimeEnvironmentTelemetryCollectorTest
   }
 
   @Test
+  public void testCollectDataIncludesGitVersionAttributes() {
+    Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
+
+    assertThat(attributes).containsKey(RuntimeEnvironmentTelemetryCollector.NATIVE_GIT_AVAILABLE);
+    assertThat(attributes).containsKey(RuntimeEnvironmentTelemetryCollector.GIT_VERSION);
+    assertThat(attributes).containsKey(RuntimeEnvironmentTelemetryCollector.GIT_PARTIAL_CLONE_SUPPORTED);
+    assertThat(attributes).containsKey(RuntimeEnvironmentTelemetryCollector.GIT_IMPLEMENTATION_CONFIGURED);
+
+    // git is available in CI and dev environments
+    assertThat(attributes.get(RuntimeEnvironmentTelemetryCollector.NATIVE_GIT_AVAILABLE)).isEqualTo(true);
+    assertThat((String) attributes.get(RuntimeEnvironmentTelemetryCollector.GIT_VERSION)).matches("\\d+\\.\\d+\\.\\d+");
+  }
+
+  @Test
+  public void testParseVersion() {
+    assertThat(RuntimeEnvironmentTelemetryCollector.parseVersion("git version 2.39.1")).isEqualTo("2.39.1");
+    assertThat(RuntimeEnvironmentTelemetryCollector.parseVersion("git version 2.39.1 (Apple Git-154)"))
+        .isEqualTo("2.39.1");
+    assertThat(RuntimeEnvironmentTelemetryCollector.parseVersion(null)).isNull();
+    assertThat(RuntimeEnvironmentTelemetryCollector.parseVersion("")).isNull();
+    assertThat(RuntimeEnvironmentTelemetryCollector.parseVersion("not a version")).isNull();
+  }
+
+  @Test
+  public void testSupportsPartialClone() {
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 2.39.1")).isTrue();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 2.39.1 (Apple Git-154)"))
+        .isTrue();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 2.27.0")).isTrue();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 3.0.0")).isTrue();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 2.26.9")).isFalse();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 2.16.0")).isFalse();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("git version 1.9.0")).isFalse();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone(null)).isFalse();
+    assertThat(RuntimeEnvironmentTelemetryCollector.supportsPartialClone("not a version")).isFalse();
+  }
+
+  @Test
   public void testIsClusterTelemetry() {
     assertThat(telemetryCollector.isClusterTelemetry()).isFalse();
   }

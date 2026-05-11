@@ -30,12 +30,12 @@ import moment from 'moment';
  * @param set Set
  * @returns {Array}. If provided set is null or undefined, returns null or undefined respectively.
  */
-export function setToArray(set) {
-  if (set == null || typeof set[Symbol.iterator] !== 'function') {
-    return set;
+export function setToArray<T>(inputSet: Set<T> | null | undefined): T[] | null | undefined {
+  if (inputSet == null || typeof (inputSet as Iterable<T>)[Symbol.iterator] !== 'function') {
+    return inputSet as null | undefined;
   }
-  let array = [];
-  set.forEach((v) => array.push(v));
+  const array: T[] = [];
+  inputSet.forEach((v) => array.push(v));
   return array;
 }
 
@@ -43,19 +43,26 @@ export function setToArray(set) {
  * String -> a -> b -> b
  * set the specified property
  */
-export const propSet = curry((propName, value, target) => set(lensProp(propName), value, target));
+export const propSet = curry(
+  <T extends Record<string, unknown>>(propName: string, value: unknown, target: T): T =>
+    set(lensProp<T>(propName), value as T[string], target)
+);
 
 /**
  * [String] -> a -> b -> b
  * Set nested property using path
  */
-export const pathSet = curry((path, value, target) => set(lensPath(path), value, target));
+export const pathSet = curry(
+  <T>(path: (string | number)[], value: unknown, target: T): T => set(lensPath(path), value, target)
+);
 
 /**
  * [String] -> a -> b -> b
  * Toggle nested property using path
  */
-export const togglePath = curry((path, target) => over(lensPath(path), not, target));
+export const togglePath = curry(
+  <T>(path: (string | number)[], target: T): T => over(lensPath(path), not, target)
+);
 
 /**
  * {k: v} -> k -> v | Undefined
@@ -66,23 +73,25 @@ export const togglePath = curry((path, target) => over(lensPath(path), not, targ
  */
 export const lookup = flip(prop);
 
-export const getDaysFromNow = (timestamp) => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
+export const getDaysFromNow = (timestamp: number): number =>
+  Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
 
-export const getExpiryDate = (timestamp) => moment(timestamp).format('MMMM DD, yyyy');
+export const getExpiryDate = (timestamp: number): string => moment(timestamp).format('MMMM DD, yyyy');
 
 export const isNilOrEmpty = either(isNil, isEmpty);
 
-export const union = (set1, set2) => new Set(setToArray(set1).concat(setToArray(set2)));
+export const union = <T>(set1: Set<T>, set2: Set<T>): Set<T> =>
+  new Set((setToArray(set1) ?? []).concat(setToArray(set2) ?? []));
 
 /**
  * Like groupBy, but where the key function returns a list of strings instead of a single string, and items
  * are grouped according to each string in their list.
  */
-export function multiGroupBy(keyFn, items) {
+export function multiGroupBy<T>(keyFn: (item: T) => string[], items: T[]): Record<string, T[]> {
   // For a given item, returns a series of 2-val tuples holding each distinct key value for the item and the item
   // itself
-  const pairsForItem = (item) => map((k) => [k, item], keyFn(item)),
-    pairIterator = function (acc, [key, item]) {
+  const pairsForItem = (item: T): [string, T][] => map((k: string) => [k, item] as [string, T], keyFn(item)),
+    pairIterator = function (acc: Record<string, T[]>, [key, item]: [string, T]) {
       // for efficiency, mutably build up the accumulator.  This is alright since the construction of the
       // accumulator is internal to multiGroupBy
       const currentValAtKey = acc[key];
@@ -95,11 +104,11 @@ export function multiGroupBy(keyFn, items) {
       return acc;
     };
 
-  return transduce(chain(pairsForItem), pairIterator, {}, items);
+  return transduce(chain(pairsForItem), pairIterator, {} as Record<string, T[]>, items);
 }
 
 // Return a string equivalent to the input but with the first letter uppercase
-export function capitalize(str) {
+export function capitalize(str: string | null | undefined): string | null | undefined {
   if (!str) {
     return str;
   } else {
@@ -111,17 +120,15 @@ export function capitalize(str) {
  * Returns an ISO date (with offset) created from the moment this function is called
  * and adding the number of daysToAdd.
  * Note that time portion of the String will always be end of day.
- * @param {String} daysToAdd number of days to add to current date
  */
-export function getFutureDate(daysToAdd = 0) {
+export function getFutureDate(daysToAdd = 0): string {
   return moment().add(daysToAdd, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
 }
 
 /**
  * Returns an ISO date (with offset) created from a date with format YYYY-MM-DD
- * @param {String} date date created with the NxDateInput component (YYYY-MM-DD)
  */
-export function getISODateFromDateInput(date) {
+export function getISODateFromDateInput(date: string): string {
   return moment(date).format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
 }
 
@@ -149,10 +156,10 @@ export const eqValues = compose(isEmpty, symmetricDifference);
  *
  * Returns true if at least one of the elements of the list match the predicate, false otherwise.
  */
-export const anyIndexed = addIndex(any);
+export const anyIndexed = addIndex<unknown>(any as never);
 
 // Return a string only with first letter uppercase
-export const capitalizeFirstLetter = (string) => {
+export const capitalizeFirstLetter = (string: string | null | undefined): string | null | undefined => {
   if (!string) {
     return string;
   } else {
@@ -163,23 +170,26 @@ export const capitalizeFirstLetter = (string) => {
 
 /**
  * Checks whether all elements in the array are equal
- * @param {*} arr - array with primitive values
- * @returns Boolean
  */
-export const allEqual = (arr) => arr.every((val) => val === arr[0]);
+export const allEqual = <T>(arr: T[]): boolean => arr.every((val) => val === arr[0]);
 
-export function copyToClipboard(textToCopy) {
+export function copyToClipboard(textToCopy: string): void {
   const selection = window.document.getSelection();
   const node = window.document.createElement('textarea');
   node.style.position = 'absolute';
   node.style.left = '-10000px';
   node.textContent = textToCopy;
   window.document.body.appendChild(node);
-  selection.removeAllRanges();
+  selection?.removeAllRanges();
   node.select();
   window.document.execCommand('copy');
-  selection.removeAllRanges();
+  selection?.removeAllRanges();
   window.document.body.removeChild(node);
+}
+
+interface SortConfiguration {
+  columnName: string;
+  dir: 'asc' | 'desc';
 }
 
 /**
@@ -198,13 +208,11 @@ export function copyToClipboard(textToCopy) {
  *
  * If columnName is refering to an unexisting column in sortConfigurationCollection,
  * then a new object setting sort direction as `asc` by default.
- *
- * @typedef {Array.<{columnName: string, dir: ('asc'|'desc')}>} sortConfigurationCollectionType
- * @param {string} columnName - Column to switch
- * @param {sortConfigurationCollectionType} sortConfigurationCollection
- * @returns {sortConfigurationCollectionType}
  */
-export const changeMultiColumnSortCriteria = (columnName, [...sortConfigurationCollection]) => {
+export const changeMultiColumnSortCriteria = (
+  columnName: string,
+  [...sortConfigurationCollection]: SortConfiguration[]
+): SortConfiguration[] => {
   if (typeof columnName !== 'string') throw Error('columnName should be a string');
   if (!Array.isArray(sortConfigurationCollection))
     throw Error(
@@ -233,7 +241,7 @@ export const changeMultiColumnSortCriteria = (columnName, [...sortConfigurationC
   return sortConfigurationCollection;
 };
 
-export const round = (num, decimalPlaces = 0) => {
+export const round = (num: number, decimalPlaces = 0): number => {
   const p = Math.pow(10, decimalPlaces);
   const n = num * p * (1 + Number.EPSILON);
   return Math.round(n) / p;

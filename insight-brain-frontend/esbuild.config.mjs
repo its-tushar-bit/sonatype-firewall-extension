@@ -38,7 +38,8 @@ const allBundles = [
   { name: 'bundle', entry: './index.jsx' },
   { name: 'viewdetails-react', entry: './version-graph/viewdetails-react/index.jsx' },
   { name: 'version-graph-react', entry: './version-graph/version-graph-react/index.jsx' },
-  { name: 'guide', entry: './guide/index.tsx', outdir: guideOutDir, tsconfig: 'tsconfig.guide.json' },
+  { name: 'nexus-one/nexus-one', entry: './nexus-one/index.tsx' },
+  { name: 'guide', entry: './guide/index.tsx', outdir: guideOutDir },
 ];
 
 const activeBundles = allBundles;
@@ -226,6 +227,8 @@ const sharedBuildOptions = {
   loader: {
     '.js': 'jsx',
     '.jsx': 'jsx',
+    '.ts': 'ts',
+    '.tsx': 'tsx',
     '.png': 'file',
     '.jpg': 'file',
     '.jpeg': 'file',

@@ -1,3 +1,31 @@
 {
-  "extends": "./tsconfig.guide.json"
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "MainRoot/*": ["./src/main/frontend/*"],
+      "GuideRoot/*": ["./src/main/frontend/guide/*"],
+      "TestRoot/*": ["./src/test/frontend/*"]
+    }
+  },
+  "include": [
+    "src/main/frontend/**/*.ts",
+    "src/main/frontend/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "target"
+  ]
 }

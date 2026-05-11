@@ -3,6 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { prop } from 'ramda';
 
-export const selectDisplayTheme = prop('displayTheme');
+export {
+  colors,
+  spacing,
+  radii,
+  fontSizes,
+  type ColorToken,
+  type SpacingToken,
+  type RadiusToken,
+  type FontSizeToken,
+} from './tokens';

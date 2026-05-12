@@ -48,3 +48,17 @@ CREATE TABLE firewall_ignore_patterns
     CONSTRAINT firewall_ignore_patterns_pk PRIMARY KEY (firewall_ignore_patterns_id)
 );
 INSERT INTO firewall_ignore_patterns(firewall_ignore_patterns_id) VALUES ('firewall-ignore-patterns');
+
+CREATE TABLE announcement_banner
+(
+    announcement_banner_id varchar(50)              NOT NULL,
+    enabled                boolean                  NOT NULL DEFAULT false,
+    window_id              varchar(200),
+    display_from           timestamp with time zone,
+    display_until          timestamp with time zone,
+    message                text,
+    severity               varchar(20)              NOT NULL DEFAULT 'info',
+    updated_at             timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT announcement_banner_pk PRIMARY KEY (announcement_banner_id)
+);
+INSERT INTO announcement_banner(announcement_banner_id, enabled) VALUES ('announcement-banner', false);

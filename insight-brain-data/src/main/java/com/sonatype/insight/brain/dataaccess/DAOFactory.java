@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfi
 import com.sonatype.insight.brain.dataaccess.configuration.CiIntegrationsConfigDao;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AnnouncementBannerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
@@ -431,6 +432,8 @@ public interface DAOFactory
   ComponentCategoryDAO createComponentCategoryDAO();
 
   FirewallIgnorePatternsDAO createFirewallIgnorePatternsDAO();
+
+  AnnouncementBannerDAO createAnnouncementBannerDAO();
 
   LicenseDAO createLicenseDAO();
 

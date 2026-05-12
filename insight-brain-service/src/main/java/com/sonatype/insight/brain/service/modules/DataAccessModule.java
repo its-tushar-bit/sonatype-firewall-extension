@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AnnouncementBannerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
@@ -208,7 +209,8 @@ public final class DataAccessModule
     bind(HashComponentIdentifierDAO.class).in(Scopes.SINGLETON);
     bind(RepositoryIdentifiedComponentDAO.class).in(Scopes.SINGLETON);
 
-    // Configuration (15 DAOs)
+    // Configuration (17 DAOs)
+    bind(AnnouncementBannerDAO.class).in(Scopes.SINGLETON);
     bind(AutomaticApplicationsConfigurationDAO.class).in(Scopes.SINGLETON);
     bind(AutomaticSourceControlConfigurationDAO.class).in(Scopes.SINGLETON);
     bind(CallFlowAnalysisConfigDAO.class).in(Scopes.SINGLETON);

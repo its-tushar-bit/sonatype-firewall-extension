@@ -13,6 +13,7 @@ import jakarta.inject.Provider;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.AnnouncementBannerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
@@ -1102,6 +1103,11 @@ public class TestDAOFactory
   @Override
   public FirewallIgnorePatternsDAO createFirewallIgnorePatternsDAO() {
     return new FirewallIgnorePatternsDAO(dataStoreProvider.getDataMartDataStore());
+  }
+
+  @Override
+  public AnnouncementBannerDAO createAnnouncementBannerDAO() {
+    return new AnnouncementBannerDAO(dataStoreProvider.getDataMartDataStore());
   }
 
   @Override

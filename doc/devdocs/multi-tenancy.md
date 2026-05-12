@@ -905,3 +905,69 @@ curl -H 'Authorization: Bearer <access-token>' -X DELETE http://{mtiq-ip-address
 # Here is an example deleting the tenant property values for baseUrl and quarantinedItemCustomMessage
 curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X DELETE http://127.0.0.1:8071/api/admin/tenants/cubs/config?properties=baseUrl&properties=quarantinedItemCustomMessage
 ```
+
+### Announcement Banner
+
+The announcement banner is a deployment-global, Sonatype-only control for publishing an in-product notice to
+every authenticated user of an IQ Cloud deployment — primarily for upcoming maintenance windows, but usable for
+any admin-published announcement. Customers cannot configure it; the admin endpoint is served only on the
+loopback-bound admin port with a Sonatype Auth0 JWT, while the read endpoint on the app port returns the same
+payload to every tenant in the deployment.
+
+Storage is a single row in the DataMart schema, which `MultiTenantDataMartDataStore` hardwires to the `global`
+Postgres schema in MTIQ. US and EU MTIQ are separate deployments with separate DataMart databases, so run the
+appropriate `curl` against each deployment's admin port and tailor the payload for that region.
+
+The banner auto-shows at `displayFrom` and auto-hides at `displayUntil` (client-side time check) — no further
+action is needed after `displayUntil`. Change `windowId` on every edit so users who dismissed the previous
+banner see the updated one.
+
+#### Schedule an announcement
+
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X PUT \
+  -H 'Content-Type: application/json' \
+  --data '{
+    "enabled": true,
+    "windowId": "2026-05-26-us",
+    "displayFrom": "2026-05-20T00:00:00Z",
+    "displayUntil": "2026-05-26T23:00:00-04:00",
+    "severity": "warning",
+    "message": "Scheduled maintenance: May 26, 6:00 PM - 10:00 PM EDT. Expect degraded performance during this window."
+  }' \
+  http://{mtiq-ip-address}:8071/api/admin/tenants/global/announcement-banner
+```
+
+Fields:
+- `enabled`: set to `false` to hide immediately without waiting for `displayUntil`.
+- `windowId`: opaque string. Change it on every edit so previously-dismissed users see the updated banner.
+- `displayFrom` / `displayUntil`: ISO-8601 with timezone. Client-side auto-show/auto-hide.
+- `severity`: `info`, `warning`, or `critical`.
+- `message`: text shown inside the banner.
+
+#### Read the current banner (admin side)
+
+```bash
+curl -H 'Authorization: Bearer <access-token>' \
+  http://{mtiq-ip-address}:8071/api/admin/tenants/global/announcement-banner
+```
+
+#### Disable the banner immediately
+
+```bash
+curl -H 'Authorization: Bearer <access-token>' -X PUT \
+  -H 'Content-Type: application/json' \
+  --data '{"enabled": false}' \
+  http://{mtiq-ip-address}:8071/api/admin/tenants/global/announcement-banner
+```
+
+The PUT replaces the full row, so a bare `{"enabled": false}` also clears `windowId`, `message`, `displayFrom`, and `displayUntil` to NULL. That is the intended disabled state; to re-enable, resupply every field — `{"enabled": true}` alone will fail the `windowId`/`message` validation.
+
+#### Customer-facing read endpoint
+
+Any authenticated customer user (and the IQ UI itself) reads the banner via:
+```
+GET http://{mtiq-ip-address}:8070/rest/config/announcementBanner/fetch
+```
+This is annotated `@UnlicensedPath` so it works for unlicensed tenants, but it still requires authentication.
+

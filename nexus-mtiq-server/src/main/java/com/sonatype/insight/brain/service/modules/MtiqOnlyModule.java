@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service.modules;
 
+import com.sonatype.insight.brain.api.admin.AnnouncementBannerAdminResource;
 import com.sonatype.insight.brain.api.admin.ConfigFeaturesResource;
 import com.sonatype.insight.brain.api.admin.TenantCacheResource;
 import com.sonatype.insight.brain.api.admin.TenantConfigurationResource;
@@ -162,6 +163,7 @@ public class MtiqOnlyModule
     bind(CreditAwareProductLicense.class).to(MultiTenantProductLicense.class);
 
     // Admin API resources and services
+    bind(AnnouncementBannerAdminResource.class);
     bind(ConfigFeaturesResource.class);
     bind(ConfigFeaturesService.class);
     bind(TenantCacheResource.class);

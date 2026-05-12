@@ -160,6 +160,8 @@ public enum AuditEvent
 
   CONFIGURE_SYSTEM_NOTICE(Domain.SERVER_SYSTEM_NOTICE, Type.CONFIGURE),
 
+  CONFIGURE_ANNOUNCEMENT_BANNER(Domain.SERVER_ANNOUNCEMENT_BANNER, Type.CONFIGURE),
+
   INSTALL_LICENSE(Domain.SERVER_LICENSE, Type.INSTALL),
   UNINSTALL_LICENSE(Domain.SERVER_LICENSE, Type.UNINSTALL),
   START_SERVER(Domain.SERVER, Type.START),
@@ -520,6 +522,8 @@ public enum AuditEvent
     String SERVER_LICENSE = join(SERVER, "license");
 
     String SERVER_SYSTEM_NOTICE = join(SERVER, "system-notice");
+
+    String SERVER_ANNOUNCEMENT_BANNER = join(SERVER, "announcement-banner");
 
     String SERVER_WEBHOOK = join(SERVER, "webhook");
 

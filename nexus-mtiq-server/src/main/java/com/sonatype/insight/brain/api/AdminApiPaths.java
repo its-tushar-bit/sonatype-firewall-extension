@@ -28,4 +28,7 @@ public class AdminApiPaths
   public static final String ADMIN_TENANT_CACHE_PATH = ADMIN_PATH + "tenants/{tenantSlug}/cache";
 
   public static final String ADMIN_TENANT_SSO_CONFIGURATION_PATH = ADMIN_PATH + "tenants/{tenantSlug}/sso";
+
+  public static final String ADMIN_ANNOUNCEMENT_BANNER_PATH =
+      ADMIN_PATH + "tenants/{tenantSlug}/announcement-banner";
 }

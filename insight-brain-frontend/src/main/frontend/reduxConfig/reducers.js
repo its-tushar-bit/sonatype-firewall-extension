@@ -85,6 +85,7 @@ import componentRiskDetails from 'MainRoot/dashboard/results/componentRisk/compo
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
 import reportsSlice from 'MainRoot/report/react/reportsSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
+import announcementBannerSlice from 'MainRoot/announcementBanner/announcementBannerSlice';
 import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalSourcesFormReducer';
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
 import repositoriesConfigurationSlice from '../OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
@@ -222,6 +223,7 @@ export default combineReducers({
   orgsAndPolicies: orgsAndPoliciesSlice,
   reports: reportsSlice,
   productFeatures: productFeaturesSlice,
+  announcementBanner: announcementBannerSlice,
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
   repositories: repositoriesConfigurationSlice,
   hostedReposList: hostedReposListSlice,

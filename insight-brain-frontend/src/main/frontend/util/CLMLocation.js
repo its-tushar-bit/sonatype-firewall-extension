@@ -494,6 +494,10 @@ export function getSystemNoticeFetchUrl() {
   return `${getSystemNoticeUrl()}/fetch`;
 }
 
+export function getAnnouncementBannerFetchUrl() {
+  return uriTemplate`/rest/config/announcementBanner/fetch`;
+}
+
 export function getRoleListUrl() {
   return uriTemplate`/api/v2/roles`;
 }

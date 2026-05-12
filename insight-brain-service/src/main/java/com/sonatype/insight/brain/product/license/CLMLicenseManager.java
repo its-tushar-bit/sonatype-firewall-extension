@@ -603,6 +603,10 @@ public class CLMLicenseManager
       }
     }
 
+    if (creditAmountToDisplay == null && hasGuideProduct(productLicense)) {
+      creditAmountToDisplay = creditAwareProductLicense.getCreditAmount();
+    }
+
     if (applicationLimitToDisplay != null) {
       applicationCountToDisplay = (int) applicationDAO.getCountWithoutRelatedRepositories();
     }

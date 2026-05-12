@@ -2777,6 +2777,46 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_GuideSelfHostedWithAppAndSbomBased_surfacesCreditAmount() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    List<String> licensingModels = Arrays.asList(
+        ProductLicenseDetails.LICENSING_APP_BASED,
+        ProductLicenseDetails.LICENSING_SBOM_BASED);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, String.join(",", licensingModels));
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxSboms(50);
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("5000")));
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    assertThat(info.creditAmountToDisplay).isEqualTo(new BigDecimal("5000"));
+    assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+  }
+
+  @Test
+  public void testGetLicenseInfo_GuideSelfHostedWithAppAndSbomBased_noCreditAmount() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    List<String> licensingModels = Arrays.asList(
+        ProductLicenseDetails.LICENSING_APP_BASED,
+        ProductLicenseDetails.LICENSING_SBOM_BASED);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, String.join(",", licensingModels));
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxSboms(50);
+    mockHdsProductLicenseDetails();
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_GUIDE);
+    assertThat(info.creditAmountToDisplay).isNull();
+    assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+  }
+
+  @Test
   public void testGetCreditAmount() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
     mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("1000")));

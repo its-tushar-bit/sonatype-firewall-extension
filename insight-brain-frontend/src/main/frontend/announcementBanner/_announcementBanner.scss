@@ -1,0 +1,124 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// Sonatype brand colors. Accessibility-approved combinations (from brand guidelines):
+//   Alert Orange bg  -> Deep Navy text   (digital applications rule)
+//   Electric Blue bg -> Cloud White text
+// The Sonatype palette has no dedicated critical/error red; an extension color is used here. Deep Red
+// sits temperature-adjacent to Alert Orange so the three severity variants form a coherent escalation
+// (cool info -> hot warning -> hotter critical) and clears WCAG AAA (~9.2:1) against Cloud White text,
+// matching the contrast tier of info and warning.
+$sonatype-electric-blue: #2D36EC;
+$sonatype-alert-orange: #FE572A;
+$sonatype-deep-navy: #090B2F;
+$sonatype-cloud-white: #FBFCFA;
+$critical-deep-red: #991B1B;
+
+// RSC's .nx-system-notice provides the page-grid slot (grid-area: notices), the base padding, and the row
+// collapse behavior. This stylesheet only adds what RSC does not: three severity variants (RSC ships a
+// single --alert modifier), brand-palette colors (not exposed as design tokens), a flex layout for the
+// icon + message + close-button row, and a message-wrapping override (RSC truncates with ellipsis by default).
+//
+// Selectors double up the class name to outrank RSC's later-emitted single-class .nx-system-notice rule.
+
+.iq-announcement-banner.iq-announcement-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-spacing-3x);
+  font-weight: 600;
+
+  // Override RSC's truncate-ellipsis so long messages wrap across multiple lines.
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+
+  &.iq-announcement-banner--info {
+    background-color: $sonatype-electric-blue;
+    color: $sonatype-cloud-white;
+  }
+
+  &.iq-announcement-banner--warning {
+    background-color: $sonatype-alert-orange;
+    color: $sonatype-deep-navy;
+  }
+
+  &.iq-announcement-banner--critical {
+    background-color: $critical-deep-red;
+    color: $sonatype-cloud-white;
+  }
+
+  .iq-announcement-banner__icon {
+    flex: 0 0 auto;
+    font-size: 18px;
+  }
+
+  .iq-announcement-banner__message {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .iq-announcement-banner__close {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--nx-border-radius-s, 4px);
+    color: inherit;
+    cursor: pointer;
+    padding: var(--nx-spacing-base) var(--nx-spacing-2x);
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  // Custom ring on :focus-visible so it only appears for keyboard focus, not mouse clicks.
+  .iq-announcement-banner__close:focus {
+    outline: none;
+  }
+
+  &.iq-announcement-banner--info .iq-announcement-banner__close {
+    &:hover {
+      background-color: rgba(251, 252, 250, 0.18); // Cloud White @ 18%
+    }
+
+    &:focus-visible {
+      border-color: $sonatype-cloud-white;
+      box-shadow: 0 0 0 2px rgba(251, 252, 250, 0.5);
+    }
+
+    &:active {
+      background-color: rgba(251, 252, 250, 0.28);
+    }
+  }
+
+  &.iq-announcement-banner--warning .iq-announcement-banner__close {
+    &:hover {
+      background-color: rgba(9, 11, 47, 0.14); // Deep Navy @ 14%
+    }
+
+    &:focus-visible {
+      border-color: $sonatype-deep-navy;
+      box-shadow: 0 0 0 2px rgba(9, 11, 47, 0.4);
+    }
+
+    &:active {
+      background-color: rgba(9, 11, 47, 0.24);
+    }
+  }
+
+  &.iq-announcement-banner--critical .iq-announcement-banner__close {
+    &:hover {
+      background-color: rgba(251, 252, 250, 0.18); // Cloud White @ 18%
+    }
+
+    &:focus-visible {
+      border-color: $sonatype-cloud-white;
+      box-shadow: 0 0 0 2px rgba(251, 252, 250, 0.5);
+    }
+
+    &:active {
+      background-color: rgba(251, 252, 250, 0.28);
+    }
+  }
+}

@@ -110,6 +110,16 @@ describe('announcementBannerSlice', () => {
       expect(next).toEqual(state);
     });
 
+    it('clears suppressedByLogout when logout fails so the banner reappears (userSession/logout/rejected)', () => {
+      // Dismissal is preserved — logout failing shouldn't un-dismiss a banner the user dismissed earlier.
+      sessionStorage.setItem(DISMISS_STORAGE_KEY, 'w-kept');
+      const state = { ...initialState, dismissedWindowId: 'w-kept', suppressedByLogout: true };
+      const next = reducer(state, { type: 'userSession/logout/rejected' });
+      expect(next.suppressedByLogout).toBe(false);
+      expect(next.dismissedWindowId).toBe('w-kept');
+      expect(sessionStorage.getItem(DISMISS_STORAGE_KEY)).toBe('w-kept');
+    });
+
     it('leaves state alone for unrelated actions', () => {
       const state = { ...initialState, dismissedWindowId: 'w-keep' };
       const next = reducer(state, { type: 'some/other/action' });

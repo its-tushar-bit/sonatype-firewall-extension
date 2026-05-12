@@ -18,6 +18,7 @@ import { selectShowLoginModal } from 'MainRoot/user/LoginModal/userLoginSelector
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import ChangeDefaultAdminPasswordNotice from './changeDefaultAdminPasswordNotice/ChangeDefaultAdminPasswordNotice';
 import BaseUrlNotSetNotice from './configuration/baseUrl/baseUrlNotSetNotice/BaseUrlNotSetNotice';
+import AnnouncementBanner from './announcementBanner/AnnouncementBanner';
 import ToastContainer from './toastContainer/ToastContainer';
 import NavigationContainer from './navigationContainer/NavigationContainer';
 import MainHeader from './mainHeader/MainHeader.jsx';
@@ -41,6 +42,7 @@ function PageLayout() {
         {!error && <SystemNoticeContainer />}
         {!error && <ChangeDefaultAdminPasswordNotice />}
         {!error && <BaseUrlNotSetNotice />}
+        {!error && <AnnouncementBanner />}
       </div>
       <ToastContainer />
       {!embeddable && <NavigationContainer clmServerVersion={CLM_SERVER_VERSION} />}

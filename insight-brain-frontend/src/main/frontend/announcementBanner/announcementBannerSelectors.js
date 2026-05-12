@@ -17,9 +17,10 @@ export const selectAnnouncementBannerDismissedWindowId = createSelector(
 
 /**
  * Parse the backend's OffsetDateTime (Jackson emits a fractional epoch in seconds by default; ISO-8601
- * strings are also accepted). Returns ms or null.
+ * strings are also accepted). Returns ms or null. Shared with AnnouncementBanner so the visibility selector
+ * and the component's boundary timer interpret timestamps the same way.
  */
-function parseInstantMillis(value) {
+export function parseInstantMillis(value) {
   if (value == null) return null;
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value * 1000 : null;

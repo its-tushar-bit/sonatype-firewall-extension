@@ -98,6 +98,11 @@ const suppressForLogout = (state) => {
   state.suppressedByLogout = true;
 };
 
+/** Clear suppression if logout fails so the banner reappears. */
+const clearLogoutSuppression = (state) => {
+  state.suppressedByLogout = false;
+};
+
 const announcementBannerSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -112,6 +117,7 @@ const announcementBannerSlice = createSlice({
     [loadAnnouncementBanner.rejected]: loadRejected,
     [userLoginActions.submitUserLogin.fulfilled]: clearDismissal,
     [userSessionLogoutThunk.pending]: suppressForLogout,
+    [userSessionLogoutThunk.rejected]: clearLogoutSuppression,
   },
 });
 

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.callflow.PolicyViolationReachabilityService;
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurationService;
 import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationService;
+import com.sonatype.insight.brain.configuration.AnnouncementBannerService;
 import com.sonatype.insight.brain.configuration.SystemNoticeService;
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
@@ -445,6 +446,7 @@ public class CoreServiceModule
     bind(SuccessMetricsService.class);
     bind(SuggestionIndexCleaner.class);
     bind(SupportService.class);
+    bind(AnnouncementBannerService.class);
     bind(SystemNoticeService.class);
     bind(TagService.class);
     bind(ThirdPartyComponentDAO.class);

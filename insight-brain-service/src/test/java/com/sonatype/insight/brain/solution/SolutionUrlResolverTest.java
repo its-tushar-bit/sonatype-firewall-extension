@@ -50,7 +50,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
-    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/assets/guide/index.html#/");
   }
 
   @Test
@@ -77,7 +77,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
-    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/assets/guide/index.html#/");
   }
 
   @Test
@@ -107,7 +107,7 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("/ui/links/lifecycle/dashboard");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("/ui/links/sbomManager/dashboard");
-    assertThat(guideUrl).isEqualTo("/ui/links/guide/dashboard");
+    assertThat(guideUrl).isEqualTo("/assets/guide/index.html#/");
   }
 
   @Test
@@ -163,6 +163,6 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/reports");
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
-    assertThat(guideUrl).isEqualTo("https://locahost:8070/ui/links/guide/dashboard");
+    assertThat(guideUrl).isEqualTo("https://locahost:8070/assets/guide/index.html#/");
   }
 }

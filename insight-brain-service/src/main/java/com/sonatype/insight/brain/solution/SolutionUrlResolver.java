@@ -69,7 +69,10 @@ public class SolutionUrlResolver
         baseUrl = baseUrl + '/';
       }
 
-      if (solution.equals(Solution.LIFECYCLE) && dashboardUtils.isDashboardDisabled()) {
+      if (solution.equals(Solution.GUIDE)) {
+        result = baseUrl + UserInterfaceLinksHelper.getGuideSpaPath();
+      }
+      else if (solution.equals(Solution.LIFECYCLE) && dashboardUtils.isDashboardDisabled()) {
         result = baseUrl + UserInterfaceLinksHelper.getLifecycleAltHomePath();
       }
       else {

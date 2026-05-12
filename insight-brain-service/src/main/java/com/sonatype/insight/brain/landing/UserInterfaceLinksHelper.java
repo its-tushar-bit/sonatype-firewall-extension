@@ -28,6 +28,8 @@ public class UserInterfaceLinksHelper
 
   public static final String GUIDE_HOME_PATH = "guide/dashboard";
 
+  public static final String GUIDE_SPA_PATH = "assets/guide/index.html#/";
+
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
   public static final String SBOM_MANAGEMENT_PATH =
@@ -122,6 +124,10 @@ public class UserInterfaceLinksHelper
 
   public static String getGuideHomePath() {
     return buildStableUrl(GUIDE_HOME_PATH);
+  }
+
+  public static String getGuideSpaPath() {
+    return GUIDE_SPA_PATH;
   }
 
   public static String getVulnerabilityDetailsUrl(String vulnerabilityId) {

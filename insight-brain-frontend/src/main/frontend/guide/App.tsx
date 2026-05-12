@@ -12,6 +12,9 @@ import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { LoginPage } from './auth/LoginPage';
 import { AppShell } from './layout/AppShell';
 import { ComponentsTestPage } from './components/ComponentsTestPage';
+import { LicenseProvider } from './license/LicenseProvider';
+import { LicenseGate } from './license/LicenseGate';
+import { GUIDE_PRODUCTS } from './license/licenseProducts';
 
 function AuthGate() {
   const { status, ssoConfig, login } = useAuth();
@@ -29,13 +32,17 @@ function AuthGate() {
   }
 
   return (
-    <AppShell>
-      <Routes>
-        <Route path="/" element={<h1>Sonatype Guide</h1>} />
-        <Route path="/components" element={<ComponentsTestPage />} />
-        <Route path="/vulnerabilities" element={<h1>Vulnerabilities</h1>} />
-      </Routes>
-    </AppShell>
+    <LicenseProvider>
+      <LicenseGate requires={GUIDE_PRODUCTS}>
+        <AppShell>
+          <Routes>
+            <Route path="/" element={<h1>Sonatype Guide</h1>} />
+            <Route path="/components" element={<ComponentsTestPage />} />
+            <Route path="/vulnerabilities" element={<h1>Vulnerabilities</h1>} />
+          </Routes>
+        </AppShell>
+      </LicenseGate>
+    </LicenseProvider>
   );
 }
 

@@ -19,8 +19,10 @@ import jakarta.inject.Singleton;
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -122,6 +124,8 @@ public class ApiConfigurationService
 
   private final TenantUtil tenantUtil;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
@@ -133,7 +137,8 @@ public class ApiConfigurationService
       PermissionService permissionService,
       StageTypeService stageTypeService,
       Provider<TelemetrySender> telemetrySenderProvider,
-      TenantUtil tenantUtil)
+      TenantUtil tenantUtil,
+      RepositoryManagerDAO repositoryManagerDAO)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListenersProvider = configurationListenersProvider;
@@ -145,6 +150,7 @@ public class ApiConfigurationService
     this.stageTypeService = stageTypeService;
     this.telemetrySenderProvider = telemetrySenderProvider;
     this.tenantUtil = tenantUtil;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   public Map<String, Object> getConfiguration(Set<String> propertyNames) {
@@ -188,13 +194,31 @@ public class ApiConfigurationService
     // We are authorized if PermissionService.validatePermission returns a non-empty value for any triplet
     // since we pass it a singleton containing our desired permission on each iteration
     // (i.e. permissionA OR permissionB or ...)
-    return permissionsToCheck.stream()
+    if (permissionsToCheck.stream()
         .anyMatch(
             permissionGroup -> !permissionService
                 .validatePermission(SecurityUtils.getSubject(), permissionGroup.getLeft(),
                     permissionGroup.getMiddle(),
                     permissionGroup.getRight())
-                .isEmpty());
+                .isEmpty()))
+    {
+      return true;
+    }
+
+    // For quarantinedItemCustomMessage, also allow users with EVALUATE_COMPONENT at any repository manager.
+    // Nexus Repository integrates with Firewall using a user scoped to a repository manager, and needs
+    // to read this property to display custom quarantine messages (NEXUS-51730).
+    if (SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE.equals(propertyName)) {
+      Object principal = SecurityUtils.getSubject().getPrincipal();
+      if (!(principal instanceof UserPrincipal)) {
+        return false;
+      }
+      Set<String> contextIds = permissionService.getContextIdsForUserWithPermission((UserPrincipal) principal,
+          Permission.EVALUATE_COMPONENT);
+      return !repositoryManagerDAO.getByIds(contextIds).isEmpty();
+    }
+
+    return false;
   }
 
   public Map<String, Object> getConfigurationNoAuthz(Set<String> propertyNames) {

@@ -36,6 +36,11 @@ public class ApiConfigurationServiceAuthzTest
     service.getConfiguration(Collections.emptySet());
   }
 
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetConfiguration_QuarantineMessage_Unauthenticated() {
+    service.getConfiguration(Collections.singleton(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE));
+  }
+
   @Test
   public void testGetConfiguration_Unauthorized() {
     login();
@@ -66,6 +71,22 @@ public class ApiConfigurationServiceAuthzTest
     grantEvaluateComponentPermission(Organization.ROOT_ORGANIZATION_ID);
     assertNotNull(
         service.getConfiguration(Collections.singleton(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)));
+  }
+
+  @Test
+  public void testGetConfiguration_WithEvaluateComponentPermissionAtRepositoryManager_Authorized() {
+    grantEvaluateComponentPermission(repositoryManager.getId());
+    assertNotNull(
+        service.getConfiguration(Collections.singleton(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)));
+  }
+
+  @Test
+  public void testGetConfiguration_WithEvaluateComponentPermissionAtRepository_NotAuthorized() {
+    grantEvaluateComponentPermission(repository.getId());
+    assertThrows("Insufficient permissions",
+        UnauthorizedException.class,
+        () -> service
+            .getConfiguration(Collections.singleton(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)));
   }
 
   @Test

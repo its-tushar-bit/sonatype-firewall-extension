@@ -81,6 +81,7 @@ public class TenantConfigurationServiceTest
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(EVALUATION_QUEUE_CONFIG,
         JsonUtils.convertValue(EvaluationQueueConfig.builder().build(), Map.class));
     EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(LIFECYCLE_TIER, "Pro");
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(HOSTED_REPOSITORY_EVALUATION, false);
   }
 
   private static final Map<String, Object> EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES = new HashMap<>();

@@ -68,7 +68,8 @@ public class TenantConfigurationService
       USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
       MALICIOUS_URLS_PARTNER_ACCESS,
       EVALUATION_QUEUE_CONFIG,
-      LIFECYCLE_TIER);
+      LIFECYCLE_TIER,
+      HOSTED_REPOSITORY_EVALUATION);
 
   // Visible for testing
   /**

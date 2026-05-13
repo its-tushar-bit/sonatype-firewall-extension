@@ -148,7 +148,6 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getId(),
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
         SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
-        SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.getId(),
         SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getId(),
       })).toArray(String[]::new);
 

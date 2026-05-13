@@ -546,8 +546,6 @@ public enum SystemConfigurationPropertyFeature
 
   MALICIOUS_URLS_PARTNER_ACCESS(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, false),
 
-  GITHUB_APP_AUTHENTICATION(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION, false),
-
   FIREWALL_ENTERPRISE_REPORTING(SystemConfigurationProperty.FIREWALL_ENTERPRISE_REPORTING, true),
 
   GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false)

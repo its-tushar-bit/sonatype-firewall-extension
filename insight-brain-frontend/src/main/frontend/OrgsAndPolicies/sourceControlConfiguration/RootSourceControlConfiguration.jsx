@@ -30,7 +30,6 @@ import {
 import {
   selectIsAutomationSupported,
   selectTenantScmOptionsTypes,
-  selectIsGithubAppAuthenticationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
@@ -51,7 +50,6 @@ const RootSourceControlConfiguration = () => {
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
   const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
-  const isGithubAppAuthenticationEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
 
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -173,7 +171,7 @@ const RootSourceControlConfiguration = () => {
   );
 
   const provider = effectiveProvider(sourceControl, serverSourceControl);
-  const showGithubAppAuth = provider === 'github' && isGithubAppAuthenticationEnabled;
+  const showGithubAppAuth = provider === 'github';
 
   return (
     <NxStatefulForm
@@ -181,7 +179,7 @@ const RootSourceControlConfiguration = () => {
       doLoad={doLoad}
       loading={formLoading}
       loadError={loadError}
-      validationErrors={getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled)}
+      validationErrors={getValidationMessage(isDirty, validationError, sourceControl)}
       submitMaskState={submitMaskState}
       submitError={submitError}
       submitBtnText={sourceControl?.id ? 'Update' : 'Create'}
@@ -205,12 +203,10 @@ const RootSourceControlConfiguration = () => {
           setValue={setValue}
           areFieldsDisabled={!sourceControl?.provider.rscValue.value}
           onChangeToken={onChangeToken}
-          isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
         />
       )}
-      {/* Only show credentials section for non-GitHub providers or when GitHub App auth is disabled */}
-      {/* When GitHub App feature is enabled, hide Access Token field if no provider is selected */}
-      {!showGithubAppAuth && (!isGithubAppAuthenticationEnabled || sourceControl?.provider.rscValue?.value) && (
+      {/* Only show credentials section for non-GitHub providers; hide Access Token field if no provider is selected */}
+      {!showGithubAppAuth && sourceControl?.provider.rscValue?.value && (
         <NxFormRow>
           {providerNeedsUsername(sourceControl, serverSourceControl) && (
             <NxFormGroup label="Username" isRequired>

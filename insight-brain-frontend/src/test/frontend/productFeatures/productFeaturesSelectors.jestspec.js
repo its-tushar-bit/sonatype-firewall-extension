@@ -35,7 +35,6 @@ import {
   selectTenantScmOptionsTypes,
   selectIsSAMLEnabled,
   selectIsUserManagementPagesEnabled,
-  selectIsGithubAppAuthenticationEnabled,
   selectHasCustomPolicies,
   selectHasCustomAppCategories,
   selectHasCustomComponentLabels,
@@ -382,22 +381,6 @@ describe('productFeaturesSelectors', () => {
 
     it('returns false if user-management-pages not present', () => {
       expect(selectIsUserManagementPagesEnabled(mockState)).toBe(false);
-    });
-  });
-
-  describe('selectIsGithubAppAuthenticationEnabled', () => {
-    it('returns true if github-app-authentication enabled', () => {
-      mockState.productFeatures.productFeatures['github-app-authentication'] = true;
-      expect(selectIsGithubAppAuthenticationEnabled(mockState)).toBe(true);
-    });
-
-    it('returns false if github-app-authentication disabled', () => {
-      mockState.productFeatures.productFeatures['github-app-authentication'] = false;
-      expect(selectIsGithubAppAuthenticationEnabled(mockState)).toBe(false);
-    });
-
-    it('returns false if github-app-authentication not present', () => {
-      expect(selectIsGithubAppAuthenticationEnabled(mockState)).toBe(false);
     });
   });
 

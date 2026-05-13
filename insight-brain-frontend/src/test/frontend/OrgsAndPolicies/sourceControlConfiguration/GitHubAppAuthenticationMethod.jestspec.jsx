@@ -52,7 +52,6 @@ describe('GitHubAppAuthenticationMethod', () => {
     setValue: jest.fn(),
     areFieldsDisabled: false,
     onChangeToken: jest.fn(),
-    isGithubAppAuthenticationEnabled: true,
   };
 
   const renderComponent = (props = {}) => {
@@ -253,23 +252,6 @@ describe('GitHubAppAuthenticationMethod', () => {
       });
     });
 
-    describe('when GitHub App authentication is disabled', () => {
-      it('only renders access token input without radio buttons', () => {
-        renderComponent({ isGithubAppAuthenticationEnabled: false });
-
-        expect(screen.queryByRole('group', { name: /authentication method/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole('radio')).not.toBeInTheDocument();
-        expect(screen.getByDisplayValue('')).toHaveAttribute('id', 'source-control-token');
-      });
-
-      it('renders password input with correct attributes', () => {
-        renderComponent({ isGithubAppAuthenticationEnabled: false });
-
-        const tokenInput = document.querySelector('#source-control-token');
-        expect(tokenInput).toHaveAttribute('type', 'password');
-        expect(tokenInput).toHaveAttribute('autocomplete', 'new-password');
-      });
-    });
   });
 
   describe('GitHub App Authentication Method', () => {
@@ -610,7 +592,6 @@ describe('GitHubAppAuthenticationMethod', () => {
         sourceControl: defaultSourceControl,
         areFieldsDisabled: false,
         onChangeToken: jest.fn(),
-        isGithubAppAuthenticationEnabled: true,
       };
 
       expect(() => render(<GitHubAppAuthenticationMethod {...minimalProps} />)).not.toThrow();

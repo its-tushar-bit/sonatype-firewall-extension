@@ -475,98 +475,13 @@ describe('sourceControlSelectors', () => {
         selectIsRootOrganization,
         selectIsApplication,
         selectSelectedOwnerName,
-        expect.any(Function),
       ]);
     });
 
     testsToRun.forEach(({ sourceControl, effectiveProvider, isRootOrg, isApp, ownerName, expectedMessage }) => {
       it(`selects selectItemSubText with isRootOrg = ${isRootOrg}, isApp = ${isApp}, effectiveProvider = ${effectiveProvider} and sourceControlExists = ${!!sourceControl}`, () => {
-        const isGithubAppAuthenticationEnabled = true;
-        const selected = selectItemSubText.resultFunc(
-          sourceControl,
-          effectiveProvider,
-          isRootOrg,
-          isApp,
-          ownerName,
-          isGithubAppAuthenticationEnabled
-        );
+        const selected = selectItemSubText.resultFunc(sourceControl, effectiveProvider, isRootOrg, isApp, ownerName);
         expect(selected).toEqual(expectedMessage);
-      });
-    });
-
-    describe('when GitHub App feature flag is disabled', () => {
-      it('should show "Provides default access token" instead of GitHub App message when local GitHub App is configured', () => {
-        const sourceControl = {
-          repositoryUrl: 'Some Url',
-          token: {
-            value: 'token value',
-          },
-          authenticationType: {
-            value: 'GITHUB_APP',
-          },
-          githubApp: {
-            value: {
-              installationId: '12345',
-            },
-          },
-        };
-        const isGithubAppAuthenticationEnabled = false;
-        const selected = selectItemSubText.resultFunc(
-          sourceControl,
-          'github',
-          false,
-          true,
-          'ownerName',
-          isGithubAppAuthenticationEnabled
-        );
-        expect(selected).toEqual('Provides default access token for ownerName (GitHub)');
-      });
-
-      it('should show "Inherit access token" instead of GitHub App inheritance message', () => {
-        const sourceControl = {
-          repositoryUrl: 'Some Url',
-          token: {
-            parentValue: 'token parentValue',
-            parentName: 'token parentName',
-          },
-          provider: { value: 'github' },
-          authenticationType: {
-            parentValue: 'GITHUB_APP',
-          },
-        };
-        const isGithubAppAuthenticationEnabled = false;
-        const selected = selectItemSubText.resultFunc(
-          sourceControl,
-          'github',
-          false,
-          true,
-          'ownerName',
-          isGithubAppAuthenticationEnabled
-        );
-        expect(selected).toEqual('Inherit access token (GitHub)');
-      });
-
-      it('should show "Inherit access token from parent" when feature is disabled and parent has GitHub App', () => {
-        const sourceControl = {
-          repositoryUrl: 'Some Url',
-          token: {
-            parentValue: 'token parentValue',
-            parentName: 'token parentName',
-          },
-          authenticationType: {
-            parentValue: 'GITHUB_APP',
-          },
-        };
-        const isGithubAppAuthenticationEnabled = false;
-        const selected = selectItemSubText.resultFunc(
-          sourceControl,
-          'github',
-          false,
-          true,
-          'ownerName',
-          isGithubAppAuthenticationEnabled
-        );
-        expect(selected).toEqual('Inherit access token from token parentName (GitHub)');
       });
     });
   });

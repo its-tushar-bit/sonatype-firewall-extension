@@ -48,7 +48,6 @@ import {
 import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
 import {
   selectIsAutomationSupported,
-  selectIsGithubAppAuthenticationEnabled,
   selectIsSourceControlForSourceTileSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
@@ -367,9 +366,8 @@ const loadSCMRootConfig = createAsyncThunk(
     const isApp = selectIsApplication(state);
     const isRootOrg = selectIsRootOrganization(state);
     const routerParams = selectRouterCurrentParams(state);
-    const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
     const githubAppId = ignoreGitHubAppReturn ? null : getGitHubAppReturnParam(routerParams);
-    const hasGitHubAppReturnParam = isGithubAppAuthenticationEnabled && Boolean(githubAppId);
+    const hasGitHubAppReturnParam = Boolean(githubAppId);
     const ownerType = isApp ? 'application' : 'organization';
     const promises = [
       axios.get(getCompositeSourceControlUrl(ownerType, owner.id)),
@@ -394,17 +392,12 @@ const loadSCMRootConfig = createAsyncThunk(
           providerNeedsUsername(dirtySourceControl, originalSourceControl);
         dirtySourceControl.token.isInherited =
           dirtySourceControl.token?.isInherited &&
-          !isAccessTokenRequiredOnNode(
-            dirtySourceControl,
-            originalSourceControl,
-            isApp,
-            isGithubAppAuthenticationEnabled
-          );
+          !isAccessTokenRequiredOnNode(dirtySourceControl, originalSourceControl, isApp);
         dirtySourceControl.provider.isInherited = dirtySourceControl.provider.isInherited && !isRootOrg;
         originalSourceControl = { ...dirtySourceControl };
 
         // Generate storage key in thunk to avoid passing redundant ownerId/ownerType through payload
-        const storageKey = isGithubAppAuthenticationEnabled ? getScmFormStateStorageKey(ownerType, owner.id) : null;
+        const storageKey = getScmFormStateStorageKey(ownerType, owner.id);
         const savedState = consumeSavedSourceControlState(storageKey);
 
         return {
@@ -593,7 +586,6 @@ const save = createAsyncThunk(`${REDUCER_NAME}/save`, async (_, { getState, disp
   const isApp = selectIsApplication(state);
   const isRootOrg = selectIsRootOrganization(state);
   const isAutomationSupported = selectIsAutomationSupported(state);
-  const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
   const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
 
@@ -603,8 +595,7 @@ const save = createAsyncThunk(`${REDUCER_NAME}/save`, async (_, { getState, disp
       serverSourceControl,
       isApp,
       isRootOrg,
-      isAutomationSupported,
-      isGithubAppAuthenticationEnabled
+      isAutomationSupported
     );
     const data = getDataFromSourceControl(ownerType, submitSourceControlData);
     const requestType =
@@ -649,12 +640,9 @@ const reset = createAsyncThunk(`${REDUCER_NAME}/reset`, (_, { getState, dispatch
   const isApp = selectIsApplication(state);
   const owner = selectSelectedOwner(state);
   const ownerType = isApp ? 'application' : 'organization';
-  const isGithubAppAuthenticationEnabled = selectIsGithubAppAuthenticationEnabled(state);
-  const storageKey = isGithubAppAuthenticationEnabled ? getScmFormStateStorageKey(ownerType, owner.id) : null;
+  const storageKey = getScmFormStateStorageKey(ownerType, owner.id);
 
-  if (storageKey) {
-    removeFormStateWithFallback(storageKey);
-  }
+  removeFormStateWithFallback(storageKey);
 
   return axios
     .delete(getSourceControlUrl(ownerType, owner.id))

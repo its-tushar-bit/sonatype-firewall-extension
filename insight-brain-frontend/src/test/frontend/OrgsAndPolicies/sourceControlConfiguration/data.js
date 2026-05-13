@@ -140,21 +140,7 @@ export const assertionsForOrgDefaultState = [
     inherit: true,
     override: false,
   },
-  {
-    name: 'Credentials',
-    visibility: { assertion: 'toBeVisible' },
-    isDisabled: { assertion: 'toBeDisabled' },
-    isRadioVisible: true,
-    type: 'credentials',
-    tokenQuery: 'getByTestId',
-    usernameQuery: 'queryByTestId',
-    tokenAssertions: [{ assertion: 'toBeDisabled' }],
-    usernameAssertions: [{ assertion: 'toBeNull' }],
-    tokenValue: '',
-    usernameValue: '',
-    inherit: true,
-    override: false,
-  },
+  // Credentials / Authentication Method section is hidden when no provider is selected (inherited or overridden).
   {
     name: 'Branch',
     visibility: { assertion: 'toBeVisible' },
@@ -343,18 +329,13 @@ export const assertionsForOrgExistingState = [
     override: true,
   },
   {
-    name: 'Credentials',
+    // GitHub provider + feature-on renders the Authentication Method fieldset (inherit/override + GitHub App/PAT radios)
+    // instead of the legacy Credentials fieldset. We only verify visibility here; detailed auth-method behavior is
+    // covered by GitHubAppAuthenticationMethod.jestspec.jsx.
+    name: 'Authentication Method',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
-    isRadioVisible: false,
-    type: 'credentials',
-    tokenQuery: 'getByTestId',
-    usernameQuery: 'queryByTestId',
-    tokenAssertions: [{ assertion: 'toBeDisabled', isNegative: true }],
-    usernameAssertions: [{ assertion: 'toBeNull' }],
-    tokenValue: '#~FAKE~SECRET~KEY~#',
-    inherit: false,
-    override: true,
+    type: 'visibility-only',
   },
   {
     name: 'Branch',
@@ -522,21 +503,7 @@ export const assertionsForAppDefaultState = [
     inherit: true,
     override: false,
   },
-  {
-    name: 'Credentials',
-    visibility: { assertion: 'toBeVisible' },
-    isDisabled: { assertion: 'toBeDisabled' },
-    isRadioVisible: true,
-    type: 'credentials',
-    tokenQuery: 'getByTestId',
-    usernameQuery: 'queryByTestId',
-    tokenAssertions: [{ assertion: 'toBeDisabled' }],
-    usernameAssertions: [{ assertion: 'toBeNull' }],
-    tokenValue: '',
-    usernameValue: '',
-    inherit: false,
-    override: true,
-  },
+  // Credentials / Authentication Method section is hidden when no provider is selected (inherited or overridden).
   {
     name: 'Branch',
     visibility: { assertion: 'toBeVisible' },
@@ -826,18 +793,12 @@ export const assertionsForAppExistingState = [
     override: true,
   },
   {
-    name: 'Credentials',
+    // GitHub provider + feature-on renders the Authentication Method fieldset instead of the legacy Credentials
+    // fieldset. Detailed auth-method behavior is covered by GitHubAppAuthenticationMethod.jestspec.jsx.
+    name: 'Authentication Method',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
-    isRadioVisible: false,
-    type: 'credentials',
-    tokenQuery: 'getByTestId',
-    usernameQuery: 'queryByTestId',
-    tokenAssertions: [{ assertion: 'toBeDisabled', isNegative: true }],
-    usernameAssertions: [{ assertion: 'toBeNull' }],
-    tokenValue: '#~FAKE~SECRET~KEY~#',
-    inherit: false,
-    override: true,
+    type: 'visibility-only',
   },
   {
     name: 'Branch',

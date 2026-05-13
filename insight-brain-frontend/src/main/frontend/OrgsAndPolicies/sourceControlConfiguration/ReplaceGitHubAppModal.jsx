@@ -9,12 +9,10 @@ import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sou
 import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
 import { NxH2, NxModal, NxP, NxStatefulForm } from '@sonatype/react-shared-components';
 import { selectSourceControlConfigurationSlice } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
-import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const ReplaceGitHubAppModal = () => {
   const dispatch = useDispatch();
   const { isReplaceGitHubAppModalOpen } = useSelector(selectSourceControlConfigurationSlice);
-  const isFeatureEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
 
   const closeModal = () => dispatch(actions.closeReplaceGitHubAppModal());
   const continueToRegistration = () => {
@@ -22,7 +20,7 @@ const ReplaceGitHubAppModal = () => {
     dispatch(gitHubAppActions.openModal());
   };
 
-  return isReplaceGitHubAppModalOpen && isFeatureEnabled ? (
+  return isReplaceGitHubAppModalOpen ? (
     <NxModal id="replace-github-app-modal" onCancel={closeModal}>
       <NxStatefulForm
         onSubmit={continueToRegistration}

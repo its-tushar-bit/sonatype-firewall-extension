@@ -36,7 +36,6 @@ import {
 import {
   selectIsAutomationSupported,
   selectTenantScmOptionsTypes,
-  selectIsGithubAppAuthenticationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
@@ -63,7 +62,6 @@ const AppSourceControlConfiguration = () => {
   const isApp = useSelector(selectIsApplication);
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
-  const isGithubAppAuthenticationEnabled = useSelector(selectIsGithubAppAuthenticationEnabled);
 
   const doLoad = () => dispatch(actions.load());
   const showResetModal = () => dispatch(actions.showResetModal());
@@ -139,25 +137,21 @@ const AppSourceControlConfiguration = () => {
     ? 'Credentials'
     : 'Access Token';
 
-  const showGitHubAppAuth = shouldShowGitHubAppAuth(
-    sourceControl,
-    serverSourceControl,
-    isGithubAppAuthenticationEnabled
-  );
+  const showGitHubAppAuth = shouldShowGitHubAppAuth(sourceControl, serverSourceControl);
 
   // Determine if a provider is selected (either inherited or overridden)
   const hasProviderSelected =
     (sourceControl?.provider.isInherited && sourceControl?.provider.parentValue?.value) ||
     (!sourceControl?.provider.isInherited && sourceControl?.provider.rscValue?.value);
 
-  const shouldShowTokenAuth = !showGitHubAppAuth && (!isGithubAppAuthenticationEnabled || hasProviderSelected);
+  const shouldShowTokenAuth = !showGitHubAppAuth && hasProviderSelected;
   return (
     <NxStatefulForm
       onSubmit={shouldShowConfirmationOnUpdate() ? showConfirmUpdateModal : onSave}
       doLoad={doLoad}
       loading={formLoading}
       loadError={loadError}
-      validationErrors={getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled)}
+      validationErrors={getValidationMessage(isDirty, validationError, sourceControl)}
       submitMaskState={submitMaskState}
       submitError={submitError}
       submitBtnText="Update"
@@ -208,7 +202,7 @@ const AppSourceControlConfiguration = () => {
           <ScmProviderOptions />
         </NxFormSelect>
       </NxFieldset>
-      {/* GitHub App authentication (when enabled and overriding) */}
+      {/* GitHub App authentication (when overriding) */}
       {showGitHubAppAuth && (
         <GitHubAppAuthenticationMethod
           sourceControl={sourceControl}
@@ -216,7 +210,6 @@ const AppSourceControlConfiguration = () => {
           setIsInherited={setIsInherited}
           areFieldsDisabled={areFieldsDisabled}
           onChangeToken={onChangeToken}
-          isGithubAppAuthenticationEnabled={isGithubAppAuthenticationEnabled}
         />
       )}
       {/* Standard token authentication (fallback) */}

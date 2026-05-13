@@ -8,12 +8,15 @@ import { isEmpty } from 'ramda';
 
 export const testSourceControlContainers = async (assertionResults) => {
   const sectionContainers = await screen.findAllByRole('group');
-  expect(sectionContainers.length).toBe(10);
+  expect(sectionContainers.length).toBe(assertionResults.length);
   sectionContainers.forEach((sectionContainer, index) => {
     const section = assertionResults[index];
     if (!section || isEmpty(section)) return;
     applyAssertion({ ...section.visibility, element: sectionContainer });
     applyAssertion({ ...section.isDisabled, element: sectionContainer });
+    if (section.type === 'visibility-only') {
+      return;
+    }
     if (section.type === 'combobox') {
       const [inherit, override] = within(sectionContainer).getAllByRole('radio');
       const combobox = within(sectionContainer).getByRole('combobox');

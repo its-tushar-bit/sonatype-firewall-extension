@@ -126,25 +126,6 @@ describe('sourceControlConfiguration util', () => {
       expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
     });
 
-    it('shows MSG_NO_CHANGES_TO_SAVE when GitHub App exists but feature flag is disabled', () => {
-      const isDirty = false;
-      const validationError = null;
-      const sourceControl = {
-        githubApp: {
-          value: {
-            installationId: 12345,
-          },
-        },
-        authenticationType: {
-          value: 'GITHUB_APP',
-        },
-      };
-      const isGithubAppAuthenticationEnabled = false;
-
-      const message = getValidationMessage(isDirty, validationError, sourceControl, isGithubAppAuthenticationEnabled);
-
-      expect(message).toBe(MSG_NO_CHANGES_TO_SAVE);
-    });
   });
 
   describe('setIsDirty', () => {
@@ -1555,10 +1536,10 @@ describe('sourceControlConfiguration util', () => {
   });
 
   describe('shouldShowGitHubAppAuth', () => {
-    let sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled;
+    let sourceControl, serverSourceControl;
 
     beforeEach(() => {
-      // Default setup: GitHub provider, feature enabled, not inherited
+      // Default setup: GitHub provider, not inherited
       sourceControl = {
         provider: {
           isInherited: false,
@@ -1573,12 +1554,11 @@ describe('sourceControlConfiguration util', () => {
           parentValue: { value: 'github' },
         },
       };
-      isGithubAppAuthenticationEnabled = true;
     });
 
     describe('when all conditions are met', () => {
-      it('returns true when provider is GitHub, feature is enabled, and provider is not inherited', () => {
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+      it('returns true when provider is GitHub and provider is not inherited', () => {
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1587,15 +1567,15 @@ describe('sourceControlConfiguration util', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = false;
         serverSourceControl.provider.parentValue.value = 'github';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
 
-      it('returns true when provider is GitHub, feature is enabled, and both provider and token are not inherited', () => {
+      it('returns true when provider is GitHub and both provider and token are not inherited', () => {
         sourceControl.provider.isInherited = false;
         sourceControl.token.isInherited = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1604,37 +1584,28 @@ describe('sourceControlConfiguration util', () => {
     describe('when provider is not GitHub', () => {
       it('returns false when provider is GitLab', () => {
         sourceControl.provider.rscValue.value = 'gitlab';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
 
       it('returns false when provider is Azure DevOps', () => {
         sourceControl.provider.rscValue.value = 'azure';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
 
       it('returns false when provider is Bitbucket', () => {
         sourceControl.provider.rscValue.value = 'bitbucket';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
 
       it('returns false when provider is empty string', () => {
         sourceControl.provider.rscValue.value = '';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
-          false
-        );
-      });
-    });
-
-    describe('when feature flag is disabled', () => {
-      it('returns false when feature flag is false but all other conditions are met', () => {
-        isGithubAppAuthenticationEnabled = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
@@ -1645,7 +1616,7 @@ describe('sourceControlConfiguration util', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = true;
         serverSourceControl.provider.parentValue.value = 'github';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1659,7 +1630,7 @@ describe('sourceControlConfiguration util', () => {
       it('returns true when inherited provider is GitHub (even with token overridden)', () => {
         serverSourceControl.provider.parentValue.value = 'github';
         sourceControl.token.isInherited = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1667,7 +1638,7 @@ describe('sourceControlConfiguration util', () => {
       it('returns false when inherited provider is not GitHub', () => {
         serverSourceControl.provider.parentValue.value = 'gitlab';
         sourceControl.token.isInherited = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
@@ -1675,25 +1646,25 @@ describe('sourceControlConfiguration util', () => {
 
     describe('edge cases', () => {
       it('returns false when sourceControl is null', () => {
-        expect(shouldShowGitHubAppAuth(null, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(false);
+        expect(shouldShowGitHubAppAuth(null, serverSourceControl)).toBe(false);
       });
 
       it('returns false when sourceControl is undefined', () => {
-        expect(shouldShowGitHubAppAuth(undefined, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(false);
+        expect(shouldShowGitHubAppAuth(undefined, serverSourceControl)).toBe(false);
       });
 
       it('returns false when sourceControl.provider is undefined (effectiveProvider returns undefined)', () => {
         sourceControl.provider = undefined;
         // When provider is undefined, effectiveProvider gracefully returns undefined (with optional chaining)
         // shouldShowGitHubAppAuth handles undefined provider by returning false
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });
 
       it('returns true when sourceControl.token is undefined (only checks provider)', () => {
         sourceControl.token = undefined;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1702,18 +1673,18 @@ describe('sourceControlConfiguration util', () => {
         delete sourceControl.provider.isInherited;
         sourceControl.token.isInherited = false;
         // When isInherited is undefined, !sourceControl?.provider.isInherited evaluates to true
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
     });
 
     describe('complex scenarios', () => {
-      it('returns true when provider is GitHub, feature enabled, and both are fully inherited', () => {
+      it('returns true when provider is GitHub and both are fully inherited', () => {
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = true;
         serverSourceControl.provider.parentValue.value = 'github';
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
@@ -1723,17 +1694,17 @@ describe('sourceControlConfiguration util', () => {
         sourceControl.provider.rscValue.value = 'github';
         sourceControl.provider.isInherited = false;
         sourceControl.token.isInherited = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           true
         );
       });
 
-      it('returns false when all booleans are false (provider not GitHub, feature disabled, fully inherited)', () => {
+      it('returns false when inherited provider is not GitHub (fully inherited)', () => {
         sourceControl.provider.rscValue.value = 'gitlab';
         sourceControl.provider.isInherited = true;
         sourceControl.token.isInherited = true;
-        isGithubAppAuthenticationEnabled = false;
-        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled)).toBe(
+        serverSourceControl.provider.parentValue.value = 'gitlab';
+        expect(shouldShowGitHubAppAuth(sourceControl, serverSourceControl)).toBe(
           false
         );
       });

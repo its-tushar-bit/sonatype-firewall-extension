@@ -18,7 +18,6 @@ const GitHubAppAuthenticationMethod = ({
   setIsInherited,
   areFieldsDisabled,
   onChangeToken,
-  isGithubAppAuthenticationEnabled,
 }) => {
   const dispatch = useDispatch();
   const hasLocalGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.value);
@@ -107,23 +106,6 @@ const GitHubAppAuthenticationMethod = ({
 
   //TODO: Determine if GitHub App is already configured via separate API
   const isConfigured = hasLocalGithubApp;
-
-  // If GitHub App authentication is not enabled, only show Personal Access Token option
-  if (!isGithubAppAuthenticationEnabled) {
-    return (
-      <NxFormGroup label="Access Token" type="password" isRequired>
-        <NxTextInput
-          id="source-control-token"
-          onChange={onChangeToken}
-          {...sourceControl?.token.rscValue}
-          disabled={areFieldsDisabled}
-          type="password"
-          inputAttributes={{ autoComplete: 'new-password' }}
-          validatable
-        />
-      </NxFormGroup>
-    );
-  }
 
   return (
     <>
@@ -238,7 +220,6 @@ const GitHubAppAuthenticationMethod = ({
 GitHubAppAuthenticationMethod.propTypes = {
   areFieldsDisabled: PropTypes.bool.isRequired,
   onChangeToken: PropTypes.func.isRequired,
-  isGithubAppAuthenticationEnabled: PropTypes.bool.isRequired,
   sourceControl: PropTypes.shape({
     authenticationType: PropTypes.shape({
       value: PropTypes.string,

@@ -13,10 +13,7 @@ import {
   NxTile,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
-import {
-  selectIsSourceControlForSourceTileSupported,
-  selectIsGithubAppAuthenticationEnabled,
-} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectLoadError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -60,7 +57,6 @@ const SourceControlConfiguration = () => {
   const hasPendingGitHubAppReturn = useSelector(selectHasPendingGitHubAppReturn);
   const showGitHubAppSuccessModal = useSelector(selectShowGitHubAppSuccessModal);
   const sourceControl = useSelector(selectSourceControl);
-  const isGitHubAppSupported = useSelector(selectIsGithubAppAuthenticationEnabled);
   const isGitHubAppRegistrationModalOpen = useSelector(selectIsGitHubAppRegistrationModalOpen);
 
   // Prevent duplicate modal shows on back navigation, URL manipulation, and Strict Mode double-renders.
@@ -82,7 +78,6 @@ const SourceControlConfiguration = () => {
   }, [isGitHubAppRegistrationModalOpen]);
 
   useEffect(() => {
-    if (!isGitHubAppSupported) return;
     if (isLoading) return;
     if (showGitHubAppSuccessModal) return;
     if (!hasPendingGitHubAppReturn) return;
@@ -94,7 +89,7 @@ const SourceControlConfiguration = () => {
     dispatch(gitHubAppActions.closeModal());
 
     dispatch(actions.showGitHubAppSuccessModal());
-  }, [isGitHubAppSupported, isLoading, showGitHubAppSuccessModal, hasPendingGitHubAppReturn, dispatch]);
+  }, [isLoading, showGitHubAppSuccessModal, hasPendingGitHubAppReturn, dispatch]);
 
   const handleCloseGitHubAppSuccessModal = useCallback(() => {
     // Enable features that were previously disabled
@@ -122,7 +117,7 @@ const SourceControlConfiguration = () => {
           <>
             {isShowAccessTokenWarning && (
               <NxWarningAlert id="source-control-token-warning" data-testid="source-control-token-warning">
-                {isGitHubAppSupported ? 'Authentication method must be configured' : 'Access Token must be configured'}
+                Authentication method must be configured
               </NxWarningAlert>
             )}
             <NxTile className="iq-source-control-configuration-tile">
@@ -137,20 +132,16 @@ const SourceControlConfiguration = () => {
             )}
             <ResetSourceControlModal />
             <UpdateSourceControlConfirmationModal />
-            {isGitHubAppSupported && (
-              <>
-                <GitHubAppRegistrationModal />
-                <GitHubAppSuccessModal
-                  isOpen={showGitHubAppSuccessModal}
-                  onClose={handleCloseGitHubAppSuccessModal}
-                  autoEnabledGoldenPRs={!sourceControl?.remediationPullRequestsEnabled?.value}
-                  autoEnabledManualPRs={!sourceControl?.manualPullRequestsEnabled?.value}
-                  serverId={sourceControl?.githubApp?.value?.name}
-                  organizationName={sourceControl?.githubApp?.value?.accountName}
-                  submitBtnText={isRootOrg ? (sourceControl?.id ? 'Update' : 'Create') : 'Update'}
-                />
-              </>
-            )}
+            <GitHubAppRegistrationModal />
+            <GitHubAppSuccessModal
+              isOpen={showGitHubAppSuccessModal}
+              onClose={handleCloseGitHubAppSuccessModal}
+              autoEnabledGoldenPRs={!sourceControl?.remediationPullRequestsEnabled?.value}
+              autoEnabledManualPRs={!sourceControl?.manualPullRequestsEnabled?.value}
+              serverId={sourceControl?.githubApp?.value?.name}
+              organizationName={sourceControl?.githubApp?.value?.accountName}
+              submitBtnText={isRootOrg ? (sourceControl?.id ? 'Update' : 'Create') : 'Update'}
+            />
           </>
         </NxLoadWrapper>
       )}

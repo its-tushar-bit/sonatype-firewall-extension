@@ -308,8 +308,6 @@ public class SystemConfigurationProperty
 
   public static final String MALICIOUS_URLS_PARTNER_ACCESS = "maliciousUrlsPartnerAccess";
 
-  public static final String GITHUB_APP_AUTHENTICATION = "githubAppAuthentication";
-
   public static final String FIREWALL_ENTERPRISE_REPORTING = "firewallEnterpriseReporting";
 
   public static final String GUIDE_MCP_ENABLED = "guideMcpEnabled";

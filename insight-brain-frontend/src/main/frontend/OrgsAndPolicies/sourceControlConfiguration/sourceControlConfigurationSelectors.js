@@ -17,7 +17,6 @@ import {
   PROVIDERS_WITH_USERNAME,
 } from './utils';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectSourceControlConfigurationSlice = createSelector(
   selectOrgsAndPoliciesSlice,
@@ -27,8 +26,7 @@ export const selectSourceControlConfigurationSlice = createSelector(
 export const selectIsAccessTokenRequiredOnNode = createSelector(
   selectSourceControlConfigurationSlice,
   selectIsApplication,
-  selectIsGithubAppAuthenticationEnabled,
-  (sourceControlConfiguration, isApp, isGithubAppAuthenticationEnabled) => {
+  (sourceControlConfiguration, isApp) => {
     const { sourceControl, serverSourceControl } = sourceControlConfiguration;
 
     // Don't show banner if GitHub App authentication is selected (local or inherited)
@@ -39,15 +37,14 @@ export const selectIsAccessTokenRequiredOnNode = createSelector(
     // If authenticationType is inherited, use parentValue instead of value
     const effectiveAuthType = effectiveAuthenticationType(sourceControl);
 
-    const isGitHubWithAppAuth =
-      isGithubAppAuthenticationEnabled && isGitHubProvider && effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP;
+    const isGitHubWithAppAuth = isGitHubProvider && effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP;
 
     if (isGitHubWithAppAuth) {
       return false;
     }
 
     return (
-      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, isGithubAppAuthenticationEnabled) &&
+      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp) &&
       !sourceControl?.token?.rscValue?.trimmedValue
     );
   }
@@ -56,24 +53,21 @@ export const selectIsAccessTokenRequiredOnNode = createSelector(
 export const selectValidationError = createSelector(
   selectSourceControlConfigurationSlice,
   selectIsApplication,
-  selectIsGithubAppAuthenticationEnabled,
-  ({ sourceControl, serverSourceControl }, isApp, isGithubAppAuthenticationEnabled) => {
+  ({ sourceControl, serverSourceControl }, isApp) => {
     if (!sourceControl) return null;
 
     // Only skip token validation if Provider is GitHub and Authentication type is GITHUB_APP
     const provider = effectiveProvider(sourceControl, serverSourceControl);
     const isGitHub = provider === 'github';
 
-    if (isGitHub && !sourceControl.authenticationType?.isInherited && isGithubAppAuthenticationEnabled) {
+    if (isGitHub && !sourceControl.authenticationType?.isInherited) {
       if (!sourceControl.authenticationType?.value) {
         return 'Please select an authentication method (GitHub App or Personal Access Token)';
       }
     }
 
     const isGitHubWithAppAuth =
-      isGithubAppAuthenticationEnabled &&
-      isGitHub &&
-      effectiveAuthenticationType(sourceControl) === AUTHENTICATION_TYPES.GITHUB_APP;
+      isGitHub && effectiveAuthenticationType(sourceControl) === AUTHENTICATION_TYPES.GITHUB_APP;
     const isTokenRequired = !isGitHubWithAppAuth;
 
     // GitHub App must be configured when GITHUB_APP auth is selected
@@ -99,7 +93,7 @@ export const selectValidationError = createSelector(
 
     if (
       isApp &&
-      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp, isGithubAppAuthenticationEnabled) &&
+      isAccessTokenRequiredOnNode(sourceControl, serverSourceControl, isApp) &&
       !sourceControl?.token?.rscValue?.trimmedValue
     ) {
       return GLOBAL_FORM_VALIDATION_ERROR;

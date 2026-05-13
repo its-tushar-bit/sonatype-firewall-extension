@@ -314,11 +314,6 @@ export const selectIsWaiverRequestWorkflowEnabled = createSelector(selectProduct
   return propOr(false, 'waiver-request-workflow-enabled')(features);
 });
 
-export const selectIsGithubAppAuthenticationEnabled = createSelector(
-  selectProductFeatures,
-  propOr(false, 'github-app-authentication')
-);
-
 // Tier gating only applies to tier-gated Lifecycle products (excludes Foundation).
 // Non-tier-gated products (Firewall, Foundation, SBOM Manager) always get full access.
 // For tier-gated Lifecycle: returns false when absent (Pro), true when present (Enterprise/Legacy).

@@ -32,7 +32,6 @@ public class SystemConfigurationPropertyFeatureTest
 
     assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled(emptyMap)).isFalse();
     assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled(emptyMap)).isFalse();
-    assertThat(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.isEnabled(emptyMap)).isFalse();
   }
 
   @Test

@@ -135,11 +135,10 @@ describe('sourceControlConfiguration', () => {
         expect(options[0].value).toBe('');
         expect(options[1].value).toBe('azure');
         expect(providerSelector.value).toBe('');
-        const tokenInput = screen.getByLabelText('Access Token');
+        // Access Token / GitHub App auth section is hidden until a provider is selected
+        expect(screen.queryByLabelText('Access Token')).not.toBeInTheDocument();
+        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
         const branchNameInput = screen.getByRole('textbox', { name: 'Default Branch' });
-        expect(tokenInput).toBeVisible();
-        expect(tokenInput).toBeDisabled();
-        expect(tokenInput.value).toBe('');
         expect(branchNameInput).toBeVisible();
         expect(branchNameInput).toBeDisabled();
         expect(branchNameInput.value).toBe('main');
@@ -660,70 +659,6 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByLabelText(/Access Token/i)).not.toBeInTheDocument();
         // GitHub App auth should also be hidden (no provider selected)
         expect(screen.queryByText(/GitHub App/)).not.toBeInTheDocument();
-      });
-
-      it('shows token field when feature disabled and no provider selected', async () => {
-        const preloadedState = clone(defaultPreloadedState);
-        // GitHub App feature is not in productFeatures (disabled)
-
-        const configResponse = {
-          ...defaultRootOrgConfigResponse,
-          provider: { value: null, parentValue: null, parentName: null },
-        };
-
-        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, configResponse);
-
-        renderComponent(preloadedState);
-
-        // Wait for form to load
-        await screen.findByRole('button', { name: 'Create' });
-
-        // Token field should be visible when feature is disabled
-        expect(screen.getByLabelText(/Access Token/i)).toBeInTheDocument();
-      });
-
-      it('requires a personal access token when feature is disabled and an existing GitHub App configuration has no token', async () => {
-        const preloadedState = clone(defaultPreloadedState);
-
-        axiosMock.onPut(getSourceControlUrl(ownerType, ownerId)).reply(200);
-        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
-          ...existingRootOrgConfigResponse,
-          provider: { value: 'github', parentValue: null, parentName: null },
-          token: { value: null, parentValue: null, parentName: null },
-          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP, parentValue: null, parentName: null },
-          githubApp: {
-            value: {
-              installationId: '12345',
-              name: 'Root GitHub App',
-              accountName: 'root-org',
-            },
-            parentValue: null,
-            parentName: null,
-          },
-        });
-
-        renderComponent(preloadedState);
-
-        const submitButton = await screen.findByRole('button', { name: 'Update' });
-        fireEvent.click(submitButton);
-
-        expect(axiosMock.history.post.length).toBe(0);
-
-        const tokenInput = screen.getByLabelText(/Access Token/i);
-        fireEvent.change(tokenInput, { target: { value: '   ' } });
-        fireEvent.click(submitButton);
-
-        expect(axiosMock.history.put.length).toBe(0);
-
-        fireEvent.change(tokenInput, { target: { value: 'root-local-token' } });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
-        expect(JSON.parse(axiosMock.history.put[0].data)).toMatchObject({
-          provider: 'github',
-          token: 'root-local-token',
-          authenticationType: null,
-        });
       });
 
       it('shows token field when non-GitHub provider selected and feature enabled', async () => {
@@ -1449,13 +1384,11 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(providerOverride);
 
         providerSelector = within(providerContainer).getByRole('combobox');
-        tokenField = within(credentialsContainer).getByLabelText('Access Token');
-
         expect(providerSelector).not.toBeDisabled();
 
+        // Switching to GitHub replaces the Credentials fieldset with the Authentication Method fieldset
         fireEvent.change(providerSelector, { target: { value: 'github' } });
-
-        expect(tokenField).not.toBeDisabled();
+        expect(screen.getByRole('group', { name: 'Authentication Method' })).toBeVisible();
       });
 
       it('submits new configuration (Post request) if there is no entity before', async () => {
@@ -1608,9 +1541,11 @@ describe('sourceControlConfiguration', () => {
 
       it("doesn't show an error message if provider doesn't require username, and token field has no value", async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'gitlab' } });
+        // After selecting a non-GitHub provider, the Credentials fieldset appears at index 1.
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(tokenInput, { target: { value: '' } });
         expect(within(credentialsContainer).getByText('Must be non-empty')).toBeVisible();
@@ -1618,9 +1553,10 @@ describe('sourceControlConfiguration', () => {
 
       it('shows an error message if provider requires username and username and/or token fields have no values', async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'azure' } });
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const userNameInput = within(credentialsContainer).getByRole('textbox', { name: 'Username' });
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(userNameInput, { target: { value: 'admin' } });
@@ -1633,9 +1569,10 @@ describe('sourceControlConfiguration', () => {
 
       it('shows an error message if provider requires username, and username OR token have no value', async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'azure' } });
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const userNameInput = within(credentialsContainer).getByRole('textbox', { name: 'Username' });
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(userNameInput, { target: { value: 'admin' } });
@@ -1712,31 +1649,6 @@ describe('sourceControlConfiguration', () => {
 
         expect(githubAppRadio).toBeVisible();
         expect(patRadio).toBeVisible();
-      });
-
-      it('shows standard token authentication when feature flag is disabled', async () => {
-        const preloadedState = {
-          ...defaultPreloadedState,
-          productFeatures: {
-            productFeatures: {
-              ...defaultPreloadedState.productFeatures.productFeatures,
-              'github-app-authentication': false,
-            },
-          },
-        };
-
-        renderComponent(preloadedState);
-
-        await screen.findByRole('button', { name: 'Update' });
-
-        // Should NOT show Authentication Method fieldset
-        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
-
-        // Should show standard token input field
-        const tokenInputWrapper = screen.getByTestId('token-input');
-        expect(tokenInputWrapper).toBeVisible();
-        const tokenInput = tokenInputWrapper.querySelector('input');
-        expect(tokenInput).toHaveAttribute('type', 'password');
       });
 
       it('shows standard token authentication for non-GitHub providers', async () => {
@@ -2612,13 +2524,11 @@ describe('sourceControlConfiguration', () => {
         fireEvent.click(providerOverride);
 
         providerSelector = within(providerContainer).getByRole('combobox');
-        tokenField = within(credentialsContainer).getByLabelText('Access Token');
-
         expect(providerSelector).not.toBeDisabled();
 
+        // Switching to GitHub replaces the Credentials fieldset with the Authentication Method fieldset
         fireEvent.change(providerSelector, { target: { value: 'github' } });
-
-        expect(tokenField).not.toBeDisabled();
+        expect(screen.getByRole('group', { name: 'Authentication Method' })).toBeVisible();
       });
 
       it('submits new configuration (POST request) and does not show confirmation modal if there is no entity before', async () => {
@@ -2807,9 +2717,12 @@ describe('sourceControlConfiguration', () => {
 
       it("shows an error message if provider doesn't require username, and token field has no value", async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'gitlab' } });
+        // Switching from GitHub to a non-GitHub provider replaces the Authentication Method
+        // fieldset with the Credentials fieldset; re-query to get the new DOM node at index 1.
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(tokenInput, { target: { value: '' } });
         expect(within(credentialsContainer).getByText('Must be non-empty')).toBeVisible();
@@ -2817,9 +2730,10 @@ describe('sourceControlConfiguration', () => {
 
       it('shows an error message if provider requires username and username and/or token fields have no values', async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'azure' } });
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const userNameInput = within(credentialsContainer).getByRole('textbox', { name: 'Username' });
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(userNameInput, { target: { value: 'admin' } });
@@ -2832,9 +2746,10 @@ describe('sourceControlConfiguration', () => {
 
       it('shows an error message if provider requires username, and username OR token have no value', async () => {
         renderComponent();
-        const [providerContainer, credentialsContainer] = await screen.findAllByRole('group');
+        const providerContainer = (await screen.findAllByRole('group'))[0];
         const providerSelector = within(providerContainer).getByRole('combobox');
         fireEvent.change(providerSelector, { target: { value: 'azure' } });
+        const credentialsContainer = (await screen.findAllByRole('group'))[1];
         const userNameInput = within(credentialsContainer).getByRole('textbox', { name: 'Username' });
         const tokenInput = within(credentialsContainer).getByLabelText('Access Token');
         fireEvent.change(userNameInput, { target: { value: 'admin' } });
@@ -2920,96 +2835,6 @@ describe('sourceControlConfiguration', () => {
 
         expect(githubAppRadio).toBeVisible();
         expect(patRadio).toBeVisible();
-      });
-
-      it('shows standard token authentication when feature flag is disabled', async () => {
-        const preloadedState = {
-          ...defaultPreloadedState,
-          productFeatures: {
-            productFeatures: {
-              ...defaultPreloadedState.productFeatures.productFeatures,
-              'github-app-authentication': false,
-            },
-          },
-        };
-
-        renderComponent(preloadedState);
-
-        await screen.findByRole('button', { name: 'Update' });
-
-        // Should NOT show Authentication Method fieldset
-        expect(screen.queryByRole('group', { name: 'Authentication Method' })).not.toBeInTheDocument();
-
-        // Should show standard token input field
-        const tokenInputWrapper = screen.getByTestId('token-input');
-        expect(tokenInputWrapper).toBeVisible();
-        const tokenInput = tokenInputWrapper.querySelector('input');
-        expect(tokenInput).toHaveAttribute('type', 'password');
-      });
-
-      it('shows the access-token warning and blocks submit until a token is provided when feature flag is disabled', async () => {
-        axiosMock.onPost(getSourceControlUrl(ownerType, ownerId)).reply(200);
-        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
-          ...defaultAppConfigResponse,
-          provider: { value: null, parentValue: 'github', parentName: ROOT_ORGANIZATION_NAME },
-          token: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
-          baseBranch: { value: null, parentValue: 'main', parentName: ROOT_ORGANIZATION_NAME },
-          authenticationType: {
-            value: null,
-            parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
-            parentName: ROOT_ORGANIZATION_NAME,
-          },
-          githubApp: {
-            value: null,
-            parentValue: {
-              installationId: 67890,
-              name: 'Root GitHub App',
-              accountName: 'root-org',
-            },
-            parentName: ROOT_ORGANIZATION_NAME,
-          },
-        });
-
-        const preloadedState = {
-          ...defaultPreloadedState,
-          productFeatures: {
-            productFeatures: {
-              ...defaultPreloadedState.productFeatures.productFeatures,
-              'github-app-authentication': false,
-            },
-          },
-        };
-
-        renderComponent(preloadedState);
-
-        expect(await screen.findByText('Access Token must be configured')).toBeVisible();
-
-        const repositoryUrl = screen.getByRole('textbox', { name: 'Repository Clone URL' });
-        fireEvent.change(repositoryUrl, { target: { value: 'https://github.com/example/app-repo.git' } });
-
-        const submitButton = screen.getByRole('button', { name: 'Update' });
-        fireEvent.click(submitButton);
-
-        expect(axiosMock.history.post.length).toBe(0);
-
-        const tokenInputWrapper = screen.getByTestId('token-input');
-        const tokenInput = tokenInputWrapper.querySelector('input');
-        expect(tokenInput).toBeInTheDocument();
-        fireEvent.change(tokenInput, { target: { value: '   ' } });
-        expect(screen.getByTestId('source-control-token-warning')).toHaveTextContent('Access Token must be configured');
-        fireEvent.click(submitButton);
-
-        expect(axiosMock.history.post.length).toBe(0);
-
-        fireEvent.change(tokenInput, { target: { value: 'app-local-token' } });
-        fireEvent.click(submitButton);
-
-        expect(await screen.findByText('Success!')).toBeVisible();
-        expect(JSON.parse(axiosMock.history.post[0].data)).toMatchObject({
-          repositoryUrl: 'https://github.com/example/app-repo.git',
-          token: 'app-local-token',
-          authenticationType: null,
-        });
       });
 
       it('shows standard token authentication for non-GitHub providers', async () => {
@@ -3326,30 +3151,6 @@ describe('sourceControlConfiguration', () => {
         expect(warningAlert).toHaveTextContent('Authentication method must be configured');
       });
 
-      it('shows "Access Token must be configured" when GitHub App feature is disabled', async () => {
-        const preloadedState = {
-          ...defaultPreloadedState,
-          productFeatures: {
-            productFeatures: {
-              ...defaultPreloadedState.productFeatures.productFeatures,
-              'github-app-authentication': false,
-            },
-          },
-        };
-
-        axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, {
-          ...defaultAppConfigResponse,
-          provider: { value: 'github', parentValue: null, parentName: null },
-          token: { value: null, parentValue: null, parentName: null },
-        });
-
-        renderComponent(preloadedState);
-
-        await screen.findByRole('button', { name: 'Update' });
-
-        const warningAlert = screen.getByTestId('source-control-token-warning');
-        expect(warningAlert).toHaveTextContent('Access Token must be configured');
-      });
     });
   });
 });

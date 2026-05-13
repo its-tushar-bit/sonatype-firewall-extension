@@ -11,7 +11,6 @@ import { selectIsOrganization, selectIsRootOrganization } from 'MainRoot/reduxUi
 import { getProviderTypesMap } from 'MainRoot/util/sourceControlUtils';
 import { selectIsApplication } from '../reduxUiRouter/routerSelectors';
 import { AUTHENTICATION_TYPES } from './sourceControlConfiguration/utils';
-import { selectIsGithubAppAuthenticationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectSourceControlSlice = createSelector(selectOrgsAndPoliciesSlice, prop('sourceControl'));
 
@@ -64,13 +63,11 @@ const PROVIDER_AUTH_CONFIGS = {
  *
  * @param {Object} sourceControl - The source control configuration object containing auth settings
  * @param {string} effectiveProvider - The source control provider (e.g., 'github', 'gitlab', 'bitbucket')
- * @param {boolean} isFeatureEnabled - Feature flag from selectIsGithubAppAuthenticationEnabled
- *                                     that controls whether App authentication feature is enabled
  * @returns {boolean} True if App authentication is configured locally with a valid installation ID
  */
-const isLocalAppAuthConfigured = (sourceControl, effectiveProvider, isFeatureEnabled) => {
+const isLocalAppAuthConfigured = (sourceControl, effectiveProvider) => {
   const providerConfig = PROVIDER_AUTH_CONFIGS[effectiveProvider];
-  if (!providerConfig || !isFeatureEnabled) {
+  if (!providerConfig) {
     return false;
   }
 
@@ -87,13 +84,11 @@ const isLocalAppAuthConfigured = (sourceControl, effectiveProvider, isFeatureEna
  *
  * @param {Object} sourceControl - The source control configuration object containing auth settings
  * @param {string} effectiveProvider - The source control provider (e.g., 'github', 'gitlab', 'bitbucket')
- * @param {boolean} isFeatureEnabled - Feature flag from selectIsGithubAppAuthenticationEnabled
- *                                     that controls whether App authentication feature is enabled
  * @returns {boolean} True if parent organization has App authentication configured
  */
-const isInheritingAppAuthFromParent = (sourceControl, effectiveProvider, isFeatureEnabled) => {
+const isInheritingAppAuthFromParent = (sourceControl, effectiveProvider) => {
   const providerConfig = PROVIDER_AUTH_CONFIGS[effectiveProvider];
-  if (!providerConfig || !isFeatureEnabled) {
+  if (!providerConfig) {
     return false;
   }
 
@@ -157,8 +152,7 @@ export const selectItemSubText = createSelector(
   selectIsRootOrganization,
   selectIsApplication,
   selectSelectedOwnerName,
-  selectIsGithubAppAuthenticationEnabled,
-  (sourceControl, effectiveProvider, isRootOrg, isApp, ownerName, isGithubAppAuthenticationEnabled) => {
+  (sourceControl, effectiveProvider, isRootOrg, isApp, ownerName) => {
     if (!sourceControl || !effectiveProvider) {
       return 'Source Control not configured';
     }
@@ -174,16 +168,8 @@ export const selectItemSubText = createSelector(
     const provider = getProviderTypesMap()[effectiveProvider];
     const providerSuffix = isApp && provider ? ` (${provider})` : '';
 
-    const hasLocalAppAuth = isLocalAppAuthConfigured(
-      sourceControl,
-      effectiveProvider,
-      isGithubAppAuthenticationEnabled
-    );
-    const hasParentAppAuthConfigured = isInheritingAppAuthFromParent(
-      sourceControl,
-      effectiveProvider,
-      isGithubAppAuthenticationEnabled
-    );
+    const hasLocalAppAuth = isLocalAppAuthConfigured(sourceControl, effectiveProvider);
+    const hasParentAppAuthConfigured = isInheritingAppAuthFromParent(sourceControl, effectiveProvider);
     const authMethodLabel = getAuthMethodLabel(effectiveProvider);
     const messages = createMessages(ownerName, providerSuffix, parentName, authMethodLabel);
 

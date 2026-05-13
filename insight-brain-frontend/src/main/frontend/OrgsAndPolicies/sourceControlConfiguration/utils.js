@@ -486,14 +486,7 @@ export const compositeSourceControlToModel = (
   return sourceControlData;
 };
 
-export const prepareSubmitData = (
-  sourceControl,
-  serverSourceControl,
-  isApp,
-  isRootOrg,
-  isAutomationSupported,
-  isGithubAppAuthenticationEnabled = true
-) => {
+export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isRootOrg, isAutomationSupported) => {
   if (!sourceControl) return {};
   const { ownerId, id, sshEnabled } = sourceControl;
   const submitData = {
@@ -591,9 +584,7 @@ export const prepareSubmitData = (
     : sourceControl.provider.rscValue.value;
 
   if (effectiveProviderValue === 'github') {
-    if (!isGithubAppAuthenticationEnabled) {
-      submitData.authenticationType = null;
-    } else if (!sourceControl.authenticationType.isInherited || isRootOrg) {
+    if (!sourceControl.authenticationType.isInherited || isRootOrg) {
       submitData.authenticationType = sourceControl.authenticationType.value;
     } else {
       submitData.authenticationType = null;
@@ -604,12 +595,10 @@ export const prepareSubmitData = (
   // Clear githubApp when: inherited, non-GitHub provider, or PAT auth selected
   const isInheritingGithubApp = !isRootOrg && sourceControl.githubApp.isInherited;
   const isNotGitHubProvider = effectiveProviderValue !== 'github';
-  const isGitHubAppFeatureDisabled = effectiveProviderValue === 'github' && !isGithubAppAuthenticationEnabled;
   const isUserSelectingPAT =
     effectiveProviderValue === 'github' && sourceControl.authenticationType.value === AUTHENTICATION_TYPES.PAT;
 
-  const shouldClearGithubApp =
-    isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT || isGitHubAppFeatureDisabled;
+  const shouldClearGithubApp = isInheritingGithubApp || isNotGitHubProvider || isUserSelectingPAT;
 
   if (!shouldClearGithubApp && sourceControl.githubApp?.value?.id) {
     submitData.githubAppId = sourceControl.githubApp.value.id;
@@ -639,18 +628,12 @@ export const effectiveAuthenticationType = (sourceControl) => {
 /**
  * Determines if GitHub App authentication should be shown instead of standard credentials.
  *
- * Returns true when ALL of the following are true:
- * 1. The provider is GitHub (either current or inherited)
- * 2. The GitHub App authentication feature is enabled
- *
  * @param {Object} sourceControl - Current source control configuration
  * @param {Object} serverSourceControl - Server-level source control configuration
- * @param {boolean} isGithubAppAuthenticationEnabled - Feature flag state
- * @returns {boolean} True if GitHub App auth should be displayed
+ * @returns {boolean} True if the provider is GitHub (either current or inherited)
  */
-export const shouldShowGitHubAppAuth = (sourceControl, serverSourceControl, isGithubAppAuthenticationEnabled) => {
-  const isGitHub = effectiveProvider(sourceControl, serverSourceControl) === 'github';
-  return isGitHub && isGithubAppAuthenticationEnabled;
+export const shouldShowGitHubAppAuth = (sourceControl, serverSourceControl) => {
+  return effectiveProvider(sourceControl, serverSourceControl) === 'github';
 };
 
 export const effectiveFieldInheritFrom = (sourceControl, serverSourceControl, field) => {
@@ -669,12 +652,7 @@ export const isUsernameRequiredOnNode = (sourceControl, serverSourceControl, isA
   );
 };
 
-export const isAccessTokenRequiredOnNode = (
-  sourceControl,
-  serverSourceControl,
-  isApp,
-  isGithubAppAuthenticationEnabled = false
-) => {
+export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, isApp) => {
   // Only check at application level
   if (!isApp) {
     return false;
@@ -684,7 +662,7 @@ export const isAccessTokenRequiredOnNode = (
   const provider = effectiveProvider(sourceControl, serverSourceControl);
   const isGitHub = provider === 'github';
 
-  if (isGitHub && isGithubAppAuthenticationEnabled) {
+  if (isGitHub) {
     const effectiveAuthType = effectiveAuthenticationType(sourceControl);
     if (effectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
       return false;
@@ -718,14 +696,14 @@ export const isAccessTokenRequiredOnNode = (
     // User can inherit provider but override auth method (or vice versa)
     const isAuthInherited = sourceControl?.authenticationType?.isInherited;
     const parentAuthType = sourceControl?.authenticationType?.parentValue;
-    if (isGithubAppAuthenticationEnabled && isAuthInherited && parentAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
-      // Inherited GitHub App authentication doesn't use tokens while the feature is enabled.
+    if (isAuthInherited && parentAuthType === AUTHENTICATION_TYPES.GITHUB_APP) {
+      // Inherited GitHub App authentication doesn't use tokens.
       return false;
     }
 
     // Auth method is overridden - check if it's GitHub App (no token needed)
     const authType = sourceControl?.authenticationType?.value;
-    if (isGithubAppAuthenticationEnabled && authType === AUTHENTICATION_TYPES.GITHUB_APP) {
+    if (authType === AUTHENTICATION_TYPES.GITHUB_APP) {
       // GitHub App authentication doesn't use token
       return false;
     }
@@ -755,10 +733,8 @@ export const isAccessTokenRequiredOnNode = (
     const hasCurrentToken = sourceControl?.token?.rscValue?.trimmedValue;
     const hasSavedToken = serverSourceControl?.token?.value;
 
-    // When feature is disabled OR auth type is undefined/null, treat as PAT (backwards compatibility)
-    // When feature is enabled AND auth type is explicitly GITHUB_APP, cannot reuse token
-    const isParentUsingPAT =
-      !isGithubAppAuthenticationEnabled || !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
+    // Auth type undefined/null is treated as PAT (backwards compatibility); explicit GITHUB_APP cannot reuse token.
+    const isParentUsingPAT = !parentAuthType || parentAuthType === AUTHENTICATION_TYPES.PAT;
     const isOverridingWithParentToken =
       !isTokenInherited &&
       isProviderInherited &&
@@ -1029,17 +1005,12 @@ export const setIsRepoUrlDirty = (state) => {
   return sourceControl['repositoryUrl']?.value !== serverSourceControl['repositoryUrl']?.value;
 };
 
-export const getValidationMessage = (
-  isDirty,
-  validationError,
-  sourceControl,
-  isGithubAppAuthenticationEnabled = true
-) => {
+export const getValidationMessage = (isDirty, validationError, sourceControl) => {
   if (!isDirty) {
     const hasGitHubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.value);
     const isGitHubAppAuth = sourceControl?.authenticationType?.value === AUTHENTICATION_TYPES.GITHUB_APP;
 
-    if (hasGitHubApp && isGitHubAppAuth && isGithubAppAuthenticationEnabled) {
+    if (hasGitHubApp && isGitHubAppAuth) {
       return 'GitHub App is already configured. No additional changes to save.';
     }
     return MSG_NO_CHANGES_TO_SAVE;

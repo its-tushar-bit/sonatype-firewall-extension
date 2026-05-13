@@ -483,14 +483,14 @@ public class SourceControlLoadBalancerTest
         spyPerpetualLockManager,
         new SourceControlEventDAO(ods),
         mock(TenantUtil.class));
-    loadBalancer.start();
-    activeLoadBalancers.add(loadBalancer);
-
     // Capture the raw thread-local tenant at the moment tryAcquireLock is called. We must use
     // TenantTestHelper.assertTenantSet (which reads via getTenantWithoutValidation, package-
     // private to the tenancy package) rather than TenantThreadLocal.getTenant(); the validated
     // form collapses everything to SINGLE_TENANT in non-MT mode and would hide whether
     // runAsGlobal was actually invoked.
+    // NOTE: the stub must be registered BEFORE loadBalancer.start() because start() schedules a
+    // heartbeat with initialDelay=0, which can call tryAcquireLock on the spy before the doAnswer
+    // chain is complete, triggering Mockito's UnfinishedStubbingException.
     AtomicReference<Throwable> capturedFailure = new AtomicReference<>();
     doAnswer(invocation -> {
       try {
@@ -506,6 +506,9 @@ public class SourceControlLoadBalancerTest
             anyString(),
             anyString(),
             anyLong());
+
+    loadBalancer.start();
+    activeLoadBalancers.add(loadBalancer);
 
     TenantTestHelper.testAsNewTenant("maintenance-lock-test-tenant", tenant -> {
       // Sanity-check: at the entry point we are NOT running as global. Otherwise the test would

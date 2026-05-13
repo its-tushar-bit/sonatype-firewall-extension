@@ -135,7 +135,6 @@ describe('OIDC Configuration - Integration Tests', () => {
       await user.type(screen.getByLabelText(/Client ID/i), 'client-id');
       await user.type(screen.getByLabelText(/Client Secret/i), 'secret');
       await user.type(screen.getByLabelText(/IDP Issuer/i), 'https://auth.example.com');
-      await user.type(screen.getByLabelText(/IDP Issuer/i), 'https://auth.example.com');
 
       // Fill optional fields
       await user.type(screen.getByLabelText(/Authorization URL/i), 'https://auth.example.com/authorize');
@@ -196,10 +195,11 @@ describe('OIDC Configuration - Integration Tests', () => {
       // Verify "not configured" message is NOT shown
       expect(screen.queryByText('* Currently not configured')).not.toBeInTheDocument();
 
-      // Update the client ID
+      // Update the client ID: click to focus, select all, type replacement to avoid triggering onBlur reset
       const clientIdInput = screen.getByLabelText(/Client ID/i);
-      await user.clear(clientIdInput);
-      await user.type(clientIdInput, 'new-client-id');
+      await user.click(clientIdInput);
+      await user.keyboard('{Control>}a{/Control}');
+      await user.keyboard('new-client-id');
 
       // Save
       await user.click(screen.getByText('Save'));

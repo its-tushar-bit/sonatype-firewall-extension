@@ -2783,9 +2783,7 @@ public class CLMLicenseManagerTest
         ProductLicenseDetails.LICENSING_APP_BASED,
         ProductLicenseDetails.LICENSING_SBOM_BASED);
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, String.join(",", licensingModels));
-    licenseManager.setApplicationLimit(100);
-    licenseManager.setMaxSboms(50);
-    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("5000")));
+    mockHdsProductLicenseDetails(withCreditAmount(new BigDecimal("5000")).andThen(withMaxSboms(50)));
     installLicense();
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
@@ -2803,9 +2801,7 @@ public class CLMLicenseManagerTest
         ProductLicenseDetails.LICENSING_APP_BASED,
         ProductLicenseDetails.LICENSING_SBOM_BASED);
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, String.join(",", licensingModels));
-    licenseManager.setApplicationLimit(100);
-    licenseManager.setMaxSboms(50);
-    mockHdsProductLicenseDetails();
+    mockHdsProductLicenseDetails(withMaxSboms(50));
     installLicense();
 
     LicenseInfo info = clmLicenseManager.getLicenseInfo();

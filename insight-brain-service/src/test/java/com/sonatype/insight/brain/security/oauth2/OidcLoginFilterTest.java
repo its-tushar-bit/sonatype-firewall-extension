@@ -32,6 +32,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
@@ -54,6 +55,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -517,6 +519,178 @@ public class OidcLoginFilterTest
     assertThat(result).isFalse();
     verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
         OidcLoginFilter.ERROR_BUILDING_TOKEN_REQUEST);
+  }
+
+  @Test
+  public void testOnPreHandle_Login_StoresGuideOriginInSession() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final HttpSession session = mock(HttpSession.class);
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+    when(request.getParameter("hash")).thenReturn("");
+    when(request.getParameter("origin")).thenReturn("guide");
+    when(request.getSession(true)).thenReturn(session);
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(session).setAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN, OidcLoginFilter.ORIGIN_GUIDE);
+  }
+
+  @Test
+  public void testOnPreHandle_Login_DoesNotCreateSessionForInvalidOrigin() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+    when(request.getParameter("hash")).thenReturn("");
+    when(request.getParameter("origin")).thenReturn("evil");
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(request, times(0)).getSession(true);
+    // Verify that getSession(false) is called to check for stale session to clear
+    verify(request).getSession(false);
+  }
+
+  @Test
+  public void testOnPreHandle_Login_ClearsStaleGuideOriginForNonGuideLogin() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final HttpSession session = mock(HttpSession.class);
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+    when(request.getParameter("hash")).thenReturn("");
+    when(request.getParameter("origin")).thenReturn(null);
+    when(request.getSession(false)).thenReturn(session);
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(session).removeAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN);
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_RedirectsToIqWhenSessionExistsButNoOriginAttribute() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final HttpSession session = mock(HttpSession.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getSession(false)).thenReturn(session);
+    when(session.getAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN)).thenReturn(null);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+    verify(session).removeAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN);
+    verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_RedirectsToGuideWhenOriginInSession() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final HttpSession session = mock(HttpSession.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getSession(false)).thenReturn(session);
+    when(session.getAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN)).thenReturn(OidcLoginFilter.ORIGIN_GUIDE);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+    verify(session).removeAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN);
+    verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.GUIDE_INDEX_HTML));
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_RedirectsToGuideWithHash() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final HttpSession session = mock(HttpSession.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String hash = "#/dashboard";
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getSession(false)).thenReturn(session);
+    when(session.getAttribute(OidcLoginFilter.SESSION_ATTR_SSO_ORIGIN)).thenReturn(OidcLoginFilter.ORIGIN_GUIDE);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn(hash);
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+    verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+    assertThat(indexUrlCaptor.getValue())
+        .isEqualTo(String.format("%s%s%s", BASE_URL, OidcLoginFilter.GUIDE_INDEX_HTML, hash));
+  }
+
+  @Test
+  public void testOnPreHandle_Callback_RedirectsToIqWhenNoSession() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getSession(false)).thenReturn(null);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    oidcLoginFilter.onPreHandle(request, response, null);
+
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+    verify(response).setHeader(eq("Location"), indexUrlCaptor.capture());
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
   }
 
   @Test

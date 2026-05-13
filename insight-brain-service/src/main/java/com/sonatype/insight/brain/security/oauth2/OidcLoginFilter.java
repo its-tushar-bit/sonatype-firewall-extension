@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
+import com.sonatype.insight.brain.landing.LandingService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -51,6 +52,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -71,6 +73,13 @@ public class OidcLoginFilter
   public static final String OAUTH_LOGIN = "oidc/login";
 
   public static final String INDEX_HTML = "assets/index.html";
+
+  // Matches LandingService.getGuideDestination() path — keep in sync if Guide asset path changes
+  public static final String GUIDE_INDEX_HTML = "assets/guide/index.html";
+
+  public static final String SESSION_ATTR_SSO_ORIGIN = "sso.origin";
+
+  public static final String ORIGIN_GUIDE = LandingService.ORIGIN_GUIDE;
 
   public static final String OIDC_CONFIGURATION_INVALID =
       "There is no OIDC configuration to trigger the login";
@@ -133,6 +142,18 @@ public class OidcLoginFilter
 
       // Handles the login request by sending an authentication request
       if (path.contains(OAUTH_LOGIN)) {
+        String origin = req.getParameter("origin");
+        // Store origin in session since the callback comes from the IdP on a separate request.
+        // SAML doesn't need this because its destination is computed before the IdP redirect.
+        if (ORIGIN_GUIDE.equals(origin)) {
+          req.getSession(true).setAttribute(SESSION_ATTR_SSO_ORIGIN, ORIGIN_GUIDE);
+        }
+        else {
+          HttpSession existingSession = req.getSession(false);
+          if (existingSession != null) {
+            existingSession.removeAttribute(SESSION_ATTR_SSO_ORIGIN);
+          }
+        }
         String callbackUrl = buildRedirectUrl(OAUTH_CALLBACK, encodedHash, true);
         sendAuthorizationRequest(res, oidcConfiguration, callbackUrl);
       }
@@ -140,7 +161,8 @@ public class OidcLoginFilter
       // Handles the callback request from the IDP to get the Access and ID tokens
       if (path.contains(OAUTH_CALLBACK)) {
         String callbackUrl = buildRedirectUrl(OAUTH_CALLBACK, encodedHash, true);
-        String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
+        String targetPage = resolveTargetPage(req);
+        String redirectUrl = buildRedirectUrl(targetPage, hash, false);
         handleCallbackAndCompleteAuthentication(req, res, oidcConfiguration, callbackUrl, redirectUrl);
       }
     }
@@ -168,6 +190,20 @@ public class OidcLoginFilter
     }
 
     return redirect.toString();
+  }
+
+  private String resolveTargetPage(HttpServletRequest req) {
+    HttpSession session = req.getSession(false);
+    if (session != null) {
+      String origin = (String) session.getAttribute(SESSION_ATTR_SSO_ORIGIN);
+      // Remove the attribute before authentication completes. If auth fails and the user retries,
+      // the Guide LoginPage re-appends origin=guide, so the session attribute gets re-set.
+      session.removeAttribute(SESSION_ATTR_SSO_ORIGIN);
+      if (ORIGIN_GUIDE.equals(origin)) {
+        return GUIDE_INDEX_HTML;
+      }
+    }
+    return INDEX_HTML;
   }
 
   private void sendAuthorizationRequest(

@@ -176,6 +176,14 @@ class SamlFilter
     return false;
   }
 
+  /**
+   * Computes the post-authentication redirect destination.
+   *
+   * <p>
+   * This method is called during initial login (before IdP redirect) and stores the result in
+   * the session. On IdP POST-back, the stored session redirect takes precedence, so the
+   * 'origin' parameter being null on callback is expected and the computed destination is ignored.
+   */
   @VisibleForTesting
   String getDestinationOrDefault(HttpServletRequest httpServletRequest) {
     String hash = httpServletRequest.getParameter("hash");
@@ -185,7 +193,11 @@ class SamlFilter
     else if (hash.startsWith("#")) {
       hash = hash.substring(1);
     }
-    URI uri = UriBuilder.fromUri(landingService.getDestination()).replaceQuery("").fragment(hash).build();
+    String origin = httpServletRequest.getParameter("origin");
+    URI baseDestination = LandingService.ORIGIN_GUIDE.equals(origin)
+        ? landingService.getGuideDestination()
+        : landingService.getDestination();
+    URI uri = UriBuilder.fromUri(baseDestination).replaceQuery("").fragment(hash).build();
     uri = URI.create(uri.toString().replaceAll("%2F", "/"));
     return uri.toString();
   }

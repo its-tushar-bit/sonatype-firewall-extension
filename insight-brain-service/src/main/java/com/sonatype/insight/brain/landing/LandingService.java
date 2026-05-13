@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 @Named
 public class LandingService
 {
+  public static final String ORIGIN_GUIDE = "guide";
+
   private final BaseUrl baseUrl;
 
   @Inject
@@ -33,6 +35,15 @@ public class LandingService
   public URI getDestination() {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html");
+    return uriBuilder.build();
+  }
+
+  /**
+   * Gets the URI the browser should redirect to in order to access the Guide SPA.
+   */
+  public URI getGuideDestination() {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH).path("guide/index.html");
     return uriBuilder.build();
   }
 }

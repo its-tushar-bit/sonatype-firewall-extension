@@ -317,6 +317,59 @@ public class SamlFilterTest
         .isEqualTo("https://host.test:1234/iq/assets/index.html");
   }
 
+  @Test
+  public void testGetDestinationOrDefault_GuideOrigin_ReturnsGuideUrl() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    lenient().when(mockHttpServletRequest.getRequestURL())
+        .thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
+    lenient().when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(
+        new BaseUrlConfiguration("http://localhost:8070", true));
+    lenient().when(mockHttpServletRequest.getParameter("hash")).thenReturn(null);
+    when(mockHttpServletRequest.getParameter("origin")).thenReturn("guide");
+    baseUrl.capture(mockHttpServletRequest);
+
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/assets/guide/index.html");
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_GuideOriginWithHash_ReturnsGuideUrlWithHash() {
+    String hash = "#/dashboard";
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    lenient().when(mockHttpServletRequest.getRequestURL())
+        .thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
+    lenient().when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("hash=" + hash);
+    lenient().when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
+    when(mockHttpServletRequest.getParameter("origin")).thenReturn("guide");
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(
+        new BaseUrlConfiguration("http://localhost:8070", true));
+    baseUrl.capture(mockHttpServletRequest);
+
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/assets/guide/index.html" + hash);
+  }
+
+  @Test
+  public void testGetDestinationOrDefault_InvalidOrigin_ReturnsIqUrl() {
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    lenient().when(mockHttpServletRequest.getRequestURL())
+        .thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
+    lenient().when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(
+        new BaseUrlConfiguration("http://localhost:8070", true));
+    lenient().when(mockHttpServletRequest.getParameter("hash")).thenReturn(null);
+    when(mockHttpServletRequest.getParameter("origin")).thenReturn("evil");
+    baseUrl.capture(mockHttpServletRequest);
+
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/assets/index.html");
+  }
+
   private void testOnPrehandle(
       String referer,
       String requestUri,

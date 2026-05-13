@@ -48,4 +48,11 @@ public class LandingServiceTest
     assertThat(dst).isNotNull();
     assertThat(dst.toString()).isEqualTo(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "index.html");
   }
+
+  @Test
+  public void testGetGuideDestination() {
+    URI dst = landingService.getGuideDestination();
+    assertThat(dst).isNotNull();
+    assertThat(dst.toString()).isEqualTo(BASE_URL + InsightBrainService.BRAIN_ASSET_PATH + "guide/index.html");
+  }
 }

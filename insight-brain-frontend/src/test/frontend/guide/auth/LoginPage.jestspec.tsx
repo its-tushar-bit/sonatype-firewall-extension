@@ -129,7 +129,7 @@ describe('LoginPage', () => {
     resolveLogin!();
   });
 
-  it('SSO button navigates to ssoConfig.loginUrl', async () => {
+  it('SSO button navigates to ssoConfig.loginUrl with origin=guide', async () => {
     const assignSpy = jest.fn();
     Object.defineProperty(window, 'location', {
       value: { ...window.location, hash: '', assign: assignSpy },
@@ -141,10 +141,10 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: /sso/i }));
 
-    expect(assignSpy).toHaveBeenCalledWith('http://localhost/saml/login');
+    expect(assignSpy).toHaveBeenCalledWith('http://localhost/saml/login?origin=guide');
   });
 
-  it('SSO button appends current hash to loginUrl', async () => {
+  it('SSO button appends current hash to loginUrl after origin', async () => {
     const assignSpy = jest.fn();
     Object.defineProperty(window, 'location', {
       value: { ...window.location, hash: '#/some/route', assign: assignSpy },
@@ -156,7 +156,7 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: /sso/i }));
 
-    expect(assignSpy).toHaveBeenCalledWith('http://localhost/saml/login?hash=%23%2Fsome%2Froute');
+    expect(assignSpy).toHaveBeenCalledWith('http://localhost/saml/login?origin=guide&hash=%23%2Fsome%2Froute');
   });
 
   it('SSO button does not navigate for javascript: protocol URLs', async () => {
@@ -189,7 +189,7 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /sso/i }));
 
     expect(assignSpy).toHaveBeenCalledWith(
-      'https://keycloak.company.com/auth/realms/master/protocol/openid-connect/auth?hash=%23%2Fsome%2Froute'
+      'https://keycloak.company.com/auth/realms/master/protocol/openid-connect/auth?origin=guide&hash=%23%2Fsome%2Froute'
     );
   });
 });

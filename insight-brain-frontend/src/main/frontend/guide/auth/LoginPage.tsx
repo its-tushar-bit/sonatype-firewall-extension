@@ -48,6 +48,8 @@ export function LoginPage({ login, ssoConfig }: LoginPageProps) {
     if (ssoConfig) {
       const target = new URL(ssoConfig.loginUrl, window.location.origin);
       if (target.protocol !== 'https:' && target.protocol !== 'http:') return;
+      // Matches LandingService.ORIGIN_GUIDE and OidcLoginFilter.ORIGIN_GUIDE in backend
+      target.searchParams.set('origin', 'guide');
       if (window.location.hash) {
         target.searchParams.set('hash', window.location.hash);
       }

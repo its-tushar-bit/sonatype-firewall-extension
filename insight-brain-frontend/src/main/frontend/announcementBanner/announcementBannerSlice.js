@@ -117,6 +117,11 @@ const announcementBannerSlice = createSlice({
     [loadAnnouncementBanner.rejected]: loadRejected,
     [userLoginActions.submitUserLogin.fulfilled]: clearDismissal,
     [userSessionLogoutThunk.pending]: suppressForLogout,
+    // Clear dismissal once logout completes so the banner reappears on the next login, regardless of auth
+    // method. submitUserLogin.fulfilled only fires for the username/password LoginModal flow, so SSO/SAML
+    // logins previously kept the dismissed windowId across logout+login in the same tab (sessionStorage
+    // survives same-origin redirects). Clearing here covers every auth path. See CLM-39947.
+    [userSessionLogoutThunk.fulfilled]: clearDismissal,
     [userSessionLogoutThunk.rejected]: clearLogoutSuppression,
   },
 });

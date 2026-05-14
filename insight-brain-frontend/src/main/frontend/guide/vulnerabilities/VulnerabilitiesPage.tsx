@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import {
+  PageLayout,
+  FilteredPageLayout,
+  VulnerabilitiesResultsList,
+  VulnerabilitiesHeader,
+  Pagination,
+  EmptyVulnerabilitiesResults,
+  useAdapterSearchParams,
+} from '@guide/ui-core';
+import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
+import {
+  vulnerabilitySortOptions,
+  vulnerabilityFilterDefinitions,
+  buildVulnerabilityFilters,
+  getOffsetFromParams,
+  getLimitFromParams,
+  getSortFromParams,
+  getStringParam,
+  VULNERABILITY_FILTER_ORDER,
+} from '@guide/ui-core/utils';
+import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
+
+/**
+ * Converts search params to a Record for the coordinator and utility functions.
+ */
+function searchParamsToRecord(
+  searchParams: ReadonlySearchParams
+): Record<string, string | string[]> {
+  const record: Record<string, string | string[]> = {};
+  searchParams.forEach((value: string, key: string) => {
+    const existing = record[key];
+    if (existing === undefined) {
+      record[key] = value;
+    } else if (Array.isArray(existing)) {
+      existing.push(value);
+    } else {
+      record[key] = [existing, value];
+    }
+  });
+  return record;
+}
+
+export function VulnerabilitiesPage() {
+  const searchParams = useAdapterSearchParams();
+  const [response, setResponse] = useState<VulnerabilitySearchResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // Convert to Record once for all utility functions (they expect Record<string, string | string[]>)
+    const paramsRecord = searchParamsToRecord(searchParams);
+
+    const query = getStringParam(paramsRecord, 'q');
+    const filters = buildVulnerabilityFilters(paramsRecord);
+    const sortParam = getSortFromParams(paramsRecord);
+    const options: VulnerabilitiesSearchOptions = {
+      offset: getOffsetFromParams(paramsRecord),
+      limit: getLimitFromParams(paramsRecord),
+      ...sortParam,
+    };
+
+    setError(null);
+    setIsPending(true);
+
+    searchVulnerabilities({ query, filters, options })
+      .then((data) => {
+        if (!cancelled) setResponse(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        if (!cancelled) setIsPending(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', color: 'var(--red-11)' }}>
+        Error loading vulnerabilities: {error}
+      </div>
+    );
+  }
+
+  // Use defaults while pending or if no response
+  const vulnerabilities = response?.hits ?? [];
+  const total = response?.total ?? 0;
+  const aggregations = response?.aggregations ?? {};
+  const offset = response?.offset ?? 0;
+  const limit = response?.limit ?? 25;
+
+  // Convert search params to Record once for all components
+  const paramsRecord = searchParamsToRecord(searchParams);
+
+  return (
+    <PageLayout>
+      <FilteredPageLayout
+        aggregations={aggregations}
+        searchParams={paramsRecord}
+        customFilterConfigs={{ ...VULNERABILITY_FILTER_ORDER, ...vulnerabilityFilterDefinitions }}
+        formAction="/vulnerabilities"
+        searchPlaceholder="Search vulnerabilities..."
+        sortOptions={vulnerabilitySortOptions}
+        totalResults={total}
+        header={<VulnerabilitiesHeader total={total} />}
+        clearRemovesQuery
+      >
+        {/* Empty state (only show when not loading and no results) */}
+        {!isPending && vulnerabilities.length === 0 && (
+          <EmptyVulnerabilitiesResults formAction="/vulnerabilities" />
+        )}
+
+        {/* Results list (shows skeleton or actual results) */}
+        {(isPending || vulnerabilities.length > 0) && (
+          <VulnerabilitiesResultsList
+            vulnerabilities={vulnerabilities}
+            isPending={isPending}
+            limit={limit}
+            moduleName="vulnerabilities-page"
+            renderLinkWrapper={({ vulnerability, children }) => (
+              <Link to={`/vulnerabilities/${vulnerability.vulnId}`} className="unstyled-link">
+                {children}
+              </Link>
+            )}
+          />
+        )}
+        {total > limit && (
+          <Pagination
+            formAction="/vulnerabilities"
+            searchParams={paramsRecord}
+            total={total}
+            offset={offset}
+            limit={limit}
+          />
+        )}
+      </FilteredPageLayout>
+    </PageLayout>
+  );
+}

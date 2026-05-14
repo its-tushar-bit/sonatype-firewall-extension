@@ -164,6 +164,22 @@ public class SystemConfigurationPropertyFeatureTest
   }
 
   @Test
+  public void testIsEnabledWithMap_FirewallWaiverDashboardAndRenew() {
+    Map<String, SystemConfigurationProperty> map = new HashMap<>();
+    String propertyName = SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.getPropertyName();
+
+    // Absent = disabled (enabledWhenAbsent = false)
+    assertThat(SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.isEnabled(map)).isFalse();
+
+    // Present = enabled (presence-based, value is irrelevant)
+    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
+    assertThat(SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.isEnabled(map)).isTrue();
+
+    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
+    assertThat(SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.isEnabled(map)).isTrue();
+  }
+
+  @Test
   public void testIsEnabledWithMap_ExitOnFatalError() {
     Map<String, SystemConfigurationProperty> map = new HashMap<>();
     String propertyName = SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getPropertyName();

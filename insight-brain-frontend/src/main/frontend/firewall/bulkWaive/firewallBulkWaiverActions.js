@@ -13,6 +13,7 @@ import {
   getRepositoryComponentsUrl,
   getFirewallBulkWaiverUrl,
 } from 'MainRoot/util/CLMLocation';
+import { normalizeFirewallOwnerType } from './firewallWaiverUtils';
 
 function processOwnerHierarchy(context) {
   const processedChildren =
@@ -148,9 +149,8 @@ export const submitFirewallBulkWaiver = (params) => {
         apiWaiverOptionsDTO,
       };
 
-      // Transform root_organization to organization for API compatibility
       const rawOwnerType = waiverConfiguration.selectedWaiverScope?.type;
-      const ownerType = rawOwnerType === 'root_organization' ? 'organization' : rawOwnerType;
+      const ownerType = normalizeFirewallOwnerType(rawOwnerType);
       const ownerId = waiverConfiguration.selectedWaiverScope?.id;
 
       const url = getFirewallBulkWaiverUrl(ownerType, ownerId);

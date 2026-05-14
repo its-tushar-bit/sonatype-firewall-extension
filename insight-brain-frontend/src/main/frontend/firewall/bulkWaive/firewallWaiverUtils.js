@@ -171,6 +171,9 @@ export const validateFirewallBulkWaiverConfig = (config) => {
   };
 };
 
+export const normalizeFirewallOwnerType = (ownerType) =>
+  ownerType === 'root_organization' ? 'organization' : ownerType;
+
 export const displayFirewallRepositoryScope = (scope) => {
   if (!scope) {
     return '';

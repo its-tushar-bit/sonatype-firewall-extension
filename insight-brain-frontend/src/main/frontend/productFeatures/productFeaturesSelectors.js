@@ -291,6 +291,11 @@ export const selectIsSbomContinuousMonitoringUiEnabled = createSelector(
 
 export const selectIsAutoWaiversEnabled = createSelector(selectProductFeatures, propOr(false, 'auto-waivers'));
 
+export const selectIsFirewallWaiverDashboardAndRenewEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'firewall-waiver-dashboard-and-renew')
+);
+
 export const selectIsExpireWhenRemediationAvailableWaiversEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'expire-waiver-when-remediation-available')

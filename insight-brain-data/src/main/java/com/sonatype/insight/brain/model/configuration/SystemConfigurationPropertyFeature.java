@@ -576,7 +576,9 @@ public enum SystemConfigurationPropertyFeature
 
   GUIDE_UI(SystemConfigurationProperty.GUIDE_UI_ENABLED, false),
 
-  HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false);
+  HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false),
+
+  FIREWALL_WAIVER_DASHBOARD_AND_RENEW(SystemConfigurationProperty.FIREWALL_WAIVER_DASHBOARD_AND_RENEW, false);
 
   public static final String NXIQ_ENABLE_GUIDE_MCP_ENV_VAR = "NXIQ_ENABLE_GUIDE_MCP";
 

@@ -1511,6 +1511,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
     expectedFeatureConfigMap.put("guideMcpEnabled", false);
     expectedFeatureConfigMap.put("guideUiEnabled", false);
+    expectedFeatureConfigMap.put("firewallWaiverDashboardAndRenew", false);
 
     return expectedFeatureConfigMap;
   }

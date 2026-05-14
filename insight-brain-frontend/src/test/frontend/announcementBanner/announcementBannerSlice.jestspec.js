@@ -104,15 +104,12 @@ describe('announcementBannerSlice', () => {
       expect(sessionStorage.getItem(DISMISS_STORAGE_KEY)).toBe('w-kept');
     });
 
-    it('clears dismissal and suppressedByLogout when logout completes (userSession/logout/fulfilled)', () => {
-      // sessionStorage survives same-origin redirects, so SSO logout+login would otherwise preserve the
-      // dismissed windowId across sessions. Clear on logout-fulfilled so the banner reappears for any
-      // auth method (the submitUserLogin.fulfilled handler only fires for the username/password flow).
+    it('clears dismissal but keeps suppressedByLogout when logout completes (userSession/logout/fulfilled)', () => {
       sessionStorage.setItem(DISMISS_STORAGE_KEY, 'w-old');
       const state = { ...initialState, dismissedWindowId: 'w-old', suppressedByLogout: true };
       const next = reducer(state, { type: 'userSession/logout/fulfilled' });
       expect(next.dismissedWindowId).toBeNull();
-      expect(next.suppressedByLogout).toBe(false);
+      expect(next.suppressedByLogout).toBe(true);
       expect(sessionStorage.getItem(DISMISS_STORAGE_KEY)).toBeNull();
     });
 

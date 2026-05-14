@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.configuration;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.configuration.AnnouncementBannerDAO;
 import com.sonatype.insight.brain.model.configuration.AnnouncementBanner;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,13 +112,31 @@ public class AnnouncementBannerServiceTest
   }
 
   @Test
-  public void testUpdateBanner_rejectsEnabledWithoutWindowId() {
+  public void testUpdateBanner_generatesWindowIdWhenBlank() {
     AnnouncementBanner banner = enabledBanner();
     banner.setWindowId(null);
 
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.updateBanner(banner))
-        .withMessageContaining("windowId");
+    AnnouncementBanner persisted = service.updateBanner(banner);
+
+    ArgumentCaptor<AnnouncementBanner> captor = ArgumentCaptor.forClass(AnnouncementBanner.class);
+    verify(dao).update(captor.capture());
+    assertThat(captor.getValue().getWindowId()).isNotBlank();
+    assertThatCode(() -> UUID.fromString(captor.getValue().getWindowId())).doesNotThrowAnyException();
+    assertThat(persisted.getWindowId()).isEqualTo(captor.getValue().getWindowId());
+  }
+
+  @Test
+  public void testUpdateBanner_generatesWindowIdWhenEmpty() {
+    AnnouncementBanner banner = enabledBanner();
+    banner.setWindowId("");
+
+    AnnouncementBanner persisted = service.updateBanner(banner);
+
+    ArgumentCaptor<AnnouncementBanner> captor = ArgumentCaptor.forClass(AnnouncementBanner.class);
+    verify(dao).update(captor.capture());
+    assertThat(captor.getValue().getWindowId()).isNotBlank();
+    assertThatCode(() -> UUID.fromString(captor.getValue().getWindowId())).doesNotThrowAnyException();
+    assertThat(persisted.getWindowId()).isEqualTo(captor.getValue().getWindowId());
   }
 
   @Test

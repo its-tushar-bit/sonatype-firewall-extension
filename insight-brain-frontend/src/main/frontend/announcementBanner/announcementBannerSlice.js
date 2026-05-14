@@ -93,6 +93,17 @@ const clearDismissal = (state) => {
   }
 };
 
+/** Like {@link clearDismissal} but leaves `suppressedByLogout` on to prevent a banner flash before navigation. */
+const clearDismissalKeepSuppression = (state) => {
+  state.dismissedWindowId = null;
+  try {
+    sessionStorage.removeItem(DISMISS_STORAGE_KEY);
+  }
+  catch {
+    // sessionStorage unavailable
+  }
+};
+
 /** Hide the banner while logout is in progress so it doesn't flash before navigation. */
 const suppressForLogout = (state) => {
   state.suppressedByLogout = true;
@@ -117,11 +128,7 @@ const announcementBannerSlice = createSlice({
     [loadAnnouncementBanner.rejected]: loadRejected,
     [userLoginActions.submitUserLogin.fulfilled]: clearDismissal,
     [userSessionLogoutThunk.pending]: suppressForLogout,
-    // Clear dismissal once logout completes so the banner reappears on the next login, regardless of auth
-    // method. submitUserLogin.fulfilled only fires for the username/password LoginModal flow, so SSO/SAML
-    // logins previously kept the dismissed windowId across logout+login in the same tab (sessionStorage
-    // survives same-origin redirects). Clearing here covers every auth path. See CLM-39947.
-    [userSessionLogoutThunk.fulfilled]: clearDismissal,
+    [userSessionLogoutThunk.fulfilled]: clearDismissalKeepSuppression,
     [userSessionLogoutThunk.rejected]: clearLogoutSuppression,
   },
 });

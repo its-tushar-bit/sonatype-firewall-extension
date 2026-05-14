@@ -940,10 +940,40 @@ curl -H 'Authorization: Bearer <access-token>' -X PUT \
 
 Fields:
 - `enabled`: set to `false` to hide immediately without waiting for `displayUntil`.
-- `windowId`: opaque string. Change it on every edit so previously-dismissed users see the updated banner.
-- `displayFrom` / `displayUntil`: ISO-8601 with timezone. Client-side auto-show/auto-hide.
-- `severity`: `info`, `warning`, or `critical`.
+- `windowId`: opaque string. Change it on every edit so previously-dismissed users see the updated banner. If omitted or blank on an enabled banner, the server generates a UUID. Supplying a meaningful value (for example `2026-05-26-us`) is recommended so the banner is identifiable in logs and audit records. **PUT is not idempotent when `windowId` is omitted**: each request generates a new UUID, so retrying the same payload re-shows the banner to users who already dismissed. Supply an explicit `windowId` in any workflow that may retry.
+- `displayFrom` / `displayUntil`: ISO-8601 with timezone (see below). Client-side auto-show/auto-hide.
+- `severity`: `info`, `warning`, or `critical`. Missing (null) values default to `info`; unknown values return 400.
 - `message`: text shown inside the banner.
+
+##### Building the timestamps
+
+It's always ISO-8601. Both `Z` (UTC) and `±HH:MM` offsets are accepted — `2026-05-26T22:00:00Z` and `2026-05-26T18:00:00-04:00` are the same instant. Quick ways to generate:
+
+```bash
+# macOS: now and now+5m in UTC
+date -u +"%Y-%m-%dT%H:%M:%SZ"
+date -u -v+5M +"%Y-%m-%dT%H:%M:%SZ"
+
+# Linux: now and now+5m in UTC
+date -u -d '+5 minutes' +"%Y-%m-%dT%H:%M:%SZ"
+
+# Browser DevTools:
+new Date(Date.now() + 5*60*1000).toISOString()
+```
+
+##### Overwriting and validation
+
+The row is a singleton — every PUT fully replaces the existing banner (no history). An enabled banner must carry `windowId` (or leave it blank to get an auto-generated UUID), `message`, `displayFrom`, and `displayUntil`. Specific 400 responses you can hit:
+
+| Body                                              | Response                                                                     |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `enabled=true` with no `message`                  | `400 message is required when enabled=true`                                  |
+| `enabled=true` with one of `displayFrom`/`Until`  | `400 displayFrom and displayUntil are both required when enabled=true`       |
+| `displayFrom` after `displayUntil`                | `400 displayFrom must be <= displayUntil`                                    |
+| `severity` outside `{info, warning, critical}`    | `400 severity must be one of [info, warning, critical]`                      |
+| Malformed ISO timestamp                           | `400` from Jackson with a parse error in the body                            |
+
+Through the mtiq-admin proxy (`PUT /announcement-banner`), each of these surfaces as HTTP `502 Bad Gateway` with the original IQ status and message preserved in the reason string.
 
 #### Read the current banner (admin side)
 
@@ -961,7 +991,7 @@ curl -H 'Authorization: Bearer <access-token>' -X PUT \
   http://{mtiq-ip-address}:8071/api/admin/tenants/global/announcement-banner
 ```
 
-The PUT replaces the full row, so a bare `{"enabled": false}` also clears `windowId`, `message`, `displayFrom`, and `displayUntil` to NULL. That is the intended disabled state; to re-enable, resupply every field — `{"enabled": true}` alone will fail the `windowId`/`message` validation.
+The PUT replaces the full row, so a bare `{"enabled": false}` also clears `windowId`, `message`, `displayFrom`, and `displayUntil` to NULL. That is the intended disabled state; to re-enable, resupply every required field — `{"enabled": true}` alone will fail validation on `message` and `displayFrom`/`displayUntil` (an omitted `windowId` is auto-generated).
 
 #### Customer-facing read endpoint
 

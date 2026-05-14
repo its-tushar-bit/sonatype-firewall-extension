@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.configuration;
 
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -62,7 +63,7 @@ public class AnnouncementBannerService
     }
     if (banner.isEnabled()) {
       if (StringUtils.isBlank(banner.getWindowId())) {
-        throw new BadRequestException("windowId is required when enabled=true");
+        banner.setWindowId(UUID.randomUUID().toString());
       }
       if (StringUtils.isBlank(banner.getMessage())) {
         throw new BadRequestException("message is required when enabled=true");

@@ -23,8 +23,8 @@ export const USE_MOCKS = true;
 /** API prefix for all Guide endpoints. Matches JAX-RS path in insight-brain-service when available. (GUIDE-2316). */
 export const API_PREFIX = '/api/v2/guide';
 
-/** Artificial latency in milliseconds for mock responses (exercises loading states) */
-const MOCK_LATENCY_MS = 150;
+/** Artificial latency for mock responses — makes loading states visible during development. Remove when real backend is integrated. */
+const MOCK_LATENCY_MS = 1500;
 
 /** Error class for API errors with status code */
 export class ApiError extends Error {

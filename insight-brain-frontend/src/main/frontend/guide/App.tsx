@@ -11,7 +11,7 @@ import { useReactRouterAdapter } from './reactRouterAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { LoginPage } from './auth/LoginPage';
 import { AppShell } from './layout/AppShell';
-import { ComponentsTestPage } from './components/ComponentsTestPage';
+import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
@@ -38,7 +38,7 @@ function AuthGate() {
         <AppShell>
           <Routes>
             <Route path="/" element={<h1>Sonatype Guide</h1>} />
-            <Route path="/components" element={<ComponentsTestPage />} />
+            <Route path="/components" element={<ComponentsSearchPage />} />
             <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
           </Routes>
         </AppShell>

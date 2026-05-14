@@ -15,7 +15,6 @@ import {
   EmptyVulnerabilitiesResults,
   useAdapterSearchParams,
 } from '@guide/ui-core';
-import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 import {
   vulnerabilitySortOptions,
   vulnerabilityFilterDefinitions,
@@ -27,27 +26,8 @@ import {
   VULNERABILITY_FILTER_ORDER,
 } from '@guide/ui-core/utils';
 import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
-
-/**
- * Converts search params to a Record for the coordinator and utility functions.
- */
-function searchParamsToRecord(
-  searchParams: ReadonlySearchParams
-): Record<string, string | string[]> {
-  const record: Record<string, string | string[]> = {};
-  searchParams.forEach((value: string, key: string) => {
-    const existing = record[key];
-    if (existing === undefined) {
-      record[key] = value;
-    } else if (Array.isArray(existing)) {
-      existing.push(value);
-    } else {
-      record[key] = [existing, value];
-    }
-  });
-  return record;
-}
 
 export function VulnerabilitiesPage() {
   const searchParams = useAdapterSearchParams();
@@ -59,7 +39,7 @@ export function VulnerabilitiesPage() {
     let cancelled = false;
 
     // Convert to Record once for all utility functions (they expect Record<string, string | string[]>)
-    const paramsRecord = searchParamsToRecord(searchParams);
+    const paramsRecord = toParamsRecord(searchParams);
 
     const query = getStringParam(paramsRecord, 'q');
     const filters = buildVulnerabilityFilters(paramsRecord);
@@ -105,7 +85,7 @@ export function VulnerabilitiesPage() {
   const limit = response?.limit ?? 25;
 
   // Convert search params to Record once for all components
-  const paramsRecord = searchParamsToRecord(searchParams);
+  const paramsRecord = toParamsRecord(searchParams);
 
   return (
     <PageLayout>

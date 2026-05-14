@@ -7,6 +7,14 @@
 import { searchComponents } from 'GuideRoot/api/componentsBackend';
 import { getCVSSSeverity } from '@guide/ui-core';
 
+jest.mock('GuideRoot/api/apiFetch', () => ({
+  ...jest.requireActual('GuideRoot/api/apiFetch'),
+  apiFetch: async <T>(_path: string, init?: { mockHandler?: () => unknown }): Promise<T> => {
+    if (init?.mockHandler) return init.mockHandler() as T;
+    throw new Error('No mock handler — real API not available in tests');
+  },
+}));
+
 describe('componentsBackend', () => {
   describe('searchComponents', () => {
     it('returns full dataset when called with no filters', async () => {
@@ -17,7 +25,7 @@ describe('componentsBackend', () => {
       expect(result.offset).toBe(0);
       expect(result.limit).toBe(25);
       expect(result.aggregations).toBeDefined();
-      expect(result.aggregations!.formats).toBeDefined();
+      expect(result.aggregations!.byFormat).toBeDefined();
     });
 
     it('formats filter reduces results and updates aggregation counts', async () => {
@@ -29,7 +37,7 @@ describe('componentsBackend', () => {
       expect(result.hits.every((c) => c.format === 'npm')).toBe(true);
 
       // Aggregations should reflect filtered set
-      expect(result.aggregations!.formats.npm).toBe(result.total);
+      expect(result.aggregations!.byFormat.npm).toBe(result.total);
     });
 
     it('severity filter reduces results', async () => {
@@ -39,7 +47,7 @@ describe('componentsBackend', () => {
 
       // Use ui-core's getCVSSSeverity for consistency
       expect(criticalOnly.hits.every((c) => getCVSSSeverity(c.maxCvss ?? 0) === 'critical')).toBe(true);
-      expect(criticalOnly.aggregations!.severities.critical).toBe(criticalOnly.total);
+      expect(criticalOnly.aggregations!.bySeverity.critical).toBe(criticalOnly.total);
     });
 
     it('sort changes result ordering', async () => {
@@ -120,11 +128,11 @@ describe('componentsBackend', () => {
       });
 
       // npm-only aggregation should only have npm format
-      expect(Object.keys(npmOnly.aggregations!.formats)).toEqual(['npm']);
+      expect(Object.keys(npmOnly.aggregations!.byFormat)).toEqual(['npm']);
 
       // Total aggregation counts should be larger
-      const allTotal = Object.values(allResults.aggregations!.formats).reduce((a, b) => a + b, 0);
-      const npmTotal = npmOnly.aggregations!.formats.npm;
+      const allTotal = Object.values(allResults.aggregations!.byFormat).reduce((a: number, b: number) => a + b, 0);
+      const npmTotal = npmOnly.aggregations!.byFormat.npm;
       expect(allTotal).toBeGreaterThan(npmTotal);
     });
   });

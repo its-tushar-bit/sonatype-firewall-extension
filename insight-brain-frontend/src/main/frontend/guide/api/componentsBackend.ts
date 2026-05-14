@@ -178,7 +178,12 @@ function computeAggregations(components: Component[]): Aggregations {
     }
   }
 
-  return { formats, categories, severities, licenses };
+  return {
+    byFormat: formats,
+    byCategory: categories,
+    bySeverity: severities,
+    byLicense: licenses,
+  };
 }
 
 /**

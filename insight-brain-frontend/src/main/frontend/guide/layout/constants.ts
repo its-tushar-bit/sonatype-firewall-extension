@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Home, Package, AlertTriangle } from 'lucide-react';
+import { Home, Package, AlertTriangle, Zap } from 'lucide-react';
 import { NavGroup } from './types';
 
 export const SIDEBAR_STORAGE_KEY = 'guide.sidebar.collapsed';
@@ -32,6 +32,12 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
         label: 'Vulnerabilities',
         href: '/vulnerabilities',
         icon: AlertTriangle,
+      },
+      {
+        id: 'mcp',
+        label: 'MCP',
+        href: '/mcp',
+        icon: Zap,
       },
     ],
   },

@@ -16,6 +16,7 @@ import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
 import { GUIDE_PRODUCTS } from './license/licenseProducts';
+import { McpPage } from './mcp/McpPage';
 
 function AuthGate() {
   const { status, ssoConfig, login } = useAuth();
@@ -40,6 +41,7 @@ function AuthGate() {
             <Route path="/" element={<h1>Sonatype Guide</h1>} />
             <Route path="/components" element={<ComponentsSearchPage />} />
             <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
+            <Route path="/mcp" element={<McpPage />} />
           </Routes>
         </AppShell>
       </LicenseGate>

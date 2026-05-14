@@ -1,0 +1,221 @@
+{
+  "tabs": [
+    {
+      "id": "github-copilot",
+      "name": "GitHub Copilot",
+      "type": "json",
+      "needsPrereq": false,
+      "configTitle": "Supported IDEs and Configuration",
+      "startUsingTitle": "Start Using",
+      "rulesTitle": "Configure AI Assistant Rules (Recommended)",
+      "rulesFile": ".github/copilot-instructions.md",
+      "rulesContent": "## Sonatype MCP\n\nWhen handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies.",
+      "ideConfigs": [
+        {
+          "ideName": "Visual Studio Code",
+          "description": "Add the following to the global VS Code mcp.json or create a .vscode/mcp.json in your workspace.",
+          "docsUrl": "https://code.visualstudio.com/docs/copilot/customization/mcp-servers",
+          "docsUrlText": "VS Code MCP documentation",
+          "config": "{\n  \"servers\": {\n    \"sonatype-mcp\": {\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"type\": \"http\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+          "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname. Switch to Agent mode in Copilot chat to access MCP tools."
+        },
+        {
+          "ideName": "Visual Studio",
+          "description": "In Copilot Chat (Agent mode), click the *Tools* icon and add a new server:",
+          "tableRows": [
+            {
+              "field": "Server ID",
+              "value": "sonatype-mcp"
+            },
+            {
+              "field": "Type",
+              "value": "stdio"
+            },
+            {
+              "field": "Command",
+              "value": "npx -y mcp-remote https://YOUR-IQ-SERVER/mcp --header \"Authorization: Basic <base64(username:password)>\""
+            }
+          ],
+          "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
+        },
+        {
+          "ideName": "JetBrains IDEs",
+          "description": "Open Copilot Chat and make sure you are in Agent mode. Then click the tools icon and either browse the registry to install Sonatype MCP Server, or manually add the configuration below in mcp.json.",
+          "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+          "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
+        },
+        {
+          "ideName": "Eclipse",
+          "description": "Follow these steps to configure MCP in Eclipse:",
+          "instructions": [
+            "Open Copilot chat and ensure you are in Agent mode.",
+            "Click the Configure Tools icon, then select Model Context Protocol (MCP).",
+            "In the Server Configurations section, add the configuration provided below.",
+            "Click Apply and restart Eclipse."
+          ],
+          "config": "{\n  \"sonatype-mcp\": {\n    \"command\": \"/opt/homebrew/bin/npx\",\n    \"args\": [\n      \"-y\",\n      \"mcp-remote\",\n      \"https://YOUR-IQ-SERVER/mcp\",\n      \"--header\",\n      \"Authorization: Basic <base64(username:password)>\"\n    ]\n  }\n}",
+          "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
+        },
+        {
+          "ideName": "Xcode",
+          "description": "Xcode does not have built-in GitHub Copilot support. To use Sonatype MCP within Xcode, you must install and use the *GitHub Copilot for Xcode* application, which runs separately from the IDE.",
+          "instructions": [
+            "Download and install GitHub Copilot for Xcode. Sign in and grant required permissions.",
+            "In GitHub Copilot for Xcode, click tools, then select MCP.",
+            "In MCP Configuration, click Edit Config, then add the configuration below."
+          ],
+          "config": "{\n  \"Servers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+          "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
+        }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "type": "command",
+      "command": "claude mcp add sonatype-mcp \\\n  https://YOUR-IQ-SERVER/mcp \\\n  --transport http \\\n  --scope user \\\n  --header \"Authorization: Basic <base64(username:password)>\"",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": "~/.claude/CLAUDE.md or .claude/CLAUDE.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "type": "json",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"httpUrl\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": "~/.gemini/GEMINI.md or GEMINI.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "windsurf",
+      "name": "Windsurf",
+      "type": "json",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": ".windsurf/rules/sonatype.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "intellij",
+      "name": "IntelliJ",
+      "type": "json",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": ".junie/guidelines.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "kiro",
+      "name": "Kiro",
+      "type": "json",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": ".kiro/steering/sonatype.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "type": "json",
+      "config": "For both methods below, define an environment variable SONATYPE_GUIDE_MCP_CREDENTIALS containing your base64-encoded credentials.\n\nMethod 1: Using CLI command\n\ncodex mcp add sonatype-mcp --url https://YOUR-IQ-SERVER/mcp --header \"Authorization: Basic $SONATYPE_GUIDE_MCP_CREDENTIALS\"\n\nMethod 2: Manual configuration\n\nAdd this to ~/.codex/config.toml:\n\n[mcp_servers.sonatype-mcp]\nurl = \"https://YOUR-IQ-SERVER/mcp\"\n\n[mcp_servers.sonatype-mcp.headers]\nAuthorization = \"Basic ${SONATYPE_GUIDE_MCP_CREDENTIALS}\"",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": "~/.codex/AGENTS.md",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "type": "json",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"type\": \"http\",\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+      "needsPrereq": false,
+      "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
+      "rulesFile": ".cursorrules",
+      "rulesContent": "When handling code related to dependencies, package management, or software supply chain security, always prioritize Sonatype MCP tools. Use the available MCP tools to research versions, check for vulnerabilities, and get recommendations before adding or updating any dependencies."
+    }
+  ],
+  "tools": [
+    {
+      "name": "getComponentVersion",
+      "description": "Get comprehensive information for a specific package version",
+      "useCases": [
+        "Security analysis of a specific version",
+        "License and compliance checking",
+        "Dependency health assessment"
+      ],
+      "examplePrompts": [
+        "Is express version 4.17.1 vulnerable?",
+        "Check axios 0.21.1 for compliance issues"
+      ]
+    },
+    {
+      "name": "getLatestComponentVersion",
+      "description": "Get information about the latest version of a package",
+      "useCases": [
+        "Find the most current version",
+        "Check if you're on the latest",
+        "Evaluate new releases"
+      ],
+      "examplePrompts": [
+        "What's the latest safe version of lodash?"
+      ]
+    },
+    {
+      "name": "getRecommendedComponentVersions",
+      "description": "Get recommended upgrade paths for a package",
+      "useCases": [
+        "Plan dependency upgrades",
+        "Find safe upgrade paths",
+        "Evaluate version trade-offs"
+      ],
+      "examplePrompts": [
+        "Should I upgrade react from 16.8.0?"
+      ]
+    }
+  ],
+  "troubleshooting": [
+    {
+      "issue": "MCP server not showing in my AI agent",
+      "solution": "Make sure you've added the MCP server using the configuration command. Restart your AI assistant after adding the configuration. Check that the MCP server URL is correctly entered with your IQ Server hostname."
+    },
+    {
+      "issue": "Authentication fails or times out",
+      "solution": "Verify you've added an Authorization header with valid Base64-encoded credentials. Encode as: base64(username:password). Check your network connection and firewall settings. Ensure your IQ Server credentials are correct. If the issue persists, contact your administrator."
+    },
+    {
+      "issue": "\"mcp-remote not found\" error",
+      "solution": "This error usually means the MCP client isn't properly installed in your AI assistant. Try reinstalling the MCP configuration. Make sure you're using the latest version of your AI assistant. Restart your AI assistant after configuration."
+    },
+    {
+      "issue": "Tools not responding or returning errors",
+      "solution": "Check your internet connection to IQ Server. Verify your authentication status by trying to authenticate again. Look for error messages in your AI assistant's console or logs. Try removing and re-adding the MCP server configuration."
+    },
+    {
+      "issue": "Connection refused or network error",
+      "solution": "Verify the IQ Server URL is correct and accessible from your network. Check if IQ Server is running. Ensure you're using HTTPS if IQ Server is configured for secure connections. Contact your administrator if firewall rules may be blocking access."
+    }
+  ],
+  "authHelp": {
+    "title": "Authentication",
+    "description": "Use your IQ Server credentials to authenticate. Encode as base64(username:password) and include in the Authorization header.",
+    "example": "echo -n \"username:password\" | base64 \u2192 dXNlcm5hbWU6cGFzc3dvcmQ="
+  },
+  "optionalHeaders": [
+    {
+      "name": "X-Application-Id",
+      "description": "IQ application ID for policy evaluation. When provided, MCP tool responses include policy violations specific to this application.",
+      "example": "X-Application-Id: my-app-id"
+    },
+    {
+      "name": "X-Stage",
+      "description": "Stage label for policy context (e.g., 'build', 'stage-release', 'develop'). Defaults to 'develop' if not specified.",
+      "example": "X-Stage: build"
+    }
+  ]
+}

@@ -25,6 +25,7 @@ import jakarta.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -87,6 +88,8 @@ public class ConfigurationUtils
       "NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE";
 
   public static final String NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE = "NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE";
+
+  public static final String NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE = "NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE";
 
   public static final String NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE = "NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE";
 
@@ -410,6 +413,18 @@ public class ConfigurationUtils
       return getIntEnvValueOrDefault(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE, defaultVal);
     }
     return NumberUtils.toInt(value, defaultVal);
+  }
+
+  public static int getFirewallQuarantineHdsPoolSize(String value, int defaultVal) {
+    int parsed = Strings.isNullOrEmpty(value)
+        ? getIntEnvValueOrDefault(NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE, defaultVal)
+        : NumberUtils.toInt(value, defaultVal);
+    if (parsed <= 0 || parsed > FirewallQuarantineHdsClient.MAX_POOL_SIZE) {
+      log.warn("firewallQuarantineHdsPoolSize={} is out of range (1-{}), falling back to default {}.",
+          parsed, FirewallQuarantineHdsClient.MAX_POOL_SIZE, defaultVal);
+      return defaultVal;
+    }
+    return parsed;
   }
 
   public static int getSaasPolicyMonitorPoolSize(String value, int defaultVal) {

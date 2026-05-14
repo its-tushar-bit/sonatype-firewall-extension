@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.SourceControlImportThreadPoolExecutor;
+import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -80,6 +81,11 @@ public class ConfigurationProperty
         (p, s) -> ConfigurationUtils.getSourceControlImportPoolSize(s,
             SourceControlImportThreadPoolExecutor.DEFAULT_MAX_THREAD_POOL_SIZE),
         (p, o) -> Objects.toString(o, null)),
+    new ConfigurationProperty(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE, Integer.class,
+        (p, s) -> ConfigurationUtils.getFirewallQuarantineHdsPoolSize(s, FirewallQuarantineHdsClient.DEFAULT_POOL_SIZE),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE,
+            1, FirewallQuarantineHdsClient.MAX_POOL_SIZE)),
     new ConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, Boolean.class,
         (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
         (p, o) -> Objects.toString(o, null)),

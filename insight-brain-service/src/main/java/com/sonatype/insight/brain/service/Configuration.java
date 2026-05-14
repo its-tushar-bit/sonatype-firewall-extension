@@ -56,6 +56,8 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -63,6 +65,8 @@ public class Configuration
     implements ConfigurationListener, ReverseProxyAuthenticationConfigurationListener, JiraConfigurationListener,
     SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged, BaseUrlProvider
 {
+  private static final Logger log = LoggerFactory.getLogger(Configuration.class);
+
   private static final String BASE_URL_CONFIGURATION = "baseUrlConfiguration";
 
   private static final String PROXY_SERVER_CONFIGURATION = "proxyServerConfiguration";
@@ -168,6 +172,7 @@ public class Configuration
         SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
+        SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE,
         SystemConfigurationProperty.CSRF_PROTECTION,
         SystemConfigurationProperty.USER_AGENT_SUFFIX,
         SystemConfigurationProperty.CSP_ENABLED,
@@ -272,6 +277,7 @@ public class Configuration
     hdsUrlAndTimeoutsServerConfigurationChanged(propertyNamesCopy);
     eventBusMaxThreadPoolSizeSetMaxPoolSize(propertyNamesCopy);
     releaseGraphCacheSizeInitializeCache(propertyNamesCopy);
+    firewallQuarantineHdsPoolSizeRestartWarning(propertyNamesCopy);
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
@@ -303,6 +309,14 @@ public class Configuration
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE),
         prop -> releaseGraphCacheProviderProvider.get().initializeCache());
+  }
+
+  private void firewallQuarantineHdsPoolSizeRestartWarning(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE),
+        prop -> log.warn(
+            "firewallQuarantineHdsPoolSize updated to {} but will not take effect until the server is restarted.",
+            getFirewallQuarantineHdsPoolSize()));
   }
 
   private void policyMonitoringHourSchedulePolicyMonitoring(
@@ -480,6 +494,10 @@ public class Configuration
 
   public int getSourceControlImportPoolSize() {
     return configCache.get(SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE);
+  }
+
+  public int getFirewallQuarantineHdsPoolSize() {
+    return configCache.get(SystemConfigurationProperty.FIREWALL_QUARANTINE_HDS_POOL_SIZE);
   }
 
   public boolean isAntiCsrfEnabled() {

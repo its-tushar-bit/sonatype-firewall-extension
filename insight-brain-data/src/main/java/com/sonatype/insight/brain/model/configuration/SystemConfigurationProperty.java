@@ -101,6 +101,8 @@ public class SystemConfigurationProperty
 
   public static final String SOURCE_CONTROL_IMPORT_POOL_SIZE = "sourceControlImportPoolSize";
 
+  public static final String FIREWALL_QUARANTINE_HDS_POOL_SIZE = "firewallQuarantineHdsPoolSize";
+
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";
 
   public static final String BASE_URL = "baseUrl";

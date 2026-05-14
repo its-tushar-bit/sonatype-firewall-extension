@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_EVENT_BUS_MAX_THREAD_POOL_SIZE;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE;
@@ -543,5 +544,34 @@ public class ConfigurationUtilsTest
     environmentVariables.set(NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE, "30");
 
     assertThat(ConfigurationUtils.getSaasPolicyMonitorPoolSize("", 10)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsPoolSize_withInRangeValue() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("30", 20)).isEqualTo(30);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsPoolSize_withoutValue() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("", 20)).isEqualTo(20);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsPoolSize_withEnvVar() {
+    environmentVariables.set(NXIQ_FIREWALL_QUARANTINE_HDS_POOL_SIZE, "40");
+
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("", 20)).isEqualTo(40);
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsPoolSize_zeroFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("0", 20)).isEqualTo(20);
+    assertThat(logOutput.toString()).contains("out of range");
+  }
+
+  @Test
+  public void testGetFirewallQuarantineHdsPoolSize_aboveMaxFallsBackToDefault() {
+    assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("51", 20)).isEqualTo(20);
+    assertThat(logOutput.toString()).contains("out of range");
   }
 }

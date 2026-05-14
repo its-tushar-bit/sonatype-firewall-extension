@@ -265,6 +265,7 @@ public class ConfigurationInfoTest
     List<String> propertiesExcluded = Arrays.asList(
         "sourceControlEventProcessorPoolSize",
         "sourceControlImportPoolSize",
+        "firewallQuarantineHdsPoolSize",
         "SCHEMA_MIGRATION_ENABLED",
         "sessionTimeout",
         "bfs.artifactoryExpiredTokenRegex",

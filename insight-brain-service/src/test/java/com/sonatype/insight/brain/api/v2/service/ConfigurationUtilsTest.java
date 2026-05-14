@@ -566,12 +566,12 @@ public class ConfigurationUtilsTest
   @Test
   public void testGetFirewallQuarantineHdsPoolSize_zeroFallsBackToDefault() {
     assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("0", 20)).isEqualTo(20);
-    assertThat(logOutput.toString()).contains("out of range");
+    assertThat(logOutput).atWarnLevel().contains("out of range");
   }
 
   @Test
   public void testGetFirewallQuarantineHdsPoolSize_aboveMaxFallsBackToDefault() {
     assertThat(ConfigurationUtils.getFirewallQuarantineHdsPoolSize("51", 20)).isEqualTo(20);
-    assertThat(logOutput.toString()).contains("out of range");
+    assertThat(logOutput).atWarnLevel().contains("out of range");
   }
 }

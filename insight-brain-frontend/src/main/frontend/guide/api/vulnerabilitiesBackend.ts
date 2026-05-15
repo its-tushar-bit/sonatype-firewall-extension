@@ -173,11 +173,20 @@ function filterVulnerabilities(
       case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
+      case '60d':
+        startDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        break;
       case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
+      case '6m':
+        startDate = new Date(now.getTime() - 182 * 24 * 60 * 60 * 1000);
+        break;
       case '1y':
         startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      case '2y':
+        startDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
         break;
       default:
         startDate = new Date(0); // All time

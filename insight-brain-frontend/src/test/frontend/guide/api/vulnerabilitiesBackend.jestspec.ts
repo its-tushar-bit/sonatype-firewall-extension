@@ -150,5 +150,30 @@ describe('vulnerabilitiesBackend', () => {
       expect(result.total).toBeGreaterThan(0);
       expect(result.hits.every((v) => v.kev === true)).toBe(true);
     });
+
+    it('publishedWindow filter returns only vulnerabilities within the window', async () => {
+      // Mock data includes entries at 3d, 15d, 45d, 75d, 130d, 200d, 500d relative to now
+      const sevenDay = await searchVulnerabilities({ filters: { publishedWindow: '7d' } });
+      const thirtyDay = await searchVulnerabilities({ filters: { publishedWindow: '30d' } });
+      const sixtyDay = await searchVulnerabilities({ filters: { publishedWindow: '60d' } });
+      const ninetyDay = await searchVulnerabilities({ filters: { publishedWindow: '90d' } });
+      const sixMonths = await searchVulnerabilities({ filters: { publishedWindow: '6m' } });
+      const oneYear = await searchVulnerabilities({ filters: { publishedWindow: '1y' } });
+      const twoYears = await searchVulnerabilities({ filters: { publishedWindow: '2y' } });
+
+      // Each wider window returns strictly more results than the narrower one
+      expect(sevenDay.total).toBeLessThan(thirtyDay.total);
+      expect(thirtyDay.total).toBeLessThan(sixtyDay.total);
+      expect(sixtyDay.total).toBeLessThan(ninetyDay.total);
+      expect(ninetyDay.total).toBeLessThan(sixMonths.total);
+      expect(sixMonths.total).toBeLessThan(oneYear.total);
+      expect(oneYear.total).toBeLessThan(twoYears.total);
+
+      // Every returned vulnerability must actually be within the window
+      const sevenDayThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      expect(
+        sevenDay.hits.every((v) => v.publishedAt && new Date(v.publishedAt) >= sevenDayThreshold)
+      ).toBe(true);
+    });
   });
 });

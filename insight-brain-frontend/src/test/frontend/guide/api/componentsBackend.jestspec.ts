@@ -121,6 +121,39 @@ describe('componentsBackend', () => {
       expect(result.hits).toHaveLength(Math.min(5, result.total));
     });
 
+    it('publishedWindow filter returns only components within the window', async () => {
+      // Mock data includes entries at 3d, 15d, 60d, 130d, 200d relative to now
+      const sevenDay = await searchComponents({ filters: { publishedWindow: '7d' } });
+      const thirtyDay = await searchComponents({ filters: { publishedWindow: '30d' } });
+      const sixtyDay = await searchComponents({ filters: { publishedWindow: '60d' } });
+      const ninetyDay = await searchComponents({ filters: { publishedWindow: '90d' } });
+      const sixMonths = await searchComponents({ filters: { publishedWindow: '6m' } });
+      const oneYear = await searchComponents({ filters: { publishedWindow: '1y' } });
+      const twoYears = await searchComponents({ filters: { publishedWindow: '2y' } });
+
+      // Each wider window returns strictly more results than the narrower one
+      // (mock data has entries at 3d, 15d, 45d, 75d, 130d, 200d, 500d)
+      expect(sevenDay.total).toBeLessThan(thirtyDay.total);
+      expect(thirtyDay.total).toBeLessThan(sixtyDay.total);
+      expect(sixtyDay.total).toBeLessThan(ninetyDay.total);
+      expect(ninetyDay.total).toBeLessThan(sixMonths.total);
+      expect(sixMonths.total).toBeLessThan(oneYear.total);
+      expect(oneYear.total).toBeLessThan(twoYears.total);
+
+      // Every returned component must actually be within the window
+      const sevenDayThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      expect(
+        sevenDay.hits.every((c) => c.publishedDate && new Date(c.publishedDate) >= sevenDayThreshold)
+      ).toBe(true);
+    });
+
+    it('publishedWindow filter with no window returns more components than with window', async () => {
+      const withWindow = await searchComponents({ filters: { publishedWindow: '7d' } });
+      const withoutWindow = await searchComponents();
+
+      expect(withoutWindow.total).toBeGreaterThan(withWindow.total);
+    });
+
     it('aggregations reflect filtered results', async () => {
       const allResults = await searchComponents();
       const npmOnly = await searchComponents({

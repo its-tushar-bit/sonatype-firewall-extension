@@ -183,7 +183,7 @@ describe('VulnerabilitiesPage', () => {
     it('calls searchVulnerabilities with query params from URL', async () => {
       render(<VulnerabilitiesPage />, {
         routerOptions: {
-          initialEntries: ['/?q=log4j'],
+          initialEntries: ['/?query=log4j'],
         },
       });
 
@@ -275,7 +275,7 @@ describe('VulnerabilitiesPage', () => {
     it('calls searchVulnerabilities with combined params', async () => {
       render(<VulnerabilitiesPage />, {
         routerOptions: {
-          initialEntries: ['/?q=log4j&severities=critical&offset=0&limit=10&sort=publishedDate:desc'],
+          initialEntries: ['/?query=log4j&severities=critical&offset=0&limit=10&sort=publishedDate:desc'],
         },
       });
 

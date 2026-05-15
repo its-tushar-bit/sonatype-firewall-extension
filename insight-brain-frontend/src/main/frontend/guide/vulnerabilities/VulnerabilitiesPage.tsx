@@ -41,7 +41,7 @@ export function VulnerabilitiesPage() {
     // Convert to Record once for all utility functions (they expect Record<string, string | string[]>)
     const paramsRecord = toParamsRecord(searchParams);
 
-    const query = getStringParam(paramsRecord, 'q');
+    const query = getStringParam(paramsRecord, 'query');
     const filters = buildVulnerabilityFilters(paramsRecord);
     const sortParam = getSortFromParams(paramsRecord);
     const options: VulnerabilitiesSearchOptions = {

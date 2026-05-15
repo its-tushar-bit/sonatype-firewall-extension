@@ -23,10 +23,13 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.iq.manager.RepositorySyncCommand;
 import com.sonatype.nexus.iq.manager.RepositorySyncExecutor;
+import com.sonatype.nexus.scm.InvalidRepositoryUrlException;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,6 +111,29 @@ public class ApiCompositeSourceControlConfigValidatorService
     try {
       GitApiClient gitApiClient = gitClientFactory.createApiClient(gitInfo);
       result.setTokenPermissions(gitApiClient.validateTokenPermissions());
+    }
+    catch (InvalidRepositoryUrlException e) {
+      log.debug("Invalid repository URL for app ID {}: {}", applicationId, e.getMessage(), e);
+      result.setTokenPermissions(new ValidationResult(false,
+          "Unable to validate the repository URL. Please verify the URL and credentials are correct."));
+    }
+    catch (HttpResponseException e) {
+      log.debug("HTTP error testing permissions for app ID {}: {} {}", applicationId, e.getStatusCode(),
+          e.getMessage(), e);
+      switch (e.getStatusCode()) {
+        case HttpStatus.SC_UNAUTHORIZED:
+          result.setTokenPermissions(new ValidationResult(false,
+              "Authentication failed. Please verify your credentials."));
+          break;
+        case HttpStatus.SC_FORBIDDEN:
+          result.setTokenPermissions(new ValidationResult(false,
+              "Insufficient permissions. Please verify the token has the required scopes."));
+          break;
+        default:
+          result.setTokenPermissions(new ValidationResult(false,
+              "Unable to validate permissions due to an unexpected server response."));
+          break;
+      }
     }
     catch (Exception e) {
       // Don't propagate the exception message because it may contain server details that can help an attacker mount an

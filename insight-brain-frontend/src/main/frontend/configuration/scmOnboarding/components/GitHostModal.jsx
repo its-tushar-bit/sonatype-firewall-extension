@@ -62,6 +62,8 @@ export default function GitHostModal(props) {
         return 'Authorization Error';
       case 'SCM_UNKNOWN_HOST_FAILURE':
         return 'Unknown Host Error';
+      case 'SCM_INVALID_REPOSITORY_URL':
+        return 'Invalid Repository URL';
       default:
         return 'Connection Error';
     }

@@ -35,6 +35,7 @@ function CredentialsError(props) {
     SCM_AUTHN_FAILURE: 'Authentication Error',
     SCM_AUTHZ_FAILURE: 'Authorization Error',
     SCM_UNKNOWN_HOST_FAILURE: 'Unknown Host Error',
+    SCM_INVALID_REPOSITORY_URL: 'Invalid Repository URL',
   };
   const errorShortDescription = () => {
     const description = ERROR_SHORT_DESC[errorCode];
@@ -43,6 +44,7 @@ function CredentialsError(props) {
 
   const ERROR_DETAIL_DESC = {
     SCM_AUTHN_FAILURE: 'IQ Server was unable to authenticate with',
+    SCM_INVALID_REPOSITORY_URL: 'The repository URL is invalid or unreachable from',
   };
   const errorDetailDescription = () => {
     let description = ERROR_DETAIL_DESC[errorCode];

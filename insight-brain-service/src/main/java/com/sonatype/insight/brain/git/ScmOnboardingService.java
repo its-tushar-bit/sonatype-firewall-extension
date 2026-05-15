@@ -79,7 +79,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
-import com.sonatype.nexus.scm.InvalidRepositoryUrlException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -99,6 +98,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHN_FAILURE;
 import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_AUTHZ_FAILURE;
+import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_INVALID_REPOSITORY_URL;
 import static com.sonatype.insight.brain.git.ScmResultStatus.SCM_UNKNOWN_HOST_FAILURE;
 import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
 import static java.util.Collections.emptyList;
@@ -264,29 +264,30 @@ public class ScmOnboardingService
     log.debug("Loading repositories for org {} using authentication type: {} using host url: {}",
         orgId, authenticationType, hostUrl);
 
-    GeneralSCMApiClient generalClient = null;
-    String githubAppAuthType = SourceControl.AuthenticationType.GITHUB_APP.toString();
-    if (authenticationType != null && authenticationType.equals(githubAppAuthType)) {
-      generalClient = createGitHubAppClient(orgId, provider, hostUrl);
-    }
-    else {
-      String username = StringUtils.isNotBlank(sourceControlDTO.username.value)
-          ? sourceControlDTO.username.value
-          : sourceControlDTO.username.parentValue;
-      String token = StringUtils.isNotBlank(sourceControlDTO.token.value)
-          ? sourceControlDTO.token.value
-          : sourceControlDTO.token.parentValue;
-      log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
-      generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
-    }
-
     try {
+      GeneralSCMApiClient generalClient;
+      String githubAppAuthType = SourceControl.AuthenticationType.GITHUB_APP.toString();
+      if (authenticationType != null && authenticationType.equals(githubAppAuthType)) {
+        generalClient = createGitHubAppClient(orgId, provider, hostUrl);
+      }
+      else {
+        String username = StringUtils.isNotBlank(sourceControlDTO.username.value)
+            ? sourceControlDTO.username.value
+            : sourceControlDTO.username.parentValue;
+        String token = StringUtils.isNotBlank(sourceControlDTO.token.value)
+            ? sourceControlDTO.token.value
+            : sourceControlDTO.token.parentValue;
+        log.debug("Attempting to retrieve repositories using given host url: {}", hostUrl);
+        generalClient = gitClientFactory.createGeneralApiClient(provider, hostUrl, username, token);
+      }
+
       List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
       List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
       return new SCMRepositories(allRepositories.size(), availableRepositories);
     }
-    catch (InvalidRepositoryUrlException e) {
-      throw new BadRequestException(e);
+    catch (IllegalArgumentException e) {
+      log.debug("Invalid repository URL for host {}: {}", hostUrl, e.getMessage());
+      return new SCMRepositories(SCM_INVALID_REPOSITORY_URL);
     }
     catch (UnknownHostException e) {
       return new SCMRepositories(SCM_UNKNOWN_HOST_FAILURE);

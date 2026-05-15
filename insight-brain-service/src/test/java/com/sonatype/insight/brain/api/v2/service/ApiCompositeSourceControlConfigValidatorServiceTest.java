@@ -19,10 +19,12 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
+import com.sonatype.nexus.scm.InvalidRepositoryUrlException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
 
+import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -442,6 +444,96 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getRepoPrivate().isValid()).isFalse();
     assertThat(result.getRepoPublic().isValid()).isTrue();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_unauthorized() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(401, "Unauthorized"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo("Authentication failed. Please verify your credentials.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_forbidden() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(403, "Forbidden"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo("Insufficient permissions. Please verify the token has the required scopes.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_invalidRepositoryUrl() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions())
+        .thenThrow(new InvalidRepositoryUrlException("https://bad..url/repo"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo("Unable to validate the repository URL. Please verify the URL and credentials are correct.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_createApiClient_invalidRepositoryUrl() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class)))
+        .thenThrow(new InvalidRepositoryUrlException("https://bad..url/repo"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo("Unable to validate the repository URL. Please verify the URL and credentials are correct.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_unexpectedHttpStatus() throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(500, "Internal Server Error"));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo("Unable to validate permissions due to an unexpected server response.");
   }
 
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {

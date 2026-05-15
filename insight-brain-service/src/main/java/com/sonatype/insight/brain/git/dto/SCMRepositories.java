@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.dto;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.git.ScmResultStatus;
@@ -48,6 +49,7 @@ public class SCMRepositories
 
   public SCMRepositories(final ScmResultStatus status) {
     this.status = status;
+    this.availableRepositories = Collections.emptyList();
   }
 
   public int getTotalRepositories() {

@@ -415,6 +415,19 @@ public class ScmOnboardingServiceTest
     verifyNoSourceControlEvaluationEventsCreated();
   }
 
+  @Test
+  public void testLoadRepositories_malformedUrl_returnsInvalidRepositoryUrlStatus() throws Exception {
+    // given a URL with illegal characters that fails URI.create parsing
+    String malformedUrl = "https://github.com/owner/bad repo";
+
+    // when loading repositories with a malformed URL
+    SCMRepositories result = scmOnboardingService.loadRepositories(org.getId(), malformedUrl);
+
+    // then a structured response with SCM_INVALID_REPOSITORY_URL status is returned (not a 500)
+    assertThat(result.getStatus()).isEqualTo(ScmResultStatus.SCM_INVALID_REPOSITORY_URL);
+    assertThat(result.getAvailableRepositories()).isEmpty();
+  }
+
   private String getResourceAsString(String filename) throws IOException {
     String resourceAsString = IOUtils.toString(
         getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),

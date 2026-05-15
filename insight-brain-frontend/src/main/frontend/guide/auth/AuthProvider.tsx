@@ -16,11 +16,16 @@ import { SessionExpirationWarning } from './SessionExpirationWarning';
 import { getCsrfToken } from './csrfToken';
 
 const SESSION_URL = '/rest/user/session';
+const LOGOUT_URL = '/rest/user/session/logout';
 
-function deleteSession(): Promise<void> {
+// Calls the backend logout endpoint, which destroys the Shiro session and may
+// return a `Location` header pointing at the IdP's SLO URL (e.g. Auth0). Returns
+// the Location value if present so callers can hard-redirect for full SLO.
+function logoutOnServer(): Promise<string | null> {
   const token = getCsrfToken();
   const headers: HeadersInit = token ? { 'X-CSRF-TOKEN': token } : {};
-  return fetch(SESSION_URL, { method: 'DELETE', credentials: 'same-origin', headers }).then(() => {}, () => {});
+  return fetch(LOGOUT_URL, { method: 'DELETE', credentials: 'same-origin', headers })
+    .then((response) => response.headers.get('Location'), () => null);
 }
 
 interface User {
@@ -34,7 +39,15 @@ interface AuthContextValue {
   user: User | null;
   ssoConfig: SsoConfig | null;
   login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   authFetch: AuthFetch;
+}
+
+interface CheckSessionOptions {
+  // When true, skip the SSO-only auto-redirect even if SSO-only mode is enabled.
+  // Used after explicit logout so the user lands on the login page instead of being
+  // silently re-authenticated by the still-active IdP session.
+  skipSsoOnlyRedirect?: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -47,6 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const queueRef = useRef(new RequestQueue());
   const trackerRef = useRef<ReturnType<typeof createSessionExpirationTracker> | null>(null);
+  // Ref-based indirection: onExpired needs to call checkSession, but checkSession
+  // depends on startExpirationTracking which owns onExpired — using the ref breaks
+  // the cycle without re-creating the tracker on every checkSession identity change.
+  const checkSessionRef = useRef<(options?: CheckSessionOptions) => Promise<void>>(
+    () => Promise.resolve()
+  );
 
   const resetToUnauthenticated = useCallback((newSsoConfig?: SsoConfig | null) => {
     setStatus('unauthenticated');
@@ -64,15 +83,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onExpired: async () => {
         setShowExpirationWarning(false);
         queueRef.current.rejectAll(new Error('Session expired'));
-        await deleteSession();
-        resetToUnauthenticated(null);
+        const idpLogoutUrl = await logoutOnServer();
+        if (idpLogoutUrl) {
+          window.location.assign(idpLogoutUrl);
+          return;
+        }
+        // Skip the SSO-only auto-redirect so the user lands on the login page
+        // instead of being silently re-authenticated by the still-active IdP
+        // session. Matches explicit-logout behavior — an expired session should
+        // not bounce the user back through the IdP without their consent.
+        await checkSessionRef.current({ skipSsoOnlyRedirect: true });
       },
     });
     trackerRef.current = tracker;
     tracker.start();
-  }, [resetToUnauthenticated]);
+  }, []);
 
-  const checkSession = useCallback(async () => {
+  const checkSession = useCallback(async (options?: CheckSessionOptions) => {
     try {
       const session = await fetchSession();
       if (session.authenticated && session.user) {
@@ -83,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         resetToUnauthenticated(session.ssoConfig);
 
-        if (session.ssoConfig) {
+        if (session.ssoConfig && !options?.skipSsoOnlyRedirect) {
           const ssoOnly = await fetchIsSsoOnlyEnabled();
           if (ssoOnly && !window.location.pathname.endsWith('/backupLogin')) {
             queueRef.current.rejectAll(new Error('SSO redirect'));
@@ -103,6 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetToUnauthenticated(null);
     }
   }, [resetToUnauthenticated, startExpirationTracking]);
+
+  useEffect(() => {
+    checkSessionRef.current = checkSession;
+  }, [checkSession]);
 
   useEffect(() => {
     checkSession();
@@ -149,15 +180,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [authFetch]);
 
-  const handleLogOut = useCallback(async () => {
+  const logout = useCallback(async () => {
     setShowExpirationWarning(false);
-    await deleteSession();
-    resetToUnauthenticated(null);
-  }, [resetToUnauthenticated]);
+    const idpLogoutUrl = await logoutOnServer();
+    if (idpLogoutUrl) {
+      // The backend returned an IdP SLO URL (e.g. Auth0). Hard-redirect to it
+      // so the user is also signed out of the IdP, not just the IQ session.
+      window.location.assign(idpLogoutUrl);
+      return;
+    }
+    // No IdP SLO URL — re-fetch session in place so the user lands on the
+    // login page. Skip the SSO-only auto-redirect since the user explicitly
+    // chose to log out.
+    await checkSessionRef.current({ skipSsoOnlyRedirect: true });
+  }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, ssoConfig, login, authFetch }),
-    [status, user, ssoConfig, login, authFetch]
+    () => ({ status, user, ssoConfig, login, logout, authFetch }),
+    [status, user, ssoConfig, login, logout, authFetch]
   );
 
   return (
@@ -166,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       <SessionExpirationWarning
         open={showExpirationWarning}
         onStayLoggedIn={handleStayLoggedIn}
-        onLogOut={handleLogOut}
+        onLogOut={logout}
       />
     </AuthContext.Provider>
   );

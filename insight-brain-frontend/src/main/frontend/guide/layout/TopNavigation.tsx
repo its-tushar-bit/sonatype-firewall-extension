@@ -5,8 +5,8 @@
  */
 
 import { RefObject } from 'react';
-import { Box, Flex, IconButton, Avatar } from '@radix-ui/themes';
-import { Menu } from 'lucide-react';
+import { Box, Flex, IconButton, Avatar, Tooltip } from '@radix-ui/themes';
+import { Menu, LogOut } from 'lucide-react';
 import { tokens } from '@guide/ui-core/utils';
 import { GuideLogo } from './GuideLogo';
 import { ThemeToggle } from './ThemeToggle';
@@ -29,7 +29,7 @@ function getInitials(displayName?: string, username?: string): string {
 }
 
 export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigationProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <Box
@@ -62,6 +62,17 @@ export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigati
             color="gray"
             fallback={getInitials(user?.displayName, user?.username)}
           />
+          <Tooltip content="Log out" side="bottom">
+            <IconButton
+              variant="outline"
+              size={tokens.sizes.caption}
+              color="gray"
+              aria-label="Log out"
+              onClick={() => { void logout(); }}
+            >
+              <LogOut size={16} />
+            </IconButton>
+          </Tooltip>
         </Flex>
       </Flex>
     </Box>

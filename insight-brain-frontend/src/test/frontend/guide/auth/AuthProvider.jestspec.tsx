@@ -285,6 +285,43 @@ describe('AuthProvider', () => {
     }
   });
 
+  it('repopulates ssoConfig after auto-logout when session expires', async () => {
+    // Regression: when the session expiration timer fires onExpired, the SSO config
+    // must be re-fetched so the login page can show "Sign in with SSO". Previously
+    // onExpired called resetToUnauthenticated(null) which cleared the SSO config.
+    const fetchSessionSpy = jest.spyOn(loginApi, 'fetchSession')
+      .mockResolvedValueOnce(authenticatedSession)
+      .mockResolvedValueOnce(unauthenticatedWithSso);
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() });
+
+    Object.defineProperty(document, 'cookie', {
+      value: `IQ-SESSION-EXPIRATION-TIMESTAMP=${Date.now() - 1000}`,
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      render(
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('sso')).toHaveTextContent('SAML');
+      });
+
+      expect(fetchSessionSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      global.fetch = originalFetch;
+      Object.defineProperty(document, 'cookie', { value: '', writable: true, configurable: true });
+    }
+  });
+
   it('throws when useAuth is used outside AuthProvider', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -352,6 +389,134 @@ describe('AuthProvider', () => {
         expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
       });
       expect(assignSpy).not.toHaveBeenCalled();
+    });
+
+    it('redirects to IdP SLO URL when logout endpoint returns a Location header', async () => {
+      // SLO: when the backend's logout endpoint returns a Location header
+      // (e.g. Auth0 IdP logout URL), the UI must hard-redirect to it so the
+      // user is also signed out at the IdP, not just on IQ.
+      jest.spyOn(loginApi, 'fetchSession').mockResolvedValue(authenticatedSession);
+      const assignSpy = mockWindowLocation('/');
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        headers: new Headers({ Location: 'https://idp.example.com/logout?returnTo=/' }),
+      });
+
+      Object.defineProperty(document, 'cookie', {
+        value: `IQ-SESSION-EXPIRATION-TIMESTAMP=${Date.now() + 60_000}`,
+        writable: true,
+        configurable: true,
+      });
+
+      try {
+        render(
+          <AuthProvider>
+            <AuthConsumer />
+          </AuthProvider>
+        );
+
+        await waitFor(() => {
+          expect(screen.getByTestId('status')).toHaveTextContent('authenticated');
+        });
+
+        const logoutButton = await screen.findByRole('button', { name: 'Log Out' });
+        await act(async () => {
+          logoutButton.click();
+        });
+
+        await waitFor(() => {
+          expect(assignSpy).toHaveBeenCalledWith('https://idp.example.com/logout?returnTo=/');
+        });
+      } finally {
+        global.fetch = originalFetch;
+        Object.defineProperty(document, 'cookie', { value: '', writable: true, configurable: true });
+      }
+    });
+
+    it('does NOT auto-redirect to IdP when user explicitly logs out', async () => {
+      // Regression: in SSO-only mode, clicking "Log Out" must not silently redirect
+      // back to the IdP (where the user's session is still active). The user wants
+      // to see the login page after clicking log out.
+      jest.spyOn(loginApi, 'fetchSession')
+        .mockResolvedValueOnce(authenticatedSession)
+        .mockResolvedValueOnce(unauthWithSaml);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(true);
+      const assignSpy = mockWindowLocation('/');
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() });
+
+      // Cookie expiry within the 2-minute warning window so the dialog opens
+      Object.defineProperty(document, 'cookie', {
+        value: `IQ-SESSION-EXPIRATION-TIMESTAMP=${Date.now() + 60_000}`,
+        writable: true,
+        configurable: true,
+      });
+
+      try {
+        render(
+          <AuthProvider>
+            <AuthConsumer />
+          </AuthProvider>
+        );
+
+        await waitFor(() => {
+          expect(screen.getByTestId('status')).toHaveTextContent('authenticated');
+        });
+
+        const logoutButton = await screen.findByRole('button', { name: 'Log Out' });
+        await act(async () => {
+          logoutButton.click();
+        });
+
+        await waitFor(() => {
+          expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+        });
+        expect(screen.getByTestId('sso')).toHaveTextContent('SAML');
+        expect(assignSpy).not.toHaveBeenCalled();
+      } finally {
+        global.fetch = originalFetch;
+        Object.defineProperty(document, 'cookie', { value: '', writable: true, configurable: true });
+      }
+    });
+
+    it('does NOT auto-redirect to IdP when session expires in SSO-only mode', async () => {
+      // Regression: when the session expiration timer fires onExpired in SSO-only
+      // mode, the user must land on the login page rather than being silently
+      // re-authenticated by the still-active IdP session. Matches explicit-logout
+      // behavior — an expired session should not bounce through the IdP without
+      // user consent.
+      jest.spyOn(loginApi, 'fetchSession')
+        .mockResolvedValueOnce(authenticatedSession)
+        .mockResolvedValueOnce(unauthWithSaml);
+      jest.spyOn(ssoOnlyModeModule, 'fetchIsSsoOnlyEnabled').mockResolvedValue(true);
+      const assignSpy = mockWindowLocation('/');
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() });
+
+      Object.defineProperty(document, 'cookie', {
+        value: `IQ-SESSION-EXPIRATION-TIMESTAMP=${Date.now() - 1000}`,
+        writable: true,
+        configurable: true,
+      });
+
+      try {
+        render(
+          <AuthProvider>
+            <AuthConsumer />
+          </AuthProvider>
+        );
+
+        await waitFor(() => {
+          expect(screen.getByTestId('status')).toHaveTextContent('unauthenticated');
+        });
+        expect(screen.getByTestId('sso')).toHaveTextContent('SAML');
+        expect(assignSpy).not.toHaveBeenCalled();
+      } finally {
+        global.fetch = originalFetch;
+        Object.defineProperty(document, 'cookie', { value: '', writable: true, configurable: true });
+      }
     });
 
     it('does NOT auto-redirect when no ssoConfig', async () => {

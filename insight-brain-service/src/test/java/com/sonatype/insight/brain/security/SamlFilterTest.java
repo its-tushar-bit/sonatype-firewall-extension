@@ -354,6 +354,25 @@ public class SamlFilterTest
   }
 
   @Test
+  public void testGetDestinationOrDefault_GuideOriginWithHashContainingQueryString_PreservesQuestionMark() {
+    String hash = "#/vulnerabilities?severities=critical";
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    lenient().when(mockHttpServletRequest.getRequestURL())
+        .thenReturn(new StringBuffer("http://localhost:8070/context/place"));
+    lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn("/context/place");
+    lenient().when(mockHttpServletRequest.getContextPath()).thenReturn("/context");
+    when(mockHttpServletRequest.getQueryString()).thenReturn("hash=" + hash);
+    lenient().when(mockHttpServletRequest.getParameter("hash")).thenReturn(hash);
+    when(mockHttpServletRequest.getParameter("origin")).thenReturn("guide");
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(
+        new BaseUrlConfiguration("http://localhost:8070", true));
+    baseUrl.capture(mockHttpServletRequest);
+
+    assertThat(samlFilter.getDestinationOrDefault(mockHttpServletRequest))
+        .isEqualTo("http://localhost:8070/assets/guide/index.html" + hash);
+  }
+
+  @Test
   public void testGetDestinationOrDefault_InvalidOrigin_ReturnsIqUrl() {
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     lenient().when(mockHttpServletRequest.getRequestURL())

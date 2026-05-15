@@ -198,7 +198,10 @@ class SamlFilter
         ? landingService.getGuideDestination()
         : landingService.getDestination();
     URI uri = UriBuilder.fromUri(baseDestination).replaceQuery("").fragment(hash).build();
-    uri = URI.create(uri.toString().replaceAll("%2F", "/"));
+    // UriBuilder.fragment() over-encodes characters that RFC 3986 allows in the fragment component.
+    // Hash routes commonly contain "/" path separators and "?" query separators (e.g.
+    // "#/vulnerabilities?severities=critical"); restore them so the SPA sees its original URL.
+    uri = URI.create(uri.toString().replaceAll("%2F", "/").replaceAll("%3F", "?"));
     return uri.toString();
   }
 

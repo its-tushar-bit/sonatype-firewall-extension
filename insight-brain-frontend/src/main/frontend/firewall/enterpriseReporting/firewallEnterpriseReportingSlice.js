@@ -8,6 +8,7 @@ import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
 import { always, applySpec, compose, find, nth, path, prop, propEq } from 'ramda';
 import { Messages } from 'MainRoot/util/CommonServices';
+import { selectAllDashboards } from './firewallEnterpriseReportingSelectors';
 import {
   getEnterpriseReportingBaseUrl,
   getEnterpriseReportingDashboardsUrl,
@@ -97,7 +98,7 @@ export const loadDashboardDetail = createAsyncThunk(`${REDUCER_NAME}/loadDashboa
 const updateSelectedDashboard = (dashboardId) => {
   return (dispatch, getState) => {
     const state = getState();
-    const { dashboards } = state.firewallEnterpriseReporting;
+    const dashboards = selectAllDashboards(state);
 
     if (!dashboards || dashboards.length === 0) {
       return;

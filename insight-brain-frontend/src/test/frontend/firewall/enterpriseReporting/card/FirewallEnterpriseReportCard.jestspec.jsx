@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
 import FirewallEnterpriseReportCard from 'MainRoot/firewall/enterpriseReporting/card/FirewallEnterpriseReportCard';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
@@ -106,11 +106,17 @@ describe('FirewallEnterpriseReportCard', () => {
     expect(button.parentElement.tagName).toBe('SPAN');
   });
 
-  it('should render card with correct ID', () => {
-    const { container } = renderComponent();
+  it('should render the view CTA button with the correct analytics ID', () => {
+    renderComponent();
 
-    const card = container.querySelector('#fw-enterprise-reporting-dashboard-malware-insights');
-    expect(card).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: 'View Dashboard' });
+    expect(button).toHaveAttribute('data-analytics-id', 'fw-reporting-malware-insights-view-cta');
+  });
+
+  it('should render card with correct ID', () => {
+    renderComponent();
+
+    expect(document.getElementById('fw-enterprise-reporting-dashboard-malware-insights')).toBeInTheDocument();
   });
 
   it('should handle dashboards without spotlight text', () => {
@@ -124,61 +130,48 @@ describe('FirewallEnterpriseReportCard', () => {
   });
 
   it('should apply firewall class to icon when category is firewall', () => {
-    const { container } = renderComponent();
+    renderComponent();
 
-    const iconCallout = container.querySelector('.fw-enterprise-report-card__icon');
-    expect(iconCallout).toBeInTheDocument();
-    expect(iconCallout).toHaveClass('firewall');
+    const list = screen.getByRole('list');
+    const checkIcons = within(list).getAllByRole('img', { hidden: true });
+    checkIcons.forEach((icon) => expect(icon).toHaveClass('firewall'));
   });
 
   it('should not apply firewall class to icon when category is not firewall', () => {
-    const nonFirewallDashboard = {
-      ...mockDashboard,
-      category: 'enterprise',
-    };
-    const { container } = renderComponent({ dashboard: nonFirewallDashboard });
+    const nonFirewallDashboard = { ...mockDashboard, category: 'enterprise' };
+    renderComponent({ dashboard: nonFirewallDashboard });
 
-    const iconCallout = container.querySelector('.fw-enterprise-report-card__icon');
-    expect(iconCallout).toBeInTheDocument();
-    expect(iconCallout).not.toHaveClass('firewall');
+    const list = screen.getByRole('list');
+    const checkIcons = within(list).getAllByRole('img', { hidden: true });
+    checkIcons.forEach((icon) => expect(icon).not.toHaveClass('firewall'));
   });
 
   it('should apply firewall class to feature checkmark icons when category is firewall', () => {
-    const { container } = renderComponent();
+    renderComponent();
 
-    const checkmarkIcons = container.querySelectorAll('.nx-list__item .nx-icon.firewall');
-    expect(checkmarkIcons.length).toBeGreaterThan(0);
+    const list = screen.getByRole('list');
+    const checkIcons = within(list).getAllByRole('img', { hidden: true });
+    expect(checkIcons.length).toBeGreaterThan(0);
+    checkIcons.forEach((icon) => expect(icon).toHaveClass('firewall'));
   });
 
   it('should render spotlight with teal color for firewall category', () => {
-    const { container } = renderComponent();
+    renderComponent();
 
-    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
-    expect(spotlight).toBeInTheDocument();
-    expect(spotlight).toHaveClass('nx-small-tag--teal');
+    expect(screen.getByText('NEW').closest('.nx-small-tag')).toHaveClass('nx-small-tag--teal');
   });
 
   it('should use dashboard spotlightColor when it is a valid small tag color', () => {
-    const dashboardWithBlueSpotlight = {
-      ...mockDashboard,
-      spotlightColor: 'blue',
-    };
-    const { container } = renderComponent({ dashboard: dashboardWithBlueSpotlight });
+    const dashboardWithBlueSpotlight = { ...mockDashboard, spotlightColor: 'blue' };
+    renderComponent({ dashboard: dashboardWithBlueSpotlight });
 
-    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
-    expect(spotlight).toBeInTheDocument();
-    expect(spotlight).toHaveClass('nx-small-tag--blue');
+    expect(screen.getByText('NEW').closest('.nx-small-tag')).toHaveClass('nx-small-tag--blue');
   });
 
   it('should fallback to teal when spotlightColor is not a valid small tag color', () => {
-    const dashboardWithInvalidColor = {
-      ...mockDashboard,
-      spotlightColor: 'yellow',
-    };
-    const { container } = renderComponent({ dashboard: dashboardWithInvalidColor });
+    const dashboardWithInvalidColor = { ...mockDashboard, spotlightColor: 'yellow' };
+    renderComponent({ dashboard: dashboardWithInvalidColor });
 
-    const spotlight = container.querySelector('.iq-enterprise-reporting-card__spotlight');
-    expect(spotlight).toBeInTheDocument();
-    expect(spotlight).toHaveClass('nx-small-tag--teal');
+    expect(screen.getByText('NEW').closest('.nx-small-tag')).toHaveClass('nx-small-tag--teal');
   });
 });

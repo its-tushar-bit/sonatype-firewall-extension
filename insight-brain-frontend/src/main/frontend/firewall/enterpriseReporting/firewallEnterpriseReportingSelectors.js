@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { filter, prop, propEq } from 'ramda';
+import { filter, prop, propEq, sortBy } from 'ramda';
 
 // Base selector - gets the slice from root state
 export const selectFirewallEnterpriseReporting = prop('firewallEnterpriseReporting');
@@ -12,8 +12,12 @@ export const selectFirewallEnterpriseReporting = prop('firewallEnterpriseReporti
 // Landing page selectors - all dashboards
 export const selectAllDashboards = createSelector(selectFirewallEnterpriseReporting, prop('dashboards'));
 
-// Filtered selector - only firewall category dashboards
-export const selectDashboards = createSelector(selectAllDashboards, filter(propEq('category', 'firewall')));
+// Filtered and sorted selector - firewall category dashboards ordered by priorityOrder ascending
+// Dashboards without priorityOrder are sorted last (Infinity fallback)
+export const selectDashboards = createSelector(selectAllDashboards, (dashboards) => {
+  if (!dashboards?.length) return [];
+  return sortBy((d) => d.priorityOrder ?? Infinity, filter(propEq('category', 'firewall'), dashboards));
+});
 
 export const selectLoading = createSelector(selectFirewallEnterpriseReporting, prop('loading'));
 

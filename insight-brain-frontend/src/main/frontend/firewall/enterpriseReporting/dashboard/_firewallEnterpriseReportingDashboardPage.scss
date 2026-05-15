@@ -35,8 +35,20 @@ firewall-enterprise-reporting-dashboard-page {
     }
   }
 
+  &__filter-tag {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    align-items: center;
+
+    .nx-h3,
+    .nx-tag {
+      margin: 0;
+      font-size: var(--nx-font-size-xs);
+    }
+  }
+
   &__navigation-bar {
-    font-size: 12px;
+    font-size: var(--nx-font-size-xs);
     margin-left: var(--looker-iframe-margin);
     margin-bottom: var(--nx-spacing-4x);
   }
@@ -57,7 +69,7 @@ firewall-enterprise-reporting-dashboard-page {
       &::after {
         color: var(--nx-color-text-stark);
         content: '|';
-        margin: 0 8px;
+        margin: 0 var(--nx-spacing-2x);
       }
     }
   }
@@ -67,90 +79,14 @@ firewall-enterprise-reporting-dashboard-page {
       color: var(--nx-color-text-stark);
       flex-shrink: 0;
       font-weight: 600;
-      font-size: 12px;
-      margin: 2px 12px 0 0;
-    }
-  }
-
-  &__link {
-    font-size: 12px;
-    text-decoration: none;
-
-    &--active {
-      font-weight: 600;
-      color: var(--nx-color-text-stark);
-      cursor: default;
-      pointer-events: none;
-    }
-  }
-
-  &__back-link {
-    display: flex;
-    align-items: center;
-    gap: var(--nx-spacing-2x);
-    margin-bottom: var(--nx-spacing-4x);
-    margin-left: var(--looker-iframe-margin);
-    font-size: var(--nx-font-size-sm);
-
-    .nx-icon {
       font-size: var(--nx-font-size-xs);
+      margin: 2px var(--nx-spacing-3x) 0 0;
     }
   }
 
-  &__demo-placeholder {
-    margin-left: var(--looker-iframe-margin);
-    margin-right: var(--looker-iframe-margin);
-    margin-top: var(--nx-spacing-6x);
-    padding: var(--nx-spacing-6x);
-    background-color: var(--nx-color-interactive-background-page);
-    border: 1px solid var(--nx-color-interactive-border-default);
-    border-radius: var(--nx-border-radius-default);
-  }
-
-  &__demo-content {
-    h2 {
-      margin-top: 0;
-      color: var(--nx-color-text-stark);
-    }
-
-    p {
-      margin-bottom: var(--nx-spacing-4x);
-    }
-  }
-
-  &__demo-info {
-    margin-top: var(--nx-spacing-6x);
-
-    h3 {
-      color: var(--nx-color-text-stark);
-      margin-bottom: var(--nx-spacing-3x);
-    }
-
-    ul {
-      list-style-type: disc;
-      margin-left: var(--nx-spacing-5x);
-      margin-bottom: var(--nx-spacing-4x);
-
-      li {
-        margin-bottom: var(--nx-spacing-2x);
-      }
-
-      strong {
-        font-weight: 600;
-      }
-    }
-  }
-
-  &__demo-notice {
-    margin-top: var(--nx-spacing-4x);
-    padding: var(--nx-spacing-4x);
-    background-color: var(--nx-color-threat-indicator-low-background);
-    border-left: 4px solid var(--nx-color-threat-indicator-low);
-    border-radius: var(--nx-border-radius-default);
-
-    p {
-      margin: 0;
-      color: var(--nx-color-text-stark);
+  &__filter-button {
+    &.nx-btn {
+      width: max-content;
     }
   }
 }

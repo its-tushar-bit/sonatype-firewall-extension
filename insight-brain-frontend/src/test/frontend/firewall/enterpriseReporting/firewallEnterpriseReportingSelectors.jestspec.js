@@ -108,6 +108,43 @@ describe('firewallEnterpriseReportingSelectors', () => {
       const result = selectDashboards(stateWithoutFirewall);
       expect(result).toEqual([]);
     });
+
+    it('should return empty array when dashboards is null', () => {
+      const stateWithNull = {
+        firewallEnterpriseReporting: { ...mockState.firewallEnterpriseReporting, dashboards: null },
+      };
+      expect(selectDashboards(stateWithNull)).toEqual([]);
+    });
+
+    it('should sort firewall dashboards ascending by priorityOrder', () => {
+      const unsortedState = {
+        firewallEnterpriseReporting: {
+          ...mockState.firewallEnterpriseReporting,
+          dashboards: [
+            { dashboardId: 'b', title: 'B', category: 'firewall', priorityOrder: 200 },
+            { dashboardId: 'a', title: 'A', category: 'firewall', priorityOrder: 100 },
+          ],
+        },
+      };
+      const result = selectDashboards(unsortedState);
+      expect(result[0].dashboardId).toBe('a');
+      expect(result[1].dashboardId).toBe('b');
+    });
+
+    it('should sort dashboards without priorityOrder after those with it', () => {
+      const state = {
+        firewallEnterpriseReporting: {
+          ...mockState.firewallEnterpriseReporting,
+          dashboards: [
+            { dashboardId: 'no-order', title: 'No Order', category: 'firewall' },
+            { dashboardId: 'has-order', title: 'Has Order', category: 'firewall', priorityOrder: 100 },
+          ],
+        },
+      };
+      const result = selectDashboards(state);
+      expect(result[0].dashboardId).toBe('has-order');
+      expect(result[1].dashboardId).toBe('no-order');
+    });
   });
 
   describe('selectLoading', () => {

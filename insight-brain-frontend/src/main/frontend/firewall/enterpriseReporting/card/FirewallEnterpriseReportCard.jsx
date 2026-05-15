@@ -68,7 +68,7 @@ export default function FirewallEnterpriseReportCard(props) {
           <NxList bulleted className="iq-enterprise-reporting-card__features">
             {dashboard.features.map((f, idx) => (
               <NxList.Item key={idx}>
-                <NxFontAwesomeIcon className={isFirewallCategory && 'firewall'} icon={fas.faCheck} />
+                <NxFontAwesomeIcon className={classNames({ firewall: isFirewallCategory })} icon={fas.faCheck} />
                 <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
               </NxList.Item>
             ))}
@@ -76,15 +76,15 @@ export default function FirewallEnterpriseReportCard(props) {
         </NxCard.Content>
         <NxCard.Footer className="iq-enterprise-reporting-card__footer">
           <NxTooltip
-            title={buttonDisabled && `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight`}
+            title={buttonDisabled ? `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight` : null}
           >
             <span>
               <NxButton
                 variant="tertiary"
                 className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
                 disabled={buttonDisabled}
+                data-analytics-id={`fw-reporting-${dashboard.dashboardId}-view-cta`}
                 onClick={() => {
-                  // Navigate to Firewall dashboard detail page
                   dispatch(stateGo('firewall.enterpriseReportingDashboard', { id: dashboard.dashboardId }));
                 }}
               >

@@ -143,4 +143,27 @@ describe('ProductLicenseInfo', () => {
     expect(screen.getByText('100')).toBeInTheDocument();
     expect(screen.queryByText('Lifecycle —')).not.toBeInTheDocument();
   });
+
+  it('renders credit amount when provided', () => {
+    const licenseWithCredits = {
+      ...mockLicense,
+      creditAmountToDisplay: '5000',
+    };
+
+    render(<ProductLicenseInfo license={licenseWithCredits} />);
+
+    expect(screen.getByText('Licensed Credits')).toBeInTheDocument();
+    expect(screen.getByText('5000')).toBeInTheDocument();
+  });
+
+  it('does not render credit amount when not provided', () => {
+    const licenseWithoutCredits = {
+      ...mockLicense,
+      creditAmountToDisplay: null,
+    };
+
+    render(<ProductLicenseInfo license={licenseWithoutCredits} />);
+
+    expect(screen.queryByText('Licensed Credits')).not.toBeInTheDocument();
+  });
 });

@@ -119,6 +119,14 @@ export default function ProductLicenseInfo({ license }) {
               </dd>
             </div>
           )}
+          {license.creditAmountToDisplay !== null && (
+            <div className="nx-read-only__item iq-product-license__licensed-credits">
+              <dt className="nx-read-only__label">Licensed Credits</dt>
+              <dd className="nx-read-only__data" id="license-credit-amount">
+                {license.creditAmountToDisplay}
+              </dd>
+            </div>
+          )}
         </dl>
       </div>
     </div>
@@ -139,6 +147,7 @@ ProductLicenseInfo.propTypes = {
     licensedUsersToDisplay: PropTypes.number,
     productEdition: PropTypes.string.isRequired,
     products: PropTypes.array,
+    creditAmountToDisplay: PropTypes.string,
     sbomCountToDisplay: PropTypes.number,
     sbomLimitToDisplay: PropTypes.number,
   }),

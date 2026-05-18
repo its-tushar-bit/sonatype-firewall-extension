@@ -33,7 +33,8 @@
   grid-template:
     'expiration-date  days-remaining      fingerprint '
     'license-types    licensed-developers licensed-applications'
-    'license-types    licensed-developers licensed-sboms';
+    'license-types    licensed-developers licensed-sboms'
+    'license-types    licensed-developers licensed-credits';
 
   grid-template-columns: 20% 25% auto;
 }
@@ -60,6 +61,10 @@
 
 .iq-product-license__licensed-sboms {
   grid-area: licensed-sboms;
+}
+
+.iq-product-license__licensed-credits {
+  grid-area: licensed-credits;
 }
 
 .iq-product-license__fingerprint {

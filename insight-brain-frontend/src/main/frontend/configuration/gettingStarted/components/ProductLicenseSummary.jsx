@@ -91,6 +91,15 @@ export default function ProductLicenceSummary({ license, tenantMode }) {
               </>
             )}
 
+            {license.creditAmountToDisplay !== null && (
+              <>
+                <dt className="nx-read-only__label">Licensed Credits</dt>
+                <dd className="nx-read-only__data" id="license-credit-amount">
+                  {license.creditAmountToDisplay}
+                </dd>
+              </>
+            )}
+
             {isSingleTenant && (
               <>
                 <dt className="nx-read-only__label">Fingerprint</dt>
@@ -124,6 +133,7 @@ ProductLicenceSummary.propTypes = {
   license: PropTypes.shape({
     applicationCountToDisplay: PropTypes.number,
     applicationLimitToDisplay: PropTypes.number,
+    creditAmountToDisplay: PropTypes.string,
     expiryTimestamp: PropTypes.number.isRequired,
     fingerprint: PropTypes.string.isRequired,
     products: PropTypes.array,

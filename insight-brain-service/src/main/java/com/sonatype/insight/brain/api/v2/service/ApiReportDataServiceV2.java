@@ -131,7 +131,20 @@ public class ApiReportDataServiceV2
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       String scanId) throws IOException
   {
-    return getDataNoAuth(applicationPublicId, scanId);
+    return getRawData(applicationPublicId, scanId, false);
+  }
+
+  /**
+   * @since 1.204.0
+   */
+  @Authorize(permission = Permission.READ)
+  public ApiReportRawDataDTOV2 getRawData(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      String scanId,
+      boolean includeCustomSecurityVulnerabilityData) throws IOException
+  {
+    return getDataNoAuth(applicationPublicId, scanId, false, isDependencyDataInRestApiSupported(),
+        includeCustomSecurityVulnerabilityData);
   }
 
   /**
@@ -409,7 +422,7 @@ public class ApiReportDataServiceV2
       final String applicationPublicId,
       final String scanId) throws IOException
   {
-    return getDataNoAuth(applicationPublicId, scanId, false, true);
+    return getDataNoAuth(applicationPublicId, scanId, false, true, false);
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(
@@ -418,7 +431,7 @@ public class ApiReportDataServiceV2
       final boolean useLicensesJsonOverriddenLicenses) throws IOException
   {
     final boolean doAddDependencyData = isDependencyDataInRestApiSupported();
-    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData);
+    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
   }
 
   public ApiReportRawDataDTOV2 getDataNoAuth(
@@ -426,6 +439,16 @@ public class ApiReportDataServiceV2
       final String scanId,
       final boolean useLicensesJsonOverriddenLicenses,
       final boolean doAddDependencyData) throws IOException
+  {
+    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData, false);
+  }
+
+  public ApiReportRawDataDTOV2 getDataNoAuth(
+      final String applicationPublicId,
+      final String scanId,
+      final boolean useLicensesJsonOverriddenLicenses,
+      final boolean doAddDependencyData,
+      final boolean includeCustomSecurityVulnerabilityData) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
@@ -481,7 +504,7 @@ public class ApiReportDataServiceV2
       component.identificationSource =
           comp.getIdentificationSource() == null ? null : comp.getIdentificationSource().getName();
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
-        component.securityData = securityDataAdapter.convertToDTO(comp);
+        component.securityData = securityDataAdapter.convertToDTO(comp, includeCustomSecurityVulnerabilityData);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
         populateAiModelData(comp, component);
       }

@@ -13,9 +13,11 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueAnalysisDTO;
+import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityCustomDataDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -33,7 +35,27 @@ public class ApiSecurityDataAdapter
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Convert a {@link Component}'s security vulnerabilities to the raw-report DTO. Overload that
+   * retains pre-CLM-32049 semantics: no {@code customData} emitted. Retained so existing callers
+   * (e.g. {@code ApiComponentDetailsAdapter}) compile unchanged.
+   */
   public ApiSecurityDataDTO convertToDTO(final Component component) {
+    return convertToDTO(component, false);
+  }
+
+  /**
+   * Convert a {@link Component}'s security vulnerabilities to the raw-report DTO. When
+   * {@code includeCustomSecurityVulnerabilityData} is {@code true} AND the underlying
+   * {@link SecurityVulnerability} has any non-null {@link SecurityVulnerabilityCustomData} field,
+   * populate {@link ApiSecurityIssueDTO#customData}; otherwise leave it {@code null}.
+   *
+   * @since 1.204.0
+   */
+  public ApiSecurityDataDTO convertToDTO(
+      final Component component,
+      final boolean includeCustomSecurityVulnerabilityData)
+  {
     ApiSecurityDataDTO securityData = new ApiSecurityDataDTO();
     for (SecurityVulnerability vuln : component.getSecurityVulnerabilities()) {
       ApiSecurityIssueDTO sv = new ApiSecurityIssueDTO();
@@ -57,10 +79,42 @@ public class ApiSecurityDataAdapter
         sv.analysis = apiSecurityIssueAnalysisDTO;
       }
 
+      if (includeCustomSecurityVulnerabilityData) {
+        SecurityVulnerabilityCustomDataDTO customDataDto = buildCustomDataDto(
+            vuln.getSecurityVulnerabilityCustomData());
+        if (customDataDto != null) {
+          sv.customData = customDataDto;
+        }
+      }
+
       securityData.securityIssues.add(sv);
     }
 
     return securityData;
+  }
+
+  /**
+   * @return a populated DTO when at least one field is non-null; {@code null} otherwise so the
+   *         caller can leave {@code customData} absent and rely on {@code @JsonInclude(NON_NULL)}
+   *         to omit the JSON key.
+   */
+  private SecurityVulnerabilityCustomDataDTO buildCustomDataDto(SecurityVulnerabilityCustomData cd) {
+    if (cd == null) {
+      return null;
+    }
+    if (cd.getRemediation() == null
+        && cd.getCweId() == null
+        && cd.getCvssVector() == null
+        && cd.getCvssSeverity() == null)
+    {
+      return null;
+    }
+    SecurityVulnerabilityCustomDataDTO dto = new SecurityVulnerabilityCustomDataDTO();
+    dto.remediation = cd.getRemediation();
+    dto.cweId = cd.getCweId();
+    dto.cvssVector = cd.getCvssVector();
+    dto.cvssSeverity = cd.getCvssSeverity();
+    return dto;
   }
 
   /**

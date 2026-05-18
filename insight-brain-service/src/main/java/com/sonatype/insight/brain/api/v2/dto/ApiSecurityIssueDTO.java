@@ -46,4 +46,14 @@ public class ApiSecurityIssueDTO
    */
   @JsonInclude(Include.NON_NULL)
   public ApiSecurityIssueAnalysisDTO analysis;
+
+  /**
+   * Custom security vulnerability data (remediation / cweId / cvssVector / cvssSeverity) when the
+   * caller requested {@code includeCustomSecurityVulnerabilityData=true} on the raw report endpoint
+   * AND at least one override is configured at the owner hierarchy. Absent otherwise.
+   *
+   * @since 1.204.0
+   */
+  @JsonInclude(Include.NON_NULL)
+  public SecurityVulnerabilityCustomDataDTO customData;
 }

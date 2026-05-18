@@ -722,6 +722,121 @@ public class ApiReportDataResourceV2Test
     assertResponseStatus(404, response);
   }
 
+  // ---------------------------------------------------------------------------
+  // Task 10.3 — invalid flag value (BDD-005 / AT-002)
+  // Jersey primitive boolean coercion: any value other than "true" (case-insensitive)
+  // is treated as false — no 400 is produced. This test documents that contract.
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void invalidFlagValue_treatedAsFalse_returns200() throws Exception {
+    // BDD-005 / AT-002: Jersey treats unknown boolean strings as false for primitive boolean params.
+    // "banana" → false → same as flag absent → 200 with no customData in response.
+    final String appPublicId = "BDD005_AppId";
+    final String scanId = "BDD005_ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse withBanana = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("includeCustomSecurityVulnerabilityData", "banana")
+        .get();
+
+    HttpResponse withoutFlag = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    assertResponseStatus(200, withBanana);
+    assertResponseStatus(200, withoutFlag);
+    // Both responses should be identical because "banana" is coerced to false.
+    assertThat(withBanana.getBodyText()).isEqualTo(withoutFlag.getBodyText());
+  }
+
+  // ---------------------------------------------------------------------------
+  // Task 10b — case-variant, near-miss, sibling no-op
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void getRawData_flagTRUE_UpperCase_returns200() throws Exception {
+    // BDD-006: JAX-RS Boolean param coercion in Dropwizard 5.x — verify behaviour.
+    // Dropwizard uses Jersey which by default coerces "TRUE" (case-insensitive) to true.
+    final String appPublicId = "BDD006_AppId";
+    final String scanId = "BDD006_ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("includeCustomSecurityVulnerabilityData", "TRUE")
+        .get();
+
+    // Jersey Boolean coercion accepts case-insensitive TRUE — assert 200.
+    // If the runtime rejects it, this test will document that contract.
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void getRawData_nearMissParam_ignored() throws Exception {
+    // BDD-007: a misspelled query param must not affect the response — default (flag=false) applies.
+    final String appPublicId = "BDD007_AppId";
+    final String scanId = "BDD007_ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse withMissParam = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("includeSecurityCustomData", "true") // wrong param name
+        .get();
+
+    HttpResponse withoutParam = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.RAW_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    assertResponseStatus(200, withMissParam);
+    assertResponseStatus(200, withoutParam);
+    assertThat(withMissParam.getBodyText()).isEqualTo(withoutParam.getBodyText());
+  }
+
+  @Test
+  public void policyEndpoint_ignoresCustomDataFlag() throws Exception {
+    // BDD-008: the sibling /policy endpoint must ignore the customData flag — it has
+    // no customData field and the flag should be treated as an unknown query param.
+    final String appPublicId = "BDD008_AppId";
+    final String scanId = "BDD008_ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse withFlag = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("includeCustomSecurityVulnerabilityData", "true")
+        .get();
+
+    HttpResponse withoutFlag = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    assertResponseStatus(200, withFlag);
+    assertResponseStatus(200, withoutFlag);
+    assertThat(withFlag.getBodyText()).isEqualTo(withoutFlag.getBodyText());
+  }
+
   private void assertValidDiffResults(
       final HttpResponse response) throws URISyntaxException, JSONException, IOException
   {

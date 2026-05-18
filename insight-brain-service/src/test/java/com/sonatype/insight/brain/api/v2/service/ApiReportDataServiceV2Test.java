@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,15 +25,25 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
+import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityCustomDataDTO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -76,6 +87,18 @@ public class ApiReportDataServiceV2Test
 
   @Inject
   private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  private VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO;
+
+  @Inject
+  private VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO;
+
+  @Inject
+  private VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO;
+
+  @Inject
+  private VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO;
 
   private Application app;
 
@@ -809,5 +832,285 @@ public class ApiReportDataServiceV2Test
 
     ApiReportComponentDTOV2 component = data.components.get(0);
     assertThat(component.aiModelData).isNull();
+  }
+
+  @Test
+  public void getRawData_flagFalse_customDataAlwaysAbsent() throws Exception {
+    Application localApp = tempEntity.newApplicationWithParent();
+    String localScanId = seedReportWithVulnOverride(localApp, "36079", "Upgrade", null, null, null);
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, false);
+
+    ApiSecurityIssueDTO issue = firstSecurityIssue(data);
+    assertThat(issue.customData).isNull();
+  }
+
+  @Test
+  public void getRawData_flagTrue_appLevelOverride_customDataPopulated() throws Exception {
+    Application localApp = tempEntity.newApplicationWithParent();
+    String localScanId = seedReportWithVulnOverride(localApp, "36079", "Upgrade", "CWE-79", "AV:N", 9.8f);
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, true);
+
+    ApiSecurityIssueDTO issue = firstSecurityIssue(data);
+    assertThat(issue.customData).isNotNull();
+    assertThat(issue.customData.remediation).isEqualTo("Upgrade");
+    assertThat(issue.customData.cweId).isEqualTo("CWE-79");
+    assertThat(issue.customData.cvssVector).isEqualTo("AV:N");
+    assertThat(issue.customData.cvssSeverity).isEqualTo(9.8f);
+  }
+
+  @Test
+  public void getRawData_flagTrue_orgLevelOverrideInherited() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application localApp = tempEntity.newApplicationWithParent(org);
+    String localScanId = seedReportWithOrgVulnOverride(localApp, org, "36079", "OrgLevelRemed");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, true);
+
+    ApiSecurityIssueDTO issue = firstSecurityIssue(data);
+    assertThat(issue.customData).isNotNull();
+    assertThat(issue.customData.remediation).isEqualTo("OrgLevelRemed");
+  }
+
+  @Test
+  public void getRawData_flagAbsent_legacyOverloadUsed_byteIdenticalResponse() throws Exception {
+    Application localApp = tempEntity.newApplicationWithParent();
+    String localScanId = seedReportWithVulnOverride(localApp, "36079", "Upgrade", null, null, null);
+
+    ApiReportRawDataDTOV2 legacy = reportDataService.getRawData(localApp.getPublicId(), localScanId);
+    ApiReportRawDataDTOV2 flagOff = reportDataService.getRawData(localApp.getPublicId(), localScanId, false);
+
+    String legacyJson = JsonUtils.writeUnformatted(legacy);
+    String flagOffJson = JsonUtils.writeUnformatted(flagOff);
+    assertThat(flagOffJson).isEqualTo(legacyJson);
+  }
+
+  private ApiSecurityIssueDTO firstSecurityIssue(ApiReportRawDataDTOV2 data) {
+    return data.components.stream()
+        .filter(c -> c.securityData != null && !c.securityData.securityIssues.isEmpty())
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No component with securityIssues")).securityData.securityIssues.get(0);
+  }
+
+  /**
+   * Seeds a report for the given app using the report-1 fixture and inserts app-level vulnerability
+   * custom data overrides for the vuln with the given refId. Non-null override params are inserted.
+   *
+   * @return the scanId used
+   */
+  private String seedReportWithVulnOverride(
+      Application localApp,
+      String refId,
+      String remediation,
+      String cweId,
+      String cvssVector,
+      Float cvssSeverity) throws Exception
+  {
+    String localScanId = UUID.randomUUID().toString();
+    tempEntity.newPolicyEvaluation(localApp.getId(), ReleaseStageType.ID, localScanId);
+    ReportHelper.saveMockReport(work, tempDir, "/ApiReportDataServiceTest/report-1", localApp.getId(), localScanId);
+
+    if (remediation != null) {
+      VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+      customRemediation.setOwnerId(localApp.getId());
+      customRemediation.setRefId(refId);
+      customRemediation.setRemediation(remediation);
+      customRemediation.setLastUpdatedByUsername("test");
+      vulnerabilityCustomRemediationDAO.insert(customRemediation);
+    }
+    if (cweId != null) {
+      VulnerabilityCustomCwe customCwe = new VulnerabilityCustomCwe();
+      customCwe.setOwnerId(localApp.getId());
+      customCwe.setRefId(refId);
+      customCwe.setCwe(cweId);
+      customCwe.setLastUpdatedByUsername("test");
+      vulnerabilityCustomCweDAO.insert(customCwe);
+    }
+    if (cvssVector != null) {
+      VulnerabilityCustomCvssVector customCvssVector = new VulnerabilityCustomCvssVector();
+      customCvssVector.setOwnerId(localApp.getId());
+      customCvssVector.setRefId(refId);
+      customCvssVector.setVector(cvssVector);
+      customCvssVector.setLastUpdatedByUsername("test");
+      vulnerabilityCustomCvssVectorDAO.insert(customCvssVector);
+    }
+    if (cvssSeverity != null) {
+      VulnerabilityCustomCvssSeverity customCvssSeverity = new VulnerabilityCustomCvssSeverity();
+      customCvssSeverity.setOwnerId(localApp.getId());
+      customCvssSeverity.setRefId(refId);
+      customCvssSeverity.setSeverity(cvssSeverity);
+      customCvssSeverity.setLastUpdatedByUsername("test");
+      vulnerabilityCustomCvssSeverityDAO.insert(customCvssSeverity);
+    }
+    return localScanId;
+  }
+
+  /**
+   * Seeds a report for the given app using the report-1 fixture and inserts an org-level remediation
+   * override for the vuln with the given refId.
+   *
+   * @return the scanId used
+   */
+  private String seedReportWithOrgVulnOverride(
+      Application localApp,
+      Organization org,
+      String refId,
+      String remediation) throws Exception
+  {
+    String localScanId = UUID.randomUUID().toString();
+    tempEntity.newPolicyEvaluation(localApp.getId(), ReleaseStageType.ID, localScanId);
+    ReportHelper.saveMockReport(work, tempDir, "/ApiReportDataServiceTest/report-1", localApp.getId(), localScanId);
+
+    VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+    customRemediation.setOwnerId(org.getId());
+    customRemediation.setRefId(refId);
+    customRemediation.setRemediation(remediation);
+    customRemediation.setLastUpdatedByUsername("test");
+    vulnerabilityCustomRemediationDAO.insert(customRemediation);
+
+    return localScanId;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Task 10 tests
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void inheritedOverride_surfaces_evenWithoutVulnerabilityCustomizationLicenseOnChild() throws Exception {
+    // BDD-064 / AT-063: An org-level override must appear in a child app's raw report regardless
+    // of whether the caller tenant holds VULNERABILITY_CUSTOMIZATION. License gating is not
+    // re-checked on the read path.
+    Organization org = tempEntity.newOrganization();
+    Application localApp = tempEntity.newApplicationWithParent(org);
+    String localScanId = seedReportWithOrgVulnOverride(localApp, org, "36079", "FromOrg");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, true);
+
+    SecurityVulnerabilityCustomDataDTO cd = firstSecurityIssue(data).customData;
+    assertThat(cd).isNotNull();
+    assertThat(cd.remediation).isEqualTo("FromOrg");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Task 10b tests
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void getRawData_flagTrue_rootOrgOverrideInherited() throws Exception {
+    // BDD-042: root-org hierarchy — override inserted at root org level must surface
+    // in an app nested under a child org.
+    Organization rootOrg = tempEntity.newOrganization();
+    Organization childOrg = tempEntity.newOrganization(rootOrg);
+    Application localApp = tempEntity.newApplicationWithParent(childOrg);
+
+    String localScanId = seedReportWithRootOrgVulnOverride(localApp, rootOrg, "36079", "RootRem");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, true);
+
+    SecurityVulnerabilityCustomDataDTO cd = firstSecurityIssue(data).customData;
+    assertThat(cd).isNotNull();
+    assertThat(cd.remediation).isEqualTo("RootRem");
+  }
+
+  @Test
+  public void getRawData_flagTrue_mostSpecificOverrideWins() throws Exception {
+    // BDD-044: most-specific-wins — app-level override should shadow an org-level override for
+    // the same refId.
+    Organization org = tempEntity.newOrganization();
+    Application localApp = tempEntity.newApplicationWithParent(org);
+
+    String localScanId = seedReportWithVulnOverride(localApp, "36079", "AppLevel", null, null, null);
+    seedOrgLevelOverride(org, "36079", "OrgLevel");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(localApp.getPublicId(), localScanId, true);
+
+    SecurityVulnerabilityCustomDataDTO cd = firstSecurityIssue(data).customData;
+    assertThat(cd).isNotNull();
+    assertThat(cd.remediation).isEqualTo("AppLevel");
+  }
+
+  /**
+   * Seeds a report for the given app using the report-1 fixture and inserts a root-org-level
+   * remediation override for the vuln with the given refId.
+   *
+   * @return the scanId used
+   */
+  private String seedReportWithRootOrgVulnOverride(
+      Application localApp,
+      Organization rootOrg,
+      String refId,
+      String remediation) throws Exception
+  {
+    String localScanId = UUID.randomUUID().toString();
+    tempEntity.newPolicyEvaluation(localApp.getId(), ReleaseStageType.ID, localScanId);
+    ReportHelper.saveMockReport(work, tempDir, "/ApiReportDataServiceTest/report-1", localApp.getId(), localScanId);
+
+    VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+    customRemediation.setOwnerId(rootOrg.getId());
+    customRemediation.setRefId(refId);
+    customRemediation.setRemediation(remediation);
+    customRemediation.setLastUpdatedByUsername("test");
+    vulnerabilityCustomRemediationDAO.insert(customRemediation);
+
+    return localScanId;
+  }
+
+  /**
+   * Inserts an org-level remediation override for the given org and refId. Does not create a report.
+   */
+  private void seedOrgLevelOverride(Organization org, String refId, String remediation) {
+    VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+    customRemediation.setOwnerId(org.getId());
+    customRemediation.setRefId(refId);
+    customRemediation.setRemediation(remediation);
+    customRemediation.setLastUpdatedByUsername("test");
+    vulnerabilityCustomRemediationDAO.insert(customRemediation);
+  }
+
+  @Test
+  public void getRawData_flagTrue_tagScopedOverrideSurfaces() throws Exception {
+    // BDD-043: tag-scoped override — an org-level override linked to a tag only surfaces for
+    // apps that also carry that tag.
+    Organization org = tempEntity.newOrganization();
+    Application taggedApp = tempEntity.newApplicationWithParent(org);
+    Application untaggedApp = tempEntity.newApplicationWithParent(org);
+
+    String taggedScanId = UUID.randomUUID().toString();
+    tempEntity.newPolicyEvaluation(taggedApp.getId(), ReleaseStageType.ID, taggedScanId);
+    ReportHelper.saveMockReport(work, tempDir, "/ApiReportDataServiceTest/report-1", taggedApp.getId(), taggedScanId);
+
+    String untaggedScanId = UUID.randomUUID().toString();
+    tempEntity.newPolicyEvaluation(untaggedApp.getId(), ReleaseStageType.ID, untaggedScanId);
+    ReportHelper.saveMockReport(
+        work, tempDir, "/ApiReportDataServiceTest/report-1", untaggedApp.getId(), untaggedScanId);
+
+    // Create a tag-scoped remediation override at org level: insert the remediation then link the tag.
+    VulnerabilityCustomRemediation customRemediation = new VulnerabilityCustomRemediation();
+    customRemediation.setOwnerId(org.getId());
+    customRemediation.setRefId("36079");
+    customRemediation.setRemediation("TagRem");
+    customRemediation.setLastUpdatedByUsername("test");
+    vulnerabilityCustomRemediationDAO.insert(customRemediation);
+
+    // Create a tag and link it both to the remediation and to the tagged application only.
+    com.sonatype.insight.brain.model.tag.Tag tag = tempEntity.newTag(org.getId(), "security-sensitive");
+    tempEntity.newVulnerabilityCustomRemediationTag(tag.getId(), customRemediation.getId());
+    tempEntity.newApplicationTag(taggedApp.getId(), tag.getId());
+
+    // Positive: the tagged app receives the override.
+    ApiReportRawDataDTOV2 taggedData =
+        reportDataService.getRawData(taggedApp.getPublicId(), taggedScanId, true);
+    SecurityVulnerabilityCustomDataDTO taggedCd = firstSecurityIssue(taggedData).customData;
+    assertThat(taggedCd).isNotNull();
+    assertThat(taggedCd.remediation).isEqualTo("TagRem");
+
+    // Negative: a sibling app under the same org that does NOT carry the tag must not inherit
+    // the tag-scoped override. This is the symmetry check that catches a regression if the
+    // tag-filter logic in getByOwnerIdWithHierarchy is accidentally removed and falls back to
+    // the unscoped org-level record.
+    ApiReportRawDataDTOV2 untaggedData =
+        reportDataService.getRawData(untaggedApp.getPublicId(), untaggedScanId, true);
+    assertThat(firstSecurityIssue(untaggedData).customData).isNull();
   }
 }

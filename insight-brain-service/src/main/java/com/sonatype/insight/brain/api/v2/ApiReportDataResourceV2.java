@@ -115,9 +115,12 @@ public class ApiReportDataResourceV2
   @Operation(
       description = "Use this method to retrieve the 'raw' data generated as a result of an application evaluation." +
           " 'raw' data includes: the components identified in the application, and the licenses and vulnerabilities " +
-          "associated with the identified components." +
-          "/n" +
-          "/n" +
+          "associated with the identified components. " +
+          "Optionally set `includeCustomSecurityVulnerabilityData=true` to include any configured security " +
+          "vulnerability custom data (remediation, cweId, cvssVector, cvssSeverity) for each securityIssue. " +
+          "NOT to be confused with `SecurityVulnerabilityOverride` (hash-based violation-state override)." +
+          "\n" +
+          "\n" +
           "Permissions required: View IQ Elements",
       responses = {
         @ApiResponse(
@@ -134,11 +137,13 @@ public class ApiReportDataResourceV2
   public ApiReportRawDataDTOV2 getRawData(
       @Parameter(description = "Enter the applicationPublicId (assigned at the time of creating a new application.) ",
           required = true) @PathParam("applicationPublicId") String applicationPublicId,
-      @Parameter(description = "Enter the reportId (scanId) created at the time of evaluating the application. " +
-          "application.") @PathParam("scanId") String scanId) throws Exception
+      @Parameter(
+          description = "Enter the reportId (scanId) created at the time of evaluating the application.") @PathParam("scanId") String scanId,
+      @Parameter(description = "Set to true to include security vulnerability custom data (remediation, cweId, "
+          + "cvssVector, cvssSeverity) for each securityIssue. Defaults to false.") @QueryParam("includeCustomSecurityVulnerabilityData") @DefaultValue("false") boolean includeCustomSecurityVulnerabilityData) throws Exception
   {
     AuditData.get().setReportId(scanId);
-    return reportDataService.getRawData(applicationPublicId, scanId);
+    return reportDataService.getRawData(applicationPublicId, scanId, includeCustomSecurityVulnerabilityData);
   }
 
   /**

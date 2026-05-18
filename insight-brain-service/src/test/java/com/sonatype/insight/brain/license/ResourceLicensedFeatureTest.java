@@ -218,7 +218,8 @@ public class ResourceLicensedFeatureTest
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getRawData",
           String.class,
-          String.class), LicensedFeature.APPLICATION_REPORTS);
+          String.class,
+          boolean.class), LicensedFeature.APPLICATION_REPORTS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getPolicyViolations",
           String.class,

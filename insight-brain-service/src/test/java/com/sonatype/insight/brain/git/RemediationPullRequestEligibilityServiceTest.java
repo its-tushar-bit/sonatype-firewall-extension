@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.git;
 
 import jakarta.inject.Inject;
 
+import java.util.Date;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -226,6 +229,105 @@ public class RemediationPullRequestEligibilityServiceTest
     assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b6")).isTrue();
     assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b7")).isTrue();
     assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "b8")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_mergedPr_allowsCreatePr() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId2");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-merged",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-merged", "main",
+        now, now, now, PullRequestState.MERGED);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-merged")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_closedPr_allowsCreatePr() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId3");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-closed",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-closed", "main",
+        now, now, now, PullRequestState.CLOSED);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-closed")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_openPr_remainsBlocking() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId4");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-open",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-open", "main",
+        now, now, now, PullRequestState.OPEN);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-open")).isTrue();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_autoClosedPr_allowsCreatePr() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId5");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-autoclosed",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-autoclosed", "main",
+        now, now, now, PullRequestState.AUTO_CLOSED);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-autoclosed")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_missingPr_allowsCreatePr() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId6");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-missing",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-missing", "main",
+        now, now, now, PullRequestState.MISSING);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-missing")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_lockedPr_remainsBlocking() throws PlexusCipherException {
+    setupSourceControl(false);
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId7");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-locked",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = SourceControl.normalizeRepositoryUrl(gitService.baseUrl() + "/org/proj");
+    Date now = new Date();
+    tempEntity.newSourceControlPullRequest(repoUrl, 2, "head", "base", "branch-locked", "main",
+        now, now, now, PullRequestState.LOCKED);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-locked")).isTrue();
+  }
+
+  @Test
+  public void testIsRemediationWaitingOrDone_completedEvent_noPrRow_remainsBlocking() {
+    var policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), stage.getStageTypeId(), "scanId8");
+    tempEntity.newSourceControlEvent(application, policyEvaluation, "branch-no-pr",
+        SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    assertThat(eligibilityService.isRemediationWaitingOrDone(application.getId(), "branch-no-pr")).isTrue();
   }
 
   @Test

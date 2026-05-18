@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -12,7 +14,11 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -42,6 +48,8 @@ public class RemediationPullRequestEligibilityService
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
   @Inject
   public RemediationPullRequestEligibilityService(
       final RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck,
@@ -49,7 +57,8 @@ public class RemediationPullRequestEligibilityService
       final PullRequestRemediationService pullRequestRemediationService,
       final StageTypeService stageTypeService,
       final SourceControlUtils sourceControlUtils,
-      final SourceControlEventDAO sourceControlEventDAO)
+      final SourceControlEventDAO sourceControlEventDAO,
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
   {
     this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.manualPullRequestFeatureCheck = manualPullRequestFeatureCheck;
@@ -57,6 +66,7 @@ public class RemediationPullRequestEligibilityService
     this.stageTypeService = stageTypeService;
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
   }
 
   public boolean isEligibleForAutoPullRequest(
@@ -127,15 +137,37 @@ public class RemediationPullRequestEligibilityService
 
   /**
    * Check if a remediation SourceControlEvent (automated or manual) exists for the given application id and branch name
-   * in a new, pending, or completed state.
+   * in a new, pending, or completed state. A completed event whose PR is no longer open is not considered blocking.
    */
   public boolean isRemediationWaitingOrDone(final String applicationId, final String branchName) {
-    boolean exists = sourceControlEventDAO.hasWaitingOrCompleteRemediationEvent(applicationId, branchName);
+    List<SourceControlEvent> events = sourceControlEventDAO.getRemediationEventsForBranch(applicationId, branchName);
 
-    if (exists) {
+    for (SourceControlEvent event : events) {
+      if (SourceControlEvent.EVENT_STATUS_COMPLETE.equals(event.getEventStatus())) {
+        if (isPullRequestNoLongerOpen(applicationId, event)) {
+          log.debug("Ignoring completed event for branch '{}' in application '{}': PR {} is no longer open",
+              branchName, applicationId, event.getPullRequestNumber());
+          continue;
+        }
+      }
+      else if (!SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()) &&
+          !SourceControlEvent.EVENT_STATUS_IN_PROGRESS.equals(event.getEventStatus()))
+      {
+        continue;
+      }
       log.debug("{} branch already exists for application '{}'", branchName, applicationId);
+      return true;
     }
-    return exists;
+    return false;
+  }
+
+  private boolean isPullRequestNoLongerOpen(final String applicationId, final SourceControlEvent event) {
+    // If no PR row is found (e.g. pullRequestNumber is 0 for events created before PR tracking, or the
+    // daily state-update job hasn't run yet), we conservatively treat the event as still blocking.
+    SourceControlPullRequest pullRequest =
+        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(applicationId,
+            event.getPullRequestNumber());
+    return pullRequest != null && PullRequestState.isNoLongerOpen(pullRequest.getState());
   }
 
   private boolean isFormatSupported(final String format) {

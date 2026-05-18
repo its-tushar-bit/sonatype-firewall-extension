@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.git.PullRequestStateEventHandler;
 import com.sonatype.insight.brain.git.PullRequestStateService;
 import com.sonatype.insight.brain.git.PullRequestStateUpdateJob;
 import com.sonatype.insight.brain.git.PullRequestStatusService;
+import com.sonatype.insight.brain.git.TriggerPullRequestStateUpdateTask;
 import com.sonatype.insight.brain.git.PullRequestTargetCommitPolicyEvaluationResolver;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
@@ -172,6 +173,7 @@ public class IntegrationModule
     bind(PullRequestStateService.class);
     bind(PullRequestStateUpdateJob.class);
     bind(PullRequestStatusService.class);
+    bind(TriggerPullRequestStateUpdateTask.class);
     bind(PullRequestTargetCommitPolicyEvaluationResolver.class);
     bind(ReferencePolicyFetcher.class);
     bind(RemediationPullRequestEligibilityService.class);

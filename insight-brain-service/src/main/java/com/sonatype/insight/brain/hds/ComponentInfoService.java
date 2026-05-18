@@ -57,6 +57,9 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.git.ManualPullRequestService;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
@@ -139,6 +142,8 @@ public class ComponentInfoService
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
   private final HdsClient hdsClient;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
@@ -190,6 +195,7 @@ public class ComponentInfoService
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
       final SourceControlEventDAO sourceControlEventDAO,
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO,
       final IdUtils idUtils,
       ManualPullRequestService manualPullRequestService,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
@@ -213,6 +219,7 @@ public class ComponentInfoService
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.idUtils = idUtils;
     this.manualPullRequestService = manualPullRequestService;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
@@ -738,11 +745,23 @@ public class ComponentInfoService
 
     List<SourceControlEvent> sourceControlEvents =
         sourceControlEventDAO.getRemediationEventsForBranch(application.getId(), branchName);
-    Optional<SourceControlEvent> sourceControlEvent = getHighestPriorityPullRequestEvent(sourceControlEvents);
 
-    if (sourceControlEvent.isPresent()) {
+    List<SourceControlEvent> remaining = new ArrayList<>(sourceControlEvents);
+    while (!remaining.isEmpty()) {
+      Optional<SourceControlEvent> sourceControlEvent = getHighestPriorityPullRequestEvent(remaining);
+      if (sourceControlEvent.isEmpty()) {
+        break;
+      }
+      SourceControlEvent event = sourceControlEvent.get();
+      remaining.remove(event);
+
+      if (SourceControlEvent.EVENT_STATUS_COMPLETE.equals(event.getEventStatus()) && isPullRequestNoLongerOpen(
+          application, event))
+      {
+        continue;
+      }
       try {
-        return Optional.of(AutomatedRemediationStatusDTO.fromSourceControlEvent(sourceControlEvent.get()));
+        return Optional.of(AutomatedRemediationStatusDTO.fromSourceControlEvent(event));
       }
       catch (IllegalStateException e) {
         String errorMessage = String.format(
@@ -767,6 +786,13 @@ public class ComponentInfoService
           case SourceControlEvent.EVENT_STATUS_ERROR -> 3;
           default -> 4;
         }));
+  }
+
+  private boolean isPullRequestNoLongerOpen(Application application, SourceControlEvent event) {
+    SourceControlPullRequest pullRequest =
+        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(application.getId(),
+            event.getPullRequestNumber());
+    return pullRequest != null && PullRequestState.isNoLongerOpen(pullRequest.getState());
   }
 
   /**

@@ -343,8 +343,8 @@ public class ApiLicenseLegalServiceTest
             new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
             null,
             mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
-            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, null, idUtils,
-            null, null, null, null, null, null);
+            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, null, null,
+            idUtils, null, null, null, null, null, null);
     return componentInfoService;
   }
 

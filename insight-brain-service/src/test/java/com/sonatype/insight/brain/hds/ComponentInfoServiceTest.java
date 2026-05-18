@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,6 +47,9 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO;
@@ -3209,6 +3213,46 @@ public class ComponentInfoServiceTest
     PullRequestCreationFailedDTO invalidDTO = (PullRequestCreationFailedDTO) dto.automatedRemediationStatus;
     assertThat(invalidDTO).isNotNull();
     assertThat(invalidDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_MergedPrShowsCreatePr() {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
+
+    String repoUrl = "https://github.com/org/repo";
+    tempEntity.newSourceControl(application.getId(), repoUrl, null, null, null, SourceControlProvider.GITHUB,
+        null, null, "main", null, null, null, null, null, null, null, null);
+
+    Date now = new Date();
+    String normalizedUrl = SourceControl.normalizeRepositoryUrl(repoUrl);
+    tempEntity.newSourceControlPullRequest(normalizedUrl, 1, "head", "base",
+        "branch", "main", now, now, now, PullRequestState.MERGED);
+
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID);
+
+    ManualPullRequestNotPossibleDTO prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
+    assertThat(prNotPossible).isNotNull();
+    assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
   }
 
   private SourceControlEvent insertSourceControlEvent(final String eventStatus) {

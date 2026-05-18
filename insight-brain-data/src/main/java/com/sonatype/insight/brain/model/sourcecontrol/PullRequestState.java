@@ -16,6 +16,14 @@ public enum PullRequestState
   OPEN,
   MISSING; // for when a previously-seen PR can no longer be found in SCM
 
+  /**
+   * Returns true when the PR is definitively finished (merged, closed, auto-closed, or missing from SCM).
+   * LOCKED is intentionally excluded — a locked PR is still active on GitHub.
+   */
+  public static boolean isNoLongerOpen(final PullRequestState state) {
+    return state == MERGED || state == CLOSED || state == AUTO_CLOSED || state == MISSING;
+  }
+
   public static PullRequestState fromSCMState(
       final com.sonatype.nexus.scm.api.model.PullRequestState pullRequestState)
   {

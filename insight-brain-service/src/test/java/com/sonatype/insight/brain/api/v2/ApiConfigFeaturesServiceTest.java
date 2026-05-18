@@ -1509,7 +1509,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("waiverRequestWorkflowEnabled", true);
     expectedFeatureConfigMap.put("exitOnFatalError", true);
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
-    expectedFeatureConfigMap.put("guideMcpEnabled", false);
     expectedFeatureConfigMap.put("guideUiEnabled", false);
     expectedFeatureConfigMap.put("firewallWaiverDashboardAndRenew", false);
 

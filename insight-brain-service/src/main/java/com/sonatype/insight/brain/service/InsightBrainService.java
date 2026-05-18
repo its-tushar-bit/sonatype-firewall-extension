@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
+import com.sonatype.insight.brain.security.McpLicenseFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
@@ -615,14 +616,12 @@ public class InsightBrainService
         .addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
-    if (SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled()) {
-      McpServletProvider mcpProvider = injector.getInstance(McpServletProvider.class);
-      SearchApiClient searchApiClient = injector.getInstance(SearchApiClient.class);
-      PolicyAnnotator policyAnnotator = injector.getInstance(PolicyAnnotator.class);
-      mcpProvider.initialize(searchApiClient, policyAnnotator);
-      var mcpReg = env.servlets().addServlet("mcp", mcpProvider.getServlet());
-      mcpReg.addMapping("/mcp", "/mcp/*");
-    }
+    McpServletProvider mcpProvider = injector.getInstance(McpServletProvider.class);
+    SearchApiClient searchApiClient = injector.getInstance(SearchApiClient.class);
+    PolicyAnnotator policyAnnotator = injector.getInstance(PolicyAnnotator.class);
+    mcpProvider.initialize(searchApiClient, policyAnnotator);
+    var mcpReg = env.servlets().addServlet("mcp", mcpProvider.getServlet());
+    mcpReg.addMapping("/mcp", "/mcp/*");
 
     addServletFilters(env);
 
@@ -646,6 +645,7 @@ public class InsightBrainService
     addServletFilter(env, attachToAdminApi, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
     addServletFilter(env, attachToAdminApi, ContentTypeOptionsHeaderFilter.class, "/*");
     addServletFilter(env, GuiceShiroFilter.class, "/*");
+    addServletFilter(env, McpLicenseFilter.class, McpLicenseFilter.URL_PATTERNS);
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);

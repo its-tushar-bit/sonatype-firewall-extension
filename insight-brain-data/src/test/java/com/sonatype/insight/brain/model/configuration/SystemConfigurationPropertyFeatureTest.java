@@ -148,22 +148,6 @@ public class SystemConfigurationPropertyFeatureTest
   }
 
   @Test
-  public void testIsEnabledWithMap_GuideMcp() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.GUIDE_MCP.getPropertyName();
-
-    // Absent = disabled (enabledWhenAbsent = false)
-    assertThat(SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled(map)).isFalse();
-
-    // Present = enabled (base logic uses presence/absence, value is irrelevant)
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.GUIDE_MCP.isEnabled(map)).isTrue();
-  }
-
-  @Test
   public void testIsEnabledWithMap_FirewallWaiverDashboardAndRenew() {
     Map<String, SystemConfigurationProperty> map = new HashMap<>();
     String propertyName = SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.getPropertyName();

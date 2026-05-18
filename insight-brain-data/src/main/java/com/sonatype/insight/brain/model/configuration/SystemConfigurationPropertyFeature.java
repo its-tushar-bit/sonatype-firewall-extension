@@ -548,39 +548,11 @@ public enum SystemConfigurationPropertyFeature
 
   FIREWALL_ENTERPRISE_REPORTING(SystemConfigurationProperty.FIREWALL_ENTERPRISE_REPORTING, true),
 
-  GUIDE_MCP(SystemConfigurationProperty.GUIDE_MCP_ENABLED, false)
-  {
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_GUIDE_MCP_ENV_VAR);
-      return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
-    }
-
-    @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_GUIDE_MCP_ENV_VAR);
-      if (valueInEnvVar != null) {
-        return Boolean.parseBoolean(valueInEnvVar);
-      }
-      return super.isEnabled(allProperties);
-    }
-
-    @Override
-    public void setEnabled(TransactionContext tx, boolean enabled) {
-      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_GUIDE_MCP_ENV_VAR);
-      if (valueInEnvVar == null) {
-        super.setEnabled(tx, enabled);
-      }
-    }
-  },
-
   GUIDE_UI(SystemConfigurationProperty.GUIDE_UI_ENABLED, false),
 
   HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false),
 
   FIREWALL_WAIVER_DASHBOARD_AND_RENEW(SystemConfigurationProperty.FIREWALL_WAIVER_DASHBOARD_AND_RENEW, false);
-
-  public static final String NXIQ_ENABLE_GUIDE_MCP_ENV_VAR = "NXIQ_ENABLE_GUIDE_MCP";
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.solution.SolutionUrlResolver;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -41,13 +41,14 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = true;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with relative URLs (Guide excluded: GUIDE_UI flag requires integration context)
-    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
+    // then: results have all solutions with relative URLs
+    assertThat(licensedSolutions).hasSize(5);
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "/ui/links/developer/dashboard")
         .containsEntry("firewall", "/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "/ui/links/lifecycle/dashboard")
-        .containsEntry("sbom", "/ui/links/sbomManager/dashboard");
+        .containsEntry("sbom", "/ui/links/sbomManager/dashboard")
+        .containsEntry("guide", "/assets/guide/index.html#/");
   }
 
   @Test
@@ -63,13 +64,14 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = false;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with full URLs (Guide excluded: GUIDE_UI flag requires integration context)
-    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
+    // then: results have all solutions with full URLs
+    assertThat(licensedSolutions).hasSize(5);
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "https://localhost:8443/ui/links/lifecycle/dashboard")
-        .containsEntry("sbom", "https://localhost:8443/ui/links/sbomManager/dashboard");
+        .containsEntry("sbom", "https://localhost:8443/ui/links/sbomManager/dashboard")
+        .containsEntry("guide", "https://localhost:8443/assets/guide/index.html#/");
   }
 
   @Test
@@ -85,13 +87,14 @@ public class ApiLicensedSolutionsServiceTest
     final boolean allowRelativeUrls = true;
     List<ApiLicensedSolutionDTO> licensedSolutions = solutionService.getLicensedSolutions(allowRelativeUrls);
 
-    // then: results have all solutions with full URLs (Guide excluded: GUIDE_UI flag requires integration context)
-    assertThat(licensedSolutions).hasSize(4); // repo manager and guide not included in unit tests
+    // then: results have all solutions with full URLs
+    assertThat(licensedSolutions).hasSize(5);
     assertThat(toMap(licensedSolutions))
         .containsEntry("developer", "https://localhost:8443/ui/links/developer/dashboard")
         .containsEntry("firewall", "https://localhost:8443/ui/links/firewall/dashboard")
         .containsEntry("lifecycle", "https://localhost:8443/ui/links/lifecycle/dashboard")
-        .containsEntry("sbom", "https://localhost:8443/ui/links/sbomManager/dashboard");
+        .containsEntry("sbom", "https://localhost:8443/ui/links/sbomManager/dashboard")
+        .containsEntry("guide", "https://localhost:8443/assets/guide/index.html#/");
   }
 
   @Test
@@ -135,9 +138,9 @@ public class ApiLicensedSolutionsServiceTest
   private SolutionResolver createSolutionResolver(boolean withProducts) {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(any())).thenReturn(withProducts);
-    // Guide requires GUIDE_UI feature flag backed by a DAO — exclude from unit tests
-    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(false);
-    return new SolutionResolver(productLicense);
+    TenantUtil tenantUtil = Mockito.mock(TenantUtil.class);
+    when(tenantUtil.isMultiTenant()).thenReturn(false);
+    return new SolutionResolver(productLicense, tenantUtil);
   }
 
   private SolutionUrlResolver createSolutionUrlResolver(String baseUrl) {

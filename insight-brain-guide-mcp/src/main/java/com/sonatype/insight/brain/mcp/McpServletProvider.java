@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides the MCP servlet, transport, and tool registrations.
- * The transport and server are created lazily via {@link #initialize(SearchApiClient, PolicyAnnotator)} to avoid
- * allocating resources when the GUIDE_MCP feature flag is disabled.
+ * The transport and server are always created at startup; access is gated by {@code McpLicenseFilter}.
  */
 @Named
 @Singleton

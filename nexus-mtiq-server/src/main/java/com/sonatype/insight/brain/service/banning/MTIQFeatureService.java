@@ -76,7 +76,8 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,
       SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
-      SystemConfigurationPropertyFeature.GUIDE_MCP,
+      // GUIDE_UI: prevents tenants from toggling the flag via the features API; product switcher visibility
+      // is gated by TenantUtil.isMultiTenant() in SolutionResolver independently of this flag.
       SystemConfigurationPropertyFeature.GUIDE_UI);
 
   private final ApiConfigFeaturesService service;

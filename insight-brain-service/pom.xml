@@ -850,6 +850,8 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
             <test.forkId>#${surefire.forkNumber}</test.forkId>
             <!-- Use cached SPDX license info from JAR to avoid network calls during tests -->
             <org.spdx.useJARLicenseInfoOnly>true</org.spdx.useJARLicenseInfoOnly>
+            <!-- Shiro 2.2.0 sets session cookie as Secure by default; disable for HTTP-based tests -->
+            <org.apache.shiro.cookie.secure.disabled>true</org.apache.shiro.cookie.secure.disabled>
           </systemPropertyVariables>
         </configuration>
         <executions>

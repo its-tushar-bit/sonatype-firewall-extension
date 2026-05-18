@@ -47,7 +47,7 @@
     <jooq.placeholder.schema>__placeholder_schema__</jooq.placeholder.schema>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
-    <shiro.version>2.0.6</shiro.version>
+    <shiro.version>2.2.0</shiro.version>
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
      keycloak 24.x migrated to jakarta (breaking change from javax).
      keycloak 25.x has major breaking changes. -->

@@ -6,6 +6,7 @@
 
 import { Home, Package, AlertTriangle, Zap } from 'lucide-react';
 import { NavGroup } from './types';
+import { FEATURE_FLAGS } from '../feature-flags/featureFlags';
 
 export const SIDEBAR_STORAGE_KEY = 'guide.sidebar.collapsed';
 export const SIDEBAR_WIDTH_COLLAPSED = '60px';
@@ -26,12 +27,14 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
         label: 'Components',
         href: '/components',
         icon: Package,
+        requiresFeatureFlag: FEATURE_FLAGS.GUIDE_UI,
       },
       {
         id: 'vulnerabilities',
         label: 'Vulnerabilities',
         href: '/vulnerabilities',
         icon: AlertTriangle,
+        requiresFeatureFlag: FEATURE_FLAGS.GUIDE_UI,
       },
       {
         id: 'mcp',

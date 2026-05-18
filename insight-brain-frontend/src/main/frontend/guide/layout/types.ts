@@ -5,12 +5,14 @@
  */
 
 import { LucideIcon } from 'lucide-react';
+import type { FeatureFlag } from '../feature-flags/featureFlags';
 
 export interface NavItem {
   id: string;
   label: string;
   href: string;
   icon: LucideIcon;
+  requiresFeatureFlag?: FeatureFlag;
 }
 
 export interface NavGroup {

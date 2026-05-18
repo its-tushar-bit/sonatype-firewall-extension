@@ -10,6 +10,7 @@ import { Box, Flex, Tooltip, ScrollArea, Text } from '@radix-ui/themes';
 import { tokens } from '@guide/ui-core/utils';
 import { NavGroup, NavItem } from './types';
 import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from './constants';
+import { useFeatureFlags } from '../feature-flags/FeatureFlagProvider';
 import styles from './SidebarNavigation.module.css';
 
 interface SidebarNavItemProps {
@@ -71,6 +72,7 @@ export default function SidebarNavigation({
   onLinkClick,
 }: SidebarNavigationProps) {
   const pathname = useAdapterPathname();
+  const { isFeatureEnabled } = useFeatureFlags();
 
   const isItemActive = useCallback(
     (item: NavItem) => {
@@ -79,6 +81,11 @@ export default function SidebarNavigation({
       return false;
     },
     [pathname]
+  );
+
+  const isItemVisible = useCallback(
+    (item: NavItem) => !item.requiresFeatureFlag || isFeatureEnabled(item.requiresFeatureFlag),
+    [isFeatureEnabled]
   );
 
   const containerClassName = isMobile
@@ -96,34 +103,38 @@ export default function SidebarNavigation({
         <ScrollArea>
           <Box asChild px={expanded ? tokens.space.section : '0'} py={tokens.space.inline}>
             <nav aria-label="Sidebar">
-              {groups.map((group) => (
-                <Box key={group.id} mb={expanded ? tokens.space.section : '0'}>
-                  {expanded && group.label && (
-                    <Box mb={tokens.space.inline} ml={tokens.space.inline}>
-                      <Text
-                        size={tokens.sizes.body.xs}
-                        color="gray"
-                        style={{ textTransform: 'uppercase' }}
-                      >
-                        {group.label}
-                      </Text>
-                    </Box>
-                  )}
+              {groups.map((group) => {
+                const visibleItems = group.items.filter(isItemVisible);
+                if (visibleItems.length === 0) return null;
+                return (
+                  <Box key={group.id} mb={expanded ? tokens.space.section : '0'}>
+                    {expanded && group.label && (
+                      <Box mb={tokens.space.inline} ml={tokens.space.inline}>
+                        <Text
+                          size={tokens.sizes.body.xs}
+                          color="gray"
+                          style={{ textTransform: 'uppercase' }}
+                        >
+                          {group.label}
+                        </Text>
+                      </Box>
+                    )}
 
-                  <Flex width="100%" direction="column" align={!expanded ? 'center' : 'stretch'}>
-                    {group.items.map((item) => (
-                      <SidebarNavItem
-                        key={item.id}
-                        item={item}
-                        expanded={expanded}
-                        isMobile={isMobile}
-                        onLinkClick={onLinkClick}
-                        isActive={isItemActive(item)}
-                      />
-                    ))}
-                  </Flex>
-                </Box>
-              ))}
+                    <Flex width="100%" direction="column" align={!expanded ? 'center' : 'stretch'}>
+                      {visibleItems.map((item) => (
+                        <SidebarNavItem
+                          key={item.id}
+                          item={item}
+                          expanded={expanded}
+                          isMobile={isMobile}
+                          onLinkClick={onLinkClick}
+                          isActive={isItemActive(item)}
+                        />
+                      ))}
+                    </Flex>
+                  </Box>
+                );
+              })}
             </nav>
           </Box>
         </ScrollArea>

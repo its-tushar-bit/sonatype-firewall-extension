@@ -17,6 +17,10 @@ import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
 import { GUIDE_PRODUCTS } from './license/licenseProducts';
 import { McpPage } from './mcp/McpPage';
+import { FeatureFlagProvider } from './feature-flags/FeatureFlagProvider';
+import { FeatureGate } from './feature-flags/FeatureGate';
+import { FEATURE_FLAGS } from './feature-flags/featureFlags';
+import { Home } from './home/Home';
 
 function AuthGate() {
   const { status, ssoConfig, login } = useAuth();
@@ -36,14 +40,30 @@ function AuthGate() {
   return (
     <LicenseProvider>
       <LicenseGate requires={GUIDE_PRODUCTS}>
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<h1>Sonatype Guide</h1>} />
-            <Route path="/components" element={<ComponentsSearchPage />} />
-            <Route path="/vulnerabilities" element={<VulnerabilitiesPage />} />
-            <Route path="/mcp" element={<McpPage />} />
-          </Routes>
-        </AppShell>
+        <FeatureFlagProvider>
+          <AppShell>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route
+                path="/components"
+                element={
+                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <ComponentsSearchPage />
+                  </FeatureGate>
+                }
+              />
+              <Route
+                path="/vulnerabilities"
+                element={
+                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <VulnerabilitiesPage />
+                  </FeatureGate>
+                }
+              />
+              <Route path="/mcp" element={<McpPage />} />
+            </Routes>
+          </AppShell>
+        </FeatureFlagProvider>
       </LicenseGate>
     </LicenseProvider>
   );

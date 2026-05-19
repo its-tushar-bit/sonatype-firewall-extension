@@ -201,6 +201,18 @@ public class RepositoryDAOTest
   }
 
   @Test
+  public void testDelete_HostedRepo_CascadesToRepositoryPolicyViolations() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repoManager, "hostedRepoPublicId",
+        RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+    RepositoryPolicyViolation policyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+
+    dao.delete(repository);
+
+    assertThat(repositoryPolicyViolationDAO.getById(policyViolation.getId())).isNull();
+  }
+
+  @Test
   public void testDelete_CascadesToRepositoryLicenseOverrides() {
     final ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     final LicenseOverride licenseOverride = tempEntity.newLicenseOverride(repository.getId(), componentIdentifier,

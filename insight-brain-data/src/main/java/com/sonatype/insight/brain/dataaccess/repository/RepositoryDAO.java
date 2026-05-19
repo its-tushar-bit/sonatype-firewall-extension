@@ -336,7 +336,8 @@ public class RepositoryDAO
    * <li>Owned entities via {@link OwnerDAO#cascadeDelete(TransactionContext, com.sonatype.insight.brain.model.Owner)}
    * (policy waivers, license overrides, vulnerability overrides, etc.)</li>
    * <li>For proxy repositories: policy violations, components, and optionally migration records</li>
-   * <li>For hosted repositories: scan queue entries, components, proprietary component name patterns</li>
+   * <li>For hosted repositories: policy violations, scan queue entries, components, proprietary component name
+   * patterns</li>
    * </ul>
    * <p>
    * <b>Note:</b> Prior to the jOOQ migration, some operations created independent transactions
@@ -373,6 +374,8 @@ public class RepositoryDAO
         }
         break;
       case hosted:
+        repositoryPolicyViolationDAO.deleteByRepositoryId(tx, repository.getId());
+
         // Cascade to scan queue entries (must precede component delete — no DB-level FK exists)
         hostedComponentScanQueueDAO.deleteByRepositoryComponentIds(tx, repository.getId());
 

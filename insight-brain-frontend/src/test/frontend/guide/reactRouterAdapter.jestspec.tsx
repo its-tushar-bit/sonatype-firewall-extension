@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createRef } from 'react';
+import { createRef, useState } from 'react';
 import { render, screen, waitFor } from './test-utils';
 import userEvent from '@testing-library/user-event';
 import { Routes, Route, useLocation } from 'react-router';
@@ -341,6 +341,62 @@ describe('useReactRouterAdapter', () => {
       await waitFor(() => {
         const loc = screen.getByTestId('location').textContent;
         expect(loc).toContain('/search?tab=results&q=lodash');
+      });
+    });
+
+    it('invokes consumer onSubmit but still preventDefaults and navigates', async () => {
+      const consumerHandler = jest.fn();
+
+      function TestComponent() {
+        const Form = useForm();
+        return (
+          <Form action="/search" onSubmit={consumerHandler}>
+            <input name="q" defaultValue="lodash" />
+            <button type="submit">Search</button>
+          </Form>
+        );
+      }
+
+      render(
+        <Routes>
+          <Route path="/" element={<TestComponent />} />
+          <Route path="/search" element={<LocationDisplay />} />
+        </Routes>,
+      );
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Search' }));
+
+      await waitFor(() => {
+        const loc = screen.getByTestId('location').textContent;
+        expect(loc).toContain('/search?q=lodash');
+      });
+      expect(consumerHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it('captures form data before invoking consumer onSubmit (consumer may clear input state)', async () => {
+      function TestComponent() {
+        const Form = useForm();
+        const [value, setValue] = useState('lodash');
+        return (
+          <Form action="/search" onSubmit={() => setValue('')}>
+            <input name="q" value={value} onChange={(e) => setValue(e.target.value)} />
+            <button type="submit">Search</button>
+          </Form>
+        );
+      }
+
+      render(
+        <Routes>
+          <Route path="/" element={<TestComponent />} />
+          <Route path="/search" element={<LocationDisplay />} />
+        </Routes>,
+      );
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Search' }));
+
+      await waitFor(() => {
+        const loc = screen.getByTestId('location').textContent;
+        expect(loc).toContain('/search?q=lodash');
       });
     });
 

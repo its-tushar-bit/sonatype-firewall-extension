@@ -40,4 +40,20 @@ describe('TopNavigation', () => {
       expect(deleteCall![0]).toBe('/rest/user/session/logout');
     });
   });
+
+  it('renders the global search input with placeholder', () => {
+    render(<TopNavigation onSidebarToggle={() => {}} />);
+
+    const searchInput = screen.getByPlaceholderText(/search components and vulnerabilities/i);
+    expect(searchInput).toBeInTheDocument();
+  });
+
+  it('search submission targets /search via the form action', () => {
+    render(<TopNavigation onSidebarToggle={() => {}} />);
+
+    const input = screen.getByPlaceholderText(/search components and vulnerabilities/i);
+    const form = input.closest('form');
+    expect(form).not.toBeNull();
+    expect(form?.getAttribute('action')).toBe('/search');
+  });
 });

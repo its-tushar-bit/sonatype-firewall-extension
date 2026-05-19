@@ -22,10 +22,11 @@ function LinkAdapter({ href, prefetch, children, ...props }: LinkProps) {
 }
 
 const FormAdapter = forwardRef<HTMLFormElement, FormProps>(
-  ({ action, children, ...props }, ref) => {
+  ({ action, children, onSubmit, ...props }, ref) => {
     const navigate = useNavigate();
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
       e.preventDefault();
+      // Capture form data before invoking consumer onSubmit, which may clear inputs.
       const formData = new FormData(e.currentTarget);
       const params = new URLSearchParams();
       formData.forEach((value, key) => {
@@ -33,12 +34,13 @@ const FormAdapter = forwardRef<HTMLFormElement, FormProps>(
           params.append(key, value);
         }
       });
+      onSubmit?.(e);
       const queryString = params.toString();
       const separator = action.includes('?') ? '&' : '?';
       navigate(queryString ? `${action}${separator}${queryString}` : action);
     };
     return (
-      <form ref={ref} action={action} onSubmit={handleSubmit} {...props}>
+      <form ref={ref} action={action} {...props} onSubmit={handleSubmit}>
         {children}
       </form>
     );

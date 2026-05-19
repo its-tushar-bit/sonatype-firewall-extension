@@ -13,6 +13,7 @@ import { LoginPage } from './auth/LoginPage';
 import { AppShell } from './layout/AppShell';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
+import { SearchPage } from './search/SearchPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
 import { GUIDE_PRODUCTS } from './license/licenseProducts';
@@ -62,6 +63,14 @@ function AuthGate() {
                 element={
                   <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
                     <VulnerabilitiesPage />
+                  </FeatureGate>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <SearchPage />
                   </FeatureGate>
                 }
               />

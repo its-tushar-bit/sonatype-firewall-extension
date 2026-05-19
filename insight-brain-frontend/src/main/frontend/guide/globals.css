@@ -197,6 +197,15 @@ body {
   --header-height: 64px;
 }
 
+/* Below 768px the TopNavigation stacks logo/actions and a full-width search row,
+   so the header is taller. Keep --header-height in sync so fixed elements like
+   SidebarNavigation don't overlap the search row. */
+@media (width < 768px) {
+  :root {
+    --header-height: 112px;
+  }
+}
+
 /* Ensure dark theme colors are applied by default */
 html {
   background-color: var(--gray-1);

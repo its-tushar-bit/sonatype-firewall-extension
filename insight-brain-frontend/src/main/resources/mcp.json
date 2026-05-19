@@ -211,12 +211,12 @@
   "optionalHeaders": [
     {
       "name": "X-Application-Id",
-      "description": "IQ application ID for policy evaluation. When provided, MCP tool responses include policy violations specific to this application.",
+      "description": "IQ application ID for policy evaluation. When provided, MCP tool responses include policy violations specific to this application. When omitted, policy is evaluated against the root IQ organization.",
       "example": "X-Application-Id: my-app-id"
     },
     {
       "name": "X-Stage",
-      "description": "Stage label for policy context (e.g., 'build', 'stage-release', 'develop'). Defaults to 'develop' if not specified.",
+      "description": "Stage label for policy context (e.g., 'build', 'stage-release', 'develop'). Defaults to 'release' if not specified.",
       "example": "X-Stage: build"
     }
   ]

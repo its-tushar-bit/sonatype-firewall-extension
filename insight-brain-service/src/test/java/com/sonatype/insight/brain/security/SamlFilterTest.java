@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlAuthenticator;
 import org.keycloak.adapters.saml.SamlDeployment;
-import org.keycloak.adapters.saml.SamlSessionStore;
 import org.keycloak.adapters.servlet.ServletHttpFacade;
 import org.keycloak.adapters.spi.AuthChallenge;
 import org.keycloak.adapters.spi.AuthOutcome;
@@ -64,7 +63,7 @@ public class SamlFilterTest
   private HttpServletResponse mockHttpServletResponse;
 
   @Mock
-  private SamlSessionStore mockSamlSessionStore;
+  private SamlSessionStoreForRedirect mockSamlSessionStore;
 
   @Mock
   private SamlAuthenticator mockSamlAuthenticator;
@@ -411,7 +410,7 @@ public class SamlFilterTest
     lenient().doReturn(mockSamlAuthenticator)
         .when(spySamlFilter)
         .newSamlAuthenticator(anyBoolean(),
-            any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStore.class));
+            any(HttpFacade.class), any(SamlDeployment.class), any(SamlSessionStoreForRedirect.class));
     lenient().when(spySamlFilter.newServletHttpFacade(any(HttpServletRequest.class), any(HttpServletResponse.class)))
         .thenReturn(spyServletHttpFacade);
     assertThat(spySamlFilter.onPreHandle(mockHttpServletRequest, mockHttpServletResponse, null))

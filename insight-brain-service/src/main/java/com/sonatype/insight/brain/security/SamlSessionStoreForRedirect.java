@@ -29,6 +29,12 @@ public class SamlSessionStoreForRedirect
     this.redirect = redirect;
   }
 
+  void refreshCachedSession() {
+    // ShiroHttpServletRequest.getSession(false) clears its stale cached session when no live
+    // session exists, which is what we need after stopping the pre-login session.
+    request.getSession(false);
+  }
+
   @Override
   public void saveRequest() {
     request.getSession(true).setAttribute(FilterSessionStore.REDIRECT_URI, redirect);

@@ -49,16 +49,24 @@ public class HttpResponse
   }
 
   public HttpCookie getCookie(String name) {
+    HttpCookie result = null;
+    HttpCookie deleteMe = null;
     for (Cookie cookie : response.getCookies()) {
       if (name.equals(cookie.name())) {
         HttpCookie httpCookie = new HttpCookie(cookie.name(), cookie.value());
         httpCookie.setDomain(cookie.domain());
         httpCookie.setPath(cookie.path());
         httpCookie.setSecure(cookie.isSecure());
-        return httpCookie;
+        // Shiro sets cookie value to "deleteMe" (Cookie.DELETED_COOKIE_VALUE) to signal deletion; prefer the real value
+        if ("deleteMe".equals(cookie.value())) {
+          deleteMe = httpCookie;
+        }
+        else {
+          result = httpCookie;
+        }
       }
     }
-    return null;
+    return result != null ? result : deleteMe;
   }
 
   public <T> T getBody(Class<T> type) {

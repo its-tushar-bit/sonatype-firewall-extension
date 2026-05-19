@@ -25,7 +25,6 @@ import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.keycloak.adapters.saml.SamlAuthenticator;
 import org.keycloak.adapters.saml.SamlDeployment;
-import org.keycloak.adapters.saml.SamlSessionStore;
 import org.keycloak.adapters.saml.profile.ecp.EcpAuthenticationHandler;
 import org.keycloak.adapters.servlet.ServletHttpFacade;
 import org.keycloak.adapters.spi.AuthChallenge;
@@ -98,7 +97,7 @@ class SamlFilter
     boolean samlEndpoint = requestPath.equals(SAML_REQUEST_PATH);
 
     ServletHttpFacade httpFacade = newServletHttpFacade(httpRequest, httpResponse);
-    SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade, samlDeployment);
+    SamlSessionStoreForRedirect samlSessionStore = newSamlSessionStore(httpRequest, httpFacade, samlDeployment);
     SamlAuthenticator samlAuthenticator =
         newSamlAuthenticator(samlEndpoint, httpFacade, samlDeployment, samlSessionStore);
 
@@ -211,7 +210,7 @@ class SamlFilter
   }
 
   @VisibleForTesting
-  SamlSessionStore newSamlSessionStore(
+  SamlSessionStoreForRedirect newSamlSessionStore(
       HttpServletRequest httpRequest,
       HttpFacade httpFacade,
       SamlDeployment samlDeployment)
@@ -226,7 +225,7 @@ class SamlFilter
       boolean samlEndpoint,
       HttpFacade httpFacade,
       SamlDeployment samlDeployment,
-      SamlSessionStore samlSessionStore)
+      SamlSessionStoreForRedirect samlSessionStore)
   {
     return samlEndpoint
         ? new SamlAuthenticatorForSamlEndpoint(httpFacade, samlDeployment, samlSessionStore)

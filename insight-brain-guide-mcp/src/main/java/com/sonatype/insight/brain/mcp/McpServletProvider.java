@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.mcp.model.McpRecommendationItem;
 import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
 import com.sonatype.insight.brain.mcp.search.SearchApiClient;
 import com.sonatype.insight.brain.mcp.tools.McpResponseFormatter;
+import com.sonatype.insight.brain.mcp.util.McpPurlCompleter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -203,7 +204,7 @@ public class McpServletProvider
 
       McpPolicyContext policyContext = null;
       try {
-        policyContext = policyAnnotator.evaluatePolicy(purl, applicationId, stage);
+        policyContext = policyAnnotator.evaluatePolicy(McpPurlCompleter.complete(purl), applicationId, stage);
       }
       catch (Exception e) {
         log.warn("Policy evaluation failed for purl={}, app={}: {}", purl, applicationId, e.getMessage());

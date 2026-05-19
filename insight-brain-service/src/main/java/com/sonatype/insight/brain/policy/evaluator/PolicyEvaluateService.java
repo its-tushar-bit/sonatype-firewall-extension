@@ -920,7 +920,8 @@ public class PolicyEvaluateService
       List<PolicyViolation> policyViolations = getPolicyViolationsForContainer();
 
       return telemetryUtils.buildRepositoryComponentTelemetryData(repository.getRepositoryManagerId(),
-          repository.getId(), DOCKER_FORMAT, app.getId(), eventType, quarantineTime, null, null, policyViolations);
+          repository.getId(), DOCKER_FORMAT, null /* container images have no component hash */, eventType,
+          quarantineTime, null, null, policyViolations);
     }
 
     @VisibleForTesting

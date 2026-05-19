@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collections;
 
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
@@ -368,6 +369,19 @@ public class RepositoryComponentTelemetryTest
     assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
     assertThat(telemetry.getComponentFormat()).isEqualTo("maven2");
     assertThat(telemetry.getEventType()).isEqualTo("quarantine");
+  }
+
+  @Test
+  public void testRepositoryComponentConstructor_NullHash_DoesNotThrow() {
+    RepositoryComponent repositoryComponent = mock(RepositoryComponent.class);
+    when(repositoryComponent.getRepositoryId()).thenReturn("repo-1");
+    when(repositoryComponent.getHash()).thenReturn(null);
+
+    RepositoryComponentTelemetry telemetry = new RepositoryComponentTelemetry(
+        "account-1", "repo-manager-1", repositoryComponent,
+        RepositoryComponentTelemetryEventType.QUARANTINE, null, null, Collections.emptyList());
+
+    assertThat(telemetry.getComponentHash()).isNull();
   }
 
   @Test

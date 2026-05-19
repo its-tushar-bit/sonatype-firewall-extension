@@ -417,6 +417,19 @@ public class TelemetryUtilsTest
   }
 
   @Test
+  public void test_buildRepositoryComponentTelemetryData_withNullComponentHash() {
+    TelemetryData telemetryData = telemetryUtils.buildRepositoryComponentTelemetryData(
+        "repo-manager-1", "repo-1", "container", null,
+        RepositoryComponentTelemetryEventType.QUARANTINE,
+        1234567890L, null, null, Collections.emptyList());
+
+    RepositoryComponentTelemetry componentTelemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    assertThat(componentTelemetry).isNotNull();
+    assertThat(componentTelemetry.getComponentHash()).isNull();
+  }
+
+  @Test
   public void testConvertGoldenStatusToString() {
     // Test true value
     String goldenResult = telemetryUtils.convertGoldenStatusToString(true);

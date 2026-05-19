@@ -103,6 +103,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -1423,6 +1424,9 @@ public class PolicyEvaluateServiceTest
     assertThat(telemetryDataForContainer.getAttributes())
         .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
         .containsKey(POLICY_VIOLATION_TELEMETRY);
+    RepositoryComponentTelemetry containerTelemetry =
+        (RepositoryComponentTelemetry) telemetryDataForContainer.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    assertThat(containerTelemetry.getComponentHash()).isNull();
   }
 
   @Test

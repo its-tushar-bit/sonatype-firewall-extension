@@ -206,6 +206,12 @@ public class SourceControlEvent
   @Column(name = "is_golden_pull_request")
   private Boolean goldenPullRequest;
 
+  @Column(name = "event_failure_category")
+  private String eventFailureCategory;
+
+  @Column(name = "event_is_retryable")
+  private Boolean eventIsRetryable;
+
   public SourceControlEvent() {
     eventStatus = EVENT_STATUS_NEW;
     createTime = new Date();
@@ -554,6 +560,24 @@ public class SourceControlEvent
     return this;
   }
 
+  public String getEventFailureCategory() {
+    return eventFailureCategory;
+  }
+
+  public SourceControlEvent setEventFailureCategory(String eventFailureCategory) {
+    this.eventFailureCategory = eventFailureCategory;
+    return this;
+  }
+
+  public Boolean getEventIsRetryable() {
+    return eventIsRetryable;
+  }
+
+  public SourceControlEvent setEventIsRetryable(Boolean eventIsRetryable) {
+    this.eventIsRetryable = eventIsRetryable;
+    return this;
+  }
+
   public SourceControlEvent copyAsNew() {
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId(applicationId)
@@ -581,7 +605,15 @@ public class SourceControlEvent
         .setStageTypeId(stageTypeId)
         .setStatusId(statusId)
         .setIsGoldenPullRequest(goldenPullRequest)
-        .setUserAgent(userAgent);
+        .setUserAgent(userAgent)
+        // Carry the prior failure classification onto the retry copy. The new event
+        // starts in EVENT_STATUS_NEW so the UI shows "Creating PR…" via
+        // PullRequestCreationPendingDTO and never reads these fields during the
+        // retry window. Propagating them is defense-in-depth: callers that inspect
+        // the retry event before processing completes (e.g. UserEventManager
+        // gating auto-retry on isRetryable) get a consistent view.
+        .setEventFailureCategory(eventFailureCategory)
+        .setEventIsRetryable(eventIsRetryable);
     event.setComponentIdentifier(getComponentIdentifier());
     return event;
   }

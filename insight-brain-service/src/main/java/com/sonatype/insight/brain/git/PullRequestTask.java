@@ -203,7 +203,9 @@ public class PullRequestTask
       else {
         scmEventLogger.add(API_ERROR, forError("Pull request creation failed: " + enhancedResult.getReasoning()));
         scmEventLogger.log();
-        throw new SourceControlException("Pull request creation failed: " + enhancedResult.getReasoning());
+        throw new SourceControlException(
+            "Pull request creation failed: " + enhancedResult.getReasoning(),
+            enhancedResult.getCategory());
       }
 
       log.info("Pull request task completed for application '{}': {}", applicationId, pullRequestResult);
@@ -219,7 +221,20 @@ public class PullRequestTask
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
           pullRequestRemediationDetails.getToBeRemediated(),
           pullRequestRemediationDetails.getTitle(), true, pullRequestRemediationDetails.isManualPullRequest()));
-      throw new RuntimeException("Failed to execute pull request for application '" + applicationId + "'", e);
+      PullRequestFailureCategory category;
+      String message;
+      if (e instanceof SourceControlException) {
+        SourceControlException sce = (SourceControlException) e;
+        category = sce.getCategory() != null ? sce.getCategory() : PullRequestFailureCategory.SCM_ERROR;
+        // Preserve the inner message when it carries an actionable category like
+        // MANIFEST_COMPONENT_NOT_FOUND, so the UI tooltip/reason stays user-actionable.
+        message = sce.getMessage();
+      }
+      else {
+        category = PullRequestFailureCategory.SCM_ERROR;
+        message = "Failed to execute pull request for application '" + applicationId + "'";
+      }
+      throw new SourceControlException(message, category, e);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at

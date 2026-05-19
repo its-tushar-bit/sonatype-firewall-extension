@@ -17,6 +17,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.ApplicationScopeEventProcessingSuspensionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessedListener;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessingErrorRetryRule;
@@ -218,9 +219,27 @@ public class UserEventManager
     applicationScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
     userScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
     repositoryUrlErrorRule.onEventProcessingError(event, e);
+    if (isNonRetryableFailure(e)) {
+      // The classifier on SourceControlException already decided this failure
+      // cannot succeed on retry (e.g. component not in manifest). Skip the
+      // exception-type-based retry rule entirely so we don't churn through
+      // EVENT_PROCESSING_RETRY_COUNT pointless attempts. Defense-in-depth:
+      // EventProcessingErrorRetryRule#isRetryableException currently returns
+      // false for these failures anyway, but coupling the auto-retry decision
+      // to the classification keeps both signals aligned if either changes.
+      return;
+    }
     if (eventProcessingErrorRetryRule.shouldRetry(event, e)) {
       retryEvent(event);
     }
+  }
+
+  private static boolean isNonRetryableFailure(Exception e) {
+    if (e instanceof SourceControlException) {
+      var category = ((SourceControlException) e).getCategory();
+      return category != null && !category.isRetryable();
+    }
+    return false;
   }
 
   private boolean areAnyEventsInProgress() {

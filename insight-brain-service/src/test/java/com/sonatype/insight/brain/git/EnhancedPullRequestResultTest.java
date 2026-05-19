@@ -67,4 +67,41 @@ public class EnhancedPullRequestResultTest
         COMPONENT, "Bump bar to 1.1", false, true);
     assertThat(result.isManualPR()).isTrue();
   }
+
+  @Test
+  public void getCategory_exceptionThrown_returnsScmError() {
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(null, new Date(),
+        COMPONENT, "Bump bar to 1.1", true);
+    assertThat(result.getCategory()).isEqualTo(PullRequestFailureCategory.SCM_ERROR);
+  }
+
+  @Test
+  public void getCategory_nullTiming_notException_returnsManifestComponentNotFound() {
+    // intuitReasoning() surfaces FAILURE_MESSAGE ("could not find a direct dependency...")
+    // for a null-timing non-exception case, so getCategory() must return the matching
+    // category. Otherwise the user-facing reason would say one thing and isRetryable
+    // would derive from another (UNKNOWN→retryable=true), leaving the Retry button
+    // wrongly enabled for what is plainly a manifest-missing failure.
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(null, new Date(),
+        COMPONENT, "Bump bar to 1.1", false);
+    assertThat(result.getCategory()).isEqualTo(PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND);
+  }
+
+  @Test
+  public void getCategory_unsuccessfulTiming_returnsManifestComponentNotFound() {
+    PullRequestResult timing = new PullRequestResult();
+    timing.setSuccessful(false);
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(timing, new Date(),
+        COMPONENT, "Bump bar to 1.1", false);
+    assertThat(result.getCategory()).isEqualTo(PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND);
+  }
+
+  @Test
+  public void getCategory_successfulTiming_returnsUnknown() {
+    PullRequestResult timing = new PullRequestResult();
+    timing.setSuccessful(true);
+    EnhancedPullRequestResult result = new EnhancedPullRequestResult(timing, new Date(),
+        COMPONENT, "Bump bar to 1.1", false);
+    assertThat(result.getCategory()).isEqualTo(PullRequestFailureCategory.UNKNOWN);
+  }
 }

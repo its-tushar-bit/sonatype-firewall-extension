@@ -14,6 +14,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.git.PullRequestFailureCategory;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -243,7 +245,16 @@ public class SourceControlEventDAO
   }
 
   public void markEventHasError(final String eventId, final String errorMessage, Exception eventException) {
-    markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR, eventException);
+    String category = null;
+    Boolean isRetryable = null;
+    if (eventException instanceof SourceControlException) {
+      PullRequestFailureCategory cat = ((SourceControlException) eventException).getCategory();
+      if (cat != null) {
+        category = cat.name();
+        isRetryable = cat.isRetryable();
+      }
+    }
+    markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR, eventException, category, isRetryable);
   }
 
   public void markEventPartiallyComplete(final String eventId, final String message, Exception eventException) {
@@ -256,6 +267,17 @@ public class SourceControlEventDAO
       final String eventStatus,
       Exception eventException)
   {
+    markEventFinishedWithMessage(eventId, message, eventStatus, eventException, null, null);
+  }
+
+  private void markEventFinishedWithMessage(
+      final String eventId,
+      final String message,
+      final String eventStatus,
+      Exception eventException,
+      String failureCategory,
+      Boolean isRetryable)
+  {
     String eventErrorDetails = eventException == null ? null : ExceptionUtils.getStackTrace(eventException);
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
@@ -264,6 +286,8 @@ public class SourceControlEventDAO
           .set(SOURCE_CONTROL_EVENT.EVENT_STATUS, eventStatus)
           .set(SOURCE_CONTROL_EVENT.EVENT_STATUS_DETAILS, StringUtils.abbreviate(message, 2048))
           .set(SOURCE_CONTROL_EVENT.EVENT_ERROR_DETAILS, eventErrorDetails)
+          .set(SOURCE_CONTROL_EVENT.EVENT_FAILURE_CATEGORY, failureCategory)
+          .set(SOURCE_CONTROL_EVENT.EVENT_IS_RETRYABLE, isRetryable)
           .set(SOURCE_CONTROL_EVENT.COMPLETE_TIME, new Date())
           .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
           .execute();

@@ -10,24 +10,52 @@ public class SourceControlException
 {
   private final boolean partialFailure;
 
+  private final PullRequestFailureCategory category;
+
   public SourceControlException(final String message) {
-    this(message, false, null);
+    this(message, false, null, null);
   }
 
   public SourceControlException(final String message, final Throwable cause) {
-    this(message, false, cause);
+    this(message, false, cause, null);
   }
 
   public SourceControlException(final String message, final boolean partialFailure) {
-    this(message, partialFailure, null);
+    this(message, partialFailure, null, null);
   }
 
   public SourceControlException(final String message, final boolean partialFailure, final Throwable cause) {
+    this(message, partialFailure, cause, null);
+  }
+
+  public SourceControlException(final String message, final PullRequestFailureCategory category) {
+    this(message, false, null, category);
+  }
+
+  public SourceControlException(
+      final String message,
+      final PullRequestFailureCategory category,
+      final Throwable cause)
+  {
+    this(message, false, cause, category);
+  }
+
+  public SourceControlException(
+      final String message,
+      final boolean partialFailure,
+      final Throwable cause,
+      final PullRequestFailureCategory category)
+  {
     super(message, cause);
     this.partialFailure = partialFailure;
+    this.category = category;
   }
 
   public boolean isPartialFailure() {
     return partialFailure;
+  }
+
+  public PullRequestFailureCategory getCategory() {
+    return category;
   }
 }

@@ -257,7 +257,9 @@ public class PullRequestTaskTest
         .thenThrow(new GitException("Something bad happened"));
 
     assertThatThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor()))
-        .isInstanceOf(RuntimeException.class);
+        .isInstanceOf(SourceControlException.class)
+        .satisfies(ex -> assertThat(((SourceControlException) ex).getCategory())
+            .isEqualTo(PullRequestFailureCategory.SCM_ERROR));
 
     verify(mockScmOperationMetrics).startPrCreationTimer(anyString());
     verify(mockScmOperationMetrics).recordPrCreationFailed(any());
@@ -350,8 +352,14 @@ public class PullRequestTaskTest
     when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(false));
 
     assertThatThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("Failed to execute pull request for application '%s'".formatted(APP_INTERNAL_ID));
+        .isInstanceOf(SourceControlException.class)
+        // The outer catch must preserve the inner SourceControlException's message
+        // so the user-actionable "could not find a direct dependency in the project
+        // configuration" hint reaches the UI tooltip via PullRequestCreationFailedDTO.reason.
+        .hasMessageContaining("Pull request creation failed")
+        .hasMessageContaining("could not find a direct dependency in the project configuration")
+        .satisfies(ex -> assertThat(((SourceControlException) ex).getCategory())
+            .isEqualTo(PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND));
 
     verify(mockScmOperationMetrics).startPrCreationTimer(anyString());
     verify(mockScmOperationMetrics).recordPrCreationFailed(any());
@@ -498,8 +506,10 @@ public class PullRequestTaskTest
     when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(pullRequestResult);
     assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
 
-    assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor));
+    assertThatExceptionOfType(SourceControlException.class)
+        .isThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor))
+        .satisfies(ex -> assertThat(ex.getCategory())
+            .isEqualTo(PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND));
 
     assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
   }

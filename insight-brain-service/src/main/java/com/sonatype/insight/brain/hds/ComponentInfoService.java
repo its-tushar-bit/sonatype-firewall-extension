@@ -768,7 +768,7 @@ public class ComponentInfoService
             "Pull request for branch %s and application %s has reached an invalid status.",
             branchName, application.getPublicId());
         log.error(errorMessage + " {}", e.getMessage());
-        return Optional.of(new AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO(errorMessage));
+        return Optional.of(new AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO(errorMessage, null, null));
       }
     }
     return Optional.empty();

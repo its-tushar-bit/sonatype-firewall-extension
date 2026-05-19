@@ -80,4 +80,34 @@ public class SourceControlEventTest
     assertThat(sourceControlEvent.getScanTargetsJson()).isNull();
     assertThat(sourceControlEvent.getScanTargets()).isNull();
   }
+
+  @Test
+  public void copyAsNew_propagatesFailureClassification() {
+    SourceControlEvent original = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT)
+        .setEventFailureCategory("MANIFEST_COMPONENT_NOT_FOUND")
+        .setEventIsRetryable(false);
+    original.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
+
+    SourceControlEvent copy = original.copyAsNew();
+
+    assertThat(copy.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_NEW);
+    assertThat(copy.getEventFailureCategory()).isEqualTo("MANIFEST_COMPONENT_NOT_FOUND");
+    assertThat(copy.getEventIsRetryable()).isFalse();
+    assertThat(copy.getApplicationId()).isEqualTo("app-1");
+  }
+
+  @Test
+  public void copyAsNew_nullClassificationStaysNull() {
+    SourceControlEvent original = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    original.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
+
+    SourceControlEvent copy = original.copyAsNew();
+
+    assertThat(copy.getEventFailureCategory()).isNull();
+    assertThat(copy.getEventIsRetryable()).isNull();
+  }
 }

@@ -8,7 +8,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PRStatus from 'MainRoot/components/prStatus/PRStatus';
-import { AUTOMATED_REMEDIATION_STATUS as PR_STATUS } from 'MainRoot/constants/automatedRemediationStatus';
+import {
+  AUTOMATED_REMEDIATION_STATUS as PR_STATUS,
+  PR_FAILURE_CATEGORY,
+  PR_FAILURE_DISABLED_FALLBACK,
+} from 'MainRoot/constants/automatedRemediationStatus';
 
 describe('PRStatus', () => {
   const mockOnCreatePR = jest.fn();
@@ -288,4 +292,139 @@ describe('PRStatus', () => {
     });
     expect(disabledTooltip).toBeVisible();
   });
+
+  it('renders Retry enabled with existing tooltip when isRetryable is true (SCM_ERROR)', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: 'boom',
+        failureCategory: PR_FAILURE_CATEGORY.SCM_ERROR,
+        isRetryable: true,
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).not.toHaveAttribute('aria-disabled', 'true');
+    expect(retry).not.toHaveClass('disabled');
+
+    await user.click(retry);
+    expect(mockOnRetry).toHaveBeenCalledTimes(1);
+
+    await user.hover(retry);
+    expect(await screen.findByRole('tooltip', { name: 'Failure to create PR. boom' })).toBeInTheDocument();
+  });
+
+  it('renders Retry disabled with actionable tooltip for MANIFEST_COMPONENT_NOT_FOUND', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: 'Pull request creation failed: ...',
+        failureCategory: PR_FAILURE_CATEGORY.MANIFEST_COMPONENT_NOT_FOUND,
+        isRetryable: false,
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).toHaveAttribute('aria-disabled', 'true');
+    expect(retry).toHaveClass('disabled');
+
+    await user.click(retry);
+    expect(mockOnRetry).not.toHaveBeenCalled();
+
+    await user.hover(retry);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent(/must first be added as a direct dependency/i);
+  });
+
+  it('falls back to reason-based tooltip when isRetryable=false but category has no specific copy', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: 'something',
+        failureCategory: 'SOMETHING_UNKNOWN',
+        isRetryable: false,
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).toHaveAttribute('aria-disabled', 'true');
+    expect(retry).toHaveClass('disabled');
+
+    await user.hover(retry);
+    expect(await screen.findByRole('tooltip', { name: 'Failure to create PR. something' })).toBeInTheDocument();
+  });
+
+  it('uses the disabled fallback when isRetryable=false, reason is empty, and category is unknown', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: '',
+        failureCategory: PR_FAILURE_CATEGORY.UNKNOWN,
+        isRetryable: false,
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).toHaveAttribute('aria-disabled', 'true');
+    expect(retry).toHaveClass('disabled');
+
+    await user.hover(retry);
+    expect(await screen.findByRole('tooltip', { name: PR_FAILURE_DISABLED_FALLBACK })).toBeInTheDocument();
+  });
+
+  it('treats legacy payload without isRetryable or failureCategory as retryable', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: 'legacy',
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).not.toHaveAttribute('aria-disabled', 'true');
+    expect(retry).not.toHaveClass('disabled');
+
+    await user.click(retry);
+    expect(mockOnRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('trusts isRetryable=true even if category would be non-retryable (defensive precedence)', () => {
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: 'inconsistent payload',
+        failureCategory: PR_FAILURE_CATEGORY.MANIFEST_COMPONENT_NOT_FOUND,
+        isRetryable: true,
+      },
+    });
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).not.toHaveAttribute('aria-disabled', 'true');
+    expect(retry).not.toHaveClass('disabled');
+  });
+
+  it('drops the trailing-space tooltip when retryable but reason is empty', async () => {
+    const user = userEvent.setup();
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST_CREATION_FAILED,
+        reason: '',
+        isRetryable: true,
+      },
+    });
+
+    const retry = screen.getByRole('button', { name: /retry/i });
+    expect(retry).not.toHaveAttribute('aria-disabled', 'true');
+    expect(retry).not.toHaveClass('disabled');
+
+    await user.hover(retry);
+    // No "Failure to create PR. " with a trailing space when reason is empty.
+    expect(await screen.findByRole('tooltip', { name: 'Failed to create PR.' })).toBeInTheDocument();
+  });
+
 });
+

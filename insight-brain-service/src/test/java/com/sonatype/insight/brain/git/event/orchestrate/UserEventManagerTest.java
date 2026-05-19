@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.PullRequestFailureCategory;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
@@ -277,5 +279,50 @@ public class UserEventManagerTest
     // and then: the retry event was sent for processing
     verify(mockSourceControlEventProcessor, times(1))
         .processEvent(eq(retryEventCaptor.getValue()), eq(userEventManager));
+  }
+
+  @Test
+  public void testOnEventError_nonRetryableSourceControlException_skipsAutoRetry() {
+    // given: event manager
+    UserEventManager userEventManager = new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer,
+        mockSourceControlEventProcessor, BITBUCKET, mockSourceControlUtils, mockShutdownHandler);
+
+    // when: report a SourceControlException carrying MANIFEST_COMPONENT_NOT_FOUND (non-retryable)
+    SourceControlEvent errorEvent =
+        new SourceControlEvent().forRemediationPullRequest().withId("error-event").setApplicationId("errorApp");
+    SourceControlException error = new SourceControlException(
+        "Pull request creation failed: ...", PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND);
+
+    userEventManager.onEventError(errorEvent, error);
+
+    // then: event marked as error AND no retry event was inserted (DB write of a fresh event is the
+    // only side-effect that retryEvent() has, so verifying never() on insert proves no retry happened)
+    verify(mockSourceControlEventDAO, times(1))
+        .markEventHasError(eq(errorEvent.getId()), eq(error.getMessage()), eq(error));
+    verify(mockSourceControlEventDAO, never()).insert(any());
+    verify(mockSourceControlEventProcessor, never()).processEvent(any(), eq(userEventManager));
+  }
+
+  @Test
+  public void testOnEventError_retryableSourceControlException_stillUsesRetryRule() {
+    // given: event manager
+    UserEventManager userEventManager = new UserEventManager(mockSourceControlEventDAO, mockSourceControlLoadBalancer,
+        mockSourceControlEventProcessor, BITBUCKET, mockSourceControlUtils, mockShutdownHandler);
+
+    // when: report a SourceControlException carrying SCM_ERROR (retryable category) — but with a
+    // message that EventProcessingErrorRetryRule#isRetryableException does NOT match. The new
+    // gate must not short-circuit; the rule decides.
+    SourceControlEvent errorEvent =
+        new SourceControlEvent().forRemediationPullRequest().withId("error-event").setApplicationId("errorApp");
+    SourceControlException error = new SourceControlException(
+        "Failed to execute pull request for application 'errorApp'", PullRequestFailureCategory.SCM_ERROR);
+
+    userEventManager.onEventError(errorEvent, error);
+
+    // then: event marked as error; the retry rule's exception-type filter does not match this
+    // generic message either, so still no retry — but the gate did not short-circuit.
+    verify(mockSourceControlEventDAO, times(1))
+        .markEventHasError(eq(errorEvent.getId()), eq(error.getMessage()), eq(error));
+    verify(mockSourceControlEventDAO, never()).insert(any());
   }
 }

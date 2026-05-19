@@ -28,3 +28,18 @@ export const MANUAL_PULL_REQUEST_NOT_POSSIBLE_REASONS = {
   NOT_SUPPORTED_FOR_MTIQ: 'NOT_SUPPORTED_FOR_MTIQ',
   NON_DEFAULT_BRANCH: 'NON_DEFAULT_BRANCH',
 };
+
+export const PR_FAILURE_CATEGORY = {
+  MANIFEST_COMPONENT_NOT_FOUND: 'MANIFEST_COMPONENT_NOT_FOUND',
+  SCM_ERROR: 'SCM_ERROR',
+  UNKNOWN: 'UNKNOWN',
+};
+
+export const PR_FAILURE_TOOLTIP = {
+  [PR_FAILURE_CATEGORY.MANIFEST_COMPONENT_NOT_FOUND]:
+    'Cannot retry — this component must first be added as a direct dependency in your manifest file (e.g. pom.xml, package.json).',
+  [PR_FAILURE_CATEGORY.SCM_ERROR]: null,
+  [PR_FAILURE_CATEGORY.UNKNOWN]: null,
+};
+
+export const PR_FAILURE_DISABLED_FALLBACK = 'Cannot retry — please check the application logs.';

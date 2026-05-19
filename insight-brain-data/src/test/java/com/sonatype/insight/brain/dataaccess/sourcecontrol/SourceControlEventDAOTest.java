@@ -20,6 +20,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.git.PullRequestFailureCategory;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -453,6 +455,60 @@ public class SourceControlEventDAOTest
     else {
       assertThat(sourceControlEventById.getEventErrorDetails()).isEqualTo(ExceptionUtils.getStackTrace(testException));
     }
+  }
+
+  @Test
+  public void markEventHasError_withManifestCategoryException_persistsCategoryAndNonRetryable() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+    SourceControlException ex = new SourceControlException(
+        "Pull request creation failed: ...",
+        PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND);
+
+    sourceControlEventDAO.markEventHasError(event.getId(), ex.getMessage(), ex);
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getEventStatus()).isEqualTo("error");
+    assertThat(reloaded.getEventFailureCategory()).isEqualTo("MANIFEST_COMPONENT_NOT_FOUND");
+    assertThat(reloaded.getEventIsRetryable()).isFalse();
+  }
+
+  @Test
+  public void markEventHasError_withScmErrorCategoryException_persistsCategoryAndRetryable() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+    SourceControlException ex = new SourceControlException(
+        "boom", PullRequestFailureCategory.SCM_ERROR, new RuntimeException("cause"));
+
+    sourceControlEventDAO.markEventHasError(event.getId(), ex.getMessage(), ex);
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getEventFailureCategory()).isEqualTo("SCM_ERROR");
+    assertThat(reloaded.getEventIsRetryable()).isTrue();
+  }
+
+  @Test
+  public void markEventHasError_withNonSourceControlException_persistsNullCategory() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+
+    sourceControlEventDAO.markEventHasError(event.getId(), "boom", new RuntimeException("x"));
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getEventFailureCategory()).isNull();
+    assertThat(reloaded.getEventIsRetryable()).isNull();
+  }
+
+  @Test
+  public void markEventHasError_withSourceControlExceptionWithoutCategory_persistsNullCategory() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+
+    sourceControlEventDAO.markEventHasError(event.getId(), "boom", new SourceControlException("boom"));
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getEventFailureCategory()).isNull();
+    assertThat(reloaded.getEventIsRetryable()).isNull();
   }
 
   @Test

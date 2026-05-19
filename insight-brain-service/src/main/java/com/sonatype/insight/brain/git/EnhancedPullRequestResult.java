@@ -96,6 +96,31 @@ public class EnhancedPullRequestResult
     return intuitReasoning(timing, exceptionThrown);
   }
 
+  /**
+   * Classify this result for downstream consumers (DAO + UI).
+   * <p>
+   * Intended to be called only on failure paths — i.e. when the wrapped
+   * {@link PullRequestResult} is not successful, or when {@code exceptionThrown}
+   * is true. Today's only callers ({@code PullRequestTask} at the
+   * {@code !isSuccessful()} branch and the outer {@code catch}) honor this; if
+   * a future caller invokes {@code getCategory()} on a successful result the
+   * method returns {@code UNKNOWN} defensively rather than throwing, but the
+   * intended contract is failure-path-only.
+   */
+  public PullRequestFailureCategory getCategory() {
+    if (exceptionThrown) {
+      return PullRequestFailureCategory.SCM_ERROR;
+    }
+    if (timing != null && timing.isSuccessful()) {
+      // Defensive: getCategory() is meant for failure paths. See Javadoc above.
+      return PullRequestFailureCategory.UNKNOWN;
+    }
+    // Both `timing == null` and `timing.isSuccessful() == false` branches map to
+    // MANIFEST_COMPONENT_NOT_FOUND so the category stays consistent with
+    // intuitReasoning(), which surfaces FAILURE_MESSAGE for both of those cases.
+    return PullRequestFailureCategory.MANIFEST_COMPONENT_NOT_FOUND;
+  }
+
   @Override
   public String toString() {
     return "EnhancedPullRequestResult{" +

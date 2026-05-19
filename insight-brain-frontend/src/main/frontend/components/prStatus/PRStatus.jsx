@@ -17,6 +17,8 @@ import { faXmarkCircle } from '@fortawesome/pro-solid-svg-icons';
 import {
   AUTOMATED_REMEDIATION_STATUS,
   MANUAL_PULL_REQUEST_NOT_POSSIBLE_REASONS,
+  PR_FAILURE_TOOLTIP,
+  PR_FAILURE_DISABLED_FALLBACK,
 } from 'MainRoot/constants/automatedRemediationStatus';
 
 export const PR_STATUS_HIDDEN_REASONS = [
@@ -60,15 +62,47 @@ export default function PRStatus({
       );
     case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING:
       return <NxLoadingSpinner>Creating PR…</NxLoadingSpinner>;
-    case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_FAILED:
+    case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_FAILED: {
+      const {
+        reason = '',
+        failureCategory,
+        isRetryable,
+      } = automatedRemediationStatus;
+
+      const canRetry = isRetryable !== false;
+
+      const reasonTooltip = reason ? `Failure to create PR. ${reason}` : 'Failed to create PR.';
+
+      const disabledTooltip =
+        PR_FAILURE_TOOLTIP[failureCategory] ??
+        (reason ? reasonTooltip : PR_FAILURE_DISABLED_FALLBACK);
+
+      const tooltipTitle = canRetry ? reasonTooltip : disabledTooltip;
+
+      // Disabled-state styling uses className="disabled" rather than the HTML disabled
+      // attribute so pointer events still fire on hover — otherwise the browser's default
+      // pointer-events:none on disabled buttons swallows the hover and NxTooltip's MUI
+      // listener never opens the popper. This matches the existing
+      // MANUAL_PULL_REQUEST_NOT_POSSIBLE branch below and the NxButton convention RSC ships
+      // (NxButton.js uses includesDisabledClass() to derive aria-disabled).
       return (
-        <NxTooltip title={`Failure to create PR. ${automatedRemediationStatus.reason}`} placement="top-end">
-          <button className="nx-text-link iq-pr-status__btn--failed" onClick={onRetry}>
+        <NxTooltip title={tooltipTitle} placement="top-end">
+          <button
+            type="button"
+            className={
+              canRetry
+                ? 'nx-text-link iq-pr-status__btn--failed'
+                : 'nx-text-link iq-pr-status__btn--failed disabled'
+            }
+            onClick={canRetry ? onRetry : undefined}
+            aria-disabled={!canRetry}
+          >
             <NxFontAwesomeIcon className="iq-pr-status__failed-icon" icon={faXmarkCircle} />
             Retry
           </button>
         </NxTooltip>
       );
+    }
     case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST:
       return (
         <NxTextLink href={automatedRemediationStatus.url} external className="iq-pr-status__view-pr-link">
@@ -95,6 +129,8 @@ PRStatus.propTypes = {
     reason: PropTypes.string,
     url: PropTypes.string,
     pullRequestId: PropTypes.number,
+    failureCategory: PropTypes.string,
+    isRetryable: PropTypes.bool,
   }),
   defaultPrLinkText: PropTypes.string,
   onCreatePR: PropTypes.func.isRequired,

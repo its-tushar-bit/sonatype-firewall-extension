@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
+import com.sonatype.insight.brain.git.PullRequestFailureCategory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -80,10 +81,34 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final String reason;
 
-    @JsonCreator
-    public PullRequestCreationFailedDTO(@JsonProperty("reason") final String reason) {
+    public final PullRequestFailureCategory failureCategory;
+
+    public final boolean isRetryable;
+
+    public PullRequestCreationFailedDTO(
+        final String reason,
+        final PullRequestFailureCategory failureCategory,
+        final Boolean isRetryable)
+    {
       super(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
       this.reason = Objects.requireNonNull(reason);
+      this.failureCategory = failureCategory != null ? failureCategory : PullRequestFailureCategory.UNKNOWN;
+      this.isRetryable = isRetryable != null ? isRetryable : this.failureCategory.isRetryable();
+    }
+
+    /**
+     * Jackson entry point. Receives {@code failureCategory} as a raw {@code String} and routes
+     * it through {@link AutomatedRemediationStatusDTO#parseCategory(String)} so an unknown
+     * enum value (from a newer node, downgrade, or split-version deploy) deserializes to
+     * {@code UNKNOWN} instead of throwing — same behavior as the DB-read path.
+     */
+    @JsonCreator
+    public static PullRequestCreationFailedDTO fromJson(
+        @JsonProperty("reason") final String reason,
+        @JsonProperty("failureCategory") final String failureCategory,
+        @JsonProperty("isRetryable") final Boolean isRetryable)
+    {
+      return new PullRequestCreationFailedDTO(reason, parseCategory(failureCategory), isRetryable);
     }
   }
 
@@ -127,7 +152,9 @@ public abstract sealed class AutomatedRemediationStatusDTO
         String reason = sourceControlEvent.getEventStatusDetails() != null
             ? sourceControlEvent.getEventStatusDetails()
             : "An unknown error occurred.";
-        return new PullRequestCreationFailedDTO(reason);
+        PullRequestFailureCategory category = parseCategory(sourceControlEvent.getEventFailureCategory());
+        Boolean isRetryable = sourceControlEvent.getEventIsRetryable();
+        return new PullRequestCreationFailedDTO(reason, category, isRetryable);
       }
       case SourceControlEvent.EVENT_STATUS_COMPLETE -> {
         String prLink = sourceControlEvent.getEventStatusDetails();
@@ -155,5 +182,23 @@ public abstract sealed class AutomatedRemediationStatusDTO
   private static boolean isRemediationEvent(SourceControlEvent event) {
     return SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType())
         || SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType());
+  }
+
+  private static PullRequestFailureCategory parseCategory(String raw) {
+    if (raw == null) {
+      return PullRequestFailureCategory.UNKNOWN;
+    }
+    try {
+      return PullRequestFailureCategory.valueOf(raw);
+    }
+    catch (IllegalArgumentException e) {
+      // Unknown enum value almost always means version skew (a newer node wrote a
+      // category this older node does not know about, e.g. during a downgrade or a
+      // split-version deploy). Log so ops can see the drift; mapping to UNKNOWN
+      // keeps the read path safe.
+      log.warn("Unknown PullRequestFailureCategory '{}' on source_control_event row; "
+          + "mapping to UNKNOWN. Likely a downgrade or split-version deploy.", raw);
+      return PullRequestFailureCategory.UNKNOWN;
+    }
   }
 }

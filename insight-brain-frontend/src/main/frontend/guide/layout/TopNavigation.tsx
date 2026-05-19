@@ -15,6 +15,8 @@ import { useAuth } from '../auth/AuthProvider';
 import { searchAll } from '../api/searchBackend';
 import type { GlobalSearchFilters, GlobalSearchOptions } from '@guide/ui-core/types';
 import styles from './TopNavigation.module.css';
+import { useFeatureFlags } from '../feature-flags/FeatureFlagProvider';
+import { FEATURE_FLAGS } from '../feature-flags/featureFlags';
 
 interface TopNavigationProps {
   onSidebarToggle: () => void;
@@ -42,6 +44,8 @@ function getInitials(displayName?: string, username?: string): string {
 
 export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigationProps) {
   const { user, logout } = useAuth();
+  const { isLoading, isFeatureEnabled } = useFeatureFlags();
+  const showSearch = !isLoading && isFeatureEnabled(FEATURE_FLAGS.GUIDE_UI);
 
   return (
     <div className={styles.root}>
@@ -60,16 +64,18 @@ export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigati
         <GuideLogo />
       </div>
 
-      <div className={styles.search}>
-        <div className={styles.searchInner}>
-          <SearchWithSuggestions
-            placeholder="Search components and vulnerabilities..."
-            size="2"
-            searchFunction={suggestionSearch}
-            formAction="/search"
-          />
+      {showSearch && (
+        <div className={styles.search}>
+          <div className={styles.searchInner}>
+            <SearchWithSuggestions
+              placeholder="Search components and vulnerabilities..."
+              size="2"
+              searchFunction={suggestionSearch}
+              formAction="/search"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={styles.actions}>
         <Flex align="center" gap={tokens.space.item} justify="end">

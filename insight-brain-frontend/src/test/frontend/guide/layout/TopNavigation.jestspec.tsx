@@ -6,13 +6,18 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '../test-utils';
+import { FeatureFlagProvider } from 'GuideRoot/feature-flags/FeatureFlagProvider';
 import { TopNavigation } from 'GuideRoot/layout/TopNavigation';
+import * as featureFlagsApi from 'GuideRoot/feature-flags/featureFlagsApi';
+
+jest.mock('GuideRoot/feature-flags/featureFlagsApi');
 
 describe('TopNavigation', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() });
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
   });
 
   afterEach(() => {
@@ -21,14 +26,22 @@ describe('TopNavigation', () => {
   });
 
   it('renders a log out button next to the avatar', () => {
-    render(<TopNavigation onSidebarToggle={() => {}} />);
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
 
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument();
   });
 
   it('calls DELETE /rest/user/session/logout when log out is clicked', async () => {
     const user = userEvent.setup();
-    render(<TopNavigation onSidebarToggle={() => {}} />);
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
 
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 
@@ -41,19 +54,45 @@ describe('TopNavigation', () => {
     });
   });
 
-  it('renders the global search input with placeholder', () => {
-    render(<TopNavigation onSidebarToggle={() => {}} />);
+  it('renders the global search input with placeholder', async () => {
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
 
-    const searchInput = screen.getByPlaceholderText(/search components and vulnerabilities/i);
-    expect(searchInput).toBeInTheDocument();
+    await waitFor(() => {
+      const searchInput = screen.getByPlaceholderText(/search components and vulnerabilities/i);
+      expect(searchInput).toBeInTheDocument();
+    });
   });
 
-  it('search submission targets /search via the form action', () => {
-    render(<TopNavigation onSidebarToggle={() => {}} />);
+  it('search submission targets /search via the form action', async () => {
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
 
-    const input = screen.getByPlaceholderText(/search components and vulnerabilities/i);
-    const form = input.closest('form');
-    expect(form).not.toBeNull();
-    expect(form?.getAttribute('action')).toBe('/search');
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText(/search components and vulnerabilities/i);
+      const form = input.closest('form');
+      expect(form).not.toBeNull();
+      expect(form?.getAttribute('action')).toBe('/search');
+    });
+  });
+
+  it('does not render search when feature flag is disabled', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
+
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText(/search components and vulnerabilities/i)).not.toBeInTheDocument();
+    });
   });
 });

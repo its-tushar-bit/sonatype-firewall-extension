@@ -16,7 +16,7 @@
           "description": "Add the following to the global VS Code mcp.json or create a .vscode/mcp.json in your workspace.",
           "docsUrl": "https://code.visualstudio.com/docs/copilot/customization/mcp-servers",
           "docsUrlText": "VS Code MCP documentation",
-          "config": "{\n  \"servers\": {\n    \"sonatype-mcp\": {\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"type\": \"http\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+          "config": "{\n  \"servers\": {\n    \"sonatype-mcp\": {\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"type\": \"http\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(userCode:passCode)>\"\n      }\n    }\n  }\n}",
           "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname. Switch to Agent mode in Copilot chat to access MCP tools."
         },
         {
@@ -33,7 +33,7 @@
             },
             {
               "field": "Command",
-              "value": "npx -y mcp-remote https://YOUR-IQ-SERVER/mcp --header \"Authorization: Basic <base64(username:password)>\""
+              "value": "npx -y mcp-remote https://YOUR-IQ-SERVER/mcp --header \"Authorization: Basic <base64(userCode:passCode)>\""
             }
           ],
           "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
@@ -41,7 +41,7 @@
         {
           "ideName": "JetBrains IDEs",
           "description": "Open Copilot Chat and make sure you are in Agent mode. Then click the tools icon and either browse the registry to install Sonatype MCP Server, or manually add the configuration below in mcp.json.",
-          "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+          "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(userCode:passCode)>\"\n      ]\n    }\n  }\n}",
           "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
         },
         {
@@ -53,7 +53,7 @@
             "In the Server Configurations section, add the configuration provided below.",
             "Click Apply and restart Eclipse."
           ],
-          "config": "{\n  \"sonatype-mcp\": {\n    \"command\": \"/opt/homebrew/bin/npx\",\n    \"args\": [\n      \"-y\",\n      \"mcp-remote\",\n      \"https://YOUR-IQ-SERVER/mcp\",\n      \"--header\",\n      \"Authorization: Basic <base64(username:password)>\"\n    ]\n  }\n}",
+          "config": "{\n  \"sonatype-mcp\": {\n    \"command\": \"/opt/homebrew/bin/npx\",\n    \"args\": [\n      \"-y\",\n      \"mcp-remote\",\n      \"https://YOUR-IQ-SERVER/mcp\",\n      \"--header\",\n      \"Authorization: Basic <base64(userCode:passCode)>\"\n    ]\n  }\n}",
           "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
         },
         {
@@ -64,7 +64,7 @@
             "In GitHub Copilot for Xcode, click tools, then select MCP.",
             "In MCP Configuration, click Edit Config, then add the configuration below."
           ],
-          "config": "{\n  \"Servers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+          "config": "{\n  \"Servers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(userCode:passCode)>\"\n      ]\n    }\n  }\n}",
           "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname."
         }
       ]
@@ -73,7 +73,7 @@
       "id": "claude-code",
       "name": "Claude Code",
       "type": "command",
-      "command": "claude mcp add sonatype-mcp \\\n  https://YOUR-IQ-SERVER/mcp \\\n  --transport http \\\n  --scope user \\\n  --header \"Authorization: Basic <base64(username:password)>\"",
+      "command": "claude mcp add sonatype-mcp \\\n  https://YOUR-IQ-SERVER/mcp \\\n  --transport http \\\n  --scope user \\\n  --header \"Authorization: Basic <base64(userCode:passCode)>\"",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": "~/.claude/CLAUDE.md or .claude/CLAUDE.md",
@@ -83,7 +83,7 @@
       "id": "gemini",
       "name": "Gemini",
       "type": "json",
-      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"httpUrl\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"httpUrl\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(userCode:passCode)>\"\n      }\n    }\n  }\n}",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": "~/.gemini/GEMINI.md or GEMINI.md",
@@ -93,7 +93,7 @@
       "id": "windsurf",
       "name": "Windsurf",
       "type": "json",
-      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(userCode:passCode)>\"\n      ]\n    }\n  }\n}",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": ".windsurf/rules/sonatype.md",
@@ -103,7 +103,7 @@
       "id": "intellij",
       "name": "IntelliJ",
       "type": "json",
-      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(userCode:passCode)>\"\n      ]\n    }\n  }\n}",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": ".junie/guidelines.md",
@@ -113,7 +113,7 @@
       "id": "kiro",
       "name": "Kiro",
       "type": "json",
-      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(username:password)>\"\n      ]\n    }\n  }\n}",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"mcp-remote\",\n        \"https://YOUR-IQ-SERVER/mcp\",\n        \"--header\",\n        \"Authorization: Basic <base64(userCode:passCode)>\"\n      ]\n    }\n  }\n}",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": ".kiro/steering/sonatype.md",
@@ -133,7 +133,7 @@
       "id": "cursor",
       "name": "Cursor",
       "type": "json",
-      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"type\": \"http\",\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(username:password)>\"\n      }\n    }\n  }\n}",
+      "config": "{\n  \"mcpServers\": {\n    \"sonatype-mcp\": {\n      \"type\": \"http\",\n      \"url\": \"https://YOUR-IQ-SERVER/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Basic <base64(userCode:passCode)>\"\n      }\n    }\n  }\n}",
       "needsPrereq": false,
       "note": "Replace YOUR-IQ-SERVER with your IQ Server hostname.",
       "rulesFile": ".cursorrules",
@@ -186,7 +186,7 @@
     },
     {
       "issue": "Authentication fails or times out",
-      "solution": "Verify you've added an Authorization header with valid Base64-encoded credentials. Encode as: base64(username:password). Check your network connection and firewall settings. Ensure your IQ Server credentials are correct. If the issue persists, contact your administrator."
+      "solution": "Verify you've added an Authorization header with valid Base64-encoded credentials. Encode as: base64(userCode:passCode). Check your network connection and firewall settings. Ensure your IQ Server credentials are correct. If the issue persists, contact your administrator."
     },
     {
       "issue": "\"mcp-remote not found\" error",
@@ -203,8 +203,10 @@
   ],
   "authHelp": {
     "title": "Authentication",
-    "description": "Use your IQ Server credentials to authenticate. Encode as base64(username:password) and include in the Authorization header.",
-    "example": "echo -n \"username:password\" | base64 \u2192 dXNlcm5hbWU6cGFzc3dvcmQ="
+    "description": "Authenticate with an IQ Server user token. Encode it as base64(userCode:passCode) and send in the Authorization header.",
+    "example": "echo -n \"userCode:passCode\" | base64 \u2192 dXNlckNvZGU6cGFzc0NvZGU=",
+    "learnMoreUrl": "https://help.sonatype.com/en/iq-server-user-tokens.html",
+    "learnMoreText": "Learn how to generate a user token"
   },
   "optionalHeaders": [
     {

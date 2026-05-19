@@ -17,7 +17,7 @@ import {
   DropdownMenu,
   IconButton,
 } from '@radix-ui/themes';
-import { CircleCheck, MoreVertical } from 'lucide-react';
+import { CircleCheck, ExternalLink, MoreVertical } from 'lucide-react';
 import { SectionHeading, BodyText, PageLayout } from '@guide/ui-core';
 import { tokens } from '@guide/ui-core/utils';
 import { CopyToClipboardButton } from './CopyToClipboardButton';
@@ -92,6 +92,19 @@ export function McpPage() {
               >
                 {data.authHelp.example}
               </Box>
+              {data.authHelp.learnMoreUrl && (
+                <Text size="2">
+                  <a
+                    href={data.authHelp.learnMoreUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25em' }}
+                  >
+                    {data.authHelp.learnMoreText || 'Learn more'}
+                    <ExternalLink size={12} />
+                  </a>
+                </Text>
+              )}
             </Flex>
           </Box>
           {data.optionalHeaders && data.optionalHeaders.length > 0 && (

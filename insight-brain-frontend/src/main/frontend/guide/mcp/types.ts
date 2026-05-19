@@ -52,6 +52,8 @@ export interface AuthHelp {
   title: string;
   description: string;
   example: string;
+  learnMoreUrl?: string;
+  learnMoreText?: string;
 }
 
 export interface OptionalHeader {

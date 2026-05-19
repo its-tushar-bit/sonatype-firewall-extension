@@ -17,10 +17,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.mcp.model.McpPolicyContext;
 import com.sonatype.insight.brain.mcp.model.McpPolicyViolation;
 import com.sonatype.insight.brain.mcp.model.McpStageResult;
 import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import jakarta.inject.Inject;
@@ -42,9 +44,12 @@ public class McpPolicyAnnotator
 
   private final ApiComponentEvaluationServiceV2 evaluationService;
 
+  private final ApplicationDAO applicationDAO;
+
   @Inject
-  public McpPolicyAnnotator(ApiComponentEvaluationServiceV2 evaluationService) {
+  public McpPolicyAnnotator(ApiComponentEvaluationServiceV2 evaluationService, ApplicationDAO applicationDAO) {
     this.evaluationService = evaluationService;
+    this.applicationDAO = applicationDAO;
   }
 
   @Override
@@ -52,6 +57,16 @@ public class McpPolicyAnnotator
     if (applicationId == null || applicationId.isBlank()) {
       return null;
     }
+
+    // ApiComponentEvaluationServiceV2 expects the internal application ID, but MCP callers
+    // typically supply the user-facing public ID (e.g. "sandbox-application"). Resolve here
+    // so either form works.
+    Application application = applicationDAO.getByIdOrPublicId(applicationId);
+    if (application == null) {
+      log.warn("Policy evaluation skipped — application not found for app={}", applicationId);
+      return null;
+    }
+    String internalApplicationId = application.getId();
 
     try {
       ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
@@ -61,7 +76,7 @@ public class McpPolicyAnnotator
       request.components = List.of(componentDto);
 
       // Submit evaluation (async internally)
-      var ticket = evaluationService.evaluateComponents(applicationId, request);
+      var ticket = evaluationService.evaluateComponents(internalApplicationId, request);
       String resultId = ticket.resultId;
       if (resultId == null) {
         log.warn("Evaluation ticket missing resultId for purl={}, app={}", purl, applicationId);
@@ -69,7 +84,7 @@ public class McpPolicyAnnotator
       }
 
       // Poll for results
-      ApiComponentEvaluationResultDTOV2 evaluationResult = pollForResult(applicationId, resultId);
+      ApiComponentEvaluationResultDTOV2 evaluationResult = pollForResult(internalApplicationId, resultId);
       if (evaluationResult == null || evaluationResult.isError) {
         log.warn("Policy evaluation returned error for purl={}, app={}", purl, applicationId);
         return null;
@@ -138,7 +153,7 @@ public class McpPolicyAnnotator
     boolean compliant = activeViolationCount == 0;
     String overallAction = deriveActionType(maxThreatLevel);
 
-    String effectiveStage = stage != null ? stage : "develop";
+    String effectiveStage = stage != null ? stage : "release";
 
     McpStageResult stageResult = new McpStageResult(
         effectiveStage,
@@ -146,7 +161,7 @@ public class McpPolicyAnnotator
         overallAction,
         (int) activeViolationCount);
 
-    return new McpPolicyContext(applicationId, effectiveStage, stageResult, null, violations);
+    return new McpPolicyContext(applicationId, effectiveStage, stageResult, violations);
   }
 
   private static List<String> extractReasons(List<ApiConstraintViolationDTO> constraintViolations) {

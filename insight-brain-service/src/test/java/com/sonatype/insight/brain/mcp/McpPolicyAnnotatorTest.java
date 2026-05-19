@@ -16,7 +16,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentEvaluationServiceV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.model.Application;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,11 +37,22 @@ public class McpPolicyAnnotatorTest
   @Mock
   private ApiComponentEvaluationServiceV2 evaluationService;
 
+  @Mock
+  private ApplicationDAO applicationDAO;
+
+  @Mock
+  private Application application;
+
   private McpPolicyAnnotator underTest;
 
   @Before
   public void setUp() {
-    underTest = new McpPolicyAnnotator(evaluationService);
+    underTest = new McpPolicyAnnotator(evaluationService, applicationDAO);
+  }
+
+  private void stubApplicationLookup(String inputId, String internalId) {
+    when(applicationDAO.getByIdOrPublicId(inputId)).thenReturn(application);
+    when(application.getId()).thenReturn(internalId);
   }
 
   @Test
@@ -60,6 +73,7 @@ public class McpPolicyAnnotatorTest
   public void testEvaluatePolicy_successWithViolations() throws Exception {
     String purl = "pkg:maven/org.example/lib@1.0.0";
     String appId = "app-123";
+    stubApplicationLookup(appId, appId);
 
     ApiComponentEvaluationTicketDTOV2 ticket = new ApiComponentEvaluationTicketDTOV2();
     ticket.resultId = "result-1";
@@ -95,6 +109,7 @@ public class McpPolicyAnnotatorTest
   public void testEvaluatePolicy_waivedViolationsAreCompliant() throws Exception {
     String purl = "pkg:maven/org.example/lib@1.0.0";
     String appId = "app-123";
+    stubApplicationLookup(appId, appId);
 
     ApiComponentEvaluationTicketDTOV2 ticket = new ApiComponentEvaluationTicketDTOV2();
     ticket.resultId = "result-1";
@@ -116,9 +131,10 @@ public class McpPolicyAnnotatorTest
   }
 
   @Test
-  public void testEvaluatePolicy_defaultsStageToDevelop() throws Exception {
+  public void testEvaluatePolicy_defaultsStageToRelease() throws Exception {
     String purl = "pkg:maven/org.example/lib@1.0.0";
     String appId = "app-123";
+    stubApplicationLookup(appId, appId);
 
     ApiComponentEvaluationTicketDTOV2 ticket = new ApiComponentEvaluationTicketDTOV2();
     ticket.resultId = "result-1";
@@ -131,13 +147,14 @@ public class McpPolicyAnnotatorTest
     McpPolicyContext result = underTest.evaluatePolicy(purl, appId, null);
 
     assertThat(result).isNotNull();
-    assertThat(result.stageResult().stage()).isEqualTo("develop");
+    assertThat(result.stageResult().stage()).isEqualTo("release");
   }
 
   @Test
   public void testEvaluatePolicy_evaluationError() throws Exception {
     String purl = "pkg:maven/org.example/lib@1.0.0";
     String appId = "app-123";
+    stubApplicationLookup(appId, appId);
 
     ApiComponentEvaluationTicketDTOV2 ticket = new ApiComponentEvaluationTicketDTOV2();
     ticket.resultId = "result-1";
@@ -156,11 +173,43 @@ public class McpPolicyAnnotatorTest
   public void testEvaluatePolicy_evaluateComponentsThrows() throws Exception {
     String purl = "pkg:maven/org.example/lib@1.0.0";
     String appId = "app-123";
+    stubApplicationLookup(appId, appId);
 
     when(evaluationService.evaluateComponents(eq(appId), any(ApiComponentEvaluationRequestDTOV2.class)))
         .thenThrow(new RuntimeException("Service unavailable"));
 
     McpPolicyContext result = underTest.evaluatePolicy(purl, appId, "build");
+
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testEvaluatePolicy_resolvesPublicIdToInternalId() throws Exception {
+    String purl = "pkg:maven/org.example/lib@1.0.0";
+    String publicId = "sandbox-application";
+    String internalId = "abc123def456";
+    stubApplicationLookup(publicId, internalId);
+
+    ApiComponentEvaluationTicketDTOV2 ticket = new ApiComponentEvaluationTicketDTOV2();
+    ticket.resultId = "result-1";
+    when(evaluationService.evaluateComponents(eq(internalId), any(ApiComponentEvaluationRequestDTOV2.class)))
+        .thenReturn(ticket);
+
+    ApiComponentEvaluationResultDTOV2 evalResult = buildEvalResult(internalId, false);
+    when(evaluationService.getComponentEvaluation(internalId, "result-1")).thenReturn(evalResult);
+
+    McpPolicyContext result = underTest.evaluatePolicy(purl, publicId, "build");
+
+    assertThat(result).isNotNull();
+    assertThat(result.applicationId()).isEqualTo(publicId);
+  }
+
+  @Test
+  public void testEvaluatePolicy_unknownApplicationReturnsNull() {
+    String purl = "pkg:maven/org.example/lib@1.0.0";
+    when(applicationDAO.getByIdOrPublicId("missing-app")).thenReturn(null);
+
+    McpPolicyContext result = underTest.evaluatePolicy(purl, "missing-app", "build");
 
     assertThat(result).isNull();
   }

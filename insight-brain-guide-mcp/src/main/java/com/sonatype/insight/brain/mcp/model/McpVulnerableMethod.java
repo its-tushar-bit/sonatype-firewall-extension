@@ -7,10 +7,9 @@ package com.sonatype.insight.brain.mcp.model;
 
 import java.util.List;
 
-public record McpPolicyContext(
-    String applicationId,
-    String stage,
-    McpStageResult stageResult,
-    List<McpPolicyViolation> violations)
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record McpVulnerableMethod(String refid, List<McpMethodSignature> methodSignatures)
 {
 }

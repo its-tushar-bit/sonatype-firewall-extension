@@ -5,16 +5,21 @@
  */
 package com.sonatype.insight.brain.mcp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.sonatype.insight.brain.mcp.model.McpBatchItem;
 import com.sonatype.insight.brain.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.mcp.model.McpRecommendationItem;
 import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
 import com.sonatype.insight.brain.mcp.search.SearchApiClient;
 import com.sonatype.insight.brain.mcp.tools.McpResponseFormatter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.json.schema.JsonSchemaValidator;
@@ -44,13 +49,16 @@ public class McpServletProvider
 {
   private static final Logger log = LoggerFactory.getLogger(McpServletProvider.class);
 
+  private static final int MAX_BATCH_SIZE = 20;
+
+  private static final ObjectMapper mapper = new ObjectMapper();
+
   private HttpServletStatelessServerTransport transport;
 
   private PolicyAnnotator policyAnnotator;
 
   @Inject
   public McpServletProvider() {
-    // No-op: transport is created lazily in initialize()
   }
 
   /**
@@ -80,13 +88,34 @@ public class McpServletProvider
         .serverInfo("iq-mcp", "1.0.0")
         .capabilities(McpSchema.ServerCapabilities.builder().tools(true).build())
         .jsonSchemaValidator(noOpJsonSchemaValidator())
+        // Run tool callbacks on the servlet request thread so the Shiro Subject
+        // (and other request-scoped ThreadLocals like MDC and tenant context)
+        // remain bound when downstream services like ApiComponentEvaluationServiceV2
+        // are invoked. Without this, the SDK offloads sync tools to
+        // Schedulers.boundedElastic() and Shiro's ThreadContext is empty there,
+        // causing "Anonymous access forbidden" from AuthorizeMethodInterceptor.
+        .immediateExecution(true)
         .tools(
-            tool("getComponentVersion", "Get component details by PURL",
-                searchApiClient::getComponentByPurl),
-            tool("getLatestComponentVersion", "Get latest version of a component",
-                searchApiClient::getLatestComponentVersion),
-            tool("getRecommendedComponentVersions", "Get upgrade recommendations",
-                searchApiClient::getRecommendations))
+            tool("getComponentVersion",
+                "Returns detailed analysis of a specific dependency or multiple dependencies with metadata about "
+                    + "quality, license and security. Dependencies can be referred to as packages, components or "
+                    + "libraries. They can be transitive (brought in by other dependencies) or direct (explicitly "
+                    + "added to the project).",
+                searchApiClient::getComponentByPurl, ToolType.COMPONENT_VERSION),
+            tool("getLatestComponentVersion",
+                "Returns the latest version of a dependency or multiple dependencies with quality, license and "
+                    + "security data. Dependencies can be referred to as packages, components or libraries. They "
+                    + "can be transitive (brought in by other dependencies) or direct (explicitly added to the "
+                    + "project).",
+                searchApiClient::getLatestComponentVersion, ToolType.LATEST_VERSION),
+            tool("getRecommendedComponentVersions",
+                "Returns top dependency version recommendations ranked by Developer Trust Score with security, "
+                    + "licensing, and quality analysis. Developer Trust Score is a measure of quality, security, "
+                    + "licensing, and maintainability. Use this when selecting a new component to add to a project "
+                    + "(without version) or when upgrading an existing component (with version). Dependencies can be "
+                    + "referred to as packages, components or libraries. They can be transitive (brought in by other "
+                    + "dependencies) or direct (explicitly added to the project).",
+                searchApiClient::getRecommendations, ToolType.RECOMMENDATIONS))
         .build();
   }
 
@@ -103,7 +132,8 @@ public class McpServletProvider
   private McpStatelessServerFeatures.SyncToolSpecification tool(
       String name,
       String description,
-      SearchFunction fn)
+      SearchFunction fn,
+      ToolType toolType)
   {
     return McpStatelessServerFeatures.SyncToolSpecification.builder()
         .tool(Tool.builder()
@@ -111,28 +141,65 @@ public class McpServletProvider
             .description(description)
             .inputSchema(toolSchema())
             .build())
-        .callHandler((ctx, request) -> callTool(ctx, request, fn))
+        .callHandler((ctx, request) -> callTool(ctx, request, fn, toolType))
         .build();
   }
 
   @VisibleForTesting
-  CallToolResult callTool(McpTransportContext ctx, CallToolRequest request, SearchFunction fn) {
+  CallToolResult callTool(McpTransportContext ctx, CallToolRequest request, SearchFunction fn, ToolType toolType) {
     Map<String, Object> arguments = request.arguments();
     if (arguments == null) {
-      return errorResult("purl parameter is required");
+      return errorResult("packageUrls parameter is required");
     }
-    Object purlValue = arguments.get("purl");
-    if (!(purlValue instanceof String purl) || purl.isBlank()) {
-      return errorResult("purl parameter is required");
+
+    Object packageUrlsValue = arguments.get("packageUrls");
+    if (!(packageUrlsValue instanceof List<?> rawList) || rawList.isEmpty()) {
+      return errorResult("packageUrls parameter is required and cannot be empty");
     }
+    if (rawList.size() > MAX_BATCH_SIZE) {
+      return errorResult(String.format(
+          "Too many package URLs provided. Maximum allowed is %d, but received %d",
+          MAX_BATCH_SIZE, rawList.size()));
+    }
+
+    String applicationId = resolveParam(arguments, ctx, "applicationId", "X-Application-Id");
+    String stage = resolveParam(arguments, ctx, "stage", "X-Stage");
+
     try {
-      String result = fn.call(purl);
-      if (result == null) {
-        return errorResult("Search API returned no data");
+      List<String> results = new ArrayList<>();
+      for (Object item : rawList) {
+        if (!(item instanceof String s) || s.isBlank()) {
+          String invalid = item != null ? item.toString() : "null";
+          results.add(formatError(invalid, toolType, "Invalid package URL: must be a non-blank string"));
+        }
+        else {
+          results.add(processOnePurl(s, fn, toolType, applicationId, stage));
+        }
       }
 
-      String applicationId = resolveParam(arguments, ctx, "applicationId", "X-Application-Id");
-      String stage = resolveParam(arguments, ctx, "stage", "X-Stage");
+      String merged = mergeJsonArrays(results);
+      return CallToolResult.builder()
+          .content(List.of(new TextContent(merged)))
+          .build();
+    }
+    catch (Exception e) {
+      log.warn("Unexpected error calling search tool", e);
+      return errorResult("Component lookup failed — check server logs for details");
+    }
+  }
+
+  private String processOnePurl(
+      String purl,
+      SearchFunction fn,
+      ToolType toolType,
+      String applicationId,
+      String stage)
+  {
+    try {
+      String rawJson = fn.call(purl);
+      if (rawJson == null) {
+        return formatError(purl, toolType, "Search API returned no data");
+      }
 
       McpPolicyContext policyContext = null;
       try {
@@ -142,15 +209,59 @@ public class McpServletProvider
         log.warn("Policy evaluation failed for purl={}, app={}: {}", purl, applicationId, e.getMessage());
       }
 
-      String formatted = McpResponseFormatter.format(result, policyContext);
-      return CallToolResult.builder()
-          .content(List.of(new TextContent(formatted)))
-          .build();
+      return switch (toolType) {
+        case COMPONENT_VERSION -> McpResponseFormatter.formatComponentVersion(purl, rawJson, policyContext);
+        case LATEST_VERSION -> McpResponseFormatter.formatLatestVersion(purl, rawJson, policyContext);
+        case RECOMMENDATIONS -> McpResponseFormatter.formatRecommendations(purl, rawJson);
+      };
     }
     catch (Exception e) {
-      log.warn("Unexpected error calling search tool for purl {}", purl, e);
-      return errorResult("Component lookup failed — check server logs for details");
+      log.warn("Error processing purl {}: {}", purl, e.getMessage(), e);
+      return formatError(purl, toolType, "Component lookup failed");
     }
+  }
+
+  private static String formatError(String purl, ToolType toolType, String message) {
+    try {
+      if (toolType == ToolType.RECOMMENDATIONS) {
+        return mapper.writeValueAsString(List.of(McpRecommendationItem.failure(purl, message)));
+      }
+      return mapper.writeValueAsString(List.of(McpBatchItem.failure(purl, message)));
+    }
+    catch (Exception e) {
+      return McpBatchItem.FALLBACK_FAILURE_JSON;
+    }
+  }
+
+  private static String mergeJsonArrays(List<String> jsonArrays) {
+    List<Object> merged = new ArrayList<>();
+    for (String json : jsonArrays) {
+      try {
+        List<Object> items = mapper.readValue(json, new TypeReference<>()
+        {
+        });
+        merged.addAll(items);
+      }
+      catch (Exception e) {
+        log.warn("Failed to parse batch element, substituting fallback: {}", e.getMessage());
+        merged.add(Map.of("success", false, "error", "Formatting failed"));
+      }
+    }
+    try {
+      return mapper.writeValueAsString(merged);
+    }
+    catch (Exception e) {
+      log.warn("Failed to serialize merged batch results: {}", e.getMessage());
+      return McpBatchItem.FALLBACK_FAILURE_JSON;
+    }
+  }
+
+  @VisibleForTesting
+  enum ToolType
+  {
+    COMPONENT_VERSION,
+    LATEST_VERSION,
+    RECOMMENDATIONS
   }
 
   @FunctionalInterface
@@ -184,14 +295,20 @@ public class McpServletProvider
     return new JsonSchema(
         "object",
         Map.of(
-            "purl", Map.of("type", "string",
-                "description", "Package URL (e.g., pkg:maven/org.example/lib@1.0.0)"),
+            "packageUrls", Map.of("type", "array",
+                "items", Map.of("type", "string"),
+                "maxItems", MAX_BATCH_SIZE,
+                "description",
+                "Package URL (PURL) or list of PURLs identifying the component(s). Maven requires namespace "
+                    + "(groupId). Version is required for getComponentVersion, optional for others. "
+                    + "When providing multiple package URLs, limit to 20 maximum."),
             "applicationId", Map.of("type", "string",
                 "description", "IQ application ID for policy evaluation (optional)"),
             "stage", Map.of("type", "string",
-                "description", "Stage label for response context (optional, defaults to 'develop'). "
-                    + "Does not control which stage is evaluated — evaluation uses the application's configured default.")),
-        List.of("purl"),
+                "description", "Stage label for response context (optional, defaults to 'release'). "
+                    + "Does not control which stage is evaluated — evaluation uses the application's configured "
+                    + "default.")),
+        List.of("packageUrls"),
         null, null, null);
   }
 
@@ -209,21 +326,11 @@ public class McpServletProvider
    * This is required to work around a dependency conflict between the MCP Java SDK and
    * cyclonedx-core-java. The MCP SDK's default {@code DefaultJsonSchemaValidator} (from
    * mcp-json-jackson2) requires json-schema-validator 2.x, but cyclonedx-core-java 12.1.0
-   * requires json-schema-validator 1.5.9. These versions are binary-incompatible (2.x removed
-   * classes like {@code SchemaMapper} that 1.5.x uses, and added classes like {@code Dialects}
-   * that 1.5.x lacks).
-   *
-   * <p>
-   * We exclude json-schema-validator from mcp-json-jackson2 in the POM so that cyclonedx
-   * gets its required 1.5.9 version, and provide this no-op validator to avoid the MCP SDK
-   * attempting to load the missing 2.x classes.
+   * requires json-schema-validator 1.5.9. These versions are binary-incompatible.
    *
    * <p>
    * <b>TODO: Remove this workaround</b> when cyclonedx-core-java 13.0.0 is released, which
-   * upgrades to json-schema-validator 2.x (see
-   * <a href="https://github.com/CycloneDX/cyclonedx-core-java/pull/802">cyclonedx-core-java#802</a>).
-   * At that point, remove the json-schema-validator exclusion from the POM and delete this method
-   * so the MCP SDK uses its default validator.
+   * upgrades to json-schema-validator 2.x.
    */
   private static JsonSchemaValidator noOpJsonSchemaValidator() {
     return (Map<String, Object> schema, Object structuredContent) -> JsonSchemaValidator.ValidationResponse.asValid(

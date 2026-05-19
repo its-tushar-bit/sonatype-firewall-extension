@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.mcp.model;
 
-public record McpResponseMetadata(
-    String source,
-    McpPolicyContext policy)
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record McpMethodSignature(String type, String signature, List<Integer> vulnerableParameters)
 {
 }

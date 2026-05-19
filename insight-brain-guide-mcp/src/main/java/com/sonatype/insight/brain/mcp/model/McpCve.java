@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.mcp.model;
 
-public record McpStagePreview(
-    String nextStage,
-    boolean wouldPass,
-    int violationCount)
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record McpCve(String id, Float cvssScore)
 {
 }

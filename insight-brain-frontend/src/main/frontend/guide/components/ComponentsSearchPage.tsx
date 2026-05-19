@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { Flex } from '@radix-ui/themes';
 import {
   PageLayout,
@@ -23,6 +24,7 @@ import {
   getLimitFromParams,
   getSortFromParams,
   buildComponentFilters,
+  getComponentDetailUrl,
   COMPONENT_FILTER_ORDER,
 } from '@guide/ui-core/utils';
 import { searchComponents } from 'GuideRoot/api/componentsBackend';
@@ -109,7 +111,16 @@ export function ComponentsSearchPage() {
         {!isPending && components.length === 0 ? (
           <EmptyComponentsResults />
         ) : (
-          <ComponentsResultsList components={components} isPending={isPending} limit={LIMIT} />
+          <ComponentsResultsList
+            components={components}
+            isPending={isPending}
+            limit={LIMIT}
+            renderLinkWrapper={({ component, children }) => (
+              <Link to={getComponentDetailUrl(component)} className="unstyled-link">
+                {children}
+              </Link>
+            )}
+          />
         )}
         {showPagination && (
           <Pagination

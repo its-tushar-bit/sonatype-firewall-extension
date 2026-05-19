@@ -79,7 +79,7 @@ function sortVulnerabilities(
 /**
  * Filters vulnerabilities based on query and filter params.
  */
-function filterVulnerabilities(
+export function filterVulnerabilities(
   vulnerabilities: Vulnerability[],
   query?: string,
   filters?: VulnerabilitiesFilters
@@ -204,7 +204,7 @@ function filterVulnerabilities(
 /**
  * Computes aggregations from filtered results.
  */
-function computeAggregations(vulnerabilities: Vulnerability[]): Aggregations {
+export function computeVulnerabilityAggregations(vulnerabilities: Vulnerability[]): Aggregations {
   // Pre-populate with known ecosystems to ensure filter shows even when empty
   const affectedEcosystems: Record<string, number> = {
     maven: 0,
@@ -269,7 +269,7 @@ function mockSearchHandler(params: VulnerabilitiesSearchParams): VulnerabilitySe
   const paginated = sorted.slice(offset, offset + limit);
 
   // Compute aggregations from filtered set
-  const aggregations = computeAggregations(filtered);
+  const aggregations = computeVulnerabilityAggregations(filtered);
 
   return {
     hits: paginated,

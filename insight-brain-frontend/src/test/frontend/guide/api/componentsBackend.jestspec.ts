@@ -4,7 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import {
+  searchComponents,
+  getComponentDetail,
+  getComponentVulnerabilities,
+  getComponentVersions,
+  getComponentDependencies,
+} from 'GuideRoot/api/componentsBackend';
 import { getCVSSSeverity } from '@guide/ui-core';
 
 jest.mock('GuideRoot/api/apiFetch', () => ({
@@ -167,6 +173,66 @@ describe('componentsBackend', () => {
       const allTotal = Object.values(allResults.aggregations!.byFormat).reduce((a: number, b: number) => a + b, 0);
       const npmTotal = npmOnly.aggregations!.byFormat.npm;
       expect(allTotal).toBeGreaterThan(npmTotal);
+    });
+  });
+
+  describe('getComponentDetail', () => {
+    it('returns mock component details', async () => {
+      const result = await getComponentDetail('npm', 'lodash', '4.17.21');
+      expect(result).not.toBeNull();
+      expect(result!.name).toBe('lodash');
+      expect(result!.version).toBe('4.17.21');
+      expect(result!.format).toBe('npm');
+    });
+  });
+
+  describe('getComponentVulnerabilities', () => {
+    it('returns vulnerability search response', async () => {
+      const result = await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+      expect(result.hits).toBeDefined();
+      expect(typeof result.total).toBe('number');
+      expect(result.offset).toBe(0);
+    });
+
+    it('respects limit:1 for count-only queries', async () => {
+      const result = await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 1 });
+      expect(result.hits.length).toBeLessThanOrEqual(1);
+      expect(result.total).toBeGreaterThan(0);
+    });
+
+    it('filters by query text', async () => {
+      const result = await getComponentVulnerabilities('npm', 'lodash', '4.17.21', 'command injection', {}, { offset: 0, limit: 25 });
+      expect(result.hits.length).toBe(1);
+      expect(result.hits[0].vulnId).toBe('CVE-2021-23337');
+    });
+  });
+
+  describe('getComponentVersions', () => {
+    it('returns versions search response', async () => {
+      const result = await getComponentVersions('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+      expect(result.hits).toBeDefined();
+      expect(result.hits.length).toBeGreaterThan(0);
+      expect(result.hits[0].format).toBe('npm');
+    });
+
+    it('filters by query text (version string)', async () => {
+      const result = await getComponentVersions('npm', 'lodash', '4.17.21', '4.17', {}, { offset: 0, limit: 25 });
+      expect(result.hits.every((v) => v.version.includes('4.17'))).toBe(true);
+      expect(result.hits.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('getComponentDependencies', () => {
+    it('returns dependencies search response', async () => {
+      const result = await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+      expect(result.hits).toBeDefined();
+      expect(typeof result.total).toBe('number');
+    });
+
+    it('filters by query text', async () => {
+      const result = await getComponentDependencies('npm', 'lodash', '4.17.21', 'underscore', {}, { offset: 0, limit: 25 });
+      expect(result.hits.length).toBe(1);
+      expect(result.hits[0].name).toBe('underscore');
     });
   });
 });

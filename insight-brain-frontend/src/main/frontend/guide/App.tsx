@@ -16,6 +16,11 @@ import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
 import { GUIDE_PRODUCTS } from './license/licenseProducts';
+import { ComponentDetailPage } from './components/detail/ComponentDetailPage';
+import { OverviewTab } from './components/detail/OverviewTab';
+import { VulnerabilitiesTab } from './components/detail/VulnerabilitiesTab';
+import { VersionsTab } from './components/detail/VersionsTab';
+import { DependenciesTab } from './components/detail/DependenciesTab';
 import { McpPage } from './mcp/McpPage';
 import { FeatureFlagProvider } from './feature-flags/FeatureFlagProvider';
 import { FeatureGate } from './feature-flags/FeatureGate';
@@ -61,6 +66,19 @@ function AuthGate() {
                 }
               />
               <Route path="/mcp" element={<McpPage />} />
+              <Route
+                path="/component/:ecosystem/:pkg/:version"
+                element={
+                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <ComponentDetailPage />
+                  </FeatureGate>
+                }
+              >
+                <Route index element={<OverviewTab />} />
+                <Route path="versions" element={<VersionsTab />} />
+                <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
+                <Route path="dependencies" element={<DependenciesTab />} />
+              </Route>
             </Routes>
           </AppShell>
         </FeatureFlagProvider>

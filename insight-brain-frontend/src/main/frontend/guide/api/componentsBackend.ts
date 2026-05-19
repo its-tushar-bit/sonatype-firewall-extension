@@ -6,12 +6,26 @@
 
 import { apiFetch, API_PREFIX } from './apiFetch';
 import { mockComponents } from './mocks/mockComponentsData';
+import { filterVulnerabilities, computeVulnerabilityAggregations } from './vulnerabilitiesBackend';
+import {
+  mockComponentDetail,
+  mockVulnerabilities,
+  mockVersions,
+  mockDependencies,
+  makeDts,
+} from './mocks/mockComponentDetailData';
 import { getCVSSSeverity } from '@guide/ui-core';
+import { parsePackageIdentifier } from '@guide/ui-core/utils';
 import type {
   Component,
   ComponentSearchResponse,
   ComponentsFilters,
   ComponentsSearchOptions,
+  VulnerabilitiesFilters,
+  VulnerabilitiesSearchOptions,
+  VersionsFilters,
+  VulnerabilitySearchResponse,
+  ComponentDetails,
 } from '@guide/ui-core/types';
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>> */
@@ -197,6 +211,7 @@ function computeAggregations(components: Component[]): Aggregations {
   const categories: Record<string, number> = {};
   const severities: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, none: 0 };
   const licenses: Record<string, number> = {};
+  const malware: Record<string, number> = { true: 0, false: 0 };
 
   for (const c of components) {
     formats[c.format] = (formats[c.format] ?? 0) + 1;
@@ -211,6 +226,9 @@ function computeAggregations(components: Component[]): Aggregations {
     for (const lic of c.licenses ?? []) {
       licenses[lic.licenseName] = (licenses[lic.licenseName] ?? 0) + 1;
     }
+
+    const malwareKey = c.isMalware ? 'true' : 'false';
+    malware[malwareKey] = (malware[malwareKey] ?? 0) + 1;
   }
 
   return {
@@ -218,6 +236,7 @@ function computeAggregations(components: Component[]): Aggregations {
     byCategory: categories,
     bySeverity: severities,
     byLicense: licenses,
+    byMalware: malware,
   };
 }
 
@@ -265,6 +284,216 @@ export async function searchComponents(
     `${API_PREFIX}/components/search`,
     {
       mockHandler: () => mockSearchHandler(params),
+    }
+  );
+}
+
+export interface ComponentVersionsResponse {
+  hits: ComponentDetails[];
+  total: number;
+  offset: number;
+  limit: number;
+  aggregations: Record<string, Record<string, number>>;
+}
+
+function mockComponentToDetails(ecosystem: string, pkg: string, version: string): ComponentDetails {
+  const { name } = parsePackageIdentifier(pkg);
+  const match =
+    mockComponents.find((c) => c.name === name && c.format === ecosystem && c.version === version) ??
+    mockComponents.find((c) => c.name === name && c.format === ecosystem) ??
+    mockComponents[0];
+  return {
+    ...mockComponentDetail,
+    format: match.format,
+    originId: match.originId,
+    namespace: match.namespace ?? '',
+    name: match.name,
+    version: match.version,
+    registryLink: match.registryLink,
+    maxCvss: match.maxCvss ?? 0,
+    licenses: match.licenses ?? [],
+    categories: match.categories,
+    versionScore: match.versionScore ?? 0,
+    isMalware: match.isMalware ?? false,
+    dts: makeDts(match.versionScore ?? 0),
+  };
+}
+
+export async function getComponentDetail(
+  ecosystem: string,
+  pkg: string,
+  version: string
+): Promise<ComponentDetails | null> {
+  return apiFetch<ComponentDetails>(
+    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}`,
+    { mockHandler: () => mockComponentToDetails(ecosystem, pkg, version) }
+  );
+}
+
+export async function getComponentVulnerabilities(
+  ecosystem: string,
+  pkg: string,
+  version: string,
+  query: string | undefined,
+  filters: VulnerabilitiesFilters,
+  options: VulnerabilitiesSearchOptions
+): Promise<VulnerabilitySearchResponse> {
+  const { offset = 0, limit = 25, sortField, sortOrder } = options;
+  return apiFetch<VulnerabilitySearchResponse>(
+    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/vulnerabilities`,
+    {
+      mockHandler: () => {
+        const component = mockComponentToDetails(ecosystem, pkg, version);
+        const all = component.maxCvss > 0 ? mockVulnerabilities : [];
+        const filtered = filterVulnerabilities(all, query, filters);
+        const sorted = sortField
+          ? [...filtered].sort((a, b) => {
+              const av = sortField === 'publishedDate' ? (a.publishedAt ?? '') : (a.cvssSeverity ?? 0);
+              const bv = sortField === 'publishedDate' ? (b.publishedAt ?? '') : (b.cvssSeverity ?? 0);
+              return (typeof av === 'string' ? av.localeCompare(bv as string) : (av as number) - (bv as number)) *
+                (sortOrder === 'asc' ? 1 : -1);
+            })
+          : filtered;
+        return {
+          hits: sorted.slice(offset, offset + limit),
+          total: filtered.length,
+          offset,
+          limit,
+          aggregations: computeVulnerabilityAggregations(filtered),
+        };
+      },
+    }
+  );
+}
+
+export async function getComponentVersions(
+  ecosystem: string,
+  pkg: string,
+  version: string,
+  query: string | undefined,
+  filters: VersionsFilters,
+  options: ComponentsSearchOptions
+): Promise<ComponentVersionsResponse> {
+  const { offset = 0, limit = 25, sortField, sortOrder } = options;
+  return apiFetch<ComponentVersionsResponse>(
+    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/versions`,
+    {
+      mockHandler: () => {
+        const { name } = parsePackageIdentifier(pkg);
+        const samePackage = mockComponents
+          .filter((c) => c.name === name && c.format === ecosystem)
+          .map((c) => ({
+            ...mockComponentDetail,
+            format: c.format,
+            originId: c.originId,
+            namespace: c.namespace ?? '',
+            name: c.name,
+            version: c.version,
+            registryLink: c.registryLink,
+            maxCvss: c.maxCvss ?? 0,
+            licenses: c.licenses ?? [],
+            categories: c.categories,
+            versionScore: c.versionScore ?? 0,
+            isMalware: c.isMalware ?? false,
+            latestStable: c.version === version,
+            dts: makeDts(c.versionScore ?? 0),
+          }));
+        const all = samePackage.length > 0 ? samePackage : mockVersions;
+        const f = filters as Record<string, unknown>;
+
+        // Text query: filter by version string
+        let filtered = query
+          ? all.filter((v) => v.version.toLowerCase().includes(query.toLowerCase()))
+          : all;
+
+        const isPreRelease = (ver: string) => /[-.](?:alpha|beta|rc|snapshot|preview|dev|nightly|m\d)/i.test(ver) || /-[a-zA-Z]/.test(ver);
+        if (f.isStable === true || f.isStable === 'true') {
+          filtered = filtered.filter((v) => !isPreRelease(v.version));
+        } else if (f.isStable === false || f.isStable === 'false') {
+          filtered = filtered.filter((v) => isPreRelease(v.version));
+        }
+
+        // hasMalware filter
+        if (f.hasMalware !== undefined) {
+          const wantMalware = f.hasMalware === true || f.hasMalware === 'true';
+          filtered = filtered.filter((v) => (v.isMalware ?? false) === wantMalware);
+        }
+
+        // severity filter
+        if (f.severities) {
+          const sevs = Array.isArray(f.severities) ? f.severities : [f.severities];
+          filtered = filtered.filter((v) => sevs.includes(getCVSSSeverity(v.maxCvss ?? 0)));
+        }
+
+        // versionScore range filter
+        if (f.minVersionScore !== undefined) {
+          filtered = filtered.filter((v) => (v.versionScore ?? 0) >= Number(f.minVersionScore));
+        }
+        if (f.maxVersionScore !== undefined) {
+          filtered = filtered.filter((v) => (v.versionScore ?? 100) <= Number(f.maxVersionScore));
+        }
+
+        // publishedWindow filter (reads from components[0].publishedDate)
+        if (f.publishedWindow) {
+          const now = Date.now();
+          const windows: Record<string, number> = {
+            '7d': 7, '30d': 30, '60d': 60, '90d': 90,
+            '6m': 180, '1y': 365, '2y': 730,
+          };
+          const days = windows[String(f.publishedWindow)];
+          if (days) {
+            const cutoff = now - days * 24 * 60 * 60 * 1000;
+            filtered = filtered.filter((v) => {
+              const pub = v.components[0]?.publishedDate;
+              return pub ? new Date(pub).getTime() >= cutoff : false;
+            });
+          }
+        }
+
+        const sorted = sortField
+          ? [...filtered].sort((a, b) => {
+              const av = String((a as Record<string, unknown>)[sortField] ?? '');
+              const bv = String((b as Record<string, unknown>)[sortField] ?? '');
+              return av.localeCompare(bv) * (sortOrder === 'asc' ? 1 : -1);
+            })
+          : filtered;
+        return {
+          hits: sorted.slice(offset, offset + limit),
+          total: filtered.length,
+          offset,
+          limit,
+          aggregations: (({ bySeverity, byMalware }) => ({ bySeverity, byMalware }))(
+            computeAggregations(filtered as Component[])
+          ),
+        };
+      },
+    }
+  );
+}
+
+export async function getComponentDependencies(
+  ecosystem: string,
+  pkg: string,
+  version: string,
+  query: string | undefined,
+  filters: ComponentsFilters,
+  options: ComponentsSearchOptions
+): Promise<ComponentSearchResponse> {
+  const { offset = 0, limit = 25, sortField, sortOrder } = options;
+  return apiFetch<ComponentSearchResponse>(
+    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/dependencies`,
+    {
+      mockHandler: () => {
+        const filtered = filterComponents(mockDependencies as Component[], query, filters);
+        const sorted = sortComponents(filtered, sortField, sortOrder);
+        return {
+          hits: sorted.slice(offset, offset + limit),
+          total: filtered.length,
+          offset,
+          limit,
+          aggregations: computeAggregations(filtered),
+        };
+      },
     }
   );
 }

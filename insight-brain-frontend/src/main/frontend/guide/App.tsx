@@ -4,12 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Routes, Route, Navigate } from 'react-router';
+import { Routes, Route } from 'react-router';
 import { NavigationProvider } from '@guide/ui-core';
 import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
-import { LoginPage } from './auth/LoginPage';
 import { AppShell } from './layout/AppShell';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
@@ -29,18 +28,17 @@ import { FEATURE_FLAGS } from './feature-flags/featureFlags';
 import { Home } from './home/Home';
 
 function AuthGate() {
-  const { status, ssoConfig, login } = useAuth();
+  const { status } = useAuth();
 
-  if (status === 'loading') {
+  // 'unauthenticated' triggers the redirect-to-/ effect inside AuthProvider.
+  // While that effect runs we keep showing the spinner so the user never
+  // sees a flash of empty Guide UI.
+  if (status === 'loading' || status === 'unauthenticated') {
     return (
       <Flex align="center" justify="center" style={{ minHeight: '100vh' }}>
         <Spinner size="3" />
       </Flex>
     );
-  }
-
-  if (status === 'unauthenticated') {
-    return <LoginPage login={login} ssoConfig={ssoConfig} />;
   }
 
   return (
@@ -96,33 +94,12 @@ function AuthGate() {
   );
 }
 
-function BackupLogin() {
-  const { status, ssoConfig, login } = useAuth();
-
-  if (status === 'loading') {
-    return (
-      <Flex align="center" justify="center" style={{ minHeight: '100vh' }}>
-        <Spinner size="3" />
-      </Flex>
-    );
-  }
-
-  if (status === 'authenticated') {
-    return <Navigate to="/" replace />;
-  }
-
-  return <LoginPage login={login} ssoConfig={ssoConfig} />;
-}
-
 export default function App() {
   const adapter = useReactRouterAdapter();
   return (
     <AuthProvider>
       <NavigationProvider adapter={adapter}>
-        <Routes>
-          <Route path="/backupLogin" element={<BackupLogin />} />
-          <Route path="*" element={<AuthGate />} />
-        </Routes>
+        <AuthGate />
       </NavigationProvider>
     </AuthProvider>
   );

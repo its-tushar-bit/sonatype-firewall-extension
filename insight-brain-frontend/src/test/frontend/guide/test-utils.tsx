@@ -16,9 +16,7 @@ jest.mock('GuideRoot/auth/loginApi', () => ({
     authenticated: true,
     user: { username: 'test', displayName: 'Test', groups: [] },
     sessionTimeoutMs: 1800000,
-    ssoConfig: null,
   }),
-  submitLogin: jest.fn(),
 }));
 
 interface RouterOptions {

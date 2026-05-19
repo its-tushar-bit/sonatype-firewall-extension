@@ -5,15 +5,14 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { fetchSession, submitLogin } from './loginApi';
-import type { SsoConfig } from './loginApi';
+import { fetchSession } from './loginApi';
 import { createAuthFetch } from './authFetch';
 import type { AuthFetch } from './authFetch';
 import { RequestQueue } from './requestQueue';
-import { fetchIsSsoOnlyEnabled } from './ssoOnlyMode';
 import { createSessionExpirationTracker } from './sessionExpiration';
 import { SessionExpirationWarning } from './SessionExpirationWarning';
 import { getCsrfToken } from './csrfToken';
+import { captureGuideReturnTo } from './guideReturnTo';
 
 const SESSION_URL = '/rest/user/session';
 const LOGOUT_URL = '/rest/user/session/logout';
@@ -37,17 +36,8 @@ interface User {
 interface AuthContextValue {
   status: 'loading' | 'authenticated' | 'unauthenticated';
   user: User | null;
-  ssoConfig: SsoConfig | null;
-  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   authFetch: AuthFetch;
-}
-
-interface CheckSessionOptions {
-  // When true, skip the SSO-only auto-redirect even if SSO-only mode is enabled.
-  // Used after explicit logout so the user lands on the login page instead of being
-  // silently re-authenticated by the still-active IdP session.
-  skipSsoOnlyRedirect?: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -55,24 +45,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthContextValue['status']>('loading');
   const [user, setUser] = useState<User | null>(null);
-  const [ssoConfig, setSsoConfig] = useState<SsoConfig | null>(null);
   const [showExpirationWarning, setShowExpirationWarning] = useState(false);
 
   const queueRef = useRef(new RequestQueue());
   const trackerRef = useRef<ReturnType<typeof createSessionExpirationTracker> | null>(null);
-  // Ref-based indirection: onExpired needs to call checkSession, but checkSession
-  // depends on startExpirationTracking which owns onExpired — using the ref breaks
-  // the cycle without re-creating the tracker on every checkSession identity change.
-  const checkSessionRef = useRef<(options?: CheckSessionOptions) => Promise<void>>(
-    () => Promise.resolve()
-  );
 
-  const resetToUnauthenticated = useCallback((newSsoConfig?: SsoConfig | null) => {
+  const resetToUnauthenticated = useCallback(() => {
     setStatus('unauthenticated');
     setUser(null);
-    if (newSsoConfig !== undefined) {
-      setSsoConfig(newSsoConfig);
-    }
     trackerRef.current?.stop();
   }, []);
 
@@ -83,57 +63,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onExpired: async () => {
         setShowExpirationWarning(false);
         queueRef.current.rejectAll(new Error('Session expired'));
+        // Capture the current Guide URL so the legacy IQ shell can bounce
+        // the user back here after they sign in again. Always capture, even
+        // when an IdP SLO URL is returned — the user's eventual landing
+        // point is still the legacy origin and the captured URL gets
+        // consumed there.
+        captureGuideReturnTo();
         const idpLogoutUrl = await logoutOnServer();
         if (idpLogoutUrl) {
           window.location.assign(idpLogoutUrl);
           return;
         }
-        // Skip the SSO-only auto-redirect so the user lands on the login page
-        // instead of being silently re-authenticated by the still-active IdP
-        // session. Matches explicit-logout behavior — an expired session should
-        // not bounce the user back through the IdP without their consent.
-        await checkSessionRef.current({ skipSsoOnlyRedirect: true });
+        window.location.assign('/');
       },
     });
     trackerRef.current = tracker;
     tracker.start();
   }, []);
 
-  const checkSession = useCallback(async (options?: CheckSessionOptions) => {
+  const checkSession = useCallback(async () => {
     try {
       const session = await fetchSession();
       if (session.authenticated && session.user) {
         setUser(session.user);
-        setSsoConfig(null);
         setStatus('authenticated');
         startExpirationTracking();
       } else {
-        resetToUnauthenticated(session.ssoConfig);
-
-        if (session.ssoConfig && !options?.skipSsoOnlyRedirect) {
-          const ssoOnly = await fetchIsSsoOnlyEnabled();
-          if (ssoOnly && !window.location.pathname.endsWith('/backupLogin')) {
-            queueRef.current.rejectAll(new Error('SSO redirect'));
-            const target = new URL(session.ssoConfig.loginUrl, window.location.origin);
-            if (target.origin !== window.location.origin) {
-              return;
-            }
-            const returnTo = window.location.pathname + window.location.search + window.location.hash;
-            if (returnTo !== '/') {
-              target.searchParams.set('returnTo', returnTo);
-            }
-            window.location.assign(target.href);
-          }
-        }
+        resetToUnauthenticated();
       }
     } catch {
-      resetToUnauthenticated(null);
+      resetToUnauthenticated();
     }
   }, [resetToUnauthenticated, startExpirationTracking]);
-
-  useEffect(() => {
-    checkSessionRef.current = checkSession;
-  }, [checkSession]);
 
   useEffect(() => {
     checkSession();
@@ -142,26 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [checkSession]);
 
-  const login = useCallback(async (username: string, password: string) => {
-    try {
-      await submitLogin(username, password);
-      const session = await fetchSession();
-      if (session.authenticated && session.user) {
-        setUser(session.user);
-        setSsoConfig(null);
-        setStatus('authenticated');
-        startExpirationTracking();
-        queueRef.current.replayAll();
-      } else {
-        resetToUnauthenticated(session.ssoConfig);
-        queueRef.current.rejectAll();
-        throw new Error('Login succeeded but session could not be established');
-      }
-    } catch (error) {
-      queueRef.current.rejectAll(error instanceof Error ? error : new Error(String(error)));
-      throw error;
+  // Once we know the user is unauthenticated, capture the Guide URL and
+  // redirect to / so the legacy IQ shell can render LoginModal. We do this
+  // in an effect (not during render) so it can't run twice in StrictMode.
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      captureGuideReturnTo();
+      window.location.assign('/');
     }
-  }, [resetToUnauthenticated, startExpirationTracking]);
+  }, [status]);
 
   const authFetch = useMemo(
     () => createAuthFetch(checkSession, {
@@ -182,22 +132,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     setShowExpirationWarning(false);
+    // Stop the expiration tracker first so a near-simultaneous expiry
+    // can't fire onExpired during the logoutOnServer() await and capture
+    // a return-to URL that contradicts the explicit-logout intent.
+    trackerRef.current?.stop();
+    // Explicit logout: the user chose to leave, so we do NOT capture the
+    // current Guide URL. They land on Lifecycle (or the IdP) and stay
+    // there until they navigate back to Guide deliberately.
     const idpLogoutUrl = await logoutOnServer();
     if (idpLogoutUrl) {
-      // The backend returned an IdP SLO URL (e.g. Auth0). Hard-redirect to it
-      // so the user is also signed out of the IdP, not just the IQ session.
       window.location.assign(idpLogoutUrl);
       return;
     }
-    // No IdP SLO URL — re-fetch session in place so the user lands on the
-    // login page. Skip the SSO-only auto-redirect since the user explicitly
-    // chose to log out.
-    await checkSessionRef.current({ skipSsoOnlyRedirect: true });
+    window.location.assign('/');
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, ssoConfig, login, logout, authFetch }),
-    [status, user, ssoConfig, login, logout, authFetch]
+    () => ({ status, user, logout, authFetch }),
+    [status, user, logout, authFetch]
   );
 
   return (

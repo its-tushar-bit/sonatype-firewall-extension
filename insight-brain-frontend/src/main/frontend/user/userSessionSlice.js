@@ -14,6 +14,7 @@ import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedCh
 import pendoService from 'MainRoot/pendo/mainBundlePendoService';
 import { selectShouldDisplayPasswordWarning, selectUsername } from './userSessionSelectors';
 import { selectIsCurrentRouteDirty } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { consumeGuideReturnTo } from 'MainRoot/user/guideReturnTo';
 
 const REDUCER_NAME = 'userSession';
 
@@ -38,6 +39,19 @@ export const fetchUserSession = createAsyncThunk(
       // Automatically fetch password warning for all users
       // The fetchPasswordWarning thunk will check if they have admin permissions
       dispatch(fetchPasswordWarning());
+
+      // After a successful authenticated session fetch (initial app load OR
+      // post-login OR post-SSO callback), bounce the user back to the Guide
+      // URL they originally requested if one was captured in sessionStorage.
+      // See src/main/frontend/user/guideReturnTo.js for the validation rules.
+      if (response.data?.username) {
+        const target = consumeGuideReturnTo();
+        if (target) {
+          window.location.assign(target);
+          // Page is navigating away; the thunk's fulfilled action may never
+          // dispatch, which is fine — the next bundle load takes over.
+        }
+      }
 
       return response.data;
     } catch (error) {

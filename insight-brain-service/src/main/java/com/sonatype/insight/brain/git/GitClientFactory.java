@@ -211,14 +211,14 @@ public class GitClientFactory
   }
 
   private GitHubAppAuthStrategy getGitHubAppAuthStrategy(final GitRepositoryInfo gitRepositoryInfo) {
-    if (gitRepositoryInfo.authOwnerId == null) {
+    if (gitRepositoryInfo.githubAppId == null) {
       throw new IllegalStateException(
-          "GitHub App authentication is configured but no owner ID found for authentication lookup. "
+          "GitHub App authentication is configured but no GitHub App ID found for authentication lookup. "
               + "Repository: " + gitRepositoryInfo.normalizedRepositoryUrl
               + ". Please ensure a GitHub App is registered at the application or parent organization level.");
     }
 
-    return authStrategyCache.getOrCreate(gitRepositoryInfo.authOwnerId);
+    return authStrategyCache.getOrCreate(gitRepositoryInfo.githubAppId);
   }
 
   /**
@@ -228,16 +228,16 @@ public class GitClientFactory
    */
   public ResolvedAuthContext resolveAuthContext(final GitRepositoryInfo gitRepositoryInfo) {
     if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
-      if (gitRepositoryInfo.authOwnerId == null) {
+      if (gitRepositoryInfo.authOwnerId == null || gitRepositoryInfo.githubAppId == null) {
         throw new IllegalStateException(
             "GitHub App authentication is configured but no owner ID found for authentication lookup. "
                 + "Repository: " + gitRepositoryInfo.normalizedRepositoryUrl
                 + ". Please ensure a GitHub App is registered at the application or parent organization level.");
       }
       GitHubAppAuthStrategyCache.CachedAuthStrategy cached =
-          authStrategyCache.getOrCreateCached(gitRepositoryInfo.authOwnerId);
+          authStrategyCache.getOrCreateCached(gitRepositoryInfo.githubAppId);
       return ResolvedAuthContext.forGithubApp(
-          gitRepositoryInfo.authOwnerId, cached.sourceGithubAppId, cached.sourceInstallationId);
+          gitRepositoryInfo.authOwnerId, cached.sourceGithubAppId(), cached.sourceInstallationId());
     }
     return ResolvedAuthContext.forPat(gitRepositoryInfo.authOwnerId);
   }
@@ -259,7 +259,7 @@ public class GitClientFactory
 
     log.debug("Creating GitHub API client with GitHub App installationId: {}", gitHubApp.getInstallationId());
 
-    GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitHubApp.getOwnerId());
+    GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitHubApp.getId());
 
     return gitApiClientFactory.getGitHubGeneralSCMApiClient(configuration, authStrategy);
   }

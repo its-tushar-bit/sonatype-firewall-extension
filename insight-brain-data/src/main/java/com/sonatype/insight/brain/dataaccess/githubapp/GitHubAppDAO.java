@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.dataaccess.githubapp;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -17,8 +16,6 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.NotFoundException;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -52,21 +49,48 @@ public class GitHubAppDAO
     return GitHubApp.class;
   }
 
-  public GitHubApp getByOwnerId(final TransactionContext tx, final String ownerId) {
-    return toEntity(tx.dsl()
+  public List<GitHubApp> getByOwnerId(final TransactionContext tx, final String ownerId) {
+    return tx.dsl()
         .selectFrom(GITHUB_APP)
         .where(GITHUB_APP.OWNER_ID.eq(ownerId)
             .and(GITHUB_APP.IS_ACTIVE.eq(true)))
-        .fetchOne());
+        .fetch()
+        .stream()
+        .map(this::toEntity)
+        .collect(Collectors.toList());
   }
 
-  public GitHubApp getByOwnerId(final String ownerId) {
+  public List<GitHubApp> getByOwnerId(final String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public Map<String, GitHubApp> getByOwnerIds(final TransactionContext tx, final List<String> ownerIds) {
+  /**
+   * Get all installed GitHub Apps for a given owner regardless of active status.
+   * "Installed" means the app has a non-null installation ID (completed the GitHub installation flow).
+   * Used by the composite source control endpoint so the frontend knows reactivatable apps exist.
+   */
+  public List<GitHubApp> getInstalledByOwnerId(final String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(GITHUB_APP)
+          .where(GITHUB_APP.OWNER_ID.eq(ownerId)
+              .and(GITHUB_APP.INSTALLATION_ID.isNotNull()))
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
+    }
+  }
+
+  public Map<String, List<GitHubApp>> getAllByOwnerIds(final List<String> ownerIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllByOwnerIds(tx, ownerIds);
+    }
+  }
+
+  public Map<String, List<GitHubApp>> getAllByOwnerIds(final TransactionContext tx, final List<String> ownerIds) {
     if (ownerIds == null || ownerIds.isEmpty()) {
       return Map.of();
     }
@@ -77,28 +101,7 @@ public class GitHubAppDAO
         .fetch()
         .stream()
         .map(this::toEntity)
-        .collect(Collectors.toMap(GitHubApp::getOwnerId, Function.identity()));
-  }
-
-  public Map<String, GitHubApp> getByOwnerIds(final List<String> ownerIds) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIds(tx, ownerIds);
-    }
-  }
-
-  public GitHubApp getByOwnerIdNotNull(final TransactionContext tx, final String ownerId) {
-    GitHubApp githubApp = getByOwnerId(tx, ownerId);
-    if (githubApp == null) {
-      throw new NotFoundException("GitHub App not found for ownerId: " + ownerId);
-    }
-    return githubApp;
-  }
-
-  public GitHubApp getByOwnerIdNotNull(final String ownerId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      return getByOwnerIdNotNull(tx, ownerId);
-    }
+        .collect(Collectors.groupingBy(GitHubApp::getOwnerId));
   }
 
   public GitHubApp getByAppId(final TransactionContext tx, final Integer appId) {
@@ -111,40 +114,27 @@ public class GitHubAppDAO
         .fetchOne());
   }
 
-  /**
-   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner.
-   * Searches up the organization hierarchy starting from the given ownerId and returns
-   * the first GitHubApp found, or null if none exists.
-   *
-   * @param ownerId the owner ID to search from
-   * @return the nearest GitHubApp in the hierarchy, or null if not found
-   */
-  public GitHubApp getNearestGitHubApp(String ownerId) {
+  public List<GitHubApp> getNearestGitHubApps(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      return getNearestGitHubApp(tx, ownerId);
-    }
-  }
+      var minDistance = tx.dsl()
+          .select(DSL.min(OWNER_ANCESTOR.ANCESTOR_DISTANCE))
+          .from(OWNER_ANCESTOR)
+          .join(GITHUB_APP)
+          .on(GITHUB_APP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(GITHUB_APP.IS_ACTIVE.eq(true));
 
-  /**
-   * Finds the nearest GitHubApp in the ownership hierarchy for the given owner. Uses the OwnerAncestor view to traverse
-   * the organization hierarchy.
-   *
-   * @param tx transaction context
-   * @param ownerId the owner ID to search from
-   * @return the nearest GitHubApp in the hierarchy, or null if not found
-   */
-  private GitHubApp getNearestGitHubApp(TransactionContext tx, String ownerId) {
-    return tx.dsl()
-        .select(GITHUB_APP.fields())
-        .from(GITHUB_APP)
-        .join(OWNER_ANCESTOR)
-        .on(GITHUB_APP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
-        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId)
-            .and(GITHUB_APP.IS_ACTIVE.eq(true)))
-        .orderBy(OWNER_ANCESTOR.ANCESTOR_DISTANCE)
-        .limit(1)
-        .fetchOneInto(GitHubApp.class);
+      return tx.dsl()
+          .select(GITHUB_APP.fields())
+          .from(GITHUB_APP)
+          .join(OWNER_ANCESTOR)
+          .on(GITHUB_APP.OWNER_ID.eq(OWNER_ANCESTOR.ANCESTOR_ID))
+          .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId))
+          .and(GITHUB_APP.IS_ACTIVE.eq(true))
+          .and(OWNER_ANCESTOR.ANCESTOR_DISTANCE.eq(minDistance))
+          .orderBy(GITHUB_APP.GITHUB_APP_ID.asc())
+          .fetchInto(GitHubApp.class);
+    }
   }
 
   /**
@@ -190,38 +180,6 @@ public class GitHubAppDAO
   }
 
   /**
-   * Activate specific GitHub App and deactivate all others for owner.
-   * Self-managed transaction version.
-   *
-   * @param ownerId the owner ID
-   * @param githubAppId the GitHub App ID to activate
-   */
-  public void activateGitHubApp(final String ownerId, final String githubAppId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      activateGitHubApp(tx, ownerId, githubAppId);
-      tx.commit();
-    }
-  }
-
-  public void activateGitHubApp(final TransactionContext tx, final String ownerId, final String githubAppId) {
-    int updated = tx.dsl()
-        .update(GITHUB_APP)
-        .set(GITHUB_APP.IS_ACTIVE,
-            DSL.when(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId), true)
-                .otherwise(false))
-        .set(GITHUB_APP.LAST_UPDATED_AT,
-            DSL.when(GITHUB_APP.GITHUB_APP_ID.eq(githubAppId), GITHUB_APP.LAST_UPDATED_AT)
-                .otherwise(DSL.now().coerce(Date.class)))
-        .where(GITHUB_APP.OWNER_ID.eq(ownerId))
-        .execute();
-
-    if (updated == 0) {
-      throw new NotFoundException("GitHub App not found or does not belong to owner: " + githubAppId);
-    }
-  }
-
-  /**
    * Deactivate all GitHub Apps for owner.
    * Self-managed transaction version.
    *
@@ -241,6 +199,16 @@ public class GitHubAppDAO
         .set(GITHUB_APP.IS_ACTIVE, false)
         .set(GITHUB_APP.LAST_UPDATED_AT, new Date())
         .where(GITHUB_APP.OWNER_ID.eq(ownerId))
+        .execute();
+  }
+
+  public void activateInstalledForOwner(final TransactionContext tx, final String ownerId) {
+    tx.dsl()
+        .update(GITHUB_APP)
+        .set(GITHUB_APP.IS_ACTIVE, true)
+        .set(GITHUB_APP.LAST_UPDATED_AT, new Date())
+        .where(GITHUB_APP.OWNER_ID.eq(ownerId)
+            .and(GITHUB_APP.INSTALLATION_ID.isNotNull()))
         .execute();
   }
 

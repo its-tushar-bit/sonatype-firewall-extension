@@ -191,8 +191,8 @@ const setValue = (state, { payload: { property, val } }) => {
   // When authentication type changes, mark it as not inherited and re-validate token if PAT
   if (property === 'authenticationType') {
     state.sourceControl[property].isInherited = false;
-    // Sync githubApp.isInherited to match (UI has single toggle for both)
-    state.sourceControl.githubApp.isInherited = false;
+    // Sync githubApps.isInherited to match (UI has single toggle for both)
+    state.sourceControl.githubApps.isInherited = false;
 
     if (val === 'PAT') {
       const tokenValue = state.sourceControl.token.rscValue.value;
@@ -246,14 +246,14 @@ const setIsInherited = (state, { payload: { property, val } }) => {
     if (effectiveProvider !== 'github') {
       state.sourceControl.authenticationType.value = null;
       state.sourceControl.authenticationType.isInherited = val;
-      state.sourceControl.githubApp.value = null;
-      state.sourceControl.githubApp.isInherited = val;
+      state.sourceControl.githubApps.value = null;
+      state.sourceControl.githubApps.isInherited = val;
     }
 
-    // For GitHub provider: sync authenticationType and githubApp inheritance
+    // For GitHub provider: sync authenticationType and githubApps inheritance
     if (effectiveProvider === 'github') {
       state.sourceControl.authenticationType.isInherited = val;
-      state.sourceControl.githubApp.isInherited = val;
+      state.sourceControl.githubApps.isInherited = val;
     }
 
     // Sync token and username inheritance with provider.
@@ -266,9 +266,9 @@ const setIsInherited = (state, { payload: { property, val } }) => {
     state.sourceControl.username.isInherited = val;
   }
 
-  // Sync authenticationType and githubApp inheritance (UI has single toggle for both)
+  // Sync authenticationType and githubApps inheritance (UI has single toggle for both)
   if (property === 'authenticationType') {
-    state.sourceControl.githubApp.isInherited = val;
+    state.sourceControl.githubApps.isInherited = val;
     if (val) {
       // Inheriting - clear local value
       state.sourceControl.authenticationType.value = null;
@@ -426,6 +426,8 @@ const cloneGitHubAppState = (githubApp) => ({
   isInherited: githubApp?.isInherited ?? false,
   parentValue: githubApp?.parentValue ? { ...githubApp.parentValue } : null,
   parentName: githubApp?.parentName ?? null,
+  localCount: githubApp?.localCount ?? 0,
+  parentCount: githubApp?.parentCount ?? 0,
 });
 
 const initializeLoadedSourceControlState = (state, sourceControl, serverSourceControl, sourceControlMetrics) => {
@@ -453,19 +455,19 @@ const restoreSavedSourceControlState = (state, savedState) => {
 };
 
 const deriveGitHubAppVisibilityContext = (serverSourceControl, shouldShowPendingGitHubApp, pendingGitHubApp) => {
-  const backendHasLocalGithubApp = hasConfiguredGitHubApp(serverSourceControl?.githubApp?.value);
+  const backendHasLocalGithubApp = hasConfiguredGitHubApp(serverSourceControl?.githubApps?.value);
   const committedProviderValue = effectiveProvider(serverSourceControl, serverSourceControl);
   const committedEffectiveAuthType = effectiveAuthenticationType(serverSourceControl);
   const hasCommittedLocalGitHubApp =
     committedProviderValue === 'github' &&
     !serverSourceControl?.authenticationType?.isInherited &&
-    committedEffectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP &&
+    (committedEffectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP || committedEffectiveAuthType === null) &&
     backendHasLocalGithubApp;
   const hasPendingLocalGitHubApp = shouldShowPendingGitHubApp && hasConfiguredGitHubApp(pendingGitHubApp);
   const visibleGitHubApp = hasPendingLocalGitHubApp
     ? pendingGitHubApp
     : hasCommittedLocalGitHubApp
-    ? serverSourceControl?.githubApp?.value
+    ? serverSourceControl?.githubApps?.value
     : null;
 
   return {
@@ -491,8 +493,8 @@ const applyGitHubAppVisibilityState = (state, githubAppVisibility) => {
   // Keep only committed GitHub App state by default.
   // Local backend GitHub App installs are surfaced only for committed local auth or the post-install success return.
   if (backendHasLocalGithubApp && !hasCommittedLocalGitHubApp) {
-    state.serverSourceControl.githubApp = {
-      ...cloneGitHubAppState(state.serverSourceControl.githubApp),
+    state.serverSourceControl.githubApps = {
+      ...cloneGitHubAppState(state.serverSourceControl.githubApps),
       value: null,
       isInherited: Boolean(
         committedProviderValue === 'github' && committedEffectiveAuthType === AUTHENTICATION_TYPES.GITHUB_APP
@@ -501,8 +503,8 @@ const applyGitHubAppVisibilityState = (state, githubAppVisibility) => {
   }
 
   if (shouldShowLocalGithubApp) {
-    state.sourceControl.githubApp = {
-      ...cloneGitHubAppState(state.sourceControl.githubApp),
+    state.sourceControl.githubApps = {
+      ...cloneGitHubAppState(state.sourceControl.githubApps),
       value: { ...visibleGitHubApp },
       isInherited: false,
     };
@@ -520,12 +522,28 @@ const applyGitHubAppVisibilityState = (state, githubAppVisibility) => {
       }
     }
 
+    // When backend has local apps but authenticationType was never explicitly saved,
+    // sync both sides to GITHUB_APP so the component's useEffect doesn't create a mismatch.
+    if (backendHasLocalGithubApp && !state.serverSourceControl.authenticationType?.value &&
+        !state.serverSourceControl.authenticationType?.isInherited) {
+      state.sourceControl.authenticationType = {
+        ...state.sourceControl.authenticationType,
+        value: AUTHENTICATION_TYPES.GITHUB_APP,
+        isInherited: false,
+      };
+      state.serverSourceControl.authenticationType = {
+        ...state.serverSourceControl.authenticationType,
+        value: AUTHENTICATION_TYPES.GITHUB_APP,
+        isInherited: false,
+      };
+    }
+
     return;
   }
 
   if (backendHasLocalGithubApp) {
-    state.sourceControl.githubApp = {
-      ...cloneGitHubAppState(state.sourceControl.githubApp),
+    state.sourceControl.githubApps = {
+      ...cloneGitHubAppState(state.sourceControl.githubApps),
       value: null,
       isInherited: Boolean(state.sourceControl?.authenticationType?.isInherited),
     };

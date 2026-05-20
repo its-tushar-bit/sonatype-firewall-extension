@@ -488,6 +488,98 @@ public class ApiGitHubAppResourceTest
                 .withBody(responseJson)));
   }
 
+  @Test
+  public void testListGitHubApps_returnsAllDirectApps() throws Exception {
+    GitHubApp app2 = createAdditionalGitHubApp(organization.getId(), 222L, true);
+
+    HttpResponse response = restRequest()
+        .query("ownerId", organization.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains(gitHubApp.getId());
+    assertThat(response.getBodyText()).contains(app2.getId());
+  }
+
+  @Test
+  public void testListGitHubApps_excludesInheritedApps() throws Exception {
+    Organization childOrg = tempEntity.newOrganization("child-org", organization);
+    createAdditionalGitHubApp(childOrg.getId(), 333L, true);
+
+    HttpResponse response = restRequest()
+        .query("ownerId", childOrg.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("333");
+    assertThat(response.getBodyText()).doesNotContain(gitHubApp.getAppId().toString());
+  }
+
+  @Test
+  public void testListGitHubApps_emptyWhenNoApps() throws Exception {
+    Organization emptyOrg = tempEntity.newOrganization("empty-org");
+
+    HttpResponse response = restRequest()
+        .query("ownerId", emptyOrg.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).isEqualTo("[]");
+  }
+
+  @Test
+  public void testDeleteGitHubApp_removesApp() throws Exception {
+    HttpResponse response = restRequest()
+        .path(gitHubApp.getId())
+        .query("ownerId", organization.getId())
+        .delete();
+
+    assertResponseStatus(204, response);
+
+    HttpResponse listResponse = restRequest()
+        .query("ownerId", organization.getId())
+        .get();
+    assertResponseStatus(200, listResponse);
+    assertThat(listResponse.getBodyText()).isEqualTo("[]");
+  }
+
+  @Test
+  public void testDeleteGitHubApp_rejectsWrongOwner() throws Exception {
+    Organization otherOrg = tempEntity.newOrganization("other-org");
+
+    HttpResponse response = restRequest()
+        .path(gitHubApp.getId())
+        .query("ownerId", otherOrg.getId())
+        .delete();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testDeleteGitHubApp_returnsNotFoundForMissingApp() throws Exception {
+    HttpResponse response = restRequest()
+        .path("nonexistent-id")
+        .query("ownerId", organization.getId())
+        .delete();
+
+    assertResponseStatus(404, response);
+  }
+
+  private GitHubApp createAdditionalGitHubApp(String ownerId, Long installationId, boolean isActive) {
+    GitHubApp app = new GitHubApp();
+    app.setAppId((int) (installationId + 1000));
+    app.setSlug("test-app-" + installationId);
+    app.setClientId("Iv1.test" + installationId);
+    app.setClientSecret(passwordHandler.encryptPassword("secret"));
+    app.setPrivateKey("test-private-key");
+    app.setOwnerId(ownerId);
+    app.setInstallationId(installationId);
+    app.setGithubOrganizationName("test-org");
+    app.setLastUpdatedAt(new Date());
+    app.setActive(isActive);
+    return tempEntity.newGitHubApp(app);
+  }
+
   private String generateCodeVerifier() {
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
     StringBuilder sb = new StringBuilder(128);

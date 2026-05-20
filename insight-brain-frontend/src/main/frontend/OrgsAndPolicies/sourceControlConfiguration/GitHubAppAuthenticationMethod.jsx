@@ -6,9 +6,9 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { NxButton, NxFieldset, NxFormGroup, NxRadio, NxTextInput } from '@sonatype/react-shared-components';
+import { NxButton, NxFieldset, NxFormGroup, NxRadio, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
-import GitHubAppDetailsBox from './GitHubAppDetailsBox';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { AUTHENTICATION_TYPES, hasConfiguredGitHubApp } from './utils';
 import './_gitHubAppAuthenticationMethod.scss';
 
@@ -18,10 +18,13 @@ const GitHubAppAuthenticationMethod = ({
   setIsInherited,
   areFieldsDisabled,
   onChangeToken,
+  isApplication,
 }) => {
   const dispatch = useDispatch();
-  const hasLocalGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.value);
-  const hasParentGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApp?.parentValue);
+  const hasLocalGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApps?.value);
+  const hasParentGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApps?.parentValue);
+  const githubAppCount = sourceControl?.githubApps?.localCount ?? 0;
+  const parentAppCount = sourceControl?.githubApps?.parentCount ?? 0;
   const [authMethod, setAuthMethod] = useState(() => {
     // If authenticationType has an explicit value, use it
     if (sourceControl?.authenticationType?.value) {
@@ -40,14 +43,17 @@ const GitHubAppAuthenticationMethod = ({
     }
     return null;
   });
-  const handleOpenModal = () => dispatch(actions.openModal());
+  const handleOpenModal = () => {
+    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'manage', ownerId: sourceControl?.ownerId }));
+    dispatch(actions.openModal());
+  };
+  const handleManageGitHubApps = () => dispatch(stateGo('^.manage-github-apps'));
   // Only show inheritance options when setIsInherited is provided (Org/App level)
   const supportsInheritance = Boolean(setIsInherited);
   // Check authenticationType.isInherited instead of githubApp.isInherited
   // This fixes the issue where selecting PAT (no GitHub App) would show as inherited on reload
   const isAuthMethodInherited = Boolean(supportsInheritance && sourceControl?.authenticationType?.isInherited);
 
-  const parentGithubApp = sourceControl?.githubApp?.parentValue;
   const hasParentConfig = hasParentGithubApp;
   // Check if parent has any authentication configured (GitHub App OR PAT)
   const hasParentAuth = hasParentConfig || Boolean(sourceControl?.token?.parentValue?.value);
@@ -89,8 +95,8 @@ const GitHubAppAuthenticationMethod = ({
   }, [
     sourceControl?.authenticationType?.value,
     sourceControl?.authenticationType?.isInherited,
-    sourceControl?.githubApp?.value?.id,
-    sourceControl?.githubApp?.value?.installationId,
+    sourceControl?.githubApps?.value?.id,
+    sourceControl?.githubApps?.value?.installationId,
     sourceControl?.token?.rscValue?.value,
   ]);
 
@@ -106,6 +112,7 @@ const GitHubAppAuthenticationMethod = ({
 
   //TODO: Determine if GitHub App is already configured via separate API
   const isConfigured = hasLocalGithubApp;
+  const shouldDisableAddButton = isApplication && githubAppCount >= 1;
 
   return (
     <>
@@ -156,34 +163,50 @@ const GitHubAppAuthenticationMethod = ({
         >
           GitHub App (Recommended)
         </NxRadio>
-        {/* Show inherited config when inheriting and parent is using GitHub App */}
-        {isAuthMethodInherited && effectiveAuthMethod === AUTHENTICATION_TYPES.GITHUB_APP && hasParentConfig && (
+        {isAuthMethodInherited && effectiveAuthMethod === AUTHENTICATION_TYPES.GITHUB_APP && parentAppCount > 0 && (
           <div className="iq-github-app-auth-status">
-            <GitHubAppDetailsBox githubApp={parentGithubApp} linkText="View GitHub App configuration" />
+            <span className="iq-github-app-auth-status__count">
+              Inherit {parentAppCount} GitHub App{parentAppCount !== 1 ? 's' : ''} from{' '}
+              {sourceControl?.githubApps?.parentName}
+            </span>
           </div>
         )}
-
         {/* Show own config when overriding and GitHub App is selected */}
-        {effectiveAuthMethod === AUTHENTICATION_TYPES.GITHUB_APP && !isAuthMethodInherited && (
+        {!isAuthMethodInherited && effectiveAuthMethod === AUTHENTICATION_TYPES.GITHUB_APP && (
           <div className="iq-github-app-auth-status">
-            {isConfigured ? (
-              <GitHubAppDetailsBox
-                githubApp={sourceControl?.githubApp?.value}
-                linkText="Go to GitHub Installation Settings"
-                onReconfigure={handleOpenModal}
-                disabled={areFieldsDisabled}
-              />
-            ) : (
+            <span className="iq-github-app-auth-status__count">
+              {githubAppCount} GitHub App{githubAppCount !== 1 ? 's' : ''} configured
+            </span>
+            <div className="iq-github-app-auth-status__buttons">
+              {shouldDisableAddButton ? (
+                <NxTooltip title="IQ applications can only have one GitHub App associated">
+                  <span>
+                    <NxButton id="github-app-add-button" variant="tertiary" type="button" disabled>
+                      Add GitHub App
+                    </NxButton>
+                  </span>
+                </NxTooltip>
+              ) : (
+                <NxButton
+                  id="github-app-add-button"
+                  variant="tertiary"
+                  type="button"
+                  onClick={handleOpenModal}
+                  disabled={areFieldsDisabled}
+                >
+                  Add GitHub App
+                </NxButton>
+              )}
               <NxButton
-                id="github-app-configure-button"
+                id="manage-github-apps-button"
                 variant="tertiary"
                 type="button"
-                onClick={handleOpenModal}
+                onClick={handleManageGitHubApps}
                 disabled={areFieldsDisabled}
               >
-                Configure GitHub App
+                Manage GitHub Apps
               </NxButton>
-            )}
+            </div>
           </div>
         )}
 
@@ -219,6 +242,7 @@ const GitHubAppAuthenticationMethod = ({
 
 GitHubAppAuthenticationMethod.propTypes = {
   areFieldsDisabled: PropTypes.bool.isRequired,
+  isApplication: PropTypes.bool,
   onChangeToken: PropTypes.func.isRequired,
   sourceControl: PropTypes.shape({
     authenticationType: PropTypes.shape({

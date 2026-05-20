@@ -210,6 +210,7 @@ const AppSourceControlConfiguration = () => {
           setIsInherited={setIsInherited}
           areFieldsDisabled={areFieldsDisabled}
           onChangeToken={onChangeToken}
+          isApplication={isApp}
         />
       )}
       {/* Standard token authentication (fallback) */}

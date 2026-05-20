@@ -455,7 +455,7 @@ public class OrganizationServiceTest
         mockGitHubAppDeletionService);
 
     Organization organization = tempEntity.newOrganization();
-    assertThat(gitHubAppDAO.getByOwnerId(organization.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(organization.getId())).isEmpty();
 
     customService.deleteOrganization(organization.getId());
 

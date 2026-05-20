@@ -27,6 +27,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsModalOpen as selectIsGitHubAppRegistrationModalOpen } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSelectors';
 import ResetSourceControlModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ResetSourceControlModal';
 import UpdateSourceControlConfirmationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/UpdateSourceControlConfirmationModal';
@@ -62,6 +63,26 @@ const SourceControlConfiguration = () => {
   // Prevent duplicate modal shows on back navigation, URL manipulation, and Strict Mode double-renders.
   const githubAppReturnHandled = useRef(false);
 
+  // Immediately redirect to manage page if returning from GitHub App OAuth flow
+  // and the user originally came from the manage page. This avoids briefly showing
+  // the Source Control Configuration page before redirecting.
+  useEffect(() => {
+    try {
+      const returnToRaw = sessionStorage.getItem('githubAppReturnTo');
+      if (returnToRaw) {
+        const { returnTo } = JSON.parse(returnToRaw);
+        const hash = window.location.hash || '';
+        const hasGithubAppId = hash.includes('githubAppId=');
+        if (returnTo === 'manage' && hasGithubAppId) {
+          dispatch(stateGo('^.manage-github-apps'));
+          return;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [dispatch]);
+
   const doLoad = useCallback(() => {
     dispatch(actions.load());
   }, [dispatch]);
@@ -87,6 +108,22 @@ const SourceControlConfiguration = () => {
 
     // Close the GitHubAppRegistrationModal if it's still open from the OAuth flow
     dispatch(gitHubAppActions.closeModal());
+
+    // If the user came from the manage-github-apps page, redirect back there.
+    // Leave the sessionStorage item intact so the manage page can show a success toast.
+    try {
+      const returnToRaw = sessionStorage.getItem('githubAppReturnTo');
+      if (returnToRaw) {
+        const { returnTo } = JSON.parse(returnToRaw);
+        if (returnTo === 'manage') {
+          dispatch(stateGo('^.manage-github-apps'));
+          return;
+        }
+        sessionStorage.removeItem('githubAppReturnTo');
+      }
+    } catch {
+      sessionStorage.removeItem('githubAppReturnTo');
+    }
 
     dispatch(actions.showGitHubAppSuccessModal());
   }, [isLoading, showGitHubAppSuccessModal, hasPendingGitHubAppReturn, dispatch]);
@@ -138,8 +175,8 @@ const SourceControlConfiguration = () => {
               onClose={handleCloseGitHubAppSuccessModal}
               autoEnabledGoldenPRs={!sourceControl?.remediationPullRequestsEnabled?.value}
               autoEnabledManualPRs={!sourceControl?.manualPullRequestsEnabled?.value}
-              serverId={sourceControl?.githubApp?.value?.name}
-              organizationName={sourceControl?.githubApp?.value?.accountName}
+              serverId={sourceControl?.githubApps?.value?.name}
+              organizationName={sourceControl?.githubApps?.value?.accountName}
               submitBtnText={isRootOrg ? (sourceControl?.id ? 'Update' : 'Create') : 'Update'}
             />
           </>

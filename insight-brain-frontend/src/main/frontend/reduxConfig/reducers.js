@@ -100,6 +100,7 @@ import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlCon
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
 import userTokensConfigurationSlice from 'MainRoot/configuration/userTokensConfiguration/userTokensConfigurationSlice';
 import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
+import manageGitHubAppsSlice from 'MainRoot/OrgsAndPolicies/manageGitHubApps/manageGitHubAppsSlice';
 import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/integrationsSlice';
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
@@ -237,6 +238,7 @@ export default combineReducers({
   waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
   userTokensConfiguration: userTokensConfigurationSlice,
   sourceControlRateLimits: sourceControlRateLimitsSlice,
+  manageGitHubApps: manageGitHubAppsSlice,
   integrations: integrationsSlice,
   enterpriseReportingDashboard: enterpriseReportingDashboardSlice,
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,

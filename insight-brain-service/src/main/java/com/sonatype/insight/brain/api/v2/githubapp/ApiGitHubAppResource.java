@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.githubapp;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.githubapp.ApiGitHubAppManifestDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -17,8 +18,10 @@ import jakarta.inject.Named;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.QueryParam;
@@ -61,6 +64,43 @@ public class ApiGitHubAppResource
     this.apiGitHubAppService = apiGitHubAppService;
     this.baseUrl = baseUrl;
     this.ownerDAO = ownerDAO;
+  }
+
+  @GET
+  @Operation(
+      summary = "List GitHub Apps for an owner",
+      description = "Returns all GitHub Apps directly registered at this owner level. " +
+          "Does not include inherited apps from parent organizations. " +
+          "\n\n" +
+          "**Permissions Required:** Configure System Configuration and Users",
+      tags = {"GitHub App"})
+  @ApiResponse(responseCode = "200", description = "List of GitHub Apps")
+  public List<ApiGitHubAppListDTO> listGitHubApps(
+      @Parameter(description = "Owner (organization/application) ID",
+          required = true) @QueryParam("ownerId") @NotBlank final String ownerId)
+  {
+    return apiGitHubAppService.listGitHubApps(ownerId);
+  }
+
+  @DELETE
+  @Path("{githubAppId}")
+  @Operation(
+      summary = "Delete a GitHub App",
+      description = "Deletes a specific GitHub App by its ID. " +
+          "Validates ownership before deletion. " +
+          "Best-effort cleanup of the GitHub installation via API. " +
+          "\n\n" +
+          "**Permissions Required:** Configure System Configuration and Users",
+      tags = {"GitHub App"})
+  @ApiResponse(responseCode = "204", description = "GitHub App deleted successfully")
+  @ApiResponse(responseCode = "404", description = "GitHub App not found for specified owner")
+  public Response deleteGitHubApp(
+      @Parameter(description = "GitHub App ID", required = true) @PathParam("githubAppId") final String githubAppId,
+      @Parameter(description = "Owner (organization/application) ID",
+          required = true) @QueryParam("ownerId") @NotBlank final String ownerId)
+  {
+    apiGitHubAppService.deleteGitHubApp(githubAppId, ownerId);
+    return Response.noContent().build();
   }
 
   @POST

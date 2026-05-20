@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.GitClientFactory;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -53,6 +54,8 @@ public class SourceControlUtilsTest
 
   private GitHubAppDAO mockGitHubAppDAO;
 
+  private GitHubAppSelectionService mockGitHubAppSelectionService;
+
   private Application application;
 
   private Organization org;
@@ -69,10 +72,12 @@ public class SourceControlUtilsTest
     mockGitClientFactory = mock(GitClientFactory.class);
     mockGitClientApi = mock(GitApiClient.class);
     mockGitHubAppDAO = mock(GitHubAppDAO.class);
+    mockGitHubAppSelectionService = mock(GitHubAppSelectionService.class);
     binder.bind(SourceControlDataService.class).toInstance(mockSourceControlDataService);
     binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
     binder.bind(GitApiClient.class).toInstance(mockGitClientApi);
     binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
+    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
     super.configure(binder);
   }
 
@@ -395,7 +400,7 @@ public class SourceControlUtilsTest
 
     when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
-    when(mockGitHubAppDAO.getNearestGitHubApp(eq(application.getId())))
+    when(mockGitHubAppSelectionService.select(eq(application.getId())))
         .thenReturn(mockGitHubApp); // GitHub App found at org level
 
     // When
@@ -408,7 +413,7 @@ public class SourceControlUtilsTest
     assertThat(result.token).isNull(); // No token for GitHub App
 
     verify(mockSourceControlDataService).getCompositeSourceControlByOwnerDecrypted(application.getId());
-    verify(mockGitHubAppDAO).getNearestGitHubApp(application.getId());
+    verify(mockGitHubAppSelectionService).select(application.getId());
   }
 
   @Test
@@ -424,7 +429,7 @@ public class SourceControlUtilsTest
 
     when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
-    when(mockGitHubAppDAO.getNearestGitHubApp(eq(application.getId())))
+    when(mockGitHubAppSelectionService.select(eq(application.getId())))
         .thenReturn(null); // No GitHub App found
 
     // When
@@ -436,7 +441,7 @@ public class SourceControlUtilsTest
     // When GitHub App auth is configured but no app is found, authOwnerId falls back to sourceControl.ownerId
     assertThat(result.authOwnerId).isEqualTo(application.getId());
 
-    verify(mockGitHubAppDAO).getNearestGitHubApp(application.getId());
+    verify(mockGitHubAppSelectionService).select(application.getId());
   }
 
   @Test
@@ -463,8 +468,8 @@ public class SourceControlUtilsTest
     // When using PAT/token authentication, authOwnerId is still populated with sourceControl.ownerId
     assertThat(result.authOwnerId).isEqualTo(application.getId());
 
-    // Verify GitHubAppDAO was NOT called for token-based authentication
-    verify(mockGitHubAppDAO, never()).getNearestGitHubApp(any());
+    // Verify GitHubAppSelectionService was NOT called for token-based authentication
+    verify(mockGitHubAppSelectionService, never()).select(any());
   }
 
   @Test
@@ -488,7 +493,7 @@ public class SourceControlUtilsTest
 
     when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(org.getId())))
         .thenReturn(orgSourceControl);
-    when(mockGitHubAppDAO.getNearestGitHubApp(eq(org.getId())))
+    when(mockGitHubAppSelectionService.select(eq(org.getId())))
         .thenReturn(mockOrgGitHubApp); // GitHub App at org level
 
     // When
@@ -502,7 +507,7 @@ public class SourceControlUtilsTest
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.provider).isEqualTo(GITHUB);
 
-    verify(mockGitHubAppDAO).getNearestGitHubApp(org.getId());
+    verify(mockGitHubAppSelectionService).select(org.getId());
   }
 
   @Test

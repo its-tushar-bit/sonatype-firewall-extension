@@ -285,7 +285,7 @@ describe('sourceControlSelectors', () => {
           authenticationType: {
             value: 'GITHUB_APP',
           },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: '12345',
             },
@@ -308,7 +308,7 @@ describe('sourceControlSelectors', () => {
           authenticationType: {
             value: 'GITHUB_APP',
           },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: '12345',
             },
@@ -418,7 +418,7 @@ describe('sourceControlSelectors', () => {
           authenticationType: {
             value: 'GITHUB_APP',
           },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: '12345',
             },
@@ -437,7 +437,7 @@ describe('sourceControlSelectors', () => {
           authenticationType: {
             value: 'GITHUB_APP',
           },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: '',
             },
@@ -456,7 +456,7 @@ describe('sourceControlSelectors', () => {
           authenticationType: {
             value: 'GITHUB_APP',
           },
-          githubApp: {
+          githubApps: {
             value: null,
           },
         },
@@ -484,6 +484,7 @@ describe('sourceControlSelectors', () => {
         expect(selected).toEqual(expectedMessage);
       });
     });
+
   });
 
   describe('selectRepositoryUrl', () => {

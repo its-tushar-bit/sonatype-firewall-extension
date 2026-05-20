@@ -43,7 +43,7 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
           closePrAfterDays: { rscValue: { value: '' }, isInherited: false },
           closePrAfterDaysOpenEnabled: { value: false, isInherited: false },
           closePrOnFailedChecksEnabled: { value: false, isInherited: false },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: '12345',
               name: 'sonatype-iq-server',
@@ -90,7 +90,7 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
       repositoryUrl: 'https://github.com/test-org',
       remediationPullRequestsEnabled: false,
       manualPullRequestsEnabled: false,
-      githubApp: {
+      githubApps: {
         value: {
           installationId: '12345',
           name: 'sonatype-iq-server',
@@ -295,7 +295,7 @@ describe.skip('SourceControlConfiguration - GitHub App Success Flow', () => {
             showGitHubAppSuccessModal: true,
             sourceControl: {
               ...defaultPreloadedState.orgsAndPolicies.sourceControlConfiguration.sourceControl,
-              githubApp: { value: null },
+              githubApps: { value: null },
             },
           },
         },

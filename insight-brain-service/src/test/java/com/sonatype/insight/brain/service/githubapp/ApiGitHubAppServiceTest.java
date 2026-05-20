@@ -113,6 +113,9 @@ public class ApiGitHubAppServiceTest
   @Inject
   private GitHubAppAuthStrategyCache authStrategyCache;
 
+  @Inject
+  private GitHubAppSelectionCache selectionCache;
+
   private ApiGitHubAppService service;
 
   private Organization organization;
@@ -138,6 +141,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockServerUrl, // githubApiBaseUrl
         mockServerUrl, // githubOAuthTokenUrl
@@ -211,9 +215,10 @@ public class ApiGitHubAppServiceTest
       assertThat(deletedState).isNull();
     }
 
-    GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
+    GitHubApp updated = getFirstByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
     assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org(personal)");
+    assertThat(updated.isActive()).isTrue();
   }
 
   @Test
@@ -237,7 +242,7 @@ public class ApiGitHubAppServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getOwnerId()).isEqualTo(organization.getId());
 
-    GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
+    GitHubApp updated = getFirstByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
     assertThat(updated.getGithubOrganizationName()).isEqualTo("personal-user(personal)");
   }
@@ -426,7 +431,7 @@ public class ApiGitHubAppServiceTest
 
     service.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-multiple-installs", OAUTH_CODE);
 
-    GitHubApp updated = gitHubAppDAO.getByOwnerId(organization.getId());
+    GitHubApp updated = getFirstByOwnerId(organization.getId());
     assertThat(updated.getInstallationId()).isEqualTo(INSTALLATION_ID);
     assertThat(updated.getGithubOrganizationName()).isEqualTo("test-org(personal)");
   }
@@ -469,6 +474,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -519,6 +525,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -542,6 +549,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -569,6 +577,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -595,6 +604,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -619,6 +629,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -643,6 +654,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -667,6 +679,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -714,6 +727,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -755,6 +769,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -778,6 +793,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -801,6 +817,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -832,6 +849,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -870,6 +888,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -897,6 +916,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -921,6 +941,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -954,6 +975,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -978,6 +1000,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -1002,6 +1025,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -1033,6 +1057,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         baseUrl);
 
@@ -1202,7 +1227,7 @@ public class ApiGitHubAppServiceTest
     GitHubApp existingApp = createGitHubApp(999999, "old-app-slug", "old-client-id",
         organization.getId(), "old-org", null);
 
-    GitHubApp retrievedBefore = gitHubAppDAO.getByOwnerId(organization.getId());
+    GitHubApp retrievedBefore = getFirstByOwnerId(organization.getId());
     assertThat(retrievedBefore).isNotNull();
     assertThat(retrievedBefore.getAppId()).isEqualTo(999999);
     assertThat(retrievedBefore.getSlug()).isEqualTo("old-app-slug");
@@ -1442,8 +1467,8 @@ public class ApiGitHubAppServiceTest
   }
 
   private void deleteExistingGitHubAppForOwner(String ownerId) {
-    GitHubApp existingApp = gitHubAppDAO.getByOwnerId(ownerId);
-    if (existingApp != null) {
+    List<GitHubApp> existingApps = gitHubAppDAO.getByOwnerId(ownerId);
+    for (GitHubApp existingApp : existingApps) {
       try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
         tx.begin();
         gitHubAppDAO.delete(tx, existingApp);
@@ -1516,10 +1541,16 @@ public class ApiGitHubAppServiceTest
   private GitHubApp getGitHubAppByOwnerId(String ownerId) {
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       tx.begin();
-      GitHubApp result = gitHubAppDAO.getByOwnerId(tx, ownerId);
+      List<GitHubApp> results = gitHubAppDAO.getByOwnerId(tx, ownerId);
       tx.commit();
-      return result;
+      return results.isEmpty() ? null : results.get(0);
     }
+  }
+
+  private GitHubApp getFirstByOwnerId(String ownerId) {
+    List<GitHubApp> apps = gitHubAppDAO.getByOwnerId(ownerId);
+    assertThat(apps).isNotEmpty();
+    return apps.get(0);
   }
 
   private GitHubApp getGitHubAppByAppId(Integer appId) {
@@ -1747,6 +1778,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 
@@ -1777,6 +1809,7 @@ public class ApiGitHubAppServiceTest
         insightProxy,
         gitHubManifestService,
         authStrategyCache,
+        selectionCache,
         gitHubAppDeletionService,
         mockBaseUrl);
 

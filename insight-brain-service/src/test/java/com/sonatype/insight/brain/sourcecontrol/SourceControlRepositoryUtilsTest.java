@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -41,14 +42,18 @@ public class SourceControlRepositoryUtilsTest
 
   private GitHubAppDAO mockGitHubAppDAO;
 
+  private GitHubAppSelectionService mockGitHubAppSelectionService;
+
   private final GitApi mockGitApiInstance = mock(GitApi.class);
 
   @Override
   public void configure(Binder binder) {
     gitApiFactory = mock(GitApiFactory.class);
     mockGitHubAppDAO = mock(GitHubAppDAO.class);
+    mockGitHubAppSelectionService = mock(GitHubAppSelectionService.class);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactory);
     binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
+    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
     super.configure(binder);
   }
 
@@ -134,7 +139,7 @@ public class SourceControlRepositoryUtilsTest
     mockGitHubApp.setOwnerId(organization.getId());
     mockGitHubApp.setInstallationId(12345L);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(application.getId())).thenReturn(mockGitHubApp);
+    when(mockGitHubAppSelectionService.select(application.getId())).thenReturn(mockGitHubApp);
 
     HashMap<String, String> headCommits = new HashMap<>();
     headCommits.put("main", "commit-sha");
@@ -151,7 +156,7 @@ public class SourceControlRepositoryUtilsTest
     assertThat(capturedInfo.authenticationType).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
     assertThat(capturedInfo.authOwnerId).isEqualTo(organization.getId());
 
-    verify(mockGitHubAppDAO).getNearestGitHubApp(application.getId());
+    verify(mockGitHubAppSelectionService).select(application.getId());
   }
 
   @Test
@@ -167,7 +172,7 @@ public class SourceControlRepositoryUtilsTest
     sourceControl.setAuthenticationType(SourceControl.AuthenticationType.GITHUB_APP);
     tempEntity.newSourceControl(sourceControl);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(application.getId())).thenReturn(null);
+    when(mockGitHubAppSelectionService.select(application.getId())).thenReturn(null);
 
     when(mockGitApiInstance.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(new HashMap<>());
 
@@ -206,6 +211,6 @@ public class SourceControlRepositoryUtilsTest
     // When using PAT authentication, authOwnerId is populated with sourceControl.ownerId
     assertThat(capturedInfo.authOwnerId).isEqualTo(organization.getId());
 
-    verify(mockGitHubAppDAO, never()).getNearestGitHubApp(any());
+    verify(mockGitHubAppSelectionService, never()).select(any());
   }
 }

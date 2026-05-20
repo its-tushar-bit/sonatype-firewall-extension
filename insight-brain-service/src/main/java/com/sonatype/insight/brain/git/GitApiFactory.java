@@ -124,21 +124,21 @@ public class GitApiFactory
    */
   private String resolveAuthenticationToken(final GitRepositoryInfo gitInfo) {
     if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitInfo.authenticationType)) {
-      if (StringUtils.isBlank(gitInfo.authOwnerId)) {
+      if (StringUtils.isBlank(gitInfo.githubAppId)) {
         throw new IllegalArgumentException(
-            "GitHub App authentication is configured but no owner ID found for authentication lookup. "
+            "GitHub App authentication is configured but no GitHub App ID found for authentication lookup. "
                 + "Repository: " + gitInfo.normalizedRepositoryUrl
                 + ". Please ensure a GitHub App is registered at the application or parent organization level.");
       }
 
-      log.info("Using GitHub App authentication for repository cloning (ownerId: {})", gitInfo.authOwnerId);
+      log.info("Using GitHub App authentication for repository cloning (githubAppId: {})", gitInfo.githubAppId);
 
-      GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitInfo.authOwnerId);
+      GitHubAppAuthStrategy authStrategy = authStrategyCache.getOrCreate(gitInfo.githubAppId);
       try {
         return authStrategy.getInstallationToken().getToken();
       }
       catch (IOException e) {
-        throw new UncheckedIOException("Failed to get installation token for ownerId: " + gitInfo.authOwnerId, e);
+        throw new UncheckedIOException("Failed to get installation token for githubAppId: " + gitInfo.githubAppId, e);
       }
     }
 

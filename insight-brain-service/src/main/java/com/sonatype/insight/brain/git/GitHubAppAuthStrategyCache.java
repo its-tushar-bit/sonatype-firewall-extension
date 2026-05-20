@@ -7,12 +7,8 @@ package com.sonatype.insight.brain.git;
 
 import java.security.PrivateKey;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -89,63 +85,40 @@ public class GitHubAppAuthStrategyCache
   }
 
   /**
-   * Get or create a GitHubAppAuthStrategy for the given ownerId.
+   * Get or create a GitHubAppAuthStrategy for the given githubAppId.
    *
-   * @param ownerId the GitHub App owner ID
+   * @param githubAppId the GitHub App internal UUID
    * @return cached or newly created GitHubAppAuthStrategy
    */
-  public GitHubAppAuthStrategy getOrCreate(final String ownerId) {
-    return getOrCreateCached(ownerId).strategy;
+  public GitHubAppAuthStrategy getOrCreate(final String githubAppId) {
+    return getOrCreateCached(githubAppId).strategy;
   }
 
   /**
    * Package-private: returns the holder so siblings can read {@code sourceGithubAppId}/{@code sourceInstallationId}
    * for audit/trace purposes without re-querying the DAO.
    */
-  CachedAuthStrategy getOrCreateCached(final String ownerId) {
+  CachedAuthStrategy getOrCreateCached(final String githubAppId) {
     try {
-      return getCache().get(ownerId, () -> createAuthStrategy(ownerId));
+      return getCache().get(githubAppId, () -> createAuthStrategy(githubAppId));
     }
     catch (ExecutionException e) {
       Throwable cause = e.getCause();
       if (cause instanceof RuntimeException) {
         throw (RuntimeException) cause;
       }
-      throw new RuntimeException("Failed to create GitHubAppAuthStrategy for ownerId: " + ownerId, cause);
+      throw new RuntimeException("Failed to create GitHubAppAuthStrategy for githubAppId: " + githubAppId, cause);
     }
   }
 
   /**
-   * Invalidate the cached strategy for the given ownerId.
+   * Invalidate the cached strategy for the given githubAppId.
    *
-   * @param ownerId the GitHub App owner ID
+   * @param githubAppId the GitHub App internal UUID
    */
-  public void invalidate(final String ownerId) {
-    getCache().invalidate(ownerId);
-    log.debug("Invalidated cached GitHubAppAuthStrategy for ownerId: {}", ownerId);
-  }
-
-  /**
-   * Invalidate every cache entry whose strategy was sourced from the given GitHub App. This covers entries cached under
-   * a child owner that resolved its auth via inheritance from a parent's app, which the per-owner {@link #invalidate}
-   * call cannot reach. Best-effort: callers should not rely on a return value, and exceptions are swallowed.
-   *
-   * @param githubAppId the id of the GitHub App that was deleted, deactivated, or replaced; null is a no-op
-   */
-  public void invalidateByGitHubAppId(final Integer githubAppId) {
-    if (githubAppId == null) {
-      return;
-    }
-    Cache<String, CachedAuthStrategy> cache = getCache();
-    List<String> toInvalidate = cache.asMap()
-        .entrySet()
-        .stream()
-        .filter(e -> Objects.equals(e.getValue().sourceGithubAppId, githubAppId))
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toList());
-    cache.invalidateAll(toInvalidate);
-    log.debug("Invalidated {} cached GitHubAppAuthStrategy entries derived from githubAppId: {}",
-        toInvalidate.size(), githubAppId);
+  public void invalidate(final String githubAppId) {
+    getCache().invalidate(githubAppId);
+    log.debug("Invalidated cached GitHubAppAuthStrategy for githubAppId: {}", githubAppId);
   }
 
   private Cache<String, CachedAuthStrategy> createCache() {
@@ -163,10 +136,14 @@ public class GitHubAppAuthStrategyCache
     return caches.get();
   }
 
-  private CachedAuthStrategy createAuthStrategy(final String ownerId) {
-    log.debug("Creating new GitHubAppAuthStrategy for ownerId: {}", ownerId);
+  private CachedAuthStrategy createAuthStrategy(final String githubAppId) {
+    log.debug("Creating new GitHubAppAuthStrategy for githubAppId: {}", githubAppId);
 
-    GitHubApp githubApp = githubAppDAO.getByOwnerIdNotNull(ownerId);
+    GitHubApp githubApp = githubAppDAO.getByGithubAppId(githubAppId);
+    if (githubApp == null) {
+      throw new com.sonatype.insight.error.exception.NotFoundException(
+          "GitHub App not found: " + githubAppId);
+    }
 
     String decryptedBase64Key = passwordHandler.decryptPassword(githubApp.getPrivateKey());
     PrivateKey privateKey = GitHubAppKeyUtils.parsePrivateKeyFromBase64Pkcs8(decryptedBase64Key);
@@ -184,25 +161,9 @@ public class GitHubAppAuthStrategyCache
   }
 
   /**
-   * Internal cache value pairing the strategy with the source GitHub App identifiers, so that
-   * {@link #invalidateByGitHubAppId} can target by-app eviction across owner-hierarchy inheritance.
+   * Internal cache value pairing the strategy with the source GitHub App identifiers
    */
-  static final class CachedAuthStrategy
+  record CachedAuthStrategy(GitHubAppAuthStrategy strategy, Integer sourceGithubAppId, Long sourceInstallationId)
   {
-    final GitHubAppAuthStrategy strategy;
-
-    final Integer sourceGithubAppId;
-
-    final Long sourceInstallationId;
-
-    CachedAuthStrategy(
-        final GitHubAppAuthStrategy strategy,
-        final Integer sourceGithubAppId,
-        final Long sourceInstallationId)
-    {
-      this.strategy = strategy;
-      this.sourceGithubAppId = sourceGithubAppId;
-      this.sourceInstallationId = sourceInstallationId;
-    }
   }
 }

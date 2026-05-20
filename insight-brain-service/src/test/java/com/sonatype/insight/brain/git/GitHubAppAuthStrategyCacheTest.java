@@ -157,9 +157,9 @@ public class GitHubAppAuthStrategyCacheTest
   @Test
   public void testGetOrCreate_CreatesNewStrategy() {
     stubGitHubTokenEndpointWithUniqueToken();
-    createTestGitHubApp(TEST_OWNER_ID);
+    GitHubApp app = createTestGitHubApp(TEST_OWNER_ID);
 
-    AuthenticationStrategy strategy = cache.getOrCreate(TEST_OWNER_ID);
+    AuthenticationStrategy strategy = cache.getOrCreate(app.getId());
 
     assertThat(strategy).isNotNull();
   }
@@ -167,16 +167,16 @@ public class GitHubAppAuthStrategyCacheTest
   @Test
   public void testGetOrCreate_UsesCacheOnSecondCall() {
     stubGitHubTokenEndpointWithUniqueToken();
-    createTestGitHubApp(TEST_OWNER_ID);
+    GitHubApp app = createTestGitHubApp(TEST_OWNER_ID);
 
-    AuthenticationStrategy strategy1 = cache.getOrCreate(TEST_OWNER_ID);
-    AuthenticationStrategy strategy2 = cache.getOrCreate(TEST_OWNER_ID);
+    AuthenticationStrategy strategy1 = cache.getOrCreate(app.getId());
+    AuthenticationStrategy strategy2 = cache.getOrCreate(app.getId());
 
     assertThat(strategy1).isSameAs(strategy2);
   }
 
   @Test
-  public void testGetOrCreate_DifferentOwnerIdsLoadSeparately() throws Exception {
+  public void testGetOrCreate_DifferentGitHubAppIdsLoadSeparately() throws Exception {
     String ownerId1 = "owner-1";
     String ownerId2 = "owner-2";
 
@@ -188,8 +188,8 @@ public class GitHubAppAuthStrategyCacheTest
     stubGitHubTokenEndpointForInstallation(app2.getInstallationId());
 
     // Create both strategies (this loads tokens and caches them)
-    AuthenticationStrategy strategy1 = cache.getOrCreate(ownerId1);
-    AuthenticationStrategy strategy2 = cache.getOrCreate(ownerId2);
+    AuthenticationStrategy strategy1 = cache.getOrCreate(app1.getId());
+    AuthenticationStrategy strategy2 = cache.getOrCreate(app2.getId());
 
     // Now retrieve tokens from cached strategies
     GitHubAppAuthStrategy ghStrategy1 = (GitHubAppAuthStrategy) strategy1;
@@ -207,54 +207,13 @@ public class GitHubAppAuthStrategyCacheTest
 
   @Test
   public void testGetOrCreate_ThrowsNotFoundException() {
-    String nonExistentOwnerId = "non-existent-owner-id";
+    String nonExistentGithubAppId = "non-existent-github-app-id";
 
     // Guava's cache wraps exceptions in UncheckedExecutionException
-    assertThatThrownBy(() -> cache.getOrCreate(nonExistentOwnerId))
+    assertThatThrownBy(() -> cache.getOrCreate(nonExistentGithubAppId))
         .isInstanceOf(UncheckedExecutionException.class)
         .hasCauseInstanceOf(NotFoundException.class)
-        .hasMessageContaining("GitHub App not found for ownerId: " + nonExistentOwnerId);
-  }
-
-  @Test
-  public void testInvalidateByGitHubAppId_EvictsOnlyMatchingEntries() {
-    String ownerA = "owner-by-app-id-A";
-    String ownerB = "owner-by-app-id-B";
-    String ownerC = "owner-by-app-id-C";
-
-    GitHubApp appA = createTestGitHubApp(ownerA);
-    GitHubApp appB = createTestGitHubApp(ownerB);
-    GitHubApp appC = createTestGitHubApp(ownerC);
-
-    stubGitHubTokenEndpointForInstallation(appA.getInstallationId());
-    stubGitHubTokenEndpointForInstallation(appB.getInstallationId());
-    stubGitHubTokenEndpointForInstallation(appC.getInstallationId());
-
-    AuthenticationStrategy strategyA = cache.getOrCreate(ownerA);
-    AuthenticationStrategy strategyB = cache.getOrCreate(ownerB);
-    AuthenticationStrategy strategyC = cache.getOrCreate(ownerC);
-
-    cache.invalidateByGitHubAppId(appA.getAppId());
-
-    // owner-A's entry was sourced from appA → evicted; the next getOrCreate must rebuild a fresh strategy.
-    AuthenticationStrategy strategyAReloaded = cache.getOrCreate(ownerA);
-    assertThat(strategyAReloaded).isNotSameAs(strategyA);
-
-    // owner-B and owner-C's entries were sourced from appB / appC → untouched.
-    assertThat(cache.getOrCreate(ownerB)).isSameAs(strategyB);
-    assertThat(cache.getOrCreate(ownerC)).isSameAs(strategyC);
-  }
-
-  @Test
-  public void testInvalidateByGitHubAppId_NullIsNoOp() {
-    String ownerA = "owner-noop-A";
-    GitHubApp appA = createTestGitHubApp(ownerA);
-    stubGitHubTokenEndpointForInstallation(appA.getInstallationId());
-
-    AuthenticationStrategy before = cache.getOrCreate(ownerA);
-    cache.invalidateByGitHubAppId(null);
-
-    assertThat(cache.getOrCreate(ownerA)).isSameAs(before);
+        .hasMessageContaining("GitHub App not found: " + nonExistentGithubAppId);
   }
 
   @Test
@@ -285,9 +244,9 @@ public class GitHubAppAuthStrategyCacheTest
                 .withBody("{\"token\":\"" + token2Value + "\",\"expires_at\":\"2099-01-01T00:00:00Z\"}")));
 
     // Create both strategies
-    AuthenticationStrategy strategy1 = cache.getOrCreate(TEST_OWNER_ID);
-    cache.invalidate(TEST_OWNER_ID);
-    AuthenticationStrategy strategy2 = cache.getOrCreate(TEST_OWNER_ID);
+    AuthenticationStrategy strategy1 = cache.getOrCreate(app.getId());
+    cache.invalidate(app.getId());
+    AuthenticationStrategy strategy2 = cache.getOrCreate(app.getId());
 
     // Now retrieve tokens from both strategies
     GitHubAppAuthStrategy ghStrategy1 = (GitHubAppAuthStrategy) strategy1;
@@ -305,19 +264,17 @@ public class GitHubAppAuthStrategyCacheTest
 
   @Test
   public void testTenantSafety_OneTenantCannotAccessAnotherTenantAuthStrategies() {
-    // Use unique owner IDs for each tenant (owner_id has unique constraint)
-    String ownerId1 = "owner-tenant1-123";
-    String ownerId2 = "owner-tenant2-123";
-
     // Capture strategies and tokens from both tenants for comparison
     final AuthenticationStrategy[] strategies = new AuthenticationStrategy[2];
     final String[] tokens = new String[2];
+    final String[] appIds = new String[2];
 
     // Tenant 1 creates and caches a strategy
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
-      createTestGitHubApp(ownerId1);
+      GitHubApp app1 = createTestGitHubApp("owner-tenant1-123");
+      appIds[0] = app1.getId();
       stubGitHubTokenEndpointWithUniqueToken();
-      AuthenticationStrategy strategy1 = cache.getOrCreate(ownerId1);
+      AuthenticationStrategy strategy1 = cache.getOrCreate(app1.getId());
       assertThat(strategy1).isNotNull();
       strategies[0] = strategy1;
 
@@ -333,10 +290,10 @@ public class GitHubAppAuthStrategyCacheTest
 
     // Tenant 2 should have an empty cache (isolated from Tenant 1)
     testAsNewTenant(testName, t2 -> {
-      createTestGitHubApp(ownerId2);
+      GitHubApp app2 = createTestGitHubApp("owner-tenant2-123");
+      appIds[1] = app2.getId();
       stubGitHubTokenEndpointWithUniqueToken();
-      // Tenant 2 creates its own strategy for a different ownerId
-      AuthenticationStrategy strategy2 = cache.getOrCreate(ownerId2);
+      AuthenticationStrategy strategy2 = cache.getOrCreate(app2.getId());
       assertThat(strategy2).isNotNull();
       strategies[1] = strategy2;
 
@@ -358,51 +315,51 @@ public class GitHubAppAuthStrategyCacheTest
 
     // Tenant 1's cache should still return the same cached strategy
     testAsTenant(tenant1, t1 -> {
-      AuthenticationStrategy sameStrategy = cache.getOrCreate(ownerId1);
+      AuthenticationStrategy sameStrategy = cache.getOrCreate(appIds[0]);
       assertThat(sameStrategy).isSameAs(strategies[0]);
     });
   }
 
   @Test
   public void testTenantSafety_InvalidateDoesNotAffectOtherTenants() {
-    // Use unique owner IDs (owner_id has unique constraint)
-    String tenant1Owner1 = "tenant1-owner-1";
-    String tenant1Owner2 = "tenant1-owner-2";
-    String tenant2Owner1 = "tenant2-owner-1";
-
     // Capture strategies for comparison
     final AuthenticationStrategy[] tenant1Strategies = new AuthenticationStrategy[2];
     final AuthenticationStrategy[] tenant2Strategies = new AuthenticationStrategy[1];
+    final String[] tenant1AppIds = new String[2];
+    final String[] tenant2AppIds = new String[1];
 
     // Tenant 1 creates two strategies
     Tenant tenant1 = testAsNewTenant(testName, t1 -> {
-      createTestGitHubApp(tenant1Owner1);
-      createTestGitHubApp(tenant1Owner2);
+      GitHubApp app1 = createTestGitHubApp("tenant1-owner-1");
+      GitHubApp app2 = createTestGitHubApp("tenant1-owner-2");
+      tenant1AppIds[0] = app1.getId();
+      tenant1AppIds[1] = app2.getId();
       stubGitHubTokenEndpointWithUniqueToken();
-      tenant1Strategies[0] = cache.getOrCreate(tenant1Owner1);
+      tenant1Strategies[0] = cache.getOrCreate(app1.getId());
       stubGitHubTokenEndpointWithUniqueToken();
-      tenant1Strategies[1] = cache.getOrCreate(tenant1Owner2);
+      tenant1Strategies[1] = cache.getOrCreate(app2.getId());
     });
 
     // Tenant 2 creates one strategy
     Tenant tenant2 = testAsNewTenant(testName, t2 -> {
-      createTestGitHubApp(tenant2Owner1);
+      GitHubApp app = createTestGitHubApp("tenant2-owner-1");
+      tenant2AppIds[0] = app.getId();
       stubGitHubTokenEndpointWithUniqueToken();
-      tenant2Strategies[0] = cache.getOrCreate(tenant2Owner1);
+      tenant2Strategies[0] = cache.getOrCreate(app.getId());
     });
 
     // Tenant 1 invalidates one strategy
     testAsTenant(tenant1, t1 -> {
-      cache.invalidate(tenant1Owner1);
-      // tenant1Owner2 should still be cached (same object)
-      AuthenticationStrategy owner2Strategy = cache.getOrCreate(tenant1Owner2);
-      assertThat(owner2Strategy).isSameAs(tenant1Strategies[1]);
+      cache.invalidate(tenant1AppIds[0]);
+      // Second app should still be cached (same object)
+      AuthenticationStrategy app2Strategy = cache.getOrCreate(tenant1AppIds[1]);
+      assertThat(app2Strategy).isSameAs(tenant1Strategies[1]);
     });
 
     // Tenant 2's cache should be unaffected (still has cached strategy)
     testAsTenant(tenant2, t2 -> {
-      AuthenticationStrategy owner1Strategy = cache.getOrCreate(tenant2Owner1);
-      assertThat(owner1Strategy).isSameAs(tenant2Strategies[0]);
+      AuthenticationStrategy appStrategy = cache.getOrCreate(tenant2AppIds[0]);
+      assertThat(appStrategy).isSameAs(tenant2Strategies[0]);
     });
   }
 

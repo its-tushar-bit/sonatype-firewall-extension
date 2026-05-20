@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
@@ -61,7 +61,7 @@ public class ManualPullRequestService
 
   private final RemediationPullRequestEligibilityService remediationPullRequestEligibilityService;
 
-  private final GitHubAppDAO gitHubAppDAO;
+  private final GitHubAppSelectionService gitHubAppSelectionService;
 
   @Inject
   public ManualPullRequestService(
@@ -74,7 +74,7 @@ public class ManualPullRequestService
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
       RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
-      GitHubAppDAO gitHubAppDAO)
+      GitHubAppSelectionService gitHubAppSelectionService)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.stageTypeService = stageTypeService;
@@ -85,7 +85,7 @@ public class ManualPullRequestService
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.componentRemediationService = componentRemediationService;
     this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
-    this.gitHubAppDAO = gitHubAppDAO;
+    this.gitHubAppSelectionService = gitHubAppSelectionService;
   }
 
   /**
@@ -187,7 +187,7 @@ public class ManualPullRequestService
     if (gitRepositoryInfo != null) {
       if (SourceControl.AuthenticationType.GITHUB_APP.equals(gitRepositoryInfo.authenticationType)) {
         log.debug("GitHub App authentication detected for owner: {}", owner.getId());
-        GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(owner.getId());
+        GitHubApp gitHubApp = gitHubAppSelectionService.select(owner.getId());
 
         if (gitHubApp == null) {
           log.warn("No GitHub App found in hierarchy for owner: {}", owner.getId());
@@ -201,6 +201,7 @@ public class ManualPullRequestService
         }
 
         gitRepositoryInfo.authOwnerId = ownerId;
+        gitRepositoryInfo.githubAppId = gitHubApp.getId();
         log.debug("Using authOwnerId: {} for owner: {}", gitRepositoryInfo.authOwnerId, owner.getId());
 
         if (gitHubApp.getInstallationId() == null) {

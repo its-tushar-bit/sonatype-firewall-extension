@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -131,7 +131,7 @@ public class SourceControlScanServiceTest
   private FileCleaner fileCleaner;
 
   @Mock
-  private GitHubAppDAO mockGitHubAppDAO;
+  private GitHubAppSelectionService mockGitHubAppSelectionService;
 
   private ProprietaryConfig proprietaryConfig;
 
@@ -171,7 +171,8 @@ public class SourceControlScanServiceTest
     sourceControlEvent.setApplicationId(APP_ID);
 
     spySourceControlUtils = spy(
-        new SourceControlUtils(null, mockInsightWork, fileCleaner, mockGitClientFactory, mockGitHubAppDAO));
+        new SourceControlUtils(null, mockInsightWork, fileCleaner, mockGitClientFactory,
+            mockGitHubAppSelectionService));
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));

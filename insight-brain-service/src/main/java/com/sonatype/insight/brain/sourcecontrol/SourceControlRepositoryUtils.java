@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.model.Application;
@@ -38,19 +38,19 @@ public class SourceControlRepositoryUtils
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final GitHubAppDAO gitHubAppDAO;
+  private final GitHubAppSelectionService gitHubAppSelectionService;
 
   @Inject
   public SourceControlRepositoryUtils(
       SourceControlDAO sourceControlDAO,
       GitApiFactory gitApiFactory,
       SourceControlUtils sourceControlUtils,
-      GitHubAppDAO gitHubAppDAO)
+      GitHubAppSelectionService gitHubAppSelectionService)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
-    this.gitHubAppDAO = gitHubAppDAO;
+    this.gitHubAppSelectionService = gitHubAppSelectionService;
   }
 
   /**
@@ -104,8 +104,14 @@ public class SourceControlRepositoryUtils
     gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
 
     if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
-      GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(application.getId());
-      gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
+      GitHubApp gitHubApp = gitHubAppSelectionService.select(application.getId());
+      if (gitHubApp != null) {
+        gitRepositoryInfo.authOwnerId = gitHubApp.getOwnerId();
+        gitRepositoryInfo.githubAppId = gitHubApp.getId();
+      }
+      else {
+        gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+      }
     }
     else {
       gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();

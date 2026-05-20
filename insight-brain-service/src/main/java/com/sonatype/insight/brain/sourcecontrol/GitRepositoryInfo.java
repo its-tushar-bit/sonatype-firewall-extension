@@ -162,6 +162,8 @@ public class GitRepositoryInfo
 
   public String authOwnerId;
 
+  public String githubAppId;
+
   public String getRepositoryUrl() {
     return repositoryUrl;
   }

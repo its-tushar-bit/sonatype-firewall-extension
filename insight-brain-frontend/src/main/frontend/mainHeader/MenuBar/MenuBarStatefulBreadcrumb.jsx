@@ -71,6 +71,15 @@ const getBreadcrumb = (
       isApplication ? { applicationPublicId: id } : { organizationId: id }
     );
     breadcrumb.unshift({ name: pageTitle, href });
+
+    if (currentRouteName.endsWith('.manage-github-apps')) {
+      const sourceControlRoute = currentRouteName.replace('.manage-github-apps', '.edit-source-control');
+      const sourceControlHref = uiRouterState.href(
+        sourceControlRoute,
+        isApplication ? { applicationPublicId: id } : { organizationId: id }
+      );
+      breadcrumb.unshift({ name: 'Source Control Configuration', href: sourceControlHref });
+    }
   }
 
   if (isSbomManager && sbomVersionId && !isSbomManagerCdp) {

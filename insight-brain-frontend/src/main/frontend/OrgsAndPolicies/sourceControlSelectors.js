@@ -41,7 +41,7 @@ export const selectItemText = createSelector(
 );
 
 const SOURCE_CONTROL_FIELDS = {
-  GITHUB_APP: 'githubApp',
+  GITHUB_APP: 'githubApps',
   INSTALLATION_ID: 'installationId',
 };
 

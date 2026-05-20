@@ -158,14 +158,14 @@ public class ApiCompositeSourceControlService
     Map<String, SourceControl> ancestorsSourceControlMap = new HashMap<>();
     SourceControl defaultSourceControl = new SourceControl.Builder().build();
 
-    Map<String, GitHubApp> ancestorsGitHubAppsByOwnerId = ancestorsId.isEmpty()
+    Map<String, List<GitHubApp>> ancestorsGitHubAppsByOwnerId = ancestorsId.isEmpty()
         ? Map.of()
-        : gitHubAppDAO.getByOwnerIds(ancestorsId);
+        : gitHubAppDAO.getAllByOwnerIds(ancestorsId);
 
     log.debug("getCompositeSourceControl - ownerId: {}, ancestorsId: {}, ancestorsGitHubAppsByOwnerId.size: {}",
         ownerId, ancestorsId, ancestorsGitHubAppsByOwnerId.size());
 
-    Map<String, GitHubApp> ancestorsGitHubAppMap = new HashMap<>();
+    Map<String, List<GitHubApp>> ancestorsGitHubAppMap = new HashMap<>();
 
     if (!ancestorsId.isEmpty()) {
       for (int i = 0; i < ancestorsId.size(); i++) {
@@ -176,11 +176,11 @@ public class ApiCompositeSourceControlService
         ancestorSourceControl.ifPresent(sc -> setTokenValueForReturn(sc, obscureToken));
         ancestorName = organizationDAO.getByIdNotNull(ancestorId).getName();
 
-        GitHubApp ancestorGitHubApp = ancestorsGitHubAppsByOwnerId.get(ancestorId);
-        log.debug("Processing ancestor - ancestorId: {}, ancestorName: {}, has GitHubApp: {}",
-            ancestorId, ancestorName, ancestorGitHubApp != null);
-        if (ancestorGitHubApp != null) {
-          ancestorsGitHubAppMap.put(ancestorName, ancestorGitHubApp);
+        List<GitHubApp> ancestorGitHubApps = ancestorsGitHubAppsByOwnerId.getOrDefault(ancestorId, List.of());
+        log.debug("Processing ancestor - ancestorId: {}, ancestorName: {}, gitHubApps.size: {}",
+            ancestorId, ancestorName, ancestorGitHubApps.size());
+        if (!ancestorGitHubApps.isEmpty()) {
+          ancestorsGitHubAppMap.put(ancestorName, ancestorGitHubApps);
         }
 
         ancestorsNameHierarchy.add(i, ancestorName);
@@ -200,7 +200,7 @@ public class ApiCompositeSourceControlService
       final SourceControl sourceControl,
       final List<String> ancestorsNameHierarchy,
       final Map<String, SourceControl> ancestorsSourceControl,
-      final Map<String, GitHubApp> ancestorsGitHubApp,
+      final Map<String, List<GitHubApp>> ancestorsGitHubApp,
       final OwnerType ownerType)
   {
 
@@ -323,61 +323,61 @@ public class ApiCompositeSourceControlService
   private List<ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo>> collateGitHubAppsList(
       final String ownerId,
       final List<String> ancestorsNameHierarchy,
-      final Map<String, GitHubApp> ancestorsGitHubApp)
+      final Map<String, List<GitHubApp>> ancestorsGitHubApp)
   {
-    List<GitHubApp> allGitHubApps = gitHubAppDAO.getAllByOwnerId(ownerId);
+    List<GitHubApp> allGitHubApps = gitHubAppDAO.getInstalledByOwnerId(ownerId);
 
     log.debug(
         "collateGitHubAppsList - ownerId: {}, allGitHubApps.size: {}, ancestorsNameHierarchy: {}, ancestorsGitHubApp.size: {}",
         ownerId, allGitHubApps.size(), ancestorsNameHierarchy, ancestorsGitHubApp.size());
 
     if (!allGitHubApps.isEmpty()) {
-      return allGitHubApps.stream()
-          .map(
-              gitHubApp -> collateGitHubAppCompositeDTO(ownerId, ancestorsNameHierarchy, ancestorsGitHubApp, gitHubApp))
-          .collect(Collectors.toList());
+      List<ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo>> result = allGitHubApps.stream()
+          .map(gitHubApp -> {
+            ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> dto = new ApiCompositeValueDTO<>();
+            dto.value = buildGitHubAppInfo(gitHubApp);
+            return dto;
+          })
+          .collect(Collectors.toCollection(ArrayList::new));
+
+      for (String ancestorName : ancestorsNameHierarchy) {
+        List<GitHubApp> ancestorGitHubApps = ancestorsGitHubApp.getOrDefault(ancestorName, List.of());
+        if (!ancestorGitHubApps.isEmpty()) {
+          ancestorGitHubApps.forEach(app -> {
+            ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> inheritedDto =
+                new ApiCompositeValueDTO<>();
+            inheritedDto.value = null;
+            inheritedDto.parentName = ancestorName;
+            inheritedDto.parentValue = buildGitHubAppInfo(app);
+            result.add(inheritedDto);
+          });
+          break;
+        }
+      }
+
+      return result;
     }
 
     for (String ancestorName : ancestorsNameHierarchy) {
-      GitHubApp ancestorGitHubApp = ancestorsGitHubApp.get(ancestorName);
-      log.debug("Checking ancestor: {}, has GitHubApp: {}", ancestorName, ancestorGitHubApp != null);
-      if (ancestorGitHubApp != null) {
-        ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> inheritedDto =
-            new ApiCompositeValueDTO<>();
-        inheritedDto.value = null;
-        inheritedDto.parentName = ancestorName;
-        inheritedDto.parentValue = buildGitHubAppInfo(ancestorGitHubApp);
-        log.debug("Returning inherited GitHub App from ancestor: {}", ancestorName);
-        return List.of(inheritedDto);
+      List<GitHubApp> ancestorGitHubApps = ancestorsGitHubApp.getOrDefault(ancestorName, List.of());
+      log.debug("Checking ancestor: {}, gitHubApps.size: {}", ancestorName, ancestorGitHubApps.size());
+      if (!ancestorGitHubApps.isEmpty()) {
+        log.debug("Returning {} inherited GitHub Apps from ancestor: {}", ancestorGitHubApps.size(), ancestorName);
+        return ancestorGitHubApps.stream()
+            .map(app -> {
+              ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> inheritedDto =
+                  new ApiCompositeValueDTO<>();
+              inheritedDto.value = null;
+              inheritedDto.parentName = ancestorName;
+              inheritedDto.parentValue = buildGitHubAppInfo(app);
+              return inheritedDto;
+            })
+            .collect(Collectors.toList());
       }
     }
 
     log.debug("No GitHub Apps found at any level for ownerId: {}", ownerId);
     return List.of();
-  }
-
-  private ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> collateGitHubAppCompositeDTO(
-      final String ownerId,
-      final List<String> ancestorsNameHierarchy,
-      final Map<String, GitHubApp> ancestorsGitHubApp,
-      final GitHubApp ownerGitHubApp)
-  {
-    ApiCompositeValueDTO<ApiCompositeSourceControlDTO.GitHubAppInfo> dto = new ApiCompositeValueDTO<>();
-
-    if (ownerGitHubApp != null) {
-      dto.value = buildGitHubAppInfo(ownerGitHubApp);
-    }
-
-    for (String ancestorName : ancestorsNameHierarchy) {
-      GitHubApp ancestorGitHubApp = ancestorsGitHubApp.get(ancestorName);
-      if (ancestorGitHubApp != null) {
-        dto.parentName = ancestorName;
-        dto.parentValue = buildGitHubAppInfo(ancestorGitHubApp);
-        break;
-      }
-    }
-
-    return dto;
   }
 
   private ApiCompositeSourceControlDTO.GitHubAppInfo buildGitHubAppInfo(final GitHubApp gitHubApp) {

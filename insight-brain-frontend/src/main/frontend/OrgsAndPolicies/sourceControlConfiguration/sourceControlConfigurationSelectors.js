@@ -71,12 +71,14 @@ export const selectValidationError = createSelector(
     const isTokenRequired = !isGitHubWithAppAuth;
 
     // GitHub App must be configured when GITHUB_APP auth is selected
-    const selectedGithubApp = sourceControl.githubApp?.isInherited
-      ? sourceControl.githubApp?.parentValue
-      : sourceControl.githubApp?.value;
+    if (isGitHubWithAppAuth) {
+      const hasGitHubApps = sourceControl.githubApps?.isInherited
+        ? hasConfiguredGitHubApp(sourceControl.githubApps?.parentValue)
+        : (sourceControl.githubApps?.localCount ?? 0) > 0 || hasConfiguredGitHubApp(sourceControl.githubApps?.value);
 
-    if (isGitHubWithAppAuth && !hasConfiguredGitHubApp(selectedGithubApp)) {
-      return GITHUB_APP_NOT_CONFIGURED_MESSAGE;
+      if (!hasGitHubApps) {
+        return GITHUB_APP_NOT_CONFIGURED_MESSAGE;
+      }
     }
 
     // When PAT is overridden, token must be provided at this level (not parent's)

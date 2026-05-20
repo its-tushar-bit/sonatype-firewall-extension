@@ -411,7 +411,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
               authenticationType: {
                 value: 'GITHUB_APP',
               },
-              githubApp: {
+              githubApps: {
                 value: {
                   installationId: 12345,
                 },
@@ -535,7 +535,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                 authenticationType: {
                   value: 'GITHUB_APP',
                 },
-                githubApp: {
+                githubApps: {
                   value: {
                     installationId: 12345,
                     name: 'test-app',
@@ -605,7 +605,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                 authenticationType: {
                   value: 'GITHUB_APP',
                 },
-                githubApp: {
+                githubApps: {
                   value: null,
                 },
                 username: {
@@ -737,7 +737,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   authenticationType: {
                     value: 'GITHUB_APP',
                   },
-                  githubApp: {
+                  githubApps: {
                     isInherited: true,
                     parentValue: {
                       installationId: 67890,
@@ -809,7 +809,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   authenticationType: {
                     value: 'GITHUB_APP',
                   },
-                  githubApp: {
+                  githubApps: {
                     isInherited: true,
                     parentValue: null, // Parent has no GitHub App configured
                     value: null,
@@ -879,7 +879,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   authenticationType: {
                     value: 'GITHUB_APP',
                   },
-                  githubApp: {
+                  githubApps: {
                     isInherited: false, // Overriding
                     parentValue: {
                       installationId: 67890,
@@ -949,7 +949,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                     value: 'PAT', // Parent uses PAT
                     isInherited: true,
                   },
-                  githubApp: {
+                  githubApps: {
                     isInherited: true,
                     parentValue: null, // No GitHub App because parent uses PAT
                     value: null,
@@ -1027,7 +1027,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isInherited: false,
                   parentValue: null,
                 },
-                githubApp: {
+                githubApps: {
                   value: { installationId: '12345', accountName: 'testorg' },
                   isInherited: false,
                 },
@@ -1096,7 +1096,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isInherited: true,
                   parentValue: 'GITHUB_APP', // Inherited GitHub App
                 },
-                githubApp: {
+                githubApps: {
                   value: null,
                   isInherited: true,
                   parentValue: { installationId: '12345', accountName: 'testorg' },
@@ -1165,7 +1165,7 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   value: 'GITHUB_APP',
                   isInherited: false,
                 },
-                githubApp: {
+                githubApps: {
                   value: { installationId: '12345', accountName: 'testorg' },
                   isInherited: false,
                 },

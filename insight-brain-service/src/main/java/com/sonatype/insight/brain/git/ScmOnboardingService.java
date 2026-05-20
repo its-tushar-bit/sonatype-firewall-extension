@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -168,7 +168,7 @@ public class ScmOnboardingService
 
   private final ScmUserMappingService scmUserMappingService;
 
-  private final GitHubAppDAO gitHubAppDAO;
+  private final GitHubAppSelectionService gitHubAppSelectionService;
 
   @Inject
   public ScmOnboardingService(
@@ -191,7 +191,7 @@ public class ScmOnboardingService
       final ShutdownHandler shutdownHandler,
       final ScmUserMatchingService userMatchingService,
       final ScmUserMappingService scmUserMappingService,
-      final GitHubAppDAO gitHubAppDAO)
+      final GitHubAppSelectionService gitHubAppSelectionService)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -211,7 +211,7 @@ public class ScmOnboardingService
     this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
     this.userMatchingService = userMatchingService;
     this.scmUserMappingService = scmUserMappingService;
-    this.gitHubAppDAO = gitHubAppDAO;
+    this.gitHubAppSelectionService = gitHubAppSelectionService;
     shutdownHandler.add(executor);
   }
 
@@ -1100,7 +1100,7 @@ public class ScmOnboardingService
       final SourceControlProvider provider,
       final String hostUrl) throws IOException
   {
-    GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(orgId);
+    GitHubApp gitHubApp = gitHubAppSelectionService.select(orgId);
 
     if (gitHubApp == null || gitHubApp.getInstallationId() == null) {
       log.warn("No GitHub App found or installation incomplete for organization: {}", orgId);

@@ -21,7 +21,7 @@ describe('GitHubAppAuthenticationMethod', () => {
     authenticationType: {
       value: null,
     },
-    githubApp: {
+    githubApps: {
       value: null,
     },
   };
@@ -33,7 +33,7 @@ describe('GitHubAppAuthenticationMethod', () => {
     authenticationType: {
       value: AUTHENTICATION_TYPES.GITHUB_APP,
     },
-    githubApp: {
+    githubApps: {
       value: {
         installationId: '12345',
         accountName: 'sonatype',
@@ -184,7 +184,7 @@ describe('GitHubAppAuthenticationMethod', () => {
         const sourceControl = {
           ...defaultSourceControl,
           authenticationType: { value: null },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: 12345,
               accountName: 'test-org',
@@ -212,7 +212,7 @@ describe('GitHubAppAuthenticationMethod', () => {
               validationErrors: null,
             },
           },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: 12345,
               accountName: 'test-org',
@@ -233,12 +233,13 @@ describe('GitHubAppAuthenticationMethod', () => {
         const sourceControl = {
           ...defaultSourceControl,
           authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
-          githubApp: {
+          githubApps: {
             value: {
               installationId: 12345,
               accountName: 'test-org',
               name: 'Test App',
             },
+            localCount: 1,
           },
         };
         renderComponent({ sourceControl });
@@ -246,9 +247,10 @@ describe('GitHubAppAuthenticationMethod', () => {
         const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
         expect(githubAppRadio).toBeChecked();
 
-        // GitHub App data should be visible
-        expect(screen.getByText('Organization:')).toBeInTheDocument();
-        expect(screen.getByText('test-org')).toBeInTheDocument();
+        // Shows count and action buttons instead of app details
+        expect(screen.getByText(/1 GitHub App configured/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /add github app/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /manage github apps/i })).toBeInTheDocument();
       });
     });
 
@@ -256,17 +258,17 @@ describe('GitHubAppAuthenticationMethod', () => {
 
   describe('GitHub App Authentication Method', () => {
     describe('when not configured', () => {
-      it('shows Configure GitHub App button when GitHub App is selected', async () => {
+      it('shows Add GitHub App button when GitHub App is selected', async () => {
         const user = userEvent.setup();
         renderComponent();
 
         const githubAppRadio = screen.getByRole('radio', { name: /github app \(recommended\)/i });
         await user.click(githubAppRadio);
 
-        expect(screen.getByRole('button', { name: /configure github app/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /add github app/i })).toBeInTheDocument();
       });
 
-      it('dispatches openModal action when Configure GitHub App button is clicked', async () => {
+      it('dispatches openModal action when Add GitHub App button is clicked', async () => {
         const user = userEvent.setup();
         const openModalSpy = jest.spyOn(actions, 'openModal');
         const sourceControl = {
@@ -275,7 +277,7 @@ describe('GitHubAppAuthenticationMethod', () => {
         };
         renderComponent({ sourceControl });
 
-        const configureButton = screen.getByRole('button', { name: /configure github app/i });
+        const configureButton = screen.getByRole('button', { name: /add github app/i });
         await user.click(configureButton);
 
         // Verify Redux action was dispatched to open modal
@@ -284,93 +286,68 @@ describe('GitHubAppAuthenticationMethod', () => {
         openModalSpy.mockRestore();
       });
 
-      it('disables Configure GitHub App button when fields are disabled', () => {
+      it('disables Add GitHub App button when fields are disabled', () => {
         const sourceControl = {
           ...defaultSourceControl,
           authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
         };
         renderComponent({ sourceControl, areFieldsDisabled: true });
 
-        expect(screen.getByRole('button', { name: /configure github app/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /add github app/i })).toBeDisabled();
       });
     });
 
     describe('when configured', () => {
-      it('shows configured status', () => {
-        renderComponent({ sourceControl: configuredSourceControl });
+      const configuredWithCount = {
+        ...configuredSourceControl,
+        githubApps: {
+          ...configuredSourceControl.githubApps,
+          localCount: 1,
+        },
+      };
 
-        expect(screen.getByText(/organization:/i)).toBeInTheDocument();
-        expect(screen.getByText('sonatype')).toBeInTheDocument();
+      it('shows GitHub App count', () => {
+        renderComponent({ sourceControl: configuredWithCount });
+
+        expect(screen.getByText(/1 GitHub App configured/)).toBeInTheDocument();
       });
 
-      it('displays organization account details', () => {
-        renderComponent({ sourceControl: configuredSourceControl });
-
-        expect(screen.getByText(/organization:/i)).toBeInTheDocument();
-        expect(screen.getByText('sonatype')).toBeInTheDocument();
-      });
-
-      it('displays personal account details when account type is personal', () => {
-        const personalAccountConfig = {
+      it('shows plural count when multiple apps are configured', () => {
+        const multipleApps = {
           ...configuredSourceControl,
-          githubApp: {
-            value: {
-              ...configuredSourceControl.githubApp.value,
-              accountType: 'personal',
-              accountName: 'john-doe',
-            },
+          githubApps: {
+            ...configuredSourceControl.githubApps,
+            localCount: 3,
           },
         };
-        renderComponent({ sourceControl: personalAccountConfig });
+        renderComponent({ sourceControl: multipleApps });
 
-        expect(screen.getByText(/organization:/i)).toBeInTheDocument();
-        expect(screen.getByText('john-doe')).toBeInTheDocument();
+        expect(screen.getByText(/3 GitHub Apps configured/)).toBeInTheDocument();
       });
 
-      it('displays GitHub App name', () => {
+      it('shows Add GitHub App button when configured', () => {
+        renderComponent({ sourceControl: configuredWithCount });
+
+        expect(screen.getByRole('button', { name: /add github app/i })).toBeInTheDocument();
+      });
+
+      it('shows Manage GitHub Apps button when configured', () => {
+        renderComponent({ sourceControl: configuredWithCount });
+
+        expect(screen.getByRole('button', { name: /manage github apps/i })).toBeInTheDocument();
+      });
+
+      it('disables buttons when fields are disabled', () => {
+        renderComponent({ sourceControl: configuredWithCount, areFieldsDisabled: true });
+
+        expect(screen.getByRole('button', { name: /add github app/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /manage github apps/i })).toBeDisabled();
+      });
+
+      it('shows zero count when localCount is not set', () => {
         renderComponent({ sourceControl: configuredSourceControl });
 
-        expect(screen.getByText(/app:/i)).toBeInTheDocument();
-        expect(screen.getByText('Sonatype IQ App')).toBeInTheDocument();
-      });
-
-      it('displays repositories link', () => {
-        renderComponent({ sourceControl: configuredSourceControl });
-
-        const link = screen.getByRole('link', { name: /go to github installation settings/i });
-        expect(link).toBeInTheDocument();
-        expect(link).toHaveAttribute('href', 'https://github.com/organizations/sonatype/settings/installations/12345');
-      });
-
-      it('displays configuration date', () => {
-        renderComponent({ sourceControl: configuredSourceControl });
-
-        expect(screen.getByText(/configuration date:/i)).toBeInTheDocument();
-        expect(screen.getByText(/2024/)).toBeInTheDocument();
-      });
-
-      it('does not show Configure button when already configured', () => {
-        renderComponent({ sourceControl: configuredSourceControl });
-
-        expect(screen.queryByRole('button', { name: /configure github app/i })).not.toBeInTheDocument();
-      });
-
-      it('does not display optional details when fields are not present', () => {
-        const minimalConfig = {
-          ...defaultSourceControl,
-          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
-          githubApp: {
-            value: {
-              installationId: '12345',
-            },
-          },
-        };
-        renderComponent({ sourceControl: minimalConfig });
-
-        expect(screen.getByText(/organization:/i)).toBeInTheDocument();
-        expect(screen.queryByText(/app:/i)).not.toBeInTheDocument();
-        expect(screen.queryByRole('link', { name: /go to github repositories/i })).not.toBeInTheDocument();
-        expect(screen.queryByText(/configuration date:/i)).not.toBeInTheDocument();
+        expect(screen.getByText(/0 GitHub Apps configured/)).toBeInTheDocument();
       });
     });
   });
@@ -516,12 +493,12 @@ describe('GitHubAppAuthenticationMethod', () => {
       };
       renderComponent({ sourceControl });
 
-      expect(screen.getByRole('button', { name: /configure github app/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /add github app/i })).toBeInTheDocument();
 
       const patRadio = screen.getByRole('radio', { name: /personal access token/i });
       await user.click(patRadio);
 
-      expect(screen.queryByRole('button', { name: /configure github app/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /add github app/i })).not.toBeInTheDocument();
       expect(document.querySelector('#source-control-token')).toBeInTheDocument();
     });
 
@@ -539,7 +516,7 @@ describe('GitHubAppAuthenticationMethod', () => {
       await user.click(githubAppRadio);
 
       expect(document.querySelector('#source-control-token')).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /configure github app/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /add github app/i })).toBeInTheDocument();
     });
 
     it('does not call setValue when setValue is not provided', async () => {
@@ -618,7 +595,7 @@ describe('GitHubAppAuthenticationMethod', () => {
           isInherited: true,
           parentValue: AUTHENTICATION_TYPES.GITHUB_APP,
         },
-        githubApp: {
+        githubApps: {
           value: null,
           isInherited: true,
           parentName: 'Root Organization',
@@ -654,8 +631,8 @@ describe('GitHubAppAuthenticationMethod', () => {
             ...inheritedGitHubAppSourceControl.token,
             parentValue: null, // No parent token either
           },
-          githubApp: {
-            ...inheritedGitHubAppSourceControl.githubApp,
+          githubApps: {
+            ...inheritedGitHubAppSourceControl.githubApps,
             parentName: null, // No parent has GitHub App
             parentValue: null,
           },
@@ -674,42 +651,12 @@ describe('GitHubAppAuthenticationMethod', () => {
         expect(inheritRadio).toBeChecked();
       });
 
-      it('displays inherited GitHub App details box when parent has GitHub App installed', () => {
-        const setIsInherited = jest.fn();
-        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
-
-        // Verify details box renders
-        expect(screen.getByText('Organization:')).toBeInTheDocument();
-        expect(screen.getByText('parent-org')).toBeInTheDocument();
-        expect(screen.getByText('App:')).toBeInTheDocument();
-        expect(screen.getByText('Parent GitHub App')).toBeInTheDocument();
-      });
-
-      it('displays GitHub installation link for inherited GitHub App', () => {
-        const setIsInherited = jest.fn();
-        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
-
-        const link = screen.getByRole('link', { name: /view github app configuration/i });
-        expect(link).toBeInTheDocument();
-        expect(link).toHaveAttribute(
-          'href',
-          'https://github.com/organizations/parent-org/settings/installations/99999'
-        );
-      });
-
-      it('displays configuration date for inherited GitHub App', () => {
-        const setIsInherited = jest.fn();
-        renderComponent({ sourceControl: inheritedGitHubAppSourceControl, setIsInherited });
-
-        expect(screen.getByText(/configuration date:/i)).toBeInTheDocument();
-        expect(screen.getByText(/2024/)).toBeInTheDocument();
-      });
 
       it('does NOT display GitHub App details when parent has no installation (hasParentConfig check)', () => {
         const sourceControl = {
           ...inheritedGitHubAppSourceControl,
-          githubApp: {
-            ...inheritedGitHubAppSourceControl.githubApp,
+          githubApps: {
+            ...inheritedGitHubAppSourceControl.githubApps,
             parentName: null,
             parentValue: null, // No installation data
           },
@@ -725,8 +672,8 @@ describe('GitHubAppAuthenticationMethod', () => {
       it('does NOT display GitHub App details when parent selected GitHub App but has no installationId', () => {
         const sourceControl = {
           ...inheritedGitHubAppSourceControl,
-          githubApp: {
-            ...inheritedGitHubAppSourceControl.githubApp,
+          githubApps: {
+            ...inheritedGitHubAppSourceControl.githubApps,
             parentValue: {
               accountName: 'parent-org',
               // installationId missing - edge case
@@ -788,23 +735,6 @@ describe('GitHubAppAuthenticationMethod', () => {
         expect(setIsInherited).toHaveBeenCalledWith('authenticationType', true);
       });
 
-      it('displays personal account URL when parent has personal account type', () => {
-        const sourceControl = {
-          ...inheritedGitHubAppSourceControl,
-          githubApp: {
-            ...inheritedGitHubAppSourceControl.githubApp,
-            parentValue: {
-              ...inheritedGitHubAppSourceControl.githubApp.parentValue,
-              accountName: 'john-doe(personal)',
-            },
-          },
-        };
-        const setIsInherited = jest.fn();
-        renderComponent({ sourceControl, setIsInherited });
-
-        const link = screen.getByRole('link', { name: /view github app configuration/i });
-        expect(link).toHaveAttribute('href', 'https://github.com/settings/installations/99999');
-      });
 
       it('displays inherited PAT token field when parent uses PAT', () => {
         const sourceControl = {
@@ -813,8 +743,8 @@ describe('GitHubAppAuthenticationMethod', () => {
             ...inheritedGitHubAppSourceControl.authenticationType,
             parentValue: AUTHENTICATION_TYPES.PAT,
           },
-          githubApp: {
-            ...inheritedGitHubAppSourceControl.githubApp,
+          githubApps: {
+            ...inheritedGitHubAppSourceControl.githubApps,
             parentName: null,
             parentValue: null,
           },
@@ -830,6 +760,51 @@ describe('GitHubAppAuthenticationMethod', () => {
         const tokenInput = document.querySelector('#source-control-token');
         expect(tokenInput).toBeInTheDocument();
         expect(tokenInput).toBeDisabled();
+      });
+    });
+
+    describe('application-level GitHub App limit', () => {
+      const appSourceControlWithOneApp = {
+        ...defaultSourceControl,
+        authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
+        githubApps: {
+          value: { installationId: '12345', accountName: 'sonatype', name: 'My App' },
+          localCount: 1,
+        },
+      };
+
+      it('disables Add GitHub App button on application nodes when one GitHub App is configured', () => {
+        renderComponent({ sourceControl: appSourceControlWithOneApp, isApplication: true, setIsInherited: jest.fn() });
+
+        const addButton = screen.getByRole('button', { name: /add github app/i });
+        expect(addButton).toBeDisabled();
+      });
+
+      it('shows tooltip explaining the limit on application nodes', () => {
+        renderComponent({ sourceControl: appSourceControlWithOneApp, isApplication: true, setIsInherited: jest.fn() });
+
+        expect(screen.getByRole('button', { name: /add github app/i }).closest('[title]') ||
+          screen.getByRole('button', { name: /add github app/i }).closest('span')?.parentElement
+        ).toBeTruthy();
+      });
+
+      it('does not disable Add GitHub App button on organization nodes with one GitHub App', () => {
+        renderComponent({ sourceControl: appSourceControlWithOneApp, isApplication: false, setIsInherited: jest.fn() });
+
+        const addButton = screen.getByRole('button', { name: /add github app/i });
+        expect(addButton).not.toBeDisabled();
+      });
+
+      it('does not disable Add GitHub App button on application nodes with zero GitHub Apps', () => {
+        const sourceControl = {
+          ...defaultSourceControl,
+          authenticationType: { value: AUTHENTICATION_TYPES.GITHUB_APP },
+          githubApps: { value: null, localCount: 0 },
+        };
+        renderComponent({ sourceControl, isApplication: true, setIsInherited: jest.fn() });
+
+        const addButton = screen.getByRole('button', { name: /add github app/i });
+        expect(addButton).not.toBeDisabled();
       });
     });
 
@@ -861,7 +836,7 @@ describe('GitHubAppAuthenticationMethod', () => {
         const setIsInherited = jest.fn();
         const sourceControl = {
           ...defaultSourceControl,
-          githubApp: {
+          githubApps: {
             value: null,
             isInherited: false,
           },

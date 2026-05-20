@@ -166,7 +166,7 @@ public class ApplicationCleanerTest
   @Test
   public void testDelete_NoGitHubApps_StillSucceeds() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
-    assertThat(gitHubAppDAO.getByOwnerId(application.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(application.getId())).isEmpty();
 
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();

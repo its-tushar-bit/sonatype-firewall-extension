@@ -33,6 +33,7 @@ import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditAp
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
+import ManageGitHubApps from 'MainRoot/OrgsAndPolicies/manageGitHubApps/ManageGitHubApps';
 
 // Abstract parent state
 router.stateRegistry.register({
@@ -221,6 +222,15 @@ ownerTypes.forEach((ownerType) => {
     data: {
       title: 'Source Control',
       isDirty: ['orgsAndPolicies', 'sourceControlConfiguration', 'isDirty'],
+    },
+  });
+
+  router.stateRegistry.register({
+    name: `management.edit.${ownerType.type}.manage-github-apps`,
+    url: '/manage-github-apps',
+    component: ManageGitHubApps,
+    data: {
+      title: 'Manage GitHub Apps',
     },
   });
 

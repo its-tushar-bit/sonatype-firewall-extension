@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.api.v2.dto.githubapp.ApiGitHubAppManifestDTO;
+import com.sonatype.insight.brain.api.v2.githubapp.ApiGitHubAppListDTO;
 import com.sonatype.insight.brain.api.v2.dto.githubapp.Manifest;
 import com.sonatype.insight.brain.api.v2.githubapp.ApiGitHubAppResource;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppRegistrationState;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.github.GitHubAppManagementClient;
 import java.security.PrivateKey;
 import java.util.Map;
@@ -99,6 +101,8 @@ public class ApiGitHubAppService
 
   private final GitHubAppAuthStrategyCache authStrategyCache;
 
+  private final GitHubAppSelectionCache selectionCache;
+
   private final String githubApiBaseUrl;
 
   private final String githubOAuthTokenUrl;
@@ -116,12 +120,13 @@ public class ApiGitHubAppService
       final InsightProxy insightProxy,
       final GitHubManifestService gitHubManifestService,
       final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubAppSelectionCache selectionCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
       final BaseUrl baseUrl)
   {
     this(gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
-        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, gitHubAppDeletionService,
-        DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, selectionCache,
+        gitHubAppDeletionService, DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
   }
 
   ApiGitHubAppService(
@@ -134,6 +139,7 @@ public class ApiGitHubAppService
       final InsightProxy insightProxy,
       final GitHubManifestService gitHubManifestService,
       final GitHubAppAuthStrategyCache authStrategyCache,
+      final GitHubAppSelectionCache selectionCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
       final String githubApiBaseUrl,
       final String githubOAuthTokenUrl,
@@ -148,10 +154,61 @@ public class ApiGitHubAppService
     this.insightProxy = insightProxy;
     this.gitHubManifestService = gitHubManifestService;
     this.authStrategyCache = authStrategyCache;
+    this.selectionCache = selectionCache;
     this.gitHubAppDeletionService = gitHubAppDeletionService;
     this.githubApiBaseUrl = githubApiBaseUrl;
     this.githubOAuthTokenUrl = githubOAuthTokenUrl;
     this.baseUrl = baseUrl;
+  }
+
+  public List<ApiGitHubAppListDTO> listGitHubApps(final String ownerId) {
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+    return listGitHubAppsAuthorized(owner);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  List<ApiGitHubAppListDTO> listGitHubAppsAuthorized(@AuthzContext(Key.OWNER) final Owner owner) {
+    List<GitHubApp> apps = gitHubAppDAO.getAllByOwnerId(owner.getId());
+    return apps.stream().map(this::toListDTO).toList();
+  }
+
+  public void deleteGitHubApp(final String githubAppId, final String ownerId) {
+    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+    deleteGitHubAppAuthorized(owner, githubAppId);
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void deleteGitHubAppAuthorized(@AuthzContext(Key.OWNER) final Owner owner, final String githubAppId) {
+    GitHubApp gitHubApp = gitHubAppDAO.getByGithubAppId(githubAppId);
+    if (gitHubApp == null || !owner.getId().equals(gitHubApp.getOwnerId())) {
+      throw new NotFoundException("GitHub App not found for owner");
+    }
+    gitHubAppDeletionService.delete(gitHubApp);
+  }
+
+  private ApiGitHubAppListDTO toListDTO(final GitHubApp app) {
+    String installationUrl = buildInstallationUrl(app);
+    return new ApiGitHubAppListDTO(
+        app.getId(),
+        app.getAppId(),
+        app.getSlug(),
+        app.getGithubOrganizationName(),
+        app.getInstallationId(),
+        app.isActive(),
+        app.getLastUpdatedAt() != null ? app.getLastUpdatedAt().toInstant().toString() : null,
+        installationUrl);
+  }
+
+  private String buildInstallationUrl(final GitHubApp app) {
+    if (app.getInstallationId() == null) {
+      return null;
+    }
+    String orgName = app.getGithubOrganizationName();
+    boolean isPersonal = orgName == null || orgName.endsWith(PERSONAL_ACCOUNT_MARKER);
+    if (isPersonal) {
+      return "https://github.com/settings/installations/" + app.getInstallationId();
+    }
+    return "https://github.com/organizations/" + orgName + "/settings/installations/" + app.getInstallationId();
   }
 
   /**
@@ -399,7 +456,8 @@ public class ApiGitHubAppService
       gitHubAppDAO.insert(tx, gitHubApp);
       tx.commit();
 
-      authStrategyCache.invalidate(gitHubApp.getOwnerId());
+      selectionCache.invalidateAll();
+      authStrategyCache.invalidate(gitHubApp.getId());
 
       return toGitHubAppDTO(gitHubApp);
     }
@@ -535,6 +593,7 @@ public class ApiGitHubAppService
 
       gitHubApp.setOwnerId(ownerId);
       gitHubApp.setInstallationId(installationId);
+      gitHubApp.setActive(true);
       if (PERSONAL_ACCOUNT_MARKER.equals(gitHubApp.getGithubOrganizationName())) {
         gitHubApp.setGithubOrganizationName(accountName + PERSONAL_ACCOUNT_MARKER);
       }
@@ -544,8 +603,9 @@ public class ApiGitHubAppService
 
       tx.commit();
 
-      // Invalidate cache after GitHub App configuration update
-      authStrategyCache.invalidate(ownerId);
+      // Invalidate caches after GitHub App configuration update
+      selectionCache.invalidateAll();
+      authStrategyCache.invalidate(gitHubApp.getId());
     }
   }
 

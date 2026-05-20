@@ -1869,6 +1869,14 @@ export function getGitHubAppManifestUrl(ownerId, organizationName) {
   return organizationName ? `${baseUrl}&organizationName=${encodeURIComponent(organizationName)}` : baseUrl;
 }
 
+export function getGitHubAppsListUrl(ownerId) {
+  return uriTemplate`/api/v2/githubApp?ownerId=${ownerId}`;
+}
+
+export function getGitHubAppDeleteUrl(githubAppId, ownerId) {
+  return uriTemplate`/api/v2/githubApp/${githubAppId}?ownerId=${ownerId}`;
+}
+
 // --- Consumption / Usage Dashboard ---
 export const getConsumptionSummaryUrl = () => uriTemplate`/api/v2/consumption/summary`;
 

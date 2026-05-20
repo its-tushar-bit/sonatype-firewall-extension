@@ -409,7 +409,7 @@ describe('GitHubAppRegistrationModal', () => {
                   value: AUTHENTICATION_TYPES.GITHUB_APP,
                   isInherited: false,
                 },
-                githubApp: {
+                githubApps: {
                   value: null,
                   isInherited: false,
                   parentValue: null,

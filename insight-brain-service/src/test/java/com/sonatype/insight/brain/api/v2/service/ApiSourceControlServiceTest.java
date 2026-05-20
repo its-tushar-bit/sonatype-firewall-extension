@@ -1790,7 +1790,7 @@ public class ApiSourceControlServiceTest
   @Test
   public void testAddSourceControlByOwner_NoneToGitHubApp_CreatesGitHubAppEntry() {
     assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
     ApiSourceControlDTO newSourceControl = new ApiSourceControlDTO();
     newSourceControl.ownerId = app.getId();
     newSourceControl.repositoryUrl = "https://github.com/test/repo";
@@ -1804,35 +1804,6 @@ public class ApiSourceControlServiceTest
     assertThat(created.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
     assertThat(created.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
     assertThat(created.getToken()).isNull();
-  }
-
-  @Test
-  public void testAddSourceControlByOwner_WithInactiveGitHubApp_ActivatesIt() {
-    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
-    gitHubApp.setActive(false);
-    gitHubAppDAO.update(gitHubApp);
-
-    assertThat(sourceControlDAO.getByOwnerId(app.getId())).isNull();
-
-    ApiSourceControlDTO newSourceControl = new ApiSourceControlDTO();
-    newSourceControl.ownerId = app.getId();
-    newSourceControl.repositoryUrl = "https://github.com/test/repo";
-    newSourceControl.authenticationType = SourceControl.AuthenticationType.GITHUB_APP.name();
-    newSourceControl.provider = SourceControlProvider.GITHUB.name().toLowerCase();
-    newSourceControl.githubAppId = gitHubApp.getId();
-
-    ApiSourceControlDTO result = sourceControlService.addSourceControlByOwner(
-        OwnerType.APPLICATION, app.getId(), newSourceControl);
-
-    assertThat(result).isNotNull();
-    SourceControl created = sourceControlDAO.getByOwnerId(app.getId());
-    assertThat(created).isNotNull();
-    assertThat(created.getAuthenticationType()).isEqualTo(SourceControl.AuthenticationType.GITHUB_APP);
-    assertThat(created.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
-
-    GitHubApp activated = gitHubAppDAO.getById(gitHubApp.getId());
-    assertThat(activated).isNotNull();
-    assertThat(activated.isActive()).isTrue();
   }
 
   @Test

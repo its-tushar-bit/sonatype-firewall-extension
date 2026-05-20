@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,7 +12,6 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 
-import com.sonatype.insight.dataaccess.TransactionContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,62 +69,54 @@ public class GitHubAppDAOTest
   }
 
   @Test
-  public void testGetNearestGitHubApp_DirectOwner() {
-    // Setup: Create org with GitHub App
+  public void testGetNearestGitHubApps_DirectOwner() {
     var org = tempEntity.newOrganization();
     GitHubApp expectedApp = createGitHubApp(org.getId(), 100L, true);
 
-    // Test: Should find GitHub App at org level
-    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(org.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(org.getId());
 
-    assertThat(result).isNotNull();
-    assertThat(result.getOwnerId()).isEqualTo(org.getId());
-    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getOwnerId()).isEqualTo(org.getId());
+    assertThat(result.get(0).getId()).isEqualTo(expectedApp.getId());
   }
 
   @Test
-  public void testGetNearestGitHubApp_InheritedFromParent() {
-    // Setup: Create hierarchy - Root Org (with GitHub App) -> Child Org -> Application
+  public void testGetNearestGitHubApps_InheritedFromParent() {
     var rootOrg = tempEntity.newOrganization();
     GitHubApp expectedApp = createGitHubApp(rootOrg.getId(), 100L, true);
     var childOrg = tempEntity.newOrganization(rootOrg);
     var app = tempEntity.newApplication(childOrg.getId());
 
-    // Test: App should inherit GitHub App from root org
-    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    assertThat(result).isNotNull();
-    assertThat(result.getOwnerId()).isEqualTo(rootOrg.getId());
-    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getOwnerId()).isEqualTo(rootOrg.getId());
+    assertThat(result.get(0).getId()).isEqualTo(expectedApp.getId());
   }
 
   @Test
-  public void testGetNearestGitHubApp_ClosestInHierarchy() {
-    // Setup: Create hierarchy with GitHub Apps at multiple levels
+  public void testGetNearestGitHubApps_ClosestInHierarchy() {
     var rootOrg = tempEntity.newOrganization();
     createGitHubApp(rootOrg.getId(), 100L, true);
     var childOrg = tempEntity.newOrganization(rootOrg);
     GitHubApp expectedApp = createGitHubApp(childOrg.getId(), 200L, true);
     var app = tempEntity.newApplication(childOrg.getId());
 
-    // Test: Should return the closest GitHub App (child org, not root)
-    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    assertThat(result).isNotNull();
-    assertThat(result.getOwnerId()).isEqualTo(childOrg.getId());
-    assertThat(result.getId()).isEqualTo(expectedApp.getId());
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getOwnerId()).isEqualTo(childOrg.getId());
+    assertThat(result.get(0).getId()).isEqualTo(expectedApp.getId());
   }
 
   @Test
-  public void testGetNearestGitHubApp_NoGitHubAppInHierarchy() {
-    // Setup: Create hierarchy without GitHub App
+  public void testGetNearestGitHubApps_NoGitHubAppInHierarchy() {
     var org = tempEntity.newOrganization();
     var app = tempEntity.newApplication(org.getId());
 
-    // Test: Should return null when no GitHub App exists
-    GitHubApp result = gitHubAppDAO.getNearestGitHubApp(app.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    assertThat(result).isNull();
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -162,78 +151,57 @@ public class GitHubAppDAOTest
   }
 
   @Test
-  public void testActivateGitHubApp_DeactivatesOthersAndActivatesOne() {
-    var org = tempEntity.newOrganization();
-    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
-    GitHubApp app2 = createGitHubApp(org.getId(), 200L, false);
+  public void testGetNearestGitHubApps_ReturnsAllActiveAtNearestLevel() {
+    var rootOrg = tempEntity.newOrganization();
+    var childOrg = tempEntity.newOrganization(rootOrg);
+    var app = tempEntity.newApplication(childOrg.getId());
 
-    gitHubAppDAO.activateGitHubApp(org.getId(), app2.getId());
+    createGitHubApp(childOrg.getId(), 111L, true);
+    createGitHubApp(childOrg.getId(), 222L, true);
+    createGitHubApp(rootOrg.getId(), 333L, true);
 
-    GitHubApp updatedApp1 = gitHubAppDAO.getById(app1.getId());
-    GitHubApp updatedApp2 = gitHubAppDAO.getById(app2.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    assertThat(updatedApp1.isActive()).isFalse();
-    assertThat(updatedApp2.isActive()).isTrue();
+    assertThat(result).hasSize(2);
+    assertThat(result).allMatch(a -> a.getOwnerId().equals(childOrg.getId()));
   }
 
   @Test
-  public void testActivateGitHubApp_UpdatesLastUpdatedAtOnDeactivatedSiblings() {
+  public void testGetNearestGitHubApps_ExcludesInactiveApps() {
     var org = tempEntity.newOrganization();
-    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
-    GitHubApp app2 = createGitHubApp(org.getId(), 200L, false);
-    Date app2OriginalLastUpdatedAt = gitHubAppDAO.getById(app2.getId()).getLastUpdatedAt();
-    Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    var app = tempEntity.newApplication(org.getId());
 
-    gitHubAppDAO.activateGitHubApp(org.getId(), app2.getId());
+    createGitHubApp(org.getId(), 111L, true);
+    createGitHubApp(org.getId(), 222L, false);
 
-    GitHubApp deactivated = gitHubAppDAO.getById(app1.getId());
-    GitHubApp activated = gitHubAppDAO.getById(app2.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    // deactivated sibling must have its LAST_UPDATED_AT refreshed so the 7-day cleanup window starts now
-    assertThat(deactivated.getLastUpdatedAt().toInstant()).isAfterOrEqualTo(before);
-    // activated app must not have its LAST_UPDATED_AT changed
-    assertThat(activated.getLastUpdatedAt()).isEqualTo(app2OriginalLastUpdatedAt);
-  }
-
-  @Test(expected = com.sonatype.insight.error.exception.NotFoundException.class)
-  public void testActivateGitHubApp_ThrowsExceptionWhenAppNotFound() {
-    var org = tempEntity.newOrganization();
-
-    gitHubAppDAO.activateGitHubApp(org.getId(), "non-existent-id");
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getInstallationId()).isEqualTo(111L);
   }
 
   @Test
-  public void testDeactivateAllForOwner_DeactivatesAllApps() {
+  public void testGetNearestGitHubApps_EmptyWhenNoApps() {
     var org = tempEntity.newOrganization();
-    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
-    GitHubApp app2 = createGitHubApp(org.getId(), 200L, true);
+    var app = tempEntity.newApplication(org.getId());
 
-    gitHubAppDAO.deactivateAllForOwner(org.getId());
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    GitHubApp updatedApp1 = gitHubAppDAO.getById(app1.getId());
-    GitHubApp updatedApp2 = gitHubAppDAO.getById(app2.getId());
-
-    assertThat(updatedApp1.isActive()).isFalse();
-    assertThat(updatedApp2.isActive()).isFalse();
+    assertThat(result).isEmpty();
   }
 
   @Test
-  public void testDeactivateAllForOwner_NoErrorWhenNoApps() {
+  public void testGetNearestGitHubApps_OrderedByGitHubAppId() {
     var org = tempEntity.newOrganization();
+    var app = tempEntity.newApplication(org.getId());
 
-    gitHubAppDAO.deactivateAllForOwner(org.getId());
-  }
+    createGitHubApp(org.getId(), 111L, true);
+    createGitHubApp(org.getId(), 222L, true);
 
-  @Test
-  public void testDeactivateAllForOwner_UpdatesLastUpdatedAt() {
-    var org = tempEntity.newOrganization();
-    GitHubApp app = createGitHubApp(org.getId(), 100L, true);
-    Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    var result = gitHubAppDAO.getNearestGitHubApps(app.getId());
 
-    gitHubAppDAO.deactivateAllForOwner(org.getId());
-
-    GitHubApp updated = gitHubAppDAO.getById(app.getId());
-    assertThat(updated.getLastUpdatedAt().toInstant()).isAfterOrEqualTo(before);
+    var ids = result.stream().map(GitHubApp::getId).toList();
+    assertThat(ids).isSorted();
   }
 
   private GitHubApp createGitHubApp(String ownerId, long installationId, boolean isActive) {
@@ -252,55 +220,6 @@ public class GitHubAppDAOTest
     gitHubApp.setInstallationId(installationId);
     gitHubApp.setActive(isActive);
     return tempEntity.newGitHubApp(gitHubApp);
-  }
-
-  @Test
-  public void testDeactivateAllForOwner_WithTransactionCommit_PersistsChanges() {
-    var org = tempEntity.newOrganization();
-    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
-    GitHubApp app2 = createGitHubApp(org.getId(), 200L, true);
-    GitHubApp app3 = createGitHubApp(org.getId(), 300L, false);
-
-    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
-    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isTrue();
-    assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
-
-    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
-      tx.begin();
-      gitHubAppDAO.deactivateAllForOwner(tx, org.getId());
-      tx.commit();
-    }
-
-    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isFalse();
-    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
-    assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
-  }
-
-  @Test
-  public void testDeactivateAllForOwner_WithTransactionRollback_RevertsChanges() {
-    var org = tempEntity.newOrganization();
-    GitHubApp app1 = createGitHubApp(org.getId(), 100L, true);
-    GitHubApp app2 = createGitHubApp(org.getId(), 200L, false);
-    GitHubApp app3 = createGitHubApp(org.getId(), 300L, false);
-
-    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
-    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
-    assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
-
-    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
-      tx.begin();
-      gitHubAppDAO.deactivateAllForOwner(tx, org.getId());
-
-      assertThat(gitHubAppDAO.getById(tx, app1.getId()).isActive()).isFalse();
-      assertThat(gitHubAppDAO.getById(tx, app2.getId()).isActive()).isFalse();
-      assertThat(gitHubAppDAO.getById(tx, app3.getId()).isActive()).isFalse();
-
-      tx.rollback();
-    }
-
-    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
-    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
-    assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
   }
 
   @Test

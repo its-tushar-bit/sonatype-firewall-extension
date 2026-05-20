@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVer
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
@@ -88,6 +89,9 @@ public class ManualPullRequestServiceTest
   @Mock
   private GitHubAppDAO mockGitHubAppDAO;
 
+  @Mock
+  private GitHubAppSelectionService mockGitHubAppSelectionService;
+
   @Inject
   private ManualPullRequestService manualPullRequestService;
 
@@ -96,6 +100,7 @@ public class ManualPullRequestServiceTest
     super.configure(binder);
     binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
     binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
+    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
   }
 
   @Before
@@ -492,7 +497,7 @@ public class ManualPullRequestServiceTest
     sourceControl.setToken(null);
     sourceControlDAO.updateWithoutValidation(sourceControl);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubApp);
+    when(mockGitHubAppSelectionService.select(app.getId())).thenReturn(githubApp);
 
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
     remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
@@ -516,7 +521,7 @@ public class ManualPullRequestServiceTest
     sourceControl.setToken(null);
     sourceControlDAO.updateWithoutValidation(sourceControl);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(null);
+    when(mockGitHubAppSelectionService.select(app.getId())).thenReturn(null);
 
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
     remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
@@ -543,7 +548,7 @@ public class ManualPullRequestServiceTest
     sourceControl.setToken(null);
     sourceControlDAO.updateWithoutValidation(sourceControl);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubApp);
+    when(mockGitHubAppSelectionService.select(app.getId())).thenReturn(githubApp);
 
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
     remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
@@ -577,7 +582,7 @@ public class ManualPullRequestServiceTest
     sourceControlDAO.updateWithoutValidation(sourceControl);
 
     // Mock the DAO to return the GitHubApp with null ownerId
-    when(mockGitHubAppDAO.getNearestGitHubApp(app.getId())).thenReturn(githubAppWithNullOwnerId);
+    when(mockGitHubAppSelectionService.select(app.getId())).thenReturn(githubAppWithNullOwnerId);
 
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
     remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");
@@ -613,7 +618,7 @@ public class ManualPullRequestServiceTest
     sourceControl.setManualPullRequestsEnabled(true);
     tempEntity.newSourceControl(sourceControl);
 
-    when(mockGitHubAppDAO.getNearestGitHubApp(childApp.getId())).thenReturn(githubApp);
+    when(mockGitHubAppSelectionService.select(childApp.getId())).thenReturn(githubApp);
 
     ApiComponentRemediationValueDTO remediationDto = new ApiComponentRemediationValueDTO();
     remediationDto.suggestedVersionChange = getSuggestedVersionChange("1.0.0");

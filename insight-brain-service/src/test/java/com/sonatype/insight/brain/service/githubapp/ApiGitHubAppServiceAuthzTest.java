@@ -108,6 +108,7 @@ public class ApiGitHubAppServiceAuthzTest
         insightProxy,
         gitHubManifestService,
         mock(GitHubAppAuthStrategyCache.class),
+        mock(GitHubAppSelectionCache.class),
         mock(GitHubAppDeletionService.class),
         mockServerUrl, // githubApiBaseUrl
         mockServerUrl, // githubOAuthTokenUrl
@@ -211,6 +212,43 @@ public class ApiGitHubAppServiceAuthzTest
 
     service.handleManifestConversionAndRegistration(
         "test-code", registrationState.getStateToken());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testListGitHubApps_Unauthenticated() {
+    service.listGitHubApps(org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testListGitHubApps_Unauthorized() {
+    login();
+    service.listGitHubApps(org.getId());
+  }
+
+  @Test
+  public void testListGitHubApps_Authorized() {
+    grantWritePermission(org.getId());
+    service.listGitHubApps(org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteGitHubApp_Unauthenticated() {
+    GitHubApp gitHubApp = createGitHubApp();
+    service.deleteGitHubApp(gitHubApp.getId(), org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteGitHubApp_Unauthorized() {
+    GitHubApp gitHubApp = createGitHubApp();
+    login();
+    service.deleteGitHubApp(gitHubApp.getId(), org.getId());
+  }
+
+  @Test
+  public void testDeleteGitHubApp_Authorized() {
+    GitHubApp gitHubApp = createGitHubApp();
+    grantWritePermission(org.getId());
+    service.deleteGitHubApp(gitHubApp.getId(), org.getId());
   }
 
   private GitHubApp createGitHubApp() {

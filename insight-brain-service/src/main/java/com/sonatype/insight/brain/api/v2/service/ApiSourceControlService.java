@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.service.githubapp.GitHubAppDeletionService;
 import com.sonatype.insight.brain.utils.ExceptionUtils;
-import com.sonatype.insight.brain.utils.SourceControlAuthenticationTransitionHandler;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -138,8 +137,6 @@ public class ApiSourceControlService
 
   private final SourceControlDataService sourceControlDataService;
 
-  private final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler;
-
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   private final GitHubAppDeletionService gitHubAppDeletionService;
@@ -165,7 +162,6 @@ public class ApiSourceControlService
       final ScmRepoVisibilityService scmRepoVisibilityService,
       final ApiSourceControlAdapter apiSourceControlAdapter,
       final SourceControlDataService sourceControlDataService,
-      final SourceControlAuthenticationTransitionHandler sourceControlAuthenticationTransitionHandler,
       final GitHubAppDeletionService gitHubAppDeletionService)
   {
     this.passwordHandler = passwordHandler;
@@ -186,7 +182,6 @@ public class ApiSourceControlService
     this.scmRepoVisibilityService = scmRepoVisibilityService;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.sourceControlDataService = sourceControlDataService;
-    this.sourceControlAuthenticationTransitionHandler = sourceControlAuthenticationTransitionHandler;
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
     this.gitHubAppDeletionService = gitHubAppDeletionService;
   }
@@ -346,12 +341,7 @@ public class ApiSourceControlService
       throw new BadRequestException(String.format(
           "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
-    try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
-      tx.begin();
-      sourceControlAuthenticationTransitionHandler.handleAuthTransition(tx, null, sourceControl, sourceControlDTO);
-      sourceControlDAO.insert(tx, sourceControl);
-      tx.commit();
-    }
+    sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
 
     ensureDefaultSourceControlConfigurationExists();
@@ -397,12 +387,25 @@ public class ApiSourceControlService
 
     boolean hasRepositoryUrlChanged = storedSourceControl.getRepositoryUrl() != null &&
         !storedSourceControl.getRepositoryUrl().equalsIgnoreCase(sourceControl.getRepositoryUrl());
-    try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
-      tx.begin();
-      sourceControlAuthenticationTransitionHandler.handleAuthTransition(tx, storedSourceControl, sourceControl,
-          sourceControlDTO);
-      sourceControlDAO.update(tx, sourceControl);
-      tx.commit();
+    sourceControlDAO.update(sourceControl);
+
+    if (storedSourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP
+        && sourceControl.getAuthenticationType() != SourceControl.AuthenticationType.GITHUB_APP)
+    {
+      try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
+        tx.begin();
+        gitHubAppDeletionService.deactivateGitHubApps(tx, ownerId);
+        tx.commit();
+      }
+    }
+    else if (storedSourceControl.getAuthenticationType() != SourceControl.AuthenticationType.GITHUB_APP
+        && sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP)
+    {
+      try (final TransactionContext tx = sourceControlDAO.createTransactionContext()) {
+        tx.begin();
+        gitHubAppDeletionService.reactivateGitHubApps(tx, ownerId);
+        tx.commit();
+      }
     }
 
     if (hasRepositoryUrlChanged) {

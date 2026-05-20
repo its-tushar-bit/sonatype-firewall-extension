@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -67,6 +68,9 @@ public class GitHubAppDeletionServiceTest
   @Mock
   private GitHubAppAuthStrategyCache mockCache;
 
+  @Mock
+  private GitHubAppSelectionCache mockSelectionCache;
+
   @Inject
   private GitHubAppDeletionService deletionService;
 
@@ -87,6 +91,7 @@ public class GitHubAppDeletionServiceTest
         passwordHandler,
         insightProxy,
         mockCache,
+        mockSelectionCache,
         wireMockBaseUrl);
   }
 
@@ -100,7 +105,7 @@ public class GitHubAppDeletionServiceTest
   public void testDelete_NoGitHubApp_ReturnsSuccessfully() {
     Application app = tempEntity.newApplicationWithParent();
     deletionService.delete(app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -108,7 +113,7 @@ public class GitHubAppDeletionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     createGitHubApp(app.getId());
     deletionService.delete(app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
@@ -118,7 +123,7 @@ public class GitHubAppDeletionServiceTest
     createGitHubApp(app.getId());
     deletionService.delete(app.getId());
     deletionService.delete(app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -127,7 +132,7 @@ public class GitHubAppDeletionServiceTest
     createGitHubAppWithoutInstallationId(app.getId());
 
     deletionService.delete(app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -141,7 +146,7 @@ public class GitHubAppDeletionServiceTest
     createGitHubApp(app.getId());
 
     deletionService.delete(app.getId());
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
@@ -156,7 +161,7 @@ public class GitHubAppDeletionServiceTest
     createGitHubApp(app.getId());
     deletionService.delete(app.getId());
 
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
@@ -165,8 +170,9 @@ public class GitHubAppDeletionServiceTest
     Application app = tempEntity.newApplicationWithParent();
     createGitHubApp(app.getId());
 
-    GitHubApp gitHubApp = gitHubAppDAO.getByOwnerId(app.getId());
-    assertThat(gitHubApp).isNotNull();
+    List<GitHubApp> gitHubApps = gitHubAppDAO.getByOwnerId(app.getId());
+    assertThat(gitHubApps).isNotEmpty();
+    GitHubApp gitHubApp = gitHubApps.get(0);
 
     Date expiresAt = new Date(System.currentTimeMillis() + 900000);
 
@@ -175,7 +181,7 @@ public class GitHubAppDeletionServiceTest
 
     deletionService.delete(app.getId());
 
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
     verify(deleteRequestedFor(urlEqualTo("/app/installations/" + TEST_VALID_INSTALLATION_ID)));
   }
 
@@ -235,7 +241,7 @@ public class GitHubAppDeletionServiceTest
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       deletionService.deactivateGitHubApps(tx, app.getId());
     }
-    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isNull();
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
   }
 
   @Test
@@ -294,44 +300,57 @@ public class GitHubAppDeletionServiceTest
   }
 
   @Test
-  public void testDeactivateGitHubApps_InvalidatesCacheByEachAppId() {
+  public void testReactivateGitHubApps_OnlyReactivatesInstalledApps() {
     Application app = tempEntity.newApplicationWithParent();
-    GitHubApp first = createGitHubApp(app.getId(), 44444L, true);
-    GitHubApp second = createGitHubApp(app.getId(), 55555L, true);
 
+    GitHubApp installedApp = createGitHubApp(app.getId(), 11111L, false);
+    GitHubApp uninstalledApp = createGitHubAppWithoutInstallationId(app.getId());
+
+    // Deactivate both
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+    assertThat(gitHubAppDAO.getById(installedApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(uninstalledApp.getId()).isActive()).isFalse();
+
+    // Reactivate — only the installed app should become active
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.reactivateGitHubApps(tx, app.getId());
+    }
+
+    assertThat(gitHubAppDAO.getById(installedApp.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(uninstalledApp.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testReactivateGitHubApps_NoApps_ReturnsSuccessfully() {
+    Application app = tempEntity.newApplicationWithParent();
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.reactivateGitHubApps(tx, app.getId());
+    }
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
+  }
+
+  @Test
+  public void testReactivateGitHubApps_MultipleInstalledApps_ReactivatesAll() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    GitHubApp app1 = createGitHubApp(app.getId(), 11111L, false);
+    GitHubApp app2 = createGitHubApp(app.getId(), 22222L, false);
+    GitHubApp uninstalledApp = createGitHubAppWithoutInstallationId(app.getId());
+
+    // Deactivate the uninstalled app too (it's already created as active by createGitHubAppWithoutInstallationId)
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
       deletionService.deactivateGitHubApps(tx, app.getId());
     }
 
-    org.mockito.Mockito.verify(mockCache).invalidate(app.getId());
-    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(first.getAppId());
-    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(second.getAppId());
-  }
-
-  @Test
-  public void testDelete_InvalidatesCacheByAppId() {
-    Application app = tempEntity.newApplicationWithParent();
-    GitHubApp gitHubApp = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID, true);
-
-    deletionService.delete(gitHubApp);
-
-    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(gitHubApp.getAppId());
-  }
-
-  @Test
-  public void testDeactivateGitHubApps_CacheInvalidationFailureDoesNotAbortDeactivation() {
-    Application app = tempEntity.newApplicationWithParent();
-    GitHubApp gitHubApp = createGitHubApp(app.getId(), 66666L, true);
-
-    org.mockito.Mockito.doThrow(new RuntimeException("simulated cache failure"))
-        .when(mockCache)
-        .invalidateByGitHubAppId(gitHubApp.getAppId());
-
+    // Reactivate
     try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
-      deletionService.deactivateGitHubApps(tx, app.getId());
+      deletionService.reactivateGitHubApps(tx, app.getId());
     }
 
-    // Deactivation must still succeed even if the cache invalidation throws.
-    assertThat(gitHubAppDAO.getById(gitHubApp.getId()).isActive()).isFalse();
+    assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isTrue();
+    assertThat(gitHubAppDAO.getById(uninstalledApp.getId()).isActive()).isFalse();
   }
 }

@@ -17,7 +17,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
@@ -50,7 +50,7 @@ public class SourceControlUtils
 
   private final GitClientFactory gitClientFactory;
 
-  private final GitHubAppDAO gitHubAppDAO;
+  private final GitHubAppSelectionService gitHubAppSelectionService;
 
   @Inject
   public SourceControlUtils(
@@ -58,13 +58,13 @@ public class SourceControlUtils
       InsightWork insightWork,
       FileCleaner fileCleaner,
       GitClientFactory gitClientFactory,
-      GitHubAppDAO gitHubAppDAO)
+      GitHubAppSelectionService gitHubAppSelectionService)
   {
     this.sourceControlDataService = sourceControlDataService;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
     this.gitClientFactory = gitClientFactory;
-    this.gitHubAppDAO = gitHubAppDAO;
+    this.gitHubAppSelectionService = gitHubAppSelectionService;
   }
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
@@ -86,16 +86,30 @@ public class SourceControlUtils
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
 
     if (gitRepositoryInfo != null) {
-      if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
-        GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(applicationId);
-        gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
+      setAuthOwnerId(sourceControl, applicationId, gitRepositoryInfo);
+    }
+
+    return gitRepositoryInfo;
+  }
+
+  private void setAuthOwnerId(
+      final SourceControl sourceControl,
+      final String applicationId,
+      final GitRepositoryInfo gitRepositoryInfo)
+  {
+    if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
+      GitHubApp gitHubApp = gitHubAppSelectionService.select(applicationId);
+      if (gitHubApp != null) {
+        gitRepositoryInfo.authOwnerId = gitHubApp.getOwnerId();
+        gitRepositoryInfo.githubAppId = gitHubApp.getId();
       }
       else {
         gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
       }
     }
-
-    return gitRepositoryInfo;
+    else {
+      gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
+    }
   }
 
   /**
@@ -250,13 +264,7 @@ public class SourceControlUtils
     gitRepositoryInfo.nonGoldenPullRequestsEnabled = sourceControl.getNonGoldenPullRequestsEnabled();
     gitRepositoryInfo.authenticationType = sourceControl.getAuthenticationType();
 
-    if (sourceControl.getAuthenticationType() == SourceControl.AuthenticationType.GITHUB_APP) {
-      GitHubApp gitHubApp = gitHubAppDAO.getNearestGitHubApp(orgId);
-      gitRepositoryInfo.authOwnerId = gitHubApp != null ? gitHubApp.getOwnerId() : sourceControl.getOwnerId();
-    }
-    else {
-      gitRepositoryInfo.authOwnerId = sourceControl.getOwnerId();
-    }
+    setAuthOwnerId(sourceControl, orgId, gitRepositoryInfo);
 
     return gitRepositoryInfo;
   }

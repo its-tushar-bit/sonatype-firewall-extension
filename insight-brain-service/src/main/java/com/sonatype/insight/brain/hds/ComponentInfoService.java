@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -260,8 +261,9 @@ public class ComponentInfoService
       String scanId,
       DependencyType dependencyType) throws IOException
   {
-    auditComponentAccess(componentIdentifier, hash);
     final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, owner.getId(), scanId);
+    auditComponentAccess(componentIdentifier, hash);
     return getComponentDetails(owner, componentIdentifier, matchState, hash, proprietary, httpRequest,
         identificationSource, scanId, dependencyType);
   }
@@ -602,8 +604,9 @@ public class ComponentInfoService
       ComponentIdentifier componentIdentifier,
       String matchState)
   {
-    auditComponentAccess(componentIdentifier, null);
     final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, owner.getId(), null);
+    auditComponentAccess(componentIdentifier, null);
     ComponentDetailsList componentDetailsList =
         getComponentDetailsList(componentIdentifier, owner, null, null, null,
             false).getLeft();
@@ -667,6 +670,7 @@ public class ComponentInfoService
       boolean stableVersionsOnly)
   {
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, owner.getId(), scanId);
     // For performance, it's very important to use only one instance of ComponentDetailsLoader.
     // See https://sonatype.atlassian.net/browse/CLM-28129
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
@@ -1476,12 +1480,13 @@ public class ComponentInfoService
       String identificationSource,
       String scanId) throws IOException
   {
-    auditComponentAccess(componentIdentifier, null);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
     final Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, owner.getId(), scanId);
+    auditComponentAccess(componentIdentifier, null);
 
     ComponentLicenses result = new ComponentLicenses();
 
@@ -1537,12 +1542,13 @@ public class ComponentInfoService
       String identificationSource,
       String scanId) throws IOException
   {
-    auditComponentAccess(componentIdentifier, null);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
 
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, owner.getId(), scanId);
+    auditComponentAccess(componentIdentifier, null);
 
     ComponentMultiLicenses result = new ComponentMultiLicenses();
 
@@ -1591,11 +1597,12 @@ public class ComponentInfoService
       final String identificationSource,
       final String scanId) throws IOException
   {
-    auditComponentAccess(componentIdentifier, hash);
     if (componentIdentifier == null) {
       throw new BadRequestException("componentIdentifier is required");
     }
     String internalId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    ConsumptionContext.scopeToApp(ownerType, internalId, scanId);
+    auditComponentAccess(componentIdentifier, hash);
     Owner owner = ownerDAO.getById(internalId);
 
     ComponentDetails componentDetails =

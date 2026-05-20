@@ -66,6 +66,12 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.consumption.ActivityType;
+import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
+import com.sonatype.insight.brain.service.consumption.ConsumptionEvents;
+import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -214,6 +220,8 @@ public class ScanPolicyEvaluator
 
   private final ScanHealthService scanHealthService;
 
+  private final ConsumptionRecorder consumptionRecorder;
+
   @Inject
   public ScanPolicyEvaluator(
       final ReportService reportService,
@@ -252,7 +260,8 @@ public class ScanPolicyEvaluator
       final LicenseNameProvider licenseNameProvider,
       final ScanPersistenceService scanPersistenceService,
       final ComponentHelper componentHelper,
-      final ScanHealthService scanHealthService)
+      final ScanHealthService scanHealthService,
+      final ConsumptionRecorder consumptionRecorder)
   {
     this.reportService = reportService;
     this.policyDAO = policyDAO;
@@ -291,6 +300,7 @@ public class ScanPolicyEvaluator
     this.scanPersistenceService = scanPersistenceService;
     this.componentHelper = componentHelper;
     this.scanHealthService = scanHealthService;
+    this.consumptionRecorder = consumptionRecorder;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1758,7 +1768,54 @@ public class ScanPolicyEvaluator
       scanHealthService.failOnEvaluateResultContainingZeroComponentsIfConfigured(application);
     }
 
+    recordConsumption(application, scanId, forMonitoring, reportComponentData, scanPolicyEvaluatorResults);
+
     return scanPolicyEvaluatorResults;
+  }
+
+  /**
+   * Records a consumption event for the known components found during this evaluation.
+   * Consumption recording must never fail a scan — any exception is caught and logged at DEBUG.
+   * No-op when there is no consumption context on the thread, no components, or zero known components.
+   */
+  private void recordConsumption(
+      Application application,
+      String scanId,
+      boolean forMonitoring,
+      ReportComponentData reportComponentData,
+      ScanPolicyEvaluatorResults scanPolicyEvaluatorResults)
+  {
+    try {
+      ConsumptionContext ctx = ConsumptionContext.get();
+      if (ctx == null || reportComponentData.components == null) {
+        return;
+      }
+      long knownCount = reportComponentData.components.stream()
+          .filter(c -> c.getMatchState() != MatchState.UNKNOWN)
+          .count();
+      if (knownCount <= 0) {
+        return;
+      }
+      ActivityType activityType = resolveActivityType(forMonitoring, scanPolicyEvaluatorResults);
+      ConsumptionEvent event = ConsumptionEvents.builderFromContext(ctx)
+          .appId(application.getId())
+          .scanId(scanId)
+          .userId(currentUser.getUsernameOrSystem())
+          .activityType(activityType)
+          .componentCount((int) knownCount)
+          .build();
+      consumptionRecorder.record(event);
+    }
+    catch (Exception e) {
+      log.debug("Failed to record consumption for scan {}", scanId, e);
+    }
+  }
+
+  private static ActivityType resolveActivityType(boolean forMonitoring, ScanPolicyEvaluatorResults results) {
+    if (forMonitoring) {
+      return ActivityType.CONTINUOUS_MONITORING;
+    }
+    return results.evaluation.isReevaluation() ? ActivityType.RE_EVALUATE : ActivityType.APP_SCAN;
   }
 
   String getPolicyOwnerIdForEvaluation(final Application application, final Stage stage) {

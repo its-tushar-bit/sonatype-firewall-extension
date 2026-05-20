@@ -136,6 +136,7 @@ import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
 import originalBomViewerSlice from '../sbomManager/features/billOfMaterials/originalBom/originalBomViewerSlice';
 import gitHubAppConfigurationSlice from '../configuration/githubApp/gitHubAppConfigurationSlice';
+import usageReducer from '../usage/usageSlice';
 import hostedReposSlice from '../hostedRepos/hostedReposSlice';
 import repositoryComponentsSlice from '../hostedRepos/repositoryComponentsSlice';
 
@@ -274,4 +275,5 @@ export default combineReducers({
   gitHubAppConfiguration: gitHubAppConfigurationSlice,
   hostedRepos: hostedReposSlice,
   repositoryComponents: repositoryComponentsSlice,
+  usage: usageReducer,
 });

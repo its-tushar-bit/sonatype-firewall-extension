@@ -22,6 +22,7 @@ const queryParamsToShowInPlaintext = [
   'identificationSource',
   'scanId',
   'pathname',
+  'aggregation',
 ];
 
 /**

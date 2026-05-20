@@ -1,0 +1,307 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-usage-page {
+  padding: var(--nx-spacing-6x);
+}
+
+.iq-usage-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--nx-spacing-6x);
+}
+
+.iq-usage-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-6x);
+}
+
+.iq-usage-tile {
+  margin: 0;
+}
+
+// --- Summary Card (matches CLM-38071 reference pattern) ---
+.iq-usage-summary-card {
+  border: 1px solid var(--nx-color-border);
+  border-radius: var(--nx-border-radius);
+  padding: var(--nx-spacing-6x);
+}
+
+.iq-usage-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--nx-spacing-4x);
+}
+
+.iq-usage-card__label {
+  font-family: var(--nx-font-family);
+  font-size: var(--nx-font-size-heading-3);
+  font-weight: 700;
+  color: var(--nx-color-text-dark);
+}
+
+.iq-usage-card__billing-month {
+  font-size: var(--nx-font-size-s);
+  font-weight: 400;
+  color: var(--nx-color-text);
+}
+
+.iq-usage-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-2x);
+}
+
+.iq-usage-card__value {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--nx-color-text-dark);
+}
+
+.iq-usage-card__progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-spacing-4x);
+  width: 100%;
+  margin-top: var(--nx-spacing-2x);
+}
+
+.iq-usage-card__progress-bar {
+  flex: 1;
+  display: flex;
+  height: 4px;
+  background-color: var(--nx-swatch-indigo-95);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--nx-swatch-indigo-90);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-20);
+    border-color: var(--nx-swatch-indigo-30);
+  }
+}
+
+.iq-usage-card__progress-fill {
+  height: 100%;
+  background-color: var(--nx-swatch-indigo-50);
+  border-radius: 2px;
+  transition: width 0.3s ease-in-out;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-60);
+  }
+}
+
+.iq-usage-card__progress-percentage {
+  font-size: var(--nx-font-size-s);
+  font-weight: 600;
+  color: var(--nx-color-text);
+  min-width: 40px;
+  text-align: right;
+}
+
+// Over limit state (100%+)
+.iq-usage-card__progress-container--over {
+  .iq-usage-card__progress-fill {
+    background-color: var(--nx-swatch-red-60);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-red-50);
+    }
+  }
+
+  // Two-segment variant: keep the within-limit portion in the accent color and
+  // only paint the overage portion red. Scoped under --over container to win
+  // over the blanket red rule above via matching specificity + later source order.
+  .iq-usage-card__progress-fill--within {
+    background-color: var(--nx-swatch-indigo-50);
+    border-radius: 2px 0 0 2px;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-indigo-60);
+    }
+  }
+
+  .iq-usage-card__progress-fill--overage {
+    border-radius: 0 2px 2px 0;
+  }
+
+  .iq-usage-card__progress-percentage {
+    color: var(--nx-swatch-red-60);
+  }
+}
+
+.iq-usage-card__details {
+  display: flex;
+  gap: var(--nx-spacing-6x);
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text);
+  margin-top: var(--nx-spacing-2x);
+}
+
+.iq-usage-card__over-limit {
+  color: var(--nx-color-validation-error);
+  font-weight: 600;
+}
+
+.iq-usage-card__resets {
+  color: var(--nx-color-text);
+}
+
+// --- Source Chart (full width) ---
+
+// --- Consumption Chart Tile ---
+.iq-usage-chart-tile {
+  margin-top: 0;
+}
+
+.iq-usage-chart__aggregation-select {
+  width: 120px;
+}
+
+.iq-usage-chart__wrapper {
+  height: 500px;
+  width: 100%;
+}
+
+.iq-usage-chart__tooltip {
+  background: var(--nx-color-component-background);
+  border: 1px solid var(--nx-color-border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--nx-color-text);
+}
+
+// --- Source Donut Chart Tile ---
+.iq-usage-source-tile {
+  margin-top: 0;
+}
+
+.iq-usage-source-chart__wrapper {
+  height: 300px;
+  width: 100%;
+}
+
+// --- Top Consuming Apps Tile ---
+.iq-usage-top-apps-tile {
+  margin-top: 0;
+}
+
+.iq-usage-top-apps__subtitle {
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text);
+  margin-bottom: var(--nx-spacing-4x);
+}
+
+.iq-usage-top-apps__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.iq-usage-top-apps__row {
+  display: flex;
+  align-items: center;
+  padding: var(--nx-spacing-3x) 0;
+  border-bottom: 1px dashed var(--nx-color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.iq-usage-top-apps__name {
+  flex: 1;
+  font-size: var(--nx-font-size-s);
+  font-weight: 600;
+  color: var(--nx-color-text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iq-usage-top-apps__count {
+  font-size: var(--nx-font-size-s);
+  font-weight: 600;
+  color: var(--nx-color-text-dark);
+  min-width: 60px;
+  text-align: right;
+}
+
+.iq-usage-top-apps__percent {
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text);
+  min-width: 40px;
+  text-align: right;
+  margin-left: var(--nx-spacing-2x);
+}
+
+// --- Evaluated Components Tile ---
+.iq-usage-evaluated-tile {
+  margin-top: 0;
+}
+
+.iq-usage-evaluated__period {
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text);
+}
+
+.iq-usage-insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nx-spacing-4x);
+  margin-bottom: var(--nx-spacing-6x);
+}
+
+.iq-usage-insights-widget {
+  border: 1px solid var(--nx-color-border);
+  border-radius: var(--nx-border-radius);
+  padding: var(--nx-spacing-4x);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-1x);
+}
+
+.iq-usage-insights-widget__label {
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text);
+}
+
+.iq-usage-insights-widget__value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--nx-color-text-dark);
+}
+
+.iq-usage-insights-widget__date {
+  font-size: var(--nx-font-size-xs);
+  color: var(--nx-color-text);
+}
+
+.iq-usage-trend-section {
+  border: 1px solid var(--nx-color-border);
+  border-radius: var(--nx-border-radius);
+  padding: var(--nx-spacing-6x);
+}
+
+.iq-usage-trend-section__title {
+  display: block;
+  font-size: var(--nx-font-size-heading-3);
+  font-weight: 700;
+  color: var(--nx-color-text-dark);
+  margin-bottom: var(--nx-spacing-4x);
+}
+
+.iq-usage-trend-chart {
+  height: 250px;
+  width: 100%;
+}

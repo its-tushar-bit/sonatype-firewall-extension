@@ -86,6 +86,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionEventDAO;
+import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionLimitConfigDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
@@ -246,6 +248,9 @@ import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
+import com.sonatype.insight.brain.model.consumption.ConsumptionLimitConfig;
+import com.sonatype.insight.brain.model.consumption.EnforcementMode;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
 import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
 import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
@@ -741,6 +746,10 @@ public class TemporaryEntity
 
   private HostedComponentScanQueueDAO hostedComponentScanQueueDAO;
 
+  private ConsumptionEventDAO consumptionEventDAO;
+
+  private ConsumptionLimitConfigDAO consumptionLimitConfigDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1095,6 +1104,8 @@ public class TemporaryEntity
       delete(developmentPrioritizationComponentInfoDAO.getAll(), developmentPrioritizationComponentInfoDAO);
       delete(developmentPrioritizationDAO.getAll(), developmentPrioritizationDAO);
       delete(cpeMatchingConfigurationDAO.getAll(), cpeMatchingConfigurationDAO);
+      deleteAllConsumptionEvents();
+      delete(consumptionLimitConfigDAO.getAll(), consumptionLimitConfigDAO);
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -1182,6 +1193,36 @@ public class TemporaryEntity
 
   public void deleteAllPolicyViolationAggregations() {
     delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
+  }
+
+  public void insertConsumptionEvents(java.util.List<ConsumptionEvent> events) {
+    try (TransactionContext tx = consumptionEventDAO.createTransactionContext()) {
+      tx.begin();
+      consumptionEventDAO.insertBatch(tx, events);
+      tx.commit();
+    }
+  }
+
+  private void deleteAllConsumptionEvents() {
+    try (TransactionContext tx = consumptionEventDAO.createTransactionContext()) {
+      tx.begin();
+      tx.dsl().deleteFrom(consumptionEventDAO.getJooqTable()).execute();
+      tx.commit();
+    }
+  }
+
+  public ConsumptionLimitConfig newConsumptionLimitConfig(
+      String orgId,
+      Long monthlyLimit,
+      int warningThresholdPct,
+      EnforcementMode enforcementMode)
+  {
+    ConsumptionLimitConfig config = new ConsumptionLimitConfig(orgId);
+    config.setMonthlyLimit(monthlyLimit);
+    config.setWarningThresholdPct(warningThresholdPct);
+    config.setEnforcementMode(enforcementMode);
+    consumptionLimitConfigDAO.saveConfig(config);
+    return consumptionLimitConfigDAO.getConfig(orgId).orElseThrow();
   }
 
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
@@ -6798,6 +6839,8 @@ public class TemporaryEntity
     keyValueDAO = daoFactory.createKeyValueDAO();
     evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
     hostedComponentScanQueueDAO = daoFactory.createHostedComponentScanQueueDAO();
+    consumptionEventDAO = daoFactory.createConsumptionEventDAO();
+    consumptionLimitConfigDAO = daoFactory.createConsumptionLimitConfigDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

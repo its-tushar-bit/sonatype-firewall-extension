@@ -9,9 +9,12 @@ import {
   selectIsRepositories,
   selectIsRepositoryContainer,
   selectIsSbomManager,
+  selectIsStandaloneDeveloper,
+  selectIsStandaloneFirewall,
+  selectIsStandaloneSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { PROVIDER_TYPES, SOURCE_CONTROL_OPTIONS } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/utils';
-import { selectHasTierGatedLifecycleLicense } from './productLicenseSelectors';
+import { selectHasLifecycleLicense, selectHasTierGatedLifecycleLicense } from './productLicenseSelectors';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
 export const selectProductFeatures = createSelector(selectProductFeaturesSlice, prop('productFeatures'));
@@ -323,8 +326,10 @@ export const selectIsWaiverRequestWorkflowEnabled = createSelector(selectProduct
 // Non-tier-gated products (Firewall, Foundation, SBOM Manager) always get full access.
 // For tier-gated Lifecycle: returns false when absent (Pro), true when present (Enterprise/Legacy).
 const createEntitlementSelector = (featureKey) =>
-  createSelector(selectHasTierGatedLifecycleLicense, selectProductFeatures, (hasTierGatedLifecycle, features) =>
-    !hasTierGatedLifecycle || propOr(false, featureKey)(features)
+  createSelector(
+    selectHasTierGatedLifecycleLicense,
+    selectProductFeatures,
+    (hasTierGatedLifecycle, features) => !hasTierGatedLifecycle || propOr(false, featureKey)(features)
   );
 
 export const selectHasCustomPolicies = createEntitlementSelector('custom-policies');
@@ -340,10 +345,7 @@ export const selectIsEnterprisePreviewMode = createSelector(
   propOr(false, 'isEnterprisePreviewMode')
 );
 
-export const selectDismissedPopovers = createSelector(
-  selectProductFeaturesSlice,
-  propOr({}, 'dismissedPopovers')
-);
+export const selectDismissedPopovers = createSelector(selectProductFeaturesSlice, propOr({}, 'dismissedPopovers'));
 
 /**
  * Returns a selector that resolves to `true` when the upsell popover for the given
@@ -356,4 +358,19 @@ export const selectIsPopoverDismissed = (featureId) =>
 export const selectIsHostedRepositoryEvaluationEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'hosted-repository-evaluation')
+);
+
+export const selectIsConsumptionReportingEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'consumption-reporting')
+);
+
+export const selectIsUsageDashboardEnabled = createSelector(
+  selectIsConsumptionReportingEnabled,
+  selectHasLifecycleLicense,
+  selectIsStandaloneSbomManager,
+  selectIsStandaloneFirewall,
+  selectIsStandaloneDeveloper,
+  (flagEnabled, hasLifecycle, isStandaloneSbom, isStandaloneFirewall, isStandaloneDeveloper) =>
+    flagEnabled && hasLifecycle && !isStandaloneSbom && !isStandaloneFirewall && !isStandaloneDeveloper
 );

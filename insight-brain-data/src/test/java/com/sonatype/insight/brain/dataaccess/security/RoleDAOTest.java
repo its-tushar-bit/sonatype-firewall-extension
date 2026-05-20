@@ -206,7 +206,7 @@ public class RoleDAOTest
   @Test
   public void testBuiltInRoles() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles).hasSize(7).allMatch(Role::isBuiltIn);
+    assertThat(roles).hasSize(8).allMatch(Role::isBuiltIn);
   }
 
   @Test

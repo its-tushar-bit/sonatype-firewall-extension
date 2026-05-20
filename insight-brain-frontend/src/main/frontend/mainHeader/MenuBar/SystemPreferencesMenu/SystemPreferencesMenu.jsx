@@ -31,6 +31,7 @@ export const SystemPreferencesMenu = ({
   isAutomaticApplicationConfigurationEnabled = false,
   isAutomaticScmConfigurationEnabled = false,
   isAdvancedSearchConfigurationEnabled = false,
+  isConsumptionReportingEnabled = false,
   isBaseUrlConfigurationEnabled = false,
   isSamlConfigurationEnabled = false,
   isOAuth2ConfigurationEnabled = false,
@@ -48,6 +49,7 @@ export const SystemPreferencesMenu = ({
     VIEW_ROLES = false,
     MANAGE_AUTOMATIC_APPLICATION_CREATION = false,
     MANAGE_AUTOMATIC_SCM_CONFIGURATION = false,
+    VIEW_USAGE = false,
   } = permissions;
 
   const isSbomManager = useSelector(selectIsSbomManager);
@@ -261,6 +263,13 @@ export const SystemPreferencesMenu = ({
       >
         User Tokens Configuration
       </NavLink>
+      <NavLink
+        stateName="usage"
+        id="system-configuration-usage"
+        showIf={(CONFIGURE_SYSTEM || VIEW_USAGE) && isConsumptionReportingEnabled}
+      >
+        Usage
+      </NavLink>
       {/* Will be enabled in: NEXUS-46126
       {CONFIGURE_SYSTEM && (
         <NavLink
@@ -285,6 +294,7 @@ SystemPreferencesMenu.propTypes = {
     VIEW_ROLES: PropTypes.bool,
     MANAGE_AUTOMATIC_APPLICATION_CREATION: PropTypes.bool,
     MANAGE_AUTOMATIC_SCM_CONFIGURATION: PropTypes.bool,
+    VIEW_USAGE: PropTypes.bool,
   }),
   isWebhooksSupported: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
@@ -299,6 +309,7 @@ SystemPreferencesMenu.propTypes = {
   isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
+  isConsumptionReportingEnabled: PropTypes.bool,
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,

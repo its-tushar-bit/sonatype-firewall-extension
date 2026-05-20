@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -263,7 +264,11 @@ public class PolicyMonitor
       stagesDetectedDuringScan.add(finalPolicyMonitoring.getStageTypeId());
 
       CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
-        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+        try (
+            ConsumptionContext.Scope consumptionCtx =
+                ConsumptionContext.scopeBackgroundJob(productLicense, app.getId());
+            AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION))
+        {
           try {
             AuditData.get().setApplication(app);
             evaluate(app, finalPolicyMonitoring);

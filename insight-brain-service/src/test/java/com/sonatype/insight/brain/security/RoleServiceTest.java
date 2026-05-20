@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
@@ -36,13 +37,29 @@ public class RoleServiceTest
       Role.COMPONENT_EVALUATOR_ROLE_ID,
       Role.DEVELOPER_ROLE_ID,
       Role.LEGAL_REVIEWER_ROLE_ID,
-      Role.OWNER_ROLE_ID);
+      Role.OWNER_ROLE_ID,
+      Role.USAGE_VIEWER_ROLE_ID);
 
   @Test
-  public void testGetAllRoles() {
+  public void testGetAllRoles_consumptionReportingEnabled_includesUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      List<RoleDTO> roles = roleService.getAllRoles();
+      assertThat(roles).isNotEmpty();
+      assertThat(roles).extracting(role -> role.id).containsExactlyInAnyOrderElementsOf(ALL_ROLE_IDS);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testGetAllRoles_consumptionReportingDisabled_filtersOutUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
     List<RoleDTO> roles = roleService.getAllRoles();
     assertThat(roles).isNotEmpty();
-    assertThat(roles).extracting(role -> role.id).containsExactlyInAnyOrderElementsOf(ALL_ROLE_IDS);
+    assertThat(roles).extracting(role -> role.id).doesNotContain(Role.USAGE_VIEWER_ROLE_ID);
+    assertThat(roles).extracting(role -> role.id).contains(Role.SYSTEM_ADMIN_ROLE_ID);
   }
 
   @Test
@@ -59,119 +76,161 @@ public class RoleServiceTest
 
   @Test
   public void testGetRoleById_Builtin() {
-    RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
 
-    assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
-    assertThat(roleDTO.permissionCategories).hasSize(3);
-    assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+      assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
+      assertThat(roleDTO.permissionCategories).hasSize(3);
+      assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG,
+          Permission.VIEW_USAGE);
 
-    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category,
-        Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+      PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+      assertListedPermissions(category,
+          Permission.CONFIGURE_SYSTEM, Permission.EDIT_ROLES, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG,
+          Permission.VIEW_USAGE);
 
-    category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
-    assertListedPermissions(category, //
-        Permission.MANAGE_PROPRIETARY, //
-        Permission.CLAIM_COMPONENT, //
-        Permission.WRITE, //
-        Permission.READ, //
-        Permission.EDIT_ACCESS_CONTROL, //
-        Permission.EVALUATE_APPLICATION, //
-        Permission.EVALUATE_COMPONENT, //
-        Permission.ADD_APPLICATION, //
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
-        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+      category = roleDTO.permissionCategories.get(1);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+      assertListedPermissions(category, //
+          Permission.MANAGE_PROPRIETARY, //
+          Permission.CLAIM_COMPONENT, //
+          Permission.WRITE, //
+          Permission.READ, //
+          Permission.EDIT_ACCESS_CONTROL, //
+          Permission.EVALUATE_APPLICATION, //
+          Permission.EVALUATE_COMPONENT, //
+          Permission.ADD_APPLICATION, //
+          Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+          Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
 
-    category = roleDTO.permissionCategories.get(2);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
-        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+      category = roleDTO.permissionCategories.get(2);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+      assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+          Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   @Test
   public void testGetRoleById_Custom() {
-    Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
 
-    RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
-    assertThat(roleDTO.id).isEqualTo(expectedRole.getId());
-    assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
-    assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
+      RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
+      assertThat(roleDTO.id).isEqualTo(expectedRole.getId());
+      assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
+      assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
 
-    assertThat(roleDTO.permissionCategories).hasSize(3);
-    assertAllowedPermissions(roleDTO, Permission.WRITE);
+      assertThat(roleDTO.permissionCategories).hasSize(3);
+      assertAllowedPermissions(roleDTO, Permission.WRITE);
 
-    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+      PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+      assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG, Permission.VIEW_USAGE);
 
-    category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
-    assertListedPermissions(category, //
-        Permission.MANAGE_PROPRIETARY, //
-        Permission.CLAIM_COMPONENT, //
-        Permission.WRITE, //
-        Permission.READ, //
-        Permission.EDIT_ACCESS_CONTROL, //
-        Permission.EVALUATE_APPLICATION, //
-        Permission.EVALUATE_COMPONENT, //
-        Permission.ADD_APPLICATION, //
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
-        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+      category = roleDTO.permissionCategories.get(1);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+      assertListedPermissions(category, //
+          Permission.MANAGE_PROPRIETARY, //
+          Permission.CLAIM_COMPONENT, //
+          Permission.WRITE, //
+          Permission.READ, //
+          Permission.EDIT_ACCESS_CONTROL, //
+          Permission.EVALUATE_APPLICATION, //
+          Permission.EVALUATE_COMPONENT, //
+          Permission.ADD_APPLICATION, //
+          Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+          Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
 
-    category = roleDTO.permissionCategories.get(2);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
-        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+      category = roleDTO.permissionCategories.get(2);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+      assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+          Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   @Test
   public void testGetTemplateForNewRole() {
-    RoleDTO roleDTO = roleService.getTemplateForNewRole();
-    assertThat(roleDTO.id).isNull();
-    assertThat(roleDTO.name).isNull();
-    assertThat(roleDTO.description).isNull();
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      RoleDTO roleDTO = roleService.getTemplateForNewRole();
+      assertThat(roleDTO.id).isNull();
+      assertThat(roleDTO.name).isNull();
+      assertThat(roleDTO.description).isNull();
 
-    assertThat(roleDTO.permissionCategories).hasSize(3);
-    assertAllowedPermissions(roleDTO);
+      assertThat(roleDTO.permissionCategories).hasSize(3);
+      assertAllowedPermissions(roleDTO);
 
-    PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
-    assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG);
+      PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.ADMINISTRATOR.getDisplayName());
+      assertListedPermissions(category, Permission.VIEW_ROLES, Permission.ACCESS_AUDIT_LOG, Permission.VIEW_USAGE);
 
-    category = roleDTO.permissionCategories.get(1);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
-    assertListedPermissions(category, //
-        Permission.MANAGE_PROPRIETARY, //
-        Permission.CLAIM_COMPONENT, //
-        Permission.WRITE, //
-        Permission.READ, //
-        Permission.EDIT_ACCESS_CONTROL, //
-        Permission.EVALUATE_APPLICATION, //
-        Permission.EVALUATE_COMPONENT, //
-        Permission.ADD_APPLICATION, //
-        Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
-        Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+      category = roleDTO.permissionCategories.get(1);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.IQ.getDisplayName());
+      assertListedPermissions(category, //
+          Permission.MANAGE_PROPRIETARY, //
+          Permission.CLAIM_COMPONENT, //
+          Permission.WRITE, //
+          Permission.READ, //
+          Permission.EDIT_ACCESS_CONTROL, //
+          Permission.EVALUATE_APPLICATION, //
+          Permission.EVALUATE_COMPONENT, //
+          Permission.ADD_APPLICATION, //
+          Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION, //
+          Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
 
-    category = roleDTO.permissionCategories.get(2);
-    assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
-    assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
-        Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+      category = roleDTO.permissionCategories.get(2);
+      assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
+      assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
+          Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER, Permission.CREATE_PULL_REQUESTS);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   @Test
-  public void testGetRolesAsApiRoleListDTO() {
+  public void testGetRolesAsApiRoleListDTO_consumptionReportingEnabled_includesUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      List<Role> allRoles = roleDAO.getAll();
+      List<ApiRoleDTO> roles = roleService.getRolesAsApiRoleListDTO().roles;
+
+      assertThat(roles).hasSize(allRoles.size());
+      for (Role role : allRoles) {
+        ApiRoleDTO roleDTO = roles.stream().filter(r -> role.getId().equals(r.id)).findFirst().orElse(null);
+        assertThat(roleDTO).isNotNull();
+        assertThat(roleDTO.name).isEqualTo(role.getName());
+        assertThat(roleDTO.description).isEqualTo(role.getDescription());
+      }
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testGetRolesAsApiRoleListDTO_consumptionReportingDisabled_filtersOutUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
     List<Role> allRoles = roleDAO.getAll();
     List<ApiRoleDTO> roles = roleService.getRolesAsApiRoleListDTO().roles;
 
-    assertThat(roles).hasSize(allRoles.size());
-    for (Role role : allRoles) {
-      ApiRoleDTO roleDTO = roles.stream().filter(r -> role.getId().equals(r.id)).findFirst().orElse(null);
-      assertThat(roleDTO).isNotNull();
-      assertThat(roleDTO.name).isEqualTo(role.getName());
-      assertThat(roleDTO.description).isEqualTo(role.getDescription());
-    }
+    assertThat(roles).hasSize(allRoles.size() - 1);
+    assertThat(roles).extracting(r -> r.id).doesNotContain(Role.USAGE_VIEWER_ROLE_ID);
+  }
+
+  @Test(expected = com.sonatype.insight.error.exception.NotFoundException.class)
+  public void testGetRoleById_consumptionReportingDisabled_usageViewerThrowsNotFound() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    roleService.getRoleById(Role.USAGE_VIEWER_ROLE_ID);
   }
 
   private void setAllowedPermissions(final RoleDTO roleDTO, final List<Permission> permissions) {

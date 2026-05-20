@@ -44,8 +44,10 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -118,6 +120,8 @@ public class EvaluationQueueConsumer
 
   private final ShutdownHandler shutdownHandler;
 
+  private final ProductLicense productLicense;
+
   public boolean disableForTesting;
 
   @Inject
@@ -133,7 +137,8 @@ public class EvaluationQueueConsumer
       final ScanUploadService scanUploadService,
       final ScanPolicyEvaluator scanPolicyEvaluator,
       final PolicyAlertNotifier policyAlertNotifier,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final ProductLicense productLicense)
   {
     super(TASK_NAME);
     this.apiConfigurationService = apiConfigurationService;
@@ -154,6 +159,7 @@ public class EvaluationQueueConsumer
     this.queuedItemIds = new TenantReference<>(ConcurrentHashMap::newKeySet);
     this.running = new TenantReference<>(AtomicBoolean::new);
     this.shutdownHandler = shutdownHandler;
+    this.productLicense = productLicense;
   }
 
   @Override
@@ -327,9 +333,13 @@ public class EvaluationQueueConsumer
     log.debug("Starting evaluation queue item with priority {} for application id {}, stage {}, and version {}.",
         item.getPriority(), item.getApplicationId(), item.getStageTypeId(), item.getVersion());
 
-    consumer.accept(item);
-    evaluationQueueDAO.delete(item);
-    evaluated.get().incrementAndGet();
+    try (ConsumptionContext.Scope consumptionCtx =
+        ConsumptionContext.scopeBackgroundJob(productLicense, item.getApplicationId()))
+    {
+      consumer.accept(item);
+      evaluationQueueDAO.delete(item);
+      evaluated.get().incrementAndGet();
+    }
 
     log.debug(
         "Finished evaluation queue item with priority {} for application id {}, stage {}, and version {} in {} ms.",

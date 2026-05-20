@@ -168,6 +168,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
+import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionEventDAO;
+import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionLimitConfigDAO;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 
 import com.google.inject.AbstractModule;
@@ -414,6 +416,9 @@ public final class DataAccessModule
 
     // ZScaler (1 DAO)
     bind(ZScalerMetricsDAO.class).in(Scopes.SINGLETON);
+
+    bind(ConsumptionEventDAO.class).in(Scopes.SINGLETON);
+    bind(ConsumptionLimitConfigDAO.class).in(Scopes.SINGLETON);
 
     bind(TemporaryTableHelper.class);
     bind(GitApiClientFactory.class);

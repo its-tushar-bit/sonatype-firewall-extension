@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
@@ -41,20 +42,27 @@ public class ApiRoleResourceTest
 
   @Test
   public void testGetRoles() throws Exception {
-    HttpResponse response = restRequest().get();
-    ApiRoleListDTO apiRoleListDTO = response.getBody(ApiRoleListDTO.class);
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      HttpResponse response = restRequest().get();
+      ApiRoleListDTO apiRoleListDTO = response.getBody(ApiRoleListDTO.class);
 
-    assertResponseStatus(200, response);
-    assertThat(apiRoleListDTO.roles)
-        .extracting(role -> role.id)
-        .containsExactlyInAnyOrder(
-            Role.SYSTEM_ADMIN_ROLE_ID,
-            Role.POLICY_ADMIN_ROLE_ID,
-            Role.APPLICATION_EVALUATOR_ROLE_ID,
-            Role.COMPONENT_EVALUATOR_ROLE_ID,
-            Role.DEVELOPER_ROLE_ID,
-            Role.LEGAL_REVIEWER_ROLE_ID,
-            Role.OWNER_ROLE_ID);
+      assertResponseStatus(200, response);
+      assertThat(apiRoleListDTO.roles)
+          .extracting(role -> role.id)
+          .containsExactlyInAnyOrder(
+              Role.SYSTEM_ADMIN_ROLE_ID,
+              Role.POLICY_ADMIN_ROLE_ID,
+              Role.APPLICATION_EVALUATOR_ROLE_ID,
+              Role.COMPONENT_EVALUATOR_ROLE_ID,
+              Role.DEVELOPER_ROLE_ID,
+              Role.LEGAL_REVIEWER_ROLE_ID,
+              Role.OWNER_ROLE_ID,
+              Role.USAGE_VIEWER_ROLE_ID);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   @Test

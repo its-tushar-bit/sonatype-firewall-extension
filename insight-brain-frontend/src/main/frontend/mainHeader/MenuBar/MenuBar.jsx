@@ -33,6 +33,7 @@ export const MenuBar = ({
   isAutomaticApplicationConfigurationEnabled,
   isAutomaticScmConfigurationEnabled,
   isAdvancedSearchConfigurationEnabled,
+  isConsumptionReportingEnabled,
   isShowNotificationMenuEnabled,
   isBaseUrlConfigurationEnabled,
   isSamlConfigurationEnabled,
@@ -96,6 +97,7 @@ export const MenuBar = ({
           isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
           isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
           isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
+          isConsumptionReportingEnabled={isConsumptionReportingEnabled}
           isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
           isSamlConfigurationEnabled={isSamlConfigurationEnabled}
           isOAuth2ConfigurationEnabled={isOAuth2ConfigurationEnabled}
@@ -134,6 +136,7 @@ MenuBar.propTypes = {
   isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
   isAutomaticScmConfigurationEnabled: PropTypes.bool,
   isAdvancedSearchConfigurationEnabled: PropTypes.bool,
+  isConsumptionReportingEnabled: PropTypes.bool,
   isNotificationMenuEnabled: PropTypes.bool,
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,

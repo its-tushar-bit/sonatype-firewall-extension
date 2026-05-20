@@ -1868,3 +1868,20 @@ export function getGitHubAppManifestUrl(ownerId, organizationName) {
   const baseUrl = uriTemplate`/api/v2/githubApp/manifest?ownerId=${ownerId}`;
   return organizationName ? `${baseUrl}&organizationName=${encodeURIComponent(organizationName)}` : baseUrl;
 }
+
+// --- Consumption / Usage Dashboard ---
+export const getConsumptionSummaryUrl = () => uriTemplate`/api/v2/consumption/summary`;
+
+export const getConsumptionHistoryBreakdownUrl = (aggregation) => {
+  const path = uriTemplate`/api/v2/consumption/history/breakdown`;
+  const params = toURIParams({ aggregation });
+  return params ? `${path}?${params}` : path;
+};
+
+export const getConsumptionHistoryBySourceUrl = () => uriTemplate`/api/v2/consumption/history/by-source`;
+
+export const getConsumptionTopAppsUrl = () => uriTemplate`/api/v2/consumption/top-apps`;
+
+export const getConsumptionDailyHistoryUrl = () => uriTemplate`/api/v2/consumption/daily-history`;
+
+export const getConsumptionExportUrl = () => uriTemplate`/api/v2/consumption/export`;

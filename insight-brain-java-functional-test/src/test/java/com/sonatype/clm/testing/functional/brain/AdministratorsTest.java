@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList;
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList.RoleRow;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -82,6 +83,25 @@ public class AdministratorsTest
     secondRoleRow.role().shouldHave(text("System Administrator"));
     secondRoleRow.members().shouldHave(text("Admin BuiltIn"));
     secondRoleRow.chevron().shouldBe(visible);
+  }
+
+  @Test
+  public void testUsageViewerRoleAppears_whenConsumptionReportingEnabled() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      refreshOrOpen(AdministratorsPage.url());
+
+      AdministratorsMappingList mapping = AdministratorsPage.administratorsMappingList();
+      mapping.rows().shouldHave(size(3));
+
+      RoleRow usageViewerRow = mapping.row(2);
+      usageViewerRow.shouldBe(visible);
+      usageViewerRow.role().shouldHave(text("Usage Viewer"));
+      usageViewerRow.chevron().shouldBe(visible);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   @Test

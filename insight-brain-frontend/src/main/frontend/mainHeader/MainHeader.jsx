@@ -21,6 +21,7 @@ import {
   selectIsAutomaticApplicationConfigurationEnabled,
   selectIsAutomaticScmConfigurationEnabled,
   selectIsAdvancedSearchConfigurationEnabled,
+  selectIsUsageDashboardEnabled,
   selectIsShowNotificationMenuEnabled,
   selectIsBaseUrlConfigurationEnabled,
   selectIsMonitoringSupported,
@@ -77,6 +78,7 @@ export function MainHeader() {
   const isAutomaticApplicationConfigurationEnabled = useSelector(selectIsAutomaticApplicationConfigurationEnabled);
   const isAutomaticScmConfigurationEnabled = useSelector(selectIsAutomaticScmConfigurationEnabled);
   const isAdvancedSearchConfigurationEnabled = useSelector(selectIsAdvancedSearchConfigurationEnabled);
+  const isConsumptionReportingEnabled = useSelector(selectIsUsageDashboardEnabled);
   const isShowNotificationMenuEnabled = useSelector(selectIsShowNotificationMenuEnabled);
   const isBaseUrlConfigurationEnabled = useSelector(selectIsBaseUrlConfigurationEnabled);
   const isSamlConfigurationEnabled = useSelector(selectIsSAMLEnabled);
@@ -137,6 +139,7 @@ export function MainHeader() {
       isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
       isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
       isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
+      isConsumptionReportingEnabled={isConsumptionReportingEnabled}
       isShowNotificationMenuEnabled={isShowNotificationMenuEnabled}
       isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
       isSamlConfigurationEnabled={isSamlConfigurationEnabled}

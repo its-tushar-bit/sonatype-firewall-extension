@@ -21,12 +21,19 @@ import java.util.function.Function;
 import javax.net.ssl.SSLException;
 
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
+import com.sonatype.insight.brain.model.consumption.ActivityType;
+import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
+import com.sonatype.insight.brain.service.consumption.ConsumptionEvents;
+import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
+import com.sonatype.insight.brain.service.consumption.HdsPathActivityMapper;
+import com.sonatype.insight.brain.service.consumption.KnownCountExtractor;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils;
@@ -113,6 +120,8 @@ public class HdsClient
 
   private final Function<String, Retry> retryCreator;
 
+  private final ConsumptionRecorder consumptionRecorder;
+
   private static volatile String version;
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "hds.upload.file";
@@ -151,9 +160,11 @@ public class HdsClient
       Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      ConsumptionRecorder consumptionRecorder)
   {
-    this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, 20);
+    this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, 20,
+        DEFAULT_RETRY_CREATOR, consumptionRecorder);
   }
 
   protected HdsClient(
@@ -166,7 +177,7 @@ public class HdsClient
       int poolSize)
   {
     this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, poolSize,
-        DEFAULT_RETRY_CREATOR);
+        DEFAULT_RETRY_CREATOR, null);
   }
 
   protected HdsClient(
@@ -179,6 +190,21 @@ public class HdsClient
       int poolSize,
       Function<String, Retry> retryCreator)
   {
+    this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, poolSize,
+        retryCreator, null);
+  }
+
+  protected HdsClient(
+      InsightProxy proxy,
+      ProductLicense productLicense,
+      Configuration configuration,
+      VersionService versionService,
+      TelemetryId telemetryId,
+      CurrentUser currentUser,
+      int poolSize,
+      Function<String, Retry> retryCreator,
+      ConsumptionRecorder consumptionRecorder)
+  {
     this.proxy = proxy;
     this.productLicense = productLicense;
     connectionPoolSize = poolSize;
@@ -187,6 +213,7 @@ public class HdsClient
     this.telemetryId = telemetryId;
     this.currentUser = currentUser;
     this.retryCreator = retryCreator;
+    this.consumptionRecorder = consumptionRecorder;
     updateClient();
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
@@ -403,6 +430,7 @@ public class HdsClient
     if (response.getEntity() != null && response.getEntity().getContentType() != null) {
       relayResponse.contentType = response.getEntity().getContentType().getValue();
     }
+    recordConsumption(path, relayResponse.content);
     return relayResponse;
   }
 
@@ -855,7 +883,37 @@ public class HdsClient
 
   private <T> T execute(Retry retry, HttpUriRequest request, Class<T> clazz) {
     HttpResponse response = execute(retry, request);
-    return fromHttpResponse(response, clazz);
+    T result = fromHttpResponse(response, clazz);
+    recordConsumption(request.getURI().getPath(), result);
+    return result;
+  }
+
+  private <T> void recordConsumption(String path, T result) {
+    try {
+      if (consumptionRecorder != null && currentUser != null) {
+        ActivityType activityType = HdsPathActivityMapper.resolve(path);
+        if (activityType != null) {
+          int count = KnownCountExtractor.extractCount(result);
+          if (count > 0) {
+            ConsumptionContext ctx = ConsumptionContext.get();
+            if (ctx != null) {
+              ActivityType effectiveType = ctx.isDirectApiRequest() ? ActivityType.API : activityType;
+              ConsumptionEvent event = ConsumptionEvents.builderFromContext(ctx)
+                  .appId(ctx.getAppId())
+                  .scanId(ctx.getScanId())
+                  .userId(currentUser.getUsernameOrSystem())
+                  .activityType(effectiveType)
+                  .componentCount(count)
+                  .build();
+              consumptionRecorder.record(event);
+            }
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      log.warn("Consumption recording failed for path {}", path, e);
+    }
   }
 
   private String getRequestId(HttpResponse response) {

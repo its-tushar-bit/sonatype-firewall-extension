@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.banning.rest.BlockEndpointsContainerRequestFilter;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.service.modules.ApiServiceBindingsModule;
 import com.sonatype.insight.brain.service.modules.AuthenticationModule;
 import com.sonatype.insight.brain.service.modules.ComponentModule;
@@ -249,6 +250,8 @@ public class MultiTenantInsightBrainService
     addServletFilter(env, true, ActiveRequestCounterFilter.class, "/*");
 
     addServletFilter(env, true, TenantUrlFilter.class, "/*");
+
+    addServletFilter(env, true, ConsumptionContextFilter.class, "/*");
 
     // We need to add the Header filter for the Admin endpoints before Admin Resources filter
     addAdminServletFilter(env, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);

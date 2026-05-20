@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
@@ -668,6 +669,8 @@ public class PolicyEvaluateService
 
     private final HttpServletRequest request;
 
+    private final ConsumptionContext.Snapshot consumptionSnapshot;
+
     private static final String DOCKER_FORMAT = "docker";
 
     CompleteEvaluationTask(
@@ -716,6 +719,8 @@ public class PolicyEvaluateService
       this.scanContext = scanContext;
       this.analysisDTO = analysisDTO;
       this.request = request;
+
+      this.consumptionSnapshot = ConsumptionContext.snapshot();
     }
 
     @Override
@@ -729,7 +734,9 @@ public class PolicyEvaluateService
       PolicyEvaluationPollingResult policyEvaluationPollingResult =
           persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
 
-      try {
+      try (ConsumptionContext.Scope consumptionCtx =
+          ConsumptionContext.scopeRestored(consumptionSnapshot, app.getId(), null))
+      {
         final long start = System.currentTimeMillis();
 
         if (shouldContinueExistingEvaluation()) {

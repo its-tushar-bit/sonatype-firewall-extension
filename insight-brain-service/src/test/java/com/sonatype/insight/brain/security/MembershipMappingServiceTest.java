@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
@@ -63,6 +64,7 @@ import static com.sonatype.insight.brain.model.security.Role.APPLICATION_EVALUAT
 import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.POLICY_ADMIN_ROLE_ID;
 import static com.sonatype.insight.brain.model.security.Role.SYSTEM_ADMIN_ROLE_ID;
+import static com.sonatype.insight.brain.model.security.Role.USAGE_VIEWER_ROLE_ID;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -241,6 +243,39 @@ public class MembershipMappingServiceTest
         new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
     assertMembersByRoleGlobal(membersByRoles, roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID),
         expectedMember);
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_GlobalContext_consumptionReportingDisabled_hidesUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    try {
+      ApplicableMembershipMappings result = membershipMappingService
+          .getApplicableMembershipMappings(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+
+      assertThat(result.membersByRole)
+          .extracting(r -> r.roleId)
+          .doesNotContain(USAGE_VIEWER_ROLE_ID)
+          .contains(POLICY_ADMIN_ROLE_ID, SYSTEM_ADMIN_ROLE_ID);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testGetApplicableMembershipMappings_GlobalContext_consumptionReportingEnabled_includesUsageViewer() {
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      ApplicableMembershipMappings result = membershipMappingService
+          .getApplicableMembershipMappings(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
+
+      assertThat(result.membersByRole)
+          .extracting(r -> r.roleId)
+          .contains(POLICY_ADMIN_ROLE_ID, SYSTEM_ADMIN_ROLE_ID, USAGE_VIEWER_ROLE_ID);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   private void assertMembersByRoleOwner(

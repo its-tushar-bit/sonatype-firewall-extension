@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.consumption.ActivityType;
+import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -24,6 +28,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
@@ -40,6 +45,8 @@ import org.mockito.MockitoAnnotations;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -87,6 +94,12 @@ public class PullRequestRemediationServiceTest
   @Mock
   private TelemetryUtils mockTelemetryUtils;
 
+  @Mock
+  private ConsumptionRecorder mockConsumptionRecorder;
+
+  @Mock
+  private ProductLicense mockProductLicense;
+
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
@@ -105,12 +118,13 @@ public class PullRequestRemediationServiceTest
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
         mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockTelemetryUtils, mockPullRequestTaskProvider,
         mockSourceControlSshService, mockSourceControlEventDAO, mockScmReducedSecurityService,
-        mockInnerSourceApplicationDAO, mockTelemetrySender);
+        mockInnerSourceApplicationDAO, mockTelemetrySender, mockConsumptionRecorder, mockProductLicense);
   }
 
   private Application setupApplication(String appId) {
     Application application = new Application();
     application.setId(appId);
+    application.setPublicId("TestApp-" + appId);
     when(mockApplicationDAO.getById(appId)).thenReturn(application);
     return application;
   }
@@ -736,5 +750,159 @@ public class PullRequestRemediationServiceTest
 
     SourceControlEvent capturedEvent = eventCaptor.getValue();
     assertThat(capturedEvent.getEventStatusDetails()).isEqualTo(prUrl);
+  }
+
+  @Test
+  public void testOnRemediateComponent_success_recordsConsumption() throws Exception {
+    final String branchName = "consumption/test/branch";
+    final String appId = "app-consumption-123";
+    final String prUrl = "https://github.com/sonatype/test/pull/55";
+
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "1.0.0"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("2.0.0")
+        .setScanId("scan-consumption")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("consumption test PR")
+        .setBranchName(branchName);
+
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      pullRequestRemediationService.onRemediateComponent(event);
+
+      ArgumentCaptor<ConsumptionEvent> consumptionCaptor = ArgumentCaptor.forClass(ConsumptionEvent.class);
+      verify(mockConsumptionRecorder).record(consumptionCaptor.capture());
+
+      ConsumptionEvent consumptionEvent = consumptionCaptor.getValue();
+      assertThat(consumptionEvent.getActivityType()).isEqualTo(ActivityType.VERSION_RECOMMENDATION);
+      assertThat(consumptionEvent.getComponentCount()).isEqualTo(1);
+      assertThat(consumptionEvent.getSource()).isEqualTo("CONTINUOUS_MONITOR");
+      assertThat(consumptionEvent.getAppId()).isEqualTo(application.getId());
+      assertThat(consumptionEvent.getScanId()).isEqualTo("scan-consumption");
+      assertThat(consumptionEvent.getUserId()).isEqualTo("system");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testOnRemediateComponent_manualPr_recordsConsumptionWithUiSource() throws Exception {
+    final String branchName = "consumption/manual/branch";
+    final String appId = "app-consumption-manual";
+    final String prUrl = "https://github.com/sonatype/test/pull/88";
+
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-M", "1.0.0"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("2.0.0")
+        .setScanId("scan-manual-consumption")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("manual consumption test PR")
+        .setBranchName(branchName)
+        .setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      pullRequestRemediationService.onRemediateComponent(event);
+
+      ArgumentCaptor<ConsumptionEvent> consumptionCaptor = ArgumentCaptor.forClass(ConsumptionEvent.class);
+      verify(mockConsumptionRecorder).record(consumptionCaptor.capture());
+
+      ConsumptionEvent consumptionEvent = consumptionCaptor.getValue();
+      assertThat(consumptionEvent.getActivityType()).isEqualTo(ActivityType.VERSION_RECOMMENDATION);
+      assertThat(consumptionEvent.getComponentCount()).isEqualTo(1);
+      assertThat(consumptionEvent.getSource()).isEqualTo("UI");
+      assertThat(consumptionEvent.getAppId()).isEqualTo(application.getId());
+      assertThat(consumptionEvent.getScanId()).isEqualTo("scan-manual-consumption");
+      assertThat(consumptionEvent.getUserId()).isEqualTo("manual");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testOnRemediateComponent_consumptionRecordingFailure_doesNotAffectPrCreation() throws Exception {
+    final String branchName = "consumption/resilience/branch";
+    final String appId = "app-consumption-resilience";
+    final String prUrl = "https://github.com/sonatype/test/pull/77";
+
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-C", "1.0.0"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("2.0.0")
+        .setScanId("scan-resilience")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("resilience test PR")
+        .setBranchName(branchName);
+
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      doThrow(new RuntimeException("DB connection error"))
+          .when(mockConsumptionRecorder)
+          .record(any());
+
+      pullRequestRemediationService.onRemediateComponent(event);
+
+      // PR creation should still succeed despite consumption recording failure
+      verify(mockSourceControlEventDAO).update(event);
+      assertThat(event.getEventStatusDetails()).isEqualTo(prUrl);
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+      reset(mockConsumptionRecorder);
+    }
+  }
+
+  @Test
+  public void testOnRemediateComponent_failure_doesNotRecordConsumption() throws Exception {
+    final String branchName = "consumption/fail/branch";
+    final String appId = "app-consumption-fail";
+
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(false, null);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-B", "1.0.0"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("2.0.0")
+        .setScanId("scan-fail")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("failing PR")
+        .setBranchName(branchName);
+
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    verifyNoInteractions(mockConsumptionRecorder);
   }
 }

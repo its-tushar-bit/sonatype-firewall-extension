@@ -39,7 +39,7 @@ public class RolePermissionDAOTest
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms).containsExactlyInAnyOrder(Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES,
-        Permission.ACCESS_AUDIT_LOG);
+        Permission.ACCESS_AUDIT_LOG, Permission.VIEW_USAGE);
   }
 
   @Test

@@ -203,6 +203,10 @@ import com.sonatype.insight.brain.zscaler.ZScalerConfigTelemetryCollector;
 import com.sonatype.insight.brain.zscaler.ZScalerMaliciousUrlFetcher;
 import com.sonatype.insight.brain.zscaler.ZScalerMetricsTelemetryCollector;
 import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
+import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
+import com.sonatype.insight.brain.service.consumption.ConsumptionService;
+import com.sonatype.insight.brain.service.consumption.ConsumptionResource;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -467,6 +471,10 @@ public class CoreServiceModule
     bind(ZScalerMaliciousUrlFetcher.class).to(HDSMaliciousUrlFetcher.class);
     bind(ZScalerMetricsTelemetryCollector.class);
     bind(ZScalerUpdater.class);
+    bind(ConsumptionRecorder.class).in(Singleton.class);
+    bind(ConsumptionService.class).in(Singleton.class);
+    bind(ConsumptionResource.class).in(Singleton.class);
+    bind(ConsumptionContextFilter.class).in(Singleton.class);
 
     // Additional interface bindings needed for Guice migration
     bind(org.quartz.spi.JobFactory.class).to(GuiceAwareJobFactory.class);

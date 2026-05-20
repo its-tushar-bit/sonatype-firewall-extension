@@ -28,9 +28,11 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -74,6 +76,8 @@ public class SourceControlScanService
 
   private final SourceControlSshService sourceControlSshService;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public SourceControlScanService(
       final GitApiFactory gitApiFactory,
@@ -85,7 +89,8 @@ public class SourceControlScanService
       final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
-      final SourceControlSshService sourceControlSshService)
+      final SourceControlSshService sourceControlSshService,
+      final ProductLicense productLicense)
   {
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
@@ -97,6 +102,7 @@ public class SourceControlScanService
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
     this.sourceControlSshService = sourceControlSshService;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -109,15 +115,17 @@ public class SourceControlScanService
     log.trace("Source control scan initiated for application '{}' on branch '{}'", event.getApplicationId(),
         event.getBranchName());
 
-    try {
+    final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
+
+    try (ConsumptionContext.Scope consumptionCtx =
+        ConsumptionContext.scopeBackgroundJob(productLicense, application.getId()))
+    {
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
       if (gitRepositoryInfo == null) {
         log.trace("onSourceControlScan: No gitRepositoryInfo for application ID '{}'.", event.getApplicationId());
         return;
       }
-
-      final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
 
       try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
         try {
@@ -175,7 +183,10 @@ public class SourceControlScanService
 
     final Application application = applicationDAO.getByIdNotNull(applicationId);
 
-    try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+    try (ConsumptionContext.Scope consumptionCtx =
+        ConsumptionContext.scopeBackgroundJob(productLicense, application.getId());
+        AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION))
+    {
       try {
         AuditData.get().setApplication(application);
         AuditData.get().setStageId(stage.getStageTypeId());

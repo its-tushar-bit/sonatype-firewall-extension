@@ -237,6 +237,7 @@ INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, descr
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('2cb71b3468d649789163ea2e212b541e', 'Application Evaluator', 'applicationevaluator', 400, 'Evaluates applications and views policy violation summary results.', FALSE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('90c7c98683b4471cb77a916744540bcc', 'Component Evaluator', 'componentevaluator', 500, 'Evaluates individual components and views policy violation results for a specified application.', FALSE, TRUE);
 INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('0df46317c031440795007f4ce9c7f002', 'Legal Reviewer', 'legalreviewer', 600, 'Reviews legal obligations for component licenses.', FALSE, TRUE);
+INSERT INTO role (role_id, name, name_lowercase_no_whitespace, sort_order, description, global, built_in) VALUES ('070e6c31fc8a42159df5298313b8a829', 'Usage Viewer', 'usageviewer', 700, 'Can view the Usage Dashboard, consumption API, and export data', TRUE, TRUE);
 
 CREATE TABLE role_permission (
   role_permission_id varchar(50) NOT NULL,
@@ -250,6 +251,7 @@ CREATE TABLE role_permission (
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1b68169c84874c69b4ac30a391b46212', '1b92fae3e55a411793a091fb821c422d', 'CONFIGURE_SYSTEM');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('971e6e9fa55e402f9809a814993261d8', '1b92fae3e55a411793a091fb821c422d', 'VIEW_ROLES');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('3229ffe4e3a945c3bf11ab649ffa875e', '1b92fae3e55a411793a091fb821c422d', 'ACCESS_AUDIT_LOG');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('d95edf65c9ec4b25b25f6f0f0ab998ff', '1b92fae3e55a411793a091fb821c422d', 'VIEW_USAGE');
 -- Policy Administrator role
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('1539fa2c5afd4cd4b7102ef6c8d0bf6b', 'b9646757e98e486da7d730025f5245f8', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('c49843ffa4ae4bb68c3e35b25244486e', 'b9646757e98e486da7d730025f5245f8', 'READ');
@@ -295,6 +297,8 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('6
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('9c3d3a466bed410fa8d8c8801f3a0c13', '0df46317c031440795007f4ce9c7f002', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('4209ad3cdcfd474b865c51c0d664ea2a', '0df46317c031440795007f4ce9c7f002', 'READ');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('16ef4730b20f42e6bcfc14afcd42cd6d', '0df46317c031440795007f4ce9c7f002', 'CHANGE_LICENSES');
+-- Usage Viewer role
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('8083539846424d66b6dbe1ac0cbbc0c7', '070e6c31fc8a42159df5298313b8a829', 'VIEW_USAGE');
 
 CREATE TABLE membership_mapping (
   membership_mapping_id varchar(50) NOT NULL,
@@ -2322,3 +2326,41 @@ CREATE INDEX hosted_component_scan_queue_priority_idx ON hosted_component_scan_q
 CREATE INDEX hosted_component_scan_queue_status_priority_idx ON hosted_component_scan_queue(status, priority DESC);
 CREATE INDEX hosted_component_scan_queue_acquired_at_idx ON hosted_component_scan_queue(acquired_at);
 CREATE INDEX hosted_component_scan_queue_repository_id_idx ON hosted_component_scan_queue(repository_id);
+
+-- Since 1.204
+-- SaaS Compatible
+-- CLM-38070: Create consumption_events table for consumption-based pricing
+
+CREATE TABLE consumption_events (
+  id VARCHAR(50) NOT NULL,
+  org_id VARCHAR(255) NOT NULL,
+  app_id VARCHAR(255),
+  scan_id VARCHAR(255),
+  user_id VARCHAR(255),
+  event_timestamp TIMESTAMP NOT NULL,
+  component_count INTEGER NOT NULL DEFAULT 1,
+  activity_type VARCHAR(50) NOT NULL,
+  source VARCHAR(30) NOT NULL,
+  tier VARCHAR(20) NOT NULL,
+  billing_month DATE NOT NULL,
+  CONSTRAINT consumption_events_pk PRIMARY KEY (id),
+  CONSTRAINT chk_consumption_events_component_count CHECK (component_count > 0)
+);
+
+CREATE INDEX idx_consumption_events_org_month ON consumption_events(org_id, billing_month);
+CREATE INDEX idx_consumption_events_org_activity ON consumption_events(org_id, activity_type, billing_month);
+CREATE INDEX idx_consumption_events_timestamp ON consumption_events(event_timestamp);
+CREATE INDEX idx_consumption_events_billing_activity ON consumption_events(billing_month, activity_type);
+CREATE INDEX idx_consumption_events_timestamp_app ON consumption_events(event_timestamp, app_id);
+
+CREATE TABLE consumption_limit_config (
+  id VARCHAR(50) NOT NULL,
+  org_id VARCHAR(255) NOT NULL,
+  monthly_limit BIGINT,
+  warning_threshold_pct INTEGER DEFAULT 80,
+  enforcement_mode VARCHAR(10) DEFAULT 'SOFT',
+  CONSTRAINT consumption_limit_config_pk PRIMARY KEY (id),
+  CONSTRAINT consumption_limit_config_org_id_uk UNIQUE (org_id),
+  CONSTRAINT chk_warning_threshold_pct CHECK (warning_threshold_pct BETWEEN 0 AND 100),
+  CONSTRAINT chk_enforcement_mode CHECK (enforcement_mode IN ('SOFT', 'HARD'))
+);

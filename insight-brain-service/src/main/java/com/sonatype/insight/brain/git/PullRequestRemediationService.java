@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.model.consumption.ActivityType;
+import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -23,6 +25,11 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
+import com.sonatype.insight.brain.service.consumption.ConsumptionEvents;
+import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
+import com.sonatype.insight.brain.service.consumption.ConsumptionSourceClassifier.Source;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -65,6 +72,10 @@ public class PullRequestRemediationService
 
   private final TelemetrySender telemetrySender;
 
+  private final ConsumptionRecorder consumptionRecorder;
+
+  private final ProductLicense productLicense;
+
   @Inject
   public PullRequestRemediationService(
       PullRequestExecutor pullRequestExecutor,
@@ -78,7 +89,9 @@ public class PullRequestRemediationService
       SourceControlEventDAO sourceControlEventDAO,
       ScmReducedSecurityService scmReducedSecurityService,
       InnerSourceApplicationDAO innerSourceApplicationDAO,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      ConsumptionRecorder consumptionRecorder,
+      ProductLicense productLicense)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
@@ -92,6 +105,8 @@ public class PullRequestRemediationService
     this.scmReducedSecurityService = scmReducedSecurityService;
     this.innerSourceApplicationDAO = innerSourceApplicationDAO;
     this.telemetrySender = telemetrySender;
+    this.consumptionRecorder = consumptionRecorder;
+    this.productLicense = productLicense;
   }
 
   /**
@@ -133,6 +148,7 @@ public class PullRequestRemediationService
       PullRequestResult pullRequestResult =
           pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
       if (pullRequestResult.isSuccessful()) {
+        recordConsumptionForSuccessfulPr(event, application);
         event.setEventStatusDetails(pullRequestResult.getPullRequestUrl());
         Integer pullRequestNumber = extractPullRequestNumber(pullRequestResult.getPullRequestUrl());
         if (pullRequestNumber != null) {
@@ -142,6 +158,29 @@ public class PullRequestRemediationService
         }
         sourceControlEventDAO.update(event);
       }
+    }
+  }
+
+  private void recordConsumptionForSuccessfulPr(SourceControlEvent event, Application application) {
+    boolean isManual = SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType());
+    try (ConsumptionContext.Scope consumptionCtx =
+        ConsumptionContext.scopeBackgroundJob(productLicense, application.getId()))
+    {
+      ConsumptionContext ctx = ConsumptionContext.get();
+      if (ctx != null) {
+        ConsumptionEvent consumptionEvent = ConsumptionEvents.builderFromContext(ctx)
+            .appId(application.getId())
+            .scanId(event.getScanId())
+            .userId(isManual ? "manual" : "system")
+            .activityType(ActivityType.VERSION_RECOMMENDATION)
+            .componentCount(1)
+            .source(isManual ? Source.UI.token() : ctx.getSource())
+            .build();
+        consumptionRecorder.record(consumptionEvent);
+      }
+    }
+    catch (Exception e) {
+      log.warn("Failed to record consumption for successful pull request", e);
     }
   }
 

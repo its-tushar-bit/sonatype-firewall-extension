@@ -42,6 +42,8 @@ import {
   selectHasAutoWaiverManagement,
   selectHasWaiverRequestWorkflow,
   selectHasBulkWaivers,
+  selectIsConsumptionReportingEnabled,
+  selectIsUsageDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -402,7 +404,9 @@ describe('productFeaturesSelectors', () => {
     entitlementSelectors.forEach(({ selector, feature }) => {
       describe(`select for ${feature}`, () => {
         it(`returns true when ${feature} is present (Lifecycle)`, () => {
-          const state = withTierGatedLifecycle(assocPath(['productFeatures', 'productFeatures', feature], true, mockState));
+          const state = withTierGatedLifecycle(
+            assocPath(['productFeatures', 'productFeatures', feature], true, mockState)
+          );
           expect(selector(state)).toBe(true);
         });
 
@@ -411,7 +415,11 @@ describe('productFeaturesSelectors', () => {
         });
 
         it(`returns true when not a tier-gated Lifecycle product (Foundation)`, () => {
-          const state = assocPath(['productLicense', 'license', 'products'], ['Sonatype Lifecycle Foundation'], mockState);
+          const state = assocPath(
+            ['productLicense', 'license', 'products'],
+            ['Sonatype Lifecycle Foundation'],
+            mockState
+          );
           expect(selector(state)).toBe(true);
         });
 
@@ -438,6 +446,75 @@ describe('productFeaturesSelectors', () => {
 
     it('returns false when isEnterprisePreviewMode is not present (default)', () => {
       expect(selectIsEnterprisePreviewMode(mockState)).toBe(false);
+    });
+  });
+
+  describe('selectIsConsumptionReportingEnabled', () => {
+    it('returns true when consumption-reporting feature flag is on', () => {
+      const state = assocPath(['productFeatures', 'productFeatures', 'consumption-reporting'], true, mockState);
+      expect(selectIsConsumptionReportingEnabled(state)).toBe(true);
+    });
+
+    it('returns false when consumption-reporting flag is absent', () => {
+      expect(selectIsConsumptionReportingEnabled(mockState)).toBe(false);
+    });
+
+    it('returns false when consumption-reporting flag is false', () => {
+      const state = assocPath(['productFeatures', 'productFeatures', 'consumption-reporting'], false, mockState);
+      expect(selectIsConsumptionReportingEnabled(state)).toBe(false);
+    });
+  });
+
+  describe('selectIsUsageDashboardEnabled', () => {
+    const buildState = ({ flag = true, products = ['Sonatype Lifecycle'], routeName = 'dashboard' } = {}) => {
+      let state = assocPath(['productFeatures', 'productFeatures', 'consumption-reporting'], flag, mockState);
+      state = assocPath(['productLicense', 'license', 'products'], products, state);
+      state = assocPath(['router', 'currentState', 'name'], routeName, state);
+      return state;
+    };
+
+    it('returns true on Lifecycle license + flag on + non-standalone route', () => {
+      expect(selectIsUsageDashboardEnabled(buildState())).toBe(true);
+    });
+
+    it('returns false when flag is off even with Lifecycle license', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ flag: false }))).toBe(false);
+    });
+
+    it('returns false on SBOM-only license (no Lifecycle)', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ products: ['Sonatype SBOM Manager'] }))).toBe(false);
+    });
+
+    it('returns false on Firewall-only license (no Lifecycle)', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ products: ['Sonatype Repository Firewall'] }))).toBe(false);
+    });
+
+    it('returns false when user is on a standalone SBOM Manager route even with Lifecycle license', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ routeName: 'sbomManager.dashboard' }))).toBe(false);
+    });
+
+    it('returns false when user is on a standalone Firewall route even with Lifecycle license', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ routeName: 'firewall.dashboard' }))).toBe(false);
+    });
+
+    it('returns false when user is on a standalone Developer route even with Lifecycle license', () => {
+      expect(selectIsUsageDashboardEnabled(buildState({ routeName: 'developer.dashboard' }))).toBe(false);
+    });
+
+    it('returns false when user is on a prioritiesPageContainer route even with Lifecycle license', () => {
+      expect(
+        selectIsUsageDashboardEnabled(
+          buildState({ routeName: 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard' })
+        )
+      ).toBe(false);
+    });
+
+    it('returns true on mixed Lifecycle+SBOM license while on a Lifecycle route', () => {
+      const state = buildState({
+        products: ['Sonatype Lifecycle', 'Sonatype SBOM Manager'],
+        routeName: 'dashboard',
+      });
+      expect(selectIsUsageDashboardEnabled(state)).toBe(true);
     });
   });
 });

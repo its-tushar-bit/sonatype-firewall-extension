@@ -85,6 +85,7 @@ import com.sonatype.insight.brain.service.modules.OrganizationModule;
 import com.sonatype.insight.brain.service.modules.PolicyModule;
 import com.sonatype.insight.brain.service.modules.ProductLicenseModule;
 import com.sonatype.insight.brain.service.modules.RepositoryModule;
+import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
 import com.sonatype.insight.brain.service.modules.ScannerModule;
 import com.sonatype.insight.brain.service.modules.SonatypeLicensingModule;
 import com.sonatype.insight.brain.service.modules.TelemetryModule;
@@ -631,6 +632,9 @@ public class InsightBrainService
 
   protected void addServletFilters(Environment env) {
     addServletFilter(env, true, ActiveRequestCounterFilter.class, "/*");
+    // Wraps full chain (context set/cleared around handlers); org is from
+    // tenant routing, not auth, so pre-auth order is safe.
+    addServletFilter(env, true, ConsumptionContextFilter.class, "/*");
     addServletFilters(env, false);
   }
 

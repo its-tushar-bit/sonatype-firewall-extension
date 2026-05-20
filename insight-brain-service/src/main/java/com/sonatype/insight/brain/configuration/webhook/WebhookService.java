@@ -53,8 +53,8 @@ public class WebhookService
       WebhookEventType.WAIVER_EXPIRATION);
 
   private static final Set<WebhookEventType> LIFECYCLE_ONLY_EVENTS = Set.of(
-  // Future lifecycle-only events if needed
-  );
+      WebhookEventType.POLICY_ALERT,
+      WebhookEventType.WAIVER_REQUEST);
 
   protected final WebhookDAO webhookDao;
 

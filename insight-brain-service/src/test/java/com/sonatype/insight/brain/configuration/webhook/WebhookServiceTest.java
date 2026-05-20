@@ -533,6 +533,42 @@ public class WebhookServiceTest
   }
 
   @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_ExcludesViolationAlert() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).doesNotContain("Violation Alert");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_FirewallContext_ExcludesWaiverRequest() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
+
+    assertThat(eventTypes).doesNotContain("Waiver Request");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_IncludesViolationAlert() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).contains("Violation Alert");
+  }
+
+  @Test
+  public void testGetAllWebhookEventTypes_LifecycleContext_IncludesWaiverRequest() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    List<String> eventTypes = webhookService.getAllWebhookEventTypes("lifecycle");
+
+    assertThat(eventTypes).contains("Waiver Request");
+  }
+
+  @Test
   public void testGetAllWebhookEventTypes_FirewallContext_NoLicense_ReturnsEmptyList() {
     testProductLicense.setMissingFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 

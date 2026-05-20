@@ -10,9 +10,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -42,6 +45,13 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyViolati
 public class ApplicationComponentDAO
     extends AbstractOperationalSqlDAO<ApplicationComponent>
 {
+  /**
+   * Compound key for looking up ApplicationComponent by application, stage, and hash.
+   */
+  public record ApplicationComponentKey(String applicationId, String stageTypeId, String hash)
+  {
+  }
+
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
 
   private final TemporaryTableHelper temporaryTableHelper;
@@ -110,6 +120,45 @@ public class ApplicationComponentDAO
           .and(APPLICATION_COMPONENT.HASH.eq(hash))
           .fetchOne());
     }
+  }
+
+  public Map<ApplicationComponentKey, ApplicationComponent> getMapByApplicationIdsAndStageTypeIdsAndHashes(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Set<String> hashes)
+  {
+    if (CollectionUtils.isEmpty(applicationIds) || CollectionUtils.isEmpty(stageTypeIds)
+        || CollectionUtils.isEmpty(hashes))
+    {
+      return Map.of();
+    }
+    return getStreamWithSqlInClause(
+        applicationIds,
+        appIdChunk -> getStreamWithSqlInClause(
+            hashes,
+            hashChunk -> {
+              try (TransactionContext tx = createTransactionContext()) {
+                return tx.dsl()
+                    .selectFrom(APPLICATION_COMPONENT)
+                    .where(APPLICATION_COMPONENT.APPLICATION_ID.in(appIdChunk))
+                    .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.in(stageTypeIds))
+                    .and(APPLICATION_COMPONENT.HASH.in(hashChunk))
+                    .fetch(this::toEntity)
+                    .stream();
+              }
+            },
+            getDataStore(),
+            1,
+            appIdChunk.size() + stageTypeIds.size()),
+        getDataStore(),
+        1,
+        stageTypeIds.size() + 1) // +1 for minimum 1 hash in each inner IN-clause
+            .collect(Collectors.toMap(
+                component -> new ApplicationComponentKey(
+                    component.getApplicationId(),
+                    component.getStageTypeId(),
+                    component.getHash()),
+                component -> component));
   }
 
   public List<ApplicationComponent> getByApplicationIdAndHash(String appId, String hash) {

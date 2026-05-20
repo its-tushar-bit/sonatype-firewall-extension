@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -989,6 +990,65 @@ public class ApplicationComponentDAOTest
       return -1;
     })
         .containsExactlyInAnyOrderElementsOf(expected);
+  }
+
+  @Test
+  public void testGetMapByApplicationIdsAndStageTypeIdsAndHashes() {
+    Date now = new Date();
+    ApplicationComponent comp1 = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), true, null);
+    ApplicationComponent comp2 = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash2",
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null);
+    ApplicationComponent comp3 = new ApplicationComponent(application.getId(), ReleaseStageType.ID, now, "hash3",
+        ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null);
+    dao.insert(comp1);
+    dao.insert(comp2);
+    dao.insert(comp3);
+
+    Set<String> appIds = Set.of(application.getId());
+    Set<String> stageTypeIds = Set.of(BuildStageType.ID, ReleaseStageType.ID);
+
+    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> results =
+        dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("hash1", "hash3"));
+    assertThat(results).hasSize(2);
+    assertThat(results.values()).extracting(ApplicationComponent::getHash).containsExactlyInAnyOrder("hash1", "hash3");
+
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Set.of("nonexistent"));
+    assertThat(results).isEmpty();
+
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, stageTypeIds, Collections.emptySet());
+    assertThat(results).isEmpty();
+
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(Collections.emptySet(), stageTypeIds, Set.of("hash1"));
+    assertThat(results).isEmpty();
+
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(appIds, Collections.emptySet(), Set.of("hash1"));
+    assertThat(results).isEmpty();
+
+    // Multi-app: same hash exists in two different applications
+    String app2Id = tempEntity.newApplication(organization.getId()).getId();
+    ApplicationComponent comp4 = new ApplicationComponent(app2Id, BuildStageType.ID, now, "hash1",
+        ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"), MatchState.EXACT.getId(),
+        IdentificationSource.SONATYPE.getId(), false, null);
+    dao.insert(comp4);
+
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+        Set.of(application.getId(), app2Id), stageTypeIds, Set.of("hash1"));
+    assertThat(results).hasSize(2);
+    assertThat(results.values()).extracting(ApplicationComponent::getApplicationId)
+        .containsExactlyInAnyOrder(application.getId(), app2Id);
+    assertThat(results.values()).extracting(ApplicationComponent::getHash).containsOnly("hash1");
+
+    // Only one app requested — should only get that app's component
+    results = dao.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+        Set.of(app2Id), stageTypeIds, Set.of("hash1"));
+    assertThat(results).hasSize(1);
+    ApplicationComponentDAO.ApplicationComponentKey key = results.keySet().iterator().next();
+    assertThat(key.applicationId()).isEqualTo(app2Id);
+    assertThat(key.hash()).isEqualTo("hash1");
   }
 
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {

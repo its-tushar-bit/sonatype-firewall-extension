@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -207,6 +208,10 @@ public class ApiPolicyViolationServiceV2
         .collect(Collectors.toMap(
             policyEvaluation -> policyEvaluation.getApplicationId() + policyEvaluation.getStageTypeId(),
             Function.identity()));
+
+    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByAppIdStageIdHash =
+        batchLoadApplicationComponents(policyViolationsByAppId);
+
     ApiApplicationViolationListDTOV2 apiApplicationViolationListDTOV2 = new ApiApplicationViolationListDTOV2();
     for (Entry<String, List<PolicyViolation>> entry : policyViolationsByAppId.entrySet()) {
       String appId = entry.getKey();
@@ -220,7 +225,8 @@ public class ApiPolicyViolationServiceV2
         PolicyEvaluation policyEvaluation = policyEvaluationsByAppIdAndStageId
             .get(policyViolation.getApplicationId() + policyViolation.getStageTypeId());
         ApiEnhancedPolicyViolationDTOV2 apiEnhancedPolicyViolationDTOV2 =
-            toApiEnhancedPolicyViolationDTOV2(application, policyEvaluation, policyViolation);
+            toApiEnhancedPolicyViolationDTOV2(application, policyEvaluation, policyViolation,
+                componentsByAppIdStageIdHash);
         apiApplicationViolationDTOV2.policyViolations.add(apiEnhancedPolicyViolationDTOV2);
       }
 
@@ -239,6 +245,25 @@ public class ApiPolicyViolationServiceV2
       policyAuditDTOs.add(new PolicyAuditDTO(policyId, policyDAO.getById(policyId)));
     }
     return policyAuditDTOs;
+  }
+
+  private Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> batchLoadApplicationComponents(
+      Map<String, List<PolicyViolation>> policyViolationsByAppId)
+  {
+    Set<String> applicationIds = new HashSet<>();
+    Set<String> stageTypeIds = new HashSet<>();
+    Set<String> hashes = new HashSet<>();
+
+    for (List<PolicyViolation> violations : policyViolationsByAppId.values()) {
+      for (PolicyViolation pv : violations) {
+        applicationIds.add(pv.getApplicationId());
+        stageTypeIds.add(pv.getStageTypeId());
+        hashes.add(pv.getHash());
+      }
+    }
+
+    return applicationComponentDAO.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+        applicationIds, stageTypeIds, hashes);
   }
 
   private void sortPolicyViolations(Map<String, List<PolicyViolation>> policyViolationsByAppId) {
@@ -285,7 +310,8 @@ public class ApiPolicyViolationServiceV2
   private ApiEnhancedPolicyViolationDTOV2 toApiEnhancedPolicyViolationDTOV2(
       Application application,
       PolicyEvaluation policyEvaluation,
-      PolicyViolation policyViolation)
+      PolicyViolation policyViolation,
+      Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByAppIdStageIdHash)
   {
     ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
     apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
@@ -297,8 +323,9 @@ public class ApiPolicyViolationServiceV2
         UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), policyEvaluation.getScanId());
     apiPolicyViolationDTO.stageId = policyViolation.getStageTypeId();
     apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();
-    ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
+    ApplicationComponentDAO.ApplicationComponentKey lookupKey = new ApplicationComponentDAO.ApplicationComponentKey(
         application.getId(), policyViolation.getStageTypeId(), policyViolation.getHash());
+    ApplicationComponent applicationComponent = componentsByAppIdStageIdHash.get(lookupKey);
     apiPolicyViolationDTO.component = new ApiComponentDTOV2();
     apiPolicyViolationDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationDTO.component.proprietary = applicationComponent != null && applicationComponent.isProprietary();

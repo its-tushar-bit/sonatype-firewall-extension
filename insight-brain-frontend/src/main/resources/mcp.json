@@ -211,7 +211,7 @@
   "optionalHeaders": [
     {
       "name": "X-Application-Id",
-      "description": "IQ application ID for policy evaluation. When provided, MCP tool responses include policy violations specific to this application. When omitted, policy is evaluated against the root IQ organization.",
+      "description": "IQ application ID for policy evaluation. When provided, MCP tool responses include policy violations specific to this application.",
       "example": "X-Application-Id: my-app-id"
     },
     {

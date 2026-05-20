@@ -121,10 +121,8 @@ export function McpPage() {
                   Optional Headers
                 </Text>
                 <Text size="2" color="gray">
-                  By default, policy is evaluated against the root IQ organization at the
-                  &lsquo;release&rsquo; stage. Pass these headers to scope evaluation to a
-                  specific application or stage instead. They can also be provided as parameters
-                  in tool calls.
+                  Pass these headers to enable policy evaluation for specific IQ applications.
+                  These can also be provided as parameters in tool calls.
                 </Text>
                 {data.optionalHeaders.map((header, index) => (
                   <Box key={index} mt={tokens.space.inline}>

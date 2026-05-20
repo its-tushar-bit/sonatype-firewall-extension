@@ -41,6 +41,8 @@ public class McpServletProviderTest
 {
   private static final String PURL = "pkg:maven/org.example/lib@1.0.0";
 
+  private static final String PURL_COMPLETED = "pkg:maven/org.example/lib@1.0.0?type=jar";
+
   private static final ObjectMapper mapper = new ObjectMapper();
 
   private static final String COMPONENT_JSON = """
@@ -119,7 +121,7 @@ public class McpServletProviderTest
         "app-123", "develop",
         new McpStageResult("develop", true, "None", 0),
         List.of());
-    when(policyAnnotator.evaluatePolicy(PURL, "app-123", null)).thenReturn(policyContext);
+    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "app-123", null)).thenReturn(policyContext);
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",
@@ -131,7 +133,7 @@ public class McpServletProviderTest
     JsonNode policyNode = root.get(0).get("data").get("policyCompliance");
     assertThat(policyNode.get("applicationId").asText()).isEqualTo("app-123");
     assertThat(policyNode.get("stage").asText()).isEqualTo("develop");
-    verify(policyAnnotator).evaluatePolicy(PURL, "app-123", null);
+    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "app-123", null);
   }
 
   @Test
@@ -140,7 +142,7 @@ public class McpServletProviderTest
         "header-app", "build",
         new McpStageResult("build", true, "None", 0),
         List.of());
-    when(policyAnnotator.evaluatePolicy(PURL, "header-app", "build")).thenReturn(policyContext);
+    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "header-app", "build")).thenReturn(policyContext);
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",
@@ -154,7 +156,7 @@ public class McpServletProviderTest
     JsonNode root = parseResult(result);
     assertThat(root.get(0).get("data").get("policyCompliance").get("applicationId").asText())
         .isEqualTo("header-app");
-    verify(policyAnnotator).evaluatePolicy(PURL, "header-app", "build");
+    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "header-app", "build");
   }
 
   @Test
@@ -163,7 +165,7 @@ public class McpServletProviderTest
         "arg-app", "release",
         new McpStageResult("release", true, "None", 0),
         List.of());
-    when(policyAnnotator.evaluatePolicy(PURL, "arg-app", "release")).thenReturn(policyContext);
+    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "arg-app", "release")).thenReturn(policyContext);
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     Map<String, Object> args = new HashMap<>();
@@ -177,7 +179,7 @@ public class McpServletProviderTest
 
     underTest.callTool(ctx, request, fn, ToolType.COMPONENT_VERSION);
 
-    verify(policyAnnotator).evaluatePolicy(PURL, "arg-app", "release");
+    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "arg-app", "release");
   }
 
   @Test
@@ -206,7 +208,7 @@ public class McpServletProviderTest
         "app-123", "develop",
         new McpStageResult("develop", false, "Fail", 1),
         List.of(violation));
-    when(policyAnnotator.evaluatePolicy(PURL, "app-123", null)).thenReturn(policyContext);
+    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "app-123", null)).thenReturn(policyContext);
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",

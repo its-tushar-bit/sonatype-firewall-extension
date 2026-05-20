@@ -1035,6 +1035,12 @@ CREATE TABLE source_control_event (
   is_golden_pull_request boolean,
   event_failure_category varchar(64),
   event_is_retryable boolean,
+  authentication_type varchar(32),
+  auth_owner_id varchar(50),
+  github_app_id varchar(50),
+  installation_id varchar(64),
+  outcome varchar(16),
+  failure_reason varchar(64),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id)
     REFERENCES application (application_id) ON DELETE CASCADE,
@@ -1084,6 +1090,11 @@ CREATE TABLE source_control_pull_request
   last_detected_update_time timestamp NOT NULL,
   state varchar(50),
   source varchar(50),
+  source_control_event_id varchar(50),
+  authentication_type varchar(32),
+  auth_owner_id varchar(50),
+  github_app_id varchar(50),
+  installation_id varchar(64),
   CONSTRAINT source_control_pull_request_pk PRIMARY KEY (source_control_pull_request_id),
   -- The "source_control_pull_request_uk" name is taken by a constraint incorrectly named in schema_incremental_0171
   CONSTRAINT source_control_pull_request_uk1 UNIQUE (repository_url, pull_request_id)

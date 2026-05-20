@@ -86,6 +86,13 @@ public class SourceControlAuthenticationTransitionHandler
       gitHubAppDAO.activateGitHubApp(tx, ownerId, sourceControlDTO.githubAppId);
 
       gitHubAppAuthStrategyCache.invalidate(ownerId);
+      // Also evict any inherited child entries that resolved through this same app.
+      try {
+        gitHubAppAuthStrategyCache.invalidateByGitHubAppId(gitHubApp.getAppId());
+      }
+      catch (Exception e) {
+        log.warn("Failed to invalidate auth cache by GitHub App id {}", gitHubApp.getAppId(), e);
+      }
 
       log.info("Activated GitHub App {} for owner {}", sourceControlDTO.githubAppId, ownerId);
     }

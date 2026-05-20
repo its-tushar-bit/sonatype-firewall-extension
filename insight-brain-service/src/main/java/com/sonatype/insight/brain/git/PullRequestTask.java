@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.metrics.ScmTimerContext;
@@ -21,7 +22,9 @@ import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
 import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl.AuthenticationType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -39,6 +42,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.OUTCOME_FAILURE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.OUTCOME_SUCCESS;
 import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forError;
 import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forPullRequest;
 import static com.sonatype.insight.brain.scm.event.SourceControlEventType.API_ERROR;
@@ -68,9 +73,13 @@ public class PullRequestTask
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   private final SourceControlEventLoggerFactory scmEventLoggerFactory;
 
   private final ScmOperationMetrics scmOperationMetrics;
+
+  private final PullRequestFailureCategorizer pullRequestFailureCategorizer;
 
   @Inject
   public PullRequestTask(
@@ -81,8 +90,10 @@ public class PullRequestTask
       final SourceControlUtils sourceControlUtils,
       final Configuration configuration,
       final SourceControlPullRequestDAO sourceControlPullRequestDAO,
+      final SourceControlEventDAO sourceControlEventDAO,
       final SourceControlEventLoggerFactory scmEventLoggerFactory,
-      final ScmOperationMetrics scmOperationMetrics)
+      final ScmOperationMetrics scmOperationMetrics,
+      final PullRequestFailureCategorizer pullRequestFailureCategorizer)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
@@ -91,8 +102,10 @@ public class PullRequestTask
     this.sourceControlUtils = sourceControlUtils;
     this.configuration = configuration;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.scmEventLoggerFactory = scmEventLoggerFactory;
     this.scmOperationMetrics = scmOperationMetrics;
+    this.pullRequestFailureCategorizer = pullRequestFailureCategorizer;
   }
 
   public PullRequestResult run(
@@ -119,6 +132,9 @@ public class PullRequestTask
     File checkoutDir = null;
     Date start = new Date();
     ScmTimerContext timerContext = null;
+    // Held outside the try so the catch block can record the auth that was resolved (if any) when an exception
+    // escapes the SCM call. Null when the throw happened before auth resolution (e.g., checkout directory issue).
+    ResolvedAuthContext resolvedAuthContextForCatch = null;
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       log.info("Pull request task initiated for application '{}', remediation target: [{}]",
           applicationId, pullRequestRemediationDetails.getToBeRemediated());
@@ -140,6 +156,9 @@ public class PullRequestTask
           .withGitApi(gitApiFactory.createGitApi(gitRepositoryInfo))
           .build();
 
+      ResolvedAuthContext authContext = gitClientFactory.resolveAuthContext(gitRepositoryInfo);
+      resolvedAuthContextForCatch = authContext;
+
       timerContext = scmOperationMetrics.startPrCreationTimer(gitRepositoryInfo.provider.name());
       PullRequestResult pullRequestResult = pullRequestExecutor.execute(command);
 
@@ -155,16 +174,65 @@ public class PullRequestTask
 
       metrics.addResult(applicationId, enhancedResult);
 
+      String outcome = pullRequestResult.isSuccessful() ? OUTCOME_SUCCESS : OUTCOME_FAILURE;
+      // Soft-failure path: pullRequestExecutor.execute returned a non-successful result rather than throwing,
+      // so there is no provider exception to categorize. Passing null yields UNKNOWN_PROVIDER_ERROR, which is
+      // honest — categorical specificity would require restructuring the executor's API to surface a typed failure.
+      String failureReason = pullRequestResult.isSuccessful()
+          ? null
+          : pullRequestFailureCategorizer.categorize(null);
+
       try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_PULL_REQUEST)) {
         AuditData.get()
             .setApplication(pullRequestRemediationDetails.getApp())
             .setScanId(pullRequestRemediationDetails.getScanId())
             .setStageId(pullRequestRemediationDetails.getStage())
             .setComponentIdentifier(pullRequestRemediationDetails.getToBeRemediated())
-            .setData("pullRequestUrl", pullRequestResult.getPullRequestUrl());
+            .setData("authenticationType", authContext.getAuthenticationTypeName())
+            .setData("authOwnerId", authContext.getAuthOwnerId())
+            .setData("outcome", outcome);
+        if (authContext.getAuthenticationType() == AuthenticationType.GITHUB_APP) {
+          AuditData.get()
+              .setData("githubAppId", authContext.getGithubAppIdAsString())
+              .setData("installationId", authContext.getInstallationIdAsString());
+        }
+        if (pullRequestResult.isSuccessful()) {
+          AuditData.get().setData("pullRequestUrl", pullRequestResult.getPullRequestUrl());
+        }
+        else {
+          AuditData.get().setData("failureReason", failureReason);
+        }
       }
 
       if (pullRequestResult.isSuccessful()) {
+        SourceControlEvent eventForTrace = pullRequestRemediationDetails.getSourceControlEvent();
+        if (eventForTrace != null) {
+          eventForTrace.setAuthenticationType(authContext.getAuthenticationTypeName());
+          eventForTrace.setAuthOwnerId(authContext.getAuthOwnerId());
+          if (authContext.getAuthenticationType() == AuthenticationType.GITHUB_APP) {
+            eventForTrace.setGithubAppId(authContext.getGithubAppIdAsString());
+            eventForTrace.setInstallationId(authContext.getInstallationIdAsString());
+          }
+          eventForTrace.setOutcome(outcome);
+          eventForTrace.setFailureReason(failureReason);
+        }
+        else if (pullRequestRemediationDetails.getSourceControlEventId() != null) {
+          try {
+            sourceControlEventDAO.overwriteTraceFields(
+                pullRequestRemediationDetails.getSourceControlEventId(),
+                authContext.getAuthenticationTypeName(),
+                authContext.getAuthOwnerId(),
+                authContext.getGithubAppIdAsString(),
+                authContext.getInstallationIdAsString(),
+                outcome,
+                failureReason);
+          }
+          catch (Exception traceFailure) {
+            log.warn("Failed to persist auth trace onto source_control_event for application '{}'",
+                applicationId, traceFailure);
+          }
+        }
+
         scmOperationMetrics.recordPrCreationCompleted(timerContext);
         SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
         sourceControlPullRequest.setRepositoryUrl(gitRepositoryInfo.repositoryUrl);
@@ -195,9 +263,24 @@ public class PullRequestTask
           }
         }
         sourceControlPullRequest.setSource(pullRequestSource);
+        sourceControlPullRequest.setSourceControlEventId(pullRequestRemediationDetails.getSourceControlEventId());
+        sourceControlPullRequest.setAuthenticationType(authContext.getAuthenticationTypeName());
+        sourceControlPullRequest.setAuthOwnerId(authContext.getAuthOwnerId());
+        if (authContext.getAuthenticationType() == AuthenticationType.GITHUB_APP) {
+          sourceControlPullRequest.setGithubAppId(authContext.getGithubAppIdAsString());
+          sourceControlPullRequest.setInstallationId(authContext.getInstallationIdAsString());
+        }
         sourceControlPullRequestDAO.insert(sourceControlPullRequest);
 
-        scmEventLogger.add(PR_CREATED, forPullRequest(String.valueOf(sourceControlPullRequest.getPullRequestId())));
+        scmEventLogger.add(PR_CREATED,
+            forPullRequest(String.valueOf(sourceControlPullRequest.getPullRequestId()))
+                .withTraceContext(
+                    authContext.getAuthenticationTypeName(),
+                    authContext.getAuthOwnerId(),
+                    authContext.getGithubAppIdAsString(),
+                    authContext.getInstallationIdAsString(),
+                    outcome,
+                    failureReason));
         scmEventLogger.log();
       }
       else {
@@ -213,9 +296,49 @@ public class PullRequestTask
     }
     catch (Exception e) {
       scmOperationMetrics.recordPrCreationFailed(timerContext);
+      // Standard error log uses the structured logging slot for the throwable — DO NOT inline e.getMessage()
+      // anywhere downstream that gets persisted or shipped to HDS / structured event logs.
       log.error("Failed to execute pull request, cleaning pull request directory", e);
-      scmEventLogger.add(API_ERROR, forError("Failed to execute pull request: " + e.getMessage()));
+
+      String failureReason = pullRequestFailureCategorizer.categorize(e);
+
+      // Structured event log: emit the categorical token only, never the raw exception message.
+      String authTypeForCatch = resolvedAuthContextForCatch == null
+          ? null
+          : resolvedAuthContextForCatch.getAuthenticationTypeName();
+      String authOwnerForCatch = resolvedAuthContextForCatch == null
+          ? null
+          : resolvedAuthContextForCatch.getAuthOwnerId();
+      String githubAppIdForCatch = resolvedAuthContextForCatch == null
+          ? null
+          : resolvedAuthContextForCatch.getGithubAppIdAsString();
+      String installationIdForCatch = resolvedAuthContextForCatch == null
+          ? null
+          : resolvedAuthContextForCatch.getInstallationIdAsString();
+
+      scmEventLogger.add(API_ERROR,
+          forError("Pull request creation failed")
+              .withTraceContext(authTypeForCatch, authOwnerForCatch, githubAppIdForCatch, installationIdForCatch,
+                  OUTCOME_FAILURE, failureReason));
       scmEventLogger.log();
+
+      // Persist trace onto the SourceControlEvent row so the audit chain joins back even on hard failure.
+      try {
+        if (pullRequestRemediationDetails.getSourceControlEventId() != null) {
+          sourceControlEventDAO.overwriteTraceFields(
+              pullRequestRemediationDetails.getSourceControlEventId(),
+              authTypeForCatch,
+              authOwnerForCatch,
+              githubAppIdForCatch,
+              installationIdForCatch,
+              OUTCOME_FAILURE,
+              failureReason);
+        }
+      }
+      catch (Exception traceFailure) {
+        log.warn("Failed to persist auth trace onto source_control_event for application '{}'",
+            applicationId, traceFailure);
+      }
 
       sourceControlUtils.deleteCheckoutDirectory(pullRequestRemediationDetails.getApp());
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,

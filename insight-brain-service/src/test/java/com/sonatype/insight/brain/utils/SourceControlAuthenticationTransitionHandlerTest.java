@@ -97,6 +97,27 @@ public class SourceControlAuthenticationTransitionHandlerTest
   }
 
   @Test
+  public void testHandleAuthTransition_SwitchingToGitHubApp_InvalidatesCacheByAppId() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createAndInsertGitHubApp(app.getId());
+    gitHubApp.setActive(false);
+    gitHubAppDAO.update(gitHubApp);
+
+    SourceControl storedSC = createSourceControl(app.getId(), AuthenticationType.PAT);
+    SourceControl newSC = createSourceControl(app.getId(), AuthenticationType.GITHUB_APP);
+
+    ApiSourceControlDTO dto = new ApiSourceControlDTO();
+    dto.githubAppId = gitHubApp.getId();
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      handler.handleAuthTransition(tx, storedSC, newSC, dto);
+    }
+
+    verify(mockCache).invalidate(app.getId());
+    verify(mockCache).invalidateByGitHubAppId(gitHubApp.getAppId());
+  }
+
+  @Test
   public void testHandleAuthTransition_SwitchingToGitHubApp_DeactivatesOldApps() {
     Application app = tempEntity.newApplicationWithParent();
 

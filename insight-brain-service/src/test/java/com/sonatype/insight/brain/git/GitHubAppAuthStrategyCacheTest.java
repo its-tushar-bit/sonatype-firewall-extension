@@ -217,6 +217,47 @@ public class GitHubAppAuthStrategyCacheTest
   }
 
   @Test
+  public void testInvalidateByGitHubAppId_EvictsOnlyMatchingEntries() {
+    String ownerA = "owner-by-app-id-A";
+    String ownerB = "owner-by-app-id-B";
+    String ownerC = "owner-by-app-id-C";
+
+    GitHubApp appA = createTestGitHubApp(ownerA);
+    GitHubApp appB = createTestGitHubApp(ownerB);
+    GitHubApp appC = createTestGitHubApp(ownerC);
+
+    stubGitHubTokenEndpointForInstallation(appA.getInstallationId());
+    stubGitHubTokenEndpointForInstallation(appB.getInstallationId());
+    stubGitHubTokenEndpointForInstallation(appC.getInstallationId());
+
+    AuthenticationStrategy strategyA = cache.getOrCreate(ownerA);
+    AuthenticationStrategy strategyB = cache.getOrCreate(ownerB);
+    AuthenticationStrategy strategyC = cache.getOrCreate(ownerC);
+
+    cache.invalidateByGitHubAppId(appA.getAppId());
+
+    // owner-A's entry was sourced from appA → evicted; the next getOrCreate must rebuild a fresh strategy.
+    AuthenticationStrategy strategyAReloaded = cache.getOrCreate(ownerA);
+    assertThat(strategyAReloaded).isNotSameAs(strategyA);
+
+    // owner-B and owner-C's entries were sourced from appB / appC → untouched.
+    assertThat(cache.getOrCreate(ownerB)).isSameAs(strategyB);
+    assertThat(cache.getOrCreate(ownerC)).isSameAs(strategyC);
+  }
+
+  @Test
+  public void testInvalidateByGitHubAppId_NullIsNoOp() {
+    String ownerA = "owner-noop-A";
+    GitHubApp appA = createTestGitHubApp(ownerA);
+    stubGitHubTokenEndpointForInstallation(appA.getInstallationId());
+
+    AuthenticationStrategy before = cache.getOrCreate(ownerA);
+    cache.invalidateByGitHubAppId(null);
+
+    assertThat(cache.getOrCreate(ownerA)).isSameAs(before);
+  }
+
+  @Test
   public void testInvalidate_RemovesFromCache() throws Exception {
     GitHubApp app = createTestGitHubApp(TEST_OWNER_ID);
 

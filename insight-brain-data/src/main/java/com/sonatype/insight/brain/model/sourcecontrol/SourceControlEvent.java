@@ -61,6 +61,10 @@ public class SourceControlEvent
   // an event to trigger the refreshing of multiple specified PRs' states from an SCM provider
   public static final String BATCH_PR_STATE_UPDATE_EVENT = "batch pr state update";
 
+  public static final String OUTCOME_SUCCESS = "SUCCESS";
+
+  public static final String OUTCOME_FAILURE = "FAILURE";
+
   public static final List<String> EVENT_TYPES = ImmutableList.of(
       APPLICATION_EVALUATION_EVENT,
       BATCH_PR_STATE_UPDATE_EVENT,
@@ -205,6 +209,24 @@ public class SourceControlEvent
 
   @Column(name = "is_golden_pull_request")
   private Boolean goldenPullRequest;
+
+  @Column(name = "authentication_type")
+  private String authenticationType;
+
+  @Column(name = "auth_owner_id")
+  private String authOwnerId;
+
+  @Column(name = "github_app_id")
+  private String githubAppId;
+
+  @Column(name = "installation_id")
+  private String installationId;
+
+  @Column(name = "outcome")
+  private String outcome;
+
+  @Column(name = "failure_reason")
+  private String failureReason;
 
   @Column(name = "event_failure_category")
   private String eventFailureCategory;
@@ -557,6 +579,60 @@ public class SourceControlEvent
 
   public SourceControlEvent setIsGoldenPullRequest(Boolean goldenPullRequest) {
     this.goldenPullRequest = goldenPullRequest;
+    return this;
+  }
+
+  public String getAuthenticationType() {
+    return authenticationType;
+  }
+
+  public SourceControlEvent setAuthenticationType(final String authenticationType) {
+    this.authenticationType = authenticationType;
+    return this;
+  }
+
+  public String getAuthOwnerId() {
+    return authOwnerId;
+  }
+
+  public SourceControlEvent setAuthOwnerId(final String authOwnerId) {
+    this.authOwnerId = authOwnerId;
+    return this;
+  }
+
+  public String getGithubAppId() {
+    return githubAppId;
+  }
+
+  public SourceControlEvent setGithubAppId(final String githubAppId) {
+    this.githubAppId = githubAppId;
+    return this;
+  }
+
+  public String getInstallationId() {
+    return installationId;
+  }
+
+  public SourceControlEvent setInstallationId(final String installationId) {
+    this.installationId = installationId;
+    return this;
+  }
+
+  public String getOutcome() {
+    return outcome;
+  }
+
+  public SourceControlEvent setOutcome(final String outcome) {
+    this.outcome = outcome;
+    return this;
+  }
+
+  public String getFailureReason() {
+    return failureReason;
+  }
+
+  public SourceControlEvent setFailureReason(final String failureReason) {
+    this.failureReason = failureReason;
     return this;
   }
 

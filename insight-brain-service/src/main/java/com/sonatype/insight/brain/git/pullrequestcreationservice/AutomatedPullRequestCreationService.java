@@ -17,9 +17,14 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditRecorder;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
 import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
@@ -50,6 +55,8 @@ public class AutomatedPullRequestCreationService
 
   private final ScmOperationMetrics scmOperationMetrics;
 
+  private final AuditRecorder auditRecorder;
+
   @Inject
   public AutomatedPullRequestCreationService(
       final RemediationPullRequestEligibilityService eligibilityService,
@@ -60,7 +67,8 @@ public class AutomatedPullRequestCreationService
       final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       final ScmReducedSecurityService scmReducedSecurityService,
       final InnerSourceService innerSourceService,
-      final ScmOperationMetrics scmOperationMetrics)
+      final ScmOperationMetrics scmOperationMetrics,
+      final AuditRecorder auditRecorder)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -71,6 +79,7 @@ public class AutomatedPullRequestCreationService
         scmReducedSecurityService,
         innerSourceService);
     this.scmOperationMetrics = scmOperationMetrics;
+    this.auditRecorder = auditRecorder;
   }
 
   public void createAutomatedRemediationPullRequest(
@@ -155,6 +164,19 @@ public class AutomatedPullRequestCreationService
 
     log.info("Sent automated pull request event for application '{}' component '{}'",
         app.getId(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
+
+    PullRequestSource requestMode =
+        isInnerSourceComponent ? PullRequestSource.AUTOMATIC_INNER_SOURCE : PullRequestSource.AUTOMATIC;
+    try (AuditSession ignored = auditRecorder.recordSystemEvent(AuditEvent.INITIATE_PULL_REQUEST)) {
+      AuditData.get()
+          .setApplication(app)
+          .setScanId(scanId)
+          .setStageId(stage.getStageTypeId())
+          .setData("sourceControlEventId", sourceControlEvent.getId())
+          .setData("requestMode", requestMode.name())
+          .setData("provider", gitRepositoryInfo.provider == null ? null : gitRepositoryInfo.provider.name())
+          .setData("isGolden", isGoldenVersion);
+    }
   }
 
   /**

@@ -221,6 +221,27 @@ public class GitClientFactory
     return authStrategyCache.getOrCreate(gitRepositoryInfo.authOwnerId);
   }
 
+  /**
+   * Returns a snapshot of the auth context that {@link #createApiClient} would use for this repository — the
+   * authentication type, the effective auth-owner, and (when GitHub App) the resolved appId / installationId.
+   * Reads through the same cache as {@link #createApiClient}, so calling both is a single resolution.
+   */
+  public ResolvedAuthContext resolveAuthContext(final GitRepositoryInfo gitRepositoryInfo) {
+    if (gitRepositoryInfo.authenticationType == AuthenticationType.GITHUB_APP) {
+      if (gitRepositoryInfo.authOwnerId == null) {
+        throw new IllegalStateException(
+            "GitHub App authentication is configured but no owner ID found for authentication lookup. "
+                + "Repository: " + gitRepositoryInfo.normalizedRepositoryUrl
+                + ". Please ensure a GitHub App is registered at the application or parent organization level.");
+      }
+      GitHubAppAuthStrategyCache.CachedAuthStrategy cached =
+          authStrategyCache.getOrCreateCached(gitRepositoryInfo.authOwnerId);
+      return ResolvedAuthContext.forGithubApp(
+          gitRepositoryInfo.authOwnerId, cached.sourceGithubAppId, cached.sourceInstallationId);
+    }
+    return ResolvedAuthContext.forPat(gitRepositoryInfo.authOwnerId);
+  }
+
   public GeneralSCMApiClient createGeneralApiClient(
       final SourceControlProvider provider,
       final String hostUrl,

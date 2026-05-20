@@ -16,6 +16,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.PullRequestSubmissionDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.PullRequestSubmissionResultDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO;
 
@@ -48,6 +50,7 @@ public class SourceControlPullRequestResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.INITIATE_PULL_REQUEST)
   public PullRequestSubmissionResultDTO createPullRequest(
       final PullRequestSubmissionDTO pullRequestSubmission) throws IOException
   {

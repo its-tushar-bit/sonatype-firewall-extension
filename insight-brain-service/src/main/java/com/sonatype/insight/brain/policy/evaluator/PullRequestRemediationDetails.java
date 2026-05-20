@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -70,6 +71,10 @@ public class PullRequestRemediationDetails
   private final boolean isManualPullRequest;
 
   private final boolean isInnerSource;
+
+  private String sourceControlEventId;
+
+  private SourceControlEvent sourceControlEvent;
 
   static {
     try {
@@ -283,6 +288,24 @@ public class PullRequestRemediationDetails
 
   public boolean isInnerSource() {
     return isInnerSource;
+  }
+
+  public String getSourceControlEventId() {
+    return sourceControlEventId;
+  }
+
+  public PullRequestRemediationDetails setSourceControlEventId(final String sourceControlEventId) {
+    this.sourceControlEventId = sourceControlEventId;
+    return this;
+  }
+
+  public SourceControlEvent getSourceControlEvent() {
+    return sourceControlEvent;
+  }
+
+  public PullRequestRemediationDetails setSourceControlEvent(final SourceControlEvent sourceControlEvent) {
+    this.sourceControlEvent = sourceControlEvent;
+    return this;
   }
 
   private String constructTitle() {

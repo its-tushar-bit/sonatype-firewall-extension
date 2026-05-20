@@ -67,6 +67,21 @@ public class SourceControlPullRequest
   @Enumerated(EnumType.STRING)
   private PullRequestSource source;
 
+  @Column(name = "source_control_event_id")
+  private String sourceControlEventId;
+
+  @Column(name = "authentication_type")
+  private String authenticationType;
+
+  @Column(name = "auth_owner_id")
+  private String authOwnerId;
+
+  @Column(name = "github_app_id")
+  private String githubAppId;
+
+  @Column(name = "installation_id")
+  private String installationId;
+
   public SourceControlPullRequest() {
   }
 
@@ -200,6 +215,51 @@ public class SourceControlPullRequest
 
   public void setSource(final PullRequestSource source) {
     this.source = source;
+  }
+
+  public String getSourceControlEventId() {
+    return sourceControlEventId;
+  }
+
+  public SourceControlPullRequest setSourceControlEventId(final String sourceControlEventId) {
+    this.sourceControlEventId = sourceControlEventId;
+    return this;
+  }
+
+  public String getAuthenticationType() {
+    return authenticationType;
+  }
+
+  public SourceControlPullRequest setAuthenticationType(final String authenticationType) {
+    this.authenticationType = authenticationType;
+    return this;
+  }
+
+  public String getAuthOwnerId() {
+    return authOwnerId;
+  }
+
+  public SourceControlPullRequest setAuthOwnerId(final String authOwnerId) {
+    this.authOwnerId = authOwnerId;
+    return this;
+  }
+
+  public String getGithubAppId() {
+    return githubAppId;
+  }
+
+  public SourceControlPullRequest setGithubAppId(final String githubAppId) {
+    this.githubAppId = githubAppId;
+    return this;
+  }
+
+  public String getInstallationId() {
+    return installationId;
+  }
+
+  public SourceControlPullRequest setInstallationId(final String installationId) {
+    this.installationId = installationId;
+    return this;
   }
 
   @Override

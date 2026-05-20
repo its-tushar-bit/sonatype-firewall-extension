@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
@@ -131,6 +132,13 @@ public class SourceControlMetricsTelemetryCollector
 
   public static final String TOTAL_SC_GITHUB_APP_INSTALLATIONS = "total_source_control_github_app_installations";
 
+  // Daily PR-execution counts by auth type (CLM-39926)
+  public static final String TOTAL_DAILY_SC_PRS_USING_PAT =
+      "total_daily_source_control_pull_requests_using_pat";
+
+  public static final String TOTAL_DAILY_SC_PRS_USING_GITHUB_APP =
+      "total_daily_source_control_pull_requests_using_github_app";
+
   public static final String TOTAL_SC_PRS_SUGGESTED =
       "total_daily_source_control_pull_requests_suggested_for_remediation";
 
@@ -165,6 +173,8 @@ public class SourceControlMetricsTelemetryCollector
 
   private final GitHubAppDAO gitHubAppDAO;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   @Inject
   public SourceControlMetricsTelemetryCollector(
       SourceControlDAO sourceControlDAO,
@@ -172,7 +182,8 @@ public class SourceControlMetricsTelemetryCollector
       ApplicationDAO applicationDAO,
       SourceControlPullRequestMetrics metrics,
       OrganizationDAO organizationDAO,
-      GitHubAppDAO gitHubAppDAO)
+      GitHubAppDAO gitHubAppDAO,
+      SourceControlEventDAO sourceControlEventDAO)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
@@ -180,6 +191,7 @@ public class SourceControlMetricsTelemetryCollector
     this.metrics = metrics;
     this.organizationDAO = organizationDAO;
     this.gitHubAppDAO = gitHubAppDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
   }
 
   @Override
@@ -206,8 +218,22 @@ public class SourceControlMetricsTelemetryCollector
     collectStaleBranchStats(attributes);
     collectAutoAndManualPRStats(attributes, previousCollectionTime);
     collectAuthenticationStats(attributes);
+    collectPullRequestExecutionStats(attributes, previousCollectionTime);
 
     return telemetryData;
+  }
+
+  /**
+   * Daily count of successful PR creations grouped by the auth type actually used at execution time —
+   * surfaces PAT vs GitHub App adoption (CLM-39926).
+   */
+  private void collectPullRequestExecutionStats(Map<String, Object> attributes, Date previousCollectionTime) {
+    Map<String, Long> byAuthType =
+        sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(previousCollectionTime);
+    attributes.put(TOTAL_DAILY_SC_PRS_USING_PAT,
+        String.valueOf(byAuthType.getOrDefault(SourceControl.AuthenticationType.PAT.name(), 0L)));
+    attributes.put(TOTAL_DAILY_SC_PRS_USING_GITHUB_APP,
+        String.valueOf(byAuthType.getOrDefault(SourceControl.AuthenticationType.GITHUB_APP.name(), 0L)));
   }
 
   private void collectStaleBranchStats(Map<String, Object> attributes) {

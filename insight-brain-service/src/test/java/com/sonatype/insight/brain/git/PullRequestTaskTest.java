@@ -17,11 +17,13 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -141,6 +143,9 @@ public class PullRequestTaskTest
 
   @Inject
   private SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
+  @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -514,6 +519,177 @@ public class PullRequestTaskTest
     assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
   }
 
+  @Test
+  public void testRun_Success_PersistsTraceFieldsForPat() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockGitClientFactory.resolveAuthContext(gitRepositoryInfo))
+        .thenReturn(ResolvedAuthContext.forPat("owner-PAT-1"));
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    when(mockPullRequestRemediationDetails.isManualPullRequest()).thenReturn(true);
+    when(mockPullRequestRemediationDetails.getSourceControlEventId()).thenReturn("event-id-1");
+
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
+
+    SourceControlPullRequest persisted = sourceControlPullRequestDAO.getAll().get(0);
+    assertThat(persisted.getSourceControlEventId()).isEqualTo("event-id-1");
+    assertThat(persisted.getAuthenticationType()).isEqualTo("PAT");
+    assertThat(persisted.getAuthOwnerId()).isEqualTo("owner-PAT-1");
+    assertThat(persisted.getGithubAppId()).isNull();
+    assertThat(persisted.getInstallationId()).isNull();
+  }
+
+  @Test
+  public void testRun_Success_PersistsTraceFieldsForGithubApp() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockGitClientFactory.resolveAuthContext(gitRepositoryInfo))
+        .thenReturn(ResolvedAuthContext.forGithubApp("owner-O", 12345, 99999L));
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    when(mockPullRequestRemediationDetails.isManualPullRequest()).thenReturn(false);
+    when(mockPullRequestRemediationDetails.getSourceControlEventId()).thenReturn("event-id-2");
+
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
+
+    SourceControlPullRequest persisted = sourceControlPullRequestDAO.getAll().get(0);
+    assertThat(persisted.getSourceControlEventId()).isEqualTo("event-id-2");
+    assertThat(persisted.getAuthenticationType()).isEqualTo("GITHUB_APP");
+    assertThat(persisted.getAuthOwnerId()).isEqualTo("owner-O");
+    assertThat(persisted.getGithubAppId()).isEqualTo("12345");
+    assertThat(persisted.getInstallationId()).isEqualTo("99999");
+  }
+
+  @Test
+  public void testRun_Success_SetsTraceFieldsOnEventEntityWhenProvided() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockGitClientFactory.resolveAuthContext(gitRepositoryInfo))
+        .thenReturn(ResolvedAuthContext.forGithubApp("owner-O", 12345, 99999L));
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    when(mockPullRequestRemediationDetails.isManualPullRequest()).thenReturn(false);
+    when(mockPullRequestRemediationDetails.getSourceControlEventId()).thenReturn("event-id-3");
+
+    SourceControlEvent liveEvent = new SourceControlEvent().forRemediationPullRequest();
+    when(mockPullRequestRemediationDetails.getSourceControlEvent()).thenReturn(liveEvent);
+
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
+
+    assertThat(liveEvent.getAuthenticationType()).isEqualTo("GITHUB_APP");
+    assertThat(liveEvent.getAuthOwnerId()).isEqualTo("owner-O");
+    assertThat(liveEvent.getGithubAppId()).isEqualTo("12345");
+    assertThat(liveEvent.getInstallationId()).isEqualTo("99999");
+    assertThat(liveEvent.getOutcome()).isEqualTo("SUCCESS");
+    assertThat(liveEvent.getFailureReason()).isNull();
+  }
+
+  @Test
+  public void testRun_Failure_NoFakeSecretLeaksAnywhere() throws Exception {
+    final String fakePrivateKey =
+        "-----BEGIN RSA PRIVATE KEY-----AAAAB3NzaC1yc2EFAKEKEYBLOCK-----END RSA PRIVATE KEY-----";
+    final String fakeOauthToken = "ghp_FakeOauthTokenForTestingZZZ123";
+    final String fakeProviderBody =
+        "{\"message\":\"401 Unauthorized\",\"token\":\"" + fakeOauthToken + "\"}";
+
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(app.getId())
+        .forRemediationPullRequest();
+    sourceControlEventDAO.insert(event);
+
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestRemediationDetails.getSourceControlEventId()).thenReturn(event.getId());
+
+    // Force a hard exception whose message and stack trace contain fake secrets.
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class)))
+        .thenThrow(new RuntimeException(fakePrivateKey + " " + fakeProviderBody));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor));
+
+    // The real failure-path artifact is the source_control_event row written by the catch block.
+    // None of the fake secret byte sequences must appear there.
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getFailureReason()).doesNotContain(fakePrivateKey);
+    assertThat(reloaded.getFailureReason()).doesNotContain(fakeOauthToken);
+    assertThat(reloaded.getFailureReason()).doesNotContain("PRIVATE KEY");
+    assertThat(reloaded.getOutcome()).doesNotContain(fakePrivateKey);
+    assertThat(reloaded.getOutcome()).doesNotContain(fakeOauthToken);
+    assertThat(reloaded.getAuthOwnerId()).isNull();
+  }
+
+  @Test
+  public void testRun_HardException_PersistsCategoricalReasonOntoSourceControlEvent() throws Exception {
+    final String fakeSecret = "ghp_FakeOauthTokenZZZ_should_never_appear_in_persisted_data";
+
+    Application app = tempEntity.newApplicationWithParent();
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(app.getId())
+        .forRemediationPullRequest();
+    sourceControlEventDAO.insert(event);
+
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestRemediationDetails.getSourceControlEventId()).thenReturn(event.getId());
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class)))
+        .thenThrow(new RuntimeException(fakeSecret));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor));
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getOutcome()).isEqualTo("FAILURE");
+    // Categorical token from the closed vocabulary, never the raw exception message.
+    assertThat(reloaded.getFailureReason()).isEqualTo("unknown_provider_error");
+    assertThat(reloaded.getFailureReason()).doesNotContain(fakeSecret);
+    assertThat(reloaded.getAuthenticationType()).isEqualTo("PAT");
+    assertThat(reloaded.getAuthOwnerId()).isNull(); // gitRepositoryInfo from configureExpectations has null authOwnerId
+  }
+
+  @Test
+  public void testRun_Failure_EmitsCreatePullRequestAuditWithFailureReason() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(false));
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor));
+
+    // The audit row is still emitted on the soft-failure path (matches design Decision D4 — single event, both
+    // outcomes).
+    verify(mockAuditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
+  }
+
   private void configureExpectations() {
     configureExpectations(gitRepositoryInfo);
   }
@@ -530,6 +706,8 @@ public class PullRequestTaskTest
     lenient().when(mockSourceControlUtils.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
     lenient().when(mockGitApiFactory.createGitApi(info)).thenReturn(mockGitApi);
     lenient().when(mockGitClientFactory.createApiClient(info)).thenReturn(mockGitClient);
+    lenient().when(mockGitClientFactory.resolveAuthContext(info))
+        .thenReturn(ResolvedAuthContext.forPat(info.authOwnerId));
     lenient().when(mockApplication.getId()).thenReturn(APP_INTERNAL_ID);
   }
 

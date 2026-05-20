@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.git;
 
 import java.security.PrivateKey;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -57,7 +61,7 @@ public class GitHubAppAuthStrategyCache
 
   private final String githubApiBaseUrl;
 
-  private final TenantReference<Cache<String, GitHubAppAuthStrategy>> caches;
+  private final TenantReference<Cache<String, CachedAuthStrategy>> caches;
 
   @Inject
   public GitHubAppAuthStrategyCache(
@@ -91,6 +95,14 @@ public class GitHubAppAuthStrategyCache
    * @return cached or newly created GitHubAppAuthStrategy
    */
   public GitHubAppAuthStrategy getOrCreate(final String ownerId) {
+    return getOrCreateCached(ownerId).strategy;
+  }
+
+  /**
+   * Package-private: returns the holder so siblings can read {@code sourceGithubAppId}/{@code sourceInstallationId}
+   * for audit/trace purposes without re-querying the DAO.
+   */
+  CachedAuthStrategy getOrCreateCached(final String ownerId) {
     try {
       return getCache().get(ownerId, () -> createAuthStrategy(ownerId));
     }
@@ -113,7 +125,30 @@ public class GitHubAppAuthStrategyCache
     log.debug("Invalidated cached GitHubAppAuthStrategy for ownerId: {}", ownerId);
   }
 
-  private Cache<String, GitHubAppAuthStrategy> createCache() {
+  /**
+   * Invalidate every cache entry whose strategy was sourced from the given GitHub App. This covers entries cached under
+   * a child owner that resolved its auth via inheritance from a parent's app, which the per-owner {@link #invalidate}
+   * call cannot reach. Best-effort: callers should not rely on a return value, and exceptions are swallowed.
+   *
+   * @param githubAppId the id of the GitHub App that was deleted, deactivated, or replaced; null is a no-op
+   */
+  public void invalidateByGitHubAppId(final Integer githubAppId) {
+    if (githubAppId == null) {
+      return;
+    }
+    Cache<String, CachedAuthStrategy> cache = getCache();
+    List<String> toInvalidate = cache.asMap()
+        .entrySet()
+        .stream()
+        .filter(e -> Objects.equals(e.getValue().sourceGithubAppId, githubAppId))
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
+    cache.invalidateAll(toInvalidate);
+    log.debug("Invalidated {} cached GitHubAppAuthStrategy entries derived from githubAppId: {}",
+        toInvalidate.size(), githubAppId);
+  }
+
+  private Cache<String, CachedAuthStrategy> createCache() {
     return newCacheBuilder()
         .expireAfterAccess(EXPIRATION_AFTER_ACCESS.toMillis(), TimeUnit.MILLISECONDS)
         .maximumSize(MAXIMUM_SIZE)
@@ -124,11 +159,11 @@ public class GitHubAppAuthStrategyCache
     return CacheBuilder.newBuilder();
   }
 
-  private Cache<String, GitHubAppAuthStrategy> getCache() {
+  private Cache<String, CachedAuthStrategy> getCache() {
     return caches.get();
   }
 
-  private GitHubAppAuthStrategy createAuthStrategy(final String ownerId) {
+  private CachedAuthStrategy createAuthStrategy(final String ownerId) {
     log.debug("Creating new GitHubAppAuthStrategy for ownerId: {}", ownerId);
 
     GitHubApp githubApp = githubAppDAO.getByOwnerIdNotNull(ownerId);
@@ -139,10 +174,35 @@ public class GitHubAppAuthStrategyCache
     Configuration restConfiguration = gitApiClientFactory.createConfiguration();
     insightProxy.contextualize(restConfiguration, githubApiBaseUrl);
 
-    return new GitHubAppAuthStrategy(
+    GitHubAppAuthStrategy strategy = new GitHubAppAuthStrategy(
         restConfiguration,
         privateKey,
         githubApp.getAppId(),
         githubApp.getInstallationId());
+
+    return new CachedAuthStrategy(strategy, githubApp.getAppId(), githubApp.getInstallationId());
+  }
+
+  /**
+   * Internal cache value pairing the strategy with the source GitHub App identifiers, so that
+   * {@link #invalidateByGitHubAppId} can target by-app eviction across owner-hierarchy inheritance.
+   */
+  static final class CachedAuthStrategy
+  {
+    final GitHubAppAuthStrategy strategy;
+
+    final Integer sourceGithubAppId;
+
+    final Long sourceInstallationId;
+
+    CachedAuthStrategy(
+        final GitHubAppAuthStrategy strategy,
+        final Integer sourceGithubAppId,
+        final Long sourceInstallationId)
+    {
+      this.strategy = strategy;
+      this.sourceGithubAppId = sourceGithubAppId;
+      this.sourceInstallationId = sourceInstallationId;
+    }
   }
 }

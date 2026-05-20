@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -81,6 +82,26 @@ public class SourceControlEventDAOTest
 
     // then it is persisted with a new id
     assertThat(sourceControlEvent.getId()).isNotNull();
+  }
+
+  @Test
+  public void testInsertPersistsTraceFields() {
+    SourceControlEvent event = getNewSourceControlEvent()
+        .setAuthenticationType("GITHUB_APP")
+        .setAuthOwnerId("owner-A")
+        .setGithubAppId("app-1")
+        .setInstallationId("install-9")
+        .setOutcome("SUCCESS");
+
+    sourceControlEventDAO.insert(event);
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getAuthenticationType()).isEqualTo("GITHUB_APP");
+    assertThat(reloaded.getAuthOwnerId()).isEqualTo("owner-A");
+    assertThat(reloaded.getGithubAppId()).isEqualTo("app-1");
+    assertThat(reloaded.getInstallationId()).isEqualTo("install-9");
+    assertThat(reloaded.getOutcome()).isEqualTo("SUCCESS");
+    assertThat(reloaded.getFailureReason()).isNull();
   }
 
   @Test
@@ -423,6 +444,122 @@ public class SourceControlEventDAOTest
     SourceControlEvent sourceControlEventById = sourceControlEventDAO.getById(sourceControlEvent.getId());
     assertThat(sourceControlEventById.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_COMPLETE);
     assertThat(sourceControlEventById.getCompleteTime()).isAfter(testStartTime);
+  }
+
+  @Test
+  public void testCountSuccessfulPullRequestsByAuthenticationTypeSince() {
+    SourceControlEvent withPat1 = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(withPat1);
+    sourceControlEventDAO.overwriteTraceFields(
+        withPat1.getId(), "PAT", "owner-A", null, null, "SUCCESS", null);
+
+    SourceControlEvent withPat2 = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(withPat2);
+    sourceControlEventDAO.overwriteTraceFields(
+        withPat2.getId(), "PAT", "owner-A", null, null, "SUCCESS", null);
+
+    SourceControlEvent withGithubApp = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(withGithubApp);
+    sourceControlEventDAO.overwriteTraceFields(
+        withGithubApp.getId(), "GITHUB_APP", "owner-O", "12345", "99999", "SUCCESS", null);
+
+    SourceControlEvent failed = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(failed);
+    sourceControlEventDAO.overwriteTraceFields(
+        failed.getId(), "GITHUB_APP", "owner-O", "12345", "99999", "FAILURE", "auth_invalid");
+
+    Date since = toDate(LocalDateTime.now().minusMinutes(5));
+    Map<String, Long> counts = sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(since);
+
+    assertThat(counts).containsEntry("PAT", 2L).containsEntry("GITHUB_APP", 1L);
+  }
+
+  @Test
+  public void testCountSuccessfulPullRequestsByAuthenticationTypeSince_excludesEventsBeforeWindow() {
+    SourceControlEvent insideWindow = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(insideWindow);
+    sourceControlEventDAO.overwriteTraceFields(
+        insideWindow.getId(), "PAT", "owner-A", null, null, "SUCCESS", null);
+
+    Date afterAllInserts = toDate(LocalDateTime.now().plusMinutes(1));
+    Map<String, Long> counts =
+        sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(afterAllInserts);
+
+    assertThat(counts).isEmpty();
+  }
+
+  @Test
+  public void testCountSuccessfulPullRequestsByAuthenticationTypeSince_nullSinceCountsAllEligibleRows() {
+    // First Quartz fire after install: previousCollectionTime is null. The create_time predicate must be skipped
+    // so the count covers all eligible rows rather than silently returning zero from `create_time > NULL`.
+    SourceControlEvent oldRow = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(oldRow);
+    sourceControlEventDAO.overwriteTraceFields(
+        oldRow.getId(), "PAT", "owner-A", null, null, "SUCCESS", null);
+
+    SourceControlEvent recentRow = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(recentRow);
+    sourceControlEventDAO.overwriteTraceFields(
+        recentRow.getId(), "GITHUB_APP", "owner-O", "12345", "99999", "SUCCESS", null);
+
+    Map<String, Long> counts = sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(null);
+
+    assertThat(counts).containsEntry("PAT", 1L).containsEntry("GITHUB_APP", 1L);
+  }
+
+  @Test
+  public void testCountSuccessfulPullRequestsByAuthenticationTypeSince_excludesNonPrEventTypes() {
+    // A discovered-PR event with the trace fields populated (e.g., re-evaluation that landed on this row)
+    // must NOT be counted by the PR-creation telemetry — the EVENT_TYPE filter is what enforces this.
+    SourceControlEvent discovered = getNewSourceControlEvent(); // default eventType = DISCOVERED_PULL_REQUEST_EVENT
+    sourceControlEventDAO.insert(discovered);
+    sourceControlEventDAO.overwriteTraceFields(
+        discovered.getId(), "PAT", "owner-A", null, null, "SUCCESS", null);
+
+    SourceControlEvent remediation = getNewSourceControlEvent().forRemediationPullRequest();
+    sourceControlEventDAO.insert(remediation);
+    sourceControlEventDAO.overwriteTraceFields(
+        remediation.getId(), "GITHUB_APP", "owner-O", "12345", "99999", "SUCCESS", null);
+
+    Date since = toDate(LocalDateTime.now().minusMinutes(5));
+    Map<String, Long> counts = sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(since);
+
+    assertThat(counts).containsEntry("GITHUB_APP", 1L);
+    assertThat(counts).doesNotContainKey("PAT");
+  }
+
+  @Test
+  public void testUpdateTraceFields_success() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+
+    sourceControlEventDAO.overwriteTraceFields(
+        event.getId(), "GITHUB_APP", "owner-A", "app-1", "install-9", "SUCCESS", null);
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getAuthenticationType()).isEqualTo("GITHUB_APP");
+    assertThat(reloaded.getAuthOwnerId()).isEqualTo("owner-A");
+    assertThat(reloaded.getGithubAppId()).isEqualTo("app-1");
+    assertThat(reloaded.getInstallationId()).isEqualTo("install-9");
+    assertThat(reloaded.getOutcome()).isEqualTo("SUCCESS");
+    assertThat(reloaded.getFailureReason()).isNull();
+  }
+
+  @Test
+  public void testUpdateTraceFields_failure() {
+    SourceControlEvent event = getNewSourceControlEvent();
+    sourceControlEventDAO.insert(event);
+
+    sourceControlEventDAO.overwriteTraceFields(
+        event.getId(), "PAT", "owner-B", null, null, "FAILURE", "auth_invalid");
+
+    SourceControlEvent reloaded = sourceControlEventDAO.getById(event.getId());
+    assertThat(reloaded.getAuthenticationType()).isEqualTo("PAT");
+    assertThat(reloaded.getAuthOwnerId()).isEqualTo("owner-B");
+    assertThat(reloaded.getGithubAppId()).isNull();
+    assertThat(reloaded.getInstallationId()).isNull();
+    assertThat(reloaded.getOutcome()).isEqualTo("FAILURE");
+    assertThat(reloaded.getFailureReason()).isEqualTo("auth_invalid");
   }
 
   @Test

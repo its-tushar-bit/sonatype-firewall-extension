@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service.githubapp;
 
 import java.security.PrivateKey;
+import java.util.List;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import jakarta.inject.Inject;
@@ -93,6 +94,7 @@ public class GitHubAppDeletionService
     }
     deleteGitHubAppInstallationViaApi(gitHubApp);
     deleteGitHubAppInstallation(gitHubApp);
+    invalidateAuthCacheByAppId(gitHubApp.getAppId());
   }
 
   public void delete(final GitHubApp gitHubApp) {
@@ -103,6 +105,7 @@ public class GitHubAppDeletionService
     log.info("Deleting GitHubApp and related data for owner {}", gitHubApp.getOwnerId());
     deleteGitHubAppInstallationViaApi(gitHubApp);
     deleteGitHubAppInstallation(gitHubApp);
+    invalidateAuthCacheByAppId(gitHubApp.getAppId());
   }
 
   private void deleteGitHubAppInstallation(final GitHubApp gitHubApp) {
@@ -148,23 +151,52 @@ public class GitHubAppDeletionService
 
   /**
    * Deactivates all GitHub Apps for the given owner.
+   * <p>
+   * The deactivate runs first, then we read back all apps to collect their IDs for cache invalidation. Reading after
+   * the deactivate ensures a concurrent insert between a hypothetical pre-deactivate read and the deactivate write
+   * cannot leave a newly inserted app's strategy cached — the post-deactivate read will include the new row (now also
+   * deactivated) and its cache entry will be invalidated too.
    *
    * @param ownerId the owner ID whose GitHub Apps should be deactivated
    */
   public void deactivateGitHubApps(final TransactionContext tx, final String ownerId) {
     gitHubAppDAO.deactivateAllForOwner(tx, ownerId);
+    List<GitHubApp> appsBeingDeactivated = gitHubAppDAO.getAllByOwnerId(tx, ownerId);
     gitHubAppAuthStrategyCache.invalidate(ownerId);
+    appsBeingDeactivated.forEach(app -> invalidateAuthCacheByAppId(app.getAppId()));
     log.debug("Successfully deactivated all GitHub Apps and invalidated cache for owner {}", ownerId);
   }
 
   /**
    * Deactivates all GitHub Apps for the given owner.
+   * <p>
+   * No-tx variant: the deactivate runs first, then we read back all apps to collect their IDs for cache
+   * invalidation. Reading after the deactivate ensures a concurrent insert between a hypothetical pre-deactivate
+   * read and the deactivate write cannot leave a newly inserted app's strategy cached — the post-deactivate read
+   * will include the new row (now also deactivated) and its cache entry will be invalidated too. A concurrent
+   * delete between the deactivate and the read may cause the captured list to miss an app id; the follow-up
+   * {@code invalidateByGitHubAppId} for that id is then a no-op (cache miss) — benign.
    *
    * @param ownerId the owner ID whose GitHub Apps should be deactivated
    */
   public void deactivateGitHubApps(final String ownerId) {
     gitHubAppDAO.deactivateAllForOwner(ownerId);
+    List<GitHubApp> deactivatedApps = gitHubAppDAO.getAllByOwnerId(ownerId);
     gitHubAppAuthStrategyCache.invalidate(ownerId);
+    deactivatedApps.forEach(app -> invalidateAuthCacheByAppId(app.getAppId()));
     log.debug("Successfully deactivated all GitHub Apps and invalidated cache for owner {}", ownerId);
+  }
+
+  private void invalidateAuthCacheByAppId(final Integer appId) {
+    if (appId == null) {
+      return;
+    }
+    try {
+      gitHubAppAuthStrategyCache.invalidateByGitHubAppId(appId);
+    }
+    catch (Exception e) {
+      // Best-effort; failing to invalidate must not abort the deactivation/deletion path.
+      log.warn("Failed to invalidate auth cache by GitHub App id {}", appId, e);
+    }
   }
 }

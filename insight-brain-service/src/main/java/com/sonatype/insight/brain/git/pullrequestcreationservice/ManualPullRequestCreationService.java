@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyNotificationUtil;
@@ -253,6 +255,16 @@ public class ManualPullRequestCreationService
 
     log.info("Sent manual pull request event for application '{}' component '{}'",
         app.getId(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
+
+    PullRequestSource requestMode =
+        isInnerSourceComponent ? PullRequestSource.MANUAL_INNER_SOURCE : PullRequestSource.MANUAL;
+    AuditData.get()
+        .setApplication(app)
+        .setScanId(scanId)
+        .setStageId(stage.getStageTypeId())
+        .setData("sourceControlEventId", event.getId())
+        .setData("requestMode", requestMode.name())
+        .setData("provider", gitRepositoryInfo.provider == null ? null : gitRepositoryInfo.provider.name());
 
     return new PullRequestSubmissionResultDTO(event.getId());
   }

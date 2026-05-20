@@ -93,6 +93,25 @@ public class SourceControlPullRequestDAOTest
   }
 
   @Test
+  public void testUpdatePersistsTraceFields() {
+    SourceControlPullRequest pr = tempEntity.newSourceControlPullRequest();
+
+    pr.setSourceControlEventId("event-42");
+    pr.setAuthenticationType("GITHUB_APP");
+    pr.setAuthOwnerId("owner-A");
+    pr.setGithubAppId("app-1");
+    pr.setInstallationId("install-9");
+    dao.update(pr);
+
+    SourceControlPullRequest reloaded = dao.getById(pr.getId());
+    assertThat(reloaded.getSourceControlEventId()).isEqualTo("event-42");
+    assertThat(reloaded.getAuthenticationType()).isEqualTo("GITHUB_APP");
+    assertThat(reloaded.getAuthOwnerId()).isEqualTo("owner-A");
+    assertThat(reloaded.getGithubAppId()).isEqualTo("app-1");
+    assertThat(reloaded.getInstallationId()).isEqualTo("install-9");
+  }
+
+  @Test
   public void testGetAll() {
     assertThat(dao.getAll()).hasSize(0);
 

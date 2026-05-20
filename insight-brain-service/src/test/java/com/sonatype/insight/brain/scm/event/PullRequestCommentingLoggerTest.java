@@ -261,6 +261,46 @@ public class PullRequestCommentingLoggerTest
   }
 
   @Test
+  public void testLog_PrCreated_WithTraceContextEmitsAllFields() {
+    testAsNewTenant(testName, tenant -> {
+      PullRequestCommentingLogger logger = createCommentingLogger();
+
+      logger.add(SourceControlEventType.PR_CREATED,
+          AbstractSourceControlEventLogger.SourceControlEventData.forPullRequest("789")
+              .withTraceContext("GITHUB_APP", "owner-O", "12345", "99999", "SUCCESS", null));
+      logger.log();
+
+      SourceControlEventLogDTO dto = assertLogDTOs(1).get(0);
+      assertThat(dto.authenticationType).isEqualTo("GITHUB_APP");
+      assertThat(dto.authOwnerId).isEqualTo("owner-O");
+      assertThat(dto.githubAppId).isEqualTo("12345");
+      assertThat(dto.installationId).isEqualTo("99999");
+      assertThat(dto.outcome).isEqualTo("SUCCESS");
+      assertThat(dto.failureReason).isNull();
+    });
+  }
+
+  @Test
+  public void testLog_ApiError_WithTraceContextEmitsCategoricalReason() {
+    testAsNewTenant(testName, tenant -> {
+      PullRequestCommentingLogger logger = createCommentingLogger();
+
+      logger.add(API_ERROR,
+          forError("Pull request creation failed: anything")
+              .withTraceContext("PAT", "owner-A", null, null, "FAILURE", "auth_invalid"));
+      logger.log();
+
+      SourceControlEventLogDTO dto = assertLogDTOs(1).get(0);
+      assertThat(dto.authenticationType).isEqualTo("PAT");
+      assertThat(dto.authOwnerId).isEqualTo("owner-A");
+      assertThat(dto.githubAppId).isNull();
+      assertThat(dto.installationId).isNull();
+      assertThat(dto.outcome).isEqualTo("FAILURE");
+      assertThat(dto.failureReason).isEqualTo("auth_invalid");
+    });
+  }
+
+  @Test
   public void testLog_WithAllNullParameters_ProducesValidJson() {
     testAsNewTenant(testName, tenant -> {
       PullRequestCommentingLogger logger = new PullRequestCommentingLogger(

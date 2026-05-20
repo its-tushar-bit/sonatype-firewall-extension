@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -28,6 +30,7 @@ import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,6 +258,80 @@ public class SourceControlEventDAO
       }
     }
     markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR, eventException, category, isRetryable);
+  }
+
+  public void setPullRequestCreationResult(
+      final String eventId,
+      final String pullRequestUrl,
+      final Integer pullRequestNumber)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .set(SOURCE_CONTROL_EVENT.EVENT_STATUS_DETAILS, pullRequestUrl)
+          .set(SOURCE_CONTROL_EVENT.PULL_REQUEST_NUMBER, pullRequestNumber)
+          .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
+          .execute();
+      tx.commit();
+    }
+  }
+
+  public void overwriteTraceFields(
+      final String eventId,
+      final String authenticationType,
+      final String authOwnerId,
+      final String githubAppId,
+      final String installationId,
+      final String outcome,
+      final String failureReason)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(SOURCE_CONTROL_EVENT)
+          .set(SOURCE_CONTROL_EVENT.AUTHENTICATION_TYPE, authenticationType)
+          .set(SOURCE_CONTROL_EVENT.AUTH_OWNER_ID, authOwnerId)
+          .set(SOURCE_CONTROL_EVENT.GITHUB_APP_ID, githubAppId)
+          .set(SOURCE_CONTROL_EVENT.INSTALLATION_ID, installationId)
+          .set(SOURCE_CONTROL_EVENT.OUTCOME, outcome)
+          .set(SOURCE_CONTROL_EVENT.FAILURE_REASON, failureReason)
+          .where(SOURCE_CONTROL_EVENT.SOURCE_CONTROL_EVENT_ID.eq(eventId))
+          .execute();
+      tx.commit();
+    }
+  }
+
+  /**
+   * Group successful PR-creation events since the given timestamp by their authentication type. Used by the daily HDS
+   * telemetry collector to surface PAT vs GitHub App adoption — see
+   * {@code SourceControlMetricsTelemetryCollector#collectPullRequestExecutionStats}.
+   * <p>
+   * Filters on {@link #REMEDIATION_EVENT_TYPES} so non-PR events that may carry an outcome cannot inflate the count.
+   * Scales as a daily range scan via the existing {@code create_time} index (the {@code outcome} predicate is
+   * additionally checked but unindexed) — sized for the daily collector job.
+   * <p>
+   * The {@code since} parameter may be null on the first Quartz fire after install (no previous fire time available);
+   * in that case the {@code create_time} predicate is omitted so the count covers all eligible rows. Mirrors the
+   * pattern in {@link SourceControlPullRequestDAO#getInternalCreatedSince(Date)}.
+   */
+  public Map<String, Long> countSuccessfulPullRequestsByAuthenticationTypeSince(final Date since) {
+    try (TransactionContext tx = createTransactionContext()) {
+      var condition = SOURCE_CONTROL_EVENT.EVENT_TYPE.in(REMEDIATION_EVENT_TYPES)
+          .and(SOURCE_CONTROL_EVENT.OUTCOME.eq(SourceControlEvent.OUTCOME_SUCCESS))
+          .and(SOURCE_CONTROL_EVENT.AUTHENTICATION_TYPE.isNotNull());
+      if (since != null) {
+        condition = condition.and(SOURCE_CONTROL_EVENT.CREATE_TIME.greaterThan(since));
+      }
+      return tx.dsl()
+          .select(SOURCE_CONTROL_EVENT.AUTHENTICATION_TYPE, DSL.count())
+          .from(SOURCE_CONTROL_EVENT)
+          .where(condition)
+          .groupBy(SOURCE_CONTROL_EVENT.AUTHENTICATION_TYPE)
+          .fetch()
+          .stream()
+          .collect(Collectors.toMap(r -> r.value1(), r -> r.value2().longValue()));
+    }
   }
 
   public void markEventPartiallyComplete(final String eventId, final String message, Exception eventException) {

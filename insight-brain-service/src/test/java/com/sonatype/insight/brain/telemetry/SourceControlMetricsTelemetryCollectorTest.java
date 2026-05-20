@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -39,6 +40,7 @@ import org.quartz.JobExecutionContext;
 import static com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,13 +65,16 @@ public class SourceControlMetricsTelemetryCollectorTest
   @Mock
   private GitHubAppDAO gitHubAppDAO;
 
+  @Mock
+  private SourceControlEventDAO sourceControlEventDAO;
+
   private SourceControlMetricsTelemetryCollector collector;
 
   @Before
   public void setup() {
     collector =
         new SourceControlMetricsTelemetryCollector(sourceControlDAO, sourceControlPullRequestDAO, applicationDAO,
-            metrics, organizationDAO, gitHubAppDAO);
+            metrics, organizationDAO, gitHubAppDAO, sourceControlEventDAO);
   }
 
   @Test
@@ -83,11 +88,13 @@ public class SourceControlMetricsTelemetryCollectorTest
     when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
     when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
     when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
+    when(sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(any()))
+        .thenReturn(Collections.emptyMap());
     when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(40)
+        .hasSize(42)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
@@ -127,7 +134,9 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_ORGS_USING_GITHUB_APP, "0"),
             entry(TOTAL_SC_APPS_USING_PAT, "0"),
             entry(TOTAL_SC_APPS_USING_GITHUB_APP, "0"),
-            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"));
+            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"),
+            entry(TOTAL_DAILY_SC_PRS_USING_PAT, "0"),
+            entry(TOTAL_DAILY_SC_PRS_USING_GITHUB_APP, "0"));
   }
 
   @Test
@@ -149,6 +158,8 @@ public class SourceControlMetricsTelemetryCollectorTest
         new Application(), new Application(), new Application(), new Application()));
     when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
     when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
+    when(sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(any()))
+        .thenReturn(Collections.emptyMap());
     when(metrics.computeStatsAndReset())
         .thenReturn(new AggregatedPRStats(Collections.singletonList(new ApplicationPRStats("foo", 1, 2, 3, 1,
             5, 6))));
@@ -157,7 +168,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(40)
+        .hasSize(42)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
@@ -197,7 +208,60 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_ORGS_USING_GITHUB_APP, "0"),
             entry(TOTAL_SC_APPS_USING_PAT, "0"),
             entry(TOTAL_SC_APPS_USING_GITHUB_APP, "0"),
-            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"));
+            entry(TOTAL_SC_GITHUB_APP_INSTALLATIONS, "0"),
+            entry(TOTAL_DAILY_SC_PRS_USING_PAT, "0"),
+            entry(TOTAL_DAILY_SC_PRS_USING_GITHUB_APP, "0"));
+  }
+
+  @Test
+  public void test_collectPullRequestExecutionStats_emitsPatAndGithubAppCounts() {
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    when(mockContext.getPreviousFireTime()).thenReturn(new Date());
+
+    java.util.Map<String, Long> byAuth = new java.util.HashMap<>();
+    byAuth.put("PAT", 7L);
+    byAuth.put("GITHUB_APP", 3L);
+    when(sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(any())).thenReturn(byAuth);
+
+    // Stub the rest of the collector's data sources so collectData runs end-to-end.
+    when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getAll()).thenReturn(new ArrayList<>());
+    when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
+    when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
+
+    assertThat(collector.collectData(mockContext).getAttributes())
+        .contains(
+            entry(TOTAL_DAILY_SC_PRS_USING_PAT, "7"),
+            entry(TOTAL_DAILY_SC_PRS_USING_GITHUB_APP, "3"));
+  }
+
+  @Test
+  public void test_collectPullRequestExecutionStats_firstFireWithNullPreviousFireTimeStillEmitsCounts() {
+    // Quartz returns null for getPreviousFireTime() on the first run after install. The collector must still
+    // produce non-zero counts when there is real PR activity in the database.
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    when(mockContext.getPreviousFireTime()).thenReturn(null);
+
+    java.util.Map<String, Long> byAuth = new java.util.HashMap<>();
+    byAuth.put("PAT", 4L);
+    byAuth.put("GITHUB_APP", 2L);
+    when(sourceControlEventDAO.countSuccessfulPullRequestsByAuthenticationTypeSince(any())).thenReturn(byAuth);
+
+    when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getAll()).thenReturn(new ArrayList<>());
+    when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(organizationDAO.getAll()).thenReturn(new ArrayList<>());
+    when(gitHubAppDAO.getAll()).thenReturn(new ArrayList<>());
+    when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
+
+    assertThat(collector.collectData(mockContext).getAttributes())
+        .contains(
+            entry(TOTAL_DAILY_SC_PRS_USING_PAT, "4"),
+            entry(TOTAL_DAILY_SC_PRS_USING_GITHUB_APP, "2"));
   }
 
   @Test

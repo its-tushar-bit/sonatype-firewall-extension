@@ -43,4 +43,16 @@ public class SourceControlEventLogDTO
   public Integer violationsCleared;
 
   public String errorMessage;
+
+  public String authenticationType;
+
+  public String authOwnerId;
+
+  public String githubAppId;
+
+  public String installationId;
+
+  public String outcome;
+
+  public String failureReason;
 }

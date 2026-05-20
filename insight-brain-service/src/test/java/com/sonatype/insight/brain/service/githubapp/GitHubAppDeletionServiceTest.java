@@ -292,4 +292,46 @@ public class GitHubAppDeletionServiceTest
     assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isFalse();
     assertThat(gitHubAppDAO.getById(app3.getId()).isActive()).isFalse();
   }
+
+  @Test
+  public void testDeactivateGitHubApps_InvalidatesCacheByEachAppId() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp first = createGitHubApp(app.getId(), 44444L, true);
+    GitHubApp second = createGitHubApp(app.getId(), 55555L, true);
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+
+    org.mockito.Mockito.verify(mockCache).invalidate(app.getId());
+    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(first.getAppId());
+    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(second.getAppId());
+  }
+
+  @Test
+  public void testDelete_InvalidatesCacheByAppId() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID, true);
+
+    deletionService.delete(gitHubApp);
+
+    org.mockito.Mockito.verify(mockCache).invalidateByGitHubAppId(gitHubApp.getAppId());
+  }
+
+  @Test
+  public void testDeactivateGitHubApps_CacheInvalidationFailureDoesNotAbortDeactivation() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId(), 66666L, true);
+
+    org.mockito.Mockito.doThrow(new RuntimeException("simulated cache failure"))
+        .when(mockCache)
+        .invalidateByGitHubAppId(gitHubApp.getAppId());
+
+    try (TransactionContext tx = gitHubAppDAO.createTransactionContext()) {
+      deletionService.deactivateGitHubApps(tx, app.getId());
+    }
+
+    // Deactivation must still succeed even if the cache invalidation throws.
+    assertThat(gitHubAppDAO.getById(gitHubApp.getId()).isActive()).isFalse();
+  }
 }

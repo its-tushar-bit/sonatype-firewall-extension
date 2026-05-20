@@ -253,6 +253,7 @@ public class PullRequestRemediationServiceTest
 
     PullRequestRemediationDetails capturedDetails = detailsCaptor.getValue();
     assertThat(capturedDetails.isManualPullRequest()).isTrue();
+    assertThat(capturedDetails.getSourceControlEvent()).isSameAs(event);
 
     ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
     verify(mockSourceControlEventDAO).update(eventCaptor.capture());
@@ -728,6 +729,7 @@ public class PullRequestRemediationServiceTest
 
     PullRequestRemediationDetails capturedDetails = detailsCaptor.getValue();
     assertThat(capturedDetails.isManualPullRequest()).isTrue();
+    assertThat(capturedDetails.getSourceControlEvent()).isSameAs(event);
 
     ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
     verify(mockSourceControlEventDAO).update(eventCaptor.capture());

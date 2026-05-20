@@ -121,6 +121,13 @@ public abstract class AbstractSourceControlEventLogger
       dto.errorMessage = data.errorMessage;
     }
 
+    dto.authenticationType = data.authenticationType;
+    dto.authOwnerId = data.authOwnerId;
+    dto.githubAppId = data.githubAppId;
+    dto.installationId = data.installationId;
+    dto.outcome = data.outcome;
+    dto.failureReason = data.failureReason;
+
     dto.tenant = MDC.get("tenant");
 
     return dto;
@@ -151,6 +158,18 @@ public abstract class AbstractSourceControlEventLogger
 
     public String errorMessage;
 
+    public String authenticationType;
+
+    public String authOwnerId;
+
+    public String githubAppId;
+
+    public String installationId;
+
+    public String outcome;
+
+    public String failureReason;
+
     public static SourceControlEventData forComment(
         final String pullRequestNumber,
         final Integer violationsAppeared,
@@ -173,6 +192,28 @@ public abstract class AbstractSourceControlEventLogger
       SourceControlEventData data = new SourceControlEventData();
       data.errorMessage = errorMessage;
       return data;
+    }
+
+    /**
+     * Decorate this event data with execution-time auth context and outcome. Identifiers only — never accepts tokens,
+     * keys, or secret material. {@code failureReason} must already be a categorical token from
+     * {@link com.sonatype.insight.brain.git.PullRequestFailureCategorizer}; raw provider messages must not be passed.
+     */
+    public SourceControlEventData withTraceContext(
+        final String authenticationType,
+        final String authOwnerId,
+        final String githubAppId,
+        final String installationId,
+        final String outcome,
+        final String failureReason)
+    {
+      this.authenticationType = authenticationType;
+      this.authOwnerId = authOwnerId;
+      this.githubAppId = githubAppId;
+      this.installationId = installationId;
+      this.outcome = outcome;
+      this.failureReason = failureReason;
+      return this;
     }
   }
 }

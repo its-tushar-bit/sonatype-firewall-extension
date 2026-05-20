@@ -126,6 +126,8 @@ public class PullRequestRemediationService
           reducedSecurityData,
           innerSourceApplicationDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(
               event.getComponentIdentifier().createAlternativeVersion(null))) != null);
+      pullRequestRemediationDetails.setSourceControlEventId(event.getId());
+      pullRequestRemediationDetails.setSourceControlEvent(event);
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();
       PullRequestResult pullRequestResult =

@@ -1,0 +1,554 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.playwright;
+
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.clm.testing.functional.utils.proxy.ReverseProxyServer;
+import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
+import com.sonatype.clm.testing.playwright.pages.LoginPage;
+import com.sonatype.clm.testing.playwright.pages.LoginPageAssertions;
+import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+import com.sonatype.clm.testing.playwright.utils.TestCredentials;
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
+import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
+import com.sonatype.insight.brain.db.DatabaseContainer;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
+import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
+import com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.jira.JiraService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.PersistedUserSession;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.TestProductLicenseRule;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
+import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.license.model.LicensedFeature;
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import com.google.inject.matcher.Matchers;
+import io.dropwizard.core.server.DefaultServerFactory;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.subject.SubjectContext;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.experimental.categories.Category;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+/**
+ * Base class for Playwright-driven UI tests that need an embedded IQ Server.
+ *
+ * <p>
+ * Sits between {@link AbstractPlaywrightTest} (browser lifecycle only) and the concrete
+ * {@code *PlaywrightTest} classes. It owns:
+ * <ul>
+ * <li>The embedded {@link TestCLMServer} (plus {@link ReverseProxyServer}, HDS mock, Shiro
+ * security context, Guice modules, {@link TestProductLicenseManager}).</li>
+ * <li>The test database lifecycle via {@link DatabaseContainer} (PostgreSQL by default;
+ * H2 when {@code -DfunctionalTestDatabase=H2_IN_MEMORY_DB} or {@code H2_DISK_DB} is set).</li>
+ * <li>Per-test cleanup via {@link TemporaryEntity}.</li>
+ * <li>IQ-aware login/logout helpers that drive the IQ login modal.</li>
+ * </ul>
+ *
+ * <p>
+ * <b>Future MTIQ-UI reuse:</b> when MTIQ Playwright tests are added, they should live in a
+ * sibling {@code AbstractMtiqUiTest} class that also extends {@link AbstractPlaywrightTest}
+ * (with its own MTIQ-flavoured server bootstrap and credentials). Single inheritance means we
+ * cannot share *infrastructure* through the hierarchy beyond what {@link AbstractPlaywrightTest}
+ * provides; if the IQ↔MTIQ overlap inside this class grows large enough to be painful, extract
+ * the shared parts into a composable rule or helper rather than introducing another inheritance
+ * layer.
+ */
+@Category(SlowTest.class)
+public abstract class AbstractIqUiTest
+    extends AbstractPlaywrightTest
+{
+  private static final Logger log = LoggerFactory.getLogger(AbstractIqUiTest.class);
+
+  protected static final TestProductLicenseManager productLicenseManager;
+
+  protected static final TestLicenseFingerprinter licenseFingerprinter;
+
+  protected static final TestProductLicense testProductLicense;
+
+  protected static final JiraService jiraService;
+
+  protected static final TestCLMServer testCLMServer;
+
+  protected static final ReverseProxyServer reverseProxyServer;
+
+  protected static DatabaseContainer databaseContainer;
+
+  private static TestProductLicenseRule testProductLicenseRule;
+
+  /**
+   * Map from class to mock instance — individual test methods add mocks here and the map is
+   * cleared at the end of each test in {@code cleanUpInsightBrainConfigChanges()}.
+   *
+   * <p>
+   * <b>Threading model:</b> JUnit 4 runs methods within a class sequentially by default, but
+   * Surefire/Failsafe can launch multiple test classes in parallel forks. Each fork gets its
+   * own classloader and therefore its own copy of this static field, so a plain {@link
+   * HashMap} is safe in the standard configuration. If this module ever opts into
+   * intra-class parallelism, swap this for a {@link java.util.concurrent.ConcurrentHashMap}.
+   * The reference is {@code final} so tests cannot accidentally reassign it.
+   */
+  protected static final Map<Class<?>, Object> mocks = new HashMap<>();
+
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
+
+  private PersistedUserSessionDAO persistedUserSessionDAO;
+
+  private ShiroSessionDAO shiroSessionDAO;
+
+  protected static DeveloperEnablementService mockDeveloperEnablementService = mock(DeveloperEnablementService.class);
+
+  static {
+    databaseContainer = createDatabaseContainer();
+    initDatabase();
+
+    productLicenseManager = new TestProductLicenseManager();
+    licenseFingerprinter = new TestLicenseFingerprinter();
+    testProductLicense = new TestProductLicense(productLicenseManager, mockDeveloperEnablementService);
+    when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
+    testProductLicenseRule = new TestProductLicenseRule(databaseContainer);
+    jiraService = Mockito.mock(JiraService.class);
+    initMocks();
+
+    String contextPath = TestCLMServer.WEBPACK_DEV_MODE ? "" : System.getProperty("iq.contextPath", "/iq-test");
+    Configurator configurator = config -> {
+      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+    };
+
+    testCLMServer = new TestCLMServer(new DefaultInsightBrainServiceFactory(),
+        false /* isProxyRequiredToReachHds */, getBrainModules(), configurator, databaseContainer);
+    int reverseProxyTarget = TestCLMServer.WEBPACK_DEV_MODE ? 8070 : testCLMServer.getCLMServer().getPort();
+    reverseProxyServer = new ReverseProxyServer(reverseProxyTarget);
+
+    try {
+      testProductLicenseRule.insertLicenseIfNeeded();
+
+      testCLMServer.start();
+      reverseProxyServer.start();
+
+      baseUrlFromTest = BaseUrl.resolveBaseUrl(getBaseUrl(contextPath));
+      setBaseUrl(baseUrlFromTest);
+    }
+    catch (Throwable e) {
+      // Static initializer failure — we cannot proceed (no test class would run with a half-
+      // initialised TestCLMServer / reverse proxy / license fingerprinter). Log via SLF4J so
+      // CI captures the cause in the same stream as the rest of the test logs, then abort.
+      log.error("Failed to start embedded IQ infrastructure in static initializer", e);
+      System.exit(1);
+    }
+  }
+
+  private static DatabaseContainer createDatabaseContainer() {
+    String functionalTestDatabase =
+        System.getProperty("functionalTestDatabase", System.getenv("FUNCTIONAL_TESTS_DATABASE"));
+
+    DatabaseType databaseType = POSTGRES_DB;
+    if (functionalTestDatabase != null) {
+      databaseType = DatabaseType.valueOf(functionalTestDatabase.toUpperCase());
+    }
+
+    DatabaseFixture fixture = switch (databaseType) {
+      case H2_IN_MEMORY_DB -> new H2InMemoryDatabaseFixture(false, false, null);
+      case H2_DISK_DB -> new H2DiskDatabaseFixture(50, null, null);
+      case POSTGRES_DB -> new PostgresDatabaseFixture("testPostgresFixture", false, 50);
+    };
+
+    DataSourceProvider dataSourceProvider = fixture.getDataSourceProvider();
+
+    OperationalDataStore operationalDataStore =
+        new DefaultOperationalDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.ods.name()));
+    AggregationDataStore aggregationDataStore =
+        new DefaultAggregationDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.aggregation.name()));
+    DataMartDataStore dataMartDataStore =
+        new DefaultDataMartDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.dm.name()));
+    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
+        fixture.getDatabaseConfig(DatabaseName.third_party_scans.name()));
+
+    DataStoreProvider dataStoreProvider =
+        new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore, dataMartDataStore,
+            thirdPartyScansDataStore);
+
+    DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
+    DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);
+    return new DefaultDatabaseContainer(dataSourceProvider, dataStoreProvider, databaseProvisioner);
+  }
+
+  private static void initDatabase() {
+    DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
+    databaseProvisioner.initializeDatabaseWithMigration();
+  }
+
+  @Rule
+  public TemporaryEntity tempEntity = new TemporaryEntity(databaseContainer)
+  {
+    @Override
+    public void after() {
+      super.after();
+      afterDatabaseReset();
+    }
+
+    @Override
+    public void initializePersistedUserSessions() {
+      // noop
+    }
+
+    @Override
+    public void cleanupPersistedUserSessions() {
+      // noop
+    }
+  };
+
+  protected void afterDatabaseReset() {
+    // hook for subclasses
+  }
+
+  private static String getBaseUrl(String contextPath) {
+    String url = reverseProxyServer.getUrl();
+    if (url.endsWith("/")) {
+      url = url.substring(0, url.length() - 1);
+    }
+    url += contextPath;
+    if (!url.endsWith("/")) {
+      url += '/';
+    }
+    return url;
+  }
+
+  public static void setBaseUrl(String baseUrl) {
+    baseUrlFromTest = baseUrl;
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+  }
+
+  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        enableDefaultPasswordWarning);
+  }
+
+  private static void initMocks() {
+    try {
+      Mockito.reset(jiraService);
+      Mockito.when(jiraService.isEnabled()).thenReturn(false);
+      Mockito.doThrow(new IllegalStateException()).when(jiraService).getProjectsWithAcceptableIssueTypes();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  @BeforeClass
+  public static void disableWaitToCloseOldClients() {
+    HdsClient.waitToCloseOldClients = false;
+  }
+
+  @BeforeClass
+  public static void setUpClass() {
+    Subject subject = mock(Subject.class);
+    lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
+    lenient().when(subject.associateWith(any(Runnable.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(subject.associateWith(any(Callable.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    SecurityManager securityManager = mock(SecurityManager.class);
+    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(subject);
+
+    testProductLicenseRule.insertLicenseIfNeeded();
+    testCLMServer.getCLMServer().setHdsUrl();
+  }
+
+  @AfterClass
+  public static void tearDownClass() {
+    ThreadContext.unbindSecurityManager();
+    ThreadContext.unbindSubject();
+  }
+
+  @Before
+  public final void beforeTest() {
+    log.info("Before: {}", testName.getMethodName());
+    setEnableDefaultPasswordWarning(false);
+    setBaseUrl(baseUrlFromTest);
+
+    persistedUserSessionDAO = lookup(PersistedUserSessionDAO.class);
+    shiroSessionDAO = lookup(ShiroSessionDAO.class);
+
+    DAOFactory daoFactory = new TestDAOFactory(databaseContainer);
+    StaticInjectionTestHelper.inject(daoFactory);
+
+    mockHdsVersionScoringResponse();
+  }
+
+  @After
+  public void afterTest() throws Exception {
+    log.info("After: {}", testName.getMethodName());
+    mocks.clear();
+    InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();
+    if (insightConfig != null) {
+      insightConfig.setFeatures(Collections.emptyMap());
+    }
+    TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
+    if (taskScheduler != null) {
+      taskScheduler.standby();
+      taskScheduler.clear();
+    }
+    initMocks();
+    if (!testCLMServer.isRunning()) {
+      testCLMServer.start();
+    }
+    testCLMServer.getHdsServer().reset();
+    if (productLicenseManager.wasChanged()) {
+      productLicenseManager.reset();
+      installLicense();
+    }
+  }
+
+  private static List<Module> getBrainModules() {
+    return Collections.singletonList(new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(ProductLicense.class).toInstance(testProductLicense);
+        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
+        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
+        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
+        bind(JiraService.class).toInstance(jiraService);
+        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
+        bind(TaskScheduler.class).to(TestTaskScheduler.class);
+
+        bind(EncryptionKeyStore.class).toInstance(() -> {
+          if (FIPSModeDetector.isEnabled()) {
+            return new TestFipsEncryptionKeyStore().getKey();
+          }
+          else {
+            return new TestEncryptionKeyStore().getKey();
+          }
+        });
+
+        bindInterceptor(AbstractIqUiTest::isInterceptable, Matchers.any(),
+            invocation -> {
+              Object object = mocks.get(invocation.getMethod().getDeclaringClass());
+              if (object == null || invocation.getThis() == object) {
+                return invocation.proceed();
+              }
+              return invocation.getMethod().invoke(object, invocation.getArguments());
+            });
+      }
+    });
+  }
+
+  private static boolean isInterceptable(final Class<?> clazz) {
+    return !Modifier.isFinal(clazz.getModifiers()) && !Arrays.stream(clazz.getConstructors())
+        .allMatch(constructor -> Modifier.isPrivate(constructor.getModifiers()));
+  }
+
+  public String getUsername() {
+    return getClass().getSimpleName();
+  }
+
+  public User createUser() {
+    return tempEntity.newUser(getUsername());
+  }
+
+  public void grantPermissions(String username, String contextId, Permission... perms) {
+    Role role = tempEntity.newRole(false /* global */, perms);
+    tempEntity.newMembershipMapping(contextId, role.getId(), username);
+  }
+
+  protected void setFeatures(LicensedFeature... features) {
+    productLicenseManager.setFeatures(features);
+    installLicense();
+  }
+
+  protected void setMissingFeature(LicensedFeature feature) {
+    setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
+  }
+
+  protected void setMissingFeatures(LicensedFeature... features) {
+    setFeatures(EnumSet.complementOf(EnumSet.copyOf(Arrays.asList(features))).toArray(new LicensedFeature[0]));
+  }
+
+  protected void setLicensedProducts(String... products) {
+    productLicenseManager.setProducts(products);
+    installLicense();
+  }
+
+  protected void setExpirationDate(Date date) {
+    productLicenseManager.setExpirationDate(date);
+    installLicense();
+  }
+
+  protected void installLicense() {
+    testProductLicenseRule.insertLicenseIfNeeded();
+    try {
+      lookup(CLMLicenseManager.class)
+          .installLicense(new ByteArrayInputStream(new byte[1]));
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected void uninstallLicense() {
+    lookup(CLMLicenseManager.class).uninstallLicense();
+  }
+
+  protected void cleanupAllPersistedUserSessions() {
+    persistedUserSessionDAO.getAll()
+        .stream()
+        .map(PersistedUserSession::getId)
+        .forEach(shiroSessionDAO::deleteById);
+  }
+
+  protected <T> T lookup(Class<T> type) {
+    return testCLMServer.getCLMServer().getInstance(type);
+  }
+
+  private void mockHdsVersionScoringResponse() {
+    testCLMServer.getHdsServer()
+        .respondWith(new VersionScoringDTO[]{})
+        .atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+  }
+
+  protected void mockHdsResponseForDownloadingReport(String scanId) {
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
+    testCLMServer.getHdsServer()
+        .respondWith(zippedReport)
+        .atUri("rest/application/analysis/" + scanId);
+  }
+
+  // --------------- IQ-aware login / logout helpers ---------------
+
+  /**
+   * Login as admin using default credentials.
+   */
+  protected void playwrightLogin() {
+    playwrightLogin(TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);
+  }
+
+  /**
+   * Login with the given credentials via the IQ login modal.
+   * Does NOT navigate — the caller must have already navigated to a page
+   * where the login modal will appear (matching the Selenide {@code login()} behavior).
+   */
+  protected void playwrightLogin(String username, String password) {
+    log.debug("Logging in as '{}' on current page (url='{}')", username, page.url());
+    new LoginPage().loginAs(username, password);
+    log.debug("Login successful for user: {}", username);
+  }
+
+  /**
+   * Logout the current user via the user menu.
+   * Handles the unsaved changes modal if it appears.
+   */
+  protected void playwrightLogout() {
+    playwrightLogout(true);
+  }
+
+  private void playwrightLogout(boolean dismissUnsavedModal) {
+    new HeaderComponent().logout();
+    if (dismissUnsavedModal) {
+      new UnsavedChangesModalComponent().dismissIfAppearsWithin(PlaywrightTiming.SHORT_UI_CUE_MS);
+    }
+    new LoginPageAssertions(new LoginPage()).shouldBeVisibleWithin(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS);
+  }
+
+  /**
+   * Login with a non-admin user at the specified page.
+   */
+  protected void playwrightLoginAt(String path, String username, String password) {
+    playwrightRefreshOrOpen(path);
+    new LoginPage().loginAs(username, password);
+  }
+
+  /**
+   * Login as admin at a specific page URL.
+   */
+  protected void playwrightLoginAdminAt(String path) {
+    playwrightLoginAt(path, TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);
+  }
+}

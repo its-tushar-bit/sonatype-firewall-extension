@@ -1,0 +1,16 @@
+# Maven build output (also covered by root .gitignore, listed here for clarity)
+target/
+
+# Allure reporting (raw results + generated HTML report)
+allure-results/
+allure-report/
+
+# Local test run logs
+run.log
+
+# Personal IDE / editor files
+*.code-workspace
+*~
+
+# macOS metadata
+.DS_Store

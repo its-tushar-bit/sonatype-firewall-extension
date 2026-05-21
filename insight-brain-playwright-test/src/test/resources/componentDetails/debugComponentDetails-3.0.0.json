@@ -1,0 +1,86 @@
+{
+  "hash": "3dd9bcf103185593d87e",
+  "matchState": null,
+  "declaredLicenses": [
+    {
+      "licenseId": "MIT",
+      "licenseName": "MIT"
+    }
+  ],
+  "observedLicenses": [
+    {
+      "licenseId": "MIT",
+      "licenseName": "MIT"
+    }
+  ],
+  "overriddenLicenses": [],
+  "policyMaxThreatLevelsByCategory": {},
+  "effectiveLicenses": [],
+  "effectiveLicenseStatus": null,
+  "catalogDate": 1502229359088,
+  "relativePopularity": null,
+  "securityVulnerabilities": [
+    {
+      "refId": "sonatype-2017-0519",
+      "severity": 7.5,
+      "source": "sonatype",
+      "summary": "debug - ReDoS (Regular Expression Denial of Service)",
+      "status": null,
+      "url": null,
+      "vulnerabilityCategories": [
+        "data"
+      ],
+      "aliases": [],
+      "cwe": "400",
+      "cvssVectorSource": "sonatype_cvss_3",
+      "cvssVector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    }
+  ],
+  "website": null,
+  "policyAlerts": null,
+  "licenseThreatLevel": null,
+  "licenseThreatGroupNames": null,
+  "majorRevisionStep": false,
+  "identificationSource": "Sonatype",
+  "identificationSourceComment": null,
+  "componentIdentifier": {
+    "format": "npm",
+    "coordinates": {
+      "packageId": "debug",
+      "version": "3.0.0"
+    }
+  },
+  "componentCategories": [
+    {
+      "componentCategoryId": 113,
+      "path": "Other"
+    }
+  ],
+  "hygieneRating": null,
+  "integrityRating": {
+    "id": 2,
+    "label": "Pending"
+  },
+  "breakingChangesCount": null,
+  "analyzerFeatures": {
+    "analysisSource": "SDS",
+    "analysisType": null,
+    "scanClient": null,
+    "hasLicense": true,
+    "hasIdentity": true,
+    "hasSecurity": true,
+    "manifestContentType": null
+  },
+  "violatedPolicyCount": null,
+  "highestSecurityVulnerabilitySeverity": null,
+  "securityVulnerabilityCount": null,
+  "version": null,
+  "groupId": null,
+  "artifactId": null,
+  "declaredLicenseIds": [
+    "MIT"
+  ],
+  "observedLicenseIds": [
+    "MIT"
+  ]
+}

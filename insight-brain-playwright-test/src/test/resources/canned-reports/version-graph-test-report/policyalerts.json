@@ -1,0 +1,897 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "04cfdc0227024bf6a6aaad91fa5cd1de",
+      "policyName" : "A new policy",
+      "threatLevel" : 9,
+      "policyViolationId" : "3e2b2847223149b380ff462611c1335b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "debug",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "3dd9bcf103185593d87e",
+        "constraintFacts" : [ {
+          "constraintId" : "69d24951d49c4c0eb248e71e386430d0",
+          "constraintName" : "teset",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/package/.coveralls.yml", "VersionGraphTest.zip/package/.eslintrc", "VersionGraphTest.zip/package/.npmignore", "VersionGraphTest.zip/package/.travis.yml", "VersionGraphTest.zip/package/CHANGELOG.md", "VersionGraphTest.zip/package/LICENSE", "VersionGraphTest.zip/package/Makefile", "VersionGraphTest.zip/package/README.md", "VersionGraphTest.zip/package/component.json", "VersionGraphTest.zip/package/karma.conf.js", "VersionGraphTest.zip/package/node.js", "VersionGraphTest.zip/package/package.json", "VersionGraphTest.zip/package/src/browser.js", "VersionGraphTest.zip/package/src/debug.js", "VersionGraphTest.zip/package/src/index.js", "VersionGraphTest.zip/package/src/node.js" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug : 3.0.0"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "2cb71b3468d649789163ea2e212b541e",
+      "targetType" : "role"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "04cfdc0227024bf6a6aaad91fa5cd1de",
+      "policyName" : "A new policy",
+      "threatLevel" : 9,
+      "policyViolationId" : "61641d3dffbc4cd1b17d9bdad18a13b0",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "69d24951d49c4c0eb248e71e386430d0",
+          "constraintName" : "teset",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "2cb71b3468d649789163ea2e212b541e",
+      "targetType" : "role"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "04cfdc0227024bf6a6aaad91fa5cd1de",
+      "policyName" : "A new policy",
+      "threatLevel" : 9,
+      "policyViolationId" : "086fc08c668b40318fe4b6e60b7a93c1",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "debug",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars.npm",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "c4bcd12f8fa577009fbd",
+        "constraintFacts" : [ {
+          "constraintId" : "69d24951d49c4c0eb248e71e386430d0",
+          "constraintName" : "teset",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars.npm"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "2cb71b3468d649789163ea2e212b541e",
+      "targetType" : "role"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "7ebff76183174be88c270d6e12628718",
+      "policyName" : "Integrity-Rating",
+      "threatLevel" : 9,
+      "policyViolationId" : "0a536fc2f7994528b056fd916534488f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "debug",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "3dd9bcf103185593d87e",
+        "constraintFacts" : [ {
+          "constraintId" : "00c64848839b42dc90b8a4a788dcede1",
+          "constraintName" : "Pending integrity rating",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "IntegrityRating",
+            "conditionIndex" : 0,
+            "summary" : "Integrity Rating is Pending",
+            "reason" : "Integrity Rating was Pending",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/package/.coveralls.yml", "VersionGraphTest.zip/package/.eslintrc", "VersionGraphTest.zip/package/.npmignore", "VersionGraphTest.zip/package/.travis.yml", "VersionGraphTest.zip/package/CHANGELOG.md", "VersionGraphTest.zip/package/LICENSE", "VersionGraphTest.zip/package/Makefile", "VersionGraphTest.zip/package/README.md", "VersionGraphTest.zip/package/component.json", "VersionGraphTest.zip/package/karma.conf.js", "VersionGraphTest.zip/package/node.js", "VersionGraphTest.zip/package/package.json", "VersionGraphTest.zip/package/src/browser.js", "VersionGraphTest.zip/package/src/debug.js", "VersionGraphTest.zip/package/src/index.js", "VersionGraphTest.zip/package/src/node.js" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug : 3.0.0"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b13bda7d20dd43cebf099f23d8abf2fe",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "bd13a65183d14157aa110982fbc67616",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "npm",
+          "coordinates" : {
+            "packageId" : "debug",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "3dd9bcf103185593d87e",
+        "constraintFacts" : [ {
+          "constraintId" : "7575a9fdb74c4635a524f1b35011dbd7",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2017-0519 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2017-0519",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2017-0519 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2017-0519",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/package/.coveralls.yml", "VersionGraphTest.zip/package/.eslintrc", "VersionGraphTest.zip/package/.npmignore", "VersionGraphTest.zip/package/.travis.yml", "VersionGraphTest.zip/package/CHANGELOG.md", "VersionGraphTest.zip/package/LICENSE", "VersionGraphTest.zip/package/Makefile", "VersionGraphTest.zip/package/README.md", "VersionGraphTest.zip/package/component.json", "VersionGraphTest.zip/package/karma.conf.js", "VersionGraphTest.zip/package/node.js", "VersionGraphTest.zip/package/package.json", "VersionGraphTest.zip/package/src/browser.js", "VersionGraphTest.zip/package/src/debug.js", "VersionGraphTest.zip/package/src/index.js", "VersionGraphTest.zip/package/src/node.js" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "packageId",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug : 3.0.0"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "b13bda7d20dd43cebf099f23d8abf2fe",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "ba8b1c03bb774baeb9b755bee8781f96",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "7575a9fdb74c4635a524f1b35011dbd7",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2018-10936 with severity >= 7 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2018-10936",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2018-10936 with severity < 9 (severity = 8.1)",
+            "reference" : {
+              "value" : "CVE-2018-10936",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "b13bda7d20dd43cebf099f23d8abf2fe",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "32b83226856745d3988ac87d76f51e46",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "7575a9fdb74c4635a524f1b35011dbd7",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-13692 with severity >= 7 (severity = 7.7)",
+            "reference" : {
+              "value" : "CVE-2020-13692",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-13692 with severity < 9 (severity = 7.7)",
+            "reference" : {
+              "value" : "CVE-2020-13692",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "b13bda7d20dd43cebf099f23d8abf2fe",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "62a87be1de384d5abc0d22d17f1ffabf",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "7575a9fdb74c4635a524f1b35011dbd7",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2022-4402 with severity >= 7 (severity = 7.1)",
+            "reference" : {
+              "value" : "sonatype-2022-4402",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2022-4402 with severity < 9 (severity = 7.1)",
+            "reference" : {
+              "value" : "sonatype-2022-4402",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "b13bda7d20dd43cebf099f23d8abf2fe",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "1843b4621962458c945cc904b4fda182",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "debug",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars.npm",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "c4bcd12f8fa577009fbd",
+        "constraintFacts" : [ {
+          "constraintId" : "7575a9fdb74c4635a524f1b35011dbd7",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability sonatype-2017-0519 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2017-0519",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability sonatype-2017-0519 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "sonatype-2017-0519",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars.npm"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "bb7026623d88476da48369f6d3d1f714",
+      "policyName" : "Component-Similar",
+      "threatLevel" : 7,
+      "policyViolationId" : "46e13764638645b1ba40207b1f5bf4ea",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "debug",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.webjars.npm",
+            "version" : "3.0.0"
+          }
+        },
+        "hash" : "c4bcd12f8fa577009fbd",
+        "constraintFacts" : [ {
+          "constraintId" : "da337b53456549d3822f0fa43a9f5851",
+          "constraintName" : "Unknown modification to component",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "MatchState",
+            "conditionIndex" : 0,
+            "summary" : "Match State is similar",
+            "reason" : "Match state was 'Similar'",
+            "reference" : null,
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "Coordinates",
+            "conditionIndex" : 0,
+            "summary" : "Coordinates do not match maven:org.eclipse.*:*:*:*:*",
+            "reason" : "Coordinates were org.webjars.npm : debug : 3.0.0 (do not match org.eclipse.* : * : * : * : *)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.webjars.npm"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "debug"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "3.0.0"
+          } ],
+          "name" : "debug"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "c08947e3fb5943aa9d201e586e1e622b",
+      "policyName" : "Security-Critical wrewe rrer wer wer ewrwer wer wer wer",
+      "threatLevel" : 10,
+      "policyViolationId" : "bfaabbae71b54b3b8df85253d4865f58",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "5fcef90b25854283bc9d97c4340c0605",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2022-21724 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2022-21724",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "SBOX",
+      "targetType" : "jira"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "f9d773ab44614131a69b0b4109c7d177",
+      "targetType" : "webhook"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "c08947e3fb5943aa9d201e586e1e622b",
+      "policyName" : "Security-Critical wrewe rrer wer wer ewrwer wer wer wer",
+      "threatLevel" : 10,
+      "policyViolationId" : "0b4765f37b904718a21fc555075075d2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "5fcef90b25854283bc9d97c4340c0605",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2022-26520 with severity >= 9 (severity = 9.8)",
+            "reference" : {
+              "value" : "CVE-2022-26520",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "SBOX",
+      "targetType" : "jira"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "f9d773ab44614131a69b0b4109c7d177",
+      "targetType" : "webhook"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "c08947e3fb5943aa9d201e586e1e622b",
+      "policyName" : "Security-Critical wrewe rrer wer wer ewrwer wer wer wer",
+      "threatLevel" : 10,
+      "policyViolationId" : "3285499187164b25a5e846b515fd7aef",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "5fcef90b25854283bc9d97c4340c0605",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-2024-1597 with severity >= 9 (severity = 10.0)",
+            "reference" : {
+              "value" : "CVE-2024-1597",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "SBOX",
+      "targetType" : "jira"
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "f9d773ab44614131a69b0b4109c7d177",
+      "targetType" : "webhook"
+    } ]
+  }, {
+    "trigger" : {
+      "policyId" : "ff24c7224bf54184ba5c9adb97dc0a52",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "865ef1105b9549d9be1dc4fb9c23ea36",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "postgresql",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.postgresql",
+            "version" : "42.2.2"
+          }
+        },
+        "hash" : "7ebd60d15eec1f9e796d",
+        "constraintFacts" : [ {
+          "constraintId" : "76830f19e835490a82e636e12bb82ead",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2022-41946 with severity >= 4 (severity = 5.5)",
+            "reference" : {
+              "value" : "CVE-2022-41946",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2022-41946 with severity < 7 (severity = 5.5)",
+            "reference" : {
+              "value" : "CVE-2022-41946",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "org.postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "postgresql"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "42.2.2"
+          } ],
+          "name" : "postgresql"
+        }
+      } ]
+    },
+    "actions" : [ {
+      "actionTypeId" : "fail",
+      "target" : null
+    }, {
+      "actionTypeId" : "notify",
+      "target" : "amarushkevych@sonatype.com"
+    } ]
+  } ]
+}

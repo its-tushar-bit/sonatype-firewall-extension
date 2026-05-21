@@ -1,0 +1,748 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.clm.testing.playwright;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.PlaywrightException;
+import com.microsoft.playwright.TimeoutError;
+import com.microsoft.playwright.Tracing;
+import com.microsoft.playwright.Video;
+import com.microsoft.playwright.options.WaitForSelectorState;
+import com.sonatype.clm.testing.playwright.pages.BasePage;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Shared base class for Playwright-driven UI tests, independent of any specific server flavour.
+ *
+ * <p>
+ * Owns only the browser-side lifecycle: Playwright/Browser singleton, per-test
+ * {@link BrowserContext}/{@link Page}, tracing, video, screenshot-on-failure, console/page-error
+ * capture, and the generic URL navigation/refresh helpers that need a {@link Page}.
+ *
+ * <p>
+ * Concrete server-flavoured base classes ({@link AbstractIqUiTest} today; an eventual MTIQ-UI
+ * sibling) extend this class and add the server-bootstrap and session helpers (login/logout,
+ * licensing, DB setup) on top.
+ *
+ * <p>
+ * Subclasses MUST initialise {@link #baseUrlFromTest} before any {@code @Before} runs &mdash;
+ * typically in a static initialiser that boots the test server &mdash; because
+ * {@link #setupPlaywrightTest()} reads it when constructing the {@link BrowserContext}.
+ *
+ * <p>
+ * Timeouts and flake policy are documented in this module's {@code README.md}
+ * (Troubleshooting section) and enforced by {@code PlaywrightStabilityRulesCheck}.
+ */
+public abstract class AbstractPlaywrightTest
+{
+  private static final Logger log = LoggerFactory.getLogger(AbstractPlaywrightTest.class);
+
+  private static final Path SCREENSHOT_DIR = Paths.get("target/playwright-screenshots");
+
+  private static final Path VIDEO_DIR = Paths.get("target/playwright-videos");
+
+  private static final Path TRACE_DIR = Paths.get("target/playwright-traces");
+
+  private static final Path DIAGNOSTICS_DIR = Paths.get("target/playwright-diagnostics");
+
+  /** Cap how many browser console / page-error lines we retain per test (avoid huge CI logs). */
+  private static final int MAX_BROWSER_DIAGNOSTIC_LINES = 40;
+
+  private static final int VIEWPORT_WIDTH = 1366;
+
+  private static final int VIEWPORT_HEIGHT = 1064;
+
+  /**
+   * Controls whether Playwright traces and per-test screenshots are persisted. Tri-state:
+   * <ul>
+   * <li>{@code always} &mdash; capture trace + screenshot for every test.</li>
+   * <li>{@code on-failure} &mdash; capture only when the current test failed (default; matches
+   * this module's {@code pom.xml} default).</li>
+   * <li>{@code off} &mdash; never capture; tracing is stopped without saving.</li>
+   * </ul>
+   * Override with {@code -Dplaywright.trace=always|on-failure|off}.
+   */
+  private static final String TRACE_MODE =
+      System.getProperty("playwright.trace", "on-failure").toLowerCase();
+
+  private static final boolean TRACE_ALWAYS = "always".equals(TRACE_MODE);
+
+  private static final boolean TRACE_ON_FAILURE = "on-failure".equals(TRACE_MODE);
+
+  /**
+   * Controls whether the test browser context records a {@code .webm} video.
+   * <p>
+   * Off by default &mdash; videos are large and slow tests down measurably.
+   * Pass {@code -Dplaywright.video=on} (or any value other than {@code off}) to enable recording.
+   * When enabled, each test produces {@code target/playwright-videos/<testName>.webm}, embedded
+   * inline by the Playwright HTML report's per-test card.
+   */
+  private static final boolean RECORD_VIDEO =
+      "on".equalsIgnoreCase(System.getProperty("playwright.video", "off"));
+
+  // volatile is needed in addition to the volatile playwrightInitialized guard: a thread that
+  // sees the guard flip via the unsynchronized fast-path read also needs a happens-before edge
+  // to the writes of these two fields. Without volatile, the JMM allows a stale null read.
+  private static volatile Playwright playwright;
+
+  private static volatile Browser browser;
+
+  private static volatile boolean playwrightInitialized = false;
+
+  private static final Object INIT_LOCK = new Object();
+
+  /**
+   * Base URL the per-test {@link BrowserContext} is bound to. Server-flavoured subclasses
+   * (e.g. {@link AbstractIqUiTest}) assign this in their static initialiser once the embedded
+   * server is started.
+   */
+  protected static String baseUrlFromTest;
+
+  protected BrowserContext context;
+
+  protected Page page;
+
+  /**
+   * {@code warning} / {@code error} console messages from the page during the current test.
+   *
+   * <p>
+   * Written from Playwright's internal dispatcher thread (via {@link Page#onConsoleMessage}) and
+   * read from the JUnit test thread inside {@link PlaywrightLifecycleRule}. Must be a synchronized
+   * list; the cap-check + add in {@link #appendDiagnosticLine} is guarded by a
+   * {@code synchronized} block to keep the two operations atomic.
+   */
+  private final List<String> browserConsoleWarningsAndErrors =
+      Collections.synchronizedList(new ArrayList<>());
+
+  /**
+   * Uncaught page JS exceptions (via {@link Page#onPageError}).
+   *
+   * <p>
+   * Same threading model as {@link #browserConsoleWarningsAndErrors} — synchronized list with
+   * atomic cap-check + add.
+   */
+  private final List<String> browserPageErrors =
+      Collections.synchronizedList(new ArrayList<>());
+
+  @Rule
+  public TestName testName = new TestName();
+
+  /**
+   * Per-test lifecycle hook: captures Playwright failure artifacts <em>while the browser
+   * context is still alive</em>, then closes it.
+   *
+   * <p>
+   * Implemented as a {@link TestRule} (rather than {@code @Rule TestWatcher} + {@code @After})
+   * so the {@code try/catch} can observe the throwable directly and run capture against the
+   * still-open {@link Page}/{@link BrowserContext} before the {@code finally} closes them. The
+   * earlier {@code TestWatcher}+{@code @After} arrangement always closed the context before
+   * {@code TestWatcher.failed} fired, so screenshots/traces were lost on failure.
+   *
+   * <p>
+   * Capture/cleanup matrix:
+   * <ul>
+   * <li><b>passing test</b>: {@code discardTrace()} (or {@code saveTrace()} when
+   * {@code playwright.trace=always}), then close.</li>
+   * <li><b>failing test</b>: screenshot + {@code saveTrace()} (when {@code on-failure} or
+   * {@code always}) + failure-diagnostics attachment, then close.</li>
+   * </ul>
+   */
+  @Rule
+  public TestRule playwrightLifecycle = new PlaywrightLifecycleRule();
+
+  /**
+   * Per-test JUnit rule that wraps the test body in capture+cleanup. Extracted from the original
+   * 60-line anonymous {@code TestRule}/{@code Statement} lambda so failure diagnostics show a
+   * named frame and the {@code evaluate} body can be navigated like any other method.
+   */
+  private final class PlaywrightLifecycleRule
+      implements TestRule
+  {
+    @Override
+    public Statement apply(Statement base, Description description) {
+      return new Statement()
+      {
+        @Override
+        public void evaluate() throws Throwable {
+          runWithPlaywrightCapture(base, description);
+        }
+      };
+    }
+  }
+
+  private void runWithPlaywrightCapture(Statement base, Description description) throws Throwable {
+    Throwable failure = null;
+    try {
+      base.evaluate();
+    }
+    catch (Throwable t) {
+      failure = t;
+    }
+    // Key artifacts on the filesystem-safe FQN slug (e.g. com.foo.BarTest.testFoo) so two test
+    // classes with the same method name never clobber each other's screenshots/traces.
+    String testKey = safeFileName(description.getClassName() + "." + description.getMethodName());
+    Video recordedVideo = null;
+    try {
+      if (failure != null) {
+        captureScreenshot(testKey);
+        if (TRACE_ALWAYS || TRACE_ON_FAILURE) {
+          saveTrace(testKey);
+        }
+        logPlaywrightFailureDiagnostics(description, failure);
+      }
+      else if (TRACE_ALWAYS) {
+        saveTrace(testKey);
+      }
+      else if (TRACE_ON_FAILURE) {
+        discardTrace();
+      }
+      if (RECORD_VIDEO && page != null && !page.isClosed()) {
+        recordedVideo = page.video();
+      }
+    }
+    catch (Exception e) {
+      log.error("Error capturing Playwright artifacts for {}", testKey, e);
+    }
+    finally {
+      // Each close() in its own try/catch — if page.close() throws (rare but observed in
+      // Playwright Java when the browser crashed mid-test), context.close() must still run or
+      // the BrowserContext leaks for the rest of the suite.
+      BasePage.clearCurrent();
+      closeQuietly("page", () -> {
+        if (page != null) {
+          page.close();
+          page = null;
+        }
+      });
+      closeQuietly("context", () -> {
+        if (context != null) {
+          context.close();
+          context = null;
+        }
+      });
+    }
+    if (RECORD_VIDEO && recordedVideo != null) {
+      saveVideo(testKey, recordedVideo);
+    }
+    log.info("Playwright test complete: {} (passed={})", description.getDisplayName(), failure == null);
+    if (failure != null) {
+      throw failure;
+    }
+  }
+
+  /**
+   * Run a close action and log+swallow any thrown exception. Used to keep the lifecycle rule's
+   * {@code finally} block from short-circuiting if one resource's close throws — we always want
+   * every resource closed even if a previous one failed.
+   */
+  private void closeQuietly(String what, Runnable action) {
+    try {
+      action.run();
+    }
+    catch (Exception e) {
+      log.warn("Error closing Playwright {} (continuing): {}", what, e.getMessage());
+    }
+  }
+
+  /**
+   * Guards {@link #addShutdownHookOnce()} against redundant registration. The static initializer
+   * runs once per classloader in normal Surefire/Failsafe usage, but custom classloaders or
+   * test-runner restarts can re-execute it — registering multiple shutdown hooks would each
+   * try to close the same Playwright instance.
+   */
+  private static final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
+
+  static {
+    addShutdownHookOnce();
+  }
+
+  private static void addShutdownHookOnce() {
+    if (!shutdownHookRegistered.compareAndSet(false, true)) {
+      return;
+    }
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      log.info("Shutting down Playwright via JVM shutdown hook...");
+      shutdownPlaywright();
+    }, "playwright-shutdown"));
+  }
+
+  private static void initializePlaywright() {
+    if (playwrightInitialized) {
+      return;
+    }
+    synchronized (INIT_LOCK) {
+      if (playwrightInitialized) {
+        return;
+      }
+      log.info("Initializing Playwright (server at: {})...", baseUrlFromTest);
+      playwright = Playwright.create();
+      boolean manualPause =
+          Boolean.parseBoolean(System.getProperty("playwright.manualPause", "false"));
+      boolean headless = Boolean.parseBoolean(System.getProperty("playwright.headless", "true"));
+      int slowMo = Integer.parseInt(System.getProperty("playwright.slowMo", "0"));
+      if (manualPause && headless) {
+        log.warn(
+            "playwright.manualPause=true — Playwright Inspector does not appear in headless mode; forcing headless=false");
+        headless = false;
+      }
+      log.info("Playwright Chromium launch: headless={}, slowMo={}, playwright.manualPause={}",
+          headless, slowMo, manualPause);
+      browser = playwright.chromium()
+          .launch(new BrowserType.LaunchOptions()
+              .setHeadless(headless)
+              .setSlowMo(slowMo));
+      playwrightInitialized = true;
+      log.info("Playwright initialization complete");
+    }
+  }
+
+  private static void shutdownPlaywright() {
+    synchronized (INIT_LOCK) {
+      if (!playwrightInitialized) {
+        return;
+      }
+      try {
+        if (browser != null) {
+          browser.close();
+          browser = null;
+        }
+        if (playwright != null) {
+          playwright.close();
+          playwright = null;
+        }
+        playwrightInitialized = false;
+        log.info("Playwright shutdown complete");
+      }
+      catch (Exception e) {
+        log.error("Error during Playwright shutdown", e);
+      }
+    }
+  }
+
+  @Before
+  public void setupPlaywrightTest() {
+    String currentTest = testName.getMethodName();
+    log.info("Starting Playwright test: {}", currentTest);
+
+    initializePlaywright();
+
+    Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
+        .setViewportSize(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
+        .setBaseURL(baseUrlFromTest)
+        .setTimezoneId("UTC");
+    if (RECORD_VIDEO) {
+      contextOptions.setRecordVideoDir(VIDEO_DIR)
+          .setRecordVideoSize(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+    }
+    context = browser.newContext(contextOptions);
+
+    if (TRACE_ALWAYS || TRACE_ON_FAILURE) {
+      // All three flags must be true for the trace viewer to render a useful timeline:
+      // screenshots → top filmstrip of JPEG frames per action
+      // snapshots → DOM/CSS snapshots so the centre panel can replay the page at each
+      // step (without this the viewer renders but the viewport is blank)
+      // sources → captures the Java call-site stack for each action so clicking an
+      // action jumps to the test code that triggered it
+      // Java-binding defaults are false; this matches @playwright/test JS defaults. Trace
+      // size roughly doubles, which is acceptable since we only keep traces on failure
+      // (TRACE_ON_FAILURE) — the all-passing run discards them.
+      context.tracing()
+          .start(new Tracing.StartOptions()
+              .setScreenshots(true)
+              .setSnapshots(true)
+              .setSources(true));
+    }
+
+    page = context.newPage();
+    BasePage.setCurrent(page);
+    registerPlaywrightFailureListeners();
+  }
+
+  /**
+   * Captures browser-side problems so failures in CI logs explain "what the UI saw", not only the Java stack trace.
+   */
+  private void registerPlaywrightFailureListeners() {
+    browserConsoleWarningsAndErrors.clear();
+    browserPageErrors.clear();
+    page.onConsoleMessage(msg -> {
+      String type = msg.type();
+      if ("error".equals(type) || "warning".equals(type)) {
+        appendDiagnosticLine(browserConsoleWarningsAndErrors, "[" + type + "] " + msg.text());
+      }
+    });
+    page.onPageError(error -> appendDiagnosticLine(browserPageErrors, error));
+  }
+
+  private static void appendDiagnosticLine(List<String> lines, String line) {
+    synchronized (lines) {
+      if (lines.size() >= MAX_BROWSER_DIAGNOSTIC_LINES) {
+        return;
+      }
+      String oneLine = line.replace('\n', ' ').replace('\r', ' ');
+      if (oneLine.length() > 500) {
+        oneLine = oneLine.substring(0, 500) + "...";
+      }
+      lines.add(oneLine);
+    }
+  }
+
+  /**
+   * Logs why a test failed while the {@link Page} is still open. Invoked from the
+   * {@link #playwrightLifecycle} rule before it closes the {@link BrowserContext}, so {@code page}
+   * is still valid here even though all {@code @After} methods have already run.
+   *
+   * <p>
+   * Writes a plain-text diagnostics file beside the step sidecar at
+   * {@code target/playwright-report/data/<class>.<method>.diag.txt}. The Playwright HTML report
+   * does not currently inline this file, but it's archived for triage and can be referenced from
+   * Jenkins job artifacts.
+   */
+  private void logPlaywrightFailureDiagnostics(Description description, Throwable failure) {
+    String fqMethod = description.getClassName() + "." + description.getMethodName();
+    log.error("Playwright test failed: {}", fqMethod, failure);
+
+    StringBuilder summary = new StringBuilder(2048);
+    summary.append(fqMethod).append('\n').append(failure).append('\n');
+
+    if (page != null && !page.isClosed()) {
+      try {
+        String url = page.url();
+        String title = page.title();
+        log.error("Playwright page at failure: url={}, title={}", url, title);
+        summary.append("url=").append(url).append('\n').append("title=").append(title).append('\n');
+
+        try {
+          Object snippetObj = page.evaluate("""
+              () => {
+                const b = document.body;
+                if (!b || !b.innerText) return '';
+                const t = b.innerText.trim();
+                return t.length > 800 ? t.slice(0, 800) + "…" : t;
+              }
+              """);
+          if (snippetObj != null) {
+            String snippet = snippetObj.toString().trim();
+            if (!snippet.isEmpty()) {
+              log.error("Playwright page body text (truncated): {}", snippet);
+              summary.append("bodySnippet=").append(snippet).append('\n');
+            }
+          }
+        }
+        catch (Exception snippetEx) {
+          log.debug("Could not capture page body snippet for failure log: {}", snippetEx.getMessage());
+        }
+      }
+      catch (Exception ex) {
+        log.warn("Could not read Playwright page URL/title for failure log: {}", ex.toString());
+      }
+    }
+    else {
+      log.warn("Playwright page was null or closed; skipping page state for failed test {}", fqMethod);
+    }
+
+    if (!browserConsoleWarningsAndErrors.isEmpty()) {
+      log.error("Browser console (warning/error) during test:{}{}", System.lineSeparator(),
+          String.join(System.lineSeparator(), browserConsoleWarningsAndErrors));
+      summary.append("console:\n")
+          .append(String.join("\n", browserConsoleWarningsAndErrors))
+          .append('\n');
+    }
+    if (!browserPageErrors.isEmpty()) {
+      log.error("Uncaught page JS errors during test:{}{}", System.lineSeparator(),
+          String.join(System.lineSeparator(), browserPageErrors));
+      summary.append("pageErrors:\n").append(String.join("\n", browserPageErrors)).append('\n');
+    }
+
+    try {
+      Files.createDirectories(DIAGNOSTICS_DIR);
+      Path diagFile = DIAGNOSTICS_DIR.resolve(safeFileName(fqMethod) + ".diag.txt");
+      Files.writeString(diagFile, summary.toString(), StandardCharsets.UTF_8);
+    }
+    catch (Exception e) {
+      log.debug("Could not write failure diagnostics file: {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Persists the in-progress Playwright video to a stable on-disk path. The Playwright HTML
+   * report's per-test card auto-discovers and embeds this file by name.
+   *
+   * <p>
+   * Calls {@link Video#saveAs(Path)} which blocks until the recording is fully flushed (avoids
+   * racing the muxer).
+   */
+  private void saveVideo(String testKey, Video video) {
+    try {
+      Path target = VIDEO_DIR.resolve(testKey + ".webm");
+      Files.createDirectories(target.getParent());
+      if (Files.exists(target)) {
+        Files.delete(target);
+      }
+      video.saveAs(target);
+      long size = Files.size(target);
+      if (size <= 0) {
+        log.warn("Playwright video for {} is empty (0 bytes)", testKey);
+        return;
+      }
+      log.info("Saved Playwright video for {} ({} bytes) to {}", testKey, size, target.toAbsolutePath());
+    }
+    catch (Exception e) {
+      log.error("Error saving Playwright video for {}", testKey, e);
+    }
+  }
+
+  private void discardTrace() {
+    try {
+      if (context != null) {
+        context.tracing().stop();
+      }
+    }
+    catch (Exception e) {
+      log.debug("Discarding trace on passing test (non-fatal): {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Capture a full-page screenshot. Bundled into the report at
+   * {@code target/playwright-report/data/screenshots/<testKey>.png} where the test card embeds
+   * it. The {@code testKey} is the safe-FQN slug computed by the lifecycle rule.
+   */
+  private void captureScreenshot(String testKey) {
+    try {
+      if (page != null && !page.isClosed()) {
+        Path target = SCREENSHOT_DIR.resolve(testKey + ".png");
+        Files.createDirectories(target.getParent());
+        page.screenshot(new Page.ScreenshotOptions().setFullPage(true).setPath(target));
+        log.info("Saved Playwright screenshot for {} to {}", testKey, target.toAbsolutePath());
+      }
+    }
+    catch (Exception e) {
+      log.error("Error capturing screenshot for {}", testKey, e);
+    }
+  }
+
+  /**
+   * Persists the in-progress Playwright trace zip to {@code target/playwright-traces/<testKey>.zip}.
+   * Open locally with:
+   * {@code mvn exec:java -Dexec.classpathScope=test -Dexec.mainClass=com.microsoft.playwright.CLI
+   * -Dexec.args="show-trace target/playwright-traces/<testKey>.zip"}
+   */
+  private void saveTrace(String testKey) {
+    try {
+      if (context != null) {
+        Path tracePath = TRACE_DIR.resolve(testKey + ".zip");
+        Files.createDirectories(tracePath.getParent());
+        context.tracing().stop(new Tracing.StopOptions().setPath(tracePath));
+        log.info("Saved Playwright trace for {} to {}", testKey, tracePath.toAbsolutePath());
+      }
+    }
+    catch (Exception e) {
+      log.error("Error saving trace for {}", testKey, e);
+    }
+  }
+
+  // --------------- Common Playwright helpers ---------------
+
+  /**
+   * When {@code -Dplaywright.manualPause=true}, opens the Playwright Inspector and blocks until you
+   * resume. Lets you drive the same browser tab manually after automated steps (e.g. login).
+   * <p>
+   * Typical local run (Inspector is a separate window from Chromium; use Cmd+Tab / Dock on macOS):
+   * {@code PWDEBUG=1 mvn verify -Dit.test=OrganizationPlaywrightTest -Dplaywright.manualPause=true}
+   * ({@code -Dplaywright.headless=false} optional — headed mode is forced when manual pause is on.)
+   */
+  protected void playwrightManualPauseIfEnabled() {
+    if (!Boolean.parseBoolean(System.getProperty("playwright.manualPause", "false"))) {
+      return;
+    }
+    log.warn(
+        "playwright.manualPause=true — pausing; open the Playwright Inspector window (not the IQ tab) and click Resume when finished.");
+    page.pause();
+  }
+
+  /**
+   * Navigate to a path relative to the server base URL.
+   */
+  protected void playwrightNavigateTo(String path) {
+    String fullUrl = path.startsWith("/")
+        ? baseUrlFromTest + path.substring(1)
+        : baseUrlFromTest + path;
+    log.debug("playwrightNavigateTo: path='{}', fullUrl='{}'", path, fullUrl);
+    page.navigate(fullUrl);
+    page.waitForLoadState();
+  }
+
+  /**
+   * Clears browser cookies and (when possible) storage; equivalent to Selenide hardreset().
+   * <p>
+   * Safe to call before any navigation: when the page is still on {@code about:blank} (or another
+   * opaque/sandboxed origin) {@code window.sessionStorage}/{@code localStorage} access throws
+   * {@code SecurityError}; in that case there's nothing to clear so we skip silently.
+   */
+  protected void playwrightHardreset() {
+    context.clearCookies();
+    String url = page != null ? page.url() : null;
+    if (url == null || url.startsWith("about:") || url.startsWith("chrome:") || url.startsWith("data:")) {
+      return;
+    }
+    try {
+      page.evaluate("window.sessionStorage.clear()");
+      page.evaluate("window.localStorage.clear()");
+    }
+    catch (PlaywrightException e) {
+      log.debug("playwrightHardreset: storage not accessible at url='{}': {}", url, e.getMessage());
+    }
+  }
+
+  /**
+   * Refresh the current page.
+   */
+  protected void playwrightRefresh() {
+    page.reload();
+    page.waitForLoadState();
+  }
+
+  /**
+   * Navigate to a URL if not already on it, or refresh if already there.
+   * Equivalent to Selenide refreshOrOpen().
+   */
+  protected void playwrightRefreshOrOpen(String path) {
+    String fullUrl = path.startsWith("http")
+        ? path
+        : path.startsWith("/")
+            ? baseUrlFromTest + path.substring(1)
+            : baseUrlFromTest + path;
+    String currentUrl = page.url();
+    String normalizedCurrentUrl = normalizeUrlForComparison(currentUrl);
+    String normalizedTargetUrl = normalizeUrlForComparison(fullUrl);
+    log.debug("playwrightRefreshOrOpen: path='{}', fullUrl='{}', currentUrl='{}'", path, fullUrl, currentUrl);
+    if (normalizedCurrentUrl != null && normalizedCurrentUrl.equals(normalizedTargetUrl)) {
+      page.reload();
+    }
+    else {
+      page.navigate(fullUrl);
+    }
+    page.waitForLoadState();
+    log.debug("playwrightRefreshOrOpen: after navigation, url='{}'", page.url());
+  }
+
+  private static String normalizeUrlForComparison(String url) {
+    if (url == null) {
+      return null;
+    }
+    String normalized = url;
+    while (normalized.length() > 1 && normalized.endsWith("/")) {
+      normalized = normalized.substring(0, normalized.length() - 1);
+    }
+    return normalized;
+  }
+
+  /**
+   * Navigate within the SPA by changing only the hash fragment of the current URL.
+   * Unlike {@link #playwrightRefreshOrOpen}, this keeps the same document and lets the
+   * SPA router react to the {@code hashchange} event — useful for deep-link tests.
+   *
+   * @param hashFragment the hash portion of the target URL, including the leading {@code #}
+   *          (e.g. {@code "#/advancedSearch?search=log4j"})
+   */
+  protected void playwrightSpaNavigateToHashFragment(String hashFragment) {
+    String currentUrl = page.url();
+    String baseUrl = currentUrl.contains("#")
+        ? currentUrl.substring(0, currentUrl.indexOf('#'))
+        : currentUrl;
+    page.navigate(baseUrl + hashFragment);
+    page.waitForLoadState();
+  }
+
+  /**
+   * Navigate/refresh to a path and wait for the provided locator to become visible.
+   */
+  protected void playwrightOpenAndWaitForVisible(String path, Locator readyLocator) {
+    playwrightRefreshOrOpen(path);
+    PlaywrightWaitUtils.waitForVisible(readyLocator, PlaywrightTiming.ELEMENT_TIMEOUT_MS,
+        PlaywrightTiming.POLL_INTERVAL_MS);
+  }
+
+  /**
+   * Wait until the page URL contains a substring.
+   *
+   * <p>
+   * Uses a predicate rather than a glob — hash routes ({@code #/dashboard/...}) are not matched
+   * reliably by {@code **fragment**} patterns in Playwright.
+   */
+  protected void playwrightWaitUntilUrlContains(String urlFragment) {
+    PlaywrightWaitUtils.waitForUrl(page, urlFragment);
+  }
+
+  /**
+   * Wait for the NX submit mask to appear and then dismiss — the "save in progress / save done" UI
+   * pattern that wraps every async form submission in the IQ Server frontend.
+   *
+   * <p>
+   * Two phases:
+   * <ol>
+   * <li>Wait up to 2s for {@code .nx-submit-mask} to become {@code VISIBLE} — confirms the click
+   * triggered an async submit (and we caught it before it dismissed).</li>
+   * <li>Wait up to 10s for {@code .nx-submit-mask} to become {@code HIDDEN} — confirms the
+   * submission completed (success or rejection).</li>
+   * </ol>
+   *
+   * <p>
+   * Both waits are inside a single try/catch because a very fast backend response can flicker
+   * the mask faster than Playwright can observe it; in that case there's nothing to wait for and
+   * we proceed. Replaces Selenide's {@code NxSubmitMask.seeAndWaitForDismissal()}.
+   */
+  protected void waitForSubmitMask() {
+    Locator submitMask = page.locator(".nx-submit-mask");
+    try {
+      submitMask.waitFor(new Locator.WaitForOptions()
+          .setState(WaitForSelectorState.VISIBLE)
+          .setTimeout(PlaywrightTiming.SHORT_UI_CUE_MS));
+      submitMask.waitFor(new Locator.WaitForOptions()
+          .setState(WaitForSelectorState.HIDDEN)
+          .setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
+    }
+    catch (TimeoutError e) {
+      // Fast submission: the mask flickered faster than Playwright could observe it. Anything
+      // other than a TimeoutError (browser crash, page closed, etc.) should propagate.
+      log.debug("Submit mask not detected in waitForSubmitMask (fast submission or transient DOM): {}",
+          e.getMessage());
+    }
+  }
+
+  /**
+   * Normalises a fully-qualified test name to a filesystem-safe slug by collapsing any character
+   * outside {@code [A-Za-z0-9._-]} to {@code _}. Prevents two test classes with the same method
+   * name from clobbering each other's screenshot/trace/video artifacts.
+   */
+  private static String safeFileName(String name) {
+    return name.replaceAll("[^A-Za-z0-9._-]", "_");
+  }
+}

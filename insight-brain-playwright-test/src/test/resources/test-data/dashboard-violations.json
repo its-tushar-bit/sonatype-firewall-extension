@@ -1,0 +1,14 @@
+{
+  "noDataMessage": "No data available in the last 30 days given the applied filters and permissions.",
+  "noDataMessageComponents": "No data available given the applied filters and permissions.",
+  "orgName": "Dashboard Test Org",
+  "appName": "Dashboard Test App",
+  "appId": "dashboardTestApp",
+  "policyName": "Dashboard Security Policy",
+  "policyThreatLevel": 8,
+  "componentGroupId": "com.example",
+  "componentArtifactId": "test-lib",
+  "componentVersion": "1.0.0",
+  "componentHash": "hash123",
+  "cveId": "CVE-2020-12345"
+}

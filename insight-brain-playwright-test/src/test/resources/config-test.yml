@@ -1,0 +1,42 @@
+# Dropwizard config for the embedded IQ server (TestCLMServer / AbstractIqUiTest).
+# hdsUrl and HTTP ports are typically overridden at runtime by TestInsightBrainServiceRule
+# (HDS mock URL, PortAllocator ports, or webpack-dev-server fixed ports).
+
+hdsUrl: "http://localhost:8090"
+
+sonatypeWork: ./target/sonatype-work/clm-server
+
+showRootOrganization: true
+
+importReferencePoliciesFromHDS: false
+
+logging:
+  level: INFO
+  loggers:
+    "com.sonatype": DEBUG
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: console
+        - type: file
+          currentLogFilename: ./target/log/audit.log
+          archivedLogFilenamePattern: ./target/log/audit-%d.log.gz
+          archivedFileCount: 50
+    "com.sonatype.insight.test.reverseproxy.jetty": INFO
+    "org.apache.directory": ERROR
+    "org.apache.http.headers": DEBUG
+    "org.eclipse.jetty.server.HttpChannel": INFO
+    "com.sonatype.insight.brain.concurrent.PerpetualLockManager": TRACE
+    "com.sonatype.insight.brain.security.FIPSModeDetector": TRACE
+  appenders:
+    - type: console
+      logFormat: "%date %-5level [%thread] %logger - %msg%n"
+
+# Listener ports here are defaults in YAML; TestInsightBrainServiceRule sets actual ports.
+server:
+  applicationConnectors:
+    - type: http
+      port: 9070
+
+  adminConnectors:
+    - type: http
+      port: 9071

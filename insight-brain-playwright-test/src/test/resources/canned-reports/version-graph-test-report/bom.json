@@ -1,0 +1,296 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "postgresql",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.postgresql",
+        "version" : "42.2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.postgresql/postgresql@42.2.2?type=jar",
+    "groupId" : "org.postgresql",
+    "artifactId" : "postgresql",
+    "version" : "42.2.2",
+    "filenames" : [ "postgresql-42.2.2.jar" ],
+    "pathnames" : [ "VersionGraphTest.zip/postgresql-42.2.2.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7ebd60d15eec1f9e796d",
+    "sha256" : "1996524026a3027853f3932e8639ef813807d1b63fe14832f410fffa4274fa70",
+    "relativePopularity" : 0.14,
+    "createTime" : 1521130640000,
+    "lastModifiedTime" : 1710267366000,
+    "lastModifiedEntryTime" : 1521145014000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "postgresql"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "42.2.2"
+      } ],
+      "name" : "postgresql"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "debug",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.webjars.npm",
+        "version" : "3.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.webjars.npm/debug@3.0.0?type=jar",
+    "groupId" : "org.webjars.npm",
+    "artifactId" : "debug",
+    "version" : "3.0.0",
+    "filenames" : [ "VersionGraphTest.zip" ],
+    "pathnames" : [ "VersionGraphTest.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c4bcd12f8fa577009fbd",
+    "sha256" : "ac112db59c62126652c6f8f5933160c7b79c88bdb55c9bd0878ec829ecddb811",
+    "relativePopularity" : 0.0,
+    "createTime" : 1502995230000,
+    "lastModifiedTime" : 1710267604000,
+    "lastModifiedEntryTime" : 1710267366000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 70,
+      "path" : "Developer Tools"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.webjars.npm"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "debug"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "debug"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "debug",
+        "version" : "3.0.0"
+      }
+    },
+    "packageUrl" : "pkg:npm/debug@3.0.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ".coveralls.yml", ".eslintrc", ".npmignore", ".travis.yml", "CHANGELOG.md", "LICENSE", "Makefile", "README.md", "browser.js", "component.json", "debug.js", "index.js", "karma.conf.js", "node.js", "package.json" ],
+    "pathnames" : [ "VersionGraphTest.zip/package/.coveralls.yml", "VersionGraphTest.zip/package/.eslintrc", "VersionGraphTest.zip/package/.npmignore", "VersionGraphTest.zip/package/.travis.yml", "VersionGraphTest.zip/package/CHANGELOG.md", "VersionGraphTest.zip/package/LICENSE", "VersionGraphTest.zip/package/Makefile", "VersionGraphTest.zip/package/README.md", "VersionGraphTest.zip/package/component.json", "VersionGraphTest.zip/package/karma.conf.js", "VersionGraphTest.zip/package/node.js", "VersionGraphTest.zip/package/package.json", "VersionGraphTest.zip/package/src/browser.js", "VersionGraphTest.zip/package/src/debug.js", "VersionGraphTest.zip/package/src/index.js", "VersionGraphTest.zip/package/src/node.js" ],
+    "aggregateFiles" : [ {
+      "hash" : "c26c73bbaac4de43f56a",
+      "pathnames" : [ "VersionGraphTest.zip/package/component.json" ]
+    }, {
+      "hash" : "8fd547470ee4128a3cae",
+      "pathnames" : [ "VersionGraphTest.zip/package/src/node.js" ]
+    }, {
+      "hash" : "ad20938f07f056cbbdb3",
+      "pathnames" : [ "VersionGraphTest.zip/package/.travis.yml" ]
+    }, {
+      "hash" : "182314d32e789e4f9c29",
+      "pathnames" : [ "VersionGraphTest.zip/package/src/index.js" ]
+    }, {
+      "hash" : "9249b5c46b21d7e51bd0",
+      "pathnames" : [ "VersionGraphTest.zip/package/.eslintrc" ]
+    }, {
+      "hash" : "58e3676c3989d3f6c03f",
+      "pathnames" : [ "VersionGraphTest.zip/package/src/debug.js" ]
+    }, {
+      "hash" : "aa7655ee80c9a4853136",
+      "pathnames" : [ "VersionGraphTest.zip/package/node.js" ]
+    }, {
+      "hash" : "65e6d2056ab2e7e26270",
+      "pathnames" : [ "VersionGraphTest.zip/package/README.md" ]
+    }, {
+      "hash" : "85a396d407e0a048b660",
+      "pathnames" : [ "VersionGraphTest.zip/package/CHANGELOG.md" ]
+    }, {
+      "hash" : "90fef7cc1058bd0f85b0",
+      "pathnames" : [ "VersionGraphTest.zip/package/.npmignore" ]
+    }, {
+      "hash" : "93fef7cf3ed6f04d2cfc",
+      "pathnames" : [ "VersionGraphTest.zip/package/karma.conf.js" ]
+    }, {
+      "hash" : "a02837c0e6784964dbb7",
+      "pathnames" : [ "VersionGraphTest.zip/package/package.json" ]
+    }, {
+      "hash" : "90709e4fb4ce17729974",
+      "pathnames" : [ "VersionGraphTest.zip/package/.coveralls.yml" ]
+    }, {
+      "hash" : "d16a2786962571280a11",
+      "pathnames" : [ "VersionGraphTest.zip/package/LICENSE" ]
+    }, {
+      "hash" : "27ba9abecf06bf547905",
+      "pathnames" : [ "VersionGraphTest.zip/package/Makefile" ]
+    }, {
+      "hash" : "55b7fa37a616d7dfe058",
+      "pathnames" : [ "VersionGraphTest.zip/package/src/browser.js" ]
+    } ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3dd9bcf103185593d87e",
+    "relativePopularity" : null,
+    "createTime" : 1502229359088,
+    "lastModifiedTime" : 1502229340000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "debug"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "debug : 3.0.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "npm",
+      "coordinates" : {
+        "packageId" : "@babel/plugin-syntax-async-generators",
+        "version" : "7.8.4"
+      }
+    },
+    "packageUrl" : "pkg:npm/%40babel/plugin-syntax-async-generators@7.8.4",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "@babel/plugin-syntax-async-generators:7.8.4" ],
+    "pathnames" : [ "dependency:/package-lock.json/@babel\\plugin-syntax-async-generators:7.8.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a983fb1aeb2ec3f6ed04",
+    "relativePopularity" : null,
+    "createTime" : 1578950149301,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "brain",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 2,
+      "label" : "Pending"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "packageId",
+        "value" : "@babel/plugin-syntax-async-generators"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "7.8.4"
+      } ],
+      "name" : "@babel/plugin-syntax-async-generators : 7.8.4"
+    }
+  }
+  ],
+  "dependencyDataIncluded" : true
+}

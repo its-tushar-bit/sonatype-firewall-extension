@@ -1,0 +1,499 @@
+{
+  "aaData" : [ {
+    "filenames" : [ "logback-access-0.6.jar" ],
+    "pathnames" : [
+      "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/ch.qos.logback:logback-access:jar:0.6",
+      "deps/logback-access-0.6.jar",
+      "logback-access-0.6.jar"
+    ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "logback-access",
+          "groupId" : "ch.qos.logback",
+          "version" : "0.6",
+          "extension": "jar",
+          "classifier": ""
+       }
+    },
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-access",
+    "version" : "0.6",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "47b6857af4a1cc50875a",
+    "relativePopularity" : 0.0,
+    "createTime" : 1164926586000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "directDependency": false
+  }, {
+    "filenames" : [ "jetty-6.1.15.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/org.mortbay.jetty:jetty:jar:6.1.15" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "jetty",
+          "groupId" : "org.mortbay.jetty",
+          "version" : "6.1.15",
+          "extension": "jar",
+          "classifier": ""
+       }
+    },
+    "groupId" : "org.mortbay.jetty",
+    "artifactId" : "jetty",
+    "version" : "6.1.15",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "494308fc2d433720c778",
+    "relativePopularity" : 0.01,
+    "createTime" : 1236267479000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  }, {
+    "filenames" : [ "geronimo-security-2.1.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/org.apache.geronimo.framework:geronimo-security:jar:2.1" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "geronimo-security",
+          "groupId" : "org.apache.geronimo.framework",
+          "version" : "2.1",
+          "extension": "jar",
+          "classifier": ""
+       }
+    },
+    "groupId" : "org.apache.geronimo.framework",
+    "artifactId" : "geronimo-security",
+    "version" : "2.1",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "848d7549ef7ec13ce546",
+    "relativePopularity" : 0.02,
+    "createTime" : 1203351124000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null
+  }, {
+    "filenames" : [ "javancss-29.50.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.example:sample-small-application:jar:1.0.0/javancss:javancss:jar:29.50" ],
+    "componentIdentifier" : {
+       "format" : "maven",
+       "coordinates" : {
+          "artifactId" : "javancss",
+          "groupId" : "javancss",
+          "version" : "29.50",
+          "extension": "jar",
+          "classifier": ""
+       }
+    },
+    "groupId" : "javancss",
+    "artifactId" : "javancss",
+    "version" : "29.50",
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9aba4af169a1a3baa67f",
+    "relativePopularity" : 0.12,
+    "createTime" : 1211417575000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "directDependency": true
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "unknown.jar" ],
+    "pathnames" : [ "unknown.jar" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "81399f9f3278d8615a7c",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1539139670000,
+    "lastModifiedEntryTime" : 1539139634000,
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tiles-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.tiles",
+        "version" : "2.2.2"
+      }
+    },
+    "groupId" : "org.apache.tiles",
+    "artifactId" : "tiles-core",
+    "version" : "2.2.2",
+    "filenames" : [ "tiles-core-2.2.2.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/tiles-core-2.2.2.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "01db730fbe26c148e3d0",
+    "relativePopularity" : 0.84,
+    "createTime" : 1276613337000,
+    "lastModifiedTime" : 1413088398000,
+    "lastModifiedEntryTime" : 1276595330000,
+    "website" : "http://tiles.apache.org/framework/tiles-core/",
+    "directDependency": true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "aopalliance",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "aopalliance",
+        "version" : "1.0"
+      }
+    },
+    "groupId" : "aopalliance",
+    "artifactId" : "aopalliance",
+    "version" : "1.0",
+    "filenames" : [ "aopalliance-1.0.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/aopalliance-1.0.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0235ba8b489512805ac1",
+    "relativePopularity" : 1.0,
+    "createTime" : 1122870234000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1079661424000,
+    "website" : "http://aopalliance.sourceforge.net",
+    "directDependency": true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j2h",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "java2html",
+        "version" : "1.3.1"
+      }
+    },
+    "groupId" : "java2html",
+    "artifactId" : "j2h",
+    "version" : "1.3.1",
+    "filenames" : [ "j2h-1.3.1.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/j2h-1.3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18d393ad345b03b49c62",
+    "relativePopularity" : 1.0,
+    "createTime" : 1138653346000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1054324540000,
+    "website" : null,
+    "innerSource": true,
+    "directDependency": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest",
+        "ownerApplicationId": "8bbaa746602142d9adf2de00a9ca4d4a"
+      }
+    ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "joda-time",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "joda-time",
+        "version" : "1.3.1"
+      }
+    },
+    "groupId" : "joda-time",
+    "artifactId" : "joda-time",
+    "version" : "1.3.1",
+    "filenames" : [ "joda-time-1.3.1.jar" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/WEB-INF/lib/joda-time-1.3.1.jar" ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "18d393ad345b03b49d62",
+    "relativePopularity" : 1.0,
+    "createTime" : 1138653346000,
+    "lastModifiedTime" : 1413088396000,
+    "lastModifiedEntryTime" : 1054324540000,
+    "innerSource": false,
+    "directDependency": false,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest"
+      }
+    ],
+    "website" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "groupId" : "javax.inject",
+    "artifactId" : "javax.inject",
+    "version" : "1",
+    "filenames" : [ "javax.inject-1.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/javax.inject:javax.inject:jar:1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6975da39a7040257bd51",
+    "relativePopularity" : 1.0,
+    "createTime" : 1255476900000,
+    "lastModifiedTime" : 1573591300000,
+    "lastModifiedEntryTime" : 1255442824000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "javax.inject"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "javax.inject"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1"
+      } ],
+      "name" : "javax.inject"
+    },
+    "innerSource": false,
+    "directDependency": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest2",
+        "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+      }
+    ]
+  },
+    {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.6"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.6",
+    "filenames" : [ "commons-io-2.6.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/commons-io:commons-io:jar:2.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "815893df5f31da2ece40",
+    "relativePopularity" : 0.61,
+    "createTime" : 1519358738000,
+    "lastModifiedTime" : 1573693714000,
+    "lastModifiedEntryTime" : 1508061630000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.6"
+      } ],
+      "name" : "commons-io"
+    },
+      "innerSource": false,
+      "directDependency": false,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
+    },
+    {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test-business",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-business-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:test-business:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cefa389a797ca9d030ef",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1607955468000,
+    "lastModifiedEntryTime" : 1607955380000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test-business"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0-SNAPSHOT"
+      } ],
+      "name" : "test-business"
+    },
+      "innerSource": true,
+      "directDependency": true,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
+    },
+    {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test-data",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test-data-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.example:Consumer-Service:jar:1.0-SNAPSHOT/org.example:test-data:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "32032f22af513c6e683d",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1607956230000,
+    "lastModifiedEntryTime" : 1607956128000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test-data"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0-SNAPSHOT"
+      } ],
+      "name" : "test-data"
+    },
+      "innerSource": false,
+      "directDependency": false,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
+  }]
+}

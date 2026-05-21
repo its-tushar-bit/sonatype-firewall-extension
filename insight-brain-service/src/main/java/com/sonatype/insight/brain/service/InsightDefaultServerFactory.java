@@ -33,6 +33,8 @@ public class InsightDefaultServerFactory
 
   public InsightDefaultServerFactory() {
     setRegisterDefaultExceptionMappers(false);
+    setEnableVirtualThreads(true);
+    setEnableAdminVirtualThreads(true);
 
     setApplicationConnectors(Collections
         .singletonList(new InsightHttpConnectorFactory(InsightConfigurationFactory.DEFAULT_APPLICATION_PORT)));

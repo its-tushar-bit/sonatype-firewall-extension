@@ -1,0 +1,217 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Parameterized pipeline for regional production deployments.
+ *
+ * This job is shared by three regional production deployments (us-1, us-2, eu-1).
+ * Each regional Jenkins job passes in the appropriate parameters.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The prod ECR tag to deploy (must be a prod-internal-verified-* tag)
+ *   REGION - The region identifier (e.g., 'us-1', 'us-2', 'eu-1')
+ *   CELL_WORKSPACES - Comma-separated TFC workspace names for this region
+ *   GLOBAL_WORKSPACE - The global TFC workspace name (defaults to 'sca_aws_prod_global')
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-{region}
+ *   - deploy-to-prod-us-1
+ *   - deploy-to-prod-us-2
+ *   - deploy-to-prod-eu-1
+ *
+ * ============================================================================
+ * TEMPORARY BYPASS - PRODUCTION INFRASTRUCTURE NOT YET READY
+ * ============================================================================
+ *
+ * The production AWS infrastructure (ECR, IAM roles, TFC workspaces, control plane)
+ * is not yet ready. Until it's available, this job runs in bypass mode and returns SUCCESS.
+ *
+ * Once production infrastructure is available:
+ * 1. Set PROD_INFRASTRUCTURE_READY = true below
+ * 2. Remove this comment block
+ *
+ * Tracked in: CLM-39795
+ * ============================================================================
+ */
+
+// TODO: Change to true when prod infrastructure is ready
+def PROD_INFRASTRUCTURE_READY = false
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG',
+           description: 'The prod ECR tag to deploy (must be a prod-internal-verified-* tag)'),
+    string(name: 'REGION',
+           description: 'The region identifier (e.g., us-1, us-2, eu-1)'),
+    string(name: 'CELL_WORKSPACES',
+           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-us-1)'),
+    string(name: 'GLOBAL_WORKSPACE',
+           defaultValue: 'sca_aws_prod_global',
+           description: 'The global TFC workspace name')
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    disableConcurrentBuilds()
+    // 96 hours to allow for approval wait, with 30-minute timeout on deploy stage
+    timeout(time: 96, unit: 'HOURS')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG parameter is required'
+          }
+          if (!params.REGION?.trim()) {
+            error 'REGION parameter is required'
+          }
+          if (!params.CELL_WORKSPACES?.trim()) {
+            error 'CELL_WORKSPACES parameter is required'
+          }
+          echo "Production deployment for region: ${params.REGION}"
+          echo "Image tag: ${params.IMAGE_TAG}"
+          echo "Cell workspaces: ${params.CELL_WORKSPACES}"
+          echo "Global workspace: ${params.GLOBAL_WORKSPACE}"
+        }
+      }
+    }
+
+    stage('Checkout') {
+      steps {
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
+        ])
+      }
+    }
+
+    stage('Validate Image') {
+      steps {
+        script {
+          if (!PROD_INFRASTRUCTURE_READY) {
+            echo "BYPASS: Would validate image ${params.IMAGE_TAG} exists in prod ECR"
+            echo "BYPASS: Would verify image has prod-internal-verified-* tag"
+            return
+          }
+
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+
+          // Validate image exists in prod ECR
+          ecr.validateImageExists(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+
+          // Safety check: verify image has a prod-internal-verified tag
+          withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: ecr.PROD_ECR_ACCOUNT.role,
+                      roleAccount: ecr.PROD_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
+            withEnv(["REPOSITORY_ARG=${ecr.ECR_REPOSITORY}", "IMAGE_TAG_ARG=${params.IMAGE_TAG}", "REGION_ARG=${ecr.ECR_REGION}"]) {
+              def imageDetail = sh(script: '''
+                aws ecr describe-images \\
+                  --repository-name "$REPOSITORY_ARG" \\
+                  --image-ids "imageTag=$IMAGE_TAG_ARG" \\
+                  --region "$REGION_ARG" \\
+                  --query 'imageDetails[0].imageTags' \\
+                  --output json
+              ''', returnStdout: true).trim()
+
+              def tags = readJSON text: imageDetail
+              if (!tags) {
+                error "ECR returned no tags for image ${params.IMAGE_TAG} in ${ecr.ECR_REPOSITORY}. " +
+                      "Has the image been promoted from staging?"
+              }
+              def hasVerifiedTag = tags.any { it.startsWith('prod-internal-verified-') }
+
+              if (!hasVerifiedTag) {
+                error "Image ${params.IMAGE_TAG} does not have a prod-internal-verified-* tag. " +
+                      "Only images that have passed prod-internal validation can be released to production."
+              }
+              echo "Verified: Image has prod-internal-verified tag"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Approval') {
+      steps {
+        script {
+          if (!PROD_INFRASTRUCTURE_READY) {
+            echo "BYPASS: Would wait for approval to deploy to ${params.REGION}"
+            return
+          }
+
+          input message: "Approve deployment to production ${params.REGION}?",
+                ok: 'Deploy'
+        }
+      }
+    }
+
+    stage('Deploy to Production Region') {
+      steps {
+        script {
+          if (!PROD_INFRASTRUCTURE_READY) {
+            echo "BYPASS: Would deploy to production ${params.REGION} with tag: ${params.IMAGE_TAG}"
+            return
+          }
+
+          // Apply 30-minute timeout on the actual deployment
+          timeout(time: 30, unit: 'MINUTES') {
+            def tfc = load 'jenkins/tfc-helpers.groovy'
+
+            // Parse comma-separated workspaces into a list
+            def workspaces = params.CELL_WORKSPACES.split(',').collect { it.trim() }
+
+            tfc.deployCells("production-${params.REGION}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG)
+          }
+        }
+      }
+    }
+
+  }
+
+  post {
+    success {
+      script {
+        def status = PROD_INFRASTRUCTURE_READY ? "Deployed" : "Acknowledged (bypass mode)"
+        echo "deploy-to-prod-region (${params.REGION}): ${status} ${params.IMAGE_TAG}"
+
+        // TODO: Enable when real production is ready
+        // notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+        //            message: "Production ${params.REGION} deployment SUCCESS: ${params.IMAGE_TAG}")
+      }
+    }
+    failure {
+      script {
+        echo "deploy-to-prod-region (${params.REGION}): FAILED for ${params.IMAGE_TAG}"
+
+        // Provide rollback instructions
+        echo "============================================"
+        echo "ROLLBACK INSTRUCTIONS"
+        echo "============================================"
+        echo "1. Identify the previous known-good image tag from prod ECR"
+        echo "2. Re-run this job with the previous tag for region ${params.REGION}, or"
+        echo "3. Manually update the TFC workspace variable and apply"
+        echo "============================================"
+
+        // TODO: Enable when real production is ready
+        // notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+        //            message: "Production ${params.REGION} deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
+      }
+    }
+    cleanup {
+      deleteDir()
+    }
+  }
+}

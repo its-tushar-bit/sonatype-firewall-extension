@@ -95,10 +95,10 @@ pipeline {
       }
     }
 
-    stage('Trigger deploy-to-prod-internal') {
+    stage('Trigger push-to-prod') {
       steps {
         script {
-          build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-internal',
+          build job: 'insight/MTIQ/sca-cloud/push-to-prod',
               parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
               wait: false,
               propagate: false

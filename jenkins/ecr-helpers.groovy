@@ -65,12 +65,10 @@ import groovy.transform.Field
     role: 'JenkinsCICDRole'
 ]
 
-// Prod ECR Account — placeholder until prod infrastructure is ready
-// TODO: Replace with actual prod account ID, credential ID, and role when infrastructure is available
 @Field final Map PROD_ECR_ACCOUNT = [
-    id: '<PLACEHOLDER-prod-account-id>',
-    credentialId: '<PLACEHOLDER-prod-credential-id>',
-    role: '<PLACEHOLDER-prod-role>'
+    id: '348313797720',
+    credentialId: 'mtiq-prod-external-id',
+    role: 'jenkins'
 ]
 
 @Field final String ECR_REPOSITORY = 'sca-cloud/mtiq-server'

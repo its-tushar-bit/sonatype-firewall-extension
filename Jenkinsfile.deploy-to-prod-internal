@@ -6,13 +6,12 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
 /**
- * Standalone pipeline for promoting Docker images from staging ECR to prod ECR
- * and deploying to prod-internal cells.
+ * Standalone pipeline for deploying Docker images to prod-internal cells.
  *
- * Triggered as a downstream job from Jenkinsfile.test-staging after successful smoke tests.
+ * Triggered as a downstream job from Jenkinsfile.push-to-prod after successful promotion to prod ECR.
  *
  * Parameters:
- *   IMAGE_TAG - The staging ECR tag to promote to prod
+ *   IMAGE_TAG - The prod ECR tag to deploy
  *               Format: {dateSection}-{branch}-{buildNumber}-{commitId}
  *
  * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-internal
@@ -26,9 +25,8 @@
  *
  * Once prod infrastructure is available:
  * 1. Set PROD_INFRASTRUCTURE_READY = true below
- * 2. Update jenkins/ecr-helpers.groovy PROD_ECR_ACCOUNT with actual values
- * 3. Update PROD_INTERNAL_CELL_WORKSPACES and PROD_GLOBAL_WORKSPACE below with actual workspace names
- * 4. Remove this comment block
+ * 2. Update PROD_INTERNAL_CELL_WORKSPACES and PROD_GLOBAL_WORKSPACE below with actual workspace names
+ * 3. Remove this comment block
  *
  * Tracked in: CLM-39453
  * ============================================================================
@@ -46,7 +44,7 @@ pipeline {
   agent { label 'zion-small' }
 
   parameters {
-    string(name: 'IMAGE_TAG', description: 'The staging ECR tag to promote to prod (e.g., 202604161432-main-142-a1b2c3d4)')
+    string(name: 'IMAGE_TAG', description: 'The prod ECR tag to deploy (e.g., 202604161432-main-142-a1b2c3d4)')
   }
 
   options {
@@ -65,7 +63,7 @@ pipeline {
           if (!params.IMAGE_TAG?.trim()) {
             error 'IMAGE_TAG is required'
           }
-          echo "Promoting image tag: ${params.IMAGE_TAG}"
+          echo "Deploying image tag: ${params.IMAGE_TAG}"
         }
       }
     }
@@ -80,33 +78,22 @@ pipeline {
       }
     }
 
-    stage('Promote to Prod ECR') {
+    stage('Validate Image in Prod ECR') {
       steps {
         script {
           if (!PROD_INFRASTRUCTURE_READY) {
-            echo "============================================"
-            echo "PROD INFRASTRUCTURE NOT YET READY"
-            echo "============================================"
-            echo "This job is running in BYPASS mode."
-            echo "The prod AWS infrastructure is being built by another team."
-            echo ""
-            echo "Once prod infrastructure is available:"
-            echo "1. Set PROD_INFRASTRUCTURE_READY = true in this Jenkinsfile"
-            echo "2. Update jenkins/ecr-helpers.groovy PROD_ECR_ACCOUNT with actual values"
-            echo ""
-            echo "Would promote image tag: ${params.IMAGE_TAG}"
+            echo "BYPASS: Would validate image ${params.IMAGE_TAG} exists in prod ECR"
             env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
             return
           }
 
           def ecr = load 'jenkins/ecr-helpers.groovy'
-          ecr.promoteImage(
-            ecr.STAGING_ECR_ACCOUNT,   // source: staging
-            ecr.PROD_ECR_ACCOUNT,      // target: prod
+          ecr.validateImageExists(
+            ecr.PROD_ECR_ACCOUNT,
             ecr.ECR_REPOSITORY,
-            params.IMAGE_TAG,
-            ['prod-internal-latest']   // additional tag
+            params.IMAGE_TAG
           )
+          echo "Validated image exists in prod ECR: ${params.IMAGE_TAG}"
           env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
         }
       }
@@ -161,7 +148,7 @@ pipeline {
   post {
     success {
       script {
-        def status = PROD_INFRASTRUCTURE_READY ? "Promoted and deployed" : "Acknowledged (bypass mode)"
+        def status = PROD_INFRASTRUCTURE_READY ? "Deployed" : "Acknowledged (bypass mode)"
         echo "deploy-to-prod-internal: ${status} ${params.IMAGE_TAG}"
       }
     }

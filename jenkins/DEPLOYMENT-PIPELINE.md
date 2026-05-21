@@ -2,7 +2,7 @@
 
 This document describes the progressive deployment pipeline for MTIQ Docker images. Each stage is a standalone Jenkins job that triggers the next downstream job on success.
 
-> **Current state (April 2026):** Staging jobs are now **active**. Production jobs remain in bypass mode until prod infrastructure is ready. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
+> **Current state (May 2026):** Staging jobs are now **active**. Production jobs remain in bypass mode until prod infrastructure is ready. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
 
 ---
 
@@ -21,19 +21,29 @@ Jenkinsfile.main (main branch build)
               └─► push-to-staging (automatic)
                     │
                     └─► deploy-to-staging (automatic)
-                      │
-                      └─► test-staging (automatic)
-                            │
-                            └─► deploy-to-prod-internal (automatic)
-                                  │
-                                  │  ── manual gate ──
-                                  │
-                                  deploy-to-prod (MANUAL TRIGGER ONLY)
+                          │
+                          └─► test-staging (automatic)
+                                │
+                                └─► push-to-prod (automatic)
+                                      │
+                                      └─► deploy-to-prod-internal (automatic)
+                                            │
+                                            └─► Tag as Verified
+
+  ── manual gate ──
+
+  deploy-to-prod-mirror (MANUAL TRIGGER)
+    │
+    └─► [on success, triggers all 3 in parallel:]
+          ├─► deploy-to-prod-us-1 (approval gate → deploy)
+          ├─► deploy-to-prod-us-2 (approval gate → deploy)
+          └─► deploy-to-prod-eu-1 (approval gate → deploy)
 ```
 
 **Key transitions:**
 - **dev → staging:** `push-to-staging` promotes the image from dev ECR to staging ECR using `docker buildx imagetools create` (requires Docker CLI with buildx on the agent), then triggers `deploy-to-staging` to deploy the promoted image.
-- **staging → prod:** `deploy-to-prod-internal` promotes from staging ECR to prod ECR, deploys, then tags the image as verified. Production release requires an operator to manually run `deploy-to-prod` with a verified tag.
+- **staging → prod:** `push-to-prod` promotes from staging ECR to prod ECR, then triggers `deploy-to-prod-internal` to deploy and tag the image as verified.
+- **prod-mirror → production regions:** An operator manually runs `deploy-to-prod-mirror` with a verified image tag. On success, it triggers regional production jobs which each require individual approval before deploying.
 
 ---
 
@@ -122,50 +132,88 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Parameter** | `IMAGE_TAG` — the tag that was deployed |
 | **Timeout** | 30 minutes |
 | **What it does** | Runs smoke tests against staging cells using the mtiq-apps PostDeploymentSmokeTest CLI. Checks out mtiq-tools, builds with Maven, and runs tests against `https://cicd.staging.iq.saas.sonatype.dev`. |
-| **Downstream** | `deploy-to-prod-internal` (automatic) |
+| **Downstream** | `push-to-prod` (automatic) |
 | **Status** | Active |
 
 **Failure modes:**
 - **mtiq-tools checkout fails:** Git credentials may be expired. Check the `sonatypeZionCredentialsId()` credential.
 - **Maven build fails:** Dependency resolution or compilation issues. Check the Maven settings and repository access.
-- **Smoke test fails:** The application is not responding correctly. Check the smoke test HTML report archived in the build artifacts. Test failures block promotion to prod-internal.
+- **Smoke test fails:** The application is not responding correctly. Check the smoke test HTML report archived in the build artifacts. Test failures block promotion to prod.
 - **Chat notification fails:** Non-fatal to the pipeline but should be investigated.
 
-### 6. deploy-to-prod-internal
+### 6. push-to-prod
+
+| | |
+|---|---|
+| **Path** | `insight/MTIQ/sca-cloud/push-to-prod` |
+| **Trigger** | Automatic from `test-staging` |
+| **Parameter** | `IMAGE_TAG` — the staging ECR tag to promote |
+| **Timeout** | 15 minutes |
+| **What it does** | Promotes the image from staging ECR to prod ECR using `docker buildx imagetools create`. Applies additional tag `prod-internal-latest`. Verifies the promotion. |
+| **Downstream** | `deploy-to-prod-internal` (automatic) |
+| **Bypass** | Uses `ecr.PROD_ECR_ACCOUNT` — requires prod infrastructure |
+
+**Failure modes:**
+- **AWS role assumption fails:** Check IAM role trust relationships and the Jenkins credential for the prod ECR account (`mtiq-prod-external-id`).
+- **Manifest copy fails:** The image may not exist in staging ECR, or prod ECR repository may not exist. Verify the source tag exists.
+- **Verification fails after copy:** The manifest was pushed but the validation read-back failed. Re-running usually resolves this.
+
+### 7. deploy-to-prod-internal
 
 | | |
 |---|---|
 | **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod-internal` |
-| **Trigger** | Automatic from `test-staging` |
-| **Parameter** | `IMAGE_TAG` — the staging ECR tag to promote |
+| **Trigger** | Automatic from `push-to-prod` |
+| **Parameter** | `IMAGE_TAG` — the prod ECR tag to deploy |
 | **Timeout** | 20 minutes |
-| **What it does** | Promotes image from staging ECR to prod ECR (manifest copy), deploys to prod-internal cell(s) via Terraform Cloud, then tags the image as `prod-internal-verified-{yyyyMMdd-HHmm}`. The verified tag is applied **only after** successful deployment — it serves as the safety gate for production releases. |
+| **What it does** | Validates image exists in prod ECR, deploys to prod-internal cell(s) via Terraform Cloud, then tags the image as `prod-internal-verified-{yyyyMMdd-HHmm}`. The verified tag is applied **only after** successful deployment — it serves as the safety gate for production releases. |
 | **Downstream** | None (production release is manual) |
 | **Bypass** | `PROD_INFRASTRUCTURE_READY = false` (CLM-39453) |
 
 **Failure modes:**
-- **Image promotion fails:** Same as `push-to-staging` — check IAM roles and ECR repository existence in prod account.
+- **Image not found in prod ECR:** The image was not promoted. Check that `push-to-prod` ran successfully.
 - **TFC deployment fails:** Same failure modes as other TFC deployments. Check console log for TFC UI link.
-- **Verified tag fails to apply:** The deployment succeeded but the tag wasn't written. **The image is live but not marked as verified.** Follow the remediation instructions printed in the console log to manually apply the tag via AWS CLI. Without this tag, `deploy-to-prod` will refuse to release the image.
+- **Verified tag fails to apply:** The deployment succeeded but the tag wasn't written. **The image is live but not marked as verified.** Follow the remediation instructions printed in the console log to manually apply the tag via AWS CLI. Without this tag, `deploy-to-prod-mirror` will refuse to release the image.
 
-### 7. deploy-to-prod
+### 8. deploy-to-prod-mirror
 
 | | |
 |---|---|
-| **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod` |
+| **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod-mirror` |
 | **Trigger** | **MANUAL ONLY** — an operator must run this from the Jenkins UI |
-| **Parameters** | `IMAGE_TAG` (required) — must be a specific immutable tag present in prod ECR; `RELEASE_NAME` (optional) — human-readable name, defaults to `production-{yyyyMMdd-HHmm}` |
+| **Parameters** | `IMAGE_TAG` (required) — must be a specific immutable tag present in prod ECR |
 | **Timeout** | 30 minutes |
-| **What it does** | Validates the image has a `prod-internal-verified-*` tag (proving it passed prod-internal), tags it as `production-latest` and with the release name, then deploys to production cell(s) via Terraform Cloud. |
-| **Downstream** | None |
-| **Bypass** | `PROD_INFRASTRUCTURE_READY = false` (CLM-39454) |
+| **What it does** | Validates the image has a `prod-internal-verified-*` tag (proving it passed prod-internal), deploys to the prod-mirror TFC cell workspace, tags the image as `production-mirror-latest` and `production-{yyyyMMdd-HHmm}`, then triggers all 3 regional production jobs in parallel. |
+| **Downstream** | `deploy-to-prod-us-1`, `deploy-to-prod-us-2`, `deploy-to-prod-eu-1` (parallel, non-blocking) |
+| **Status** | Active |
 
 **Safety gate:** The job **refuses to deploy** any image that does not have a `prod-internal-verified-*` tag. This ensures only images that have been successfully deployed and validated on prod-internal can reach production.
 
 **Failure modes:**
-- **Image not found in prod ECR:** The image was never promoted from staging. Run `deploy-to-prod-internal` first.
+- **Image not found in prod ECR:** The image was never promoted from staging. Run `push-to-prod` first.
 - **Image missing prod-internal-verified tag:** The image was promoted but never successfully deployed to prod-internal, or the tagging step failed. Check `deploy-to-prod-internal` build history.
-- **Production tagging fails:** Tags were not applied but deployment hasn't started yet. Safe to re-run.
+- **Prod-mirror TFC deployment fails:** Check console log for TFC UI link.
+- **Production tagging fails:** Deployment succeeded but tagging failed. The image is live on mirror but not tagged. Manually apply `production-mirror-latest` and the timestamped tag via AWS CLI.
+- **Regional job triggers fail:** Non-fatal to this job but regional deployments won't start. Re-trigger manually from this job or trigger regional jobs individually.
+
+### 9. deploy-to-prod-{region} (us-1, us-2, eu-1)
+
+| | |
+|---|---|
+| **Path** | `insight/MTIQ/sca-cloud/deploy-to-prod-us-1` (and `us-2`, `eu-1`) |
+| **Jenkinsfile** | All 3 jobs share `Jenkinsfile.deploy-to-prod-region` |
+| **Trigger** | Automatic from `deploy-to-prod-mirror` (parallel) |
+| **Parameters** | `IMAGE_TAG` (required), `REGION` (required — e.g., 'us-1'), `CELL_WORKSPACES` (required — comma-separated TFC workspace names), `GLOBAL_WORKSPACE` (defaults to 'sca_aws_prod_global') |
+| **Timeout** | 96 hours (allows time for approval), 30-minute timeout on deploy stage |
+| **What it does** | Validates image has `prod-internal-verified-*` tag, waits for manual approval, then deploys to the region's TFC cell workspace(s). |
+| **Downstream** | None |
+| **Bypass** | `PROD_INFRASTRUCTURE_READY = false` (CLM-39795) |
+
+**Approval gate:** Each regional job has an independent Jenkins `input` step. An operator must approve each region individually. This allows staggered rollouts (e.g., approve us-1 first, observe, then approve us-2 and eu-1).
+
+**Failure modes:**
+- **Image validation fails:** Same as `deploy-to-prod-mirror` — image must exist and have verified tag.
+- **Approval timeout (96h):** The job was triggered but nobody approved within 4 days. Re-trigger from `deploy-to-prod-mirror` or manually.
 - **TFC deployment fails:** Check console log for TFC UI link. See [Rollback](#rollback) below.
 
 ---
@@ -176,11 +224,14 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 Re-deploy a known-good image by running `deploy-to-shared-dev` or `deploy-to-staging` manually with the previous image tag. Each TFC deployment overwrites the `ecs_container_image` variable and triggers a new plan.
 
 ### Prod-internal
-Re-run `deploy-to-prod-internal` with a previous known-good staging tag, or manually update the TFC workspace variable and apply.
+Re-run `deploy-to-prod-internal` with a previous known-good tag (the image must already exist in prod ECR), or manually update the TFC workspace variable and apply.
 
-### Production
-1. Identify the previous known-good image tag from prod ECR (look for production-{releaseName} release tag).
-2. Re-run `deploy-to-prod` with that tag, **or**
+### Prod-mirror
+Re-run `deploy-to-prod-mirror` with a previous known-good verified tag. This will re-deploy the mirror and re-trigger regional jobs.
+
+### Production regions
+1. Identify the previous known-good image tag from prod ECR (look for `production-{yyyyMMdd-HHmm}` tags or check the `production-mirror-latest` tag from before this release).
+2. Re-run the specific regional job (`deploy-to-prod-us-1`, etc.) with that tag and appropriate parameters, **or**
 3. Manually update the TFC workspace `ecs_container_image` variable and apply through the TFC UI.
 
 ---
@@ -194,8 +245,8 @@ Re-run `deploy-to-prod-internal` with a previous known-good staging tag, or manu
 | `staging-latest` | Staging ECR | Mutable pointer to the most recent image promoted to staging |
 | `prod-internal-latest` | Prod ECR | Mutable pointer to the most recent image promoted to prod |
 | `prod-internal-verified-{yyyyMMdd-HHmm}` | Prod ECR | Applied **after** successful prod-internal deployment. Required to release to production. |
-| `production-latest` | Prod ECR | Mutable pointer to the current production image |
-| `production-{releaseName}` | Prod ECR | Named release tag (operator-supplied or date-based) |
+| `production-mirror-latest` | Prod ECR | Mutable pointer to the current production image (applied by `deploy-to-prod-mirror` before regional rollout) |
+| `production-{yyyyMMdd-HHmm}` | Prod ECR | Immutable timestamped production release tag (e.g., `production-20260518-1430`) |
 
 ---
 
@@ -221,8 +272,12 @@ Staging jobs are now active. Production jobs remain in bypass mode until their i
 | `deploy-to-staging` | Active | — | CLM-39452 |
 | `test-shared-dev` | Active | — | CLM-39450 |
 | `test-staging` | Active | — | CLM-39471 |
+| `push-to-prod` | Active (uses prod ECR account) | — | CLM-39795 |
 | `deploy-to-prod-internal` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39453 |
-| `deploy-to-prod` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39454 |
+| `deploy-to-prod-mirror` | Active | — | CLM-39795 |
+| `deploy-to-prod-us-1` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
+| `deploy-to-prod-us-2` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
+| `deploy-to-prod-eu-1` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
 
 **To enable a stage:** Set the corresponding flag to `true` in the Jenkinsfile and update any placeholder values (ECR account IDs, credentials, TFC workspace names). Each Jenkinsfile documents exactly what needs to change in its header comment.
 
@@ -235,7 +290,9 @@ Staging jobs are now active. Production jobs remain in bypass mode until their i
 | `deploy-to-staging` | `mtiq-notices` | Always (success or failure) |
 | `test-shared-dev` | `mtiq-notices` | Failure only |
 | `test-staging` | `mtiq-notices` | Failure only |
-| `deploy-to-prod` | `mtiq-notices` | Planned (currently commented out) |
+| `push-to-prod` | `mtiq-notices` | Failure only |
+| `deploy-to-prod-mirror` | `mtiq-notices` | Planned (currently commented out) |
+| `deploy-to-prod-{region}` | `mtiq-notices` | Planned (currently commented out) |
 
 ---
 
@@ -253,9 +310,13 @@ Staging jobs are now active. Production jobs remain in bypass mode until their i
 **Symptom:** "TFC returned no data for workspace" error.
 **Fix:** Verify the workspace name in the Jenkinsfile matches the actual TFC workspace in the `Sonatype-Cloud` organization.
 
-### deploy-to-prod rejects the image
+### deploy-to-prod-mirror rejects the image
 **Symptom:** "does not have a prod-internal-verified-* tag" error.
 **Fix:** The image hasn't passed prod-internal validation. Check the `deploy-to-prod-internal` build history for that tag. If deployment succeeded but tagging failed, follow the manual remediation instructions in the `deploy-to-prod-internal` failure output.
+
+### Regional job approval expired
+**Symptom:** Regional job shows "aborted" after 96 hours.
+**Fix:** Re-run `deploy-to-prod-mirror` with the same image tag to re-trigger regional jobs, or trigger the specific regional job manually.
 
 ### Job times out after adding workspaces
 **Symptom:** A deployment job fails with a timeout error after adding new cell workspaces.

@@ -6,40 +6,24 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
 /**
- * Standalone pipeline for production releases.
+ * Manual entry point for production releases.
  *
+ * This job deploys to prod-mirror and then triggers regional production deployments.
  * This is a MANUAL TRIGGER ONLY job - no automated triggers.
  * An operator must explicitly initiate production releases.
  *
  * Parameters:
- *   IMAGE_TAG - The prod ECR tag to release (should be a prod-internal-verified-* tag)
- *   RELEASE_NAME - Optional human-readable release name for tagging
+ *   IMAGE_TAG - The prod ECR tag to release (must be a prod-internal-verified-* tag)
  *
- * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod
+ * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-mirror
  *
- * ============================================================================
- * TEMPORARY BYPASS - PRODUCTION INFRASTRUCTURE NOT YET READY
- * ============================================================================
- *
- * The production AWS infrastructure (ECR, IAM roles, TFC workspaces, control plane)
- * is not yet ready. Until it's available, this job runs in bypass mode and returns SUCCESS.
- *
- * Once production infrastructure is available:
- * 1. Set PROD_INFRASTRUCTURE_READY = true below
- * 2. Update PRODUCTION_CELL_WORKSPACES and PROD_GLOBAL_WORKSPACE below with actual workspace names
- * 3. Remove this comment block
- *
- * Tracked in: CLM-39454
- * ============================================================================
  */
 
-// TODO: Change to true when prod infrastructure is ready
-def PROD_INFRASTRUCTURE_READY = false
+def PROD_INFRASTRUCTURE_READY = true
 
-// Production cell workspaces — explicit allowlist
-// TODO: Replace with actual production workspace names when infrastructure is ready
-def PRODUCTION_CELL_WORKSPACES = ['sca_aws_prod_cell-1']  // Placeholder
-def PROD_GLOBAL_WORKSPACE = 'sca_aws_prod_global'         // Placeholder
+// Prod-mirror cell workspace — explicit allowlist
+def PROD_MIRROR_CELL_WORKSPACES = ['sca_aws_staging_cell-prod-mirror']
+def PROD_MIRROR_GLOBAL_WORKSPACE = 'sca_aws_prod_global'
 
 pipeline {
   agent { label 'zion-small' }
@@ -48,18 +32,14 @@ pipeline {
 
   parameters {
     string(name: 'IMAGE_TAG',
-           description: 'The prod ECR tag to release (must be a specific immutable tag, e.g., prod-internal-verified-20260421-1432)'),
-    string(name: 'RELEASE_NAME',
-           defaultValue: '',
-           description: 'Optional human-readable release name for tagging (defaults to date-based)')
+           description: 'The prod ECR tag to release (must be a prod-internal-verified-* tag, e.g., prod-internal-verified-20260421-1432)')
   }
 
   options {
     timestamps()
     buildDiscarder(logRotator(numToKeepStr: '100'))
     disableConcurrentBuilds()
-    // NOTE: must exceed 10 min × len(PRODUCTION_CELL_WORKSPACES) + overhead.
-    // Currently verify and push tag + 1 workspace → 30 min is sufficient. Increase if workspaces are added.
+    // NOTE: Must be sufficient for mirror deploy + triggering regional jobs
     timeout(time: 30, unit: 'MINUTES')
   }
 
@@ -72,9 +52,6 @@ pipeline {
             error 'IMAGE_TAG parameter is required'
           }
           echo "Production release for image tag: ${params.IMAGE_TAG}"
-          if (params.RELEASE_NAME?.trim()) {
-            echo "Release name: ${params.RELEASE_NAME}"
-          }
         }
       }
     }
@@ -138,46 +115,7 @@ pipeline {
       }
     }
 
-    stage('Tag as Production-Ready') {
-      steps {
-        script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would tag image as production-ready"
-            return
-          }
-
-          def ecr = load 'jenkins/ecr-helpers.groovy'
-          def releaseName = params.RELEASE_NAME?.trim() ?: "production-${new Date().format('yyyyMMdd-HHmm', TimeZone.getTimeZone('UTC'))}"
-
-          // Get manifest from source tag
-          def manifest = ecr.getImageManifest(
-            ecr.PROD_ECR_ACCOUNT,
-            ecr.ECR_REPOSITORY,
-            params.IMAGE_TAG
-          )
-
-          // Apply production tags
-          ecr.putImageManifest(
-            ecr.PROD_ECR_ACCOUNT,
-            ecr.ECR_REPOSITORY,
-            'production-latest',
-            manifest
-          )
-
-          ecr.putImageManifest(
-            ecr.PROD_ECR_ACCOUNT,
-            ecr.ECR_REPOSITORY,
-            releaseName,
-            manifest
-          )
-
-          env.RELEASE_NAME = releaseName
-          echo "Tagged image with: production-latest, ${releaseName}"
-        }
-      }
-    }
-
-    stage('Deploy to Production') {
+    stage('Deploy to Prod-Mirror Cell') {
       steps {
         script {
           if (!PROD_INFRASTRUCTURE_READY) {
@@ -189,16 +127,85 @@ pipeline {
             echo ""
             echo "Once production infrastructure is available:"
             echo "1. Set PROD_INFRASTRUCTURE_READY = true in this Jenkinsfile"
-            echo "2. Update PRODUCTION_CELL_WORKSPACES and PROD_GLOBAL_WORKSPACE in this Jenkinsfile"
+            echo "2. Update PROD_MIRROR_CELL_WORKSPACES and PROD_MIRROR_GLOBAL_WORKSPACE in this Jenkinsfile"
             echo ""
             echo "Would deploy image tag: ${params.IMAGE_TAG}"
-            echo "Release name: ${env.RELEASE_NAME ?: params.RELEASE_NAME ?: 'N/A'}"
             echo "============================================"
             return
           }
 
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployCells('production', PRODUCTION_CELL_WORKSPACES, PROD_GLOBAL_WORKSPACE, params.IMAGE_TAG)
+          tfc.deployCells('prod-mirror', PROD_MIRROR_CELL_WORKSPACES, PROD_MIRROR_GLOBAL_WORKSPACE, params.IMAGE_TAG)
+        }
+      }
+    }
+
+    stage('Tag as Production') {
+      steps {
+        script {
+          if (!PROD_INFRASTRUCTURE_READY) {
+            echo "BYPASS: Would tag image as production-mirror-latest and production-{timestamp}"
+            return
+          }
+
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          def dateStamp = new Date().format('yyyyMMdd-HHmm', TimeZone.getTimeZone('UTC'))
+          def productionTag = "production-${dateStamp}"
+
+          def manifest = ecr.getImageManifest(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+
+          ecr.putImageManifest(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            'production-mirror-latest',
+            manifest
+          )
+
+          ecr.putImageManifest(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            productionTag,
+            manifest
+          )
+
+          echo "Tagged image as: production-mirror-latest, ${productionTag}"
+        }
+      }
+    }
+
+    stage('Trigger Regional Prod Jobs') {
+      steps {
+        script {
+          if (!PROD_INFRASTRUCTURE_READY) {
+            echo "BYPASS: Would trigger regional production jobs for ${params.IMAGE_TAG}"
+            return
+          }
+
+          // Trigger all three regional production jobs in parallel
+          parallel([
+            'us-1': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-us-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'us-2': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-us-2',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            },
+            'eu-1': {
+              build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-eu-1',
+                  parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+                  wait: false,
+                  propagate: false
+            }
+          ])
         }
       }
     }
@@ -207,18 +214,17 @@ pipeline {
   post {
     success {
       script {
-        def releaseInfo = env.RELEASE_NAME ?: params.RELEASE_NAME ?: params.IMAGE_TAG
-        def status = PROD_INFRASTRUCTURE_READY ? "Released" : "Acknowledged (bypass mode)"
-        echo "deploy-to-prod: ${status} ${releaseInfo}"
+        def status = PROD_INFRASTRUCTURE_READY ? "Production release initiated" : "Acknowledged (bypass mode)"
+        echo "deploy-to-prod-mirror: ${status} for ${params.IMAGE_TAG}"
 
         // TODO: Enable when real production is ready
         // notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
-        //            message: "Production release SUCCESS: ${releaseInfo}")
+        //            message: "Production release initiated: ${params.IMAGE_TAG}")
       }
     }
     failure {
       script {
-        echo "deploy-to-prod: FAILED for ${params.IMAGE_TAG}"
+        echo "deploy-to-prod-mirror: FAILED for ${params.IMAGE_TAG}"
 
         // Provide rollback instructions
         echo "============================================"

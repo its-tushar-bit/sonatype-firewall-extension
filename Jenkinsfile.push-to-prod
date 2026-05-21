@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ * Standalone pipeline for promoting Docker images from staging ECR to prod ECR.
+ *
+ * This job promotes Docker images using `docker buildx imagetools create`.
+ * Requires Docker CLI with buildx on the agent (no daemon needed).
+ *
+ * Triggered as a downstream job from Jenkinsfile.test-staging after successful smoke tests.
+ * On success, triggers deploy-to-prod-internal to deploy the promoted image.
+ *
+ * Parameters:
+ *   IMAGE_TAG - The staging ECR tag to promote (e.g., 202604161432-main-142-a1b2c3d4)
+ *               Format: {dateSection}-{branch}-{buildNumber}-{commitId}
+ *               See jenkins/ecr-helpers.groovy for full documentation.
+ *
+ * Jenkins job path: insight/MTIQ/sca-cloud/push-to-prod
+ *
+ * Tracked in: CLM-39795
+ */
+
+pipeline {
+  agent { label 'zion-small' }
+
+  parameters {
+    string(name: 'IMAGE_TAG', description: 'The staging ECR tag to promote (e.g., 202604161432-main-142-a1b2c3d4)')
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '100'))
+    timestamps()
+    disableConcurrentBuilds()
+    timeout(time: 15, unit: 'MINUTES')
+  }
+
+  stages {
+
+    stage('Validate Parameters') {
+      steps {
+        script {
+          if (!params.IMAGE_TAG?.trim()) {
+            error 'IMAGE_TAG is required'
+          }
+          echo "Promoting image tag: ${params.IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Promote to Prod ECR') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.promoteImage(
+            ecr.STAGING_ECR_ACCOUNT,   // source: staging
+            ecr.PROD_ECR_ACCOUNT,      // target: prod
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG,
+            ['prod-internal-latest']   // additional tag for prod-internal deploys
+          )
+        }
+      }
+    }
+
+    stage('Verify Promotion') {
+      steps {
+        script {
+          def ecr = load 'jenkins/ecr-helpers.groovy'
+          ecr.validateImageExists(
+            ecr.PROD_ECR_ACCOUNT,
+            ecr.ECR_REPOSITORY,
+            params.IMAGE_TAG
+          )
+          echo "Verified: ${params.IMAGE_TAG} is in prod ECR"
+        }
+      }
+    }
+
+    stage('Trigger deploy-to-prod-internal') {
+      steps {
+        script {
+          build job: 'insight/MTIQ/sca-cloud/deploy-to-prod-internal',
+              parameters: [string(name: 'IMAGE_TAG', value: params.IMAGE_TAG)],
+              wait: false,
+              propagate: false
+        }
+      }
+    }
+  }
+
+  post {
+    failure {
+      script {
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices', message: "Push to prod FAILED for tag: ${params.IMAGE_TAG}")
+      }
+    }
+    cleanup {
+      sh 'rm -f image-manifest.json || true'
+    }
+  }
+}

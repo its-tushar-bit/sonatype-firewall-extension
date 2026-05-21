@@ -32,6 +32,7 @@ import PublicDataSourcesEditor from 'MainRoot/OrgsAndPolicies/publicDataSources/
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
+import WaiverExpirationNotificationEditor from 'MainRoot/OrgsAndPolicies/waiverExpirationNotificationEditor/WaiverExpirationNotificationEditor';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
 import ManageGitHubApps from 'MainRoot/OrgsAndPolicies/manageGitHubApps/ManageGitHubApps';
 
@@ -259,6 +260,16 @@ ownerTypes.forEach((ownerType) => {
     data: {
       title: `${ownerType.name} Public Data Sources`,
       isDirty: ['orgsAndPolicies', 'publicDataSources', 'isDirty'],
+    },
+  });
+
+  router.stateRegistry.register({
+    name: `management.edit.${ownerType.type}.edit-waiver-expiration-notification`,
+    url: '/waiver-expiration-notification',
+    component: WaiverExpirationNotificationEditor,
+    data: {
+      title: `${ownerType.name} Waiver Expiration Notifications`,
+      isDirty: ['orgsAndPolicies', 'waiverExpirationNotification', 'isDirty'],
     },
   });
 });

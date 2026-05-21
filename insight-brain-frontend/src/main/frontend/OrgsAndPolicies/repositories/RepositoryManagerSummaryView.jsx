@@ -25,6 +25,9 @@ import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function RepositoryManagerSummaryView() {
   const dispatch = useDispatch();
@@ -34,6 +37,8 @@ export default function RepositoryManagerSummaryView() {
   const entityId = useSelector(selectEntityId);
   const owner = useSelector(selectSelectedOwner);
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
+  const isFirewall = useSelector(selectIsFirewall);
+  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
   const getIconUrl = () => getAddIconUrl('repository_manager', owner.id) + `?${Math.random()}`;
@@ -71,6 +76,7 @@ export default function RepositoryManagerSummaryView() {
               <RepositoriesConfigurationTile key={`manager-view-${entityId}`} />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
+              {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}
               <AccessTile />
             </div>
           </div>

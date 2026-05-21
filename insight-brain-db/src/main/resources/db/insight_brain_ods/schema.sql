@@ -2327,6 +2327,15 @@ CREATE INDEX hosted_component_scan_queue_status_priority_idx ON hosted_component
 CREATE INDEX hosted_component_scan_queue_acquired_at_idx ON hosted_component_scan_queue(acquired_at);
 CREATE INDEX hosted_component_scan_queue_repository_id_idx ON hosted_component_scan_queue(repository_id);
 
+CREATE TABLE waiver_expiration_notification_config (
+  waiver_expiration_notification_config_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  notification_days varchar(20),
+  notifications_json TEXT,
+  CONSTRAINT waiver_expiration_notification_config_pk PRIMARY KEY (waiver_expiration_notification_config_id),
+  CONSTRAINT waiver_expiration_notification_config_owner_uk UNIQUE (owner_id)
+);
+
 -- Since 1.204
 -- SaaS Compatible
 -- CLM-38070: Create consumption_events table for consumption-based pricing

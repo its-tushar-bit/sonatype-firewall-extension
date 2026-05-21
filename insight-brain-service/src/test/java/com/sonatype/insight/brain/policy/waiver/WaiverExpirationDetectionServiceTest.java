@@ -9,13 +9,19 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverExpirationNotificationConfigDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiWaiverExpirationNotificationConfigService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.WaiverExpirationNotificationConfigDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -36,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,7 +65,13 @@ public class WaiverExpirationDetectionServiceTest
   private ApplicationDAO applicationDAO;
 
   @Mock
+  private OrganizationDAO organizationDAO;
+
+  @Mock
   private RepositoryDAO repositoryDAO;
+
+  @Mock
+  private RepositoryManagerDAO repositoryManagerDAO;
 
   @Mock
   private AsyncEventBus asyncEventBus;
@@ -68,6 +81,15 @@ public class WaiverExpirationDetectionServiceTest
 
   @Mock
   private ProductLicense productLicense;
+
+  @Mock
+  private WaiverExpirationEmailer waiverExpirationEmailer;
+
+  @Mock
+  private ApiWaiverExpirationNotificationConfigService notificationConfigService;
+
+  @Mock
+  private WaiverExpirationNotificationConfigDAO notificationConfigDAO;
 
   @Mock
   private TransactionContext transactionContext;
@@ -82,22 +104,35 @@ public class WaiverExpirationDetectionServiceTest
 
   @Before
   public void setUp() {
-    service = new WaiverExpirationDetectionService(
+    service = spy(new WaiverExpirationDetectionService(
         policyWaiverDAO,
         policyDAO,
         applicationDAO,
+        organizationDAO,
         repositoryDAO,
+        repositoryManagerDAO,
         asyncEventBus,
         baseUrl,
-        productLicense);
+        productLicense,
+        waiverExpirationEmailer,
+        notificationConfigService,
+        notificationConfigDAO));
+
+    // Stub the feature flag check so tests run without a live database
+    lenient().when(service.isWaiverExpirationNotificationEnabled()).thenReturn(true);
+
+    // Email section: no notification days configured by default — keeps tests focused on webhooks
+    lenient().when(notificationConfigDAO.findAllNotificationDays()).thenReturn(Collections.emptyList());
 
     when(policyWaiverDAO.createTransactionContext()).thenReturn(transactionContext);
     when(baseUrl.get()).thenReturn("http://localhost:8070");
     when(productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES)).thenReturn(true);
 
-    // Stub repositoryDAO to return empty list (tests focus on applications)
+    // Stub owner DAOs to return empty lists (tests focus on applications)
     // Mark as lenient since not all tests exercise this code path
+    lenient().when(organizationDAO.getByIds(anySet())).thenReturn(Collections.emptyList());
     lenient().when(repositoryDAO.getByIds(anySet())).thenReturn(Collections.emptyList());
+    lenient().when(repositoryManagerDAO.getByIds(anySet())).thenReturn(Collections.emptyList());
   }
 
   @Test
@@ -380,6 +415,52 @@ public class WaiverExpirationDetectionServiceTest
 
     // Then: No events are posted (waiver is skipped)
     verify(asyncEventBus, times(0)).post(any(WaiverExpirationEvent.class));
+  }
+
+  @Test
+  public void testRepositoryContainerOwnerResolvedCorrectlyInEmailPath() throws Exception {
+    // Given: A waiver scoped to the Repository Container (ownerId = "REPOSITORY_CONTAINER_ID")
+    // expiring in 1 day, with email notification configured for day 1
+    Date now = new Date(System.currentTimeMillis());
+    Date createTime = new Date(now.getTime() - (30L * 24 * 60 * 60 * 1000));
+    Date expiryTime = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+    PolicyWaiver waiver = createTestWaiverWithCreateTime("waiver-repo-container", createTime, expiryTime);
+    waiver.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    // Email path: notificationConfigDAO returns day=1 so the email path is triggered
+    when(notificationConfigDAO.findAllNotificationDays()).thenReturn(List.of("1"));
+
+    // getUpcomingExpiringWaivers for the email path (single call covering today+1 to today+maxDay+1)
+    when(policyWaiverDAO.getUpcomingExpiringWaivers(eq(transactionContext), any(Date.class), any(Date.class)))
+        .thenReturn(Collections.emptyList()) // webhook 7-day window
+        .thenReturn(Collections.emptyList()) // webhook 24-hour window
+        .thenReturn(Collections.singletonList(waiver)); // email path window
+
+    when(policyDAO.getByIds(anySet())).thenReturn(List.of(mockPolicy));
+    when(mockPolicy.getId()).thenReturn("policy-1");
+    when(mockPolicy.getName()).thenReturn("Test Policy");
+    when(mockPolicy.getThreatLevel()).thenReturn(7);
+
+    // applicationDAO returns nothing — owner is repository container, not application
+    when(applicationDAO.getByIds(anySet())).thenReturn(Collections.emptyList());
+
+    // Config service returns a config that includes day 1
+    ApiWaiverExpirationNotificationConfigDTO config = new ApiWaiverExpirationNotificationConfigDTO();
+    config.setNotificationDays(List.of(1));
+    config.setRecipientType("DIRECT");
+    config.setDirectEmails(List.of("test@example.com"));
+    when(notificationConfigService.getConfig(RepositoryContainer.REPOSITORY_CONTAINER_ID)).thenReturn(config);
+
+    // When: Service runs
+    service.run();
+
+    // Then: Email is sent — capture the event passed to the emailer and verify owner name is resolved
+    ArgumentCaptor<WaiverExpirationEvent> eventCaptor = ArgumentCaptor.forClass(WaiverExpirationEvent.class);
+    verify(waiverExpirationEmailer, times(1)).send(eventCaptor.capture(), any());
+
+    WaiverExpirationEvent event = eventCaptor.getValue();
+    assertThat(event.applicationName).isEqualTo("Repository Managers");
+    assertThat(event.iqReportUrl).isNull(); // No report URL for non-application owners
   }
 
   private PolicyWaiver createTestWaiver(String id, Date expiryTime) {

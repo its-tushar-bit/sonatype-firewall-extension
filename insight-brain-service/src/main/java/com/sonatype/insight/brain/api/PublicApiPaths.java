@@ -139,6 +139,10 @@ public class PublicApiPaths
   public static final String SCAN_HEALTH_CONFIG_PATH_V2 =
       API_VERSION_PATH_V2 + "config/scanHealth/{ownerType:application|organization}/{ownerId}";
 
+  public static final String WAIVER_EXPIRATION_NOTIFICATION_CONFIG_PATH_V2 =
+      API_VERSION_PATH_V2 +
+          "waiverExpirationNotificationConfig/{ownerType:organization|repository_manager|repository_container}/{ownerId}";
+
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
 
   public static final String USER_TOKEN_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/userTokens";

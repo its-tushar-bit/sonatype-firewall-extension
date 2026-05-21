@@ -424,6 +424,10 @@ export function getParentRetentionPoliciesUrl(orgId) {
   return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}/parent`;
 }
 
+export function getWaiverExpirationNotificationConfigUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/waiverExpirationNotificationConfig/${encodeURIComponent(ownerType)}/${encodeURIComponent(ownerId)}`;
+}
+
 export function getReevaluateComponentUrl(repositoryId, hash) {
   return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
 }

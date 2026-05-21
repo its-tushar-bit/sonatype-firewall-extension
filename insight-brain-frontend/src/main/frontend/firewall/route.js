@@ -11,6 +11,7 @@ import FirewallComponentDetailsPage from './firewallComponentDetailsPage/Firewal
 import EnterpriseReportingPage from './enterpriseReporting/EnterpriseReportingPage';
 import FirewallEnterpriseReportingDashboardPage from './enterpriseReporting/dashboard/FirewallEnterpriseReportingDashboardPage';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
   ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
@@ -37,6 +38,7 @@ import VulnerabilityCustomize from 'MainRoot/vulnerabilityCustomize/Vulnerabilit
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
+import WaiverExpirationNotificationEditor from 'MainRoot/OrgsAndPolicies/waiverExpirationNotificationEditor/WaiverExpirationNotificationEditor';
 import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
 import FirewallBulkWaivePage from 'MainRoot/firewall/bulkWaive/bulkWaivePage/FirewallBulkWaivePage';
@@ -1095,6 +1097,17 @@ ownerTypesForFirewall.forEach((ownerType) => {
     component: WaiversConfiguration,
     data: {
       title: `${ownerType.name} Waivers Configuration`,
+    },
+  });
+
+  router.stateRegistry.register({
+    name: `firewall.management.edit.${ownerType.type}.edit-waiver-expiration-notification`,
+    url: '/waiver-expiration-notification',
+    component: WaiverExpirationNotificationEditor,
+    data: {
+      title: `${ownerType.name} Waiver Expiration Notifications`,
+      isDirty: ['orgsAndPolicies', 'waiverExpirationNotification', 'isDirty'],
+      featureEnabled: selectIsWaiverExpirationNotificationEnabled,
     },
   });
 });

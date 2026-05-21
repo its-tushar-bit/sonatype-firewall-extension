@@ -42,6 +42,7 @@ import autoWaiverExclusionDeleteModalSlice from 'MainRoot/OrgsAndPolicies/autoWa
 import autoWaiverExclusionCreateModalSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSlice';
 import autoWaiverDetailsSlice from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverDetailsSlice';
 import publicDataSourcesSlice from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSlice';
+import waiverExpirationNotificationSlice from 'MainRoot/OrgsAndPolicies/waiverExpirationNotificationSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -88,4 +89,5 @@ export default combineReducers({
     autoWaiverDetails: autoWaiverDetailsSlice,
   }),
   publicDataSources: publicDataSourcesSlice,
+  waiverExpirationNotification: waiverExpirationNotificationSlice,
 });

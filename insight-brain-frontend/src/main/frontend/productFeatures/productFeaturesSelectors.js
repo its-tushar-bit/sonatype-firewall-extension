@@ -360,6 +360,11 @@ export const selectIsHostedRepositoryEvaluationEnabled = createSelector(
   propOr(false, 'hosted-repository-evaluation')
 );
 
+export const selectIsWaiverExpirationNotificationEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'waiver-expiration-notification')
+);
+
 export const selectIsConsumptionReportingEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'consumption-reporting')

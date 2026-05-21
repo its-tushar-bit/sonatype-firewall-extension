@@ -5,7 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsApplication, selectIsOrganization, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication, selectIsOrganization, selectIsSbomManager, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsArtifactoryRepositorySupported,
   selectIsDataRetentionEnabled,
@@ -23,6 +23,7 @@ import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
   selectIsCpeMatchingSupported,
+  selectIsWaiverExpirationNotificationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -30,6 +31,7 @@ import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/product
 
 export default function OwnerSummaryPills() {
   const isApp = useSelector(selectIsApplication);
+  const isFirewall = useSelector(selectIsFirewall);
   const isArtifactoryRepositorySupported = useSelector(selectIsArtifactoryRepositorySupported);
   const isDataRetentionEnabled = useSelector(selectIsDataRetentionEnabled);
   const isInnerSourceRepositoriesEnabled = useSelector(selectIsInnerSourceRepositoriesEnabled);
@@ -47,6 +49,7 @@ export default function OwnerSummaryPills() {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
+  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
   const hasSbomManagerLicenseOnly = useSelector(selectIsSbomManagerOnlyLicense);
@@ -99,6 +102,11 @@ export default function OwnerSummaryPills() {
         isDisplayed: isOrg && isDataRetentionConfigEnabled && !isSbomManager,
       },
       {
+        label: 'Waiver Expiration Notifications',
+        target: 'owner-pill-waiver-expiration-notification',
+        isDisplayed: isFirewall && !isSbomManager && isWaiverExpirationNotificationEnabled,
+      },
+      {
         label: 'Source control',
         target: 'owner-pill-source-control',
         isDisplayed: (isOrg || isApp) && isSourceControlForSourceTileSupported && isScmEnabled && !isSbomManager,
@@ -132,6 +140,7 @@ export default function OwnerSummaryPills() {
     ];
   }, [
     isApp,
+    isFirewall,
     isArtifactoryRepositorySupported,
     isDataRetentionConfigEnabled,
     isInnerSourceRepositoriesEnabled,
@@ -144,6 +153,7 @@ export default function OwnerSummaryPills() {
     isSbomManager,
     isSourceControlForSourceTileSupported,
     isSbomContinuousMonitoringUiEnabled,
+    isWaiverExpirationNotificationEnabled,
   ]);
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

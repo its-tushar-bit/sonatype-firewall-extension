@@ -14,6 +14,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesPills';
 import { selectLoadError, selectLoading } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
+import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectLoadError as selectLoadSelectedOwnerError,
   selectSelectedOwner,
@@ -27,6 +30,8 @@ export default function RepositoriesSummaryView() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const owner = useSelector(selectSelectedOwner);
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
+  const isFirewall = useSelector(selectIsFirewall);
+  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
 
@@ -58,6 +63,7 @@ export default function RepositoriesSummaryView() {
               <RepositoriesConfigurationTile key="container-view" />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile />
+              {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}
               <AccessTile />
             </div>
           </div>

@@ -64,17 +64,29 @@ describe('VulnerabilitiesPage', () => {
   });
 
   describe('loading state', () => {
-    it('renders page structure while loading', async () => {
-      // Don't resolve immediately - keep in loading state
+    it('shows full-page skeleton including sidebar on initial load', () => {
       mockSearchVulnerabilities.mockImplementation(() => new Promise(() => {}));
 
       render(<VulnerabilitiesPage />);
 
-      // The page should render the layout structure even while loading
-      // VulnerabilitiesResultsList shows skeleton cards when isPending is true
-      // Use exact match to avoid matching "No vulnerabilities found"
-      expect(screen.getByRole('heading', { name: 'Vulnerabilities' })).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/search vulnerabilities/i)).toBeInTheDocument();
+      expect(screen.getByRole('status', { name: /loading page content/i })).toBeInTheDocument();
+    });
+
+    it('uses vulnerability card skeletons, not component card skeletons', () => {
+      mockSearchVulnerabilities.mockImplementation(() => new Promise(() => {}));
+
+      render(<VulnerabilitiesPage />);
+
+      expect(screen.getAllByTestId('skeleton-vulnerability').length).toBeGreaterThan(0);
+      expect(screen.queryByTestId('skeleton-component')).not.toBeInTheDocument();
+    });
+
+    it('does not show page skeleton after data has loaded', async () => {
+      render(<VulnerabilitiesPage />);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('status', { name: /loading page content/i })).not.toBeInTheDocument();
+      });
     });
   });
 

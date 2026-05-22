@@ -29,7 +29,9 @@ import {
 } from '@guide/ui-core/utils';
 import { searchComponents } from 'GuideRoot/api/componentsBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
+import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import type { ComponentSearchResponse, ComponentsSearchOptions } from '@guide/ui-core/types';
+import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 
 const LIMIT = 25;
 
@@ -74,6 +76,8 @@ export function ComponentsSearchPage() {
     return () => { cancelled = true; };
   }, [searchParams]);
 
+  if (loading && data === null) return <FilteredPageSkeleton variant="components" />;
+
   if (error && !data) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: '60vh' }}>
@@ -115,7 +119,7 @@ export function ComponentsSearchPage() {
             components={components}
             isPending={isPending}
             limit={LIMIT}
-            renderLinkWrapper={({ component, children }) => (
+            renderLink={(component, _index, children) => (
               <Link to={getComponentDetailUrl(component)} className="unstyled-link">
                 {children}
               </Link>

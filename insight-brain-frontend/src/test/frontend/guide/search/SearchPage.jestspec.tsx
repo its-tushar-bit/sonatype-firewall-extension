@@ -93,6 +93,32 @@ function makeVulnerabilitiesResponse(total: number, hitCount = 5): Vulnerability
 describe('SearchPage', () => {
   afterEach(() => { jest.clearAllMocks(); });
 
+  it('shows full-page skeleton on initial load', () => {
+    mockSearchAll.mockReturnValue(new Promise(() => {}));
+
+    render(<SearchPage />, { routerOptions: { initialEntries: ['/search?query=foo'] } });
+
+    expect(screen.getByRole('status', { name: /loading page content/i })).toBeInTheDocument();
+  });
+
+  it('uses both vulnerability and component card skeletons alternating', () => {
+    mockSearchAll.mockReturnValue(new Promise(() => {}));
+
+    render(<SearchPage />, { routerOptions: { initialEntries: ['/search?query=foo'] } });
+
+    expect(screen.getAllByTestId('skeleton-vulnerability').length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('skeleton-component').length).toBeGreaterThan(0);
+  });
+
+  it('does not show page skeleton after data has loaded', async () => {
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+
+    render(<SearchPage />, { routerOptions: { initialEntries: ['/search?query=foo'] } });
+
+    await screen.findByText('all-results: 5');
+    expect(screen.queryByRole('status', { name: /loading page content/i })).not.toBeInTheDocument();
+  });
+
   it('defaults to the All tab and renders SearchResultsList with all hits', async () => {
     mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
 

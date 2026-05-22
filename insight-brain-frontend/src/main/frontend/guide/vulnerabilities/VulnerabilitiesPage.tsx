@@ -27,6 +27,7 @@ import {
 } from '@guide/ui-core/utils';
 import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
+import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
 
 export function VulnerabilitiesPage() {
@@ -68,6 +69,8 @@ export function VulnerabilitiesPage() {
       cancelled = true;
     };
   }, [searchParams]);
+
+  if (isPending && response === null) return <FilteredPageSkeleton variant="vulnerabilities" />;
 
   if (error) {
     return (

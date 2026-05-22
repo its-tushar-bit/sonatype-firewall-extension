@@ -44,6 +44,7 @@ import {
 } from '@guide/ui-core/utils';
 import { searchAll, searchComponents, searchVulnerabilities } from 'GuideRoot/api/searchBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
+import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import type {
   SearchResponse,
   ComponentSearchResponse,
@@ -171,6 +172,8 @@ export function SearchPage() {
 
     return () => { cancelled = true; };
   }, [searchParams]);
+
+  if (loading && tabData === null) return <FilteredPageSkeleton variant="search" />;
 
   if (error && !tabData) {
     return (

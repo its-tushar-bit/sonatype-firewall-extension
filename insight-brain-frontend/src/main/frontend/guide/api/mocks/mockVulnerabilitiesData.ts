@@ -844,6 +844,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.1,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -857,6 +859,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.05,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -870,6 +874,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.08,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -883,6 +889,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.12,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -896,6 +904,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.03,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 130 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -909,6 +919,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.2,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
   {
@@ -922,6 +934,8 @@ export const mockVulnerabilities: Vulnerability[] = [
     epss: 0.02,
     source: 'NVD',
     publishedAt: new Date(Date.now() - 500 * 24 * 60 * 60 * 1000).toISOString(),
+    aliases: [],
+    cwes: [],
     affectedComponentVersionsCount: 1,
   },
 ];

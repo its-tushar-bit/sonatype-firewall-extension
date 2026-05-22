@@ -57,13 +57,31 @@ describe('ComponentsSearchPage', () => {
     jest.clearAllMocks();
   });
 
-  it('shows loading skeletons on initial render before the fetch resolves', () => {
+  it('shows full-page skeleton on initial load', () => {
     mockSearchComponents.mockReturnValue(new Promise(() => {}));
 
     render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
 
-    expect(screen.getByRole('status', { name: /loading-skeletons/i })).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: /loading page content/i })).toBeInTheDocument();
     expect(screen.queryByText('pagination-visible')).not.toBeInTheDocument();
+  });
+
+  it('uses component card skeletons, not vulnerability card skeletons', () => {
+    mockSearchComponents.mockReturnValue(new Promise(() => {}));
+
+    render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
+
+    expect(screen.getAllByTestId('skeleton-component').length).toBeGreaterThan(0);
+    expect(screen.queryByTestId('skeleton-vulnerability')).not.toBeInTheDocument();
+  });
+
+  it('does not show page skeleton after data has loaded', async () => {
+    mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+    render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
+
+    await screen.findByText('Results: 3');
+    expect(screen.queryByRole('status', { name: /loading page content/i })).not.toBeInTheDocument();
   });
 
   it('renders results and pagination after fetch resolves when total > 25', async () => {

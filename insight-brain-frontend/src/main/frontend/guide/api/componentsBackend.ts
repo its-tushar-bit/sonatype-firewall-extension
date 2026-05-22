@@ -452,8 +452,8 @@ export async function getComponentVersions(
 
         const sorted = sortField
           ? [...filtered].sort((a, b) => {
-              const av = String((a as Record<string, unknown>)[sortField] ?? '');
-              const bv = String((b as Record<string, unknown>)[sortField] ?? '');
+              const av = String((a as unknown as Record<string, unknown>)[sortField] ?? '');
+              const bv = String((b as unknown as Record<string, unknown>)[sortField] ?? '');
               return av.localeCompare(bv) * (sortOrder === 'asc' ? 1 : -1);
             })
           : filtered;

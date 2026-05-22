@@ -12,6 +12,10 @@ import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './layout/AppShell';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
+import { VulnerabilityDetailLayout } from './vulnerabilities/VulnerabilityDetailLayout';
+import { SecurityDetailsTab } from './vulnerabilities/detail/SecurityDetailsTab';
+import { ComponentsImpactedTab } from './vulnerabilities/detail/ComponentsImpactedTab';
+import { SonatypeResearchTab } from './vulnerabilities/detail/SonatypeResearchTab';
 import { SearchPage } from './search/SearchPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
@@ -64,6 +68,18 @@ function AuthGate() {
                   </FeatureGate>
                 }
               />
+              <Route
+                path="/vulnerability/:vulnId"
+                element={
+                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <VulnerabilityDetailLayout />
+                  </FeatureGate>
+                }
+              >
+                <Route index element={<SecurityDetailsTab />} />
+                <Route path="components-impacted" element={<ComponentsImpactedTab />} />
+                <Route path="sonatype-research" element={<SonatypeResearchTab />} />
+              </Route>
               <Route
                 path="/search"
                 element={

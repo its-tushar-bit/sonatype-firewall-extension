@@ -116,7 +116,7 @@ export function VulnerabilitiesPage() {
             limit={limit}
             moduleName="vulnerabilities-page"
             renderLinkWrapper={({ vulnerability, children }) => (
-              <Link to={`/vulnerabilities/${vulnerability.vulnId}`} className="unstyled-link">
+              <Link to={`/vulnerability/${vulnerability.vulnId}`} className="unstyled-link">
                 {children}
               </Link>
             )}

@@ -224,7 +224,7 @@ export function SearchPage() {
           limit={limit}
           moduleName="search-page"
           renderLinkWrapper={({ vulnerability, children }: { vulnerability: Vulnerability; children: ReactNode }) => (
-            <Link to={`/vulnerabilities/${vulnerability.vulnId}`} className="unstyled-link">{children}</Link>
+            <Link to={`/vulnerability/${vulnerability.vulnId}`} className="unstyled-link">{children}</Link>
           )}
         />
       );
@@ -242,7 +242,7 @@ export function SearchPage() {
             <Link to={getComponentDetailUrl(component)} className="unstyled-link">{children}</Link>
           )}
           renderVulnerabilityLink={(vulnerability: Vulnerability, _index: number, children: ReactNode) => (
-            <Link to={`/vulnerabilities/${vulnerability.vulnId}`} className="unstyled-link">{children}</Link>
+            <Link to={`/vulnerability/${vulnerability.vulnId}`} className="unstyled-link">{children}</Link>
           )}
         />
       );

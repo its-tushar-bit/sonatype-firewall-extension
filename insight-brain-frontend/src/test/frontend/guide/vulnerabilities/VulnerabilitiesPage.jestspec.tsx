@@ -112,7 +112,7 @@ describe('VulnerabilitiesPage', () => {
 
       // The vulnerability card should be wrapped in a link to the details page
       const link = screen.getByRole('link', { name: /CVE-2021-44228/i });
-      expect(link).toHaveAttribute('href', '/vulnerabilities/CVE-2021-44228');
+      expect(link).toHaveAttribute('href', '/vulnerability/CVE-2021-44228');
     });
 
     it('renders pagination controls when total exceeds limit', async () => {

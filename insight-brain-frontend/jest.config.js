@@ -56,6 +56,8 @@ module.exports = {
     '^@guide/ui-core$': '<rootDir>/node_modules/@guide/ui-core/dist/index.js',
     '^@guide/ui-core/utils$': '<rootDir>/node_modules/@guide/ui-core/dist/utils.js',
     '^@guide/ui-core/testing$': '<rootDir>/node_modules/@guide/ui-core/dist/testing.js',
+    // Mock react-markdown and its dependencies for ESM compatibility
+    '^react-markdown$': '<rootDir>/src/test/frontend/__mocks__/react-markdown.js',
   },
   reporters: [
     'default',

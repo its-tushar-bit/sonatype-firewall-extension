@@ -12,10 +12,21 @@ import type {
   VulnerabilitySearchResponse,
   VulnerabilitiesFilters,
   VulnerabilitiesSearchOptions,
+  AffectedComponentVersion,
 } from '@guide/ui-core/types';
+import { getMockVulnerabilityDetail } from './mocks/mockVulnerabilityDetailData';
+import { getMockAffectedComponents } from './mocks/mockAffectedComponentsData';
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>> */
 type Aggregations = Record<string, Record<string, number>>;
+
+/** Generic paginated API response */
+export interface ApiSearchResponse<T> {
+  hits: T[];
+  total: number;
+  offset: number;
+  limit: number;
+}
 
 /** Combined params for vulnerability search */
 export interface VulnerabilitiesSearchParams {
@@ -103,19 +114,13 @@ export function filterVulnerabilities(
     const ecosystems = Array.isArray(filters.affectedEcosystems)
       ? filters.affectedEcosystems
       : [filters.affectedEcosystems];
-    result = result.filter((v) =>
-      v.affectedEcosystems?.some((eco) => ecosystems.includes(eco))
-    );
+    result = result.filter((v) => v.affectedEcosystems?.some((eco) => ecosystems.includes(eco)));
   }
 
   // severities filter (uses Sonatype-adjusted severity for consistency with display)
   if (filters.severities) {
-    const severities = Array.isArray(filters.severities)
-      ? filters.severities
-      : [filters.severities];
-    result = result.filter((v) =>
-      severities.includes(getCVSSSeverity(v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0))
-    );
+    const severities = Array.isArray(filters.severities) ? filters.severities : [filters.severities];
+    result = result.filter((v) => severities.includes(getCVSSSeverity(v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0)));
   }
 
   // cwes filter
@@ -139,15 +144,11 @@ export function filterVulnerabilities(
   // and 10 for max (always passes max threshold), treating unscored as worst-case.
   if (filters.minCvss !== undefined) {
     const minCvss = filters.minCvss;
-    result = result.filter(
-      (v) => (v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0) >= minCvss
-    );
+    result = result.filter((v) => (v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0) >= minCvss);
   }
   if (filters.maxCvss !== undefined) {
     const maxCvss = filters.maxCvss;
-    result = result.filter(
-      (v) => (v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 10) <= maxCvss
-    );
+    result = result.filter((v) => (v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 10) <= maxCvss);
   }
 
   // EPSS range filter
@@ -292,10 +293,129 @@ function mockSearchHandler(params: VulnerabilitiesSearchParams): VulnerabilitySe
 export async function searchVulnerabilities(
   params: VulnerabilitiesSearchParams = {}
 ): Promise<VulnerabilitySearchResponse> {
-  return apiFetch<VulnerabilitySearchResponse>(
-    `${API_PREFIX}/vulnerabilities/search`,
+  return apiFetch<VulnerabilitySearchResponse>(`${API_PREFIX}/vulnerabilities/search`, {
+    mockHandler: () => mockSearchHandler(params),
+  });
+}
+
+/**
+ * Get vulnerability details by ID.
+ *
+ * @param vulnId - The vulnerability identifier (CVE, Sonatype ID, etc.)
+ * @returns Vulnerability details, or null if not found
+ */
+export async function getVulnerabilityDetails(vulnId: string): Promise<Vulnerability | null> {
+  if (!vulnId.trim()) return null;
+
+  return apiFetch<Vulnerability | null>(`${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}`, {
+    mockHandler: () => getMockVulnerabilityDetail(vulnId) ?? null,
+  });
+}
+
+/**
+ * Mock handler for affected components with realistic filter/sort/pagination.
+ */
+function mockAffectedComponentsHandler(
+  vulnId: string,
+  params?: {
+    query?: string;
+    offset?: number;
+    limit?: number;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+  }
+): ApiSearchResponse<AffectedComponentVersion> {
+  const allComponents = getMockAffectedComponents(vulnId);
+  if (allComponents.length === 0) {
+    return { hits: [], total: 0, offset: params?.offset ?? 0, limit: params?.limit ?? 50 };
+  }
+
+  const query = params?.query?.toLowerCase()?.trim();
+  const offset = params?.offset ?? 0;
+  const limit = params?.limit ?? 50;
+  const sortField = params?.sortField ?? 'packageName';
+  const sortOrder = params?.sortOrder ?? 'asc';
+
+  // Filter by query
+  let filtered = allComponents;
+  if (query) {
+    filtered = allComponents.filter((c) => {
+      const pkgName = c.packageName.toLowerCase();
+      const namespace = c.namespace?.toLowerCase() ?? '';
+      return pkgName.includes(query) || namespace.includes(query);
+    });
+  }
+
+  // Sort
+  filtered = [...filtered].sort((a, b) => {
+    let aVal: string;
+    let bVal: string;
+    switch (sortField) {
+      case 'version':
+        aVal = a.version ?? '';
+        bVal = b.version ?? '';
+        break;
+      case 'ecosystem':
+        aVal = a.ecosystem ?? '';
+        bVal = b.ecosystem ?? '';
+        break;
+      case 'packageName':
+      default:
+        // Sort by package name (including namespace as secondary key)
+        aVal = `${a.namespace ?? ''}:${a.packageName}`;
+        bVal = `${b.namespace ?? ''}:${b.packageName}`;
+    }
+    const cmp = aVal.localeCompare(bVal);
+    return sortOrder === 'desc' ? -cmp : cmp;
+  });
+
+  // Paginate
+  const paginated = filtered.slice(offset, offset + limit);
+
+  return {
+    hits: paginated,
+    total: filtered.length,
+    offset,
+    limit,
+  };
+}
+
+/** Accepted sortField values for affected-components queries. Single source of truth shared with ComponentsImpactedTab. */
+export const AFFECTED_COMPONENTS_SORT_FIELDS = new Set(['packageName', 'version', 'ecosystem']);
+
+/**
+ * Get paginated affected components for a vulnerability.
+ *
+ * @param vulnId - The vulnerability identifier
+ * @param params - Optional search parameters
+ * @param params.sortField - Field to sort by. Accepted values: see {@link AFFECTED_COMPONENTS_SORT_FIELDS}.
+ *   Callers must validate sortField before passing it here; the API layer does not enforce the allowlist.
+ * @returns Paginated affected components response, or null if not found
+ */
+export async function getVulnerabilityAffectedComponents(
+  vulnId: string,
+  params?: {
+    query?: string;
+    offset?: number;
+    limit?: number;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+  }
+): Promise<ApiSearchResponse<AffectedComponentVersion> | null> {
+  if (!vulnId.trim()) return null;
+
+  const queryString = new URLSearchParams();
+  if (params?.query) queryString.set('query', params.query);
+  if (params?.offset !== undefined) queryString.set('offset', String(params.offset));
+  if (params?.limit !== undefined) queryString.set('limit', String(params.limit));
+  if (params?.sortField) queryString.set('sortField', params.sortField);
+  if (params?.sortOrder) queryString.set('sortOrder', params.sortOrder);
+
+  const separator = queryString.toString() ? '?' : '';
+  return apiFetch<ApiSearchResponse<AffectedComponentVersion> | null>(
+    `${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}/affected-components${separator}${queryString.toString()}`,
     {
-      mockHandler: () => mockSearchHandler(params),
+      mockHandler: () => mockAffectedComponentsHandler(vulnId, params),
     }
   );
 }

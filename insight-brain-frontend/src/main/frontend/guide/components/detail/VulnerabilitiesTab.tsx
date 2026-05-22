@@ -148,7 +148,7 @@ export function VulnerabilitiesTab() {
         {vulnerabilities.length > 0 && (
           <Flex direction="column" gap={tokens.space.item}>
             {vulnerabilities.map((vuln) => (
-              <Link key={vuln.vulnId} to={`/vulnerabilities/${encodeURIComponent(vuln.vulnId)}`} className="unstyled-link">
+              <Link key={vuln.vulnId} to={`/vulnerability/${encodeURIComponent(vuln.vulnId)}`} className="unstyled-link">
                 <VulnerabilityResultCard vulnerability={vuln} />
               </Link>
             ))}

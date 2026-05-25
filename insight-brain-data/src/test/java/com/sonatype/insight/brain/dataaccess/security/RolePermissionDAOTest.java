@@ -115,4 +115,5 @@ public class RolePermissionDAOTest
     rolePerm.setPermission(Permission.READ);
     assertThatThrownBy(() -> permDAO.update(rolePerm)).isInstanceOf(UnsupportedOperationException.class);
   }
+
 }

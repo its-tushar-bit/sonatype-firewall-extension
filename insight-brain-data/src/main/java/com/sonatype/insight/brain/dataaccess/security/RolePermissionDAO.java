@@ -25,6 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.Record;
 import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,13 +106,30 @@ public class RolePermissionDAO
     clearRolePermissionCacheForAllOtherNodes.run();
   }
 
+  @Override
+  protected RolePermission toEntity(Record record) {
+    if (record == null) {
+      return null;
+    }
+    RolePermission entity = new RolePermission();
+    entity.setId(record.get(ROLE_PERMISSION.ROLE_PERMISSION_ID));
+    entity.setRoleId(record.get(ROLE_PERMISSION.ROLE_ID));
+    String permStr = record.get(ROLE_PERMISSION.PERMISSION);
+    if (permStr != null) {
+      entity.setPermission(Permission.valueOf(permStr));
+    }
+    return entity;
+  }
+
   /**
    * Gets the permissions assigned to the given role.
    */
   public Set<Permission> getPermissionsForRole(String roleId) {
     Set<Permission> perms = EnumSet.noneOf(Permission.class);
     for (RolePermission assoc : getByRoleId(roleId)) {
-      perms.add(assoc.getPermission());
+      if (assoc != null && assoc.getPermission() != null) {
+        perms.add(assoc.getPermission());
+      }
     }
     return perms;
   }
@@ -128,7 +146,9 @@ public class RolePermissionDAO
       }
       try (TransactionContext tx = createTransactionContext()) {
         for (RolePermission rolePerm : tx.dsl().selectFrom(ROLE_PERMISSION).fetch().map(this::toEntity)) {
-          map.get(rolePerm.getPermission()).add(rolePerm.getRoleId());
+          if (rolePerm != null && rolePerm.getPermission() != null) {
+            map.get(rolePerm.getPermission()).add(rolePerm.getRoleId());
+          }
         }
       }
       for (Map.Entry<Permission, Set<String>> entry : map.entrySet()) {

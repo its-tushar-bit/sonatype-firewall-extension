@@ -52,6 +52,7 @@ import {
 import { getUpgradeVersion, isElementDisabled } from '../utils';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
 import EnterpriseReportingFilter from 'MainRoot/enterpriseReporting/filter/EnterpriseReportingFilter';
+import { sendGainsightCustomEvent } from 'MainRoot/util/gainsightUtils';
 
 /* global CLM_SERVER_VERSION */
 export default function EnterpriseReportingDashboardPage() {
@@ -99,6 +100,14 @@ export default function EnterpriseReportingDashboardPage() {
       dispatch(actions.updateDashboardPage(id, groupId, isDashboardDisabled));
     }
   }, [dispatch, combinedDashboards, id, groupId]);
+
+  useEffect(() => {
+    if (selectedDashboard?.dashboardId) {
+      sendGainsightCustomEvent('enterprise-reporting-dashboard-viewed', {
+        dashboardId: selectedDashboard.dashboardId,
+      });
+    }
+  }, [selectedDashboard?.dashboardId]);
 
   const onTabSelect = (index, groupId) => {
     dispatch(

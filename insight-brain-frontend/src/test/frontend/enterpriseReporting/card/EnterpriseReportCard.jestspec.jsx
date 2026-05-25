@@ -237,7 +237,7 @@ describe('EnterpriseReportCard', () => {
       renderComponent({ dashboard });
 
       const button = screen.getByRole('button', { name: 'View HeroDevs EOL' });
-      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-herodevs-view-cta');
+      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-herodevs_eol-view-cta');
     });
 
     it('includes telemetry ID for best_practices dashboard', () => {
@@ -249,11 +249,19 @@ describe('EnterpriseReportCard', () => {
       renderComponent({ dashboard });
 
       const button = screen.getByRole('button', { name: 'View Best Practices' });
-      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-best-practices-view-cta');
+      expect(button).toHaveAttribute('data-analytics-id', 'lc-reporting-best_practices-view-cta');
     });
 
-    it('does not include telemetry ID for other dashboards', () => {
+    it('generates dynamic telemetry ID for any dashboard with a dashboardId', () => {
       renderComponent();
+
+      const button = screen.getByRole('button', { name: initialState.dashboard.accessButtonText });
+      expect(button).toHaveAttribute('data-analytics-id', `lc-reporting-${initialState.dashboard.dashboardId}-view-cta`);
+    });
+
+    it('omits telemetry ID when dashboardId is absent', () => {
+      const dashboard = { ...initialState.dashboard, dashboardId: undefined };
+      renderComponent({ dashboard });
 
       const button = screen.getByRole('button', { name: initialState.dashboard.accessButtonText });
       expect(button).not.toHaveAttribute('data-analytics-id');

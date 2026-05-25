@@ -14,6 +14,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
+import * as gainsightUtils from 'MainRoot/util/gainsightUtils';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { screen } from '@testing-library/dom';
@@ -139,6 +140,18 @@ describe('EnterpriseReportingDashboardPage', () => {
     renderPage();
     await waitFor(() => {
       expect(selectedDashboardSpy).toHaveBeenCalledWith(mockData.dashboardMetadata[5]);
+    });
+  });
+
+  it('fires enterprise-reporting-dashboard-viewed Gainsight event when selectedDashboard has a dashboardId', async () => {
+    const sendEventSpy = jest.spyOn(gainsightUtils, 'sendGainsightCustomEvent');
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'rolling-recap' });
+    renderPage();
+
+    await waitFor(() => {
+      expect(sendEventSpy).toHaveBeenCalledWith('enterprise-reporting-dashboard-viewed', {
+        dashboardId: 'rolling-recap',
+      });
     });
   });
 

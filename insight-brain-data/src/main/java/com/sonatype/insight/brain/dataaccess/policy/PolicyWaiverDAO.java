@@ -33,6 +33,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -40,6 +41,7 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.A
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Policy.POLICY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyWaiver.POLICY_WAIVER;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyWaiverReason.POLICY_WAIVER_REASON;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -58,6 +60,166 @@ public class PolicyWaiverDAO
   {
     super(operationalDataStore);
     this.ownerDAO = ownerDAO;
+  }
+
+  /**
+   * Gets policy waivers filtered by component name and/or repository public ID for dashboard display.
+   * Used by Firewall waivers page text filters.
+   *
+   * @param tx the transaction context
+   * @param ownerIds the set of owner IDs to filter by
+   * @param componentName optional component name filter (case-insensitive contains match on package URL)
+   * @param repositoryPublicId optional repository public ID filter (case-insensitive contains match on repository name)
+   * @param activeOnly if true, only return active (non-expired) waivers
+   * @param expiryNotBefore if non-null, only waivers with expiry_time &gt;= this date are returned (lower bound)
+   * @param expiryNotAfter if non-null, only waivers with expiry_time &lt;= this date are returned (upper bound)
+   * @param neverExpiringOnly if true, only waivers with null expiry_time are returned (overrides bounds)
+   * @param filteredPolicyIds if non-null and non-empty, only waivers for these policy IDs are returned
+   * @param page zero-based page number
+   * @param pageSize number of results per page
+   * @return list of policy waivers matching the filters, with pageSize + 1 results to detect hasNextPage
+   */
+  public List<PolicyWaiver> getFilteredForDashboard(
+      TransactionContext tx,
+      Set<String> ownerIds,
+      String componentName,
+      String repositoryPublicId,
+      boolean activeOnly,
+      Date expiryNotBefore,
+      Date expiryNotAfter,
+      boolean neverExpiringOnly,
+      Set<String> filteredPolicyIds,
+      int page,
+      int pageSize,
+      String orderBy)
+  {
+    if (ownerIds == null || ownerIds.isEmpty() || page < 0) {
+      return Collections.emptyList();
+    }
+
+    boolean hasRepositoryFilter = repositoryPublicId != null && !repositoryPublicId.isBlank();
+    boolean hasComponentFilter = componentName != null && !componentName.isBlank();
+
+    // Note: getListWithSqlInClause is not used here because pagination (LIMIT/OFFSET) requires the
+    // full ownerIds set in a single query — chunking would produce incorrect page boundaries.
+    // The ownerIds set is bounded by the org hierarchy (repos + repo managers + orgs) which in practice
+    // stays well below PostgreSQL's 65535 bind parameter limit.
+    var condition = POLICY_WAIVER.OWNER_ID.in(ownerIds);
+
+    if (neverExpiringOnly) {
+      condition = condition.and(POLICY_WAIVER.EXPIRY_TIME.isNull());
+    }
+    else if (activeOnly) {
+      condition = condition.and(POLICY_WAIVER.EXPIRY_TIME.isNull()
+          .or(POLICY_WAIVER.EXPIRY_TIME.gt(new Date())));
+    }
+
+    if (!neverExpiringOnly) {
+      if (expiryNotBefore != null) {
+        condition = condition.and(POLICY_WAIVER.EXPIRY_TIME.isNotNull()
+            .and(POLICY_WAIVER.EXPIRY_TIME.ge(expiryNotBefore)));
+      }
+      if (expiryNotAfter != null) {
+        condition = condition.and(POLICY_WAIVER.EXPIRY_TIME.isNotNull()
+            .and(POLICY_WAIVER.EXPIRY_TIME.le(expiryNotAfter)));
+      }
+    }
+
+    // containsIgnoreCase handles SQL wildcard escaping (%, _) correctly
+    if (hasComponentFilter) {
+      condition = condition.and(POLICY_WAIVER.ASSOCIATED_PACKAGE_URL.containsIgnoreCase(componentName));
+    }
+
+    if (hasRepositoryFilter) {
+      condition = condition.and(REPOSITORY.PUBLIC_ID.containsIgnoreCase(repositoryPublicId));
+    }
+
+    if (filteredPolicyIds != null && !filteredPolicyIds.isEmpty()) {
+      condition = condition.and(POLICY_WAIVER.POLICY_ID.in(filteredPolicyIds));
+    }
+
+    int offset = page * pageSize;
+    int limit = pageSize + 1; // +1 to detect hasNextPage
+
+    SortField<?> dbSortField = resolveDbSortField(orderBy);
+    boolean needsPolicyJoin = requiresPolicyJoin(orderBy);
+
+    // Repository filter intentionally only matches repository-scoped waivers. Organization-scoped
+    // waivers are excluded because the user is searching by repository name specifically — org-level
+    // waivers don't belong to any single repository and would be noise in repository-filtered results.
+    if (hasRepositoryFilter) {
+      var query = tx.dsl()
+          .select(POLICY_WAIVER.fields())
+          .from(POLICY_WAIVER)
+          .leftJoin(REPOSITORY)
+          .on(POLICY_WAIVER.OWNER_ID.eq(REPOSITORY.REPOSITORY_ID));
+      if (needsPolicyJoin) {
+        query = query.join(POLICY).on(POLICY_WAIVER.POLICY_ID.eq(POLICY.POLICY_ID));
+      }
+      return query
+          .where(condition)
+          .orderBy(dbSortField)
+          .limit(limit)
+          .offset(offset)
+          .fetch(r -> toEntity(r.into(POLICY_WAIVER)));
+    }
+
+    if (needsPolicyJoin) {
+      return tx.dsl()
+          .select(POLICY_WAIVER.fields())
+          .from(POLICY_WAIVER)
+          .join(POLICY)
+          .on(POLICY_WAIVER.POLICY_ID.eq(POLICY.POLICY_ID))
+          .where(condition)
+          .orderBy(dbSortField)
+          .limit(limit)
+          .offset(offset)
+          .fetch(r -> toEntity(r.into(POLICY_WAIVER)));
+    }
+
+    return tx.dsl()
+        .select(POLICY_WAIVER.fields())
+        .from(POLICY_WAIVER)
+        .where(condition)
+        .orderBy(dbSortField)
+        .limit(limit)
+        .offset(offset)
+        .fetch(r -> toEntity(r.into(POLICY_WAIVER)));
+  }
+
+  private SortField<?> resolveDbSortField(String orderBy) {
+    if (orderBy == null) {
+      return POLICY_WAIVER.EXPIRY_TIME.asc().nullsLast();
+    }
+    boolean isDesc = orderBy.startsWith("-");
+    String field = isDesc ? orderBy.substring(1) : orderBy;
+    return switch (field) {
+      case "EXPIRATION_DATE" -> isDesc
+          ? POLICY_WAIVER.EXPIRY_TIME.desc().nullsLast()
+          : POLICY_WAIVER.EXPIRY_TIME.asc().nullsLast();
+      case "CREATION_DATE" -> isDesc
+          ? POLICY_WAIVER.CREATE_TIME.desc().nullsLast()
+          : POLICY_WAIVER.CREATE_TIME.asc().nullsLast();
+      case "COMPONENT_SCOPE" -> isDesc
+          ? POLICY_WAIVER.ASSOCIATED_PACKAGE_URL.desc().nullsLast()
+          : POLICY_WAIVER.ASSOCIATED_PACKAGE_URL.asc().nullsLast();
+      case "POLICY_NAME" -> isDesc
+          ? POLICY.NAME.desc().nullsLast()
+          : POLICY.NAME.asc().nullsLast();
+      case "THREAT_LEVEL" -> isDesc
+          ? POLICY.THREAT_LEVEL.desc()
+          : POLICY.THREAT_LEVEL.asc();
+      // OWNER_SCOPE requires owner hierarchy resolution; fall back to EXPIRY_TIME ASC.
+      default -> POLICY_WAIVER.EXPIRY_TIME.asc().nullsLast();
+    };
+  }
+
+  private boolean requiresPolicyJoin(String orderBy) {
+    if (orderBy == null) {
+      return false;
+    }
+    String field = orderBy.startsWith("-") ? orderBy.substring(1) : orderBy;
+    return "POLICY_NAME".equals(field) || "THREAT_LEVEL".equals(field);
   }
 
   public List<PolicyWaiver> getByOwnerId(String ownerId) {
@@ -433,6 +595,18 @@ public class PolicyWaiverDAO
       throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
 
+    super.update(tx, entity);
+  }
+
+  /**
+   * Updates a waiver without the duplicate-violation check. Used for renewal where the waiver already exists
+   * and we are only extending its expiry time.
+   */
+  public void updateForRenewal(TransactionContext tx, PolicyWaiver entity) {
+    setComponentMatchStrategyIfNeeded(entity);
+    if (entity.getComment() != null && entity.getComment().length() > 1000) {
+      throw new BadRequestException("Comment length must not exceed 1000 characters.");
+    }
     super.update(tx, entity);
   }
 

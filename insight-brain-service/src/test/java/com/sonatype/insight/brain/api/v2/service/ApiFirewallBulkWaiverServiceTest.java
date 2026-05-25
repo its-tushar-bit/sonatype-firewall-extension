@@ -405,6 +405,43 @@ public class ApiFirewallBulkWaiverServiceTest
         ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), eq(false));
   }
 
+  @Test
+  public void testAddBulkPolicyWaivers_SkipsExistingAllVersionsWaiverUsingNullHash() {
+    // When matcherStrategy=ALL_VERSIONS, the pre-check must use null hash (same as what savePolicyWaiverInternal uses)
+    // so that an existing ALL_VERSIONS waiver (stored with null hash) is correctly detected as a duplicate.
+    ApiWaiverOptionsDTO allVersionsOptions = new ApiWaiverOptionsDTO(
+        WAIVER_COMMENT, ALL_VERSIONS, null, null, false);
+    List<String> violationIds = Collections.singletonList(VIOLATION_ID_1);
+    ApiBulkWaiversDTO request = new ApiBulkWaiversDTO(violationIds, allVersionsOptions);
+
+    RepositoryPolicyViolation violation = createValidViolationWithDetails(
+        VIOLATION_ID_1, REPOSITORY_ID, "Policy One", "npm", "test-package", "1.0.0",
+        "Constraint A", "Reason A", false);
+
+    String policyId = violation.getPolicyId();
+    String constraintFactsJson = violation.getConstraintFactsJson();
+    Owner owner = createOwner(INTERNAL_OWNER_ID);
+
+    when(repositoryPolicyViolationDAO.getByIdWithConstraintFacts(VIOLATION_ID_1)).thenReturn(violation);
+    when(ownerDAO.walkHierarchy(REPOSITORY_ID)).thenReturn(Collections.singletonList(owner));
+
+    // Existing waiver has null hash (as stored for ALL_VERSIONS waivers)
+    PolicyWaiver existingWaiver = new PolicyWaiver();
+    existingWaiver.setPolicyId(policyId);
+    existingWaiver.setHash(null);
+    existingWaiver.setConstraintFactsJson(constraintFactsJson);
+    when(policyWaiverDAO.getActiveApplicableByOwnerId(INTERNAL_OWNER_ID))
+        .thenReturn(Collections.singletonList(existingWaiver));
+
+    service.addBulkPolicyWaivers(OwnerType.REPOSITORY, OWNER_ID, request);
+
+    // Pre-check should detect the duplicate via null hash and skip — savePolicyWaiver must NOT be called
+    verify(apiPolicyWaiverService, never()).savePolicyWaiver(
+        any(TransactionContext.class), anyString(), any(RepositoryPolicyViolation.class),
+        anyString(), any(PolicyWaiver.ComponentMatcherStrategyForWaiver.class),
+        ArgumentMatchers.<Date>nullable(Date.class), nullable(String.class), anyBoolean());
+  }
+
   /**
    * TEST-INPUT-7: Submit request with null apiWaiverOptionsDTO - verify HTTP 400
    */

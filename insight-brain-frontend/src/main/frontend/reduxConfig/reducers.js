@@ -28,6 +28,7 @@ import requestWaiverReducer from '../waivers/requestWaiverSlice';
 import requestWaiverDetailsReducer from '../waivers/requestWaiverDetails/requestWaiverDetailsSlice';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
+import firewallDashboardWaiverReducer from '../firewall/waivers/firewallDashboardWaiverReducer';
 import userTokenReducer from '../mainHeader/MenuBar/UserMenu/UserToken/userTokenReducer';
 import advancedLegalReducer from '../legal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
@@ -36,6 +37,7 @@ import firewallReducer from '../firewall/firewallReducer';
 import firewallConfigurationModalReducer from '../firewall/config/firewallConfigurationModalReducer';
 import firewallOnboardingReducer from '../firewallOnboarding/firewallOnboardingSlice';
 import firewallBulkWaiverSlice from '../firewall/bulkWaive/firewallBulkWaiverSlice';
+import firewallRenewWaiver from '../firewall/renewWaiver/renewWaiverSlice';
 import componentNoticeDetailsReducer from '../legal/files/notices/componentNoticeDetailsReducer';
 import componentLicenseFilesDetailsReducer from '../legal/files/licenses/componentLicenseFilesDetailsReducer';
 import copyrightOverrideReducer from '../legal/copyright/copyrightOverrideReducer';
@@ -169,6 +171,7 @@ export default combineReducers({
   requestWaiverDetails: requestWaiverDetailsReducer,
   scmOnboarding: scmOnboardingReducer,
   deleteWaiver: deleteWaiverReducer,
+  firewallDashboardWaiver: firewallDashboardWaiverReducer,
   userToken: userTokenReducer,
   advancedLegal: advancedLegalReducer,
   legalDashboard: legalDashboardReducer,
@@ -185,6 +188,7 @@ export default combineReducers({
   firewallConfigurationModal: firewallConfigurationModalReducer,
   firewallOnboarding: firewallOnboardingReducer,
   firewallBulkWaiver: firewallBulkWaiverSlice,
+  firewallRenewWaiver,
   manageLegalFilters: manageLegalFiltersReducer,
   legalApplicationDetails: legalApplicationDetailsReducer,
   attributionReports: AttributionReportsReducer,

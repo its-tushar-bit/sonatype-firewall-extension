@@ -180,6 +180,31 @@ public class ApiPolicyWaiverDTO
 
   public boolean forContainerImageComponent;
 
+  /**
+   * @since 1.204
+   */
+  @JsonInclude(Include.NON_NULL)
+  @ApiDateFormat
+  public Date lastRenewedAt;
+
+  /**
+   * @since 1.204
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String lastRenewedBy;
+
+  /**
+   * @since 1.204
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String lastRenewalComment;
+
+  /**
+   * @since 1.204
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String lastRenewalReasonText;
+
   public static ApiPolicyWaiverDTO toDto(
       PolicyWaiver policyWaiver,
       PolicyWaiverReason policyWaiverReason,
@@ -199,6 +224,9 @@ public class ApiPolicyWaiverDTO
     dto.expireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
     dto.forContainerImage = policyWaiver.isForContainerImage();
     dto.forContainerImageComponent = policyWaiver.isForContainerImageComponent();
+    dto.lastRenewedAt = policyWaiver.getLastRenewedAt();
+    dto.lastRenewedBy = policyWaiver.getLastRenewedBy();
+    dto.lastRenewalComment = policyWaiver.getLastRenewalComment();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

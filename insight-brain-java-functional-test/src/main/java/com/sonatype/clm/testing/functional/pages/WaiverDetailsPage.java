@@ -130,8 +130,24 @@ public class WaiverDetailsPage
     return child(".iq-waiver-details__version .nx-read-only__data");
   }
 
+  public SelenideElement renewWaiverButton() {
+    return child(".iq-waiver-details__delete-waiver .nx-btn--tertiary:first-child");
+  }
+
   public SelenideElement deleteWaiverButton() {
-    return child(".iq-waiver-details__delete-waiver .nx-btn");
+    return child(".iq-waiver-details__delete-waiver .nx-btn:last-child");
+  }
+
+  public SelenideElement detailsLastRenewed() {
+    return child(".iq-waiver-details__last-renewed-date .nx-read-only__data");
+  }
+
+  public SelenideElement detailsRenewedBy() {
+    return child(".iq-waiver-details__last-renewed-by .nx-read-only__data");
+  }
+
+  public SelenideElement detailsRenewalReason() {
+    return child(".iq-waiver-details__last-renewal-reason .nx-read-only__data");
   }
 
   public NxBackButton backButton() {

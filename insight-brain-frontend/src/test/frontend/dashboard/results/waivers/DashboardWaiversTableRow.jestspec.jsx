@@ -4,10 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import { render, screen } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
+import { waiverMatcherStrategy } from 'MainRoot/firewall/bulkWaive/firewallWaiverUtils';
 import moment from 'moment';
 import DashboardWaiversTableRow from 'MainRoot/dashboard/results/waivers/DashboardWaiversTableRow';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 
 import 'TestRoot/SpecUtil';
 
@@ -79,7 +81,7 @@ describe('DashboardWaiversTableRow', function () {
     };
     renderComponent = (additionalWaiverProps = {}) => {
       const additionalProps = { waiver: { ...minimalProps.waiver, ...additionalWaiverProps } };
-      return render(<DashboardWaiversTableRow {...minimalProps} {...additionalProps} />);
+      return render(<DashboardWaiversTableRow {...minimalProps} {...additionalProps} isExpiringWaiversEnabled={true} />);
     };
   });
 
@@ -96,9 +98,10 @@ describe('DashboardWaiversTableRow', function () {
   });
 
   it('links on click to the waiver details state', async () => {
+    const user = userEvent.setup();
     const { container } = await renderComponent(minimalProps);
 
-    fireEvent.click(container.children[0]);
+    await user.click(container.children[0]);
 
     expect(stateGoSpy).toHaveBeenCalledWith('waiver.details', {
       waiverId: 'waiverId',
@@ -196,5 +199,116 @@ describe('DashboardWaiversTableRow', function () {
     upgradeCell = getUpgradeCell();
 
     expect(upgradeCell).toHaveTextContent('—');
+  });
+
+  describe('expiry status descriptor', () => {
+    it('shows "Expires in X days" in grey when expiry is more than 7 days away', () => {
+      const futureExpiry = moment().add(60, 'days').endOf('day').valueOf();
+      renderComponent({ expiryTime: futureExpiry });
+
+      const status = screen.getByText(/Expires in \d+ days/);
+      expect(status).toBeVisible();
+      expect(status).toHaveClass('iq-waiver-expiry-status--muted');
+    });
+
+    it('shows "Expires in X days" in red when expiry is within 7 days', () => {
+      const futureExpiry = moment().add(3, 'days').endOf('day').valueOf();
+      renderComponent({ expiryTime: futureExpiry });
+
+      const status = screen.getByText(/Expires in \d+ days?/);
+      expect(status).toBeVisible();
+      expect(status).toHaveClass('iq-waiver-expiry-status--critical');
+    });
+
+    it('shows "Expired" in red when expiry is in the past', () => {
+      const pastExpiry = moment().subtract(2, 'days').valueOf();
+      renderComponent({ expiryTime: pastExpiry });
+
+      const status = screen.getByText('Expired');
+      expect(status).toBeVisible();
+      expect(status).toHaveClass('iq-waiver-expiry-status--critical');
+    });
+
+    it('does not show status when expiryTime is null (never expires)', () => {
+      renderComponent({ expiryTime: null });
+
+      expect(screen.queryByText('Expired')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Expires in/)).not.toBeInTheDocument();
+    });
+
+    it('does not show status for auto waivers', () => {
+      const futureExpiry = moment().add(3, 'days').valueOf();
+      renderComponent({ expiryTime: futureExpiry, isAutoWaiver: true });
+
+      expect(screen.queryByText(/Expires in/)).not.toBeInTheDocument();
+      expect(screen.getByText('Auto')).toBeVisible();
+    });
+
+    it('does not show status for expire-when-remediation-available waivers', () => {
+      renderComponent({ expiryTime: null, isExpireWhenRemediationAvailable: true });
+
+      expect(screen.queryByText('Expired')).not.toBeInTheDocument();
+      expect(screen.getByText('When Remediation Available')).toBeVisible();
+    });
+  });
+
+  describe('Firewall inline actions', () => {
+    const firewallRouterState = {
+      router: {
+        currentState: { name: 'firewall.dashboard.overview.waivers' },
+        currentParams: {},
+        prevState: null,
+        prevParams: null,
+      },
+    };
+
+    const firewallWithPermissionState = {
+      ...firewallRouterState,
+      firewallDashboardWaiver: { hasWaivePermission: true },
+    };
+
+    it('shows Renew and Delete buttons in Firewall context with waive permission', () => {
+      const { container } = render(<DashboardWaiversTableRow {...minimalProps} isExpiringWaiversEnabled={true} />, {
+        preloadedState: firewallWithPermissionState,
+      });
+
+      expect(container.querySelector('.iq-waiver-renew-btn')).toBeInTheDocument();
+      expect(container.querySelector('.iq-waiver-delete-btn')).toBeInTheDocument();
+    });
+
+    it('does not show action buttons in non-Firewall context', () => {
+      renderComponent();
+
+      expect(screen.queryByTitle('Renew waiver')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Delete waiver')).not.toBeInTheDocument();
+    });
+
+    it('does not show action buttons in Firewall context without waive permission', () => {
+      render(<DashboardWaiversTableRow {...minimalProps} />, {
+        preloadedState: {
+          ...firewallRouterState,
+          firewallDashboardWaiver: { hasWaivePermission: false },
+        },
+      });
+
+      expect(screen.queryByTitle('Renew waiver')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Delete waiver')).not.toBeInTheDocument();
+    });
+
+    it('clicking Renew navigates to firewall.renewWaiver state', async () => {
+      const user = userEvent.setup();
+      const stateGoSpy = jest.spyOn(RouterActions, 'stateGo').mockReturnValue({ type: 'STATE_GO' });
+
+      const { container } = render(<DashboardWaiversTableRow {...minimalProps} isExpiringWaiversEnabled={true} />, {
+        preloadedState: firewallWithPermissionState,
+      });
+
+      await user.click(container.querySelector('.iq-waiver-renew-btn'));
+
+      expect(stateGoSpy).toHaveBeenCalledWith(
+        'firewall.renewWaiver',
+        expect.objectContaining({ waiverId: 'waiverId', ownerId: 'ownerId' })
+      );
+    });
   });
 });

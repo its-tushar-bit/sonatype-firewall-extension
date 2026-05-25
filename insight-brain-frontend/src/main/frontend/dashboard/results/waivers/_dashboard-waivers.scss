@@ -5,6 +5,7 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
 .iq-dashboard-waivers {
   position: relative;
@@ -30,13 +31,13 @@
     width: 110px;
   }
   .iq-waiver-date-header {
-    width: 150px;
+    width: 130px;
   }
   .iq-waiver-request-date-header {
-    width: 155px;
+    width: 140px;
   }
   .iq-waiver-request-status-header {
-    width: 150px;
+    width: 130px;
   }
   .iq-upgrade-cell {
     text-align: center;
@@ -47,7 +48,80 @@
     }
   }
 
+  .iq-waiver-expiry-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .iq-waiver-expiry-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .iq-waiver-expiry-status {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+
+    &--critical {
+      color: var(--nx-color-error);
+    }
+
+    &--muted {
+      color: var(--nx-color-text-disabled);
+    }
+  }
+
+  .iq-waiver-policy-header {
+    width: 150px;
+  }
+
+  .iq-waiver-component-header {
+    width: 180px;
+  }
+
+  .iq-waiver-scope-header {
+    width: 140px;
+  }
+
+  .iq-waiver-actions-header {
+    width: 88px;
+  }
+
+  .iq-waiver-actions-cell {
+    .iq-waiver-actions-cell__buttons {
+      display: flex;
+      gap: 0;
+      align-items: center;
+    }
+  }
+
+  .iq-waiver-renew-btn,
+  .iq-waiver-delete-btn {
+    flex-shrink: 0;
+    padding: 4px;
+    margin: 0;
+  }
+
   &.nx-tile {
     margin: 0;
+  }
+
+  .iq-waivers-table-scroll {
+    overflow-x: auto;
+    min-height: nx-table-helpers.pagination-table-height(12, 1);
+  }
+
+  .nx-table--fixed-layout {
+    min-width: 960px;
+  }
+
+  .iq-waiver-scope-filter-cell,
+  .iq-waiver-component-filter-cell {
+    overflow: visible;
+
+    .nx-filter-input {
+      width: 100%;
+    }
   }
 }

@@ -44,6 +44,8 @@ import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/
 import FirewallBulkWaivePage from 'MainRoot/firewall/bulkWaive/bulkWaivePage/FirewallBulkWaivePage';
 import FirewallBulkWaiveConfigurationPage from 'MainRoot/firewall/bulkWaive/bulkWaiveConfigurationPage/FirewallBulkWaiveConfigurationPage';
 import FirewallBulkWaiveConfirmationPage from 'MainRoot/firewall/bulkWaive/bulkWaiveConfirmationPage/FirewallBulkWaiveConfirmationPage';
+import FirewallRenewWaiverPage from './renewWaiver/FirewallRenewWaiverPage';
+import { selectRenewWaiverIsDirty } from './renewWaiver/renewWaiverSelectors';
 import UserManagementContainer from 'MainRoot/security/users/UserManagementContainer';
 import UserAddContainer from 'MainRoot/security/users/userConfiguration/UserAddContainer';
 import UserEditContainer from 'MainRoot/security/users/userConfiguration/UserEditContainer';
@@ -225,6 +227,16 @@ router.stateRegistry.register({
   component: WaiverDetailsContainer,
   data: {
     title: 'Waiver Details',
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.renewWaiver',
+  url: '/waiver/{ownerType}/{ownerId}/{waiverId}/renew?type&sidebarReference&sidebarId&page',
+  component: FirewallRenewWaiverPage,
+  data: {
+    title: 'Renew Waiver',
+    isDirty: selectRenewWaiverIsDirty,
   },
 });
 

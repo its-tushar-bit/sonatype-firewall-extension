@@ -15,6 +15,7 @@ import {
 } from '@sonatype/react-shared-components';
 
 import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import IqTreeViewPolicyThreatSlider from '../../../react/IqTreeViewPolicyThreatSlider';
 import LoadWrapper from '../../../react/LoadWrapper';
@@ -38,6 +39,7 @@ import { selectManageFilters } from 'MainRoot/dashboard/filter/manageFilterSelec
 
 export default function DashboardFilter() {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
 
   const dashboardFilter = useSelector(selectDashboardFilter);
   const manageFilters = useSelector(selectManageFilters);
@@ -272,7 +274,7 @@ export default function DashboardFilter() {
                     onChange={onExpirationDatesChange}
                     selectedId={selected.expirationDate}
                   >
-                    <span>Expiration Date</span>
+                    <span>{isStandaloneFirewall ? 'Expiring Within' : 'Expiration Date'}</span>
                   </NxStatefulTreeViewRadioSelect>
                 )}
                 {showAgeFilter && (

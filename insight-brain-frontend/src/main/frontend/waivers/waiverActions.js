@@ -288,6 +288,9 @@ export function returnToAddOrRequestWaiverOriginPage() {
       case originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS:
         return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, prevParams));
 
+      case originNamesForAddRequestPages.FIREWALL_BULK_WAIVE:
+        return dispatch(stateGo('firewall.bulkWaive', prevParams));
+
       case originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS:
         return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS, prevParams));
 

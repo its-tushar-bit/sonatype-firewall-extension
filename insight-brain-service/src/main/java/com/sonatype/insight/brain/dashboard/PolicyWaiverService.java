@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.dashboard;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -54,11 +56,14 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.AUTO;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.EXPIRED;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.IN_OVER_90_DAYS;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Objects.isNull;
@@ -158,6 +163,10 @@ public class PolicyWaiverService
     String orderBy = risksFilterDTO.orderBy;
     final Set<String> policyWaiverReasonIds = risksFilterDTO.policyWaiverReasonIds;
 
+    // Check if Firewall text filters are provided
+    boolean hasComponentNameFilter = StringUtils.isNotBlank(risksFilterDTO.componentName);
+    boolean hasRepositoryPublicIdFilter = StringUtils.isNotBlank(risksFilterDTO.repositoryPublicId);
+
     // Verify orderBy early to prevent costly operations if it fails
     DashboardPolicyWaiverDTOComparator dashboardPolicyWaiverDTOComparator = verifyOrderByAndBuildComparator(orderBy);
 
@@ -177,9 +186,26 @@ public class PolicyWaiverService
     // may eventually be possible, but it is highly unlikely to ever grow very large
     final var waiverReasonIdToWaiverReason = policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
+    // Use optimized SQL path when Firewall text filters are provided — pagination is handled by the DAO
+    if (hasComponentNameFilter || hasRepositoryPublicIdFilter) {
+      DashboardResultsDTO<DashboardPolicyWaiverDTO> resultsDTO =
+          getFilteredWaiversForDashboardWithTextFilters(
+              risksFilterDTO,
+              owners,
+              filteredPoliciesById,
+              dtoAdapter,
+              waiverReasonIdToWaiverReason,
+              filteringPredicate,
+              dashboardPolicyWaiverDTOComparator);
+      log.debug("getDashboardPolicyWaivers: Finished in {} ms (text-filter path)", System.currentTimeMillis() - start);
+      return resultsDTO;
+    }
+
     List<DashboardPolicyWaiverDTO> filteredWaiverDTOs = new ArrayList<>();
+
+    // Existing path for regular requests without text filters
     for (Policy policy : filteredPoliciesById.values()) {
-      List<PolicyWaiver> policyWaivers = expirationDate.equals(ALL)
+      List<PolicyWaiver> policyWaivers = (expirationDate.equals(ALL) || expirationDate == EXPIRED)
           ? policyWaiverDAO.getByPolicyId(policy.getId())
           : policyWaiverDAO.getActiveByPolicyId(policy.getId());
       List<DashboardPolicyWaiverDTO> partialDTOs =
@@ -215,6 +241,80 @@ public class PolicyWaiverService
 
     log.debug("getDashboardPolicyWaivers: Finished in {} ms", System.currentTimeMillis() - start);
 
+    return resultsDTO;
+  }
+
+  /**
+   * Gets filtered waivers when Firewall text filters (componentName or repositoryPublicId) are provided.
+   * Pagination is performed at the database level using LIMIT/OFFSET; the DAO returns pageSize+1 rows
+   * so we can detect hasNextPage without a separate COUNT query.
+   */
+  private DashboardResultsDTO<DashboardPolicyWaiverDTO> getFilteredWaiversForDashboardWithTextFilters(
+      final RisksFilterDTO risksFilterDTO,
+      final Map<String, Owner> owners,
+      final Map<String, Policy> filteredPoliciesById,
+      final DashboardPolicyWaiverDTOAdapter dtoAdapter,
+      final Map<String, PolicyWaiverReason> waiverReasonIdToWaiverReason,
+      final Predicate<PolicyWaiver> filteringPredicate,
+      final DashboardPolicyWaiverDTOComparator comparator)
+  {
+    ExpirationDate expirationDate = risksFilterDTO.expirationDate;
+    boolean activeOnly = !expirationDate.equals(ALL) && expirationDate != EXPIRED;
+    boolean neverExpiringOnly = expirationDate == NEVER;
+    int pageSize = risksFilterDTO.pageSize;
+
+    Date expiryNotBefore = null;
+    Date expiryNotAfter = null;
+
+    if (!neverExpiringOnly && expirationDate != ALL) {
+      if (expirationDate == EXPIRED) {
+        expiryNotAfter = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS));
+      }
+      else if (expirationDate == IN_OVER_90_DAYS) {
+        expiryNotBefore = Date.from(
+            Instant.now().plus(90, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS));
+      }
+      else if (expirationDate.getDays() != null && expirationDate.getDays() > 0) {
+        expiryNotAfter = Date.from(
+            Instant.now()
+                .plus(expirationDate.getDays(), ChronoUnit.DAYS)
+                .plus(1, ChronoUnit.DAYS)
+                .truncatedTo(ChronoUnit.DAYS));
+      }
+    }
+
+    List<PolicyWaiver> policyWaivers;
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      policyWaivers = policyWaiverDAO.getFilteredForDashboard(
+          tx,
+          owners.keySet(),
+          risksFilterDTO.componentName,
+          risksFilterDTO.repositoryPublicId,
+          activeOnly,
+          expiryNotBefore,
+          expiryNotAfter,
+          neverExpiringOnly,
+          filteredPoliciesById.keySet(),
+          risksFilterDTO.page,
+          pageSize,
+          risksFilterDTO.orderBy);
+    }
+
+    // Remaining in-memory predicates: owner scope, waiver reasons, container-image exclusion,
+    // and policy threat category/level. Expiration date filtering is now handled by the DAO.
+    List<DashboardPolicyWaiverDTO> allDtos = filterPolicyWaiversAndBuildDTOs(
+        policyWaivers,
+        filteringPredicate.and(waiver -> filteredPoliciesById.containsKey(waiver.getPolicyId())),
+        dtoAdapter,
+        waiverReasonIdToWaiverReason);
+
+    allDtos.sort(comparator);
+    boolean hasNextPage = allDtos.size() > pageSize;
+    List<DashboardPolicyWaiverDTO> dtos = hasNextPage ? allDtos.subList(0, pageSize) : allDtos;
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> resultsDTO = new DashboardResultsDTO<>();
+    resultsDTO.dashboardResults = dtos;
+    resultsDTO.hasNextPage = hasNextPage;
     return resultsDTO;
   }
 
@@ -309,6 +409,21 @@ public class PolicyWaiverService
     }
     else if (expirationDate == ALL) {
       return policyWaiver -> true;
+    }
+    else if (expirationDate == EXPIRED) {
+      final Instant now = Instant.now().truncatedTo(ChronoUnit.DAYS);
+      return policyWaiver -> policyWaiver.getExpiryTime() != null &&
+          !policyWaiver.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(now);
+    }
+    else if (expirationDate == IN_OVER_90_DAYS) {
+      // Waivers expiring more than 90 days from now (lower bound only)
+      final Instant lowerBound = Instant.now().plus(90, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+      return policyWaiver -> policyWaiver.getExpiryTime() != null &&
+          policyWaiver.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(lowerBound);
+    }
+    else if (expirationDate == AUTO) {
+      // Auto-waivers are AutoPolicyWaiver instances handled separately; no regular PolicyWaiver should pass this filter
+      return policyWaiver -> false;
     }
 
     final Instant expiration =

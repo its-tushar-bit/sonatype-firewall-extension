@@ -436,7 +436,7 @@ describe('DashboardFilter', () => {
 
       fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
       const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
-      expect(expirationDates.length).toBe(7);
+      expect(expirationDates.length).toBe(8);
 
       const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
       expect(expirationDate).toBeVisible();
@@ -553,7 +553,7 @@ describe('DashboardFilter', () => {
 
       fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
       const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
-      expect(expirationDates.length).toBe(8);
+      expect(expirationDates.length).toBe(9);
 
       const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
       expect(expirationDate).toBeVisible();

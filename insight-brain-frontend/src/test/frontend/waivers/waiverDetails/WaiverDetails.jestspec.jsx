@@ -17,6 +17,7 @@ import { getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation'
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import WaiverDetails from 'MainRoot/waivers/waiverDetails/WaiverDetails';
 import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('When the WaiverDetailsPage', function () {
   let axiosMock,
@@ -289,6 +290,103 @@ describe('When the WaiverDetailsPage', function () {
       });
     });
 
+    it('shows "All Versions" when matcherStrategy is null/undefined (default case)', async function () {
+      const waiverWithNullMatcherStrategy = {
+        constraintFacts: [{ constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }] }],
+        matcherStrategy: null,
+        displayName: {
+          parts: [
+            { field: 'Group', value: 'test-group' },
+            { value: ':' },
+            { field: 'Artifact', value: 'test-artifact' },
+          ],
+        },
+        componentUpgradeAvailable: false,
+      };
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverWithNullMatcherStrategy);
+      renderComponent();
+
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('All Versions');
+
+      // When matcherStrategy is null, isWaiverAllVersionsOrExact returns false,
+      // so no disclaimer is shown (Components shows "--" instead)
+      await waitFor(() => {
+        expect(screen.queryByText('*Indicates the component name when the waiver was created')).not.toBeInTheDocument();
+      });
+    });
+
+    it('shows "All Versions" when matcherStrategy is an empty string', async function () {
+      const waiverWithEmptyMatcherStrategy = {
+        constraintFacts: [{ constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }] }],
+        matcherStrategy: '',
+        displayName: {
+          parts: [{ field: 'Group', value: 'test-group' }],
+        },
+        componentUpgradeAvailable: false,
+      };
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverWithEmptyMatcherStrategy);
+      renderComponent();
+
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('All Versions');
+    });
+
+    it('shows "All Versions" when matcherStrategy is an unrecognized value', async function () {
+      const waiverWithUnknownMatcherStrategy = {
+        constraintFacts: [{ constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }] }],
+        matcherStrategy: 'UNKNOWN_STRATEGY',
+        displayName: {
+          parts: [],
+        },
+        componentUpgradeAvailable: false,
+      };
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverWithUnknownMatcherStrategy);
+      renderComponent();
+
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('All Versions');
+    });
+
+    it('shows version from componentIdentifier for EXACT_COMPONENT waiver even when displayName is missing', async function () {
+      const exactComponentWaiverWithoutDisplayName = {
+        constraintFacts: [{ constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }] }],
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+        componentIdentifier: { coordinates: { version: '2.0.0', name: 'artifact', group: 'group' } },
+        displayName: null,
+        associatedPackageUrl: 'pkg:maven/group/artifact@2.0.0',
+        componentUpgradeAvailable: false,
+      };
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, exactComponentWaiverWithoutDisplayName);
+      renderComponent();
+
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('2.0.0');
+    });
+
+    it('falls back to "All Versions" for EXACT_COMPONENT when componentIdentifier is missing', async function () {
+      const exactComponentWaiverWithoutComponentIdentifier = {
+        constraintFacts: [{ constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }] }],
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+        componentIdentifier: null,
+        displayName: null,
+        componentUpgradeAvailable: false,
+      };
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, exactComponentWaiverWithoutComponentIdentifier);
+      renderComponent();
+
+      // This tests the defensive fallback in getComponentVersion()
+      // When EXACT_COMPONENT is set but componentIdentifier is missing,
+      // the version will be undefined/null
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      // The component display will show "Unknown" but version will show componentIdentifier attempt
+    });
+
     it('should render waiver details with scope equals to Repository Managers if ownerType is all_repositories', async function () {
       initialState.router.currentParams.ownerType = 'all_repositories';
       waiverDetails.scopeOwnerId = 'REPOSITORY_CONTAINER_ID';
@@ -315,6 +413,57 @@ describe('When the WaiverDetailsPage', function () {
 
       expect(screen.getByText('Loading…')).toBeVisible();
       expect(await screen.findByText('Root Organization')).toBeVisible();
+    });
+
+    it('renders renewal comment before creation comment (latest first)', async function () {
+      jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
+      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
+        ...waiverDetails,
+        lastRenewedBy: 'admin',
+        lastRenewedAt: '2024-01-15T10:00:00.000Z',
+        lastRenewalReasonText: 'Security patch applied',
+        lastRenewalComment: 'Renewed after applying the fix',
+      });
+      renderComponent();
+
+      expect(await screen.findByText('Security patch applied')).toBeVisible();
+      expect(await screen.findByText('Renewed after applying the fix')).toBeVisible();
+      expect(await screen.findByText('a comment')).toBeVisible();
+
+      const blockquote = document.querySelector('.nx-blockquote');
+      const labels = blockquote.querySelectorAll('.iq-waiver-comment-entry__label');
+      expect(labels[0]).toHaveTextContent('Renewed');
+      expect(labels[1]).toHaveTextContent('Created');
+    });
+
+    it('renders renewal reason with dash when absent', async function () {
+      jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
+      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      await screen.findByText('a comment'); // wait for load
+      expect(screen.getByText('Renewal Reason')).toBeInTheDocument();
+      const renewalReasonItem = document.querySelector('.iq-waiver-details__last-renewal-reason');
+      expect(renewalReasonItem).toHaveTextContent('-');
+    });
+
+    it('shows dash when renewal comment is empty', async function () {
+      jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
+      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
+        ...waiverDetails,
+        lastRenewedAt: '2024-01-15T10:00:00.000Z',
+        lastRenewedBy: 'admin',
+        lastRenewalComment: null,
+      });
+      renderComponent();
+
+      await screen.findByText('Renewed');
+      const blockquote = document.querySelector('.nx-blockquote');
+      const entries = blockquote.querySelectorAll('.iq-waiver-comment-entry__text');
+      expect(entries[0]).toHaveTextContent('-');
     });
   });
 

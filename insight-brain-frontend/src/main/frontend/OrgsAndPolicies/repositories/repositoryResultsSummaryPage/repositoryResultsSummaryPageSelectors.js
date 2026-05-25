@@ -76,3 +76,7 @@ export const selectFilteredTotalCount = createSelector(
   selectRepositoryResultsSummaryPageSlice,
   prop('filteredTotalCount')
 );
+export const selectShowWaiverAddedBanner = createSelector(
+  selectRepositoryResultsSummaryPageSlice,
+  prop('showWaiverAddedBanner')
+);

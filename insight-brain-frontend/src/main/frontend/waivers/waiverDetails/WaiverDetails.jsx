@@ -39,6 +39,10 @@ import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectWaiverDetailsHasWaivePermission } from './waiverDetailsSelectors';
+import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const CONTAINER_IMAGE_WAIVER_INFO =
   "Details of all the specific policies waived aren't displayed on this page. " +
@@ -67,6 +71,10 @@ export default function WaiverDetails() {
   const waiverToDelete = useSelector(selectWaiverToDelete);
   const isApplication = waiver?.scopeOwnerType === 'application';
   const forContainerImageWaiver = waiver?.forContainerImage;
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+  const hasWaivePermission = useSelector(selectWaiverDetailsHasWaivePermission);
+  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
+  const routerParams = useSelector(selectRouterCurrentParams);
 
   const scopeIcon = isApplication ? <NxFontAwesomeIcon icon={faTerminal} /> : <NxFontAwesomeIcon icon={faSitemap} />;
 
@@ -77,6 +85,11 @@ export default function WaiverDetails() {
 
   const handleDeleteWaiverButtonClick = () => {
     dispatch(setWaiverToDelete(waiver));
+  };
+
+  const handleRenewWaiverButtonClick = () => {
+    const { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page } = routerParams;
+    dispatch(stateGo('firewall.renewWaiver', { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page }));
   };
 
   const onVulnerabilityDetailsClick = () => {
@@ -146,6 +159,11 @@ export default function WaiverDetails() {
           <NxH2 id="iq-waiver-details-header">Waiver Detail View</NxH2>
         </NxTile.HeaderTitle>
         <NxTile.HeaderActions className="iq-waiver-details__delete-waiver">
+          {isExpiringWaiversEnabled && isStandaloneFirewall && !forContainerImageWaiver && hasWaivePermission && (
+            <NxButton variant="tertiary" onClick={handleRenewWaiverButtonClick}>
+              Renew Waiver
+            </NxButton>
+          )}
           <NxButton variant="tertiary" onClick={handleDeleteWaiverButtonClick}>
             {forContainerImageWaiver ? `Delete Waiver for All Policy Violations` : `Delete Waiver`}
           </NxButton>
@@ -236,20 +254,56 @@ export default function WaiverDetails() {
               <NxReadOnly.Label>Date Created</NxReadOnly.Label>
               <NxReadOnly.Data>{dateCreated}</NxReadOnly.Data>
             </NxReadOnly.Item>
+            {/* Created By */}
+            <NxReadOnly.Item className="iq-waiver-details__created-by">
+              <NxReadOnly.Label>Created By</NxReadOnly.Label>
+              <NxReadOnly.Data>{creatorName}</NxReadOnly.Data>
+            </NxReadOnly.Item>
+            {/* Last Renewed / Renewed By / Renewal Reason — Firewall only */}
+            {isExpiringWaiversEnabled && isStandaloneFirewall && (
+              <>
+                <NxReadOnly.Item className="iq-waiver-details__last-renewed-date">
+                  <NxReadOnly.Label>Last Renewed</NxReadOnly.Label>
+                  <NxReadOnly.Data>
+                    {waiver?.lastRenewedAt ? new Date(waiver.lastRenewedAt).toLocaleDateString() : '-'}
+                  </NxReadOnly.Data>
+                </NxReadOnly.Item>
+                <NxReadOnly.Item className="iq-waiver-details__last-renewed-by">
+                  <NxReadOnly.Label>Renewed By</NxReadOnly.Label>
+                  <NxReadOnly.Data>{waiver?.lastRenewedBy || '-'}</NxReadOnly.Data>
+                </NxReadOnly.Item>
+                <NxReadOnly.Item className="iq-waiver-details__last-renewal-reason">
+                  <NxReadOnly.Label>Renewal Reason</NxReadOnly.Label>
+                  <NxReadOnly.Data>{waiver?.lastRenewalReasonText || '-'}</NxReadOnly.Data>
+                </NxReadOnly.Item>
+              </>
+            )}
           </NxReadOnly>
 
           {/* Comments */}
-          <NxReadOnly className="iq-waiver-details__comments">
-            <NxReadOnly.Label>Comments</NxReadOnly.Label>
-            <NxReadOnly.Data>
-              <NxBlockquote>{comment}</NxBlockquote>
-            </NxReadOnly.Data>
-          </NxReadOnly>
-          {/* Created By */}
-          <NxReadOnly className="iq-waiver-details__created-by">
-            <NxReadOnly.Label>Created By</NxReadOnly.Label>
-            <NxReadOnly.Data>{creatorName}</NxReadOnly.Data>
-          </NxReadOnly>
+          {(comment || (isExpiringWaiversEnabled && isStandaloneFirewall && waiver?.lastRenewedAt)) && (
+            <NxReadOnly className="iq-waiver-details__comments">
+              <NxReadOnly.Label>Comments</NxReadOnly.Label>
+              <NxReadOnly.Data>
+                {isExpiringWaiversEnabled && isStandaloneFirewall ? (
+                  <NxBlockquote>
+                    {waiver?.lastRenewedAt && (
+                      <div className="iq-waiver-comment-entry">
+                        <span className="iq-waiver-comment-entry__label">Renewed</span>
+                        <p className="iq-waiver-comment-entry__text">{waiver.lastRenewalComment || '-'}</p>
+                      </div>
+                    )}
+                    <div className="iq-waiver-comment-entry">
+                      <span className="iq-waiver-comment-entry__label">Created</span>
+                      <p className="iq-waiver-comment-entry__text">{comment || '-'}</p>
+                    </div>
+                  </NxBlockquote>
+                ) : (
+                  <NxBlockquote>{comment}</NxBlockquote>
+                )}
+              </NxReadOnly.Data>
+            </NxReadOnly>
+          )}
         </div>
         {waiverToDelete && <DeleteWaiverModalContainer />}
       </NxLoadWrapper>

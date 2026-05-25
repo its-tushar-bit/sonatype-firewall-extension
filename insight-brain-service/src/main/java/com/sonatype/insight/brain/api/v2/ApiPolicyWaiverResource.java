@@ -273,9 +273,12 @@ public class ApiPolicyWaiverResource
       @Parameter(description = "Enter the ownerType to specify the scope. The response will contain " +
           "waivers that are within the scope specified.", required = true) @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the corresponding id for the ownerType specified above.",
-          required = true) @PathParam("ownerId") String ownerId)
+          required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(description = "When specified, only returns active waivers expiring within this many days " +
+          "from now. Must be a positive integer. For example, expiringWithin=7 returns waivers expiring " +
+          "in the next 7 days.") @QueryParam("expiringWithin") Integer expiringWithin)
   {
-    return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId);
+    return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId, expiringWithin);
   }
 
   @POST

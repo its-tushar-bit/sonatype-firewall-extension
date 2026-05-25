@@ -49,38 +49,52 @@ export const policyViolationStates = [
   },
 ];
 
+export const EXPIRATION_FILTER_ALL = 'ALL';
+export const EXPIRATION_FILTER_AUTO = 'AUTO';
+export const EXPIRATION_FILTER_IN_24_HOURS = 'IN_24_HOURS';
+export const EXPIRATION_FILTER_IN_7_DAYS = 'IN_7_DAYS';
+export const EXPIRATION_FILTER_IN_30_DAYS = 'IN_30_DAYS';
+export const EXPIRATION_FILTER_IN_90_DAYS = 'IN_90_DAYS';
+export const EXPIRATION_FILTER_IN_OVER_90_DAYS = 'IN_OVER_90_DAYS';
+export const EXPIRATION_FILTER_NEVER = 'NEVER';
+export const EXPIRATION_FILTER_EXPIRED = 'EXPIRED';
+
 export const expirationDates = [
   {
-    id: 'ALL',
+    id: EXPIRATION_FILTER_ALL,
     name: 'all',
   },
   {
-    id: 'AUTO',
+    id: EXPIRATION_FILTER_AUTO,
     name: 'auto',
   },
   {
-    id: 'IN_24_HOURS',
+    id: EXPIRATION_FILTER_IN_24_HOURS,
     name: 'in 24 hours',
   },
   {
-    id: 'IN_7_DAYS',
+    id: EXPIRATION_FILTER_IN_7_DAYS,
     name: 'in 7 days',
   },
   {
-    id: 'IN_30_DAYS',
+    id: EXPIRATION_FILTER_IN_30_DAYS,
     name: 'in 30 days',
   },
   {
-    id: 'IN_90_DAYS',
+    id: EXPIRATION_FILTER_IN_90_DAYS,
     name: 'in 90 days',
   },
   {
-    id: 'IN_OVER_90_DAYS',
+    id: EXPIRATION_FILTER_IN_OVER_90_DAYS,
     name: 'in over 90 days',
   },
   {
-    id: 'NEVER',
+    id: EXPIRATION_FILTER_NEVER,
     name: 'never',
+  },
+  {
+    id: EXPIRATION_FILTER_EXPIRED,
+    name: 'expired',
   },
 ];
 

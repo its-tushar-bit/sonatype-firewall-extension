@@ -8,13 +8,18 @@ import * as PropTypes from 'prop-types';
 import moment from 'moment';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
-import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
-import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
+import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faRenewSolid } from 'MainRoot/img/faRenewSolid';
+import { getWaiverDaysRemaining, isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { stateGo as stateGoAction } from 'MainRoot/reduxUiRouter/routerActions';
+import { setFirewallWaiverToDelete } from 'MainRoot/firewall/waivers/firewallDashboardWaiverActions';
+import { selectFirewallDashboardHasWaivePermission } from 'MainRoot/firewall/waivers/firewallDashboardWaiverSelectors';
 
-export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
+export default function DashboardWaiversTableRow({ stateGo, waiver, page, isExpiringWaiversEnabled }) {
   const dispatch = useDispatch();
   const {
     id: waiverId,
@@ -31,6 +36,36 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   } = waiver;
 
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+
+  const daysRemaining = getWaiverDaysRemaining(expiryTime, waiver.isAutoWaiver, isExpireWhenRemediationAvailable);
+
+  const getExpiryStatusDescriptor = (days) => {
+    if (days == null) return null;
+    if (days < 0) return { text: 'Expired', modifier: 'critical' };
+    if (days <= 7) return { text: `Expires in ${days} day${days !== 1 ? 's' : ''}`, modifier: 'critical' };
+    return { text: `Expires in ${days} days`, modifier: 'muted' };
+  };
+
+  const hasWaivePermission = useSelector(selectFirewallDashboardHasWaivePermission);
+
+  const handleRenew = (e) => {
+    e.stopPropagation();
+    dispatch(
+      stateGoAction('firewall.renewWaiver', {
+        ownerType,
+        ownerId,
+        waiverId,
+        type: 'waiver',
+        sidebarReference: 'filter',
+        page: page + 1,
+      })
+    );
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    dispatch(setFirewallWaiverToDelete(waiver));
+  };
 
   const goToWaiverDetails = () => {
     const waiverType = waiver.isAutoWaiver ? 'autoWaiver' : 'waiver';
@@ -65,17 +100,22 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell>
-        <NxOverflowTooltip>
-          <div>
-            {waiver.isAutoWaiver === true ? (
-              <NxSmallTag color="green" style={{ margin: '0' }}>
-                Auto
-              </NxSmallTag>
-            ) : (
-              waiverExpiryTime
-            )}
-          </div>
-        </NxOverflowTooltip>
+        <div className="iq-waiver-expiry-cell">
+          {waiver.isAutoWaiver === true ? (
+            <NxSmallTag color="green" style={{ margin: '0' }}>Auto</NxSmallTag>
+          ) : (
+            <div className="iq-waiver-expiry-content">
+              <NxOverflowTooltip>
+                <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
+              </NxOverflowTooltip>
+              {isExpiringWaiversEnabled && getExpiryStatusDescriptor(daysRemaining) && (
+                <span className={`iq-waiver-expiry-status iq-waiver-expiry-status--${getExpiryStatusDescriptor(daysRemaining).modifier}`}>
+                  {getExpiryStatusDescriptor(daysRemaining).text}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </NxTable.Cell>
       <NxTable.Cell>
         <NxOverflowTooltip>
@@ -97,15 +137,28 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
         )}
       </NxTable.Cell>
       <NxTable.Cell className="iq-upgrade-cell">
-        <NxOverflowTooltip>
-          {shouldShowUpgradeIndicator(componentUpgradeAvailable, waiver) ? (
+        {shouldShowUpgradeIndicator(componentUpgradeAvailable, waiver) ? (
+          <NxOverflowTooltip>
             <UpgradeAvailableIndicator isAbbreviated={true} />
-          ) : (
-            <span>{'—'}</span>
-          )}
-        </NxOverflowTooltip>
+          </NxOverflowTooltip>
+        ) : (
+          <span>{'—'}</span>
+        )}
       </NxTable.Cell>
-      <NxTable.Cell chevron />
+      {isExpiringWaiversEnabled && isStandaloneFirewall && hasWaivePermission ? (
+        <NxTable.Cell className="iq-waiver-actions-cell" onClick={(e) => e.stopPropagation()}>
+          <div className="iq-waiver-actions-cell__buttons">
+            <NxButton variant="icon-only" title="Renew waiver" onClick={handleRenew} className="iq-waiver-renew-btn">
+              <NxFontAwesomeIcon icon={faRenewSolid} />
+            </NxButton>
+            <NxButton variant="icon-only" title="Delete waiver" onClick={handleDelete} className="iq-waiver-delete-btn">
+              <NxFontAwesomeIcon icon={faTrashAlt} />
+            </NxButton>
+          </div>
+        </NxTable.Cell>
+      ) : (
+        <NxTable.Cell chevron />
+      )}
     </NxTable.Row>
   );
 }
@@ -124,11 +177,12 @@ export const waiverPropTypes = PropTypes.shape({
   componentUpgradeAvailable: PropTypes.bool,
   isAutoWaiver: PropTypes.bool,
   componentIdentifier: PropTypes.object,
+  isExpireWhenRemediationAvailable: PropTypes.bool,
 });
 
 DashboardWaiversTableRow.propTypes = {
   stateGo: PropTypes.func.isRequired,
   waiver: waiverPropTypes,
   page: PropTypes.number,
-  isStandaloneFirewall: PropTypes.bool,
+  isExpiringWaiversEnabled: PropTypes.bool,
 };

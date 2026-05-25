@@ -13,3 +13,4 @@ export const selectWaiverDetails = createSelector(selectWaiverSlice, prop('waive
 export const selectWaiverDetailsLoading = createSelector(selectWaiverSlice, prop('loading'));
 export const selectWaiverDetailsError = createSelector(selectWaiverSlice, prop('loadError'));
 export const selectWaiverToDelete = createSelector(selectDeleteWaiver, prop('waiverToDelete'));
+export const selectWaiverDetailsHasWaivePermission = createSelector(selectWaiverSlice, prop('hasWaivePermission'));

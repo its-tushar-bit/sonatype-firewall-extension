@@ -60,4 +60,9 @@ public class RisksFilterDTO
 
   // return first page if page is not provided
   public int page = 0;
+
+  // Firewall-only text filters. Null means no filter applied.
+  public String componentName;
+
+  public String repositoryPublicId;
 }

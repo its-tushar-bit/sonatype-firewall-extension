@@ -3,19 +3,29 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
+import { NxTable, NxIndeterminatePagination, NxTableContainer, NxFilterInput } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { debounce } from 'debounce';
 import { Messages } from 'MainRoot/util/CommonServices';
 import DashboardWaiversTableRow, { waiverPropTypes } from './DashboardWaiversTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
-
+import FirewallWaiverExpirationFilter from 'MainRoot/firewall/waivers/FirewallWaiverExpirationFilter';
+import {
+  selectExpirationDate,
+  firewallApplyFilter,
+  setComponentNameFilter,
+  setRepositoryFilter,
+} from 'MainRoot/dashboard/filter/dashboardFilterActions';
+import { setPage } from 'MainRoot/dashboard/results/dashboardResultsActions';
+import { WAIVERS_RESULTS_TYPE } from 'MainRoot/dashboard/results/dashboardResultsTypes';
+import { selectDashboardFilter } from 'MainRoot/dashboard/dashboardSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
 
-const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], ['policyName'], ['scope']];
+const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], ['policyName'], ['scope'], ['component']];
 
 export default function FirewallDashboardWaiversTable(props) {
   const {
@@ -27,16 +37,48 @@ export default function FirewallDashboardWaiversTable(props) {
     maxDaysOld,
     needsAcknowledgement,
     reload,
+    isExpiringWaiversEnabled,
   } = props;
+  const dispatch = useDispatch();
+  const dashboardFilter = useSelector(selectDashboardFilter);
+  const selectedExpirationDate = dashboardFilter?.selected?.expirationDate ?? 'ALL';
+
+  const onExpirationChange = (value) => {
+    dispatch(selectExpirationDate(value));
+    dispatch(firewallApplyFilter());
+    dispatch(setPage(WAIVERS_RESULTS_TYPE, 0));
+  };
+
+  const componentName = dashboardFilter?.selected?.componentName ?? '';
+  const repositoryPublicId = dashboardFilter?.selected?.repositoryPublicId ?? '';
+
+  const debouncedLoadWaiverResults = useMemo(
+    () => debounce(() => {
+      dispatch(firewallApplyFilter());
+      dispatch(setPage(WAIVERS_RESULTS_TYPE, 0));
+    }, 500),
+    [dispatch]
+  );
+
+  useEffect(() => () => debouncedLoadWaiverResults.clear(), [debouncedLoadWaiverResults]);
+
+  const onComponentNameChange = (value) => {
+    dispatch(setComponentNameFilter(value));
+    debouncedLoadWaiverResults();
+  };
+
+  const onRepositoryChange = (value) => {
+    dispatch(setRepositoryFilter(value));
+    debouncedLoadWaiverResults();
+  };
+
+  const effectiveHasNextPage = hasNextPage;
   const currentPage = hasMultiplePages ? page : null;
   const isLoading = !error && !results && !needsAcknowledgement,
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
-    emptyMessage =
-      'No data available ' +
-      (maxDaysOld ? `in the last ${maxDaysOld} days ` : '') +
-      'given the applied filters and permissions.';
-  const colSpan = 6;
+    emptyMessage = 'No data available for the applied filters and permissions.';
+  const colSpan = isExpiringWaiversEnabled ? 8 : 7;
 
   const getColumnDirection = (index, sortInverted = false) => {
     if (!results || !results.length || error) {
@@ -67,12 +109,14 @@ export default function FirewallDashboardWaiversTable(props) {
     }
   };
 
+  const displayedResults = results;
+
   const bodyFragment = () => {
-    if (!isNilOrEmpty(results)) {
+    if (!isNilOrEmpty(displayedResults)) {
       return (
         <>
-          {results.map((waiver) => (
-            <DashboardWaiversTableRow {...{ stateGo, waiver, page }} key={waiver.id} />
+          {displayedResults.map((waiver) => (
+            <DashboardWaiversTableRow {...{ stateGo, waiver, page, isExpiringWaiversEnabled }} key={waiver.id} />
           ))}
         </>
       );
@@ -81,6 +125,7 @@ export default function FirewallDashboardWaiversTable(props) {
   };
   return (
     <div className="nx-table-container">
+<div className="iq-waivers-table-scroll">
       <NxTable className="nx-table--fixed-layout">
         <NxTable.Head>
           <NxTable.Row className="iq-dashboard-waivers-headers">
@@ -108,16 +153,51 @@ export default function FirewallDashboardWaiversTable(props) {
             >
               Expiration
             </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
+            <NxTable.Cell className="iq-waiver-policy-header" onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
               Policy
             </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
+            <NxTable.Cell className="iq-waiver-scope-header" onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
               Scope
             </NxTable.Cell>
-            <NxTable.Cell>Components</NxTable.Cell>
+            <NxTable.Cell className="iq-waiver-component-header" onClick={() => doSort(5)} sortDir={getColumnDirection(5)} isSortable>
+              Components
+            </NxTable.Cell>
             <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
-            <NxTable.Cell chevron />
+            {isExpiringWaiversEnabled ? (
+              <NxTable.Cell className="iq-waiver-actions-header">Actions</NxTable.Cell>
+            ) : (
+              <NxTable.Cell chevron />
+            )}
           </NxTable.Row>
+          {isExpiringWaiversEnabled && (
+            <NxTable.Row isFilterHeader>
+              <NxTable.Cell />
+              <NxTable.Cell />
+              <NxTable.Cell className="iq-waiver-expiration-filter-cell">
+                <FirewallWaiverExpirationFilter
+                  selectedId={selectedExpirationDate}
+                  onChange={onExpirationChange}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell />
+              <NxTable.Cell className="iq-waiver-scope-filter-cell">
+                <NxFilterInput
+                  placeholder="repository"
+                  value={repositoryPublicId}
+                  onChange={onRepositoryChange}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell className="iq-waiver-component-filter-cell">
+                <NxFilterInput
+                  placeholder="component name"
+                  value={componentName}
+                  onChange={onComponentNameChange}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell />
+              <NxTable.Cell />
+            </NxTable.Row>
+          )}
         </NxTable.Head>
         <NxTable.Body
           className="iq-dashboard-waivers-entries"
@@ -129,15 +209,16 @@ export default function FirewallDashboardWaiversTable(props) {
           {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
         </NxTable.Body>
       </NxTable>
+      </div>
 
       {!isLoading &&
-        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+        (currentPage === null || (currentPage === 0 && !effectiveHasNextPage) ? null : (
           <NxTableContainer.Footer>
             <NxIndeterminatePagination
               onPrevPageSelect={dispatchPreviousPage}
               onNextPageSelect={dispatchNexPage}
               isFirstPage={currentPage === 0}
-              isLastPage={!hasNextPage}
+              isLastPage={!effectiveHasNextPage}
             />
           </NxTableContainer.Footer>
         ))}
@@ -153,6 +234,7 @@ FirewallDashboardWaiversTable.propTypes = {
   dispatchPreviousPage: PropTypes.func.isRequired,
   maxDaysOld: PropTypes.number,
   needsAcknowledgement: PropTypes.bool.isRequired,
+  isExpiringWaiversEnabled: PropTypes.bool,
   waivers: PropTypes.shape({
     results: PropTypes.arrayOf(waiverPropTypes),
     hasNextPage: PropTypes.bool,

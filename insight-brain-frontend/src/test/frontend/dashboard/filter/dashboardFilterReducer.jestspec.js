@@ -694,6 +694,84 @@ describe('dashboardFilterReducer', () => {
     });
   });
 
+  describe('SET_COMPONENT_NAME_FILTER action', () => {
+    let initState;
+
+    beforeEach(() => {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        selected: {
+          componentName: '',
+        },
+      };
+    });
+
+    it('sets selected componentName and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SET_COMPONENT_NAME_FILTER',
+        payload: 'commons-io',
+      });
+
+      expect(selected.componentName).toBe('commons-io');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+
+    it('sets selected componentName to empty string and sets filtersAreDirty to true', () => {
+      initState.selected.componentName = 'existing-value';
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SET_COMPONENT_NAME_FILTER',
+        payload: '',
+      });
+
+      expect(selected.componentName).toBe('');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe('SET_REPOSITORY_FILTER action', () => {
+    let initState;
+
+    beforeEach(() => {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        selected: {
+          repositoryPublicId: '',
+        },
+      };
+    });
+
+    it('sets selected repositoryPublicId and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SET_REPOSITORY_FILTER',
+        payload: 'my-repo',
+      });
+
+      expect(selected.repositoryPublicId).toBe('my-repo');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+
+    it('sets selected repositoryPublicId to empty string and sets filtersAreDirty to true', () => {
+      initState.selected.repositoryPublicId = 'existing-value';
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SET_REPOSITORY_FILTER',
+        payload: '',
+      });
+
+      expect(selected.repositoryPublicId).toBe('');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+  });
+
   describe('TOGGLE_FILTER action', () => {
     let initState;
 

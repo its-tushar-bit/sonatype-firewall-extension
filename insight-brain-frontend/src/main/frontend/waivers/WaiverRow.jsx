@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { faCog, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faRenewSolid } from 'MainRoot/img/faRenewSolid';
 import {
   NxButton,
   NxFontAwesomeIcon,
@@ -25,6 +26,11 @@ import { constraintViolationsPropType } from 'MainRoot/violation/PolicyViolation
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAutoWaiverExclusionCreateModalSlice } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoWaiverExclusionCreateModalSlice';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectHasPermissionToAddWaivers } from 'MainRoot/firewall/firewallSelectors';
+import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 const DisplayAutoWaiver = ({ waiver }) => {
   const { isOpen } = useSelector(selectAutoWaiverExclusionCreateModalSlice);
@@ -100,12 +106,31 @@ const DisplayWaiverInTableRow = ({
   reasons,
   deleteWaiver,
 }) => {
+  const dispatch = useDispatch();
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+  const hasWaivePermissionFromSlice = useSelector(selectHasPermissionToAddWaivers);
+  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
+  const routerParams = useSelector(selectRouterCurrentParams);
+  const [localWaivePermission, setLocalWaivePermission] = useState(false);
+
+  useEffect(() => {
+    if (isStandaloneFirewall && !hasWaivePermissionFromSlice && waiver?.scopeOwnerId) {
+      let cancelled = false;
+      checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository', waiver.scopeOwnerId)
+        .then(() => { if (!cancelled) setLocalWaivePermission(true); })
+        .catch(() => { if (!cancelled) setLocalWaivePermission(false); });
+      return () => { cancelled = true; };
+    }
+  }, [isStandaloneFirewall, hasWaivePermissionFromSlice, waiver?.scopeOwnerId]);
+
+  const hasWaivePermission = hasWaivePermissionFromSlice || localWaivePermission;
   const rowClass = classNames({
     'list-waivers-row--expired': isWaiverExpired,
   });
   const classPrefix = 'iq-waivers-table__';
   const forContainerImageComponent = waiver?.forContainerImageComponent;
   const showDeleteWaiverButton = deleteWaiver && !forContainerImageComponent;
+  const showRenewButton = isExpiringWaiversEnabled && isStandaloneFirewall && !forContainerImageComponent && hasWaivePermission;
   const getExpirationDate = (waiver) => {
     if (waiver.expiryTime) {
       return waiver.expireWhenRemediationAvailable && !isSimilarWaiver
@@ -179,18 +204,38 @@ const DisplayWaiverInTableRow = ({
           {waiver?.creatorName || '\u2014'}
         </NxReadOnly.Data>
       </NxTableCell>
-      {showDeleteWaiverButton && (
+      {(showRenewButton || showDeleteWaiverButton) && (
         <NxTableCell className={`${classPrefix}delete waiver-row-delete`}>
           <div className="nx-btn-bar">
-            <NxButton
-              variant="icon-only"
-              title="Delete"
-              key={waiver.policyWaiverId}
-              className="list-waivers-row__delete-btn"
-              onClick={() => deleteWaiver(waiver)}
-            >
-              <NxFontAwesomeIcon icon={faTrashAlt} />
-            </NxButton>
+            {showRenewButton && (
+              <NxButton
+                variant="icon-only"
+                title="Renew Waiver"
+                className="list-waivers-row__renew-btn"
+                onClick={() => dispatch(stateGo('firewall.renewWaiver', {
+                  ownerType: waiver.scopeOwnerType,
+                  ownerId: waiver.scopeOwnerId,
+                  waiverId: waiver.policyWaiverId,
+                  type: routerParams.type,
+                  sidebarReference: routerParams.sidebarReference,
+                  sidebarId: routerParams.sidebarId,
+                  page: routerParams.page,
+                }))}
+              >
+                <NxFontAwesomeIcon icon={faRenewSolid} />
+              </NxButton>
+            )}
+            {showDeleteWaiverButton && (
+              <NxButton
+                variant="icon-only"
+                title="Delete"
+                key={waiver.policyWaiverId}
+                className="list-waivers-row__delete-btn"
+                onClick={() => deleteWaiver(waiver)}
+              >
+                <NxFontAwesomeIcon icon={faTrashAlt} />
+              </NxButton>
+            )}
           </div>
         </NxTableCell>
       )}

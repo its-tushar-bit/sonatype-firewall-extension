@@ -133,6 +133,11 @@ CREATE TABLE policy_waiver (
   expire_when_remediation_available boolean DEFAULT false,
   is_for_container_image boolean DEFAULT false,
   is_for_container_image_component boolean DEFAULT false,
+  last_renewal_old_expiry_date timestamp NULL,
+  last_renewed_by varchar(210) NULL,
+  last_renewed_at timestamp NULL,
+  last_renewal_comment varchar(1000) NULL,
+  last_renewal_reason_id varchar(50) NULL,
   CONSTRAINT policy_waiver_pk PRIMARY KEY (policy_waiver_id),
   CONSTRAINT policy_waiver_policy_fk FOREIGN KEY (policy_id) REFERENCES policy(policy_id)
 );

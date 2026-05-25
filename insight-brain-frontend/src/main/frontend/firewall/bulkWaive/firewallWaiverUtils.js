@@ -171,9 +171,6 @@ export const validateFirewallBulkWaiverConfig = (config) => {
   };
 };
 
-export const normalizeFirewallOwnerType = (ownerType) =>
-  ownerType === 'root_organization' ? 'organization' : ownerType;
-
 export const displayFirewallRepositoryScope = (scope) => {
   if (!scope) {
     return '';
@@ -190,3 +187,12 @@ export const displayFirewallRepositoryScope = (scope) => {
       return `${scope.label} - ${scope.name}`;
   }
 };
+
+export const normalizeFirewallOwnerType = (ownerType) => {
+  if (!ownerType) return ownerType;
+  const lower = ownerType.toLowerCase();
+  if (lower === 'root_organization') return 'organization';
+  if (lower === 'all_repositories') return 'repository_container';
+  return lower;
+};
+

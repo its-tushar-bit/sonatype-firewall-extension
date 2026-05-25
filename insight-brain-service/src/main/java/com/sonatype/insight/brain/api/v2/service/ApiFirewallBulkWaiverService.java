@@ -147,7 +147,10 @@ public class ApiFirewallBulkWaiverService
           throw new NotFoundException("Cannot find a repository with ID " + repoId + ".");
         }
 
-        String waiverKey = buildWaiverKey(repositoryPolicyViolation.getPolicyId(), repositoryPolicyViolation.getHash(),
+        String waiverHash = (waiverOptionsDTO.matcherStrategy == ALL_VERSIONS)
+            ? null
+            : repositoryPolicyViolation.getHash();
+        String waiverKey = buildWaiverKey(repositoryPolicyViolation.getPolicyId(), waiverHash,
             repositoryPolicyViolation.getConstraintFactsJson());
         if (existingWaiverKeys.contains(waiverKey)) {
           existingViolations.add(violationId);

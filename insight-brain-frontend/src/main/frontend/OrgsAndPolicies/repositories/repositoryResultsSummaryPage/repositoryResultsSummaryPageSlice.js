@@ -85,6 +85,7 @@ const initialState = {
   },
   reEvaluateMaskSuccess: false,
   showMaskSuccessDialog: false,
+  showWaiverAddedBanner: false,
 };
 const sortComponents = (sortData) => (dispatch, getState) => {
   const repository = selectRepositoryInformation(getState());
@@ -148,6 +149,10 @@ const reevaluateReportFulfilled = (state) => {
 const reevaluateReportRejected = (state) => {
   state.showMaskSuccessDialog = false;
   state.reEvaluateMaskSuccess = false;
+};
+
+const setWaiverAddedBanner = (state, { payload }) => {
+  state.showWaiverAddedBanner = payload;
 };
 
 const changeViolationStateFilters = (state, { payload }) => {
@@ -383,6 +388,7 @@ export const repositoryResultsSummaryPageSlice = createSlice({
     setPageSize,
     setCurrentPage,
     applyFilters,
+    setWaiverAddedBanner,
   },
   extraReducers: {
     [getRepositoryInformation.fulfilled]: getRepositoryInformationFulfilled,

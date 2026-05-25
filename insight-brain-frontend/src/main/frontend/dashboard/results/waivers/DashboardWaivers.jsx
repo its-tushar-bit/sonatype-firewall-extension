@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectDashboardFilter, selectCurrentTab, selectWaiversResults } from '../../dashboardSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { WAIVERS_RESULTS_TYPE, WAIVER_REQUESTS_RESULTS_TYPE } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import {
   loadWaiverResults,
@@ -15,9 +16,18 @@ import {
   setPreviousWaiversPage,
   sortWaiversResults,
 } from '../dashboardResultsActions';
+import {
+  selectExpirationDate,
+  setComponentNameFilter,
+  setRepositoryFilter,
+  firewallApplyFilter,
+  selectAge,
+} from 'MainRoot/dashboard/filter/dashboardFilterActions';
 import DashboardWaiversTable from './DashboardWaiversTable';
 import FirewallDashboardWaiversTable from './FirewallDashboardWaiversTable';
 import DashboardWaiverRequestsTable from './DashboardWaiverRequestsTable';
+import FirewallDeleteWaiverModalContainer from 'MainRoot/firewall/waivers/FirewallDeleteWaiverModalContainer';
+import { loadFirewallDashboardWaivePermission } from 'MainRoot/firewall/waivers/firewallDashboardWaiverActions';
 import { NxTabs, NxTabList, NxTab, NxTabPanel, NxTile } from '@sonatype/react-shared-components';
 
 export default function DashboardWaivers() {
@@ -34,12 +44,15 @@ export default function DashboardWaivers() {
     appliedFilter: { maxDaysOld },
   } = useSelector(selectDashboardFilter);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
+  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
   const waivers = useSelector(selectWaiversResults);
 
   const handleTabClick = (index) => {
     dispatch(stateGo(`dashboard.overview.${waiverTabs[index]}`));
   };
 
+  // Auto waivers have null expiryTime but should render an "Auto" badge, not "Never".
+  // Setting expiryTime to -1 distinguishes them from truly non-expiring waivers (null).
   const modifiedWaivers = {
     ...waivers,
     results: waivers?.results
@@ -59,18 +72,30 @@ export default function DashboardWaivers() {
     maxDaysOld,
     needsAcknowledgement,
     reload: loadWaivers,
+    isExpiringWaiversEnabled,
   };
 
   useEffect(() => {
     if (isStandaloneFirewall) {
+      dispatch(selectExpirationDate(null));
+      dispatch(selectAge(null));
+      dispatch(setComponentNameFilter(''));
+      dispatch(setRepositoryFilter(''));
+      dispatch(firewallApplyFilter());
       loadWaivers();
+      if (isExpiringWaiversEnabled) {
+        dispatch(loadFirewallDashboardWaivePermission());
+      }
     }
-  }, [isStandaloneFirewall]);
+  }, [isStandaloneFirewall, isExpiringWaiversEnabled]);
 
   return (
     <NxTile id="dashboard-waivers" className="iq-dashboard-waivers">
       {isStandaloneFirewall ? (
-        <FirewallDashboardWaiversTable {...tableProps} />
+        <>
+          <FirewallDeleteWaiverModalContainer />
+          <FirewallDashboardWaiversTable {...tableProps} />
+        </>
       ) : (
         <NxTabs activeTab={waiverTabs.indexOf(currentTab)} onTabSelect={handleTabClick}>
           <NxTabList>

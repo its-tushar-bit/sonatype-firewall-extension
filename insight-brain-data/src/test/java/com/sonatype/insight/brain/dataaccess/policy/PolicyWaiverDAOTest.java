@@ -1177,6 +1177,37 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testUpdateForRenewal_bypassesDuplicateCheck() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String hash = TemporaryEntity.uuid().substring(0, 8);
+
+    PolicyWaiver expiredWaiver =
+        new PolicyWaiver(hash, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 8));
+    expiredWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(expiredWaiver);
+
+    PolicyWaiver activeWaiver =
+        new PolicyWaiver(hash, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 5));
+    activeWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(activeWaiver);
+
+    Date newExpiry = Date.from(Instant.now().plus(30, ChronoUnit.DAYS));
+    expiredWaiver.setExpiryTime(newExpiry);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.updateForRenewal(tx, expiredWaiver);
+      tx.commit();
+    }
+
+    PolicyWaiver renewed = dao.getByIdAndOwnerIdNotNull(expiredWaiver.getId(), ownerId);
+    assertThat(renewed.getExpiryTime()).isEqualTo(newExpiry);
+  }
+
+  @Test
   public void testGetActiveByPolicyId() {
     Policy policy1 = tempEntity.newPolicy(application);
     Policy policy2 = tempEntity.newPolicy(organization);
@@ -1505,5 +1536,883 @@ public class PolicyWaiverDAOTest
     assertThat(dao.getContainerPolicyWaiversCount(app1Only)).isEqualTo(5);
     assertThat(page1).extracting(PolicyContainerWaiverData::ownerId).containsOnly(app1.getId());
     assertThat(page2).extracting(PolicyContainerWaiverData::ownerId).containsOnly(app1.getId());
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_withComponentNameFilter() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String purl1 = "pkg:maven/com.example/component1@1.0.0?type=jar";
+    String purl2 = "pkg:maven/com.example/other-component@2.0.0?type=jar";
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "comment");
+    waiver1.setAssociatedPackageUrl(purl1);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "comment");
+    waiver2.setAssociatedPackageUrl(purl2);
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component1",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(1);
+      assertThat(results.get(0).getAssociatedPackageUrl()).isEqualTo(purl1);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_withComponentNameFilterCaseInsensitive() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String purl = "pkg:maven/com.example/MyComponent@1.0.0?type=jar";
+
+    PolicyWaiver waiver = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "comment");
+    waiver.setAssociatedPackageUrl(purl);
+    tempEntity.newWaiver(waiver);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "mycomponent",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(1);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_noFiltersReturnsAll() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    tempEntity.newWaiver("hash1", policy.getId(), organization.getId());
+    tempEntity.newWaiver("hash2", policy.getId(), organization.getId());
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          null,
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(2);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_emptyOwnerIdsReturnsEmpty() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.emptySet(),
+          "component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).isEmpty();
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_pagination() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String purlPrefix = "pkg:maven/com.example/component";
+
+    for (int i = 0; i < 5; i++) {
+      PolicyWaiver waiver = new PolicyWaiver("hash" + i, policy.getId(), organization.getId(), "comment");
+      waiver.setAssociatedPackageUrl(purlPrefix + i + "@1.0.0?type=jar");
+      tempEntity.newWaiver(waiver);
+    }
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Page 0, pageSize 2 (returns 3 results = pageSize + 1)
+      List<PolicyWaiver> page0 = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          2,
+          "EXPIRATION_DATE");
+
+      assertThat(page0).hasSize(3); // pageSize + 1
+
+      // Page 1, pageSize 2 (returns 3 results)
+      List<PolicyWaiver> page1 = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          1,
+          2,
+          "EXPIRATION_DATE");
+
+      assertThat(page1).hasSize(3); // pageSize + 1
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_withComponentNameContainingSqlWildcards() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String purl = "pkg:maven/com.example/my_component@1.0.0?type=jar";
+    String purlOther = "pkg:maven/com.example/other@1.0.0?type=jar";
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "comment");
+    waiver1.setAssociatedPackageUrl(purl);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "comment");
+    waiver2.setAssociatedPackageUrl(purlOther);
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Searching for "my_component" with SQL wildcard underscore — should only match purl1, not purl2
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "my_component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(1);
+      assertThat(results.get(0).getAssociatedPackageUrl()).isEqualTo(purl);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_activeOnly() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    // Active waiver
+    PolicyWaiver activeWaiver = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "active");
+    activeWaiver.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(activeWaiver);
+
+    // Expired waiver
+    PolicyWaiver expiredWaiver = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "expired");
+    expiredWaiver.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    expiredWaiver.setExpiryTime(Date.from(Instant.now().minus(1, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(expiredWaiver);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Active only = true
+      List<PolicyWaiver> activeResults = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(activeResults).hasSize(1);
+      assertThat(activeResults.get(0).getComment()).isEqualTo("active");
+
+      // Active only = false (returns all)
+      List<PolicyWaiver> allResults = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(allResults).hasSize(2);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_filteredPolicyIdsExcludesNonMatchingPolicies() {
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy1.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy2.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Only policy1 in filtered set — waiver2 must be excluded at DB level
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          true,
+          null,
+          null,
+          false,
+          Collections.singleton(policy1.getId()),
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(1);
+      assertThat(results.get(0).getPolicyId()).isEqualTo(policy1.getId());
+    }
+  }
+
+  // ========== Sort Tests ==========
+
+  @Test
+  public void testGetFilteredForDashboard_sortByExpirationDateAscending() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Date now = new Date();
+    Date expiry1 = Date.from(now.toInstant().plus(1, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry2 = Date.from(now.toInstant().plus(2, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry3 = Date.from(now.toInstant().plus(3, java.time.temporal.ChronoUnit.DAYS));
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    waiver1.setExpiryTime(expiry3);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    waiver2.setExpiryTime(expiry1);
+    tempEntity.newWaiver(waiver2);
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy.getId(), organization.getId(), "w3");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/component@3.0.0?type=jar");
+    waiver3.setExpiryTime(expiry2);
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(3);
+      // Ascending order: waiver2 (expiry1) < waiver3 (expiry2) < waiver1 (expiry3)
+      assertThat(results.get(0).getComment()).isEqualTo("w2");
+      assertThat(results.get(1).getComment()).isEqualTo("w3");
+      assertThat(results.get(2).getComment()).isEqualTo("w1");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_sortByExpirationDateDescending() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Date now = new Date();
+    Date expiry1 = Date.from(now.toInstant().plus(1, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry2 = Date.from(now.toInstant().plus(2, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry3 = Date.from(now.toInstant().plus(3, java.time.temporal.ChronoUnit.DAYS));
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    waiver1.setExpiryTime(expiry3);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    waiver2.setExpiryTime(expiry1);
+    tempEntity.newWaiver(waiver2);
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy.getId(), organization.getId(), "w3");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/component@3.0.0?type=jar");
+    waiver3.setExpiryTime(expiry2);
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "-EXPIRATION_DATE");
+
+      assertThat(results).hasSize(3);
+      // Descending order: waiver1 (expiry3) > waiver3 (expiry2) > waiver2 (expiry1)
+      assertThat(results.get(0).getComment()).isEqualTo("w1");
+      assertThat(results.get(1).getComment()).isEqualTo("w3");
+      assertThat(results.get(2).getComment()).isEqualTo("w2");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_sortByCreationDate() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "first");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    // Small delay to ensure different create times
+    try {
+      Thread.sleep(10);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "middle");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try {
+      Thread.sleep(10);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy.getId(), organization.getId(), "last");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/component@3.0.0?type=jar");
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Ascending order (oldest first)
+      List<PolicyWaiver> resultsAsc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "CREATION_DATE");
+
+      assertThat(resultsAsc).hasSize(3);
+      assertThat(resultsAsc.get(0).getComment()).isEqualTo("first");
+      assertThat(resultsAsc.get(1).getComment()).isEqualTo("middle");
+      assertThat(resultsAsc.get(2).getComment()).isEqualTo("last");
+
+      // Descending order (newest first)
+      List<PolicyWaiver> resultsDesc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "-CREATION_DATE");
+
+      assertThat(resultsDesc).hasSize(3);
+      assertThat(resultsDesc.get(0).getComment()).isEqualTo("last");
+      assertThat(resultsDesc.get(1).getComment()).isEqualTo("middle");
+      assertThat(resultsDesc.get(2).getComment()).isEqualTo("first");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_sortByComponentScope() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "z-package");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/zeta@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "a-package");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/alpha@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy.getId(), organization.getId(), "m-package");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/middle@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Ascending alphabetical order
+      List<PolicyWaiver> resultsAsc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          null,
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "COMPONENT_SCOPE");
+
+      assertThat(resultsAsc).hasSize(3);
+      assertThat(resultsAsc.get(0).getComment()).isEqualTo("a-package");
+      assertThat(resultsAsc.get(1).getComment()).isEqualTo("m-package");
+      assertThat(resultsAsc.get(2).getComment()).isEqualTo("z-package");
+
+      // Descending alphabetical order
+      List<PolicyWaiver> resultsDesc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          null,
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "-COMPONENT_SCOPE");
+
+      assertThat(resultsDesc).hasSize(3);
+      assertThat(resultsDesc.get(0).getComment()).isEqualTo("z-package");
+      assertThat(resultsDesc.get(1).getComment()).isEqualTo("m-package");
+      assertThat(resultsDesc.get(2).getComment()).isEqualTo("a-package");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_sortByPolicyName() {
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "Alpha Security Policy", 5);
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "Zeta Security Policy", 8);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy1.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy2.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Ascending by policy name
+      List<PolicyWaiver> resultsAsc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "POLICY_NAME");
+
+      assertThat(resultsAsc).hasSize(2);
+      assertThat(resultsAsc.get(0).getComment()).isEqualTo("w1"); // Alpha policy
+      assertThat(resultsAsc.get(1).getComment()).isEqualTo("w2"); // Zeta policy
+
+      // Descending by policy name
+      List<PolicyWaiver> resultsDesc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "-POLICY_NAME");
+
+      assertThat(resultsDesc).hasSize(2);
+      assertThat(resultsDesc.get(0).getComment()).isEqualTo("w2"); // Zeta policy
+      assertThat(resultsDesc.get(1).getComment()).isEqualTo("w1"); // Alpha policy
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_sortByThreatLevel() {
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "Low Threat Policy", 3);
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "High Threat Policy", 9);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy1.getId(), organization.getId(), "low");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy2.getId(), organization.getId(), "high");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Ascending by threat level (default)
+      List<PolicyWaiver> resultsAsc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "THREAT_LEVEL");
+
+      assertThat(resultsAsc).hasSize(2);
+      assertThat(resultsAsc.get(0).getComment()).isEqualTo("low"); // Threat level 3
+      assertThat(resultsAsc.get(1).getComment()).isEqualTo("high"); // Threat level 9
+
+      // Descending by threat level
+      List<PolicyWaiver> resultsDesc = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "-THREAT_LEVEL");
+
+      assertThat(resultsDesc).hasSize(2);
+      assertThat(resultsDesc.get(0).getComment()).isEqualTo("high"); // Threat level 9
+      assertThat(resultsDesc.get(1).getComment()).isEqualTo("low"); // Threat level 3
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_nullOrderBy_defaultsToExpiryTimeAsc() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Date now = new Date();
+    Date expiry1 = Date.from(now.toInstant().plus(1, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry2 = Date.from(now.toInstant().plus(2, java.time.temporal.ChronoUnit.DAYS));
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "later");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    waiver1.setExpiryTime(expiry2);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "earlier");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    waiver2.setExpiryTime(expiry1);
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          null); // null orderBy
+
+      assertThat(results).hasSize(2);
+      // Default: ascending by expiry_time, nulls last
+      assertThat(results.get(0).getComment()).isEqualTo("earlier");
+      assertThat(results.get(1).getComment()).isEqualTo("later");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_unknownOrderBy_defaultsToExpiryTimeAsc() {
+    Policy policy = tempEntity.newPolicy(organization);
+    Date now = new Date();
+    Date expiry1 = Date.from(now.toInstant().plus(1, java.time.temporal.ChronoUnit.DAYS));
+    Date expiry2 = Date.from(now.toInstant().plus(2, java.time.temporal.ChronoUnit.DAYS));
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "later");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    waiver1.setExpiryTime(expiry2);
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "earlier");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    waiver2.setExpiryTime(expiry1);
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "UNKNOWN_FIELD"); // Unknown orderBy
+
+      assertThat(results).hasSize(2);
+      // Default: ascending by expiry_time, nulls last
+      assertThat(results.get(0).getComment()).isEqualTo("earlier");
+      assertThat(results.get(1).getComment()).isEqualTo("later");
+    }
+  }
+
+  // ========== Edge Cases: filteredPolicyIds ==========
+
+  @Test
+  public void testGetFilteredForDashboard_emptyFilteredPolicyIds_returnsAll() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Empty set should NOT filter - returns all matching waivers
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          Collections.emptySet(),
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(2);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_nullFilteredPolicyIds_returnsAll() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // null filteredPolicyIds should NOT filter - returns all matching waivers
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).hasSize(2);
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_nonExistentPolicyIds_returnsEmpty() {
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver waiver = new PolicyWaiver("hash1", policy.getId(), organization.getId(), "w1");
+    waiver.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Filter by non-existent policy IDs
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          Collections.singleton("non-existent-policy-id"),
+          0,
+          100,
+          "EXPIRATION_DATE");
+
+      assertThat(results).isEmpty();
+    }
+  }
+
+  // ========== Combined Filter + Sort Tests ==========
+
+  @Test
+  public void testGetFilteredForDashboard_combinedFilterAndSort() {
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "Policy Alpha", 5);
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "Policy Beta", 8);
+    Policy policy3 = tempEntity.newPolicy(organization.getId(), "Policy Gamma", 3);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy1.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy2.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy3.getId(), organization.getId(), "w3");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/component@3.0.0?type=jar");
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Filter by policy1 and policy3, sort by POLICY_NAME ascending
+      Set<String> filteredPolicyIds = new HashSet<>();
+      filteredPolicyIds.add(policy1.getId());
+      filteredPolicyIds.add(policy3.getId());
+
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          filteredPolicyIds,
+          0,
+          100,
+          "POLICY_NAME");
+
+      assertThat(results).hasSize(2);
+      // Sorted by policy name: Alpha (w1) < Gamma (w3)
+      assertThat(results.get(0).getComment()).isEqualTo("w1");
+      assertThat(results.get(1).getComment()).isEqualTo("w3");
+    }
+  }
+
+  @Test
+  public void testGetFilteredForDashboard_filteredPolicyIdsWithThreatLevelSort() {
+    Policy policy1 = tempEntity.newPolicy(organization.getId(), "Low", 2);
+    Policy policy2 = tempEntity.newPolicy(organization.getId(), "Medium", 5);
+    Policy policy3 = tempEntity.newPolicy(organization.getId(), "High", 9);
+
+    PolicyWaiver waiver1 = new PolicyWaiver("hash1", policy1.getId(), organization.getId(), "w1");
+    waiver1.setAssociatedPackageUrl("pkg:maven/com.example/component@1.0.0?type=jar");
+    tempEntity.newWaiver(waiver1);
+
+    PolicyWaiver waiver2 = new PolicyWaiver("hash2", policy2.getId(), organization.getId(), "w2");
+    waiver2.setAssociatedPackageUrl("pkg:maven/com.example/component@2.0.0?type=jar");
+    tempEntity.newWaiver(waiver2);
+
+    PolicyWaiver waiver3 = new PolicyWaiver("hash3", policy3.getId(), organization.getId(), "w3");
+    waiver3.setAssociatedPackageUrl("pkg:maven/com.example/component@3.0.0?type=jar");
+    tempEntity.newWaiver(waiver3);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Filter by policy1 and policy3, sort by THREAT_LEVEL descending
+      Set<String> filteredPolicyIds = new HashSet<>();
+      filteredPolicyIds.add(policy1.getId());
+      filteredPolicyIds.add(policy3.getId());
+
+      List<PolicyWaiver> results = dao.getFilteredForDashboard(
+          tx,
+          Collections.singleton(organization.getId()),
+          "component",
+          null,
+          false,
+          null,
+          null,
+          false,
+          filteredPolicyIds,
+          0,
+          100,
+          "-THREAT_LEVEL");
+
+      assertThat(results).hasSize(2);
+      // Sorted by threat level descending: High (w3, level 9) > Low (w1, level 2)
+      assertThat(results.get(0).getComment()).isEqualTo("w3");
+      assertThat(results.get(1).getComment()).isEqualTo("w1");
+    }
   }
 }

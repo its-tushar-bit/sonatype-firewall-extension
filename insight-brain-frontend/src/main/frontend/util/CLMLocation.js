@@ -679,6 +679,10 @@ export function deleteWaiverUrl(waiverScope, ownerId, waiverId) {
   return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${waiverId}/`;
 }
 
+export function renewWaiverUrl() {
+  return uriTemplate`/api/v2/firewall/waivers/renew`;
+}
+
 export function redirectTo(url) {
   window.location = url;
 }

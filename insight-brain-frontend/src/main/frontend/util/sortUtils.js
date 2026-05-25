@@ -94,6 +94,17 @@ export const sortItemsByFields = sortItemsByFieldsWithComparator(defaultComparat
  */
 export const sortItemsByFieldsWithNull = sortItemsByFieldsWithComparator(defaultComparatorWithNull);
 
+const caseInsensitiveComparatorWithNull = (a, b) => {
+  const isANull = a === null || a === undefined,
+    isBNull = b === null || b === undefined;
+  if (isANull && isBNull) return 0;
+  if (isANull) return 1;
+  if (isBNull) return -1;
+  return defaultComparator(String(a).toLowerCase(), String(b).toLowerCase());
+};
+
+export const sortItemsByFieldsCaseInsensitiveWithNull = sortItemsByFieldsWithComparator(caseInsensitiveComparatorWithNull);
+
 export const extractSortFieldName = (orderedField) => {
   if (orderedField && orderedField.indexOf('-') === 0) {
     return orderedField.substring(1);
@@ -140,8 +151,11 @@ export const sortWaiversByComponent = (sortFields, results = []) => {
       : groupWaiversByComponentName.exactAndAllversion.push(waiverWithComponentName);
   });
 
+  const sortFieldsWithComponent = sortFields.map((f) =>
+    f.replace(/^(-?)displayName$/, '$1component')
+  );
   Object.entries(groupWaiversByComponentName).forEach(([key, val]) => {
-    groupWaiversByComponentName[key] = sortItemsByFieldsWithNull(sortFields, val);
+    groupWaiversByComponentName[key] = sortItemsByFieldsCaseInsensitiveWithNull(sortFieldsWithComponent, val);
   });
 
   const resultsSortedByGroup = [
@@ -155,12 +169,16 @@ export const sortWaiversByComponent = (sortFields, results = []) => {
   return resultsSortedByGroup;
 };
 
+const STRING_SORT_FIELDS = ['policyName', '-policyName', 'scope', '-scope', 'displayName', '-displayName', 'component', '-component'];
+
 export const sortWaiversByFields = (sortFields, results) => {
-  const sortFieldsWithExpiryTime = [...sortFields, 'expiryTime'];
+  const sortFieldsWithExpiryTime = [...(sortFields || []), 'expiryTime'];
   const primarySort = sortFieldsWithExpiryTime[0];
   let sortedResults = [];
-  if (['component', '-component'].includes(primarySort)) {
+  if (['component', '-component', 'displayName', '-displayName'].includes(primarySort)) {
     sortedResults = sortWaiversByComponent(sortFieldsWithExpiryTime, results);
+  } else if (STRING_SORT_FIELDS.includes(primarySort)) {
+    sortedResults = sortItemsByFieldsCaseInsensitiveWithNull(sortFieldsWithExpiryTime, results);
   } else {
     sortedResults = sortItemsByFieldsWithNull(sortFieldsWithExpiryTime, results);
   }

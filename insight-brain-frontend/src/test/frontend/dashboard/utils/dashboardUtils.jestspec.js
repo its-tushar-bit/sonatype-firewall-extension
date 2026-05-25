@@ -144,5 +144,45 @@ describe('dashboardUtils', function () {
       var request = createDashboardDataRequestPayload({}, null, ['-foo', 'bar']);
       expect(request.orderBy).toBe('-foo,bar');
     });
+
+    it('sets componentName to provided value', function () {
+      var filter = {
+        componentName: 'commons-io',
+      };
+      var params = createDashboardDataRequestPayload(filter);
+      expect(params.componentName).toBe('commons-io');
+    });
+
+    it('does not set componentName if provided value is empty string', function () {
+      var params = createDashboardDataRequestPayload({
+        componentName: '',
+      });
+      expect(params.componentName).toBeUndefined();
+    });
+
+    it('does not set componentName if provided value is undefined', function () {
+      var params = createDashboardDataRequestPayload({});
+      expect(params.componentName).toBeUndefined();
+    });
+
+    it('sets repositoryPublicId to provided value', function () {
+      var filter = {
+        repositoryPublicId: 'my-repo',
+      };
+      var params = createDashboardDataRequestPayload(filter);
+      expect(params.repositoryPublicId).toBe('my-repo');
+    });
+
+    it('does not set repositoryPublicId if provided value is empty string', function () {
+      var params = createDashboardDataRequestPayload({
+        repositoryPublicId: '',
+      });
+      expect(params.repositoryPublicId).toBeUndefined();
+    });
+
+    it('does not set repositoryPublicId if provided value is undefined', function () {
+      var params = createDashboardDataRequestPayload({});
+      expect(params.repositoryPublicId).toBeUndefined();
+    });
   });
 });

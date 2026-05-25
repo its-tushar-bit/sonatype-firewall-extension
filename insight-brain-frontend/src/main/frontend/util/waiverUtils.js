@@ -40,6 +40,8 @@ export const originNamesForAddRequestPages = {
   FIREWALL_COMPONENT_DETAILS_SECURITY: 'firewall.componentDetailsPage.security',
   // Firewall -> Component Details -> Legal Violations -> Violation Details Popover -> Add Waiver
   FIREWALL_COMPONENT_DETAILS_LEGAL: 'firewall.componentDetailsPage.legal',
+  // Firewall -> Bulk Waive -> Add Waiver (redirects to repository results page)
+  FIREWALL_BULK_WAIVE: 'firewall.bulkWaive',
   // Repository -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   REPOSITORY_COMPONENT_DETAILS: 'repository.componentDetailsPage.violations',
   // Repository -> Component Details -> Security Violations -> Violation Details Popover -> Add Waiver
@@ -110,6 +112,23 @@ export const isCustomExpiryTimeValid = (value) => {
     return false;
   }
   return new Date(value) > new Date();
+};
+
+/**
+ * Returns true when the waiver expiry date is strictly before today (yesterday or earlier).
+ * A waiver expiring today is NOT considered expired (canonical rule: today = 0 days remaining).
+ */
+export const isWaiverExpired = (expiryTime) =>
+  expiryTime != null && moment(expiryTime).startOf('day').isBefore(moment().startOf('day'));
+
+/**
+ * Returns the number of whole days until expiry, using day boundaries.
+ * Today → 0, tomorrow → 1, yesterday → -1.
+ * Returns null when expiryTime is absent, for auto-waivers, or for remediation-available waivers.
+ */
+export const getWaiverDaysRemaining = (expiryTime, isAutoWaiver, isExpireWhenRemediationAvailable) => {
+  if (expiryTime == null || isAutoWaiver || isExpireWhenRemediationAvailable) return null;
+  return Math.floor(moment(expiryTime).startOf('day').diff(moment().startOf('day'), 'days'));
 };
 
 export const getExpiryTime = (expiration) => {

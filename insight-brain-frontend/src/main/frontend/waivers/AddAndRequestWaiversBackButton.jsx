@@ -107,6 +107,10 @@ const NAVIGATION_RULES = {
       paramsExtractor: (props) => props,
     }
   ),
+  [originNamesForAddRequestPages.FIREWALL_BULK_WAIVE]: {
+    backButtonTitle: 'Back to Bulk Waive',
+    paramsExtractor: (props) => ({ repositoryId: props?.prevParams?.repositoryId }),
+  },
   ...setValueForMultipleKeys(
     [
       originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS,

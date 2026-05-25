@@ -50,6 +50,26 @@ waiver-sidebar-view {
       }
     }
   }
+
+  .iq-waiver-comment-entry {
+    & + & {
+      margin-top: var(--nx-spacing-6x);
+    }
+
+    &__label {
+      display: block;
+      font-size: var(--nx-font-size-s);
+      font-weight: 700;
+      color: var(--nx-color-text-stark);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: var(--nx-spacing-3x);
+    }
+
+    &__text {
+      margin: 0 0 var(--nx-spacing-4x) 0;
+    }
+  }
 }
 
 #auto-waiver-details-page {

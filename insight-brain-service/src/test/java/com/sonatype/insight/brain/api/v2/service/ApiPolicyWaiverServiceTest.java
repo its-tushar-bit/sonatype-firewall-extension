@@ -1758,6 +1758,54 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
+  public void testGetPolicyWaiver_WithRenewalFields() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiverReason renewalReason = tempEntity.newWaiverReason("renewalType", "renewal reason text");
+
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash("hash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setWaiverReasonId(ACKNOWLEDGED_VIOLATION_REASON_ID)
+        .setLastRenewedBy("admin")
+        .setLastRenewedAt(Date.from(Instant.now()))
+        .setLastRenewalComment("renewal comment text")
+        .setLastRenewalReasonId(renewalReason.getId());
+    tempEntity.newWaiver(policyWaiver);
+
+    ApiPolicyWaiverDTO savedWaiver =
+        apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
+
+    assertThat(savedWaiver.lastRenewedBy).isEqualTo("admin");
+    assertThat(savedWaiver.lastRenewedAt).isNotNull();
+    assertThat(savedWaiver.lastRenewalComment).isEqualTo("renewal comment text");
+    assertThat(savedWaiver.lastRenewalReasonText).isEqualTo("renewal reason text");
+  }
+
+  @Test
+  public void testGetPolicyWaiver_WithRenewalFields_NullReason() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash("hash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setWaiverReasonId(ACKNOWLEDGED_VIOLATION_REASON_ID)
+        .setLastRenewedBy("admin")
+        .setLastRenewedAt(Date.from(Instant.now()))
+        .setLastRenewalComment("renewal comment text");
+    tempEntity.newWaiver(policyWaiver);
+
+    ApiPolicyWaiverDTO savedWaiver =
+        apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
+
+    assertThat(savedWaiver.lastRenewalComment).isEqualTo("renewal comment text");
+    assertThat(savedWaiver.lastRenewalReasonText).isNull();
+  }
+
+  @Test
   public void testGetPolicyWaiver_Expired() {
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);

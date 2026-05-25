@@ -38,6 +38,8 @@ export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
 export const TOGGLE_REPOSITORIES = 'TOGGLE_REPOSITORIES';
 export const SELECT_AGE = 'SELECT_AGE';
 export const SELECT_EXPIRATION_DATE = 'SELECT_EXPIRATION_DATE';
+export const SET_COMPONENT_NAME_FILTER = 'SET_COMPONENT_NAME_FILTER';
+export const SET_REPOSITORY_FILTER = 'SET_REPOSITORY_FILTER';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 export const DISPLAY_DELETE_FILTER_MODAL = 'DISPLAY_DELETE_FILTER_MODAL';
@@ -172,6 +174,9 @@ export const selectAge = payloadParamActionCreator(SELECT_AGE);
 
 export const selectExpirationDate = payloadParamActionCreator(SELECT_EXPIRATION_DATE);
 
+export const setComponentNameFilter = payloadParamActionCreator(SET_COMPONENT_NAME_FILTER);
+export const setRepositoryFilter = payloadParamActionCreator(SET_REPOSITORY_FILTER);
+
 export const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
 export const displayDeleteFilterModal = noPayloadActionCreator(DISPLAY_DELETE_FILTER_MODAL);
 
@@ -187,3 +192,6 @@ export const toggleRepositories = payloadParamActionCreator(TOGGLE_REPOSITORIES)
 export const toggleFilterSidebar = payloadParamActionCreator(TOGGLE_FILTER_SIDEBAR);
 
 export const revert = noPayloadActionCreator(REVERT_FILTER);
+
+export const FIREWALL_APPLY_FILTER = 'FIREWALL_APPLY_FILTER';
+export const firewallApplyFilter = noPayloadActionCreator(FIREWALL_APPLY_FILTER);

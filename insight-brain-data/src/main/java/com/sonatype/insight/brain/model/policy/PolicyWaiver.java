@@ -110,6 +110,36 @@ public class PolicyWaiver
   private boolean expireWhenRemediationAvailable;
 
   /**
+   * @since 1.186
+   */
+  @Column(name = "last_renewal_old_expiry_date")
+  private Date lastRenewalOldExpiryDate;
+
+  /**
+   * @since 1.186
+   */
+  @Column(name = "last_renewed_by")
+  private String lastRenewedBy;
+
+  /**
+   * @since 1.186
+   */
+  @Column(name = "last_renewed_at")
+  private Date lastRenewedAt;
+
+  /**
+   * @since 1.186
+   */
+  @Column(name = "last_renewal_comment")
+  private String lastRenewalComment;
+
+  /**
+   * @since 1.186
+   */
+  @Column(name = "last_renewal_reason_id")
+  private String lastRenewalReasonId;
+
+  /**
    * @since 1.140
    */
   @Transient
@@ -356,6 +386,51 @@ public class PolicyWaiver
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(associatedPackageUrl);
     }
     return componentIdentifier;
+  }
+
+  public Date getLastRenewalOldExpiryDate() {
+    return lastRenewalOldExpiryDate;
+  }
+
+  public PolicyWaiver setLastRenewalOldExpiryDate(Date lastRenewalOldExpiryDate) {
+    this.lastRenewalOldExpiryDate = lastRenewalOldExpiryDate;
+    return this;
+  }
+
+  public String getLastRenewedBy() {
+    return lastRenewedBy;
+  }
+
+  public PolicyWaiver setLastRenewedBy(String lastRenewedBy) {
+    this.lastRenewedBy = lastRenewedBy;
+    return this;
+  }
+
+  public Date getLastRenewedAt() {
+    return lastRenewedAt;
+  }
+
+  public PolicyWaiver setLastRenewedAt(Date lastRenewedAt) {
+    this.lastRenewedAt = lastRenewedAt;
+    return this;
+  }
+
+  public String getLastRenewalComment() {
+    return lastRenewalComment;
+  }
+
+  public PolicyWaiver setLastRenewalComment(String lastRenewalComment) {
+    this.lastRenewalComment = lastRenewalComment;
+    return this;
+  }
+
+  public String getLastRenewalReasonId() {
+    return lastRenewalReasonId;
+  }
+
+  public PolicyWaiver setLastRenewalReasonId(String lastRenewalReasonId) {
+    this.lastRenewalReasonId = lastRenewalReasonId;
+    return this;
   }
 
   public enum ComponentMatcherStrategyForWaiver

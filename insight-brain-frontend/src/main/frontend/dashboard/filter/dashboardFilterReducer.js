@@ -35,6 +35,9 @@ import {
   SET_DISPLAY_SAVE_FILTER_MODAL,
   DISPLAY_DELETE_FILTER_MODAL,
   TOGGLE_FILTER_SIDEBAR,
+  FIREWALL_APPLY_FILTER,
+  SET_COMPONENT_NAME_FILTER,
+  SET_REPOSITORY_FILTER,
 } from './dashboardFilterActions';
 
 import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
@@ -135,6 +138,15 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
     case SELECT_EXPIRATION_DATE:
       return compose(setFiltersAreDirty, selectExpirationDate(payload))(state);
 
+    case SET_COMPONENT_NAME_FILTER:
+      return compose(setFiltersAreDirty, setComponentNameFilter(payload))(state);
+
+    case SET_REPOSITORY_FILTER:
+      return compose(setFiltersAreDirty, setRepositoryFilter(payload))(state);
+
+    case FIREWALL_APPLY_FILTER:
+      return { ...state, appliedFilter: state.selected, filtersAreDirty: false };
+
     case REVERT_FILTER:
       return compose(revertFilter, resetProps(['filtersAreDirty', 'loadErrorFilterName']))(state);
 
@@ -170,6 +182,14 @@ const selectAge = (maxDaysOld) => (state) => {
 
 const selectExpirationDate = (expirationDate) => (state) => {
   return pathSet(['selected', 'expirationDate'], expirationDate || defaultMinExpiration, state);
+};
+
+const setComponentNameFilter = (componentName) => (state) => {
+  return pathSet(['selected', 'componentName'], componentName, state);
+};
+
+const setRepositoryFilter = (repositoryPublicId) => (state) => {
+  return pathSet(['selected', 'repositoryPublicId'], repositoryPublicId, state);
 };
 
 const toggleFilter = ({ filterName, selectedIds }) => (state) => {
@@ -283,6 +303,9 @@ const applyFilter = ({ filter }) => (state) => {
 
   const policyWaiverReasonIds = new Set(filter.policyWaiverReasonIds);
 
+  const componentName = filter.componentName || '';
+  const repositoryPublicId = filter.repositoryPublicId || '';
+
   const selected = Object.freeze({
     organizations,
     applications,
@@ -295,6 +318,8 @@ const applyFilter = ({ filter }) => (state) => {
     policyThreatLevels,
     expirationDate,
     policyWaiverReasonIds,
+    componentName,
+    repositoryPublicId,
   });
   return {
     ...state,

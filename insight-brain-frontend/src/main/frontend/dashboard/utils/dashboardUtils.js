@@ -6,6 +6,7 @@
 
 import { setToArray } from '../../util/jsUtil';
 
+
 export function createDashboardDataRequestPayload(filter, pageSize, sortFields, page) {
   var params = {};
   if (sortFields && sortFields.length) {
@@ -28,6 +29,8 @@ export function createDashboardDataRequestPayload(filter, pageSize, sortFields, 
     params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
     params.expirationDate = filter.expirationDate;
     params.policyWaiverReasonIds = setToArray(filter.policyWaiverReasonIds);
+    params.componentName = filter.componentName || undefined;
+    params.repositoryPublicId = filter.repositoryPublicId || undefined;
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {
       params.policyThreatCategories = setToArray(filter.policyTypes).join(',');

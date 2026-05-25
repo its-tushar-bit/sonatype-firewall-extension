@@ -18,6 +18,8 @@ export default Object.freeze({
   expirationDate: defaultMinExpiration,
   policyThreatLevels: [2, 10],
   policyWaiverReasonIds: new Set(),
+  componentName: '',
+  repositoryPublicId: '',
 });
 
 export const DEFAULT_FILTER_NAME = 'Default';

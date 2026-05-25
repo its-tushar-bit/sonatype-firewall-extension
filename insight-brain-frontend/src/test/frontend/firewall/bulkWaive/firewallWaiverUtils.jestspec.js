@@ -19,6 +19,7 @@ import {
   buildFirewallBulkWaiverPayload,
   validateFirewallBulkWaiverConfig,
   displayFirewallRepositoryScope,
+  normalizeFirewallOwnerType,
 } from 'MainRoot/firewall/bulkWaive/firewallWaiverUtils';
 
 describe('firewallWaiverUtils', () => {
@@ -441,6 +442,36 @@ describe('firewallWaiverUtils', () => {
       const result = displayFirewallRepositoryScope(null);
 
       expect(result).toBe('');
+    });
+  });
+
+  describe('normalizeFirewallOwnerType', () => {
+    it('maps root_organization to organization', () => {
+      expect(normalizeFirewallOwnerType('root_organization')).toBe('organization');
+    });
+
+    it('maps ROOT_ORGANIZATION (uppercase) to organization', () => {
+      expect(normalizeFirewallOwnerType('ROOT_ORGANIZATION')).toBe('organization');
+    });
+
+    it('lowercases organization', () => {
+      expect(normalizeFirewallOwnerType('Organization')).toBe('organization');
+    });
+
+    it('lowercases repository_container', () => {
+      expect(normalizeFirewallOwnerType('Repository_Container')).toBe('repository_container');
+    });
+
+    it('returns null for null input', () => {
+      expect(normalizeFirewallOwnerType(null)).toBeNull();
+    });
+
+    it('returns undefined for undefined input', () => {
+      expect(normalizeFirewallOwnerType(undefined)).toBeUndefined();
+    });
+
+    it('passes through other owner types lowercased', () => {
+      expect(normalizeFirewallOwnerType('repository')).toBe('repository');
     });
   });
 });

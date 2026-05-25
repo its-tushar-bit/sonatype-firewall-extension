@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -425,16 +427,30 @@ public class ApiPolicyWaiverService
   }
 
   public List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId) {
-    return getPolicyWaiversWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId));
+    return getPolicyWaivers(ownerType, ownerId, null);
+  }
+
+  public List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId, Integer expiringWithin) {
+    return getPolicyWaiversWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId), expiringWithin);
   }
 
   @Authorize(permission = Permission.READ)
   List<ApiPolicyWaiverDTO> getPolicyWaiversWithAuthzCheck(
-      @AuthzContext(Key.OWNER) Owner owner)
+      @AuthzContext(Key.OWNER) Owner owner,
+      Integer expiringWithin)
   {
-    List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
-
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(owner.getId());
+
+    if (expiringWithin != null) {
+      if (expiringWithin <= 0) {
+        throw new BadRequestException("expiringWithin must be a positive integer");
+      }
+      final Instant cutoff = Instant.now().plus(expiringWithin, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS);
+      policyWaivers = policyWaivers.stream()
+          .filter(w -> w.getExpiryTime() != null &&
+              !w.getExpiryTime().toInstant().truncatedTo(ChronoUnit.DAYS).isAfter(cutoff))
+          .collect(Collectors.toList());
+    }
 
     List<String> waiverReasonIds = policyWaivers.stream().map(PolicyWaiver::getWaiverReasonId).collect(toList());
     List<PolicyWaiverReason> policyWaiverReasons = new ArrayList<>();
@@ -442,6 +458,7 @@ public class ApiPolicyWaiverService
       policyWaiverReasons = policyWaiverReasonDAO.getAllByIds(waiverReasonIds);
     }
 
+    List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
     for (PolicyWaiver policyWaiver : policyWaivers) {
       PolicyWaiverReason policyWaiverReason = policyWaiverReasons.stream()
           .filter(waiverReason -> waiverReason.getId().equals(policyWaiver.getWaiverReasonId()))
@@ -1045,6 +1062,12 @@ public class ApiPolicyWaiverService
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdAndOwnerIdNotNull(policyWaiverId, owner.getId());
     PolicyWaiverReason policyWaiverReason = policyWaiverReasonDAO.getById(policyWaiver.getWaiverReasonId());
     ApiPolicyWaiverDTO apiPolicyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, policyWaiverReason, owner);
+    if (policyWaiver.getLastRenewalReasonId() != null) {
+      PolicyWaiverReason lastRenewalReason = policyWaiverReasonDAO.getById(policyWaiver.getLastRenewalReasonId());
+      if (lastRenewalReason != null) {
+        apiPolicyWaiverDTO.lastRenewalReasonText = lastRenewalReason.getReasonText();
+      }
+    }
     augmentPolicyWaiverDtoWithExtraInformation(apiPolicyWaiverDTO, policyWaiver);
     auditPolicyWaiver(policyWaiver);
     return apiPolicyWaiverDTO;

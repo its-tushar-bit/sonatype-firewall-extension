@@ -10,6 +10,8 @@ import {
   waiverMatcherStrategy,
   isCustomExpiryTimeValid,
   getExpirationDaysMessage,
+  isWaiverExpired,
+  getWaiverDaysRemaining,
 } from 'MainRoot/util/waiverUtils';
 import { WAIVER_CREATE_TIME, WAIVER_EXPIRATION_TIME } from 'TestRoot/SpecUtil';
 import moment from 'moment';
@@ -467,6 +469,82 @@ describe('waiverUtils', function () {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 1);
       expect(isCustomExpiryTimeValid(futureDate.toISOString())).toBe(true);
+    });
+  });
+
+  describe('isWaiverExpired', () => {
+    beforeEach(() => {
+      jest.useFakeTimers({ now: new Date(2026, 4, 12) }); // 2026-05-12
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns false for null expiryTime', () => {
+      expect(isWaiverExpired(null)).toBe(false);
+    });
+
+    it('returns false for undefined expiryTime', () => {
+      expect(isWaiverExpired(undefined)).toBe(false);
+    });
+
+    it('returns false when expiryTime is today', () => {
+      expect(isWaiverExpired(new Date(2026, 4, 12).getTime())).toBe(false);
+    });
+
+    it('returns false when expiryTime is tomorrow', () => {
+      expect(isWaiverExpired(new Date(2026, 4, 13).getTime())).toBe(false);
+    });
+
+    it('returns true when expiryTime is yesterday', () => {
+      expect(isWaiverExpired(new Date(2026, 4, 11).getTime())).toBe(true);
+    });
+
+    it('returns true when expiryTime is well in the past', () => {
+      expect(isWaiverExpired(new Date(2025, 0, 1).getTime())).toBe(true);
+    });
+  });
+
+  describe('getWaiverDaysRemaining', () => {
+    beforeEach(() => {
+      jest.useFakeTimers({ now: new Date(2026, 4, 12) }); // 2026-05-12
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns null for null expiryTime', () => {
+      expect(getWaiverDaysRemaining(null, false, false)).toBeNull();
+    });
+
+    it('returns null for undefined expiryTime', () => {
+      expect(getWaiverDaysRemaining(undefined, false, false)).toBeNull();
+    });
+
+    it('returns null for auto waivers', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 4, 20).getTime(), true, false)).toBeNull();
+    });
+
+    it('returns null for remediation-available waivers', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 4, 20).getTime(), false, true)).toBeNull();
+    });
+
+    it('returns 0 when expiryTime is today', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 4, 12).getTime(), false, false)).toBe(0);
+    });
+
+    it('returns 1 when expiryTime is tomorrow', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 4, 13).getTime(), false, false)).toBe(1);
+    });
+
+    it('returns -1 when expiryTime is yesterday', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 4, 11).getTime(), false, false)).toBe(-1);
+    });
+
+    it('returns 30 when expiryTime is 30 days from now', () => {
+      expect(getWaiverDaysRemaining(new Date(2026, 5, 11).getTime(), false, false)).toBe(30);
     });
   });
 

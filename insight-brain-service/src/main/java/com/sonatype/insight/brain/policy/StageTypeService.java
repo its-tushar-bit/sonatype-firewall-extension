@@ -21,6 +21,7 @@ import jakarta.inject.Named;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -56,7 +57,11 @@ public class StageTypeService
   @Inject
   public StageTypeService(final ProductLicense productLicense) {
     this.productLicense = productLicense;
-    contextFilterMap.put(ALL_CONTEXT, x -> true);
+    // HOSTED is excluded from every classic context until hosted-repository synchronous
+    // enforcement (CLM-39870) ships its own dedicated context. The HOSTED stage exists in the
+    // registry (StageTypes.getAll()) and may be added to a license set explicitly, but it never
+    // appears in CI/Maven/Dashboard/Lifecycle/All enumerations alongside the classic stages.
+    contextFilterMap.put(ALL_CONTEXT, new ClassicStagesFilter());
     contextFilterMap.put(CI_CONTEXT, new BuildFilter());
     contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
     contextFilterMap.put(QA_CONTEXT, new RMFilter());
@@ -120,13 +125,25 @@ public class StageTypeService
     return ordered;
   }
 
+  /**
+   * Keeps everything except {@link HostedStageType}; used for {@link #ALL_CONTEXT}.
+   */
+  private static class ClassicStagesFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return !HostedStageType.ID.equals(input.getId());
+    }
+  }
+
   class RMFilter
       implements Predicate<StageType>
   {
     @Override
     public boolean test(@Nullable final StageType input) {
       return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId()) &&
-          !ComplianceStageType.ID.equals(input.getId());
+          !ComplianceStageType.ID.equals(input.getId()) && !HostedStageType.ID.equals(input.getId());
     }
   }
 
@@ -135,7 +152,8 @@ public class StageTypeService
   {
     @Override
     public boolean test(StageType input) {
-      return !ProxyStageType.ID.equals(input.getId()) && !ComplianceStageType.ID.equals(input.getId());
+      return !ProxyStageType.ID.equals(input.getId()) && !ComplianceStageType.ID.equals(input.getId()) &&
+          !HostedStageType.ID.equals(input.getId());
     }
   }
 
@@ -148,12 +166,22 @@ public class StageTypeService
     }
   }
 
+  /**
+   * Note: deliberate split with {@link StageTypes#isIgnoredForDashboard(String)}.
+   * <p>
+   * {@code isIgnoredForDashboard} is a low-level predicate (DEVELOP / PROXY / COMPLIANCE) that
+   * does not encode CLM-39870 hosted-stage suppression. {@code DashboardFilter} is the
+   * authoritative gate for the dashboard context until a dedicated {@code HOSTED_CONTEXT}
+   * is wired up — it adds the {@link HostedStageType} exclusion explicitly. Direct callers of
+   * {@code isIgnoredForDashboard} that bypass {@link StageTypeService#getLicensedStageTypes}
+   * will <b>not</b> get HOSTED stripped automatically; route through the service instead.
+   */
   private static class DashboardFilter
       implements Predicate<StageType>
   {
     @Override
     public boolean test(StageType input) {
-      return !StageTypes.isIgnoredForDashboard(input.getId());
+      return !StageTypes.isIgnoredForDashboard(input.getId()) && !HostedStageType.ID.equals(input.getId());
     }
   }
 
@@ -162,7 +190,7 @@ public class StageTypeService
   {
     @Override
     public boolean test(StageType input) {
-      return !ComplianceStageType.ID.equals(input.getId());
+      return !ComplianceStageType.ID.equals(input.getId()) && !HostedStageType.ID.equals(input.getId());
     }
   }
 }

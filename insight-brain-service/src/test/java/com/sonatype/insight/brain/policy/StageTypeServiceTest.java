@@ -157,4 +157,32 @@ public class StageTypeServiceTest
         StageTypes.RELEASE, //
         StageTypes.OPERATE);
   }
+
+  /**
+   * Explicit guard: HOSTED must be absent from every classic context. The other
+   * testGetLicensedStageTypes_* tests assert hardcoded stage lists that don't include
+   * HOSTED, which incidentally proves the filter today — but if a future change
+   * accidentally drops the {@code !HostedStageType.ID.equals(...)} guard from one of the
+   * filters in StageTypeService, this is the test that makes the regression obvious.
+   */
+  @Test
+  public void testGetLicensedStageTypes_HostedExcludedFromAllClassicContexts() {
+    testProductLicense.setStageTypes(StageTypes.getAll());
+
+    List<String> classicContexts = List.of(
+        StageTypeService.ALL_CONTEXT,
+        StageTypeService.CI_CONTEXT,
+        StageTypeService.CLI_CONTEXT,
+        StageTypeService.QA_CONTEXT,
+        StageTypeService.RM_CONTEXT,
+        StageTypeService.MAVEN_CONTEXT,
+        StageTypeService.DASHBOARD_CONTEXT,
+        StageTypeService.LIFECYCLE_CONTEXT);
+
+    for (String context : classicContexts) {
+      assertThat(stageTypeService.getLicensedStageTypes(context))
+          .as("HOSTED must be absent from context: " + context)
+          .doesNotContain(StageTypes.HOSTED);
+    }
+  }
 }

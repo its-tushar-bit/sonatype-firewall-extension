@@ -1092,10 +1092,13 @@ public class ApiLicenseLegalService
         applicationComponents =
             applicationComponentDAO.getByApplicationIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
       }
-      for (StageType stageType : StageTypes.getAll()) {
-        if (StageTypes.isIgnoredForDashboard(stageType.getId())) {
-          continue;
-        }
+      // Route through the licensed-stages enumeration so this respects every stage filter
+      // documented on StageTypeService (DASHBOARD_CONTEXT excludes DEVELOP/PROXY/COMPLIANCE
+      // and CLM-39870 HOSTED). Previously this iterated StageTypes.getAll() and used only
+      // isIgnoredForDashboard, which is documented as a low-level predicate that does NOT
+      // encode the HOSTED suppression — so HOSTED was leaking into the legal stage-scan
+      // response for every component.
+      for (StageType stageType : stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)) {
         ApiLicenseLegalStageScanDTO apiLicenseLegalStageScanDTO = new ApiLicenseLegalStageScanDTO();
         apiLicenseLegalStageScanDTO.setStageName(stageType.getName());
         ApplicationComponent applicationComponentForStage = applicationComponents.stream()

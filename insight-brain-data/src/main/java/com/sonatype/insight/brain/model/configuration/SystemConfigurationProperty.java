@@ -207,6 +207,9 @@ public class SystemConfigurationProperty
   public static final String QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS =
       "quarantinedComponentReportExpirationTimeInHours";
 
+  public static final String HOSTED_DEPLOYMENT_BLOCK_RETENTION_HOURS =
+      "hostedDeploymentBlockRetentionHours";
+
   public static final String QUARANTINED_ITEM_CUSTOM_MESSAGE = "quarantinedItemCustomMessage";
 
   public static final String SCM_UX_IMPROVEMENTS = "scmUxImprovements";

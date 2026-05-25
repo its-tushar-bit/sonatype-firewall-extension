@@ -206,6 +206,7 @@ public class Configuration
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
         SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED,
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
+        SystemConfigurationProperty.HOSTED_DEPLOYMENT_BLOCK_RETENTION_HOURS,
         SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
         SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
         SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
@@ -683,6 +684,10 @@ public class Configuration
 
   public Integer getQuarantinedComponentReportExpirationTimeInHours() {
     return configCache.get(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS);
+  }
+
+  public Integer getHostedDeploymentBlockRetentionHours() {
+    return configCache.get(SystemConfigurationProperty.HOSTED_DEPLOYMENT_BLOCK_RETENTION_HOURS);
   }
 
   public Integer getEnterpriseReportingVersionCacheExpirationInMinutes() {

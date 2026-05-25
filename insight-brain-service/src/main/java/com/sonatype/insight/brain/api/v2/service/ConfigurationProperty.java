@@ -175,6 +175,8 @@ public class ConfigurationProperty
         (p, o) -> ConfigurationUtils.sessionTimeoutToString(o)),
     new ConfigurationProperty(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         Integer.class, (p, s) -> NumberUtils.toInt(s, 12), (p, o) -> Objects.toString(o, "12")),
+    new ConfigurationProperty(SystemConfigurationProperty.HOSTED_DEPLOYMENT_BLOCK_RETENTION_HOURS,
+        Integer.class, (p, s) -> NumberUtils.toInt(s, 24), (p, o) -> Objects.toString(o, "24")),
     new ConfigurationProperty(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, String.class,
         (p, s) -> Objects.toString(s, "(?i)(?s).*token[\\s\\w:]+expired.*"),
         (p, o) -> Objects.toString(o, null)),

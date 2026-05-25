@@ -15,6 +15,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -68,12 +69,21 @@ public class TestProductLicense
       maxSboms = null;
       ProductLicenseKey productLicenseKey =
           testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
+      // Default test license excludes HOSTED stage from the licensed set: hosted-repository
+      // synchronous enforcement (CLM-39870) is gated by the HOSTED_REPOSITORY_EVALUATION
+      // feature flag, and behaves the same way real licenses do today (HOSTED is not auto-
+      // included in any product tier yet). Tests that explicitly need HOSTED licensed should
+      // call setStageTypes(...) themselves.
+      Set<StageType> defaultStageTypes = StageTypes.getAll()
+          .stream()
+          .filter(stageType -> !StageTypes.HOSTED.equals(stageType))
+          .collect(Collectors.toCollection(HashSet::new));
       set(productLicenseKey, "1234",
           new HashSet<>(
               Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,
                   ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY,
                   ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)),
-          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()),
+          EnumSet.allOf(LicensedFeature.class), defaultStageTypes,
           Collections.singleton(ProductLicensingModel.LEGACY),
           100, 50, 45, 50);
     }

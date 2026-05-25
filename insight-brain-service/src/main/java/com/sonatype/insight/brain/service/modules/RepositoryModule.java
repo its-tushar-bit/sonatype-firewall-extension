@@ -28,6 +28,9 @@ import com.sonatype.insight.brain.repository.hosted.HostedComponentEvaluationSer
 import com.sonatype.insight.brain.repository.hosted.HostedComponentResource;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanQueueConsumer;
 import com.sonatype.insight.brain.repository.hosted.HostedComponentScanStorageService;
+import com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupResource;
+import com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupService;
+import com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask;
 import com.sonatype.insight.brain.repository.hosted.HostedRepositoryQueueResource;
 import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitor;
 import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitoringTask;
@@ -68,6 +71,9 @@ public class RepositoryModule
     bind(HostedComponentResource.class);
     bind(HostedComponentScanQueueConsumer.class);
     bind(HostedComponentScanStorageService.class);
+    bind(HostedDeploymentBlockCleanupResource.class);
+    bind(HostedDeploymentBlockCleanupService.class);
+    bind(HostedDeploymentBlockCleanupTask.class);
     bind(HostedRepositoryQueueResource.class);
     bind(HostedRepositoryMonitor.class);
     bind(HostedRepositoryMonitoringTask.class);

@@ -771,10 +771,16 @@ public class CLMLicenseManager
 
     Set<LicensedFeature> features = EnumSet.noneOf(LicensedFeature.class);
     Set<StageType> stageTypes = new LinkedHashSet<>();
-    Collection<StageType> allStagesWithoutCompliance =
+    // The classic stage set used by Lifecycle/Risk/Foundation product tiers. Excludes:
+    // - COMPLIANCE: SBOM-Manager-only stage, added explicitly when that product is present
+    // - HOSTED: synchronous hosted-repository enforcement (CLM-39870), gated separately
+    // once the feature flips on; keep it out of the broad "everything" set so
+    // tests + UI behave identically to pre-CLM-39870 builds while the flag is off.
+    Collection<StageType> allClassicStageTypes =
         StageTypes.getAll()
             .stream()
             .filter(stageType -> !StageTypes.COMPLIANCE.equals(stageType))
+            .filter(stageType -> !StageTypes.HOSTED.equals(stageType))
             .collect(Collectors.toSet());
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
         || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS))
@@ -820,7 +826,7 @@ public class CLMLicenseManager
         || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS))
     {
       addLifecycleFeatures(features);
-      stageTypes.addAll(allStagesWithoutCompliance);
+      stageTypes.addAll(allClassicStageTypes);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       features.add(LicensedFeature.ENFORCEMENT);
@@ -867,7 +873,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.WAIVER_REPORTS);
       features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
-      stageTypes.addAll(allStagesWithoutCompliance);
+      stageTypes.addAll(allClassicStageTypes);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
         products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY))
@@ -990,7 +996,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.ROI_CONFIGURATION);
       features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
-      stageTypes.addAll(allStagesWithoutCompliance);
+      stageTypes.addAll(allClassicStageTypes);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
@@ -1064,7 +1070,7 @@ public class CLMLicenseManager
     if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
       addLifecycleFeatures(features);
       addDevelopmentFeatures(features);
-      stageTypes.addAll(allStagesWithoutCompliance);
+      stageTypes.addAll(allClassicStageTypes);
     }
 
     // Lifecycle tiering (CLM-39600): Enterprise-only features (custom policies, labels, categories,

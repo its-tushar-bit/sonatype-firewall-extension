@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.model.HasStringId;
 
@@ -78,7 +79,10 @@ public class EvaluationQueue
   }
 
   public void setStageTypeId(final String stageTypeId) {
-    if (!Stage.isValidStageTypeId(stageTypeId) && !ProxyStageType.ID.equals(stageTypeId)) {
+    if (!Stage.isValidStageTypeId(stageTypeId)
+        && !ProxyStageType.ID.equals(stageTypeId)
+        && !HostedStageType.ID.equals(stageTypeId))
+    {
       throw new InvalidStageException(stageTypeId);
     }
     this.stageTypeId = stageTypeId;

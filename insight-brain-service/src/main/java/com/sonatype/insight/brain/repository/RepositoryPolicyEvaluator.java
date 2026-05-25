@@ -221,6 +221,36 @@ public class RepositoryPolicyEvaluator
         clientUserAgent, false /* forMonitoring */, null, stageTypeId);
   }
 
+  /**
+   * Evaluate a component for synchronous hosted-repository policy enforcement (CLM-39870).
+   * <p>
+   * Exposes the internal {@code evaluate(..., persistEvaluationResults, ..., stageTypeId)} overload so the
+   * hosted enforcement service can decide whether to persist results based on the outcome. Specifically,
+   * callers pass {@code persistEvaluationResults=false} for the initial evaluation and — if the result is
+   * allowed — re-run (or hand off to their own persist logic) so that blocked deployments never write rows
+   * to {@code repository_component} / {@code repository_policy_violation}. Blocked attempts are persisted
+   * by the caller into the dedicated {@code hosted_deployment_block*} tables instead.
+   *
+   * @param repository the target hosted repository
+   * @param componentEvaluationDataRequestList the evaluation request
+   * @param persistEvaluationResults whether to persist allow-path results into repository_component and
+   *          repository_policy_violation
+   * @param clientUserAgent client user-agent (typically the NXRM user-agent propagated from the request)
+   * @param stageTypeId the stage to evaluate against; enforcement uses
+   *          {@link com.sonatype.insight.brain.model.policy.stages.HostedStageType#ID}
+   * @return the evaluation result, with policyAlerts populated per component
+   */
+  public RepositoryComponentEvaluationDataList evaluateForHostedEnforcement(
+      final Repository repository,
+      final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      final boolean persistEvaluationResults,
+      final String clientUserAgent,
+      final String stageTypeId)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        persistEvaluationResults, clientUserAgent, false /* forMonitoring */, null, stageTypeId);
+  }
+
   public RepositoryComponentEvaluationDataList evaluate(
       Repository repository,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,

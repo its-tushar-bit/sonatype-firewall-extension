@@ -139,6 +139,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitoringTask",
         "HostedRepositoryMonitoringTask");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask",
+        "HostedDeploymentBlockCleanupTask");
   }
 
   @Inject

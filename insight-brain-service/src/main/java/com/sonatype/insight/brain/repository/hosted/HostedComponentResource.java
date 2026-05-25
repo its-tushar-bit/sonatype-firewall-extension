@@ -40,9 +40,15 @@ import org.slf4j.LoggerFactory;
 /**
  * REST endpoint for accepting scan.xml.gz uploads from NXRM hosted repositories.
  * <p>
- * Receives a pre-formed scan file for a specific repository component, enqueues it for
- * asynchronous policy evaluation, and immediately returns 202 Accepted.
- *
+ * Two modes are supported on the same endpoint, distinguished by the {@code evaluationMode}
+ * form field:
+ * <ul>
+ * <li>{@code ASYNCHRONOUS} (default; field absent or any value other than SYNCHRONOUS) —
+ * existing behaviour: queue the scan for background processing and return 202 Accepted.</li>
+ * <li>{@code SYNCHRONOUS} (CLM-39870) — evaluate the scan inline on the servlet thread and
+ * return 200 OK with a {@link HostedEvaluationResult} body. NXRM uses this to decide
+ * whether to commit the artifact to the repository or return HTTP 403 to the developer.</li>
+ * </ul>
  */
 @Named
 @Timed
@@ -55,6 +61,12 @@ public class HostedComponentResource
   public static final String RESOURCE_PATH = "api/v2/repositories";
 
   static final String UPLOAD_PATH = "{repositoryManagerId}/{repositoryId}/components";
+
+  static final String EVALUATION_MODE_SYNCHRONOUS = "SYNCHRONOUS";
+
+  // HTTP 422 Unprocessable Entity. JAX-RS Status enum lacks this constant in our Jakarta
+  // baseline; named here to keep the magic number out of the response builder.
+  private static final int HTTP_UNPROCESSABLE_ENTITY = 422;
 
   private final HostedComponentEvaluationService hostedComponentEvaluationService;
 
@@ -70,13 +82,22 @@ public class HostedComponentResource
   }
 
   /**
-   * Accepts a scan.xml.gz upload from NXRM and enqueues it for asynchronous evaluation.
+   * Accepts a scan.xml.gz upload from NXRM. Behaviour depends on {@code evaluationMode}:
+   * <ul>
+   * <li>{@code SYNCHRONOUS}: evaluate inline, return 200 OK with {@link HostedEvaluationResult}.</li>
+   * <li>otherwise: queue for async processing, return 202 Accepted with {@link HostedComponentScanResponse}.</li>
+   * </ul>
    *
    * @param repositoryManagerInstanceId the NXRM repository manager instance ID
    * @param repositoryPublicId the public name of the hosted repository (e.g. "maven-releases")
    * @param componentId the unique component identifier within the repository
+   * @param purl the package URL of the component
+   * @param policyEvaluationStage the stage at which to evaluate (async only; sync always uses hosted)
+   * @param evaluationMode optional; {@code "SYNCHRONOUS"} switches to sync enforcement
+   * @param correlationId optional per-deploy UUID supplied by NXRM; echoed back in the response
+   * @param requestedBy optional NXRM-authenticated principal; audited
+   * @param client optional client tool identifier (e.g. "maven", "npm")
    * @param scanFile the pre-formed scan.xml.gz file received from NXRM
-   * @return 202 Accepted with the queued job metadata
    */
   @POST
   @Path(UPLOAD_PATH)
@@ -89,6 +110,10 @@ public class HostedComponentResource
       @FormDataParam("componentId") final String componentId,
       @FormDataParam("purl") final String purl,
       @FormDataParam("policyEvaluationStage") final String policyEvaluationStage,
+      @FormDataParam("evaluationMode") final String evaluationMode,
+      @FormDataParam("correlationId") final String correlationId,
+      @FormDataParam("requestedBy") final String requestedBy,
+      @FormDataParam("client") final String client,
       @FormDataParam("scanFile") final File scanFile) throws Exception
   {
     if (!SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled()) {
@@ -105,8 +130,9 @@ public class HostedComponentResource
       throw new BadRequestException("Missing required parameter: scanFile");
     }
 
-    log.debug("Received scan upload for repositoryManagerInstanceId={}, repositoryPublicId={}, componentId={}, purl={}",
-        repositoryManagerInstanceId, repositoryPublicId, componentId, purl);
+    log.debug("Received scan upload for repositoryManagerInstanceId={}, repositoryPublicId={}, componentId={}, "
+        + "purl={}, evaluationMode={}, correlationId={}, client={}",
+        repositoryManagerInstanceId, repositoryPublicId, componentId, purl, evaluationMode, correlationId, client);
 
     Repository repository =
         repositoryDAO.getByRepositoryManagerInstanceIdAndPublicId(repositoryManagerInstanceId, repositoryPublicId);
@@ -115,6 +141,20 @@ public class HostedComponentResource
           + ", repositoryPublicId=" + repositoryPublicId);
     }
 
+    if (EVALUATION_MODE_SYNCHRONOUS.equalsIgnoreCase(evaluationMode)) {
+      return handleSynchronous(repository, componentId, purl, policyEvaluationStage, scanFile,
+          correlationId, requestedBy, client);
+    }
+    return handleAsynchronous(repository, componentId, purl, policyEvaluationStage, scanFile);
+  }
+
+  private Response handleAsynchronous(
+      final Repository repository,
+      final String componentId,
+      final String purl,
+      final String policyEvaluationStage,
+      final File scanFile) throws Exception
+  {
     String jobId;
     try {
       jobId = hostedComponentEvaluationService.queueScan(
@@ -126,5 +166,50 @@ public class HostedComponentResource
     }
 
     return Response.status(Status.ACCEPTED).entity(new HostedComponentScanResponse(componentId, jobId)).build();
+  }
+
+  private Response handleSynchronous(
+      final Repository repository,
+      final String componentId,
+      final String purl,
+      final String policyEvaluationStage,
+      final File scanFile,
+      final String correlationId,
+      final String requestedBy,
+      final String client) throws Exception
+  {
+    try {
+      HostedEvaluationResult result = hostedComponentEvaluationService.evaluateSynchronously(
+          repository, componentId, purl, policyEvaluationStage, scanFile,
+          correlationId, requestedBy, client);
+      return Response.status(Status.OK).entity(result).build();
+    }
+    catch (ScanFileTooLargeException e) {
+      throw new WebApplicationException(
+          Response.status(Status.REQUEST_ENTITY_TOO_LARGE).entity(e.getMessage()).build());
+    }
+    catch (UnscannableArtifactException e) {
+      // 422 Unprocessable Entity — well-formed scan, but no fingerprint could be extracted
+      // (sources jars, javadoc, signature files, etc.). Distinguishes from a true 500 and
+      // lets NXRM treat it as "skip enforcement, allow upload" instead of "IQ unavailable".
+      // The @HttpStatusCode(422) on the exception class drives the same outcome via the
+      // global ErrorResponseGenerator; this explicit catch shapes the response body so
+      // NXRM's IQEvaluationResponse parser can consume a structured error envelope.
+      log.info("Sync enforcement: unscannable artifact componentId={} correlationId={}: {}",
+          componentId, correlationId, e.getMessage());
+      return Response.status(HTTP_UNPROCESSABLE_ENTITY)
+          .entity(new UnscannableArtifactResponse(
+              "UNSCANNABLE_ARTIFACT", e.getMessage(), correlationId))
+          .build();
+    }
+  }
+
+  /**
+   * Structured error body for HTTP 422 responses on {@link UnscannableArtifactException}.
+   * Caller (NXRM) inspects {@code errorCode} to distinguish from generic 4xx/5xx errors
+   * and decide whether to fail the upload or pass it through.
+   */
+  static record UnscannableArtifactResponse(String errorCode, String message, String correlationId)
+  {
   }
 }

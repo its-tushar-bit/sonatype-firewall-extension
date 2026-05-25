@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -49,6 +50,16 @@ public class EvaluationQueueTest
 
     evaluationQueue.setStageTypeId(OperateStageType.ID);
     assertThat(evaluationQueue.getStageTypeId()).isEqualTo(OperateStageType.ID);
+  }
+
+  @Test
+  public void testSetStageTypeId_HostedStageType_Accepted() {
+    // Positive coverage for the OR-branch added in CLM-39870 that accepts HostedStageType.ID.
+    // The existing testSetStageTypeId_ValidStage tests the classic stages but not "hosted";
+    // this guards against regressions if the OR-branch is dropped during a merge conflict.
+    EvaluationQueue evaluationQueue = new EvaluationQueue();
+    evaluationQueue.setStageTypeId(HostedStageType.ID);
+    assertThat(evaluationQueue.getStageTypeId()).isEqualTo(HostedStageType.ID);
   }
 
   @Test

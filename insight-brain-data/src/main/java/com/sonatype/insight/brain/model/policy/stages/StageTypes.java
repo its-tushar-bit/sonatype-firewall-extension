@@ -28,12 +28,15 @@ public class StageTypes
 
   public static final StageType PROXY = new ProxyStageType();
 
+  public static final StageType HOSTED = new HostedStageType();
+
   public static final StageType COMPLIANCE = new ComplianceStageType();
 
   private static final Map<String, StageType> allStageTypes = new LinkedHashMap<>();
 
   static {
     add(PROXY);
+    add(HOSTED);
     add(DEVELOP);
     add(SOURCE);
     add(BUILD);
@@ -62,6 +65,16 @@ public class StageTypes
     return allStageTypes.get(stageTypeId);
   }
 
+  /**
+   * Low-level predicate: returns {@code true} for the classic stages that the dashboard
+   * historically suppresses (DEVELOP / PROXY / COMPLIANCE).
+   * <p>
+   * Note: this predicate does <b>not</b> encode CLM-39870 hosted-stage suppression. Callers
+   * that want the full dashboard-context filter should route through
+   * {@code StageTypeService.getLicensedStageTypes(DASHBOARD_CONTEXT)}, which composes this
+   * predicate with the explicit {@link HostedStageType} exclusion until a dedicated hosted
+   * dashboard context is wired up.
+   */
   public static boolean isIgnoredForDashboard(String stageTypeId) {
     return DevelopStageType.ID.equals(stageTypeId) || ProxyStageType.ID.equals(stageTypeId) ||
         ComplianceStageType.ID.equals(stageTypeId);

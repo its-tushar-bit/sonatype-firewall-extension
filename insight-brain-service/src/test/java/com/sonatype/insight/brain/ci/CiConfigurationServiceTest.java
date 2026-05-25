@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
 import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationResponseDto;
+import com.sonatype.clm.dto.model.ci.config.DotNetAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.DownloadConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaScriptAnalysisConfig;
@@ -625,5 +626,146 @@ public class CiConfigurationServiceTest
     configLowercase.setParameterPriority("ci");
     assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), configLowercase))
         .hasMessage("parameterPriority must be either 'CI' or 'API'");
+  }
+
+  @Test
+  public void testSetConfiguration_validDotNetEntrypointStrategy() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setEntrypointStrategy("DOTNET_MAIN");
+    dotNet.setEnabled(true);
+    dotNet.setNamespaces(Arrays.asList("MyApp.Core"));
+    dotNet.setDotnetPath("/usr/bin/dotnet");
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    service.setConfiguration(ORGANIZATION, org.getId(), config);
+
+    // Cleanup
+    service.deleteConfiguration(ORGANIZATION, org.getId());
+  }
+
+  @Test
+  public void testSetConfiguration_invalidDotNetEntrypointStrategy() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setEntrypointStrategy("INVALID");
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), config))
+        .hasMessageContaining(
+            "reachability.dotNetAnalysis.entrypointStrategy must be one of");
+  }
+
+  @Test
+  public void testSetConfiguration_emptyDotNetEntrypointStrategy() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setEntrypointStrategy("");
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), config))
+        .hasMessage(
+            "reachability.dotNetAnalysis.entrypointStrategy cannot be empty");
+  }
+
+  @Test
+  public void testSetConfiguration_whitespaceOnlyDotNetEntrypointStrategy() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setEntrypointStrategy("   ");
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), config))
+        .hasMessage(
+            "reachability.dotNetAnalysis.entrypointStrategy cannot be empty");
+  }
+
+  @Test
+  public void testSetConfiguration_emptyDotNetPath() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setDotnetPath("   ");
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), config))
+        .hasMessage("reachability.dotNetAnalysis.dotnetPath cannot be empty");
+  }
+
+  @Test
+  public void testSetConfiguration_emptyDotNetNamespaceEntry() {
+    Organization org = tempEntity.newOrganization();
+
+    ApiCiConfigurationDto config = new ApiCiConfigurationDto();
+    ReachabilityConfig reachability = new ReachabilityConfig();
+    DotNetAnalysisConfig dotNet = new DotNetAnalysisConfig();
+    dotNet.setNamespaces(Arrays.asList("MyApp.Core", ""));
+    reachability.setDotNetAnalysis(dotNet);
+    config.setReachability(reachability);
+
+    assertThatThrownBy(() -> service.setConfiguration(ORGANIZATION, org.getId(), config))
+        .hasMessage(
+            "reachability.dotNetAnalysis.namespaces[1] cannot be null or empty");
+  }
+
+  @Test
+  public void testOverrideConfiguration_dotNetAnalysisDeepMerge() {
+    // Given: Base has reachability with .NET analysis entrypoint strategy
+    ApiCiConfigurationDto base = new ApiCiConfigurationDto();
+    ReachabilityConfig baseReachability = new ReachabilityConfig();
+    DotNetAnalysisConfig baseDotNet = new DotNetAnalysisConfig();
+    baseDotNet.setEntrypointStrategy("ALL");
+    baseDotNet.setDotnetPath("/base/path");
+    baseReachability.setDotNetAnalysis(baseDotNet);
+    base.setReachability(baseReachability);
+
+    // Override has reachability with .NET analysis namespaces and enabled flag
+    ApiCiConfigurationDto override = new ApiCiConfigurationDto();
+    ReachabilityConfig overrideReachability = new ReachabilityConfig();
+    DotNetAnalysisConfig overrideDotNet = new DotNetAnalysisConfig();
+    overrideDotNet.setNamespaces(Arrays.asList("MyApp.Core", "MyApp.Services"));
+    overrideDotNet.setEnabled(true);
+    overrideReachability.setDotNetAnalysis(overrideDotNet);
+    override.setReachability(overrideReachability);
+
+    Map<String, String> source = new HashMap<>();
+
+    // When: Applying override
+    service.overrideConfiguration(base, override, "org-dotnet", source);
+
+    // Then: Both fields are present (2-level deep merge)
+    assertThat(base.getReachability()).isNotNull();
+    assertThat(base.getReachability().getDotNetAnalysis()).isNotNull();
+    assertThat(base.getReachability().getDotNetAnalysis().getEntrypointStrategy()).isEqualTo("ALL");
+    assertThat(base.getReachability().getDotNetAnalysis().getDotnetPath()).isEqualTo("/base/path");
+    assertThat(base.getReachability().getDotNetAnalysis().getNamespaces())
+        .containsExactly("MyApp.Core", "MyApp.Services");
+    assertThat(base.getReachability().getDotNetAnalysis().getEnabled()).isTrue();
+
+    // Provenance tracks 2-level nested fields
+    assertThat(source)
+        .containsEntry("reachability.dotNetAnalysis.namespaces", "org-dotnet")
+        .containsEntry("reachability.dotNetAnalysis.enabled", "org-dotnet")
+        .doesNotContainKey("reachability.dotNetAnalysis.entrypointStrategy")
+        .doesNotContainKey("reachability.dotNetAnalysis.dotnetPath");
   }
 }

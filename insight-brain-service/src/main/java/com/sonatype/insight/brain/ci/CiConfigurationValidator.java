@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.ci;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
+import com.sonatype.clm.dto.model.ci.config.DotNetAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.DownloadConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaScriptAnalysisConfig;
@@ -96,6 +97,7 @@ public final class CiConfigurationValidator
 
     validateJavaAnalysisConfig(reachability.getJavaAnalysis());
     validateJavaScriptAnalysisConfig(reachability.getJavaScriptAnalysis());
+    validateDotNetAnalysisConfig(reachability.getDotNetAnalysis());
   }
 
   /**
@@ -129,6 +131,52 @@ public final class CiConfigurationValidator
 
     validateNonEmptyStringList(jsAnalysis.getJsSources(), "reachability.javaScriptAnalysis.jsSources");
     validateNonEmptyStringList(jsAnalysis.getJsExcludes(), "reachability.javaScriptAnalysis.jsExcludes");
+  }
+
+  /**
+   * Validates .NET analysis configuration.
+   *
+   * @param dotNetAnalysis the .NET analysis configuration to validate
+   * @throws BadRequestException if validation fails
+   */
+  public static void validateDotNetAnalysisConfig(final DotNetAnalysisConfig dotNetAnalysis) {
+    if (dotNetAnalysis == null) {
+      return;
+    }
+
+    validateDotNetEntrypointStrategy(dotNetAnalysis.getEntrypointStrategy());
+    validateNonEmptyStringList(dotNetAnalysis.getNamespaces(),
+        "reachability.dotNetAnalysis.namespaces");
+    validateNonEmptyString(dotNetAnalysis.getDotnetPath(),
+        "reachability.dotNetAnalysis.dotnetPath");
+  }
+
+  /**
+   * Validates that the .NET entrypoint strategy is one of the allowed values.
+   *
+   * @param entrypointStrategy the entrypoint strategy to validate
+   * @throws BadRequestException if validation fails
+   */
+  public static void validateDotNetEntrypointStrategy(final String entrypointStrategy) {
+    if (entrypointStrategy == null) {
+      return;
+    }
+
+    if (entrypointStrategy.trim().isEmpty()) {
+      throw new BadRequestException(
+          "reachability.dotNetAnalysis.entrypointStrategy cannot be empty");
+    }
+
+    if (!entrypointStrategy.equals("CONCRETE") &&
+        !entrypointStrategy.equals("PUBLIC_CONCRETE") &&
+        !entrypointStrategy.equals("ACCESSIBLE_CONCRETE") &&
+        !entrypointStrategy.equals("ALL") &&
+        !entrypointStrategy.equals("DOTNET_MAIN"))
+    {
+      throw new BadRequestException(
+          "reachability.dotNetAnalysis.entrypointStrategy must be one of: " +
+              "ACCESSIBLE_CONCRETE, ALL, CONCRETE, DOTNET_MAIN, PUBLIC_CONCRETE");
+    }
   }
 
   /**

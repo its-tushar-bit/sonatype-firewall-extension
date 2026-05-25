@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationDto;
 import com.sonatype.clm.dto.model.ci.config.ApiCiConfigurationResponseDto;
+import com.sonatype.clm.dto.model.ci.config.DotNetAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.DownloadConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaAnalysisConfig;
 import com.sonatype.clm.dto.model.ci.config.JavaScriptAnalysisConfig;
@@ -440,6 +441,9 @@ public class CiConfigurationService
 
     // Deep merge JavaScriptAnalysisConfig (2nd level nesting)
     mergeJavaScriptAnalysisConfig(baseReachability, overrideReachability.getJavaScriptAnalysis(), internalId, source);
+
+    // Deep merge DotNetAnalysisConfig (2nd level nesting)
+    mergeDotNetAnalysisConfig(baseReachability, overrideReachability.getDotNetAnalysis(), internalId, source);
   }
 
   /**
@@ -523,6 +527,48 @@ public class CiConfigurationService
     if (overrideJs.getJsExcludes() != null) {
       baseJs.setJsExcludes(overrideJs.getJsExcludes());
       source.put("reachability.javaScriptAnalysis.jsExcludes", internalId);
+    }
+  }
+
+  /**
+   * Deep merges .NET analysis configuration fields.
+   *
+   * @param baseReachability the base reachability config containing the .NET analysis to merge into
+   * @param overrideDotNet the .NET analysis configuration to merge from (it may be null)
+   * @param internalId the owner ID for provenance tracking
+   * @param source the provenance map
+   */
+  private void mergeDotNetAnalysisConfig(
+      ReachabilityConfig baseReachability,
+      DotNetAnalysisConfig overrideDotNet,
+      String internalId,
+      Map<String, String> source)
+  {
+    if (overrideDotNet == null) {
+      return;
+    }
+
+    DotNetAnalysisConfig baseDotNet = baseReachability.getDotNetAnalysis();
+    if (baseDotNet == null) {
+      baseDotNet = new DotNetAnalysisConfig();
+      baseReachability.setDotNetAnalysis(baseDotNet);
+    }
+
+    if (overrideDotNet.getEnabled() != null) {
+      baseDotNet.setEnabled(overrideDotNet.getEnabled());
+      source.put("reachability.dotNetAnalysis.enabled", internalId);
+    }
+    if (overrideDotNet.getNamespaces() != null) {
+      baseDotNet.setNamespaces(overrideDotNet.getNamespaces());
+      source.put("reachability.dotNetAnalysis.namespaces", internalId);
+    }
+    if (overrideDotNet.getEntrypointStrategy() != null) {
+      baseDotNet.setEntrypointStrategy(overrideDotNet.getEntrypointStrategy());
+      source.put("reachability.dotNetAnalysis.entrypointStrategy", internalId);
+    }
+    if (overrideDotNet.getDotnetPath() != null) {
+      baseDotNet.setDotnetPath(overrideDotNet.getDotnetPath());
+      source.put("reachability.dotNetAnalysis.dotnetPath", internalId);
     }
   }
 

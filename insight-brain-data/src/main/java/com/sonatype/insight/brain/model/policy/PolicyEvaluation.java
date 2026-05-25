@@ -14,8 +14,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import com.sonatype.clm.dto.model.ci.config.MetadataSource;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.insight.scan.model.ClientScanType;
+
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.maskCredentialsFromUrl;
 
 /**
  * @since 1.11
@@ -77,6 +80,21 @@ public class PolicyEvaluation
 
   @Column(name = "branch_name")
   private String branchName;
+
+  @Column(name = "scm_repository_url", length = 2048)
+  private String scmRepositoryUrl;
+
+  @Column(name = "commit_hash_source", length = 50)
+  @Enumerated(EnumType.STRING)
+  private MetadataSource commitHashSource;
+
+  @Column(name = "branch_name_source", length = 50)
+  @Enumerated(EnumType.STRING)
+  private MetadataSource branchNameSource;
+
+  @Column(name = "scm_repository_url_source", length = 50)
+  @Enumerated(EnumType.STRING)
+  private MetadataSource scmRepositoryUrlSource;
 
   public PolicyEvaluation() {
   }
@@ -221,6 +239,38 @@ public class PolicyEvaluation
     this.branchName = branchName;
   }
 
+  public String getScmRepositoryUrl() {
+    return scmRepositoryUrl;
+  }
+
+  public void setScmRepositoryUrl(String scmRepositoryUrl) {
+    this.scmRepositoryUrl = scmRepositoryUrl;
+  }
+
+  public MetadataSource getCommitHashSource() {
+    return commitHashSource;
+  }
+
+  public void setCommitHashSource(MetadataSource commitHashSource) {
+    this.commitHashSource = commitHashSource;
+  }
+
+  public MetadataSource getBranchNameSource() {
+    return branchNameSource;
+  }
+
+  public void setBranchNameSource(MetadataSource branchNameSource) {
+    this.branchNameSource = branchNameSource;
+  }
+
+  public MetadataSource getScmRepositoryUrlSource() {
+    return scmRepositoryUrlSource;
+  }
+
+  public void setScmRepositoryUrlSource(MetadataSource scmRepositoryUrlSource) {
+    this.scmRepositoryUrlSource = scmRepositoryUrlSource;
+  }
+
   public boolean wasInternallyTriggered() {
     return ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING == scanTriggerType
         || ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST == scanTriggerType
@@ -243,6 +293,10 @@ public class PolicyEvaluation
         ", scanTriggerType=" + scanTriggerType +
         ", clientScanType=" + clientScanType +
         ", branchName='" + branchName + '\'' +
+        ", scmRepositoryUrl='" + (scmRepositoryUrl != null ? maskCredentialsFromUrl(scmRepositoryUrl) : null) + '\'' +
+        ", commitHashSource=" + commitHashSource +
+        ", branchNameSource=" + branchNameSource +
+        ", scmRepositoryUrlSource=" + scmRepositoryUrlSource +
         '}';
   }
 }

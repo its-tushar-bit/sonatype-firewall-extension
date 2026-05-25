@@ -73,6 +73,8 @@ public class ApiReportDataResourceV2Test
 
   private Application app;
 
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
   private final Date date = new Date();
 
   private InsightWork insightWork;
@@ -86,6 +88,7 @@ public class ApiReportDataResourceV2Test
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
     insightWork = new InsightWork(getCLMServer().getConfiguration());
+    policyEvaluationDAO = getCLMServer().getInstance(PolicyEvaluationDAO.class);
   }
 
   @Test
@@ -835,6 +838,134 @@ public class ApiReportDataResourceV2Test
     assertResponseStatus(200, withFlag);
     assertResponseStatus(200, withoutFlag);
     assertThat(withFlag.getBodyText()).isEqualTo(withoutFlag.getBodyText());
+  }
+
+  // ==================== Metadata Endpoint Tests ====================
+
+  @Test
+  public void testGetMetadata_Success() throws Exception {
+    // Given: application with policy evaluation
+    String appPublicId = "MetadataTestAppId";
+    String scanId = "MetadataScanId";
+    Application app = tempEntity.newApplicationWithParent(appPublicId);
+    createReportFile(app.getId(), scanId, "/" + getClass().getSimpleName() + "/report");
+
+    // Create evaluation with metadata set before insert (update not supported)
+    PolicyEvaluation evaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, scanId, "system",
+        com.sonatype.insight.brain.model.policy.ScanTriggerType.CLI);
+    evaluation.setBranchName("feature/test-branch");
+    evaluation.setScmRepositoryUrl("https://github.com/org/repo.git");
+    policyEvaluationDAO.insert(evaluation);
+
+    // When: get metadata
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.METADATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    // Then: success with metadata
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText())
+        .contains("\"scanId\":\"" + scanId + "\"")
+        .contains("\"applicationPublicId\":\"" + appPublicId + "\"")
+        .contains("\"branchName\":\"feature/test-branch\"")
+        .contains("\"scmRepositoryUrl\":\"https://github.com/org/repo.git\"");
+  }
+
+  @Test
+  public void testGetMetadata_ScanNotFound() throws Exception {
+    // Given: application exists but scan does not
+    String appPublicId = "MetadataNotFoundAppId";
+    tempEntity.newApplicationWithParent(appPublicId);
+
+    // When: get metadata for non-existent scan
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.METADATA_PATH)
+        .parameter(appPublicId, "non-existent-scan")
+        .get();
+
+    // Then: 404 (NotFoundException mapped to 404)
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetMetadata_ApplicationNotFound() throws Exception {
+    // When: get metadata for non-existent application
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.METADATA_PATH)
+        .parameter("non-existent-app", "some-scan")
+        .get();
+
+    // Then: 404
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetMetadata_MasksCredentials() throws Exception {
+    // Given: evaluation with URL containing credentials
+    String appPublicId = "MetadataMaskAppId";
+    String scanId = "MaskScanId";
+    Application app = tempEntity.newApplicationWithParent(appPublicId);
+    createReportFile(app.getId(), scanId, "/" + getClass().getSimpleName() + "/report");
+
+    // Create evaluation with SCM URL set before insert
+    PolicyEvaluation evaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, scanId, "system",
+        com.sonatype.insight.brain.model.policy.ScanTriggerType.CLI);
+    evaluation.setScmRepositoryUrl("https://user:secret@github.com/org/repo.git");
+    policyEvaluationDAO.insert(evaluation);
+
+    // When: get metadata
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.METADATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    // Then: credentials masked
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText()).contains("https://****:****@github.com/org/repo.git");
+    assertThat(response.getBodyText()).doesNotContain("secret");
+  }
+
+  @Test
+  public void testGetMetadata_SourceProvenance() throws Exception {
+    // Given: evaluation with source provenance
+    String appPublicId = "MetadataSourceAppId";
+    String scanId = "SourceScanId";
+    Application app = tempEntity.newApplicationWithParent(appPublicId);
+    createReportFile(app.getId(), scanId, "/" + getClass().getSimpleName() + "/report");
+
+    // Create evaluation with source provenance set before insert
+    PolicyEvaluation evaluation = new PolicyEvaluation(app.getId(), BuildStageType.ID, scanId, "system",
+        com.sonatype.insight.brain.model.policy.ScanTriggerType.CLI);
+    evaluation.setCommitHash("abc123");
+    evaluation.setBranchName("main");
+    evaluation.setCommitHashSource(
+        com.sonatype.clm.dto.model.ci.config.MetadataSource.ENVIRONMENT_VARIABLE);
+    evaluation.setBranchNameSource(
+        com.sonatype.clm.dto.model.ci.config.MetadataSource.GIT_AUTO_DETECTED);
+    policyEvaluationDAO.insert(evaluation);
+
+    // When: get metadata
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.METADATA_PATH)
+        .parameter(appPublicId, scanId)
+        .get();
+
+    // Then: source map populated
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText())
+        .contains("\"commitHash\":\"ENVIRONMENT_VARIABLE\"")
+        .contains("\"branchName\":\"GIT_AUTO_DETECTED\"");
   }
 
   private void assertValidDiffResults(

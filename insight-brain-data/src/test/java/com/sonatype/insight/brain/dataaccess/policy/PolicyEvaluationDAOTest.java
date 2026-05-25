@@ -1428,6 +1428,44 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getByApplicationId(app.getId(), 3, 2)).isEmpty();
   }
 
+  @Test
+  public void testGetByScanIdAndApplicationId_Found() {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "test-scan-id";
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+
+    PolicyEvaluation result = dao.getByScanIdAndApplicationId(scanId, app.getId());
+
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(eval.getId());
+    assertThat(result.getScanId()).isEqualTo(scanId);
+    assertThat(result.getApplicationId()).isEqualTo(app.getId());
+  }
+
+  @Test
+  public void testGetByScanIdAndApplicationId_NotFound() {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "non-existent-scan";
+
+    PolicyEvaluation result = dao.getByScanIdAndApplicationId(scanId, app.getId());
+
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetByScanIdAndApplicationId_WrongApplication() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    String scanId = "test-scan-id";
+
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, scanId);
+
+    PolicyEvaluation result = dao.getByScanIdAndApplicationId(scanId, app2.getId());
+
+    assertThat(result).isNull();
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

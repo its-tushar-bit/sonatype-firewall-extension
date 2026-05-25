@@ -24,7 +24,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDiffDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.api.v2.service.ApiReportMetadataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService;
+import com.sonatype.clm.dto.model.ci.config.ApiReportMetadataResponseDto;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -61,21 +63,27 @@ public class ApiReportDataResourceV2
 
   public static final String DEPENDENCY_TREE_PATH = "dependencyTree";
 
+  public static final String METADATA_PATH = "metadata";
+
   private final ApiReportDataServiceV2 reportDataService;
 
   private final BaseUrl baseUrl;
 
   private final ApiReportViolationsDiffService apiReportViolationsDiffService;
 
+  private final ApiReportMetadataServiceV2 metadataService;
+
   @Inject
   public ApiReportDataResourceV2(
       final ApiReportDataServiceV2 reportDataService,
       final BaseUrl baseUrl,
-      final ApiReportViolationsDiffService apiReportViolationsDiffService)
+      final ApiReportViolationsDiffService apiReportViolationsDiffService,
+      final ApiReportMetadataServiceV2 metadataService)
   {
     this.reportDataService = reportDataService;
     this.baseUrl = baseUrl;
     this.apiReportViolationsDiffService = apiReportViolationsDiffService;
+    this.metadataService = metadataService;
   }
 
   /**
@@ -272,5 +280,31 @@ public class ApiReportDataResourceV2
     return apiReportViolationsDiffService
         .getPolicyViolationDiff(applicationPublicId, fromCommit, toCommit, fromPolicyEvaluationId,
             toPolicyEvaluationId, includeViolationTimes);
+  }
+
+  /**
+   * Gets the metadata for a report evaluation.
+   */
+  @GET
+  @Path(SCAN_PATH + "/" + METADATA_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
+  @Operation(
+      description = "Get evaluation metadata for a specific scan. " +
+          "Requires READ permission on the application.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Evaluation metadata"),
+        @ApiResponse(responseCode = "401", description = "Authentication required"),
+        @ApiResponse(responseCode = "403", description = "Access denied"),
+        @ApiResponse(responseCode = "404", description = "Scan not found")
+      })
+  public ApiReportMetadataResponseDto getMetadata(
+      @Parameter(description = "Enter the applicationPublicId for the evaluated application.",
+          required = true) @PathParam("applicationPublicId") String applicationPublicId,
+      @Parameter(description = "Enter the scanId (reportId) of the application report.",
+          required = true) @PathParam("scanId") String scanId)
+  {
+    return metadataService.getMetadata(applicationPublicId, scanId);
   }
 }

@@ -559,6 +559,27 @@ public class PolicyEvaluationDAO
   }
 
   /**
+   * Retrieves a PolicyEvaluation by its scan ID and application ID.
+   * <p>
+   * Returns {@code null} if no matching record is found. Callers must handle the null case
+   * appropriately, typically by throwing a {@link NotFoundException} if the evaluation is required.
+   *
+   * @param scanId the scan ID to search for
+   * @param applicationId the application ID to scope the search
+   * @return the matching PolicyEvaluation, or {@code null} if not found
+   * @since 1.203
+   */
+  public PolicyEvaluation getByScanIdAndApplicationId(String scanId, String applicationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(POLICY_EVALUATION)
+          .where(POLICY_EVALUATION.SCAN_ID.eq(scanId))
+          .and(POLICY_EVALUATION.APPLICATION_ID.eq(applicationId))
+          .fetchOne(this::toEntity);
+    }
+  }
+
+  /**
    * Fetches the latest policy evaluation for the given application, commit hash and stage, if any. It returns
    * {@code null} if no matches are found, or if commit hash is blank/missing.
    */

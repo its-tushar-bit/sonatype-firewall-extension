@@ -86,6 +86,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.clm.dto.model.ci.config.MetadataSource;
 import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
@@ -544,6 +545,13 @@ public class ScanPolicyEvaluator
       final ReportEntry dataJsonEntry = applicationReport.getEntry(DATA_JSON.getName());
       policyEvaluation.setCommitHash(extractField(dataJsonEntry, "commitHash"));
       policyEvaluation.setBranchName(extractField(dataJsonEntry, "branchName"));
+      policyEvaluation.setScmRepositoryUrl(extractField(dataJsonEntry, "scmRepositoryUrl"));
+
+      policyEvaluation.setCommitHashSource(parseMetadataSource(extractField(dataJsonEntry, "commitHashSource")));
+      policyEvaluation.setBranchNameSource(parseMetadataSource(extractField(dataJsonEntry, "branchNameSource")));
+      policyEvaluation
+          .setScmRepositoryUrlSource(parseMetadataSource(extractField(dataJsonEntry, "scmRepositoryUrlSource")));
+
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
           appId, stage.getStageTypeId());
       boolean isForLatestScan = true;
@@ -1595,6 +1603,18 @@ public class ScanPolicyEvaluator
       return null;
     }
     return JsonUtils.parse(dataReportEntry.buf).path(fieldName).asText(null);
+  }
+
+  private MetadataSource parseMetadataSource(String source) {
+    if (source == null || source.isEmpty()) {
+      return null;
+    }
+    try {
+      return MetadataSource.valueOf(source);
+    }
+    catch (IllegalArgumentException e) {
+      return null;
+    }
   }
 
   private void logPolicyViolations(List<PolicyViolation> policyViolations, String policyProperty) {

@@ -434,6 +434,10 @@ CREATE TABLE policy_evaluation (
   scan_trigger_type varchar(50) NOT NULL,
   client_scan_type varchar(50) NULL,
   branch_name varchar(512) NULL,
+  scm_repository_url varchar(2048) NULL,
+  commit_hash_source varchar(50) NULL,
+  branch_name_source varchar(50) NULL,
+  scm_repository_url_source varchar(50) NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE
 );

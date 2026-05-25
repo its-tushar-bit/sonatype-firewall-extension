@@ -2,7 +2,7 @@
 
 This document describes the progressive deployment pipeline for MTIQ Docker images. Each stage is a standalone Jenkins job that triggers the next downstream job on success.
 
-> **Current state (May 2026):** Staging jobs are now **active**. Production jobs remain in bypass mode until prod infrastructure is ready. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
+> **Current state (May 2026):** Staging and prod-internal jobs are now **active**. Regional production jobs remain in bypass mode. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
 
 ---
 
@@ -168,7 +168,7 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Timeout** | 20 minutes |
 | **What it does** | Validates image exists in prod ECR, deploys to prod-internal cell(s) via Terraform Cloud, then tags the image as `prod-internal-verified-{yyyyMMdd-HHmm}`. The verified tag is applied **only after** successful deployment — it serves as the safety gate for production releases. |
 | **Downstream** | None (production release is manual) |
-| **Bypass** | `PROD_INFRASTRUCTURE_READY = false` (CLM-39453) |
+| **Status** | Active |
 
 **Failure modes:**
 - **Image not found in prod ECR:** The image was not promoted. Check that `push-to-prod` ran successfully.
@@ -264,7 +264,7 @@ If this happens:
 
 ## Bypass Mode & Readiness
 
-Staging jobs are now active. Production jobs remain in bypass mode until their infrastructure is ready.
+Staging and prod-internal jobs are now active. Regional production jobs remain in bypass mode until their infrastructure is ready.
 
 | Job | Status | Bypass flag | Tracking ticket |
 |-----|--------|-------------|-----------------|
@@ -273,7 +273,7 @@ Staging jobs are now active. Production jobs remain in bypass mode until their i
 | `test-shared-dev` | Active | — | CLM-39450 |
 | `test-staging` | Active | — | CLM-39471 |
 | `push-to-prod` | Active (uses prod ECR account) | — | CLM-39795 |
-| `deploy-to-prod-internal` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39453 |
+| `deploy-to-prod-internal` | Active | — | CLM-39453 |
 | `deploy-to-prod-mirror` | Active | — | CLM-39795 |
 | `deploy-to-prod-us-1` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
 | `deploy-to-prod-us-2` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
@@ -291,6 +291,7 @@ Staging jobs are now active. Production jobs remain in bypass mode until their i
 | `test-shared-dev` | `mtiq-notices` | Failure only |
 | `test-staging` | `mtiq-notices` | Failure only |
 | `push-to-prod` | `mtiq-notices` | Failure only |
+| `deploy-to-prod-internal` | `mtiq-notices` | Failure only |
 | `deploy-to-prod-mirror` | `mtiq-notices` | Planned (currently commented out) |
 | `deploy-to-prod-{region}` | `mtiq-notices` | Planned (currently commented out) |
 

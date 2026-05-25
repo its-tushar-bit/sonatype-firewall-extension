@@ -16,29 +16,12 @@
  *
  * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-internal
  *
- * ============================================================================
- * TEMPORARY BYPASS - PROD INFRASTRUCTURE NOT YET READY
- * ============================================================================
- *
- * The prod AWS infrastructure (ECR, IAM roles, TFC workspaces) is not yet ready.
- * Until it's available, this job runs in bypass mode and returns SUCCESS.
- *
- * Once prod infrastructure is available:
- * 1. Set PROD_INFRASTRUCTURE_READY = true below
- * 2. Update PROD_INTERNAL_CELL_WORKSPACES and PROD_GLOBAL_WORKSPACE below with actual workspace names
- * 3. Remove this comment block
- *
  * Tracked in: CLM-39453
- * ============================================================================
  */
 
-// TODO: Change to true when prod infrastructure is ready
-def PROD_INFRASTRUCTURE_READY = false
-
 // Prod-internal cell workspaces — explicit allowlist
-// TODO: Replace with actual prod-internal workspace names when infrastructure is ready
-def PROD_INTERNAL_CELL_WORKSPACES = ['sca_aws_prod_cell-internal']  // Placeholder
-def PROD_GLOBAL_WORKSPACE = 'sca_aws_prod_global'                  // Placeholder
+def PROD_INTERNAL_CELL_WORKSPACES = ['sca_aws_prod_cell-prod-internal']
+def PROD_GLOBAL_WORKSPACE = 'sca_aws_prod_global'
 
 pipeline {
   agent { label 'zion-small' }
@@ -81,12 +64,6 @@ pipeline {
     stage('Validate Image in Prod ECR') {
       steps {
         script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would validate image ${params.IMAGE_TAG} exists in prod ECR"
-            env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG
-            return
-          }
-
           def ecr = load 'jenkins/ecr-helpers.groovy'
           ecr.validateImageExists(
             ecr.PROD_ECR_ACCOUNT,
@@ -102,11 +79,6 @@ pipeline {
     stage('Deploy to Prod-Internal Cells') {
       steps {
         script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would deploy to prod-internal cells with tag: ${env.RESOLVED_IMAGE_TAG}"
-            return
-          }
-
           def tfc = load 'jenkins/tfc-helpers.groovy'
           tfc.deployCells('prod-internal', PROD_INTERNAL_CELL_WORKSPACES, PROD_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG)
         }
@@ -118,16 +90,10 @@ pipeline {
     stage('Tag as Verified') {
       steps {
         script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would tag image as verified in prod ECR"
-            return
-          }
-
           def ecr = load 'jenkins/ecr-helpers.groovy'
           def dateStamp = new Date().format('yyyyMMdd-HHmm', TimeZone.getTimeZone('UTC'))
           def verifiedTag = "prod-internal-verified-${dateStamp}"
 
-          // Get manifest and apply verified tag
           def manifest = ecr.getImageManifest(
             ecr.PROD_ECR_ACCOUNT,
             ecr.ECR_REPOSITORY,
@@ -148,13 +114,13 @@ pipeline {
   post {
     success {
       script {
-        def status = PROD_INFRASTRUCTURE_READY ? "Deployed" : "Acknowledged (bypass mode)"
-        echo "deploy-to-prod-internal: ${status} ${params.IMAGE_TAG}"
+        echo "deploy-to-prod-internal: Deployed ${params.IMAGE_TAG}"
       }
     }
     failure {
       script {
-        echo "deploy-to-prod-internal: FAILED for ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Prod-internal deployment FAILED for tag: ${params.IMAGE_TAG}")
         echo ""
         echo "============================================"
         echo "REMEDIATION"

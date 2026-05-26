@@ -10,6 +10,7 @@ import {
   getEnterpriseReportingAcquireEmbedSessionUrl,
   getEnterpriseReportingBaseUrl,
   getEnterpriseReportingDashboardsUrl,
+  getIqVersion,
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
@@ -66,6 +67,7 @@ describe('EnterpriseReportingDashboardPage', () => {
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockDashboards);
     axiosMock.onGet(getEnterpriseReportingBaseUrl()).reply(200, mockLookerBaseUrl);
+    axiosMock.onGet(getIqVersion()).reply(200, { version: '1.188.0-SNAPSHOT' });
     axiosMock.onGet(getEnterpriseReportingAcquireEmbedSessionUrl('rolling-recap')).reply(200, {
       authentication_token: 'authentication_token',
       authentication_token_ttl: 600,
@@ -250,6 +252,22 @@ describe('EnterpriseReportingDashboardPage', () => {
       expect(await screen.findByRole('link', { name: 'Security Risk' })).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Security Risk Trends' })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Security Risk Breakdown' })).not.toBeInTheDocument();
+    });
+
+    it('hides success-metrics nav link when iqVersion is v204+', async () => {
+      const v204State = {
+        ...preloadedState,
+        enterpriseReportingDashboard: {
+          ...preloadedState.enterpriseReportingDashboard,
+          iqVersion: '1.204.0-SNAPSHOT',
+        },
+      };
+      render(<EnterpriseReportingDashboardPage />, { preloadedState: v204State });
+      const nav = screen.getByRole('navigation');
+
+      await waitFor(() => {
+        expect(within(nav).queryByRole('link', { name: 'Success Metrics' })).not.toBeInTheDocument();
+      });
     });
 
     it('renders a link if it has a groupId defined, but no matching group dashboard', async () => {

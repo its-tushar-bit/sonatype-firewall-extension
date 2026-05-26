@@ -31,7 +31,7 @@ import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import {
   selectEnterpriseReportingDashboard,
-  selectCombinedDashboards,
+  selectVisibleDashboards,
   selectEnterpriseDashboards,
   selectDataInsightsDashboards,
 } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
@@ -73,7 +73,7 @@ export default function EnterpriseReportingDashboardPage() {
   } = useSelector(selectEnterpriseReportingDashboard);
   const { appliedFilterName } = useSelector(selectEnterpriseReportingFilter);
   const isFilterDirty = useSelector(selectIsFilterDirty);
-  const combinedDashboards = useSelector(selectCombinedDashboards);
+  const combinedDashboards = useSelector(selectVisibleDashboards);
   const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
   const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
   const toggleShowFilter = () => dispatch(drawerActions.toggleShowFilter());

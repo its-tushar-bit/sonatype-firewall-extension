@@ -6,14 +6,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
-import { always, applySpec, compose, find, findIndex, nth, prop, propEq } from 'ramda';
+import { always, find, findIndex, prop, propEq } from 'ramda';
 
-import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
+import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { selectCombinedDashboards } from './enterpriseReportingDashboardSelectors';
+import { selectVisibleDashboards } from './enterpriseReportingDashboardSelectors';
 
 const REDUCER_NAME = 'enterpriseReportingDashboard';
 
@@ -26,6 +26,7 @@ export const initialState = {
   dashboardsData: null,
   dashboardTabs: [],
   activeDashboardTab: 0,
+  iqVersion: null,
 };
 
 const loadRequested = (state) => {
@@ -38,6 +39,7 @@ const loadFulfilled = (state, { payload }) => {
     state.baseUrl = new URL(payload.baseUrl).host;
   }
   state.dashboardsData = payload.dashboards;
+  state.iqVersion = payload.iqVersion;
   state.loading = false;
 };
 
@@ -47,18 +49,23 @@ const loadFailed = (state, { payload }) => {
 };
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
-  const promises = [
+  const corePromises = [
     dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     axios.get(getEnterpriseReportingDashboardsUrl()),
     axios.get(getEnterpriseReportingBaseUrl()),
   ];
 
-  return Promise.all(promises)
-    .then(
-      applySpec({
-        dashboards: compose(prop('data'), nth(1)),
-        baseUrl: compose(prop('data'), nth(2)),
-      })
+  return Promise.all(corePromises)
+    .then(([, dashboardsRes, baseUrlRes]) =>
+      axios
+        .get(getIqVersion())
+        .then((versionRes) => versionRes?.data?.version)
+        .catch(() => null)
+        .then((iqVersion) => ({
+          dashboards: dashboardsRes.data,
+          baseUrl: baseUrlRes.data,
+          iqVersion,
+        }))
     )
     .catch(rejectWithValue);
 });
@@ -91,7 +98,7 @@ const updateDashboardPage = (id, groupId, isDashboardDisabled) => {
   return (dispatch, getState) => {
     const state = getState();
     const routerState = selectRouterState(state);
-    const combinedDashboards = selectCombinedDashboards(state);
+    const combinedDashboards = selectVisibleDashboards(state);
 
     const dashboardFromUrl = find(propEq('dashboardId', id), combinedDashboards);
     const dashboardGroupFromUrl = find(propEq('groupId', groupId), combinedDashboards);

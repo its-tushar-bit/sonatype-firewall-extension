@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { filter, prop, propEq, reject, unless } from 'ramda';
+import { filter, prop, propEq, unless } from 'ramda';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import { combineDashboards } from './utils';
+import { combineDashboards, filterSuccessMetrics } from './utils';
 
 export const selectEnterpriseReportingLandingPage = prop('enterpriseReportingLandingPage');
 export const selectDashboardsData = createSelector(selectEnterpriseReportingLandingPage, prop('dashboardsData'));
@@ -25,11 +25,7 @@ export const selectVisibleDashboards = createSelector(
     if (isNilOrEmpty(dashboards)) {
       return [];
     }
-    const minorVersion = iqVersion ? parseInt(iqVersion.split('.')[1]) : 0;
-    if (minorVersion >= 204) {
-      return reject(propEq('dashboardId', 'success-metrics'), dashboards);
-    }
-    return dashboards;
+    return filterSuccessMetrics(dashboards, iqVersion);
   }
 );
 

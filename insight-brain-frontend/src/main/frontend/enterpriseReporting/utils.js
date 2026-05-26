@@ -3,8 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { all, filter, find, includes, pluck, propEq, uniq } from 'ramda';
+import { all, filter, find, includes, pluck, propEq, reject, uniq } from 'ramda';
 import { EI_DEFAULT_FILTER_NAME, FILTER_STATES } from './filter/enterpriseReportingFilterSlice';
+
+export const SUCCESS_METRICS_HIDDEN_FROM_VERSION = 204;
+
+// NaN check handles malformed versions (e.g. "204" with no dots) — parseInt(undefined) = NaN, treated as not hidden
+export const isSuccessMetricsHidden = (iqVersion) => {
+  if (!iqVersion) return false;
+  const minor = parseInt(iqVersion.split('.')[1]);
+  return !isNaN(minor) && minor >= SUCCESS_METRICS_HIDDEN_FROM_VERSION;
+};
+
+export const filterSuccessMetrics = (dashboards, iqVersion) =>
+  isSuccessMetricsHidden(iqVersion) ? reject(propEq('dashboardId', 'success-metrics'), dashboards) : dashboards;
 
 export const smallTagColors = ['blue', 'green', 'indigo', 'orange', 'pink', 'purple', 'red', 'teal', 'turquoise'];
 

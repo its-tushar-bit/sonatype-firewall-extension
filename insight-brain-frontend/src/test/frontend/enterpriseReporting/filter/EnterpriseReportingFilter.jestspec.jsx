@@ -964,6 +964,7 @@ describe('EnterpriseReportingFilter', () => {
           },
           router: {
             currentParams: { id: 'test-dashboard' },
+            currentState: { name: 'enterpriseReportingDashboard' },
             prevState: { name: 'otherState' },
           },
         },

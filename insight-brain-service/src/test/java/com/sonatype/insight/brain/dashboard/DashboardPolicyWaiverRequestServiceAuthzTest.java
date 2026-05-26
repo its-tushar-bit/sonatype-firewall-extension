@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Before;
@@ -196,5 +197,24 @@ public class DashboardPolicyWaiverRequestServiceAuthzTest
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId)
         .containsExactlyInAnyOrder(ROOT_ORGANIZATION_ID, REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaiverRequests_PartialRepositoryManagerPermissions() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    Policy policy = tempEntity.newPolicy(org);
+
+    createPolicyWaiverRequest(policy.getId(), repositoryManager1.getId());
+    createPolicyWaiverRequest(policy.getId(), repositoryManager2.getId());
+
+    grantReadPermission(repositoryManager1.getId());
+
+    DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(dto -> dto.ownerId)
+        .contains(repositoryManager1.getId())
+        .doesNotContain(repositoryManager.getId(), repositoryManager2.getId());
   }
 }

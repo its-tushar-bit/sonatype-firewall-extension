@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -18,17 +17,13 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 public class SourceControlConfigurationMigratorTest
     extends AbstractComponentTest
@@ -53,16 +48,6 @@ public class SourceControlConfigurationMigratorTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
-
-  @Override
-  public void configure(Binder binder) {
-    // Add the mock listener to the multibinder set
-    Multibinder.newSetBinder(binder, SourceControlConfigurationListener.class)
-        .addBinding()
-        .toInstance(mockSourceControlConfigurationListener);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
 
   @Before
   @After

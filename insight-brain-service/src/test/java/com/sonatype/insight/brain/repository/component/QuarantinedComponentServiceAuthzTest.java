@@ -5,18 +5,14 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
-import java.util.Date;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
@@ -39,12 +35,6 @@ public class QuarantinedComponentServiceAuthzTest
   private ComponentInfoService componentInfoServiceMock;
 
   private String token;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
-    super.configure(binder);
-  }
 
   @Before
   public void setupTestData() {

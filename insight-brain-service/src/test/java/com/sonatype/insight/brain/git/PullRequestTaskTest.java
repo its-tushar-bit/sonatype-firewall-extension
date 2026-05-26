@@ -8,17 +8,16 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
-import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
@@ -43,7 +42,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
 
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -146,20 +145,6 @@ public class PullRequestTaskTest
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mockPullRequestRemediationDetails.getApp()).thenReturn(mockApplication);
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    binder.bind(SourceControlPullRequestMetrics.class).toInstance(mockSourceControlPullRequestMetrics);
-    binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
-    binder.bind(AuditRecorder.class).toInstance(mockAuditRecorder);
-    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
-    binder.bind(ScmOperationMetrics.class).toInstance(mockScmOperationMetrics);
-
-    binder.bind(FileCleaner.class).toInstance(mockFileCleaner);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

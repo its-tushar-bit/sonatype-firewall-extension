@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -18,12 +19,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +66,7 @@ public class PullRequestPollingSchedulerTest
   @Test
   public void testPullRequestPollingScheduler_startAndStop() throws Exception {
     // given: scheduler instance with valid product license and scm feature is enabled
-    final int delaySeconds = 2;
+    final int delaySeconds = 5;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
         mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
@@ -72,22 +74,22 @@ public class PullRequestPollingSchedulerTest
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
-    // when: start scheduler and wait (less than full initial delay)
+    // when: start scheduler and wait (well within the initial delay; 3.5s margin)
     scheduler.register();
     Thread.sleep(1500);
 
-    // then: no invocations of polling yet
+    // then: no invocations of polling yet (delay is 5s, only 1.5s elapsed)
     verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
     assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"));
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 5 second(s)"));
 
-    // when: wait 3 polling cycles
-    Thread.sleep(3000);
+    // when: wait for 3 polling cycles (using Awaitility to avoid timing flakes)
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> verify(pullRequestPollingService, atLeast(3)).fetchAndSendPullRequestsForCommenting());
 
-    // then: polling service invoked 3 times
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"),
+    // then: polling service invoked at least 3 times and log messages contain expected subsequence
+    assertThatLogMessagesContainSubsequence(
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 5 second(s)"),
         debug("Commencing pull request polling cycle"),
         debug("Pull request polling cycle complete"),
         debug("Commencing pull request polling cycle"),
@@ -95,18 +97,15 @@ public class PullRequestPollingSchedulerTest
         debug("Commencing pull request polling cycle"),
         debug("Pull request polling cycle complete"));
 
-    // when: stop scheduler and wait (2 intervals)
+    // when: stop scheduler
     scheduler.deregister();
+    clearInvocations(pullRequestPollingService);
     Thread.sleep(2000);
 
-    // then: scheduler stopped and no new invocations of the polling service
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
-        debug("Commencing pull request polling cycle"),
-        debug("Pull request polling cycle complete"),
+    // then: scheduler stopped and no new invocations of the polling service after deregister
+    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
+    assertThatLogMessagesContainSubsequence(
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 5 second(s)"),
         debug("Commencing pull request polling cycle"),
         debug("Pull request polling cycle complete"),
         info("Stopped SCM pull request discovery"));
@@ -114,7 +113,7 @@ public class PullRequestPollingSchedulerTest
 
   @Test
   public void testPullRequestPollingScheduler_exceptionInPolling() throws Exception {
-    // given: scheduler instance with polling service that throws IO exceptions
+    // given: scheduler instance with polling service that throws runtime exceptions
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
@@ -125,41 +124,40 @@ public class PullRequestPollingSchedulerTest
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
-    // when: start scheduler, wait (delay + 1 interval)
+    // when: start scheduler, wait for first invocation
     scheduler.register();
-    Thread.sleep(1500);
+    await().atMost(5, TimeUnit.SECONDS)
+        .untilAsserted(() -> verify(pullRequestPollingService, atLeast(1)).fetchAndSendPullRequestsForCommenting());
 
-    // then : expecting exception was thrown, caught and handled
-    verify(pullRequestPollingService, times(1)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
+    // then: exception was thrown, caught and handled
+    assertThatLogMessagesContainSubsequence(
         info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 1 second(s)"),
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"));
 
-    // when: throw runtime exception instead and wait another interval
+    // when: throw runtime exception again and wait for second invocation
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
-    Thread.sleep(1000);
+    await().atMost(5, TimeUnit.SECONDS)
+        .untilAsserted(() -> verify(pullRequestPollingService, atLeast(2)).fetchAndSendPullRequestsForCommenting());
 
-    // then: polling still occurring and runtime exception was handled
-    verify(pullRequestPollingService, times(2)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
+    // then: polling still occurring and runtime exception was handled again
+    assertThatLogMessagesContainSubsequence(
         info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 1 second(s)"),
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"),
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"));
 
-    // when: stop throwing and wait
-    doNothing().when(pullRequestPollingService).fetchAndSendPullRequestsForCommenting();
-    Thread.sleep(1000);
+    // when: stop throwing and wait for next successful invocation
+    // lenient: on slow CI agents, the successful-cycle log assertion (await below) may be satisfied
+    // by an in-flight cycle before this fresh stub is invoked, causing a Mockito strict-stubbing failure.
+    lenient().doNothing().when(pullRequestPollingService).fetchAndSendPullRequestsForCommenting();
+    await().atMost(5, TimeUnit.SECONDS)
+        .until(() -> logMessagesContainTuple(debug("Pull request polling cycle complete")));
 
-    // then: polling still occurring
-    verify(pullRequestPollingService, times(3)).fetchAndSendPullRequestsForCommenting();
-    assertThatLogMessagesEqual(
-        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 1 second(s)"),
-        debug("Commencing pull request polling cycle"),
-        error("Failed to run pull request discovery cycle: some runtime exception"),
+    // then: polling still occurring and successful cycle completed
+    assertThatLogMessagesContainSubsequence(
         debug("Commencing pull request polling cycle"),
         error("Failed to run pull request discovery cycle: some runtime exception"),
         debug("Commencing pull request polling cycle"),

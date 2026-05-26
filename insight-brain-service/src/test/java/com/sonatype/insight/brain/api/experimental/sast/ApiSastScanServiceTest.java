@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import java.util.List;
-import java.util.UUID;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
+import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTOWith2Findings;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
@@ -19,19 +22,13 @@ import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
-import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTOWith2Findings;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 
 public class ApiSastScanServiceTest
     extends AbstractComponentTest
@@ -62,12 +59,6 @@ public class ApiSastScanServiceTest
   @Before
   public void before() {
     sastTestUtil = new SastTestUtil(sastScanDAO, sastFindingDAO, sastRemediationDAO);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(SastPullRequestCommentingService.class).toInstance(sastPullRequestCommentingService);
-    super.configure(binder);
   }
 
   @Test

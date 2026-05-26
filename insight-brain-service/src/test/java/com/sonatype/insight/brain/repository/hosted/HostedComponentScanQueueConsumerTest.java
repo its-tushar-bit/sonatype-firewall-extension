@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -218,26 +216,6 @@ public class HostedComponentScanQueueConsumerTest
     await().atMost(5, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(queueDAO.getById(job2.getId()).getStatus())
             .isEqualTo(HostedComponentScanQueueDAO.Status.PENDING.name()));
-  }
-
-  @Test
-  public void adminTask_execute_triggersProcessing() throws Exception {
-    insertPendingJob("repo-admin");
-
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan-admin");
-    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
-
-    consumer.disableForTesting = false;
-
-    StringWriter out = new StringWriter();
-    consumer.execute(Map.of(), new PrintWriter(out));
-
-    await().atMost(10, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull());
-
-    assertThat(out.toString()).contains("HostedComponentScanQueueConsumer");
   }
 
   @Test

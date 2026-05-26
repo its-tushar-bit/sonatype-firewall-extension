@@ -5,19 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.security.SamlGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
@@ -26,14 +19,16 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class SamlSsoUserProviderTest
     extends AbstractComponentTest
@@ -56,15 +51,6 @@ public class SamlSsoUserProviderTest
   private SamlUserDAO spySamlUserDAO;
 
   private SamlGroupDAO spySamlGroupDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    spySamlUserDAO = spy(daoFactory.createSamlUserDAO());
-    spySamlGroupDAO = spy(daoFactory.createSamlGroupDAO());
-    binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
-    binder.bind(SamlGroupDAO.class).toInstance(spySamlGroupDAO);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetSsoRealm() {

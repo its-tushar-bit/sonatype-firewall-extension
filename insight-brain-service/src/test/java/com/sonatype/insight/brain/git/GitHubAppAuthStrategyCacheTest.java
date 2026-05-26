@@ -5,42 +5,63 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.Date;
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.auth.AuthenticationStrategy;
 import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.inject.Binder;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
+@ContextConfiguration(classes = GitHubAppAuthStrategyCacheTest.GitHubAppAuthStrategyCacheTestConfig.class)
 public class GitHubAppAuthStrategyCacheTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class GitHubAppAuthStrategyCacheTestConfig
+  {
+    @Bean
+    @Primary
+    GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache(
+        final GitHubAppDAO githubAppDAO,
+        final InsightProxy insightProxy,
+        final GitApiClientFactory gitApiClientFactory,
+        final PasswordHandler passwordHandler)
+    {
+      return new GitHubAppAuthStrategyCache(
+          githubAppDAO,
+          insightProxy,
+          gitApiClientFactory,
+          passwordHandler,
+          "http://localhost:" + WIREMOCK_PORT);
+    }
+  }
+
   private static final int WIREMOCK_PORT = 18089;
 
   @Rule
@@ -57,31 +78,7 @@ public class GitHubAppAuthStrategyCacheTest
 
   private static int tokenCounter = 10000;
 
-  /**
-   * Override GitHubAppAuthStrategyCache bean to use WireMock URL for tests.
-   * Using toProvider instead of toInstance because dependencies need to be injected first.
-   */
-  @Override
-  public void configure(Binder binder) {
-    // Get providers for dependencies - they'll be resolved lazily
-    Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
-    Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
-    Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
-    Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
-
-    // Create provider that uses WireMock URL
-    binder.bind(GitHubAppAuthStrategyCache.class)
-        .toProvider(() -> new GitHubAppAuthStrategyCache(
-            githubAppDAOProvider.get(),
-            insightProxyProvider.get(),
-            gitApiClientFactoryProvider.get(),
-            passwordHandlerProvider.get(),
-            "http://localhost:" + WIREMOCK_PORT));
-    super.configure(binder);
-  }
-
   @After
-  @Override
   public void tearDown() {
     // Reset tenant context after each test to prevent cross-test pollution
     TenantTestHelper.resetAfterTest();
@@ -227,7 +224,7 @@ public class GitHubAppAuthStrategyCacheTest
     githubMockServer.stubFor(
         post(urlPathMatching("/app/installations/" + app.getInstallationId() + "/access_tokens"))
             .inScenario("token-refresh")
-            .whenScenarioStateIs(com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED)
+            .whenScenarioStateIs(Scenario.STARTED)
             .willReturn(aResponse()
                 .withStatus(201)
                 .withHeader("Content-Type", "application/json")

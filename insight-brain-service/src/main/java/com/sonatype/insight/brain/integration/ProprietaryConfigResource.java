@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import com.codahale.metrics.annotation.Timed;
+import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.GET;
@@ -13,12 +16,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-
-import com.codahale.metrics.annotation.Timed;
-
-@Named
+@Named("proprietaryConfigResourceIntegration")
 @Timed
 @Path(ProprietaryConfigResource.RESOURCE_PATH)
 public class ProprietaryConfigResource

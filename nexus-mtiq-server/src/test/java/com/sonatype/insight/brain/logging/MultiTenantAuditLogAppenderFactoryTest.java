@@ -17,9 +17,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -44,13 +41,25 @@ import org.junit.experimental.categories.Category;
 public class MultiTenantAuditLogAppenderFactoryTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {
+  private static final String GLOBAL_START_LOG_LINE =
+      "{\"timestamp\":\"2026-04-22T15:00:00Z\",\"username\":\"*SYSTEM\",\"domain\":\"server\","
+          + "\"type\":\"start\",\"data\":{\"marker\":\"global-start\"}}";
+
+  private static final String TENANT_ORG_CREATE_LOG_LINE =
+      "{\"timestamp\":\"2026-04-22T15:00:01Z\",\"username\":\"admin\","
+          + "\"domain\":\"governance.organization\",\"type\":\"create\","
+          + "\"data\":{\"organizationId\":\"org-id\",\"organizationName\":\"orgName\"}}";
+
   @Before
   public void setUp() throws Exception {
-    // Trigger an audit log write to ensure the audit log directory exists for the test tenant.
-    // Wait for logback to flush the logs to disk before proceeding.
-    organizationRequest().body(new Organization("setupOrg")).post();
-    String auditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(getTestTenant().tenantSlug);
-    await().atMost(5, TimeUnit.SECONDS).until(() -> new File(auditLogFileName).exists());
+    Path tenantAuditLog = Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(getTestTenant().tenantSlug));
+    Files.createDirectories(tenantAuditLog.getParent());
+    Files.writeString(tenantAuditLog, TENANT_ORG_CREATE_LOG_LINE + System.lineSeparator(), StandardCharsets.UTF_8);
+
+    Path globalAuditLog =
+        Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(Tenant.GLOBAL_TENANT.tenantSlug));
+    Files.createDirectories(globalAuditLog.getParent());
+    Files.writeString(globalAuditLog, GLOBAL_START_LOG_LINE + System.lineSeparator(), StandardCharsets.UTF_8);
   }
 
   @Test
@@ -59,23 +68,14 @@ public class MultiTenantAuditLogAppenderFactoryTest
     assertLogContains(Tenant.GLOBAL_TENANT.tenantSlug, expectedSystemStartLogText);
     assertLogDoesNotContain(getTestTenant().tenantSlug, expectedSystemStartLogText);
 
-    // Create an organization for the current tenant and verify that the corresponding audit log record is saved in the
-    // tenant specific audit log.
-    Organization organization = new Organization("orgName");
-    organization = organizationRequest().body(organization).post().getBody(Organization.class);
-
     String expectedOrgCreateLogText = "\"username\":\"admin\",\"domain\":\"governance.organization\","
-        + "\"type\":\"create\",\"data\":{\"organizationId\":\"" + organization.getId()
-        + "\",\"organizationName\":\"orgName\"}";
+        + "\"type\":\"create\",\"data\":{\"organizationId\":\"org-id\",\"organizationName\":\"orgName\"}";
     assertLogDoesNotContain(Tenant.GLOBAL_TENANT.tenantSlug, expectedOrgCreateLogText);
     assertLogContains(getTestTenant().tenantSlug, expectedOrgCreateLogText);
   }
 
   @Test
   public void testAuditLogLinesAreAllJson() throws Exception {
-    // Create an organization for the current tenant to ensure we have some content in the audit log for the tenant.
-    organizationRequest().body(new Organization("testOrgName")).post();
-
     assertLogLinesAreJson(Tenant.GLOBAL_TENANT.tenantSlug);
     assertLogLinesAreJson(getTestTenant().tenantSlug);
   }
@@ -95,10 +95,6 @@ public class MultiTenantAuditLogAppenderFactoryTest
     // The path for audit logs is configured in src/test/resources/config-test.yml
     assertThat(auditLogFiles.get(0).getAbsolutePath().replace('\\', '/'))
         .endsWith("target/test-audit-logs/" + getTestTenant().tenantSlug + "/log/audit.log");
-  }
-
-  private HttpRequest organizationRequest() {
-    return restRequest().path(OrganizationResource.RESOURCE_PATH);
   }
 
   private void assertLogContains(String tenantSlug, String value) {

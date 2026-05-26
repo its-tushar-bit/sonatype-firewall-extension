@@ -54,9 +54,6 @@ public class ComponentInfoResource
 
   private final ComponentInfoService componentInfoService;
 
-  @Context
-  private HttpServletRequest httpRequest;
-
   @Inject
   public ComponentInfoResource(ComponentInfoService componentInfoService) {
     this.componentInfoService = componentInfoService;
@@ -76,7 +73,8 @@ public class ComponentInfoResource
       @QueryParam("proprietary") boolean proprietary,
       @QueryParam("identificationSource") String identificationSource,
       @QueryParam("scanId") String scanId,
-      @QueryParam("dependencyType") String dependencyType) throws IOException
+      @QueryParam("dependencyType") String dependencyType,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService.getComponentDetails_ReadPermission(ownerType, ownerId, identifier, matchState, hash,
         proprietary, httpRequest, identificationSource, scanId, DependencyType.getById(dependencyType));
@@ -128,7 +126,8 @@ public class ComponentInfoResource
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
       @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId) throws IOException
+      @QueryParam("scanId") String scanId,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService
         .getLicenses(ownerType, ownerId, componentIdentifier, httpRequest, identificationSource, scanId);
@@ -143,7 +142,8 @@ public class ComponentInfoResource
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
       @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId) throws IOException
+      @QueryParam("scanId") String scanId,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService.getMultiLicensesForRead(ownerType, ownerId, componentIdentifier, httpRequest,
         identificationSource, scanId);
@@ -158,7 +158,8 @@ public class ComponentInfoResource
       @PathParam("ownerId") final String ownerId,
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier,
       @QueryParam("identificationSource") String identificationSource,
-      @QueryParam("scanId") String scanId) throws IOException
+      @QueryParam("scanId") String scanId,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService.getMultiLicensesForLegalReviewer(ownerType, ownerId, componentIdentifier, httpRequest,
         identificationSource, scanId);
@@ -177,7 +178,8 @@ public class ComponentInfoResource
       @QueryParam("hash") final String hash,
       @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
       @QueryParam("identificationSource") final String identificationSource,
-      @QueryParam("scanId") final String scanId) throws IOException
+      @QueryParam("scanId") final String scanId,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService
         .getSecurityVulnerabilities(ownerType, ownerId, hash, componentIdentifier, httpRequest, identificationSource,

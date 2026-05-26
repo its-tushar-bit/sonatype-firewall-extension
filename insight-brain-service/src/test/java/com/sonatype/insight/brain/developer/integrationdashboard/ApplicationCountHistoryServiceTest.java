@@ -6,17 +6,11 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.IntStream;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
@@ -32,20 +26,22 @@ import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 public class ApplicationCountHistoryServiceTest
     extends AbstractComponentTest
@@ -76,17 +72,6 @@ public class ApplicationCountHistoryServiceTest
 
   @Inject
   private SourceControlDAO sourceControlDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    policyViolationDAO = spy(daoFactory.createPolicyViolationDAO());
-
-    binder.bind(DateTimeService.class).toInstance(dateTimeService);
-    binder.bind(PolicyViolationDAO.class).toInstance(policyViolationDAO);
-    binder.bind(CIEvaluationStatService.class).toInstance(ciEvaluationStatService);
-
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws PlexusCipherException {

@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * @since 1.109
@@ -28,10 +28,10 @@ public class ShutdownStateOperationalCheck
   }
 
   @Override
-  protected Result check() throws Exception {
+  public Health check() throws Exception {
     if (shutdownHandler.isTriggered()) {
-      return Result.unhealthy("Shutdown has been triggered");
+      return Health.down().withDetail("message", "Shutdown has been triggered").build();
     }
-    return Result.healthy();
+    return Health.up().build();
   }
 }

@@ -5,36 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
-import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
-import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
-import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.ContributorInfoProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.model.Contributor;
-import com.sonatype.nexus.scm.api.model.ContributorPage;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.GITLOG_EMAIL;
 import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.GITLOG_FULLNAME;
 import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.SCM_EMAIL;
@@ -55,6 +25,32 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.ContributorInfoProvider;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.model.Contributor;
+import com.sonatype.nexus.scm.api.model.ContributorPage;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 public class ScmUserMatchingServiceTest
     extends AbstractComponentTest
@@ -79,13 +75,6 @@ public class ScmUserMatchingServiceTest
 
   @Mock
   private ContributorInfoProvider contributorInfoProvider;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws Exception {
@@ -514,13 +503,14 @@ public class ScmUserMatchingServiceTest
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_FULLNAME);
 
     tempEntity.newSourceControl(app.getId(), REPO_URL);
-    tempEntity.newUser("jdoe", "John", "Doe", "jdoe29@example.com");
+    // Avoid colliding with AbstractComponentTest's default test user, which is also "John Doe".
+    tempEntity.newUser("jdoe", "John", "Doe-SCM", "jdoe29@example.com");
     tempEntity.newUser("j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("ccarlyle42", "Carry", "Carlyle", "c-carlyle@example.com");
 
     // this is the part that's unrealistic. We are mocking the github service to return full names for scm user names.
     // in practice this should not happen, but doing so will let us test the mapping
-    mockGithubClientAndScmUtils(Sets.newHashSet("John Doe", "Carry Carlyle", "some-user", "user4"));
+    mockGithubClientAndScmUtils(Sets.newHashSet("John Doe-SCM", "Carry Carlyle", "some-user", "user4"));
 
     final List<UserMapping> givenMappings = Lists.newArrayList(givenMapping);
 

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,6 +131,7 @@ import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRa
 import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SbomResultsMerger
 {
   private static final Logger log = LoggerFactory.getLogger(SbomResultsMerger.class);

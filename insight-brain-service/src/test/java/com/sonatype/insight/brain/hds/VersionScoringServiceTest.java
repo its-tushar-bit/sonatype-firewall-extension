@@ -6,23 +6,20 @@
 
 package com.sonatype.insight.brain.hds;
 
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO.ToVersionData;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 public class VersionScoringServiceTest
     extends AbstractComponentTest
@@ -32,12 +29,6 @@ public class VersionScoringServiceTest
 
   @Inject
   private VersionScoringService versionScoringService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetSortedNonBreakingVersionsNoAuth() {

@@ -199,6 +199,8 @@ public class HttpHeaderValidatorFilterTest
           return headers[0];
         case "X-Forwarded-Proto":
           return headers[1];
+        case "X-Forwarded-Host":
+          return null;
         case "Forwarded":
           return headers[2];
         default:

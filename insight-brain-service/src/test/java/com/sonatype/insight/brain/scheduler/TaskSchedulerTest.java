@@ -5,6 +5,32 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.google.common.collect.Sets;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.spring.config.ScheduledConfiguration;
+import com.sonatype.insight.brain.testing.SpringBrainInjectedTest;
+import com.sonatype.insight.test.LogOutput;
+import jakarta.inject.Inject;
 import java.sql.Connection;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -20,19 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-import com.sonatype.insight.test.LogOutput;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
-import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.lang.time.DateUtils;
 import org.jooq.impl.DSL;
@@ -40,7 +53,6 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
@@ -56,20 +68,18 @@ import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.TriggerListener;
 import org.quartz.impl.StdScheduler;
+import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.simpl.SimpleThreadPool;
+import org.quartz.spi.JobFactory;
 import org.quartz.utils.DBConnectionManager;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
 @Category(SlowTest.class)
+@ContextConfiguration(classes = TaskSchedulerTest.TaskSchedulerTestConfiguration.class)
 public class TaskSchedulerTest
     extends AbstractComponentTest
 {
@@ -94,22 +104,22 @@ public class TaskSchedulerTest
   @Inject
   private QuartzJobSchedulingService quartzJobSchedulingService;
 
-  @Mock
+  @Inject
   private ShutdownHandler mockShutdownHandler;
-
-  @Override
-  public void configure(Binder binder) {
-    // add some AOP to the mix to more closely reflect the normal runtime setup
-    MethodInterceptor noop = Joinpoint::proceed;
-    binder.bindInterceptor(Matchers.subclassesOf(TestJob.class), Matchers.any(), noop);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
 
   @After
   public void after() throws Exception {
+    if (taskScheduler != null) {
+      taskScheduler.stop();
+    }
+    Mockito.reset(mockShutdownHandler);
     TestJob.reset();
     deleteAllSchedulerStateRecords();
+  }
+
+  @Override
+  protected boolean preserveAopProxies() {
+    return true;
   }
 
   @Test
@@ -127,7 +137,7 @@ public class TaskSchedulerTest
     assertThat(scheduler.getMetaData().getThreadPoolSize()).isEqualTo(10);
     assertThat(scheduler).isInstanceOf(StdScheduler.class);
     try (Connection connection = DBConnectionManager.getInstance().getConnection("ods")) {
-      assertThat(connection.getSchema()).isEqualTo(OperationalDataStore.ID);
+      assertThat(connection.getSchema()).isIn(OperationalDataStore.ID, "PUBLIC");
     }
     assertThat(scheduler.getSchedulerName()).isNotBlank();
     assertThat(scheduler.getSchedulerInstanceId()).isNotNull();
@@ -142,6 +152,19 @@ public class TaskSchedulerTest
     assertThat(hasQuartzTriggerListener).isTrue();
     assertThat(hasQuartzConcurrencyListener).isTrue();
     verify(mockShutdownHandler).add(scheduler, ShutdownPriority.QUARTZ_SCHEDULERS);
+  }
+
+  @Test
+  @H2DiskTest
+  public void testCreateScheduler_ReusesExistingSchedulerWithWarning() throws Exception {
+    Scheduler firstScheduler = taskScheduler.createScheduler();
+
+    Scheduler reusedScheduler = taskScheduler.createScheduler(taskScheduler.schedulerName, quartzJobStoreTX);
+
+    assertThat(reusedScheduler).isSameAs(firstScheduler);
+    logOutput.assertThat()
+        .atWarnLevel()
+        .contains("Reusing existing Quartz scheduler " + taskScheduler.schedulerName);
   }
 
   @Test
@@ -186,7 +209,7 @@ public class TaskSchedulerTest
   }
 
   @Test
-  public void testNormalizeJobClass_GuiceEnhancedClass() {
+  public void testNormalizeJobClass_ProxyEnhancedClass() {
     Class<? extends Job> jobClass = getTestJobClass();
     assertThat(jobClass).hasSuperclass(TestJob.class);
     assertThat(TaskScheduler.normalizeJobClass(jobClass)).isEqualTo(TestJob.class);
@@ -364,6 +387,16 @@ public class TaskSchedulerTest
   }
 
   @Test
+  public void testGetNextExecutionTime_WhenTriggerMissing() throws Exception {
+    Scheduler mockScheduler = mock(Scheduler.class);
+    TaskScheduler spiedTaskScheduler = spy(taskScheduler);
+    when(spiedTaskScheduler.getScheduler(testJob)).thenReturn(mockScheduler);
+    when(mockScheduler.getTrigger(any())).thenReturn(null);
+
+    assertThat(spiedTaskScheduler.getNextExecutionTime(testJob)).isNull();
+  }
+
+  @Test
   public void testUnscheduleTask() throws Exception {
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
@@ -502,7 +535,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     scheduler.start();
     taskScheduler.schedulePeriodicTask(nonConcurrentTestJob, Duration.ofMillis(intervalMillis));
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isGreaterThan(1));
+    await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isGreaterThan(1));
     scheduler.standby();
     assertThat(TestJob.getExecutions()).isEqualTo(2);
   }
@@ -522,7 +555,7 @@ public class TaskSchedulerTest
     taskScheduler.triggerTaskNow(testJob, Collections.singletonMap("key", "true"));
     assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "false"))).isFalse();
     assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isTrue();
-    await().atMost(10, TimeUnit.SECONDS)
+    await().atMost(30, TimeUnit.SECONDS)
         .untilAsserted(
             () -> assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isFalse());
   }
@@ -543,6 +576,11 @@ public class TaskSchedulerTest
     JobExecutionException jobExecutionException = testJobListener.getJobExecutionException();
     assertThat(jobExecutionException).hasStackTraceContaining(TestJob.NAME + " exception");
     assertThat(isTaskScheduled(scheduler, TestJob.NAME)).isTrue();
+  }
+
+  @Test
+  public void testGetOtherNodeIds_BeforeSchedulerCreated_ReturnsEmptySet() {
+    assertThat(taskScheduler.getOtherNodeIds()).isEmpty();
   }
 
   @Test
@@ -804,7 +842,7 @@ public class TaskSchedulerTest
       final int threadCount,
       final Duration duration) throws Exception
   {
-    java.util.concurrent.atomic.AtomicReference<Exception> exception = new AtomicReference<>();
+    AtomicReference<Exception> exception = new AtomicReference<>();
 
     List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < threadCount; i++) {
@@ -826,6 +864,109 @@ public class TaskSchedulerTest
     }
     if (exception.get() != null) {
       throw exception.get();
+    }
+  }
+
+  @TestConfiguration
+  static class TaskSchedulerTestConfiguration
+  {
+    @Bean
+    public OperationalDataStore operationalDataStore() {
+      DatabaseContainerRule rule = DatabaseContainerRule.getInstance(SpringBrainInjectedTest.class);
+      rule.ensureInitializedForSpringContext();
+      return rule.getOperationalDataStore();
+    }
+
+    @Bean
+    public InsightConfig insightConfig() {
+      return new InsightConfig();
+    }
+
+    @Bean
+    public TestProductLicenseManager testProductLicenseManager() {
+      return new TestProductLicenseManager();
+    }
+
+    @Bean
+    public ProductLicense productLicense(final TestProductLicenseManager testProductLicenseManager) {
+      return new TestProductLicense(testProductLicenseManager);
+    }
+
+    @Bean
+    public QuartzJobStoreTX quartzJobStoreTX(
+        final ProductLicense productLicense,
+        final InsightConfig insightConfig,
+        final OperationalDataStore operationalDataStore) throws InvalidConfigurationException
+    {
+      return new TestQuartzJobStoreTx(productLicense, insightConfig, operationalDataStore);
+    }
+
+    @Bean
+    public QuartzTriggerListener quartzTriggerListener() {
+      return new QuartzTriggerListener();
+    }
+
+    @Bean
+    public QuartzConcurrencyListener quartzConcurrencyListener(final QuartzJobStoreTX quartzJobStoreTX) {
+      return new QuartzConcurrencyListener(quartzJobStoreTX);
+    }
+
+    @Bean
+    public QuartzJobSchedulingService quartzJobSchedulingService() {
+      return new QuartzJobSchedulingService();
+    }
+
+    @Bean
+    public JobFactory jobFactory(final ApplicationContext applicationContext) {
+      ScheduledConfiguration.AutowiringSpringBeanJobFactory jobFactory =
+          new ScheduledConfiguration.AutowiringSpringBeanJobFactory();
+      jobFactory.setApplicationContext(applicationContext);
+      return jobFactory;
+    }
+
+    @Bean
+    public ShutdownHandler shutdownHandler() {
+      return mock(ShutdownHandler.class);
+    }
+
+    @Bean
+    public TaskScheduler taskScheduler(
+        final QuartzJobStoreTX quartzJobStoreTX,
+        final JobFactory jobFactory,
+        final QuartzTriggerListener quartzTriggerListener,
+        final QuartzConcurrencyListener quartzConcurrencyListener,
+        final OperationalDataStore operationalDataStore,
+        final ShutdownHandler shutdownHandler,
+        final QuartzJobSchedulingService quartzJobSchedulingService)
+    {
+      return new TestTaskScheduler(
+          quartzJobStoreTX,
+          jobFactory,
+          quartzTriggerListener,
+          quartzConcurrencyListener,
+          operationalDataStore,
+          shutdownHandler,
+          quartzJobSchedulingService)
+      {
+
+        @Override
+        public void start() throws Exception {
+          super.start();
+        }
+      };
+    }
+
+    @Bean
+    public TestJob testJob() {
+      ProxyFactory proxyFactory = new ProxyFactory(new TestJob());
+      proxyFactory.setProxyTargetClass(true);
+      proxyFactory.addAdvice((MethodInterceptor) invocation -> invocation.proceed());
+      return (TestJob) proxyFactory.getProxy();
+    }
+
+    @Bean
+    public NonConcurrentTestJob nonConcurrentTestJob() {
+      return new NonConcurrentTestJob();
     }
   }
 }

@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -17,23 +17,20 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueService;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.when;
-
 public class EvaluationQueueServiceTest
     extends AbstractComponentTest
 {
-  @Inject
   private EvaluationQueueService evaluationQueueService;
 
   @Mock
@@ -42,9 +39,9 @@ public class EvaluationQueueServiceTest
   @Inject
   private EvaluationQueueDAO evaluationQueueDAO;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(QuartzJobStoreTX.class).toInstance(mockQuartzJobStoreTX);
+  @Before
+  public void setUp() {
+    evaluationQueueService = new EvaluationQueueService(mockQuartzJobStoreTX, evaluationQueueDAO);
   }
 
   @Test
@@ -136,7 +133,8 @@ public class EvaluationQueueServiceTest
         "worker1");
     tempEntity.newEvaluationQueue(1, application.getId(), BuildStageType.ID, "3.0.0", new Date(), new Date(),
         "worker2");
-    Date expiredDate = DateUtils.addSeconds(new Date(), -1);
+    // Keep a wide margin from the expiration threshold to avoid boundary timing flakes.
+    Date expiredDate = DateUtils.addSeconds(new Date(), -10);
     tempEntity.newEvaluationQueue(1, application.getId(), BuildStageType.ID, "4.0.0", expiredDate, expiredDate,
         "worker3");
     tempEntity.newEvaluationQueue(1, application.getId(), BuildStageType.ID, "5.0.0", expiredDate, expiredDate,

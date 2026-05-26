@@ -5,37 +5,40 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.organization.OrganizationResource;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
-import com.sonatype.insight.brain.service.BaseUrl;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.organization.OrganizationResource;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class MultiTenantThrowableHandlerResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(BaseUrl.class).toInstance(mock(BaseUrl.class));
+  private static final BaseUrl MOCK_BASE_URL = mock(BaseUrl.class);
+
+  @Before
+  public void before() {
+    reset(MOCK_BASE_URL);
   }
 
   @Test
   public void testErrorFilter_HandlesException() throws Exception {
-    doThrow(new RuntimeException("some exception")).when(getCLMServer().getInstance(BaseUrl.class)).capture(any());
+    doThrow(new RuntimeException("some exception")).when(MOCK_BASE_URL).capture(any());
 
     HttpResponse httpResponse = restRequest().path(OrganizationResource.RESOURCE_PATH).get();
 
@@ -45,12 +48,22 @@ public class MultiTenantThrowableHandlerResourceTest
 
   @Test
   public void testErrorFilter_NoException() throws Exception {
-    doNothing().when(getCLMServer().getInstance(BaseUrl.class)).capture(any());
+    doNothing().when(MOCK_BASE_URL).capture(any());
 
     HttpResponse httpResponse = restRequest().path(OrganizationResource.RESOURCE_PATH).get();
 
     assertResponseStatus(200, httpResponse);
     Organization[] organizations = httpResponse.getBody(Organization[].class);
     assertThat(organizations).isNotEmpty();
+  }
+
+  @TestConfiguration
+  static class ThrowableHandlerTestConfiguration
+  {
+    @Bean
+    @Primary
+    BaseUrl baseUrl() {
+      return MOCK_BASE_URL;
+    }
   }
 }

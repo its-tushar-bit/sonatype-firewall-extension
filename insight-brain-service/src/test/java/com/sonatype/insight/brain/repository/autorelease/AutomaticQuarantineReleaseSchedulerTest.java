@@ -5,27 +5,23 @@
  */
 package com.sonatype.insight.brain.repository.autorelease;
 
-import java.time.Duration;
-import java.util.Date;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Date;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class AutomaticQuarantineReleaseSchedulerTest
     extends AbstractComponentTest
@@ -41,14 +37,6 @@ public class AutomaticQuarantineReleaseSchedulerTest
 
   @Mock
   private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-
-    super.configure(binder);
-  }
 
   private void enableLicenseForFirewall(boolean enable) {
     lenient().when(productLicenseMock.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE)).thenReturn(enable);

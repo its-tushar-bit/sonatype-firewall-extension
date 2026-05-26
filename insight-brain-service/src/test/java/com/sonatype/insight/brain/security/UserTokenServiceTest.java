@@ -5,18 +5,16 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
@@ -38,22 +36,22 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -87,16 +85,6 @@ public class UserTokenServiceTest
   private SamlUserDAO spySamlUserDAO;
 
   private OAuth2UserDAO spyOAuth2UserDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    spySamlUserDAO = spy(daoFactory.createSamlUserDAO());
-    spyOAuth2UserDAO = spy(daoFactory.createOAuth2UserDAO());
-    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
-    binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
-    binder.bind(OAuth2UserDAO.class).toInstance(spyOAuth2UserDAO);
-    super.configure(binder);
-  }
 
   @Test
   public void testCreateUserToken_InternalUser() {
@@ -173,6 +161,7 @@ public class UserTokenServiceTest
     enableSsoWithSaml();
 
     SamlUser samlUser = tempEntity.newSamlUser();
+    clearInvocations(spySamlUserDAO);
     try {
       when(subject.getPrincipal()).thenReturn(
           new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlRealm.ID,
@@ -224,6 +213,7 @@ public class UserTokenServiceTest
     enableSsoWithOAuth2();
 
     OAuth2User oauth2User = tempEntity.newOAuth2User();
+    clearInvocations(spyOAuth2UserDAO);
     try {
       when(subject.getPrincipal()).thenReturn(
           new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), OAuth2Realm.ID,

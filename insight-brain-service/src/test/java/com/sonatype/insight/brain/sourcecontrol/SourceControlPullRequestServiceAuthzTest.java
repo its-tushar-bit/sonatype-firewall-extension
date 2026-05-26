@@ -5,8 +5,18 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import java.io.IOException;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.DEFAULT_REMEDIATION_VERSION;
+import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.DEFAULT_VERSION;
+import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.setupComponentVersionInfoDTO;
+import static org.mockito.Mockito.lenient;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.PullRequestSubmissionDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
@@ -20,12 +30,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.io.IOException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -33,17 +39,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.DEFAULT_REMEDIATION_VERSION;
-import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.DEFAULT_VERSION;
-import static com.sonatype.insight.brain.sourcecontrol.SourceControlPullRequestServiceTest.setupComponentVersionInfoDTO;
-import static org.mockito.Mockito.lenient;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 public class SourceControlPullRequestServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -56,12 +53,6 @@ public class SourceControlPullRequestServiceAuthzTest
 
   @Inject
   private SourceControlPullRequestService service;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws PlexusCipherException {

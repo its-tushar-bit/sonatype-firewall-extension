@@ -5,46 +5,6 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-import java.lang.reflect.Field;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import org.apache.shiro.authc.AuthenticationException;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.tenancy.TenantReference;
-import com.sonatype.insight.jaxrs.error.ErrorResponse;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.inject.Binder;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHeaders;
-import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee11.servlet.ServletHolder;
-import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Server;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -55,14 +15,72 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.lang.reflect.Field;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.shiro.authc.AuthenticationException;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
+import org.eclipse.jetty.server.NetworkConnector;
+import org.eclipse.jetty.server.Server;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
+
+@ContextConfiguration(classes = OidcLoginFilterTest.OidcLoginFilterTestConfiguration.class)
 public class OidcLoginFilterTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class OidcLoginFilterTestConfiguration
+  {
+    @Bean
+    @Primary
+    BaseUrl mockBaseUrl() {
+      return mock(BaseUrl.class);
+    }
+
+    @Bean
+    @Primary
+    Configuration mockConfiguration() {
+      return mock(Configuration.class);
+    }
+  }
+
   public static final String ISSUER = "https://www.an-idp.com/";
 
   public static final String CLIENT_ID = "client-id";
@@ -84,23 +102,17 @@ public class OidcLoginFilterTest
   @Inject
   private PasswordHandler passwordHandler;
 
-  @Mock
+  @Inject
   private BaseUrl mockBaseUrl;
 
-  @Mock
+  @Inject
   private Configuration mockConfiguration;
 
   private String encryptedClientSecret;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    super.configure(binder);
-  }
-
   @Before
   public void setup() {
+    reset(mockBaseUrl, mockConfiguration);
     SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
     encryptedClientSecret = passwordHandler.encryptPassword(CLIENT_SECRET);
   }
@@ -116,10 +128,29 @@ public class OidcLoginFilterTest
   }
 
   @Test
+  public void testOnPreHandle_fallsBackToRequestUriWhenPathInfoIsNull() throws Exception {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> authorizationUrlCaptor = ArgumentCaptor.forClass(String.class);
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, encryptedClientSecret, AUTHORIZATION_URL, TOKEN_URL);
+    when(request.getPathInfo()).thenReturn(null);
+    when(request.getRequestURI()).thenReturn("/" + OidcLoginFilter.OAUTH_LOGIN);
+
+    boolean result = oidcLoginFilter.onPreHandle(request, response, null);
+
+    assertThat(result).isFalse();
+    verify(response).setHeader(eq("Location"), authorizationUrlCaptor.capture());
+    verify(response).setStatus(HttpServletResponse.SC_FOUND);
+  }
+
+  @Test
   public void testOnPreHandle_ThrowsExceptionWhenNoOidcConfigurationPresent() throws Exception {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final PrintWriter writer = setupPrintWriter(response);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
 
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 

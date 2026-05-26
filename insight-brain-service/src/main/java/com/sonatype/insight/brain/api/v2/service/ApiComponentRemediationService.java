@@ -72,8 +72,6 @@ public class ApiComponentRemediationService
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
-  private final ApiDependencyTreeSearcher apiDependencyTreeSearcher;
-
   @Inject
   public ApiComponentRemediationService(
       ComponentInfoService componentInfoService,
@@ -83,8 +81,7 @@ public class ApiComponentRemediationService
       ApplicationDAO applicationDAO,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       IdUtils idUtils,
-      ApiReportDataServiceV2 apiReportDataServiceV2,
-      ApiDependencyTreeSearcher apiDependencyTreeSearcher)
+      ApiReportDataServiceV2 apiReportDataServiceV2)
   {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
@@ -95,7 +92,6 @@ public class ApiComponentRemediationService
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.idUtils = idUtils;
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
-    this.apiDependencyTreeSearcher = apiDependencyTreeSearcher;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -127,6 +123,7 @@ public class ApiComponentRemediationService
       final Boolean includeParentRemediation,
       final boolean stableVersionsOnly)
   {
+    ApiDependencyTreeSearcher apiDependencyTreeSearcher = new ApiDependencyTreeSearcher();
     if (OwnerType.REPOSITORY.equals(ownerType)) {
       if (stageId == null) {
         stageId = ProxyStageType.ID;
@@ -176,7 +173,8 @@ public class ApiComponentRemediationService
 
     if (includeParentRem) {
       directParentComponentIdentifiers =
-          getDirectParentComponentIdentifiers(componentDTO, ownerType, ownerId, scanId, componentIdentifier);
+          getDirectParentComponentIdentifiers(apiDependencyTreeSearcher, componentDTO, ownerType, ownerId, scanId,
+              componentIdentifier);
     }
 
     if (directParentComponentIdentifiers.isEmpty()) {
@@ -283,6 +281,7 @@ public class ApiComponentRemediationService
   }
 
   private List<ComponentIdentifier> getDirectParentComponentIdentifiers(
+      final ApiDependencyTreeSearcher apiDependencyTreeSearcher,
       final ApiComponentDTOV2 componentDTO,
       final OwnerType ownerType,
       final String ownerId,

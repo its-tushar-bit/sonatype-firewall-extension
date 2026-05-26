@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.health;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
+import com.sonatype.insight.brain.service.InsightConfig;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,16 +23,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
-import com.sonatype.insight.brain.service.InsightConfig;
-
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * Health check for clustered IQ to verify the work directories are accessible. This health check runs in a separate
@@ -57,19 +56,19 @@ public class WorkDirectoriesAccessibleHealthCheck
   }
 
   @Override
-  protected Result check() throws Exception {
-    ResultBuilder resultBuilder = Result.builder();
+  public Health check() throws Exception {
+    Health.Builder healthBuilder = Health.up();
 
-    isDirectoryInaccessible("sonatypeWork", sonatypeWork, resultBuilder);
-    isDirectoryInaccessible("clusterDirectory", clusterDirectory, resultBuilder);
+    checkDirectoryAccessible("sonatypeWork", sonatypeWork, healthBuilder);
+    checkDirectoryAccessible("clusterDirectory", clusterDirectory, healthBuilder);
 
-    return resultBuilder.build();
+    return healthBuilder.build();
   }
 
-  private void isDirectoryInaccessible(
+  private void checkDirectoryAccessible(
       final String configName,
       final File directory,
-      final ResultBuilder resultBuilder)
+      final Health.Builder healthBuilder)
   {
     Callable<Void> callable = () -> readTestFile(directory);
     Future<Void> task = executorService.submit(callable);
@@ -86,7 +85,7 @@ public class WorkDirectoriesAccessibleHealthCheck
           configName, directory.getAbsolutePath(), e.getClass().getSimpleName(), e.getMessage());
       log.error(message, e);
 
-      resultBuilder.withMessage(message).unhealthy();
+      healthBuilder.down().withDetail(configName + "_error", message);
     }
   }
 

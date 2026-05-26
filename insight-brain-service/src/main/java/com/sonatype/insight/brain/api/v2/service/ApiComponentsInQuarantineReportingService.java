@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
@@ -25,10 +20,17 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @since 1.77
  */
+@Named
+@Singleton
 public class ApiComponentsInQuarantineReportingService
 {
   private static final String QUARANTINED_COMPONENTS_AUDIT_KEY = "numberOfQuarantinedComponents";

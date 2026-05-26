@@ -5,18 +5,14 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.time.Duration;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -24,20 +20,27 @@ import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.utils.CheckedRunnable;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class AdminServletTest
@@ -46,13 +49,42 @@ public class AdminServletTest
   @Rule
   public LogOutput logOutput = new LogOutput(ShutdownHandler.class);
 
+  /**
+   * Override to provide TestShutdownHandler instead of the mock from BaseIntegrationTestConfiguration.
+   */
   @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    // Explicit bindings required for test inner classes
-    binder.bind(TestBlockResource.class);
-    binder.bind(TestBlockJob.class);
-    binder.bind(ShutdownHandler.class).toInstance(spy(new TestShutdownHandler()));
+  protected List<Class<?>> getTestConfigurationClasses() {
+    List<Class<?>> configs = new ArrayList<>(super.getTestConfigurationClasses());
+    configs.add(AdminServletTestConfiguration.class);
+    return configs;
+  }
+
+  /**
+   * Test configuration that provides a real TestShutdownHandler instead of a mock,
+   * and registers test-only JAX-RS resources and jobs.
+   */
+  @TestConfiguration
+  static class AdminServletTestConfiguration
+  {
+    @Bean
+    @Primary
+    public ShutdownHandler shutdownHandler() {
+      return spy(new TestShutdownHandler());
+    }
+  }
+
+  /**
+   * Reconfigure LogOutput appender after server startup to ensure it captures logs.
+   * Spring Boot's logging initialization during test context startup can remove
+   * appenders added by rules that run earlier.
+   */
+  @Before
+  public void reconfigureLogOutput() throws Exception {
+    // Force reconfigure LogOutput after Spring Boot test context has initialized
+    // The configureLoggers() method is private, so we use reflection
+    java.lang.reflect.Method configureLoggers = LogOutput.class.getDeclaredMethod("configureLoggers");
+    configureLoggers.setAccessible(true);
+    configureLoggers.invoke(logOutput);
   }
 
   @Test(timeout = 60_000)

@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.lang.reflect.Method;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.Application;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
@@ -14,14 +18,8 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.MultivaluedMap;
-
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
-import com.sonatype.insight.brain.model.Application;
-
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import java.lang.reflect.Method;
+import org.springframework.util.ClassUtils;
 
 /**
  * Audits the event kind for a REST resource. Worth to highlight is that this request filter can grab the event even if
@@ -32,7 +30,6 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 @jakarta.ws.rs.ext.Provider
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
 @Priority(AuditContainerRequestFilter.PRIORITY)
-@Order(Integer.MAX_VALUE - AuditContainerRequestFilter.PRIORITY)
 public class AuditContainerRequestFilter
     implements ContainerRequestFilter
 {
@@ -46,7 +43,7 @@ public class AuditContainerRequestFilter
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
-  private final Provider<ResourceInfo> resourceInfoProvider;
+  private Provider<ResourceInfo> resourceInfoProvider;
 
   @Inject
   public AuditContainerRequestFilter(
@@ -63,21 +60,26 @@ public class AuditContainerRequestFilter
     this.resourceInfoProvider = resourceInfoProvider;
   }
 
+  protected final void setResourceInfoProviderDelegate(final Provider<ResourceInfo> resourceInfoProvider) {
+    this.resourceInfoProvider = resourceInfoProvider;
+  }
+
   @Override
   public void filter(ContainerRequestContext requestContext) {
+    if (resourceInfoProvider == null) {
+      return;
+    }
     ResourceInfo resInfo = resourceInfoProvider.get();
+    if (resInfo == null) {
+      return;
+    }
     Method method = resInfo.getResourceMethod();
     if (method != null) {
       Audited audited = method.getAnnotation(Audited.class);
-      if (audited == null && method.getDeclaringClass().getName().contains("Guice$$")) {
-        // workaround for https://github.com/google/guice/issues/201
-        // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
-        // annotations so we have to manually inspect the original class
+      Class<?> userClass = ClassUtils.getUserClass(method.getDeclaringClass());
+      if (audited == null && userClass != method.getDeclaringClass()) {
         try {
-          audited = method.getDeclaringClass()
-              .getSuperclass()
-              .getMethod(method.getName(), method.getParameterTypes())
-              .getAnnotation(Audited.class);
+          audited = userClass.getMethod(method.getName(), method.getParameterTypes()).getAnnotation(Audited.class);
         }
         catch (NoSuchMethodException e) {
           throw new IllegalStateException(e);

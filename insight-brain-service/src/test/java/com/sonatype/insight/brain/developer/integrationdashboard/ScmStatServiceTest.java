@@ -6,25 +6,21 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import com.google.common.collect.Lists;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsScmFeedbackStatIncrementDto;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class ScmStatServiceTest
     extends AbstractComponentTest
@@ -38,12 +34,6 @@ public class ScmStatServiceTest
 
   @Inject
   private ScmStatService scmStatService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(DateTimeService.class).toInstance(dateTimeService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetScmFeedbackUsageStatsOverTime_shouldReturnCorrectValuesGivenIncrementSizeAndNumber() {

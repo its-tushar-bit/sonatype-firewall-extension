@@ -6,9 +6,8 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService;
-import com.sonatype.insight.brain.service.TestMultiTenantInsightBrainService;
-
+import com.sonatype.insight.brain.service.SpringMultiTenantTestInsightBrainService;
+import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -25,9 +24,9 @@ public class MultiTenantPasswordServiceTest
 
     ArchRule rule = ArchRuleDefinition.noClasses()
         .that()
-        .areNotAssignableTo(DefaultTestInsightBrainService.class)
+        .areNotAssignableTo(SpringTestInsightBrainService.class)
         .and()
-        .areNotAssignableTo(TestMultiTenantInsightBrainService.class)
+        .areNotAssignableTo(SpringMultiTenantTestInsightBrainService.class)
         .should()
         .callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
 

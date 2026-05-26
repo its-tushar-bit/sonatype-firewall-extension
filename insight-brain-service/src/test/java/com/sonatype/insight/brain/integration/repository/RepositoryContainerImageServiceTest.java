@@ -5,10 +5,20 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.BASE_OS_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.COMPONENTS_COUNT_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.MANIFEST_TYPE_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.SCAN_DURATION_MILLISECONDS_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
@@ -35,9 +45,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.cyclonedx.Version;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.model.Bom;
@@ -49,21 +60,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-
-import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.BASE_OS_PROPERTY_NAME;
-import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.COMPONENTS_COUNT_PROPERTY_NAME;
-import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.MANIFEST_TYPE_PROPERTY_NAME;
-import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.SCAN_DURATION_MILLISECONDS_PROPERTY_NAME;
-import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
-import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_WITH_QUARANTINE_PROPERTY_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class RepositoryContainerImageServiceTest
     extends AbstractComponentTest
@@ -88,19 +84,6 @@ public class RepositoryContainerImageServiceTest
 
   @Inject
   private RepositoryContainerImageService service;
-
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-
-    binder.bindInterceptor(Matchers.subclassesOf(PolicyEvaluateService.class), Matchers.any(), invocation -> {
-      String methodName = invocation.getMethod().getName();
-      if (methodName.equals("pollEvaluationResult") || methodName.equals("evaluateWithPolling")) {
-        return invocation.getMethod().invoke(policyEvaluateServiceMock, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-  }
 
   @Test
   public void testIsContainerImageQuarantined_repositoryManagerNotExists() {

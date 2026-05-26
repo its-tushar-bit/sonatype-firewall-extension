@@ -207,6 +207,12 @@ public class PolicyResourceAuthzTest
   public void testUpdatePolicyNotifications() throws Exception {
     Policy policy = tempEntity.newPolicy(app);
 
+    testAuthzPut(
+        restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()),
+        HttpStatus.SC_FORBIDDEN);
+
+    grantWritePermission(app.getId());
+
     setMissingFeature(LicensedFeature.POLICY_READ_ONLY);
     HttpResponse response = restRequest().path(NOTIFICATIONS_PATH)
         .auth(authorized)
@@ -216,10 +222,6 @@ public class PolicyResourceAuthzTest
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_PAYMENT_REQUIRED);
     setFeatures(LicensedFeature.POLICY_READ_ONLY);
 
-    testAuthzPut(
-        restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()),
-        HttpStatus.SC_FORBIDDEN);
-    grantWritePermission(app.getId());
     testAuthzPut(
         restRequest().path(NOTIFICATIONS_PATH).body(policy).parameter(OwnerType.APPLICATION, app.getPublicId()));
 

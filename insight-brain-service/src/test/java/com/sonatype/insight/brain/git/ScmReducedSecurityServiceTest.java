@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -13,15 +16,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 public class ScmReducedSecurityServiceTest
     extends AbstractComponentTest
@@ -39,13 +36,6 @@ public class ScmReducedSecurityServiceTest
 
   @Inject
   private PasswordHandler passwordHandler;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-
-    super.configure(binder);
-  }
 
   @Test
   public void testIsReducedSecurityData_PrivateRepo() {

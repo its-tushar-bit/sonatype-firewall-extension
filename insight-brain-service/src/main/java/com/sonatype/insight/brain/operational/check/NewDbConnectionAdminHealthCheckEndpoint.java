@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.operational.check;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.codahale.metrics.health.HealthCheck.Result;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @Named
 @Singleton
@@ -37,12 +37,17 @@ public class NewDbConnectionAdminHealthCheckEndpoint
 
   @Override
   public HealthCheckResponse getHealthCheckResponse() {
-    Result result = databaseOperationalCheck.execute();
-    if (result.isHealthy()) {
-      return new HealthCheckResponse(true);
-    }
+    try {
+      Health health = databaseOperationalCheck.check();
+      if (health.getStatus() == Status.UP) {
+        return new HealthCheckResponse(true);
+      }
 
-    String message = result.getDetails().toString();
-    return new HealthCheckResponse(false, message);
+      String message = health.getDetails().toString();
+      return new HealthCheckResponse(false, message);
+    }
+    catch (Exception e) {
+      return new HealthCheckResponse(false, e.getMessage());
+    }
   }
 }

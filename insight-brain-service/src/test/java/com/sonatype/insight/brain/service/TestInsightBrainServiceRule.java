@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.net.URL;
-import java.util.List;
-
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
@@ -20,15 +17,21 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-
-import com.google.inject.Injector;
-import com.google.inject.Module;
+import java.net.URL;
+import java.util.List;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * TestInsightBrainService as Junit ExternalResource (which is a Junit TestRule).
+ *
+ * <p>
+ * <b>Migration Note:</b> This rule now drives the Spring-based test server infrastructure.
+ * The legacy injector lookup has been replaced with getApplicationContext().
+ * The old module list has been replaced with testConfigurations.
+ * </p>
  *
  * @since 1.9.1
  */
@@ -49,13 +52,17 @@ public class TestInsightBrainServiceRule
 
   protected final boolean isHdsProxyRequired;
 
-  protected final List<Module> modules;
+  protected final List<Class<?>> testConfigurations;
 
   protected Configurator configurator;
 
   protected TestInsightBrainService brain;
 
   private DAOFactory daoFactory;
+
+  private String keyStorePath;
+
+  private String keyStorePassword;
 
   public TestInsightBrainServiceRule(
       InsightBrainServiceFactory insightBrainServiceFactory,
@@ -64,7 +71,7 @@ public class TestInsightBrainServiceRule
       String hdsUrl,
       DatabaseContainer databaseContainer,
       boolean isHdsProxyRequired,
-      List<Module> modules)
+      List<Class<?>> testConfigurations)
   {
     this.insightBrainServiceFactory = insightBrainServiceFactory;
     this.port = port;
@@ -72,7 +79,7 @@ public class TestInsightBrainServiceRule
     this.hdsUrl = hdsUrl;
     this.databaseContainer = databaseContainer;
     this.isHdsProxyRequired = isHdsProxyRequired;
-    this.modules = modules;
+    this.testConfigurations = testConfigurations;
     daoFactory = new TestDAOFactory(databaseContainer);
   }
 
@@ -94,6 +101,7 @@ public class TestInsightBrainServiceRule
 
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
+    brain.setKeyStore(keyStorePath, keyStorePassword);
     if (hdsUrl != null) {
       brain.setHdsUrl(hdsUrl);
     }
@@ -105,7 +113,7 @@ public class TestInsightBrainServiceRule
       // Clear any proxy config set by previous tests
       brain.clearProxyServerConfiguration();
     }
-    brain.addOverrideModules(modules);
+    brain.addTestConfigurations(testConfigurations);
     brain.setConfigurator(configurator);
 
     // Need to set this configuration on DB before server start
@@ -177,8 +185,14 @@ public class TestInsightBrainServiceRule
     return brain.getInstance(type);
   }
 
-  public Injector getInjector() {
-    return brain.getInjector();
+  /**
+   * Get the Spring ApplicationContext.
+   */
+  public ApplicationContext getApplicationContext() {
+    if (!brain.isInitialized()) {
+      return null;
+    }
+    return brain.getApplicationContext();
   }
 
   public int getPort() {
@@ -195,6 +209,15 @@ public class TestInsightBrainServiceRule
 
   public TestInsightBrainServiceRule setConfigurator(Configurator configurator) {
     this.configurator = configurator;
+    return this;
+  }
+
+  public TestInsightBrainServiceRule setKeyStore(String path, String password) {
+    this.keyStorePath = path;
+    this.keyStorePassword = password;
+    if (brain != null) {
+      brain.setKeyStore(path, password);
+    }
     return this;
   }
 

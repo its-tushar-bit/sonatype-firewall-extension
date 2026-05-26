@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.utils;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import jakarta.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,12 +20,14 @@ public abstract class ExecutorThreadPools
     GENERAL
   }
 
-  private static ExecutorThreadPools INSTANCE;
+  private static volatile ExecutorThreadPools INSTANCE;
 
-  @Inject
-  private static void injectInstance(ExecutorThreadPools executorThreadPools) {
+  public static void injectInstance(ExecutorThreadPools executorThreadPools) {
+    if (INSTANCE == executorThreadPools) {
+      return;
+    }
     if (INSTANCE != null) {
-      log.warn("Replacing existing ExecutorThreadPools instance. Shutting down previous pools.");
+      log.info("Replacing ExecutorThreadPools instance with Spring-managed bean. Shutting down previous pools.");
       INSTANCE.shutdown();
     }
 
@@ -37,15 +37,13 @@ public abstract class ExecutorThreadPools
   public static ExecutorThreadPools getInstance() {
     if (INSTANCE == null) {
       /*
-       * This class used to be static rather than Guice managed. This makes it difficult to extend / modify
-       * functionality. We make use of static injection
-       * (https://github.com/google/guice/wiki/Injections#static-injections) which allows us to retain existing
-       * behaviour
-       * and not have to refactor hundreds of classes while also giving us support for injection.
+       * This class used to be purely static, which made it difficult to extend or modify its behavior.
+       * We keep a compatibility fallback here so existing call sites continue to work until the remaining
+       * static access patterns can be removed.
        */
       INSTANCE = new DefaultExecutorThreadPools();
 
-      log.warn("Injection of ExecutorThreadPools not run, creating an instance to prevent application/test failure");
+      log.debug("Creating fallback ExecutorThreadPools (Spring-managed bean not yet available)");
     }
     return INSTANCE;
   }

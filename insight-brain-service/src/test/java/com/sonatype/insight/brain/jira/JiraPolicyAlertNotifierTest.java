@@ -5,20 +5,26 @@
  */
 package com.sonatype.insight.brain.jira;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -38,26 +44,19 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class JiraPolicyAlertNotifierTest
     extends AbstractComponentTest
@@ -94,19 +93,19 @@ public class JiraPolicyAlertNotifierTest
   @Captor
   private ArgumentCaptor<Thread> threadArgumentCaptor;
 
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(jiraService.client(any())).thenReturn(jiraClient);
-    lenient().when(jiraService.getConfiguration()).thenReturn(new JiraConfiguration());
-
-    binder.bind(JiraService.class).toInstance(jiraService);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
-  public void before() {
+  public void before() throws Exception {
     setBaseUrl("http://localhost");
+
+    jiraPolicyAlertNotifier = new JiraPolicyAlertNotifier(userDirectory, jiraService, lookup(BaseUrl.class),
+        lookup(AuditRecorder.class), testProductLicense, mockShutdownHandler);
+
+    JiraIssueCreateResponse createResponse = mock(JiraIssueCreateResponse.class);
+    lenient().when(jiraService.getConfiguration())
+        .thenReturn(new com.sonatype.insight.brain.model.jira.JiraConfiguration());
+    lenient().when(jiraService.client(any())).thenReturn(jiraClient);
+    lenient().when(jiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean())).thenReturn(createResponse);
+    lenient().when(createResponse.getKey()).thenReturn("IQ-1");
   }
 
   @Test

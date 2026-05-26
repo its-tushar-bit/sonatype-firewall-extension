@@ -5,28 +5,24 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-
-import jakarta.ws.rs.core.Response;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceiptDTO;
-import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceiptsDTO;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceiptDTO;
+import com.sonatype.insight.brain.telemetry.TelemetryReceiptService.TelemetryReceiptsDTO;
+import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 public class TelemetryReceiptResourceTest
     extends AbstractComponentTest
@@ -35,12 +31,6 @@ public class TelemetryReceiptResourceTest
   private TelemetryReceiptService mockReceiptService;
 
   private TelemetryReceiptResource telemetryReceiptResource;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(TelemetryReceiptService.class).toInstance(mockReceiptService);
-  }
 
   @Before
   public void setup() {

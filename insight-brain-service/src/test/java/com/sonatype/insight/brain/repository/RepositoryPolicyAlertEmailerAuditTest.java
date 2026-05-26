@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -24,16 +23,14 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightMail;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 public class RepositoryPolicyAlertEmailerAuditTest
     extends AbstractComponentAuditTest
@@ -53,12 +50,6 @@ public class RepositoryPolicyAlertEmailerAuditTest
   private InsightMail mockInsightMail;
 
   private Repository repository;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(InsightMail.class).toInstance(mockInsightMail);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

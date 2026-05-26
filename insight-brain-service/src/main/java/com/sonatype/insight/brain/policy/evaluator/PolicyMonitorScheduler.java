@@ -5,23 +5,21 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicenseListener;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.ProductLicenseListener;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +31,11 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PolicyMonitorScheduler
-    extends Task
+    extends AdminTask
     implements TenantManaged, ProductLicenseListener
 {
+  public static final String PATH = "triggerPolicyMonitor";
+
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
 
   private static final int CONTINUOUS_MONITORING_TIME_WINDOW = 120;
@@ -57,7 +57,7 @@ public class PolicyMonitorScheduler
       TaskScheduler taskScheduler,
       PolicyMonitoringTask policyMonitoringTask)
   {
-    super("triggerPolicyMonitor");
+    super(PATH);
     this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
@@ -122,11 +122,9 @@ public class PolicyMonitorScheduler
     // noop
   }
 
-  // To tigger the task:
-  // curl -X POST -u <user>:<password> http://localhost:8071/tasks/triggerPolicyMonitor
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.info("Manual request to run Policy Monitor");
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     taskScheduler.triggerTaskNow(policyMonitoringTask, null);
   }
+
 }

@@ -432,10 +432,10 @@ public class ApiAutoPolicyWaiverService
   private void checkOwnerType(OwnerType ownerType, String ownerId) throws IllegalStateException {
     switch (ownerType) {
       case APPLICATION:
-        AuditData.get().setData("applicationId", ownerId).setApplication(applicationDAO.getById(ownerId));
+        AuditData.get().setData("applicationId", ownerId).setApplication(applicationDAO.getByIdNotNull(ownerId));
         break;
       case ORGANIZATION:
-        AuditData.get().setData("organizationId", ownerId).setOrganization(organizationDAO.getById(ownerId));
+        AuditData.get().setData("organizationId", ownerId).setOrganization(organizationDAO.getByIdNotNull(ownerId));
         break;
       default:
         throw new IllegalStateException("Unknown owner type: " + ownerType);

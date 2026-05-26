@@ -5,10 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
@@ -21,8 +26,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,16 +36,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class ApiRepositoryIdentifiedComponentServiceTest
     extends AbstractComponentTest
@@ -55,12 +51,6 @@ public class ApiRepositoryIdentifiedComponentServiceTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
 
   @After
   public void after() {

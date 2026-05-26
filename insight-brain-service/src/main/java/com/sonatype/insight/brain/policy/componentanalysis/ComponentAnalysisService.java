@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.policy.componentanalysis;
 
+import static java.util.Collections.singletonMap;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.*;
@@ -31,10 +36,6 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
-import io.dropwizard.lifecycle.Managed;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -44,11 +45,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
-import static java.util.Collections.singletonMap;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 @Named
 @Singleton
@@ -106,11 +105,6 @@ public class ComponentAnalysisService
   @VisibleForTesting
   ExecutorService getExecutor() {
     return executor;
-  }
-
-  @Override
-  public void start() throws Exception {
-    // no-op
   }
 
   @Override

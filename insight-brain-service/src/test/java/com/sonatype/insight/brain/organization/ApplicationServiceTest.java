@@ -5,19 +5,13 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
+import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
@@ -46,21 +40,25 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
-import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
-import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.verify;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -100,12 +98,6 @@ public class ApplicationServiceTest
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("Application 1", "app1", org.getId());
     app2 = tempEntity.newApplicationWithParent("app2", "Application 2");
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
   }
 
   @Test

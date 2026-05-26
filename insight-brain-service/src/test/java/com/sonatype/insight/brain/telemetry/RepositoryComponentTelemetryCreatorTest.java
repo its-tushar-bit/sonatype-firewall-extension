@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -27,7 +27,9 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConditionTelemetry;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConstraintTelemetry;
@@ -36,20 +38,18 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Reposit
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class RepositoryComponentTelemetryCreatorTest
     extends AbstractComponentTest
@@ -62,13 +62,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Inject
   private RepositoryComponentTelemetryCreator telemetryCreator;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(PendoCache.class).toInstance(pendoCacheMock);
-  }
 
   @Test
   public void testSendRepositoryComponentTelemetry_NoViolationsOrReleaseType() {
@@ -667,11 +660,11 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testSendTelemetry_WithRepositoryLookup_ProxyType() {
     // Create repository manager and repository with proxy type
-    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+    final RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager();
-    final com.sonatype.insight.brain.model.repository.Repository repository =
+    final Repository repository =
         tempEntity.newRepository(repositoryManager, "test-repo-proxy",
-            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+            RepositoryType.proxy, "npm");
 
     final RepositoryComponent repositoryComponent = createComponent();
     repositoryComponent.setRepositoryId(repository.getId());
@@ -694,11 +687,11 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testSendTelemetry_WithRepositoryLookup_HostedType() {
     // Create repository manager and repository with hosted type
-    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+    final RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager();
-    final com.sonatype.insight.brain.model.repository.Repository repository =
+    final Repository repository =
         tempEntity.newRepository(repositoryManager, "test-repo-hosted",
-            com.sonatype.clm.dto.model.repository.RepositoryType.hosted, "maven2");
+            RepositoryType.hosted, "maven2");
 
     final RepositoryComponent repositoryComponent = createComponent();
     repositoryComponent.setRepositoryId(repository.getId());
@@ -742,11 +735,11 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testSendTelemetry_WithExplicitRepositoryName_AndRepositoryLookup() {
     // Create repository with type
-    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+    final RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager();
-    final com.sonatype.insight.brain.model.repository.Repository repository =
+    final Repository repository =
         tempEntity.newRepository(repositoryManager, "db-repo-name",
-            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+            RepositoryType.proxy, "npm");
 
     final RepositoryComponent repositoryComponent = createComponent();
     repositoryComponent.setRepositoryId(repository.getId());
@@ -793,11 +786,11 @@ public class RepositoryComponentTelemetryCreatorTest
   @Test
   public void testSendTelemetry_WithReleaseReason_AndRepositoryType() {
     // Create repository with type
-    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+    final RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager();
-    final com.sonatype.insight.brain.model.repository.Repository repository =
+    final Repository repository =
         tempEntity.newRepository(repositoryManager, "test-repo-with-release",
-            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+            RepositoryType.proxy, "npm");
 
     final RepositoryComponent repositoryComponent = createComponent();
     repositoryComponent.setRepositoryId(repository.getId());

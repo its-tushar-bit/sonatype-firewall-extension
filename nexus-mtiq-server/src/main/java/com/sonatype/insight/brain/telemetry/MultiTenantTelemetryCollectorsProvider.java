@@ -5,23 +5,24 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
 /**
- * Collectors can not be disabled as part of guice/sisu due to some collectors breaking the single responsibility rule
- * and are therefore required by other implementations. A collector may not want to be part of this collectors list but
- * may in fact be used elsewhere within the system, e.g. <code>RepositoryQueryService</code>. Fully disabling this
- * collector would prevent IQ from starting. To disable other collectors for multi-tenant add the class name to the
- * <code>DISABLED_COLLECTORS</code> list
+ * Some collectors cannot simply be removed from the application context because other components still depend on them.
+ * A collector may not want to be part of this list but may still be used elsewhere within the system, for example by
+ * <code>RepositoryQueryService</code>. Fully disabling that collector would prevent IQ from starting. To disable other
+ * collectors for multi-tenant mode add the class name to the <code>DISABLED_COLLECTORS</code> list.
  */
 @Named
 @Singleton
+@Primary
 public class MultiTenantTelemetryCollectorsProvider
     implements TelemetryCollectorsProvider
 {

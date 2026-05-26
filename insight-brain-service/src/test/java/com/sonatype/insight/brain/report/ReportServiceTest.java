@@ -5,20 +5,40 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Supplier;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -43,6 +63,15 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
@@ -70,7 +99,9 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.sbom.SbomResultsMerger;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -99,14 +130,20 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -118,34 +155,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ReportServiceTest
     extends AbstractComponentTest
@@ -265,24 +274,49 @@ public class ReportServiceTest
 
   @Before
   public void before() {
-    thirdPartyDataServiceSpy = spy(thirdPartyDataService);
-    reportDataStoreSpy = spy(reportDataStore);
-    automatedPullRequestCreationServiceSpy = spy(automatedPullRequestCreationService);
+    thirdPartyDataServiceSpy = createThirdPartyDataServiceSpy();
+    automatedPullRequestCreationServiceSpy = createAutomatedPullRequestCreationServiceSpy();
     app = tempEntity.newApplicationWithParent();
+    mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(insightWork);
+    reportDownloader = mockReportDownloader.getMock();
+    reportDataStoreSpy = spy(new ReportDataStore(reportDownloader, configuration, applicationReportPersistenceService));
+  }
+
+  private ThirdPartyDataService createThirdPartyDataServiceSpy() {
+    ThirdPartyDataService target = thirdPartyDataService;
+    if (Mockito.mockingDetails(target).isMock()) {
+      target = new ThirdPartyDataService(
+          lookup(ThirdPartyFileCoordinateDAO.class),
+          lookup(ThirdPartyFileDAO.class),
+          lookup(ThirdPartyCoordinateSecurityDAO.class),
+          lookup(ThirdPartyVulnerabilityExploitabilityExchangeDAO.class),
+          lookup(ThirdPartyScanDAO.class),
+          lookup(ThirdPartyCoordinateLicenseDAO.class),
+          multiLicenseDAO,
+          lookup(ThirdPartyVulnerabilityDAO.class),
+          thirdPartyComponentDAO,
+          lookup(ThirdPartySbomMetadataDAO.class),
+          telemetrySender,
+          telemetryUtils,
+          lookup(SearchIndexManager.class),
+          productLicense,
+          () -> lookup(SbomResultsMerger.class),
+          lookup(SbomPersistenceService.class));
+    }
+    return spy(target);
+  }
+
+  private AutomatedPullRequestCreationService createAutomatedPullRequestCreationServiceSpy() {
+    if (Mockito.mockingDetails(automatedPullRequestCreationService).isMock()) {
+      return automatedPullRequestCreationService;
+    }
+    return spy(automatedPullRequestCreationService);
   }
 
   @After
   public void after() {
     Mockito.reset(reportDownloader);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    reportDownloader = mockReportDownloader.getMock();
-    binder.bind(ReportDownloader.class).toInstance(reportDownloader);
-    super.configure(binder);
   }
 
   private ReportService createReportService() {
@@ -864,13 +898,7 @@ public class ReportServiceTest
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
-    String sbomApplicationPath = tempDir.getRoot()
-        .toPath()
-        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath())
-        .normalize()
-        .toString();
-    File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
-    sbomFile.deleteOnExit();
+    File sbomFile = createSbomFile(sbomMetadata);
     assertThat(sbomFile).exists();
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
@@ -901,13 +929,7 @@ public class ReportServiceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
-    String sbomApplicationPath = tempDir.getRoot()
-        .toPath()
-        .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath())
-        .normalize()
-        .toString();
-    File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
-    sbomFile.deleteOnExit();
+    File sbomFile = createSbomFile(sbomMetadata);
     assertThat(sbomFile).exists();
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
@@ -1519,7 +1541,7 @@ public class ReportServiceTest
     String thirdPartyBomAfter = getEntityContents(
         applicationReportPersistenceService.getReportEntity(app.getId(), scanId, THIRD_PARTY_BOM_JSON.getName()));
     JsonNode bomData = new ObjectMapper().readTree(thirdPartyBomAfter);
-    List<String> formats = new java.util.ArrayList<>();
+    List<String> formats = new ArrayList<>();
     bomData.path("aaData").forEach(entry -> formats.add(entry.path("componentIdentifier").path("format").asText()));
     assertThat(formats).contains("terraform");
   }
@@ -1680,6 +1702,20 @@ public class ReportServiceTest
           && expected.getVersion().equals(result.get().getVersion())
           && expected.getRemediationType().equals(result.get().getRemediationType());
     };
+  }
+
+  private File createSbomFile(ThirdPartySbomMetadata sbomMetadata) throws IOException {
+    File sbomDir = insightWork.getSbomDir(sbomMetadata.getApplicationId());
+    if (!sbomDir.exists()) {
+      assertThat(sbomDir.mkdirs()).isTrue();
+    }
+
+    File sbomFile = new File(sbomDir, sbomMetadata.getFilename());
+    if (!sbomFile.exists()) {
+      assertThat(sbomFile.createNewFile()).isTrue();
+    }
+    sbomFile.deleteOnExit();
+    return sbomFile;
   }
 
   private String getEntityContents(BaseReportEntity entity) throws IOException {

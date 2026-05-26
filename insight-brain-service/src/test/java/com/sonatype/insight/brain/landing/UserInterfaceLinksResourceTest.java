@@ -52,7 +52,8 @@ public class UserInterfaceLinksResourceTest
 
   private void assertRedirect(HttpResponse response, String expected) {
     assertResponseStatus(307, response);
-    assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + expected);
+    String expectedLocation = getRestBaseUrl().replaceFirst("/+$", "") + "/" + expected.replaceFirst("^/+", "");
+    assertThat(response.getHeader("Location")).isEqualTo(expectedLocation);
   }
 
   private HttpResponse get(String path, Object... params) throws Exception {
@@ -324,8 +325,13 @@ public class UserInterfaceLinksResourceTest
     HttpResponse response = get(UserInterfaceLinksHelper.REPORT_PATH, "app id", "scan id");
     assertRedirect(response, "assets/index.html#/applicationReport/app%20id/scan%20id/policy");
 
-    Map<TelemetryPurpose, List<TelemetryItem>> telemetryDataByPurpose = getTelemetryItemsByPurpose(responses);
-    assertThat(telemetryDataByPurpose.get(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK)).isNull();
+    // Wait briefly for any telemetry to be sent, then check that no SOURCE_CONTROL_REPORT_LINK telemetry was sent
+    Thread.sleep(500);
+
+    // Check that no SOURCE_CONTROL_REPORT_LINK telemetry was sent when there's no source query parameter
+    // Note: other background telemetry may still be sent, so we filter by purpose
+    Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsByPurpose = getTelemetryItemsByPurpose(responses);
+    assertThat(telemetryItemsByPurpose.get(TelemetryPurpose.SOURCE_CONTROL_REPORT_LINK)).isNull();
   }
 
   @Test

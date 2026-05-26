@@ -5,22 +5,19 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
-
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.servlets.tasks.Task;
 import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -36,9 +33,11 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class QuarantinedComponentAccessPurger
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "QuarantinedComponentAccessPurger";
+
   public static final int DEFAULT_PURGE_WINDOW_IN_DAYS = 30;
 
   public static final String NAME = "QuarantinedComponentAccessPurger";
@@ -56,7 +55,7 @@ public class QuarantinedComponentAccessPurger
       final TaskScheduler taskScheduler,
       final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
   {
-    super(NAME);
+    super(PATH);
     this.taskScheduler = taskScheduler;
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
   }
@@ -72,10 +71,8 @@ public class QuarantinedComponentAccessPurger
   }
 
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.debug("Triggering purging of obsolete quarantined component report access entries");
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     taskScheduler.triggerTaskNow(this, null);
-    output.println("Triggered purging of obsolete quarantined component report access entries");
   }
 
   @Override

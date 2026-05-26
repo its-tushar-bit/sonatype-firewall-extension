@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.proprietary;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.codahale.metrics.annotation.Timed;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
@@ -18,15 +20,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
-
-import com.codahale.metrics.annotation.Timed;
-
-@Named
+@Named("proprietaryConfigResource")
 @Timed
 @Path(ProprietaryConfigResource.RESOURCE_PATH)
 @Consumes(MediaType.APPLICATION_JSON)

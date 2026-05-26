@@ -5,16 +5,23 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -47,27 +54,21 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.Binder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class PolicyResourceTest
@@ -82,12 +83,10 @@ public class PolicyResourceTest
   private TelemetryUtils telemetryUtils;
 
   @Override
-  public void configure(Binder binder) {
-    telemetrySender = mock(TelemetrySender.class);
-    telemetryUtils = mock(TelemetryUtils.class);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    binder.bind(TelemetryUtils.class).toInstance(telemetryUtils);
-    super.configure(binder);
+  protected List<Class<?>> getTestConfigurationClasses() {
+    List<Class<?>> configs = new ArrayList<>(super.getTestConfigurationClasses());
+    configs.add(PolicyResourceTestConfiguration.class);
+    return configs;
   }
 
   @Before
@@ -99,6 +98,22 @@ public class PolicyResourceTest
     reset(telemetrySender, telemetryUtils);
 
     when(telemetryUtils.obfuscate(anyString())).thenAnswer(invocation -> "obfuscated-" + invocation.getArgument(0));
+  }
+
+  @TestConfiguration
+  static class PolicyResourceTestConfiguration
+  {
+    @Bean
+    @Primary
+    public TelemetrySender telemetrySender() {
+      return mock(TelemetrySender.class);
+    }
+
+    @Bean
+    @Primary
+    public TelemetryUtils telemetryUtils() {
+      return mock(TelemetryUtils.class);
+    }
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {

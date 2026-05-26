@@ -6,19 +6,19 @@
 
 package com.sonatype.insight.brain.report;
 
-import java.io.InputStream;
-import java.time.Duration;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.io.InputStream;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
 @Singleton
 public class ReportDownloader
 {

@@ -61,9 +61,6 @@ public class QuarantinedComponentResource
 
   private final QuarantinedComponentService quarantinedComponentService;
 
-  @Context
-  private HttpServletRequest httpRequest;
-
   @Inject
   public QuarantinedComponentResource(final QuarantinedComponentService quarantinedComponentService) {
     this.quarantinedComponentService = quarantinedComponentService;
@@ -102,7 +99,8 @@ public class QuarantinedComponentResource
   @Produces(MediaType.APPLICATION_JSON)
   public NamedComponentDetails getQuarantinedComponentVersionDetails(
       @PathParam("token") String token,
-      @QueryParam("version") String version) throws IOException
+      @QueryParam("version") String version,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return quarantinedComponentService.getQuarantinedComponentVersionDetails(token, httpRequest, version);
   }

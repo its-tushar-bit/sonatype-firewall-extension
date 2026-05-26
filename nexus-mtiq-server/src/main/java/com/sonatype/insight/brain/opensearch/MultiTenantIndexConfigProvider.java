@@ -12,9 +12,11 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.search.opensearch.IndexConfig;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
+@Primary
 public class MultiTenantIndexConfigProvider
     implements IndexConfigProvider
 {

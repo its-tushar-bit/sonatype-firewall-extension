@@ -44,20 +44,98 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <!-- Logback is provided by spring-boot-starter-logging with the correct version -->
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
     </dependency>
 
+    <!-- Codahale Metrics - compatible with Spring Boot, used for @Timed annotations -->
     <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-annotation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-healthchecks</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jakarta-servlets</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jersey3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-logback</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jetty12</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>jakarta.inject</groupId>
       <artifactId>jakarta.inject-api</artifactId>
     </dependency>
 
+    <!-- Spring Boot Dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+    <!-- Spring Security starter excluded - this application uses Apache Shiro for auth -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-quartz</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjweaver</artifactId>
+      <version>${aspectj.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjrt</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-model</artifactId>
@@ -280,14 +358,28 @@
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-csv</artifactId>
     </dependency>
-    <!-- The following are not actually direct Jackson dependencies of ours but of dropwizard-core. We declare those -->
-    <!-- here to workaround that our dependency management for transitive dependencies does not apply when this      -->
-    <!-- project itself is consumed as a dependency. This ensures a consistent set of Jackson dependencies is seen   -->
-    <!-- by external consumers of insight-brain-service that depend on it for e.g. integration tests.                -->
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-json-logging</artifactId>
+      <version>${dropwizard-jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback.access</groupId>
+      <artifactId>logback-access-jetty12</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <!-- The following are transitive Jackson dependencies that we explicitly declare to ensure a consistent set -->
+    <!-- of Jackson dependencies is seen by external consumers of insight-brain-service that depend on it for    -->
+    <!-- e.g. integration tests, since our dependency management for transitive dependencies does not apply when -->
+    <!-- this project itself is consumed as a dependency.                                                       -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
-      <scope>runtime</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
@@ -391,27 +483,6 @@
     </dependency>
 
     <dependency>
-      <groupId>io.dropwizard</groupId>
-      <artifactId>dropwizard-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>vendored-dropwizard-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard</groupId>
-      <artifactId>dropwizard-forms</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard</groupId>
-      <artifactId>dropwizard-assets</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>ru.vyarus</groupId>
-      <artifactId>dropwizard-guicey</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
     </dependency>
@@ -459,6 +530,29 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit4</artifactId>
       <scope>test</scope>
@@ -488,12 +582,7 @@
       <artifactId>greenmail-junit4</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.dropwizard.modules</groupId>
-      <artifactId>dropwizard-testing-junit4</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
+        <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>hds-mock-server</artifactId>
       <scope>test</scope>
@@ -547,11 +636,7 @@
       <artifactId>shiro-web</artifactId>
       <classifier>jakarta</classifier>
     </dependency>
-    <dependency>
-      <groupId>org.apache.shiro</groupId>
-      <artifactId>shiro-guice</artifactId>
-      <classifier>jakarta</classifier>
-    </dependency>
+
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
@@ -582,6 +667,10 @@
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-multipart</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.ext</groupId>
+      <artifactId>jersey-bean-validation</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -763,6 +852,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.asynchttpclient</groupId>
+      <artifactId>async-http-client</artifactId>
+      <version>3.0.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.zonky.test</groupId>
       <artifactId>embedded-postgres</artifactId>
       <scope>test</scope>
@@ -777,6 +872,15 @@
 
   <build>
     <plugins>
+      <!-- Spring Boot Maven Plugin for running the application -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
+        <configuration>
+          <mainClass>com.sonatype.insight.brain.spring.InsightBrainSpringApplication</mainClass>
+        </configuration>
+      </plugin>
       <!--
         Note for the future Sonatype engineer who trips this enforcer rule: When adding the MCP tools to IQ there was a
         transitive dependency `mcp-json-jackson2` -> `json-schema-validator:2.x`. However `cyclonedx-core-java` 12.x in
@@ -843,7 +947,14 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
           <trimStackTrace>false</trimStackTrace>
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
-          <forkCount>0.75C</forkCount>
+          <!--
+            Intentional divergence from main: forkCount reduced from 0.75C to 0.375C (CLM-39214 Spring Boot migration).
+            This branch boots Spring Boot application contexts in 18+ tests (main has 0). Combined with
+            Jenkins's c6i.2xlarge agents (8 vCPU / 16 GB) and Maven 4-thread reactor parallelism, the main-aligned 0.75C
+            caused OS-level memory pressure and agent SSH flapping.
+            TODO CLM-39984: revert to 0.75C once Spring test contexts are lighter or CI agents are larger.
+          -->
+          <forkCount>0.375C</forkCount>
           <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory}/heap-dumps/</argLine>
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
@@ -923,6 +1034,13 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${spring-boot.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <phase>package</phase>
@@ -1002,7 +1120,7 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.sonatype.insight.brain.service.InsightBrainService</mainClass>
+                  <mainClass>com.sonatype.insight.brain.spring.InsightBrainSpringApplication</mainClass>
                   <manifestEntries>
                     <!--
                      Required so the JVM honors META-INF/versions/<N>/ at class-load time.
@@ -1013,6 +1131,27 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
                      -->
                     <Multi-Release>true</Multi-Release>
                   </manifestEntries>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring/org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration.imports</resource>
+                </transformer>
+                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                  <resource>META-INF/spring.factories</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring-autoconfigure-metadata.properties</resource>
+                </transformer>
+                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                  <resource>META-INF/spring/aot.factories</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.handlers</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.schemas</resource>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/NOTICE</resource>
@@ -1072,6 +1211,7 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
                 <include>**/TestLicenseFingerprinter*</include>
                 <include>**/TestProductLicense*</include>
                 <include>**/TestProductLicenseManager*</include>
+                <include>**/MockProductLicenseManager*</include>
                 <include>**/TestProductLicenseDetailsCache/*.json</include>
                 <include>**/PolicyEvaluationHelper*</include>
                 <include>**/TestHelperModule*</include>
@@ -1104,6 +1244,7 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
                 <include>**/MockHtmlEmail*</include>
                 <include>**/*Test*</include>
                 <include>**/git/render/*Helper*</include>
+                <include>**/utils/ExistingFilesHelper*</include>
                 <include>**/utils/RandomGenerator*</include>
                 <include>**/DatabaseContainerRule*</include>
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>
@@ -1113,8 +1254,28 @@ See: https://github.com/CycloneDX/cyclonedx-core-java/pull/802
                 <include>**/ZScalerMockServerRule*</include>
                 <include>**/*SearchIndexFixture*</include>
                 <include>**/SearchIndexRule*</include>
+                <include>**/SearchIndexType*</include>
               </includes>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>dev.aspectj</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>disable-test-compile</id>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+            <phase>none</phase>
           </execution>
         </executions>
       </plugin>

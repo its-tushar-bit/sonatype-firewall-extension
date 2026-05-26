@@ -5,33 +5,27 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.PrintWriter;
-import java.util.Set;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.model.HasStringId;
-
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 public class AsyncDbMigrationSchedulerTest
     extends AbstractComponentTest
 {
   @Mock
   private TaskScheduler taskScheduler;
-
-  @Mock
-  private PrintWriter mockPrintWriter;
 
   private AsyncDbMigrationScheduler underTest;
 
@@ -60,16 +54,20 @@ public class AsyncDbMigrationSchedulerTest
   }
 
   @Test
-  public void execute() throws Exception {
-    underTest.execute(null, mockPrintWriter);
+  public void execute() {
+    underTest.execute(mock(JobExecutionContext.class));
 
-    verify(taskScheduler).scheduleOneTimeTask(underTest);
+    assertMigrationsRunInPriorityOrder();
   }
 
   @Test
   public void executeForTenant() {
     underTest.executeForTenant(mock(JobExecutionContext.class), mock(Tenant.class));
 
+    assertMigrationsRunInPriorityOrder();
+  }
+
+  private void assertMigrationsRunInPriorityOrder() {
     InOrder inOrder = inOrder(asyncDbMigrationThree, asyncDbMigrationTwo, asyncDbMigrationOne);
     inOrder.verify(asyncDbMigrationThree).runMigration();
     inOrder.verify(asyncDbMigrationTwo).runMigration();

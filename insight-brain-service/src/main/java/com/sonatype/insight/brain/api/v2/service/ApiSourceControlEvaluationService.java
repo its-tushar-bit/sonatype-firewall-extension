@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.UUID;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -27,7 +23,10 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +35,8 @@ import org.slf4j.LoggerFactory;
  *
  * @since 1.101
  */
+@Named
+@Singleton
 public class ApiSourceControlEvaluationService
     extends AbstractApiApplicationEvaluationService
 {

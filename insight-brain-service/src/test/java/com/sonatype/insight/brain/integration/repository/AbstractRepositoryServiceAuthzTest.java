@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.util.List;
-
-import jakarta.inject.Inject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -23,15 +23,12 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public abstract class AbstractRepositoryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -56,13 +53,8 @@ public abstract class AbstractRepositoryServiceAuthzTest
   @Inject
   private RepositoryDAO repositoryDAO;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluator);
-    binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Test
   public void testSetAuditEnabled_NewRepositoryManager_NewRepository_Authorized() {

@@ -5,53 +5,6 @@
  */
 package com.sonatype.insight.brain.scan;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
-import com.sonatype.insight.brain.hds.ScanUploadService;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.InvalidStageException;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.ApplicationReport;
-import com.sonatype.insight.brain.report.ReportDownloader;
-import com.sonatype.insight.brain.scan.ScanTask.State;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.HdsMockServerRule;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
-import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
-import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.model.ClientScanType;
-
-import com.google.inject.Binder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
@@ -63,6 +16,58 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
+import com.sonatype.insight.brain.hds.ScanUploadService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.scan.PersistedScanTicket;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.scan.ScanTask.State;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.model.ClientScanType;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 public class ScanServiceTest
     extends AbstractComponentTest
@@ -105,17 +110,11 @@ public class ScanServiceTest
     return getClass().getResourceAsStream("/ScanServiceTest/" + name);
   }
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScanUploadService.class).toInstance(scanUploader);
-    binder.bind(ReportDownloader.class).toInstance(reportDownloader);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
   public void init() throws Exception {
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    scanTicket = null;
+
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
     lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any(),
@@ -123,12 +122,29 @@ public class ScanServiceTest
     lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
         .then(
             (Answer<Boolean>) invocation -> {
-              ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[0];
-              Application app = reportFile.getApplication();
-              ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
+              ApplicationReport reportFile = invocation.getArgument(0);
+              Application reportApp = reportFile.getApplication();
+              ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", reportApp.getId(),
                   reportFile.getScanId());
               return true;
             });
+
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", reportDownloader);
+
+    FileCleaner fileCleaner = lookup(FileCleaner.class);
+    ApplicationDAO applicationDAO = lookup(ApplicationDAO.class);
+    ScanPolicyEvaluator scanPolicyEvaluator = lookup(ScanPolicyEvaluator.class);
+    PolicyAlertNotifier policyAlertNotifier = lookup(PolicyAlertNotifier.class);
+    ProprietaryConfigService proprietaryConfigService = lookup(ProprietaryConfigService.class);
+    TelemetryUtils telemetryUtils = lookup(TelemetryUtils.class);
+    ScanPersistenceService scanPersistenceService = lookup(ScanPersistenceService.class);
+    Scanner scanner = lookup(Scanner.class);
+
+    scanService = new ScanService(fileCleaner,
+        () -> new ScanTask(scanner, scanPolicyEvaluator, policyAlertNotifier, fileCleaner,
+            proprietaryConfigService, scanUploader, persistedScanTicketDAO, telemetryUtils, scanPersistenceService),
+        persistedScanTicketDAO, applicationDAO, testProductLicense, mockShutdownHandler);
+
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
   }
@@ -209,9 +225,9 @@ public class ScanServiceTest
     Mockito.reset(reportDownloader);
     when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt()))
         .then((Answer<Boolean>) invocation -> {
-          ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[1];
-          Application app = reportFile.getApplication();
-          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", app.getId(),
+          ApplicationReport reportFile = invocation.getArgument(0);
+          Application reportApp = reportFile.getApplication();
+          ReportHelper.saveMockReport(insightWork, tempDir, "/ScanServiceTest/report", reportApp.getId(),
               reportFile.getScanId());
           return true;
         });

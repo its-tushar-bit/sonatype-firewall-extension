@@ -5,21 +5,21 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -27,27 +27,19 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jooq.exception.DataAccessException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public abstract class AbstractReportPurgerTest
     extends AbstractComponentTest
@@ -81,12 +73,6 @@ public abstract class AbstractReportPurgerTest
 
   Date daysAgo(int days) {
     return Date.from(ZonedDateTime.now().minusDays(days).toInstant());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
   }
 
   @Before
@@ -244,30 +230,23 @@ public abstract class AbstractReportPurgerTest
   }
 
   @Test
-  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
-  @Category(SlowTest.class)
   public void testPurgeReports_RetryAfterLockTimeout() throws Exception {
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(6)));
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(5)));
 
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Exception> error = new AtomicReference<>();
-    Thread thread = new Thread(() -> {
-      try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-        tx.begin();
-        tx.dsl().execute("SELECT * FROM policy_evaluation FOR UPDATE");
-        latch.countDown();
-        Thread.sleep(2 * 1000);
-        tx.commit();
+    PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
+    DataAccessException lockTimeout = new DataAccessException("lock timeout");
+    AtomicInteger buildCalls = new AtomicInteger();
+    doAnswer(invocation -> {
+      String stageId = invocation.getArgument(1);
+      if (Stage.ID_BUILD.equals(stageId) && buildCalls.getAndIncrement() < 2) {
+        throw lockTimeout;
       }
-      catch (Exception e) {
-        error.set(e);
-      }
-    });
-    thread.start();
+      return invocation.callRealMethod();
+    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByApplicationIdAndStageId(anyString(), anyString());
+    applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
     reportPurger = spy(reportPurger);
     long start = System.currentTimeMillis();
     reportPurger.purgeReports();
@@ -279,41 +258,28 @@ public abstract class AbstractReportPurgerTest
     verify(reportPurger).getDelayForRetry(1);
     verify(reportPurger, never()).getDelayForRetry(2);
     assertThat(stop - start).isLessThan(5 * 1000);
-    assertThat(error).hasValue(null);
   }
 
   @Test
-  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
-  @Category(SlowTest.class)
   public void testPurgeReports_RetryAfterLockTimeout_LimitedRetry() throws Exception {
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
 
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Exception> error = new AtomicReference<>();
-    Thread thread = new Thread(() -> {
-      try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-        tx.begin();
-        tx.dsl().execute("SELECT * FROM policy_evaluation FOR UPDATE");
-        latch.countDown();
-        Thread.sleep(2 * 1000);
-        tx.commit();
+    PolicyEvaluationDAO spyPolicyEvaluationDAO = spy(policyEvaluationDAO);
+    DataAccessException lockTimeout = new DataAccessException("lock timeout");
+    doAnswer(invocation -> {
+      String stageId = invocation.getArgument(1);
+      if (Stage.ID_BUILD.equals(stageId)) {
+        throw lockTimeout;
       }
-      catch (Exception e) {
-        error.set(e);
-      }
-    });
-    thread.start();
+      return invocation.callRealMethod();
+    }).when(spyPolicyEvaluationDAO).getPrimaryNonMonitoringByApplicationIdAndStageId(anyString(), anyString());
+    applyBeanFieldOverride(ReportPurger.class, "policyEvaluationDAO", spyPolicyEvaluationDAO);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
     reportPurger = spy(reportPurger);
     when(reportPurger.getDelayForRetry(anyInt())).thenReturn(Duration.ZERO);
     assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> reportPurger.purgeReports());
     verify(reportPurger).getDelayForRetry(9);
     verify(reportPurger, never()).getDelayForRetry(10);
-
-    assertThat(error).hasValue(null);
-
-    thread.join(); // wait for `thread` to complete so that cleanup (e.g. TemporaryEntity) works correctly
   }
 
   @Test
@@ -329,9 +295,13 @@ public abstract class AbstractReportPurgerTest
     verify(reportPurgerSpy).purgeReports();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testExecute_AdminTask() {
-    reportPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(taskSchedulerMock).triggerTaskNow(reportPurger, null);
+  public void testExecute_AdminTask() throws Exception {
+    ReportPurger reportPurgerSpy = spy(reportPurger);
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    reportPurgerSpy.executeForTest(mockContext, null);
+    verify(reportPurgerSpy).purgeReports();
+    verifyNoInteractions(taskSchedulerMock);
   }
 }

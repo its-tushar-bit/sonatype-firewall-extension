@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -15,23 +13,41 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.brain.security.SecurityAopModule;
-
-import com.google.inject.Binder;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.guice.ShiroModule;
-import org.apache.shiro.lang.util.LifecycleUtils;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import java.util.Date;
+import java.util.UUID;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.mgt.SimpleSession;
+import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 
 /**
  * Common fixture for authorization tests of the service layer components.
+ *
+ * <p>
+ * <b>Migration Note:</b> This class uses the Spring-based test infrastructure.
+ * Security configuration is provided by the Spring SecurityConfiguration.
+ * </p>
  */
 public class AbstractServiceAuthzTest
     extends AbstractComponentTest
 {
+  @Override
+  protected boolean preserveAopProxies() {
+    return true;
+  }
+
+  @Override
+  protected boolean enforceSecurityAspects() {
+    return true;
+  }
+
+  @Override
+  protected void grantDefaultTestUserAllPermissions() {
+    // Authz tests must start from default-deny and explicitly grant only the permission under test.
+  }
+
   protected RepositoryManager repositoryManager;
 
   protected Repository repository;
@@ -42,25 +58,6 @@ public class AbstractServiceAuthzTest
 
   protected User user;
 
-  private ShiroModule shiroModule;
-
-  @Inject
-  private SecurityManager securityManager;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    shiroModule = new ShiroModule()
-    {
-      @Override
-      protected void configureShiro() {
-        bindRealm().to(InternalRealm.class);
-      }
-    };
-    binder.install(shiroModule);
-    binder.install(new SecurityAopModule());
-  }
-
   @Override
   protected void setUpSecurity() {
     repositoryManager = tempEntity.newRepositoryManager();
@@ -68,32 +65,44 @@ public class AbstractServiceAuthzTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     user = tempEntity.newUser();
-    ThreadContext.bind(securityManager);
-    subject = (new Subject.Builder()).buildSubject();
-    ThreadContext.bind(subject);
+    subject = new Subject.Builder(securityManager()).buildSubject();
+    bindSubject(subject);
   }
 
   @Override
   protected void tearDownSecurity() {
-    // Destroy the security manager to properly clean up session validation scheduler
-    if (securityManager != null) {
-      LifecycleUtils.destroy(securityManager);
-    }
-    if (shiroModule != null) {
-      // stop worker threads
-      shiroModule.destroy();
-    }
     super.tearDownSecurity();
   }
 
   protected void login() {
-    // Ensure the SecurityManager and Subject are bound to the current thread's context.
-    // This is necessary when tests run in a different thread (e.g., JUnit timeout threads).
-    ThreadContext.bind(securityManager);
-    ThreadContext.bind(subject);
-    if (!subject.isAuthenticated()) {
-      subject.login(new UsernamePasswordToken(user.getUsername(), user.getPassword()));
+    if (subject.isAuthenticated()) {
+      bindSubject(subject);
+      return;
     }
+
+    SimplePrincipalCollection principals = new SimplePrincipalCollection();
+    principals.add(new UserPrincipal(user.getUsername(), user.getUsername(), User.INTERNAL_REALM_ID),
+        User.INTERNAL_REALM_ID);
+
+    SimpleSession session = new SimpleSession();
+    session.setId(UUID.randomUUID().toString());
+    session.setStartTimestamp(new Date());
+
+    subject = new Subject.Builder(securityManager())
+        .session(session)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    bindSubject(subject);
+  }
+
+  private void bindSubject(Subject subject) {
+    ThreadContext.bind(securityManager());
+    ThreadContext.bind(subject);
+  }
+
+  private SecurityManager securityManager() {
+    return lookup(SecurityManager.class);
   }
 
   protected void grantConfigureSystemPermission() {

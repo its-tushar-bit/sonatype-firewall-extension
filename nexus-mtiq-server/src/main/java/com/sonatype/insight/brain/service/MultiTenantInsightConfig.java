@@ -5,22 +5,16 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.Optional;
-import jakarta.annotation.Nullable;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
-import com.sonatype.insight.brain.health.MultiTenantHealthFactory;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
 import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.dropwizard.health.HealthFactory;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Path;
 
 public class MultiTenantInsightConfig
     extends InsightConfig
@@ -54,6 +48,17 @@ public class MultiTenantInsightConfig
   @Nullable
   @JsonProperty
   private StatsdMetricsConfig statsdMetricsConfig;
+
+  @JsonProperty("mtiq-health")
+  private Object mtiqHealth;
+
+  public Object getMtiqHealth() {
+    return mtiqHealth;
+  }
+
+  public void setMtiqHealth(Object mtiqHealth) {
+    this.mtiqHealth = mtiqHealth;
+  }
 
   @JsonProperty
   private Path jemallocProfileDir = Path.of(".");
@@ -170,31 +175,5 @@ public class MultiTenantInsightConfig
 
   public void setJemallocProfileDir(final Path jemallocProfileDir) {
     this.jemallocProfileDir = jemallocProfileDir;
-  }
-
-  @Valid
-  @NotNull
-  private MultiTenantHealthFactory multiTenantHealthFactory;
-
-  @JsonProperty("mtiq-health")
-  public MultiTenantHealthFactory getMultiTenantHealthFactory() {
-    return multiTenantHealthFactory;
-  }
-
-  @JsonProperty("mtiq-health")
-  public void setMultiTenantHealthFactory(final MultiTenantHealthFactory multiTenantHealthFactory) {
-    this.multiTenantHealthFactory = multiTenantHealthFactory;
-  }
-
-  @Override
-  public Optional<HealthFactory> getHealthFactory() {
-    // no-op - superseded by MultiTenantHealthFactory.
-    // Note this disables the default 'old method' DropWizard health checks. See EnvironmentCommand#configure().
-    return Optional.empty();
-  }
-
-  @Override
-  public void setHealthFactory(final HealthFactory health) {
-    // no-op - superseded by MultiTenantHealthFactory
   }
 }

@@ -5,24 +5,21 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
+import com.google.common.eventbus.Subscribe;
 import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
-
-import com.google.common.eventbus.Subscribe;
-import io.dropwizard.lifecycle.Managed;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 @Named
 @Singleton

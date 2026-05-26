@@ -5,24 +5,21 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Optional;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Optional;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ManualPullRequestFeatureCheckTest
     extends AbstractComponentTest
@@ -35,12 +32,6 @@ public class ManualPullRequestFeatureCheckTest
 
   @Mock
   private ScmRepoVisibilityService mockScmRepoVisibilityService;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-    super.configure(binder);
-  }
 
   @Test
   public void testManualPullRequestSupported() {

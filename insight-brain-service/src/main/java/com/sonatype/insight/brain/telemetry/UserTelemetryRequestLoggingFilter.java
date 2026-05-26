@@ -5,37 +5,19 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import ch.qos.logback.access.common.spi.IAccessEvent;
 import jakarta.ws.rs.core.UriBuilder;
 
-import ch.qos.logback.core.filter.Filter;
-import ch.qos.logback.core.spi.FilterReply;
-import io.dropwizard.logging.common.filter.FilterFactory;
-
 /**
- * Based on the example at https://www.dropwizard.io/1.2.1/docs/manual/core.html#logging-filters
+ * Predicate-like helper for excluding user telemetry requests from request logging.
  *
  * @since 1.50
  */
 public class UserTelemetryRequestLoggingFilter
-    implements FilterFactory<IAccessEvent>
 {
-  private String uriToFilter =
-      UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS).toString();
+  private final String uriToFilter = "/"
+      + UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS).toString();
 
-  @Override
-  public Filter<IAccessEvent> build() {
-    return new Filter<>()
-    {
-      @Override
-      public FilterReply decide(IAccessEvent event) {
-        if (event.getRequestURI().contains(uriToFilter)) {
-          return FilterReply.DENY;
-        }
-        else {
-          return FilterReply.NEUTRAL;
-        }
-      }
-    };
+  public boolean shouldSkip(final String requestUri) {
+    return requestUri != null && (requestUri.equals(uriToFilter) || requestUri.startsWith(uriToFilter + "/"));
   }
 }

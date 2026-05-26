@@ -5,24 +5,6 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +13,21 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.test.LogOutput;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HDSMaliciousUrlFetcherTest
@@ -44,11 +41,6 @@ public class HDSMaliciousUrlFetcherTest
 
   @Inject
   private HDSMaliciousUrlFetcher underTest;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClient);
-  }
 
   @Test
   public void testFetchMaliciousUrls_withoutPartnerAccessFeatureFlag() {

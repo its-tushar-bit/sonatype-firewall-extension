@@ -5,24 +5,21 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
 public class ShutdownContainerRequestFilterTest
     extends AbstractComponentTest
@@ -38,12 +35,6 @@ public class ShutdownContainerRequestFilterTest
 
   @Captor
   private ArgumentCaptor<Response> responseArgumentCaptor;
-
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-  }
 
   @Test
   public void testFilter_AfterGracePeriod() throws Exception {

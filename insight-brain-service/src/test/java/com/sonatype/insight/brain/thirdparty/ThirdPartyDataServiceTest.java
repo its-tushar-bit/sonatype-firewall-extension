@@ -5,22 +5,14 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.withinPercentage;
+import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -51,23 +43,27 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Swid;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.withinPercentage;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
+import org.mockito.ArgumentCaptor;
 
 @Category(SlowTest.class)
 public class ThirdPartyDataServiceTest
@@ -103,14 +99,6 @@ public class ThirdPartyDataServiceTest
   private Application application;
 
   private CpeResultsTelemetry mockCpeResultsTelemetry;
-
-  @Override
-  public void configure(Binder binder) {
-    mockTelemetrySender = mock(TelemetrySender.class);
-    mockCpeResultsTelemetry = new CpeResultsTelemetry();
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
 
   @Before
   public void createApplication() {

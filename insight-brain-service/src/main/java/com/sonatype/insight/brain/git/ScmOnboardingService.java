@@ -84,7 +84,6 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
 
-import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,6 +104,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.counting;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 /**
  * This service supports bulk onboarding of Source Config Management repositories
@@ -218,11 +218,6 @@ public class ScmOnboardingService
   // Visible for testing
   SourceControlImportThreadPoolExecutor getExecutor() {
     return executor;
-  }
-
-  @Override
-  public void start() throws Exception {
-    // no-op
   }
 
   @Override

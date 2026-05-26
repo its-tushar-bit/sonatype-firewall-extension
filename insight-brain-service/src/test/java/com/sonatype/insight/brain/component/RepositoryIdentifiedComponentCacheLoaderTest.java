@@ -5,25 +5,20 @@
  */
 package com.sonatype.insight.brain.component;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Date;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.junit.Test;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
 public class RepositoryIdentifiedComponentCacheLoaderTest
@@ -33,13 +28,6 @@ public class RepositoryIdentifiedComponentCacheLoaderTest
   private RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader;
 
   private RepositoryIdentifiedComponentDAO spyRepositoryIdentifiedComponentDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    spyRepositoryIdentifiedComponentDAO = spy(daoFactory.createRepositoryIdentifiedComponentDAO());
-    binder.bind(RepositoryIdentifiedComponentDAO.class).toInstance(spyRepositoryIdentifiedComponentDAO);
-    super.configure(binder);
-  }
 
   @Test
   public void testLoad_DoesNotExist() {

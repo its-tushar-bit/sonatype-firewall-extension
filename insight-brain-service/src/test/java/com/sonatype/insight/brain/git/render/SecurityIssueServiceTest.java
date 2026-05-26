@@ -5,25 +5,6 @@
  */
 package com.sonatype.insight.brain.git.render;
 
-import java.util.List;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
-import com.sonatype.insight.brain.git.render.model.SecurityIssue;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
-import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.TEST_COMPONENT_IDENTIFIER;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generateConditionFact;
@@ -43,6 +24,21 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+
+import com.google.common.collect.ImmutableList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
+import com.sonatype.insight.brain.git.render.model.SecurityIssue;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import jakarta.inject.Inject;
+import java.util.List;
+import org.junit.Test;
+import org.mockito.Mock;
 
 public class SecurityIssueServiceTest
     extends AbstractComponentTest
@@ -69,12 +65,6 @@ public class SecurityIssueServiceTest
 
   @Mock
   private VulnerabilityDetailsService vulnerabilityDetailsServiceMock;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(VulnerabilityDetailsService.class).toInstance(vulnerabilityDetailsServiceMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetSecurityIssuesFromViolations_customCVSS() {

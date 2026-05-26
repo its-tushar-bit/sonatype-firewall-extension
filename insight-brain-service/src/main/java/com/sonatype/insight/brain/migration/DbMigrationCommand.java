@@ -14,39 +14,63 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.spring.InsightBrainCompatibilityCommand;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
-import io.dropwizard.core.cli.Cli;
-import io.dropwizard.core.cli.ConfiguredCommand;
-import io.dropwizard.core.setup.Bootstrap;
-import net.sourceforge.argparse4j.inf.Namespace;
-
+@Named
 public class DbMigrationCommand
-    extends ConfiguredCommand<InsightConfig>
-    implements DatabaseContainerSupport
+    implements InsightBrainCompatibilityCommand, DatabaseContainerSupport
 {
+  public static final String NAME = "migrate-db";
+
+  public static final String DESCRIPTION = "Migrates the database to the latest schema version.";
+
   // Visible for testing
   static final long RECENT_CHECKIN_INTERVAL_MILLIS = QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2;
 
   // Visible for testing
   static final int ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT = 1;
 
-  public DbMigrationCommand() {
-    super("migrate-db", "Migrates the database to the latest schema version.");
+  private final InsightConfig insightConfig;
+
+  DbMigrationCommand() {
+    this(new InsightConfig());
+  }
+
+  @Inject
+  public DbMigrationCommand(InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
   }
 
   @Override
-  public void onError(Cli cli, Namespace namespace, Throwable t) {
-    // throw up to let our main() method do the desired error logging/handling
+  public String getName() {
+    return NAME;
+  }
+
+  @Override
+  public String getDescription() {
+    return DESCRIPTION;
+  }
+
+  @Override
+  public void run(String... args) {
+    run(insightConfig);
+  }
+
+  void run(Object ignoredBootstrap, Object ignoredNamespace, InsightConfig runtimeConfig) {
+    run(runtimeConfig);
+  }
+
+  public void onError(Object ignoredCli, Object ignoredNamespace, Throwable t) {
     throw new IllegalStateException("Error trying to migrate the database: " + t.getMessage(), t);
   }
 
-  @Override
-  protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
+  public void run(InsightConfig runtimeConfig) {
     try {
       DatabaseMigrations.setForceEnableMigration(true);
 
-      DatabaseContainer databaseContainer = createDatabaseContainer(insightConfig);
-
+      DatabaseContainer databaseContainer = createDatabaseContainer(runtimeConfig);
       DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
       databaseProvisioner.initializeDatabaseWithoutMigration();
 
@@ -87,22 +111,19 @@ public class DbMigrationCommand
       attemptedToWait++;
     }
     throw new IllegalStateException(String.format(
-        "Cannot migrate the IQ Server database if it is in use by one or more IQ Server instances. " +
-            "Aborting since an IQ Server instance actively used the database within the past %s seconds.",
+        "Cannot migrate the IQ Server database if it is in use by one or more IQ Server instances. "
+            + "Aborting since an IQ Server instance actively used the database within the past %s seconds.",
         RECENT_CHECKIN_INTERVAL_MILLIS / 1000));
   }
 
-  // Visible for testing
   int getAttemptsToWaitForLastCheckinToNotBeRecent() {
     return ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT;
   }
 
-  // Visible for testing
   long getCurrentTimeMillis() {
     return System.currentTimeMillis();
   }
 
-  // Visible for testing
   void trySleep(long time) {
     try {
       Thread.sleep(time);
@@ -113,7 +134,7 @@ public class DbMigrationCommand
   }
 
   @Override
-  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
-    return new DefaultDatabaseContainer(insightConfig);
+  public DatabaseContainer createDatabaseContainer(final InsightConfig runtimeConfig) {
+    return new DefaultDatabaseContainer(runtimeConfig);
   }
 }

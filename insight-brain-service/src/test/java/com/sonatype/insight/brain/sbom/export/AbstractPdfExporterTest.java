@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
-import java.io.File;
-import java.util.ArrayList;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
@@ -32,14 +32,11 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 abstract class AbstractPdfExporterTest
     extends AbstractSbomExporterTest
@@ -93,11 +90,6 @@ abstract class AbstractPdfExporterTest
   protected ThirdPartyFile thirdPartyFile;
 
   protected Application app;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-  }
 
   @Before
   public void init() throws SbomExportException {

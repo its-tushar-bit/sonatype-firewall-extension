@@ -5,27 +5,22 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.IQ_APP_PREFIX;
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.SONATYPE_NAMESPACE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 
+import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURL.StandardTypes;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueAnalysisDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -40,17 +35,25 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
-
-import com.github.packageurl.PackageURL;
-import com.github.packageurl.PackageURL.StandardTypes;
-import com.google.inject.Binder;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.Version;
 import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Bom;
@@ -69,18 +72,13 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
+import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.util.LicenseResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.IQ_APP_PREFIX;
-import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.SONATYPE_NAMESPACE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -105,12 +103,6 @@ public class ApiCycloneDxServiceV2Test
 
   @Mock
   private VersionService versionService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(VersionService.class).toInstance(versionService);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() {

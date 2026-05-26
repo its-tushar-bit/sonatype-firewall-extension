@@ -143,6 +143,9 @@ public class SourceControlEventOrchestrator
    */
   @Override
   public void onNewEvent(SourceControlEvent event) {
+    if (disableForTesting) {
+      return;
+    }
     synchronized (userEventManagerMap.get()) {
       if (sourceControlLoadBalancer.reserveEvent(event)) {
         assignEventForProcessing(event);
@@ -205,6 +208,9 @@ public class SourceControlEventOrchestrator
    * UserEventManager
    */
   private void fetchAndRouteEvents() {
+    if (disableForTesting) {
+      return;
+    }
     if (!licenseChecker.isIqForScmSupported() || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
       log.trace("unable to fetch and route source control events due to licensing or configuration");
       return;

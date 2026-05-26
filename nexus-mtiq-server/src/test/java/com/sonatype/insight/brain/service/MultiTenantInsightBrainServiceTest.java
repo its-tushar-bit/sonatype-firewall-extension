@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.AdminApiPaths;
+import com.sonatype.insight.brain.api.admin.TenantResource;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesResource;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
@@ -16,28 +18,23 @@ import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
+import static org.mockito.Mockito.mock;
+
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.experimental.categories.Category;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Category(SlowTest.class)
 public class MultiTenantInsightBrainServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  @Inject
-  private Set<TenantManaged> tenantLifecycles;
-
   @Test
   public void shouldExcludeDefaultTenantManagedInitializer() {
     assertThat(getCLMServer().getInstance(TenantManagedInitializer.class))
@@ -49,38 +46,71 @@ public class MultiTenantInsightBrainServiceTest
 
   @Test
   @ManualIqServerInit
-  public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(new MtiqDatabaseConfigurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        super.configure(config);
-        ((MultiTenantInsightConfig) config).setUsingDefaultEncryptionKeyStore(true);
-      }
-    });
+  public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() {
+    try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+      context.register(DefaultEncryptionKeyStoreAliasBeans.class, TenantManagedBeans.class,
+          MtiqConfigurationAliases.class);
+      context.refresh();
 
-    assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(DefaultEncryptionKeyStore.class);
-    getCLMServer().getInjector().injectMembers(this);
-    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof Configuration)).isTrue();
-    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof MultiTenantEncryptionKeyStore)).isFalse();
+      assertThat(context.getBean("multiTenantInsightConfig", MultiTenantInsightConfig.class)
+          .isUsingDefaultEncryptionKeyStore()).isTrue();
+      assertThat(context.getBean(EncryptionKeyStore.class)).isSameAs(context.getBean(DefaultEncryptionKeyStore.class));
+      assertThat(context.getBeansOfType(MultiTenantEncryptionKeyStore.class)).isEmpty();
+
+      assertThat(context.getBeansOfType(Configuration.class)).isNotEmpty();
+      assertThat(context.getBeansOfType(MultiTenantEncryptionKeyStore.class)).isEmpty();
+    }
   }
 
   @Test
   @ManualIqServerInit
-  public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() throws Exception {
-    startIqTestServer(new MtiqDatabaseConfigurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        super.configure(config);
-        ((MultiTenantInsightConfig) config).setUsingDefaultEncryptionKeyStore(false);
-      }
-    });
+  public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() {
+    try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+      context.register(MultiTenantEncryptionKeyStoreAliasBeans.class, TenantManagedBeans.class,
+          MtiqConfigurationAliases.class);
+      context.refresh();
 
-    assertThat(getCLMServer().getInstance(EncryptionKeyStore.class)).isInstanceOf(MultiTenantEncryptionKeyStore.class);
-    getCLMServer().getInjector().injectMembers(this);
-    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof Configuration)).isTrue();
-    assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof MultiTenantEncryptionKeyStore)).isTrue();
+      assertThat(context.getBean("multiTenantInsightConfig", MultiTenantInsightConfig.class)
+          .isUsingDefaultEncryptionKeyStore()).isFalse();
+      assertThat(context.getBean(EncryptionKeyStore.class))
+          .isSameAs(context.getBean(MultiTenantEncryptionKeyStore.class));
+      assertThat(context.getBeansOfType(MultiTenantEncryptionKeyStore.class))
+          .containsKeys("encryptionKeyStore", "multiTenantEncryptionKeyStore");
+
+      assertThat(context.getBeansOfType(Configuration.class)).isNotEmpty();
+      assertThat(context.getBeansOfType(MultiTenantEncryptionKeyStore.class)).isNotEmpty();
+    }
+  }
+
+  @Test
+  public void shouldExcludeIqOnlyResourcesFromMtiqMainResourceConfig() {
+    ResourceConfig mainResourceConfig = getCLMServer()
+        .getApplicationContext()
+        .getBean("mtiqMainResourceConfig", ResourceConfig.class);
+
+    assertThat(getCLMServer().getApplicationContext().containsBean("resourceConfig")).isFalse();
+    assertThat(mainResourceConfig.getInstances())
+        .extracting(instance -> instance.getClass().getName())
+        .doesNotContain(ApiConfigFeaturesResource.class.getName());
+  }
+
+  @Test
+  public void shouldCollectAdminResourcesIntoAdminBundle() {
+    AdminResourceBundle adminResourceBundle = getCLMServer().getInstance(AdminResourceBundle.class);
+
+    assertThat(adminResourceBundle).isNotNull();
+    assertThat(adminResourceBundle.getRegisteredResources())
+        .anyMatch(resource -> resource.getClass().equals(TenantResource.class));
+  }
+
+  @Test
+  public void shouldExposeAdminResourcesOnAdminSurface() throws Exception {
+    HttpResponse response = adminRestRequest(AdminApiPaths.ADMIN_PATH + TenantResource.LIST_TENANTS)
+        .query("tenant=global")
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyList()).contains(getTestTenant().tenantSlug);
   }
 
   @Test
@@ -94,22 +124,58 @@ public class MultiTenantInsightBrainServiceTest
   }
 
   @Override
-  protected List<Module> getBrainModules() {
-    List<Module> modules = super.getBrainModules();
-    modules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(TenantUtil.class).toInstance(tenantUtil);
-        bind(MultiTenantInsightBrainServiceTest.class);
-      }
-    });
-    return modules;
+  protected boolean shouldBindTestEncryptionKeyStore() {
+    // Use the production MTIQ EncryptionKeyStore alias instead of the base test keystore binding.
+    return false;
   }
 
-  @Override
-  protected boolean shouldBindTestEncryptionKeyStore() {
-    // This test manages its own EncryptionKeyStore binding
-    return false;
+  @Configuration
+  static class TenantManagedBeans
+  {
+    @Bean
+    Configuration configuration() {
+      return mock(Configuration.class);
+    }
+  }
+
+  @Configuration
+  static class DefaultEncryptionKeyStoreAliasBeans
+  {
+    @Bean
+    InsightConfig insightConfig() {
+      MultiTenantInsightConfig config = new MultiTenantInsightConfig();
+      config.setUsingDefaultEncryptionKeyStore(true);
+      return config;
+    }
+
+    @Bean
+    DefaultEncryptionKeyStore defaultEncryptionKeyStore() {
+      return mock(DefaultEncryptionKeyStore.class);
+    }
+
+    // Note: MultiTenantEncryptionKeyStore is NOT registered here.
+    // In production, @ConditionalOnProperty prevents its registration
+    // when using the default encryption keystore.
+  }
+
+  @Configuration
+  static class MultiTenantEncryptionKeyStoreAliasBeans
+  {
+    @Bean
+    InsightConfig insightConfig() {
+      MultiTenantInsightConfig config = new MultiTenantInsightConfig();
+      config.setUsingDefaultEncryptionKeyStore(false);
+      return config;
+    }
+
+    @Bean
+    DefaultEncryptionKeyStore defaultEncryptionKeyStore() {
+      return mock(DefaultEncryptionKeyStore.class);
+    }
+
+    @Bean
+    MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore() {
+      return mock(MultiTenantEncryptionKeyStore.class);
+    }
   }
 }

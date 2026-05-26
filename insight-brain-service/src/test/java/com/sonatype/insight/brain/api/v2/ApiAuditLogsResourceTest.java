@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 import jakarta.ws.rs.core.MediaType;
 
@@ -24,9 +24,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiAuditLogsResourceTest
     extends AbstractResourceTest
 {
-  private static final String LOG_DIR = "./log";
+  private Path logDir;
+
+  @Before
+  public void before() throws IOException {
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
+    logDir = tempDir.getRoot().toPath().resolve("logs");
+    Files.createDirectories(logDir);
+    insightConfig.setAuditLogFilename(logDir.resolve("audit.log").toString());
+  }
 
   @After
   public void after() throws IOException {
@@ -69,11 +80,14 @@ public class ApiAuditLogsResourceTest
 
   private void copyTestResource(String filename) throws IOException {
     String filepath = getClass().getClassLoader().getResource(getClass().getSimpleName() + "/" + filename).getFile();
-    Files.copy(new File(filepath).toPath(), Paths.get(LOG_DIR, filename));
+    Files.copy(new File(filepath).toPath(), logDir.resolve(filename));
   }
 
   private void deleteAuditLogs() throws IOException {
-    Files.list(Paths.get(LOG_DIR))
+    if (logDir == null || !Files.exists(logDir)) {
+      return;
+    }
+    Files.list(logDir)
         .filter(
             file -> file.getFileName().toString().startsWith("audit") && file.getFileName().toString().endsWith(".gz"))
         .forEach(file -> {

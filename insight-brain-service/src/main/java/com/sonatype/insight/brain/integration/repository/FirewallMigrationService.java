@@ -148,8 +148,8 @@ public class FirewallMigrationService
     Repository sourceRepository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         sourceRepositoryManagerInstanceId, sourceRepositoryPublicId);
 
-    Repository targetRepository = createOrUpdateTargetRepository(sourceRepository, targetRepositoryManagerInstanceId,
-        targetRepositoryPublicId);
+    Repository targetRepository = createOrUpdateTargetRepository(sourceRepository,
+        targetRepositoryManagerInstanceId, targetRepositoryPublicId);
 
     AuditData.get()
         .setData("sourceRepositoryId", sourceRepository.getId())
@@ -259,4 +259,5 @@ public class FirewallMigrationService
     }
     return new MigrationDetails(repositoryMigration.getState());
   }
+
 }

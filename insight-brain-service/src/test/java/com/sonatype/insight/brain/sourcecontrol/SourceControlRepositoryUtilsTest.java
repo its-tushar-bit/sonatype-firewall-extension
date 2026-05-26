@@ -5,25 +5,6 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import java.util.HashMap;
-
-import com.sonatype.insight.brain.model.githubapp.GitHubApp;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
-import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
-import com.sonatype.insight.brain.git.GitApiFactory;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.nexus.git.utils.api.GitApi;
-import com.sonatype.nexus.git.utils.api.GitException;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -32,30 +13,38 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.git.GitApiFactory;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.GitException;
+import jakarta.inject.Inject;
+import java.util.HashMap;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
 public class SourceControlRepositoryUtilsTest
     extends AbstractComponentTest
 {
   @Inject
   private SourceControlRepositoryUtils sourceControlRepositoryUtils;
 
+  @Mock
   private GitApiFactory gitApiFactory;
 
+  @Mock
   private GitHubAppDAO mockGitHubAppDAO;
 
+  @Mock
   private GitHubAppSelectionService mockGitHubAppSelectionService;
 
   private final GitApi mockGitApiInstance = mock(GitApi.class);
-
-  @Override
-  public void configure(Binder binder) {
-    gitApiFactory = mock(GitApiFactory.class);
-    mockGitHubAppDAO = mock(GitHubAppDAO.class);
-    mockGitHubAppSelectionService = mock(GitHubAppSelectionService.class);
-    binder.bind(GitApiFactory.class).toInstance(gitApiFactory);
-    binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
-    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetRepositoryHttpUrlFromSshUrl() {
@@ -184,7 +173,6 @@ public class SourceControlRepositoryUtilsTest
     assertThat(reachable).isFalse();
 
     GitRepositoryInfo capturedInfo = captor.getValue();
-    // When GitHub App auth is configured but no app is found, authOwnerId falls back to sourceControl.ownerId
     assertThat(capturedInfo.authOwnerId).isEqualTo(organization.getId());
   }
 
@@ -208,7 +196,6 @@ public class SourceControlRepositoryUtilsTest
     assertThat(reachable).isTrue();
 
     GitRepositoryInfo capturedInfo = captor.getValue();
-    // When using PAT authentication, authOwnerId is populated with sourceControl.ownerId
     assertThat(capturedInfo.authOwnerId).isEqualTo(organization.getId());
 
     verify(mockGitHubAppSelectionService, never()).select(any());

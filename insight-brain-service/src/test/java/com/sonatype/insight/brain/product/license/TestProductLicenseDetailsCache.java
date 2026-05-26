@@ -22,14 +22,18 @@ import com.google.common.io.Resources;
 public class TestProductLicenseDetailsCache
     extends ProductLicenseDetailsCache
 {
+  private final String defaultJson;
+
   private String json;
 
   @Inject
   public TestProductLicenseDetailsCache(ProductLicenseDAO productLicenseDAO) {
     super(productLicenseDAO);
     try {
-      json = Resources.toString(getClass().getResource("/TestProductLicenseDetailsCache/productLicenseDetails.json"),
-          StandardCharsets.UTF_8);
+      defaultJson =
+          Resources.toString(getClass().getResource("/TestProductLicenseDetailsCache/productLicenseDetails.json"),
+              StandardCharsets.UTF_8);
+      json = defaultJson;
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -44,5 +48,9 @@ public class TestProductLicenseDetailsCache
   @Override
   void saveJson(String json) {
     this.json = json;
+  }
+
+  public void resetToDefaults() {
+    json = defaultJson;
   }
 }

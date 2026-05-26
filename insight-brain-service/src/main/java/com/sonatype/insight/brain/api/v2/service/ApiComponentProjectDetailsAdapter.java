@@ -12,10 +12,14 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectScmDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectScmDetailsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentProjectScmMetadataDTO;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 /**
  * @since 1.100
  */
+@Named
+@Singleton
 public class ApiComponentProjectDetailsAdapter
 {
   public ApiComponentProjectDataDTO convertToDTO(final ComponentEvaluationData componentEvaluationData) {

@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
+import com.sonatype.insight.brain.service.InsightConfig;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.service.InsightConfig;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * Dropwizard exposes health/operational checks on:
@@ -29,13 +29,13 @@ public class WorkDirectoriesOperationalCheck
   }
 
   @Override
-  protected Result check() {
+  public Health check() {
     if (!insightConfig.getSonatypeWork().isDirectory()) {
-      return Result.unhealthy(insightConfig.getSonatypeWork() + " is not a directory");
+      return Health.down().withDetail("message", insightConfig.getSonatypeWork() + " is not a directory").build();
     }
     if (!insightConfig.getClusterDirectory().isDirectory()) {
-      return Result.unhealthy(insightConfig.getClusterDirectory() + " is not a directory");
+      return Health.down().withDetail("message", insightConfig.getClusterDirectory() + " is not a directory").build();
     }
-    return Result.healthy();
+    return Health.up().build();
   }
 }

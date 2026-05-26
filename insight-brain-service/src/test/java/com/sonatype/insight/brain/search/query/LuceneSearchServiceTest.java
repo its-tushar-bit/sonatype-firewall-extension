@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.search.query;
 
+import java.io.IOException;
 import java.nio.file.Files;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -14,11 +15,21 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
-
+import jakarta.inject.Inject;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
+
+import static org.apache.commons.io.FileUtils.deleteDirectory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -26,9 +37,37 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
+@ContextConfiguration(classes = LuceneSearchServiceTest.LuceneSearchServiceTestConfiguration.class)
 public class LuceneSearchServiceTest
     extends AbstractSearchServiceTest
 {
+  @Inject
+  private AdvancedSearchTelemetryCollector advancedSearchTelemetryCollector;
+
+  @TestConfiguration
+  static class LuceneSearchServiceTestConfiguration
+  {
+    @Bean
+    @Primary
+    SearchIndexClient searchIndexClient(final LuceneSearchIndexClient luceneSearchIndexClient) {
+      return luceneSearchIndexClient;
+    }
+  }
+
+  @Override
+  protected void grantDefaultTestUserAllPermissions() {
+    tempEntity.newUser(USERNAME);
+  }
+
+  @Before
+  public void resetLuceneSearchFixture() throws IOException {
+    advancedSearchTelemetryCollector.collectAllData();
+
+    if (insightWork.getSearchIndexDir().exists()) {
+      deleteDirectory(insightWork.getSearchIndexDir());
+    }
+  }
+
   @Test
   public void testSearchIndex_MaxAdvancedSearchClauseCountLimitExceeded() {
     try {

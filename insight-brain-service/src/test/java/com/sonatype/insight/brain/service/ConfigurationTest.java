@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableSet;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -19,22 +23,33 @@ import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
-import com.google.inject.TypeLiteral;
+import jakarta.inject.Inject;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.ObjectProvider;
 
 public class ConfigurationTest
     extends AbstractComponentTest
 {
+  private static final Set<String> RESET_CONFIGURATION_PROPERTIES = Set.of(
+      SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+      SystemConfigurationProperty.BASE_URL,
+      SystemConfigurationProperty.FORCE_BASE_URL,
+      SystemConfigurationProperty.HDS_URL,
+      SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
+      SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
+      SystemConfigurationProperty.POLICY_MONITORING_HOUR,
+      SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
+      SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+      SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
+      SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
+      SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+      SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS);
+
   @Mock
   HdsClient hdsClient1;
 
@@ -68,24 +83,16 @@ public class ConfigurationTest
   @Inject
   private AsyncEventBus asyncEventBus;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskScheduler);
+  @Before
+  public void setUpConfigurationTest() {
+    configurationService.deleteConfigurationInDatabaseNoAuthz(RESET_CONFIGURATION_PROPERTIES);
+    configuration.register();
+    asyncEventBus.setMaxPoolSize(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
 
-    // Bind a Provider for List<HdsClient>
-    binder.bind(new TypeLiteral<List<HdsClient>>()
-    {
-    })
-        .toInstance(Lists.newArrayList(hdsClient1, hdsClient2));
-
-    // Bind other mocks
-    binder.bind(ReleaseGraphCacheProvider.class).toInstance(releaseGraphCacheProvider);
-    binder.bind(PolicyMonitorScheduler.class).toInstance(policyMonitorScheduler);
-    binder.bind(HistoricalPolicyViolationTelemetryTask.class).toInstance(historicalPolicyViolationTelemetryTask);
-    binder.bind(AutomaticQuarantineReleaseScheduler.class).toInstance(automaticQuarantineReleaseScheduler);
-    binder.bind(WaivedComponentUpgradeScheduler.class).toInstance(waivedComponentUpgradeScheduler);
-
-    super.configure(binder);
+    @SuppressWarnings("unchecked")
+    ObjectProvider<HdsClient> hdsClientProvider = (ObjectProvider<HdsClient>) mock(ObjectProvider.class);
+    lenient().when(hdsClientProvider.orderedStream()).thenReturn(Stream.of(hdsClient1, hdsClient2));
+    applyBeanFieldOverride(Configuration.class, "hdsClients", hdsClientProvider);
   }
 
   @Test

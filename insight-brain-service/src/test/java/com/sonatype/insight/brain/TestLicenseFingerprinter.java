@@ -5,14 +5,9 @@
  */
 package com.sonatype.insight.brain;
 
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
-@Named
-@Singleton
 public class TestLicenseFingerprinter
     extends LicenseFingerprinter
 {

@@ -5,20 +5,19 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import org.sonatype.licensing.LicensingException;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.licensing.LicensingException;
 
 @Named
 public class ProductLicenseService
@@ -81,8 +80,17 @@ public class ProductLicenseService
   }
 
   public LicenseSummary validateLicense() {
-    productLicense.validate();
-    return licenseManager.getLicenseSummary();
+    try {
+      productLicense.validate();
+      return licenseManager.getLicenseSummary();
+    }
+    catch (InvalidLicenseException e) {
+      throw new WebApplicationException(
+          Response.status(402)
+              .type(MediaType.TEXT_PLAIN_TYPE)
+              .entity(e.getMessage())
+              .build());
+    }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)

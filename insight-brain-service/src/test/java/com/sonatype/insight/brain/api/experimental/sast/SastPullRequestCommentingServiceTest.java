@@ -6,14 +6,18 @@
 
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import org.junit.experimental.categories.Category;
+import static com.sonatype.insight.brain.telemetry.SastPullRequestCommentTelemetry.SAST_PULL_REQUEST_COMMENT_TELEMETRY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.io.IOException;
-import java.util.Collections;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.GitClientFactory;
@@ -42,26 +46,16 @@ import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestImpl;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
-
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.telemetry.SastPullRequestCommentTelemetry.SAST_PULL_REQUEST_COMMENT_TELEMETRY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 @Category(SlowTest.class)
 public class SastPullRequestCommentingServiceTest
@@ -104,18 +98,6 @@ public class SastPullRequestCommentingServiceTest
   public void before() {
     final Organization org = tempEntity.newOrganization();
     application = tempEntity.newApplication(org.getId());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(FeaturesService.class).toInstance(featuresService);
-    binder.bind(PullRequestInfoClient.class).toInstance(pullRequestInfoClient);
-    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-    binder.bind(GitClientFactory.class).toInstance(gitClientFactory);
-    binder.bind(ProjectUrl.class).toInstance(projectUrl);
-    binder.bind(GitApiClient.class).toInstance(gitApiClient);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    super.configure(binder);
   }
 
   @Test

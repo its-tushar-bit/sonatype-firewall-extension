@@ -5,16 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
@@ -41,7 +43,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -52,26 +53,20 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.AssertionsForClassTypes.tuple;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -93,16 +88,6 @@ public class ApiPolicyViolationServiceV2Test
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
-
-  @Mock
-  private StageTypeService mockStageTypeService;
-
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mockStageTypeService.getLicensedStageTypes()).thenReturn(StageTypes.getAll());
-    binder.bind(StageTypeService.class).toInstance(mockStageTypeService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetPolicyViolations_MalformedAfterDate() {
@@ -319,6 +304,8 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetTransitivePolicyViolationsByComponent_StageTypeNotLicensed() {
+    StageTypeService mockStageTypeService = mock(StageTypeService.class);
+    applyBeanFieldOverride(ApiPolicyViolationServiceV2.class, "stageTypeService", mockStageTypeService);
     when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Collections.emptyList());
 
     assertThatExceptionOfType(InvalidLicenseException.class)

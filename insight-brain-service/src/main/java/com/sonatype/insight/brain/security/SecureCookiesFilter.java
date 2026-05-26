@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shiro.web.servlet.AdviceFilter;
 
 import static com.google.common.net.HttpHeaders.SET_COOKIE;
-import static com.sonatype.insight.brain.security.SecurityModule.SESSION_COOKIE_NAME;
+import static com.sonatype.insight.brain.spring.config.SecurityConfiguration.SESSION_COOKIE_NAME;
 
 /**
  * @since 1.16.0
@@ -32,6 +32,8 @@ import static com.sonatype.insight.brain.security.SecurityModule.SESSION_COOKIE_
 public class SecureCookiesFilter
     extends AdviceFilter
 {
+  public static final String SECURE_FLAGS = "; Secure; SameSite=None";
+
   // Matches a SameSite attribute (case-insensitive) and its value, including the leading semicolon + optional space
   // Stops at semicolon to handle compact-format cookies (e.g. ";SameSite=Lax;HttpOnly" with no spaces)
   private static final Pattern SAMESITE_PATTERN =

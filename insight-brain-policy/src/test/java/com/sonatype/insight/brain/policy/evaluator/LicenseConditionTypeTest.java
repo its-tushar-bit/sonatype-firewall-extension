@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
@@ -27,24 +25,29 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicense;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 public class LicenseConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  @Inject
   private LicenseDAO licenseDAO;
 
-  @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
   private LicenseDataUpdater savedLicenseDataUpdater;
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    licenseDAO = daoFactory.createLicenseDAO();
+    multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+  }
 
   @Before
   public void before() {

@@ -5,20 +5,16 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.error.exception.ConflictException;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * Hybrid search index client that supports OpenSearch with Lucene fallback.
@@ -33,8 +29,6 @@ import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
  * <p>
  * The primary client is typically OpenSearch (target state) and the secondary is Lucene (fallback).
  */
-@Singleton
-@InvisibleForScanner
 public class HybridSearchIndexClient
     implements SearchIndexClient
 {

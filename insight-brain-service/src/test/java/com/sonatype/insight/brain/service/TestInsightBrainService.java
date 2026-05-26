@@ -5,15 +5,21 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.client.utils.HttpClientUtils;
+import java.util.List;
+import org.springframework.context.ApplicationContext;
 
-import com.google.inject.Injector;
-import com.google.inject.Module;
-
+/**
+ * Interface for test IQ server instances.
+ *
+ * <p>
+ * <b>Migration Note:</b> This interface now reflects the Spring-based test server APIs.
+ * The legacy injector lookup has been replaced with getApplicationContext().
+ * The legacy override-module hook has been replaced with addTestConfigurations().
+ * </p>
+ */
 public interface TestInsightBrainService
 {
   String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";
@@ -40,6 +46,8 @@ public interface TestInsightBrainService
 
   void setHttpAdminPort(int port);
 
+  void setKeyStore(String path, String password);
+
   void setHdsUrl(final String hdsUrl);
 
   void setDatabaseContainer(DatabaseContainer databaseContainer);
@@ -62,10 +70,19 @@ public interface TestInsightBrainService
 
   InsightConfig getConfiguration();
 
-  void addOverrideModules(List<Module> overrideModules);
+  /**
+   * Add test configuration classes to override production beans.
+   */
+  void addTestConfigurations(List<Class<?>> testConfigurations);
 
-  Injector getInjector();
+  /**
+   * Get the Spring ApplicationContext.
+   */
+  ApplicationContext getApplicationContext();
 
+  /**
+   * Look up a bean by type.
+   */
   <C> C getInstance(Class<C> type);
 
   boolean isInitialized();

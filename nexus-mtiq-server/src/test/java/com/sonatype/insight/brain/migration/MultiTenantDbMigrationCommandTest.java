@@ -5,17 +5,14 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.service.InsightConfig;
-
 import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantDbMigrationCommandTest
     extends AbstractMultiTenantDatabaseTest
@@ -31,7 +28,7 @@ public class MultiTenantDbMigrationCommandTest
   @PostgresTest(suppressMigrations = false, cleanDatabase = true)
   public void testQuartzTableDoesExist() {
     // do migration (setup global schema) and global quartz table does exist
-    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new TestMultiTenantDbMigrationCommand();
+    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new MultiTenantDbMigrationCommand();
     assertThat(
         multiTenantDbMigrationCommand.quartzSchedulerStateTableExists(databaseRule.getOperationalDataStore())).isTrue();
   }
@@ -41,18 +38,9 @@ public class MultiTenantDbMigrationCommandTest
   @PostgresTest(suppressMigrations = true, cleanDatabase = true)
   public void testQuartzTableDoesNotExist() {
     // do NOT DO migration (setup global schema) and global quartz table DOES NOT exist
-    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new TestMultiTenantDbMigrationCommand();
+    MultiTenantDbMigrationCommand multiTenantDbMigrationCommand = new MultiTenantDbMigrationCommand();
     assertThat(
         multiTenantDbMigrationCommand.quartzSchedulerStateTableExists(
             databaseRule.getOperationalDataStore())).isFalse();
-  }
-
-  private class TestMultiTenantDbMigrationCommand
-      extends MultiTenantDbMigrationCommand
-  {
-    @Override
-    public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
-      return databaseRule.getDatabaseContainer();
-    }
   }
 }

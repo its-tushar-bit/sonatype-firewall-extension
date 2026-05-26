@@ -9,6 +9,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -53,6 +55,8 @@ import static com.sonatype.insight.brain.scm.event.SourceControlEventType.PR_CRE
  * Execute the end-to-end process to clone a repository, attempt to apply remediation changes to the file tree, followed
  * by pushing the changes to a newly created PullRequest.
  */
+@Named
+@Singleton
 public class PullRequestTask
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.io.IOException;
+import datadog.trace.api.Trace;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -14,14 +14,11 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
-
-import datadog.trace.api.Trace;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import java.io.IOException;
 
 @Named
 @Provider
 @Priority(ShutdownContainerResponseFilter.PRIORITY)
-@Order(Integer.MAX_VALUE - ShutdownContainerResponseFilter.PRIORITY)
 public class ShutdownContainerResponseFilter
     implements ContainerResponseFilter
 {

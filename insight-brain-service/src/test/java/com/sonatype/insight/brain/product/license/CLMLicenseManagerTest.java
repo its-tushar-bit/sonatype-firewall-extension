@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,7 +21,17 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -40,12 +51,8 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
-import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
-import org.sonatype.licensing.LicensingException;
-
-import com.google.inject.Binder;
+import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -53,20 +60,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
+import org.sonatype.licensing.LicensingException;
 
 @Category(SlowTest.class)
 public class CLMLicenseManagerTest
@@ -91,6 +87,12 @@ public class CLMLicenseManagerTest
   private ProductLicenseDetailsCache productLicenseDetailsCache;
 
   @Inject
+  private TestProductLicense testProductLicense;
+
+  @Inject
+  private TestProductLicenseDetailsCache testProductLicenseDetailsCache;
+
+  @Inject
   private TestLicenseFingerprinter licenseFingerprinter;
 
   @Inject
@@ -110,22 +112,17 @@ public class CLMLicenseManagerTest
 
   @Before
   public void before() throws Exception {
+    testProductLicense.reset();
+    testProductLicenseDetailsCache.resetToDefaults();
+    licenseFingerprinter.setDummyLicenseFingerprint("1234");
+    config.setDatabase(null);
+
     try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12")) {
       assert in != null;
       Files.copy(in, new File(tempDir.getRoot(), "hds.p12").toPath());
     }
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
-    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
-    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
-    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
   }
 
   private void mockHdsProductLicenseDetails() {

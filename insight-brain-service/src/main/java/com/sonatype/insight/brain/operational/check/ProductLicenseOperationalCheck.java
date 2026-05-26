@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.product.license.ProductLicense;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * @since 1.109
@@ -28,15 +28,15 @@ public class ProductLicenseOperationalCheck
   }
 
   @Override
-  protected Result check() throws Exception {
-    ResultBuilder resultBuilder = Result.builder();
+  public Health check() throws Exception {
+    Health.Builder healthBuilder = Health.up();
     if (!productLicense.isValid()) {
-      resultBuilder.unhealthy();
+      healthBuilder.down();
     }
     // calculated to match similar field displayed in UI
     int remainingDays = Math.max(0,
         (int) ((productLicense.getExpirationTimestamp() - System.currentTimeMillis()) / 1000 / 60 / 60 / 24));
-    resultBuilder.withDetail("remainingDays", remainingDays);
-    return resultBuilder.build();
+    healthBuilder.withDetail("remainingDays", remainingDays);
+    return healthBuilder.build();
   }
 }

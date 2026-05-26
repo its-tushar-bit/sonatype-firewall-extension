@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.concurrent.LazyInitThreadPoolExecutor;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
@@ -24,12 +21,13 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TaggedRunnable;
 import com.sonatype.insight.brain.tenancy.TenantReference;
-
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.lifecycle.Managed;
 import io.micrometer.core.instrument.Tags;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 @Named
 @Singleton

@@ -15,6 +15,7 @@ import org.apache.shiro.crypto.hash.DefaultHashService;
 import org.apache.shiro.crypto.hash.HashRequest;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.crypto.hash.format.Shiro1CryptFormat;
+import org.apache.shiro.crypto.hash.format.Shiro2CryptFormat;
 import org.apache.shiro.lang.util.ByteSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,30 +34,19 @@ public class PasswordService
   // Visible for testing
   static final String ITERATIONS_PARAM = "SimpleHash.iterations";
 
-  private static boolean useWeakIterationsForTests = false;
+  private static volatile boolean useWeakIterationsForTests = false;
 
   public static void useWeakHashIterationForTestsOnly() {
     useWeakIterationsForTests = true;
   }
 
   public PasswordService() {
-    /*
-     * Shiro v2's default algorithm is argon2id, which is not FIPS compliant. It also only allows argon2 and bcrypt
-     * algorithms for hashing and will throw an exception if using SHA-256 with Shiro2CryptFormat
-     * (see
-     * https://github.com/apache/shiro/blob/shiro-root-2.0.2/crypto/hash/src/main/java/org/apache/shiro/crypto/hash/
-     * format/Shiro2CryptFormat.java#L107)
-     */
-    if (useWeakIterationsForTests || FIPSModeDetector.isEnabled()) {
-      DefaultHashService hashService = new DefaultHashService();
-      hashService.setDefaultAlgorithmName(FIPS_HASH_ALGORITHM);
-      setHashService(hashService);
-      setHashFormat(new Shiro1CryptFormat());
-    }
+    syncHashRuntimeConfiguration();
   }
 
   @Override
   protected HashRequest createHashRequest(final ByteSource plaintext) {
+    syncHashRuntimeConfiguration();
     if (useWeakIterationsForTests) {
       // This reduces the test execution time for this module by ~30%.
       // In my tests, it doesn't make a big difference if we use 1 or 100 for hashIterations. I didn't want to use 1
@@ -86,6 +76,35 @@ public class PasswordService
   @VisibleForTesting
   boolean isUsingWeakIterationsForTests() {
     return useWeakIterationsForTests;
+  }
+
+  private void syncHashRuntimeConfiguration() {
+    /*
+     * Shiro v2's default algorithm is argon2id, which is not FIPS compliant. It also only allows argon2 and bcrypt
+     * algorithms for hashing and will throw an exception if using SHA-256 with Shiro2CryptFormat
+     * (see
+     * https://github.com/apache/shiro/blob/shiro-root-2.0.2/crypto/hash/src/main/java/org/apache/shiro/crypto/hash/
+     * format/Shiro2CryptFormat.java#L107)
+     *
+     * Spring tests can enable weak iterations after this singleton has already been constructed, so the hash format
+     * needs to stay in sync with the algorithm selected at call time as well.
+     */
+    if (useWeakIterationsForTests || FIPSModeDetector.isEnabled()) {
+      if (!(getHashFormat() instanceof Shiro1CryptFormat)) {
+        DefaultHashService hashService = new DefaultHashService();
+        hashService.setDefaultAlgorithmName(FIPS_HASH_ALGORITHM);
+        setHashService(hashService);
+        setHashFormat(new Shiro1CryptFormat());
+      }
+      return;
+    }
+
+    if (!(getHashFormat() instanceof Shiro2CryptFormat)) {
+      DefaultHashService hashService = new DefaultHashService();
+      hashService.setDefaultAlgorithmName(DEFAULT_HASH_ALGORITHM);
+      setHashService(hashService);
+      setHashFormat(new Shiro2CryptFormat());
+    }
   }
 
   private HashRequest.Builder createHashRequestBuilder(

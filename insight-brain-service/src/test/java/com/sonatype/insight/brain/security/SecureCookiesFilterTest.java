@@ -31,11 +31,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
+
 public class SecureCookiesFilterTest
 {
   private static final String SET_COOKIE = "Set-Cookie";
 
-  private static final String SESSION_COOKIE_NAME = SecurityModule.SESSION_COOKIE_NAME;
+  private static final String SESSION_COOKIE_NAME = SecurityConfiguration.SESSION_COOKIE_NAME;
+
+  private static final String COOKIE_2_INSECURE = "simple=cookie";
+
+  private static final String COOKIE_3_SECURE = SecurityConfiguration.SESSION_COOKIE_NAME
+      + "=98a766bc-bc33-4b3c-9d9f-d3bb85b0cf00; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAGS;
+
+  private static final String COOKIE_4_SECURE =
+      "rememberMe=deleteMe; Path=/; HttpOnly" + SecureCookiesFilter.SECURE_FLAGS;
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);

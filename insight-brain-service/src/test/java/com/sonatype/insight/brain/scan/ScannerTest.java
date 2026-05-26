@@ -5,13 +5,15 @@
  */
 package com.sonatype.insight.brain.scan;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import static com.sonatype.insight.license.model.LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.readFileToString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.ImmutableSet;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -26,21 +28,15 @@ import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanReader;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static com.sonatype.insight.license.model.LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.FileUtils.readFileToString;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ScannerTest
     extends BrainInjectedTest
@@ -57,13 +53,6 @@ public class ScannerTest
   private final ProductLicense productLicense = mock(ProductLicense.class);
 
   private final FeaturesService featuresService = mock(FeaturesService.class);
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(FeaturesService.class).toInstance(featuresService);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

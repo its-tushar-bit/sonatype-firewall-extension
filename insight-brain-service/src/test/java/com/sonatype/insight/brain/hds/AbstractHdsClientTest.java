@@ -6,27 +6,29 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.SearchIndexFixture;
+import com.sonatype.insight.brain.search.SearchIndexRule;
+import com.sonatype.insight.brain.search.SearchIndexType;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.DatabaseConfig;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Binder;
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.jetty.HttpConnectorFactory;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
@@ -35,6 +37,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 public abstract class AbstractHdsClientTest
     extends BrainInjectedTest
@@ -59,16 +63,28 @@ public abstract class AbstractHdsClientTest
 
   protected HttpServlet handler;
 
+  @Inject
   protected InsightConfig config;
 
   protected TelemetryId telemetryId;
 
   @Override
-  public final void overrideTestBindings(final Binder binder) {
-    config = new InsightConfig();
-    config.setDatabase(new DatabaseConfig());
-    binder.bind(InsightConfig.class).toInstance(config);
-    super.configure(binder);
+  protected SearchIndexRule createSearchIndexRule() {
+    return new NoOpSearchIndexRule();
+  }
+
+  /**
+   * Inner configuration class that provides test-specific beans.
+   */
+  @TestConfiguration
+  static class HdsTestConfiguration
+  {
+    @Bean
+    public InsightConfig insightConfig() {
+      InsightConfig config = new InsightConfig();
+      config.setDatabase(new DatabaseConfig());
+      return config;
+    }
   }
 
   @Before
@@ -94,8 +110,8 @@ public abstract class AbstractHdsClientTest
 
     setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
     setUserAgentSuffix(USER_AGENT_SUFFIX);
-    ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
-        .setPort(1234);
+    // Set port for telemetry ID generation
+    config.setApplicationConnectorPorts("1234");
 
     var mockClusterIdentificationService = TelemetryTestUtils.setupReflectiveMockClusterIdentificationService();
     telemetryId = new TelemetryId(config, systemConfigurationPropertyDAO, mockClusterIdentificationService);
@@ -114,6 +130,51 @@ public abstract class AbstractHdsClientTest
   }
 
   protected abstract void initClient();
+
+  private static final class NoOpSearchIndexRule
+      extends SearchIndexRule
+  {
+    @Override
+    protected List<Class<? extends Annotation>> getAnnotationTypes() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    protected boolean getForceClean(final Annotation annotation) {
+      return false;
+    }
+
+    @Override
+    protected boolean hasAnnotation() {
+      return false;
+    }
+
+    @Override
+    protected SearchIndexFixture createNewFixture() {
+      return new SearchIndexFixture()
+      {
+        @Override
+        public SearchConfig getSearchConfig() {
+          return null;
+        }
+
+        @Override
+        public boolean isFixtureReusable() {
+          return true;
+        }
+
+        @Override
+        public void close() {
+          // no-op
+        }
+      };
+    }
+
+    @Override
+    protected SearchIndexType getType() {
+      return SearchIndexType.LUCENE;
+    }
+  }
 
   public void setBaseUrl(String baseUrl) {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);

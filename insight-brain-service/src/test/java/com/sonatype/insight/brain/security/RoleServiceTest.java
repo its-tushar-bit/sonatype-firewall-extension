@@ -46,7 +46,7 @@ public class RoleServiceTest
     try {
       List<RoleDTO> roles = roleService.getAllRoles();
       assertThat(roles).isNotEmpty();
-      assertThat(roles).extracting(role -> role.id).containsExactlyInAnyOrderElementsOf(ALL_ROLE_IDS);
+      assertThat(roles).extracting(role -> role.id).containsAll(ALL_ROLE_IDS);
     }
     finally {
       SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);

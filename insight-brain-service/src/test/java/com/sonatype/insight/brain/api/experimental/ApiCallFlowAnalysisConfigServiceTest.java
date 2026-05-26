@@ -32,7 +32,6 @@ public class ApiCallFlowAnalysisConfigServiceTest
   @Inject
   private ApiCallFlowAnalysisConfigService apiCallFlowAnalysisService;
 
-  @Inject
   private Application application;
 
   @Before

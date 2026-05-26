@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * Verifies that the process can access the databases. Actual checks are implemented in sub-classes.
@@ -43,15 +44,15 @@ abstract class AbstractDbOperationalCheck
   }
 
   @Override
-  protected Result check() throws Exception {
-    ResultBuilder resultBuilder = Result.builder();
-    checkConnection(resultBuilder, operationalDataStore);
-    checkConnection(resultBuilder, dataMartDataStore);
-    checkConnection(resultBuilder, aggregationDataStore);
-    checkConnection(resultBuilder, thirdPartyScansDataStore);
+  public Health check() throws Exception {
+    Health.Builder healthBuilder = Health.up();
+    checkConnection(healthBuilder, operationalDataStore);
+    checkConnection(healthBuilder, dataMartDataStore);
+    checkConnection(healthBuilder, aggregationDataStore);
+    checkConnection(healthBuilder, thirdPartyScansDataStore);
 
-    return resultBuilder.build();
+    return healthBuilder.build();
   }
 
-  protected abstract void checkConnection(ResultBuilder resultBuilder, DataStore dataStore);
+  protected abstract void checkConnection(Health.Builder healthBuilder, DataStore dataStore);
 }

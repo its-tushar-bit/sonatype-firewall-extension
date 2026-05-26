@@ -5,42 +5,39 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
-
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
-import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
-import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
-
-import com.google.common.hash.Hashing;
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.hash.Hashing;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
+import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 public class PendoServiceTest
     extends AbstractComponentTest
 {
-  @Inject
   private PendoService pendoService;
 
   @Inject
@@ -48,6 +45,9 @@ public class PendoServiceTest
 
   @Inject
   private VersionService versionService;
+
+  @Inject
+  private ObjectMapper objectMapper;
 
   @Mock
   private HdsClient hdsClient;
@@ -57,15 +57,11 @@ public class PendoServiceTest
   @Mock
   private ProductLicense productLicense;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClient);
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    super.configure(binder);
-  }
-
   @Before
   public void setup() {
+    PendoCache pendoCache = new PendoCache(objectMapper, hdsClient);
+    pendoService =
+        new PendoService(hdsClient, pendoCache, telemetryId, versionService, new CurrentUser(), productLicense);
     hashedVisitorId = Hashing.sha256().hashUnencodedChars(telemetryId.getId() + USERNAME).toString();
   }
 

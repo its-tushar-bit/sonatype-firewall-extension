@@ -5,17 +5,15 @@
  */
 package com.sonatype.insight.brain.container.images;
 
-import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
 public class ContainerImageReportServiceAuthzTest

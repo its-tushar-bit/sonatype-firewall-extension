@@ -13,10 +13,12 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
 import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.KeyValue;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
@@ -28,7 +30,9 @@ import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -36,6 +40,16 @@ import static org.awaitility.Awaitility.await;
 public class EvaluationQueueIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {
+  @Before
+  public void disableEvaluationQueueProducer() {
+    getCLMServer().getInstance(EvaluationQueueProducer.class).disableForTesting = true;
+    // Clear any stale checkpoint that may have been created by automatic execution during server startup.
+    // During startup, register() schedules a periodic task that can fire before disableForTesting is set,
+    // creating a completed checkpoint (with no SBOMs) that would cause subsequent manual execute() calls
+    // to skip processing.
+    getCLMServer().getInstance(KeyValueDAO.class).deleteByKey(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT);
+  }
+
   @Test
   public void testEvaluationQueueProduceAndConsume_multipleSboms() throws Exception {
     EvaluationQueueConfig config = EvaluationQueueConfig.builder()
@@ -54,7 +68,7 @@ public class EvaluationQueueIntegrationTest
     tempEntity.newPolicyMonitoring(app1.getId(), ComplianceStageType.ID);
     createSbomWithScan(app1.getId(), new Date(1));
 
-    getCLMServer().getInstance(EvaluationQueueProducer.class).execute(null);
+    getCLMServer().getInstance(EvaluationQueueProducer.class).execute((JobExecutionContext) null);
 
     EvaluationQueueDAO evaluationQueueDAO = getCLMServer().getInstance(EvaluationQueueDAO.class);
     assertThat(evaluationQueueDAO.getCount()).isEqualTo(1);

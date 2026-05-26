@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -78,18 +78,15 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.verify;
 
 public class ApplicationCloneServiceTest
     extends AbstractComponentTest
@@ -158,12 +155,6 @@ public class ApplicationCloneServiceTest
     sourceApp = tempEntity.newApplicationWithParent();
   }
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
-  }
-
   @Test
   public void testCloneApplication_SourceApplicationDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
@@ -175,7 +166,7 @@ public class ApplicationCloneServiceTest
   public void testCloneApplication_Application() {
     String clonedAppName = "clonedAppName";
     String clonedAppPublicId = "clonedAppPublicId";
-    String contactUsername = "testuser";
+    String contactUsername = "clonecontactuser";
 
     tempEntity.newUser(contactUsername);
     sourceApp.setContactInternalName(contactUsername);

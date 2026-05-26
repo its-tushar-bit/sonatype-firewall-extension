@@ -22,7 +22,13 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.After;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;
 import org.junit.Before;
@@ -58,6 +64,26 @@ public class LdapUserAndGroupMappingTest
   private final Map<String, LdapConnection> ldapConnectionStore = new HashMap<>();
 
   private final Map<String, LdapUserMapping> ldapUserMappingStore = new HashMap<>();
+
+  @Before
+  public void bindSecurityManager() {
+    SecurityManager securityManager = mock(SecurityManager.class);
+    ThreadContext.bind(securityManager);
+    SecurityAspectControl.disableEnforcement();
+    SimplePrincipalCollection principals = new SimplePrincipalCollection("testUser", "testRealm");
+    Subject subject = new Subject.Builder(securityManager)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(subject);
+  }
+
+  @After
+  public void unbindSecurityManager() {
+    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
+  }
 
   @Before
   public void initialize() {

@@ -5,21 +5,21 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.quartz.JobPersistenceException;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.utils.ConnectionProvider;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
+@Primary
 public class MultiTenantQuartzJobStoreTX
     extends QuartzJobStoreTX
 {

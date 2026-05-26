@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToOrganizationDTO;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -24,13 +22,12 @@ import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyR
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToOrganizationDTO;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class OwnerHierarchyTest
     extends AbstractComponentTest
@@ -46,11 +43,6 @@ public class OwnerHierarchyTest
 
   @Inject
   private RepositoryManagerDAO repositoryManagerDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-  }
 
   @Test
   public void testCreateHierarchy() {

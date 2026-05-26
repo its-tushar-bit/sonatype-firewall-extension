@@ -5,14 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -56,22 +51,28 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Category(SlowTest.class)
 public class ComponentPolicyEvaluatorTest
     extends AbstractPolicyEvaluationTest
 {
-  @Inject
   private PolicyWaiverDAO policyWaiverDAO;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    policyWaiverDAO = daoFactory.createPolicyWaiverDAO();
+  }
 
   @Test
   public void testEvaluate_ConstraintFactHasDisplayName() {

@@ -5,22 +5,29 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import com.codeborne.selenide.Condition;
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
+import static com.sonatype.clm.testing.functional.utils.SeleniumChromeOptions.chromeOptions;
+import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.FileDownloadMode;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.UIAssertionError;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -74,7 +81,10 @@ import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.QuartzTriggerListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
@@ -86,23 +96,24 @@ import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
-
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.FileDownloadMode;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
-import com.codeborne.selenide.ex.UIAssertionError;
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
-import com.google.inject.matcher.Matchers;
-import io.dropwizard.core.server.DefaultServerFactory;
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -129,23 +140,13 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
-import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
-import static com.sonatype.clm.testing.functional.utils.SeleniumChromeOptions.chromeOptions;
-import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
-import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public abstract class AbstractFunctionalTest
@@ -217,14 +218,17 @@ public abstract class AbstractFunctionalTest
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
 
-    // In dev mode, use root context path so that API paths match what the webpack-dev-server proxy expects
+    // In dev mode, use root context path so that API paths match what the webpack-dev-server proxy expects.
+    // Keep the server and browser aligned on the same context path; otherwise requests such as
+    // /iq-test/assets/index.html bypass the anonymous asset filter chain and return 401.
     String contextPath = TestCLMServer.WEBPACK_DEV_MODE ? "" : System.getProperty("iq.contextPath", "/iq-test");
+    System.setProperty("iq.contextPath", contextPath.isEmpty() ? "/" : contextPath);
     Configurator configurator = config -> {
-      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
+      // No-op: context path is set via Spring properties in SpringTestInsightBrainService
     };
 
     testCLMServer = new TestCLMServer(new DefaultInsightBrainServiceFactory(),
-        false /* isProxyRequiredToReachHds */, getBrainModules(), configurator, databaseContainer);
+        false /* isProxyRequiredToReachHds */, getTestConfigurations(), configurator, databaseContainer);
     // In dev mode, proxy to the webpack-dev-server so it serves frontend assets with instant rebuilds,
     // while still allowing reverse proxy handlers (e.g. ResponseCopyHandler) to intercept requests.
     int reverseProxyTarget = TestCLMServer.WEBPACK_DEV_MODE ? 8070 : testCLMServer.getCLMServer().getPort();
@@ -489,47 +493,83 @@ public abstract class AbstractFunctionalTest
     driver.manage().window().setSize(new Dimension(sizes.get(0).intValue(), sizes.get(1).intValue()));
   }
 
-  private static List<Module> getBrainModules() {
-    return Collections.singletonList(new AbstractModule()
+  /**
+   * Spring configuration class for functional tests.
+   * Provides test-specific bean definitions that override production beans.
+   */
+  @org.springframework.context.annotation.Configuration
+  public static class FunctionalTestConfiguration
+  {
+
+    @Bean
+    @Primary
+    public ProductLicense productLicense() {
+      return testProductLicense;
+    }
+
+    @Bean
+    @Primary
+    public ProductLicenseManager productLicenseManager() {
+      return productLicenseManager;
+    }
+
+    @Bean
+    public LicenseFingerprinter licenseFingerprinter() {
+      return licenseFingerprinter;
+    }
+
+    @Bean
+    public JiraService jiraService() {
+      return jiraService;
+    }
+
+    @Bean
+    @Primary
+    public QuartzJobStoreTX quartzJobStoreTX(
+        ProductLicense productLicense,
+        InsightConfig insightConfig,
+        OperationalDataStore operationalDataStore) throws Exception
     {
-      @Override
-      protected void configure() {
-        bind(ProductLicense.class).toInstance(testProductLicense);
-        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
-        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
-        bind(JiraService.class).toInstance(jiraService);
-        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
-        bind(TaskScheduler.class).to(TestTaskScheduler.class);
+      return new TestQuartzJobStoreTx(productLicense, insightConfig, operationalDataStore);
+    }
 
-        // Bind EncryptionKeyStore to use consistent keys for FIPS and non-FIPS tests
-        bind(EncryptionKeyStore.class).toInstance(() -> {
-          if (FIPSModeDetector.isEnabled()) {
-            return new TestFipsEncryptionKeyStore().getKey();
-          }
-          else {
-            return new TestEncryptionKeyStore().getKey();
-          }
-        });
+    @Bean
+    @Primary
+    public TaskScheduler taskScheduler(
+        QuartzJobStoreTX quartzJobStoreTX,
+        JobFactory jobFactory,
+        QuartzTriggerListener quartzTriggerListener,
+        QuartzConcurrencyListener quartzConcurrencyListener,
+        OperationalDataStore operationalDataStore,
+        ShutdownHandler shutdownHandler,
+        QuartzJobSchedulingService quartzJobSchedulingService)
+    {
+      return new TestTaskScheduler(
+          quartzJobStoreTX,
+          jobFactory,
+          quartzTriggerListener,
+          quartzConcurrencyListener,
+          operationalDataStore,
+          shutdownHandler,
+          quartzJobSchedulingService);
+    }
 
-        // Bind an interceptor to intercept method calls to classes that can normally be mocked / spied
-        // i.e. not final and containing a non-private constructor or no constructor.
-        //
-        // When a method is intercepted, get its declaring class and check if there is a mock object for that class.
-        // If there is, invoke the method on the mock object instead.
-        //
-        // Using an interceptor allows us to change mocks/spies without having to restart the server.
-        bindInterceptor(AbstractFunctionalTest::isInterceptable, Matchers.any(),
-            invocation -> {
-              Object object = mocks.get(invocation.getMethod().getDeclaringClass());
-              if (object == null || invocation.getThis() == object) {
-                return invocation.proceed();
-              }
-              return invocation.getMethod().invoke(object, invocation.getArguments());
-            });
-      }
-    });
+    @Bean
+    @Primary
+    public EncryptionKeyStore encryptionKeyStore() {
+      return () -> {
+        if (FIPSModeDetector.isEnabled()) {
+          return new TestFipsEncryptionKeyStore().getKey();
+        }
+        else {
+          return new TestEncryptionKeyStore().getKey();
+        }
+      };
+    }
+  }
+
+  private static List<Class<?>> getTestConfigurations() {
+    return Collections.singletonList(FunctionalTestConfiguration.class);
   }
 
   private static boolean isInterceptable(final Class<?> clazz) {

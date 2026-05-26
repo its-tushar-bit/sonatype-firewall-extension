@@ -5,29 +5,25 @@
  */
 package com.sonatype.insight.brain.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
-
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
-import io.dropwizard.logging.common.FileAppenderFactory;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.27
@@ -83,38 +79,46 @@ public class SupportResourceTest
   @Test
   @ManualIqServerInit
   public void testCreateSupportZip_noLimit() throws Exception {
-    initServerWithServerLog();
     setSupportReadLimitBytes(5);
+    InsightConfig insightConfig = getCLMServer().getConfiguration();
+    String originalServerLogFilename = insightConfig.getServerLogFilename();
+    File serverLog = createServerLog("0123456789");
 
-    HttpResponse response = restRequest().query("noLimit", true).get();
+    try {
+      HttpResponse response = restRequest().query("noLimit", true).get();
 
-    assertResponseStatus(200, response);
-    List<String> entries = getZipEntries(response.getBodyStream());
-    assertThat(entries).map(e -> e.substring(e.lastIndexOf('/') + 1)).doesNotContain("truncated");
+      assertResponseStatus(200, response);
+      List<String> entries = getZipEntries(response.getBodyStream());
+      assertThat(entries).map(e -> e.substring(e.lastIndexOf('/') + 1))
+          .contains(serverLog.getName())
+          .doesNotContain("truncated");
+    }
+    finally {
+      Files.deleteIfExists(serverLog.toPath());
+      insightConfig.setServerLogFilename(originalServerLogFilename);
+    }
   }
 
   @Test
   @ManualIqServerInit
   public void testCreateSupportZip_withLimits() throws Exception {
-    initServerWithServerLog();
     setSupportReadLimitBytes(5);
+    InsightConfig insightConfig = getCLMServer().getConfiguration();
+    String originalServerLogFilename = insightConfig.getServerLogFilename();
+    File serverLog = createServerLog("0123456789");
 
-    HttpResponse response = restRequest().get();
+    try {
+      HttpResponse response = restRequest().get();
 
-    assertResponseStatus(200, response);
-    List<String> entries = getZipEntries(response.getBodyStream());
-    assertThat(entries).map(e -> e.substring(e.lastIndexOf('/') + 1)).contains("truncated");
-  }
-
-  private void initServerWithServerLog() throws Exception {
-    File serverLog = tempDir.newFile("clm-server.log");
-    startIqTestServer(config -> {
-      DefaultLoggingFactory defaultLoggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
-      FileAppenderFactory<ILoggingEvent> serverFileAppenderFactory = new FileAppenderFactory<>();
-      serverFileAppenderFactory.setArchive(false);
-      serverFileAppenderFactory.setCurrentLogFilename(serverLog.getAbsolutePath());
-      defaultLoggingFactory.setAppenders(Collections.singletonList(serverFileAppenderFactory));
-    });
+      assertResponseStatus(200, response);
+      List<String> entries = getZipEntries(response.getBodyStream());
+      assertThat(entries).map(e -> e.substring(e.lastIndexOf('/') + 1))
+          .contains(serverLog.getName(), "truncated");
+    }
+    finally {
+      Files.deleteIfExists(serverLog.toPath());
+      insightConfig.setServerLogFilename(originalServerLogFilename);
+    }
   }
 
   private List<String> getZipEntries(InputStream inputStream) throws Exception {
@@ -126,6 +130,13 @@ public class SupportResourceTest
       }
     }
     return result;
+  }
+
+  private File createServerLog(final String contents) throws Exception {
+    File serverLog = File.createTempFile("support-resource", ".log");
+    getCLMServer().getConfiguration().setServerLogFilename(serverLog.getAbsolutePath());
+    Files.writeString(serverLog.toPath(), contents, StandardCharsets.UTF_8);
+    return serverLog;
   }
 
   @Test

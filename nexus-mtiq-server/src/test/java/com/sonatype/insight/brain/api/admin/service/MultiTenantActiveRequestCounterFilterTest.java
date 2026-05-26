@@ -5,23 +5,18 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
 public class MultiTenantActiveRequestCounterFilterTest
-    extends AbstractComponentTest
 {
-  @Inject
-  private MultiTenantActiveRequestCounterFilter multiTenantActiveRequestCounterFilter;
+  private final MultiTenantActiveRequestCounterFilter multiTenantActiveRequestCounterFilter =
+      new MultiTenantActiveRequestCounterFilter(new ShutdownHandler());
 
   @Test
   public void testIsShutdownPath_DoesNotMatch() {
@@ -47,4 +42,5 @@ public class MultiTenantActiveRequestCounterFilterTest
     assertThat(
         multiTenantActiveRequestCounterFilter.isShutdownPath("/api/admin/tenants/other/tasks/shutdown")).isTrue();
   }
+
 }

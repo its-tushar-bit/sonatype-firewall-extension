@@ -12,7 +12,13 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ForkJoinWorkerThread;
 
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
+@Named
+@Singleton
+@Primary
 public class MultiTenantExecutorThreadPools
     extends DefaultExecutorThreadPools
 {

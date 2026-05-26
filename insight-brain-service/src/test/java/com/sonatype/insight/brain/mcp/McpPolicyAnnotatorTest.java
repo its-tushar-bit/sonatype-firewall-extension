@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.mcp.model.McpPolicyContext;
 import com.sonatype.insight.brain.model.Application;
 
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +49,13 @@ public class McpPolicyAnnotatorTest
 
   @Before
   public void setUp() {
+    SecurityAspectControl.disableEnforcement();
     underTest = new McpPolicyAnnotator(evaluationService, applicationDAO);
+  }
+
+  @After
+  public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
   }
 
   private void stubApplicationLookup(String inputId, String internalId) {

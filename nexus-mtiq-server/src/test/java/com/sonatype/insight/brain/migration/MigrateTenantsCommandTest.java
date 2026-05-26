@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
@@ -16,18 +20,12 @@ import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 @Category(SlowTest.class)
@@ -51,10 +49,11 @@ public class MigrateTenantsCommandTest
     // get the spy out of TestDatabaseContainer
     spyDatabaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();
 
-    spyMigrateTenantsCommand = spy(new MigrateTenantsCommand()
+    MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
+    spyMigrateTenantsCommand = spy(new MigrateTenantsCommand(insightConfig)
     {
       @Override
-      public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
+      public DatabaseContainer createDatabaseContainer(final InsightConfig config) {
         return new MultiTenantDatabaseContainer(
             (MultiTenantPostgresDataSourceProvider) databaseRule.getDataSourceProvider(), spyDatabaseProvisioner,
             databaseRule.getOperationalDataStore(), databaseRule.getAggregationDataStore(),
@@ -64,22 +63,31 @@ public class MigrateTenantsCommandTest
   }
 
   @Test
-  public void testMtiqDbMigrationCommand() {
-    assertThat(spyMigrateTenantsCommand.getName()).isEqualTo("migrate-mtiq-db");
-    assertThat(spyMigrateTenantsCommand.getDescription()).isEqualTo(
-        "Migrates the database to the latest schema version for the Global schema and all tenants.");
+  public void testMtiqDbMigrationCommandMetadata() {
+    assertThat(spyMigrateTenantsCommand.getName()).isEqualTo(MigrateTenantsCommand.NAME);
+    assertThat(spyMigrateTenantsCommand.getDescription()).isEqualTo(MigrateTenantsCommand.DESCRIPTION);
   }
 
   @Test
-  public void testOnError() {
-    testAsNewTenant(tenant -> {
-      assertThatThrownBy(() -> spyMigrateTenantsCommand.onError(null, null, new Exception("Error"))).isInstanceOf(
-          IllegalStateException.class).hasMessage("Error running tenants database migrations.");
-    });
+  public void testOnErrorWrapsCommandFailures() {
+    assertThatThrownBy(() -> spyMigrateTenantsCommand.onError(null, null, new Exception("boom")))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Error running tenants database migrations.");
   }
 
   @Test
-  public void testRunMigration() {
+  public void testCreateDatabaseContainerFailsWithActionableMessageForSingleTenantConfig() {
+    assertThatThrownBy(
+        () -> new MigrateTenantsCommand(new MultiTenantInsightConfig()).createDatabaseContainer(new InsightConfig()))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("MigrateTenantsCommand.createDatabaseContainer")
+            .hasMessageContaining(MultiTenantInsightConfig.class.getName())
+            .hasMessageContaining(InsightConfig.class.getName())
+            .hasMessageContaining("config.class=" + MultiTenantInsightConfig.class.getName());
+  }
+
+  @Test
+  public void testRunMigration() throws Exception {
     // Provision at least one new tenant
     provisionTestTenant();
 
@@ -90,13 +98,17 @@ public class MigrateTenantsCommandTest
     int currentTenantCount = tenantService.getAllTenantsNames().size();
 
     testAsGlobalTenant(g -> {
-      MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
-      spyMigrateTenantsCommand.run(null, null, insightConfig);
+      try {
+        spyMigrateTenantsCommand.run();
 
-      // One for each tenant and +1 for the global one executed in TenantMigrate.migrateAllSchemas
-      verify(spyDatabaseProvisioner, times(currentTenantCount + 2)).initializeDatabaseWithoutMigration();
-      verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).initializeDatabaseWithMigration();
-      verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).migrateDatabase();
+        // One for each tenant and +1 for the global one executed in TenantMigrate.migrateAllSchemas
+        verify(spyDatabaseProvisioner, times(currentTenantCount + 2)).initializeDatabaseWithoutMigration();
+        verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).initializeDatabaseWithMigration();
+        verify(spyDatabaseProvisioner, times(currentTenantCount + 1)).migrateDatabase();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     });
   }
 }

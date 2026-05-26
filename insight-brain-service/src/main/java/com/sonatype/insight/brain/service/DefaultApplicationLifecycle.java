@@ -5,9 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -24,15 +25,20 @@ import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.version.VersionService;
-
-import io.dropwizard.lifecycle.Managed;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
+import org.springframework.context.annotation.DependsOn;
 
 @Named
 @Singleton
+@DependsOn("staticInjectionInitializer")
 public class DefaultApplicationLifecycle
-    implements ApplicationLifecycle, Managed
+    extends ApplicationLifecycle
+    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultApplicationLifecycle.class);
 
@@ -59,6 +65,8 @@ public class DefaultApplicationLifecycle
   private final LicenseDAO licenseDAO;
 
   private final MultiLicenseDAO multiLicenseDAO;
+
+  private long startTime;
 
   @Inject
   public DefaultApplicationLifecycle(
@@ -89,14 +97,27 @@ public class DefaultApplicationLifecycle
     this.multiLicenseDAO = multiLicenseDAO;
   }
 
+  /**
+   * Runs the boot sequence at startup.
+   * The bridge {@link Managed} interface routes Spring's {@code afterPropertiesSet()} here,
+   * ensuring the boot sequence runs during context initialization, before
+   * {@link DefaultTenantManagedInitializer} which depends on this bean.
+   */
+  @Override
+  public void start() throws Exception {
+    boot();
+  }
+
   @Override
   public void boot() throws Exception {
+    startTime = System.currentTimeMillis();
+    logServerInstanceMessage("Starting");
     auditServerLifecycle(AuditEvent.START_SERVER);
 
     dataMigrator.migrate();
 
-    // Create the schedulers so that tasks can be scheduled but do not start them before tenant registration
     taskScheduler.initialize();
+
     loadIqLicense();
 
     LicenseDataUpdater.setUpdater(licenseDataUpdater);
@@ -147,8 +168,8 @@ public class DefaultApplicationLifecycle
   private void auditServerLifecycle(final AuditEvent auditEvent) {
     try (AuditSession auditSession = auditRecorder.recordSystemEvent(auditEvent)) {
       AuditData.get()
-          .setData("serverInstanceId", InsightBrainService.getInstanceId())
-          .setData("serverConfigurationFile", InsightBrainService.getConfigFile())
+          .setData("serverInstanceId", ApplicationLifecycle.getServerInstanceId())
+          .setData("serverConfigurationFile", ApplicationLifecycle.getConfigFile())
           .setData("serverRelease", versionService.getLogDisplayVersion())
           .setData("serverBuild", versionService.getBuild())
           .setData("processOwner", System.getProperty("user.name"));
@@ -156,12 +177,25 @@ public class DefaultApplicationLifecycle
   }
 
   @Override
-  public void start() throws Exception {
-    // noop
-  }
-
-  @Override
   public void stop() throws Exception {
+    String formattedStartTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startTime), ZoneId.systemDefault())
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    logServerInstanceMessage("Stopping", " Uptime: " + formattedStartTime);
     auditServerLifecycle(AuditEvent.STOP_SERVER);
   }
+
+  private void logServerInstanceMessage(String action) {
+    logServerInstanceMessage(action, "");
+  }
+
+  private void logServerInstanceMessage(String action, String suffix) {
+    String version = versionService.getLogDisplayVersion();
+    String message = action + " Nexus IQ Server 1 release " + version +
+        " instance ID " + ApplicationLifecycle.getServerInstanceId() +
+        " on " + ApplicationLifecycle.getLocalHostString() + "." + suffix;
+    // Log to stdout first because the standard logging may not be operational at this point.
+    System.out.println(message);
+    log.info(message);
+  }
+
 }

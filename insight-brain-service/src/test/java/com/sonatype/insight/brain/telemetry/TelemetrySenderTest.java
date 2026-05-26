@@ -5,19 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import jakarta.inject.Inject;
-import jakarta.mail.BodyPart;
-import jakarta.mail.internet.MimeMultipart;
-import jakarta.mail.util.ByteArrayDataSource;
-
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -26,15 +15,21 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.mail.BodyPart;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.apache.http.HttpEntity;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -66,12 +62,6 @@ public class TelemetrySenderTest
   private TelemetryId telemetryId;
 
   private final HdsClient mockHdsClient = mock(HdsClient.class);
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
 
   @Test
   public void testSend_Empty() throws Exception {
@@ -117,7 +107,7 @@ public class TelemetrySenderTest
       assertThat(telemetryHeaderReceived.getBuildNumber())
           .isEqualTo(versionService.getBuild());
       assertThat(telemetryHeaderReceived.getFormat()).isEqualTo(TelemetrySender.FILE_FORMAT);
-      assertThat(telemetryHeaderReceived.getClusterId()).isEqualTo(telemetryHeaderReceived.getTelemetryId());
+      assertThat(telemetryHeaderReceived.getClusterId()).isEqualTo(telemetryId.getClusterId());
 
       ZipEntry zipEntryData = zipInputStream.getNextEntry();
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);

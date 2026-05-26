@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -17,19 +20,13 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-import java.time.Duration;
-import java.util.Date;
 
 public class PullRequestStateUpdateJobTest
     extends AbstractComponentTest
@@ -51,12 +48,6 @@ public class PullRequestStateUpdateJobTest
   private Application application;
 
   private String repositoryUrl = "https://example.com/scm/test/repo";
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(TaskScheduler.class).toInstance(taskScheduler);
-  }
 
   @Before
   public void setup() {

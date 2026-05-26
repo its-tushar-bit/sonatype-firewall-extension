@@ -5,32 +5,28 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import jakarta.inject.Inject;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO.PermissionCheckResult;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.error.exception.NotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.beans.factory.ListableBeanFactory;
 
 /**
  * Evaluates authorization by resolving context from method parameters and checking permissions.
@@ -42,9 +38,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
  */
 public class AuthorizationChecker
 {
-  private ApplicationDAO appDAO;
+  private volatile ApplicationDAO appDAO;
 
-  private OwnerDAO ownerDAO;
+  private volatile OwnerDAO ownerDAO;
+
+  private volatile ListableBeanFactory beanFactory;
 
   public AuthorizationChecker() {
     // no-arg constructor - for AOP pattern
@@ -60,14 +58,20 @@ public class AuthorizationChecker
   }
 
   /**
-   * Injected using Guice <a href="https://github.com/google/guice/wiki/Injections#method-injection">method
-   * injection</a> as this is a dependency of Shiro {@link org.apache.shiro.aop.MethodInterceptor} using AOP. See
-   * setup in {@link SecurityAopModule} using `requestInjection`.
+   * Injected after construction so the Shiro AOP interceptors can lazily resolve
+   * DAO dependencies once the wider Spring context has registered them.
    */
-  @Inject
-  public void injectDAOs(final ApplicationDAO appDAO, final OwnerDAO ownerDAO) {
-    this.appDAO = appDAO;
-    this.ownerDAO = ownerDAO;
+  public void injectBeanFactory(final ListableBeanFactory beanFactory) {
+    this.beanFactory = beanFactory;
+  }
+
+  /**
+   * Eagerly resolves DAO dependencies to fail fast at startup rather than at runtime.
+   * Called via SmartInitializingSingleton after all singletons are instantiated.
+   */
+  public void validateDaoDependencies() {
+    getApplicationDAO();
+    getOwnerDAO();
   }
 
   /**
@@ -103,13 +107,9 @@ public class AuthorizationChecker
       resolved = new ResolvedContext(Organization.ROOT_ORGANIZATION_ID, OwnerType.ORGANIZATION);
     }
 
-    PermissionCheckResult result = ownerDAO.checkPermissionForOwner(
+    PermissionCheckResult result = getOwnerDAO().checkPermissionForOwner(
         resolved.ownerId, resolved.ownerType, permission, username, groupNames);
 
-    // For ID-based lookups (notFoundMessage set), non-existent entities always yield 404 — matching the
-    // old ContextResolver behavior where getByIdNotNull threw before the permission check ran.
-    // For entity-object lookups (notFoundMessage null), non-existent parent IDs fall through to the
-    // permission result so the handler can validate and return the appropriate error (e.g. 400).
     if (!result.entityExists() && resolved.notFoundMessage != null) {
       throw new NotFoundException(resolved.notFoundMessage);
     }
@@ -149,7 +149,7 @@ public class AuthorizationChecker
       ids.add(entity.getId());
     }
 
-    Set<String> permittedIds = ownerDAO.getPermittedOwnerIds(
+    Set<String> permittedIds = getOwnerDAO().getPermittedOwnerIds(
         ids, ownerType, permission, user.getUsername(), user.getMembership());
 
     Collection<T> filtered = newCollection(entities);
@@ -277,7 +277,7 @@ public class AuthorizationChecker
 
       case APPLICATION_PUBLIC_ID:
         String publicId = (String) value;
-        List<String> ancestors = appDAO.getAncestorIdsByPublicId(publicId);
+        List<String> ancestors = getApplicationDAO().getAncestorIdsByPublicId(publicId);
         if (ancestors.isEmpty()) {
           // App doesn't exist — use publicId as ownerId (won't match any ancestor, so permission check
           // will fail for non-global users, then isPermitted will check ownerExists and throw 404)
@@ -360,7 +360,7 @@ public class AuthorizationChecker
     String internalId = (String) parameters.get(Key.INTERNAL_ID);
 
     if (type == OwnerType.APPLICATION && id != null) {
-      List<String> ancestors = appDAO.getAncestorIdsByPublicId(id);
+      List<String> ancestors = getApplicationDAO().getAncestorIdsByPublicId(id);
       if (ancestors.isEmpty()) {
         return new ResolvedContext(id, OwnerType.APPLICATION,
             "Could not find an application with public ID " + id + ".");
@@ -389,6 +389,26 @@ public class AuthorizationChecker
     ResolvedContext(String ownerId, OwnerType ownerType) {
       this(ownerId, ownerType, null);
     }
+  }
+
+  private ApplicationDAO getApplicationDAO() {
+    if (appDAO == null && beanFactory != null) {
+      appDAO = beanFactory.getBeanProvider(ApplicationDAO.class).getIfAvailable();
+    }
+    if (appDAO == null) {
+      throw new IllegalStateException("ApplicationDAO is not available for authorization checks");
+    }
+    return appDAO;
+  }
+
+  private OwnerDAO getOwnerDAO() {
+    if (ownerDAO == null && beanFactory != null) {
+      ownerDAO = beanFactory.getBeanProvider(OwnerDAO.class).getIfAvailable();
+    }
+    if (ownerDAO == null) {
+      throw new IllegalStateException("OwnerDAO is not available for authorization checks");
+    }
+    return ownerDAO;
   }
 
   /**

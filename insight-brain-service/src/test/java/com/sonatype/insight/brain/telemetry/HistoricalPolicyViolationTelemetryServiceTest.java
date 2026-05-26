@@ -5,19 +5,15 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -32,16 +28,15 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.HistoricalTelemetryService.Status;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 @Category(SlowTest.class)
 public class HistoricalPolicyViolationTelemetryServiceTest
@@ -58,12 +53,6 @@ public class HistoricalPolicyViolationTelemetryServiceTest
 
   @Inject
   private HistoricalPolicyViolationTelemetryService testSubject;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testCollectAndSendPolicyViolationTelemetry_invalidStatus_h2() {

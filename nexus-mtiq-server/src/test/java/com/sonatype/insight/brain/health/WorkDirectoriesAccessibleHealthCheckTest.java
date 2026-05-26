@@ -5,18 +5,16 @@
  */
 package com.sonatype.insight.brain.health;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import java.io.File;
 import java.nio.file.Files;
-
-import com.sonatype.insight.brain.service.InsightConfig;
-
-import com.codahale.metrics.health.HealthCheck.Result;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.experimental.categories.Category;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @Category(SlowTest.class)
 public class WorkDirectoriesAccessibleHealthCheckTest
@@ -29,12 +27,13 @@ public class WorkDirectoriesAccessibleHealthCheckTest
 
     WorkDirectoriesAccessibleHealthCheck healthCheck = new WorkDirectoriesAccessibleHealthCheck(insightConfig);
     assertThat(healthCheck.getName()).isEqualTo("work-directories");
-    Result result = healthCheck.check();
-    assertThat(result.isHealthy()).isFalse();
-    assertThat(result.getMessage()).startsWith(
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    String message = (String) health.getDetails().get("sonatypeWork_error");
+    assertThat(message).startsWith(
         "Work directory 'sonatypeWork' failed accessibility check. Directory being checked:");
     // In this particular test the test folder doesn't exist so we can assert a NoSuchFileException
-    assertThat(result.getMessage()).contains("Type: ExecutionException, Message: java.nio.file.NoSuchFileException:");
+    assertThat(message).contains("Type: ExecutionException, Message: java.nio.file.NoSuchFileException:");
   }
 
   @Test
@@ -45,12 +44,13 @@ public class WorkDirectoriesAccessibleHealthCheckTest
 
     WorkDirectoriesAccessibleHealthCheck healthCheck = new WorkDirectoriesAccessibleHealthCheck(insightConfig);
     assertThat(healthCheck.getName()).isEqualTo("work-directories");
-    Result result = healthCheck.check();
-    assertThat(result.isHealthy()).isFalse();
-    assertThat(result.getMessage()).startsWith(
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    String message = (String) health.getDetails().get("clusterDirectory_error");
+    assertThat(message).startsWith(
         "Work directory 'clusterDirectory' failed accessibility check. Directory being checked:");
     // In this particular test the test folder doesn't exist so we can assert a NoSuchFileException
-    assertThat(result.getMessage()).contains("Type: ExecutionException, Message: java.nio.file.NoSuchFileException:");
+    assertThat(message).contains("Type: ExecutionException, Message: java.nio.file.NoSuchFileException:");
   }
 
   @Test
@@ -76,11 +76,12 @@ public class WorkDirectoriesAccessibleHealthCheckTest
     };
 
     assertThat(healthCheck.getName()).isEqualTo("work-directories");
-    Result result = healthCheck.check();
-    assertThat(result.isHealthy()).isFalse();
-    assertThat(result.getMessage()).startsWith(
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+    String message = (String) health.getDetails().get("clusterDirectory_error");
+    assertThat(message).startsWith(
         "Work directory 'clusterDirectory' failed accessibility check. Directory being checked:");
-    assertThat(result.getMessage()).contains("Type: TimeoutException");
+    assertThat(message).contains("Type: TimeoutException");
   }
 
   @Test
@@ -91,7 +92,7 @@ public class WorkDirectoriesAccessibleHealthCheckTest
     WorkDirectoriesAccessibleHealthCheck healthCheck = new WorkDirectoriesAccessibleHealthCheck(insightConfig);
 
     assertThat(healthCheck.getName()).isEqualTo("work-directories");
-    Result result = healthCheck.check();
-    assertThat(result.isHealthy()).isTrue();
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
   }
 }

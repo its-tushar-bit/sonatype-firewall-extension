@@ -5,17 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.test.networking.PortAllocator;
-
-import com.google.inject.Module;
+import java.util.List;
 
 /**
  * Test helper for CLM server. It wraps and manages a CLM brain service/server and a mocked HDS server.
+ *
+ * <p>
+ * <b>Migration Note:</b> This class now uses the Spring-based test server infrastructure.
+ * The constructor takes Spring @Configuration classes for test overrides.
+ * </p>
  *
  * @since 1.11
  */
@@ -56,7 +58,7 @@ public class TestCLMServer
   public TestCLMServer(
       InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
-      List<Module> modules,
+      List<Class<?>> testConfigurations,
       Configurator configurator,
       HdsMockServerRule hdsMockServer,
       DatabaseContainer databaseContainer)
@@ -69,7 +71,7 @@ public class TestCLMServer
             hdsMockServer.getHttpUrl(),
             databaseContainer,
             isProxyRequiredToReachHds,
-            modules).setConfigurator(configurator));
+            testConfigurations).setConfigurator(configurator));
   }
 
   public TestCLMServer(
@@ -88,18 +90,20 @@ public class TestCLMServer
   public TestCLMServer(
       InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
-      List<Module> modules,
+      List<Class<?>> testConfigurations,
       Configurator configurator)
   {
     // null for DatabaseContainer indicates that the default one will be created
     // See TestInsightBrainService#createDatabaseContainer
-    this(insightBrainServiceFactory, isProxyRequiredToReachHds, modules, configurator, /* DatabaseContainer */ null);
+    this(insightBrainServiceFactory, isProxyRequiredToReachHds, testConfigurations, configurator, /*
+                                                                                                   * DatabaseContainer
+                                                                                                   */ null);
   }
 
   public TestCLMServer(
       InsightBrainServiceFactory insightBrainServiceFactory,
       boolean isProxyRequiredToReachHds,
-      List<Module> modules,
+      List<Class<?>> testConfigurations,
       Configurator configurator,
       DatabaseContainer databaseContainer)
   {
@@ -115,7 +119,7 @@ public class TestCLMServer
 
     brain = new TestInsightBrainServiceRule(insightBrainServiceFactory,
         appPort, adminPort,
-        "http://localhost:" + hdsMockServerPort, databaseContainer, isProxyRequiredToReachHds, modules)
+        "http://localhost:" + hdsMockServerPort, databaseContainer, isProxyRequiredToReachHds, testConfigurations)
             .setConfigurator(configurator);
   }
 

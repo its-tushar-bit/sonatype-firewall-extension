@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -14,20 +16,15 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.inject.Binder;
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 
 public class ReportComponentServiceTest
     extends AbstractComponentTest
@@ -48,19 +45,14 @@ public class ReportComponentServiceTest
 
   private MockReportDownloader mockReportDownloader;
 
-  @Override
-  public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    super.configure(binder);
-  }
-
   @Before
   public void setup() {
     reportComponentService =
         new ReportComponentService(reportService, componentLoaderFactory, clusterLockManager);
 
+    mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(insightWork);
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", mockReportDownloader.getMock());
   }
 
   @Test

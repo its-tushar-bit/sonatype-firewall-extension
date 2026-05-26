@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
@@ -18,14 +16,13 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 public class OwnerMaintenanceTelemetryCreatorTest
     extends AbstractComponentTest
@@ -48,12 +45,6 @@ public class OwnerMaintenanceTelemetryCreatorTest
   private Organization organization;
 
   private Application application;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-  }
 
   @Test
   public void testSendOwnerMaintenanceTelemetry_typeADD() {

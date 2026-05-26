@@ -87,7 +87,9 @@ public class SourceControlUserActivityService
         usersToInsert.add(newUser);
       }
 
-      dataPoint.getValue().forEach(commitInstant -> userActivities.addInstantForEmail(commitInstant, committerEmail));
+      for (Instant commitInstant : dataPoint.getValue()) {
+        userActivities.addInstantForEmail(commitInstant, committerEmail);
+      }
     }
 
     saveUsersAndActivities(usersToInsert, userActivities.getUserActivities());

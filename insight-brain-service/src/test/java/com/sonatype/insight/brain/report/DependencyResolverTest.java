@@ -5,20 +5,16 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Predicate;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -47,34 +43,34 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
 public class DependencyResolverTest
     extends BrainInjectedTest
 {
-  private TelemetrySender telemetrySender;
+  private final TelemetrySender telemetrySender = Mockito.mock(TelemetrySender.class);
 
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  private InnerSourceApplicationDAO innerSourceApplicationDAOSpy;
+  private InnerSourceApplicationDAO observedInnerSourceApplicationDAO;
 
   @Inject
   private InnerSourceApplicationDAO innerSourceApplicationDAO;
@@ -94,15 +90,8 @@ public class DependencyResolverTest
 
   @Before
   public void init() {
-    innerSourceApplicationDAOSpy = spy(innerSourceApplicationDAO);
+    observedInnerSourceApplicationDAO = spy(innerSourceApplicationDAO);
     app = tempEntity.newApplicationWithParent();
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    telemetrySender = mock(TelemetrySender.class);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    super.configure(binder);
   }
 
   @Test
@@ -117,7 +106,8 @@ public class DependencyResolverTest
 
     newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
 
-    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAOSpy.getByApplicationId(app.getId());
+    List<InnerSourceApplication> innerSourceApplications =
+        observedInnerSourceApplicationDAO.getByApplicationId(app.getId());
     assertThat(innerSourceApplications).hasSize(1);
 
     assertThat(innerSourceApplications.get(0).getApplicationId()).isEqualTo(app.getId());
@@ -151,7 +141,8 @@ public class DependencyResolverTest
 
     newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
-    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAOSpy.getByApplicationId(app.getId());
+    List<InnerSourceApplication> innerSourceApplications =
+        observedInnerSourceApplicationDAO.getByApplicationId(app.getId());
     assertThat(innerSourceApplications).hasSize(1);
 
     assertThat(innerSourceApplications.get(0).getApplicationId()).isEqualTo(app.getId());
@@ -177,8 +168,8 @@ public class DependencyResolverTest
 
     newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
-    verify(innerSourceApplicationDAOSpy, never()).insert(innerSourceApplication);
-    verify(innerSourceApplicationDAOSpy, never()).update(innerSourceApplication);
+    verify(observedInnerSourceApplicationDAO, never()).insert(innerSourceApplication);
+    verify(observedInnerSourceApplicationDAO, never()).update(innerSourceApplication);
   }
 
   @Test
@@ -193,7 +184,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     InnerSourceApplication innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -225,7 +216,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -255,7 +246,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -286,7 +277,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -319,7 +310,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -349,7 +340,7 @@ public class DependencyResolverTest
 
     ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
     ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
-    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+    verify(observedInnerSourceApplicationDAO).update(argument.capture(), argument2.capture());
 
     innerSourceApplication = argument2.getValue();
     assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
@@ -380,7 +371,7 @@ public class DependencyResolverTest
 
     newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
-    verify(innerSourceApplicationDAOSpy, never()).update(innerSourceApplication);
+    verify(observedInnerSourceApplicationDAO, never()).update(innerSourceApplication);
   }
 
   @Test
@@ -1644,7 +1635,7 @@ public class DependencyResolverTest
 
   private DependencyResolver newDependencyResolver(String stageTypeId) {
     return new DependencyResolver(null, null, null, null, stageTypeId, app, telemetrySender, telemetryUtils,
-        innerSourceApplicationDAOSpy, innerSourceVersionDAO, null, null);
+        observedInnerSourceApplicationDAO, innerSourceVersionDAO, null, null);
   }
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {

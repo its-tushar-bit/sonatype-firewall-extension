@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
@@ -20,8 +23,11 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -29,15 +35,6 @@ import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ReevaluateCascadeRequestCleanerTest
     extends AbstractComponentTest
@@ -59,14 +56,6 @@ public class ReevaluateCascadeRequestCleanerTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(ReevaluateCascadeRequestCleaner.class.getName());
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(ReevaluateCascadeRequestDAO.class).toInstance(reevaluateCascadeRequestDAOMock);
-    binder.bind(ReevaluateCascadeProgressDAO.class).toInstance(reevaluateCascadeProgressDAOMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {

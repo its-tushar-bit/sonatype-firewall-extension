@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.component.MatchState.EXACT;
+import static com.sonatype.insight.brain.model.component.MatchState.UNKNOWN;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -30,21 +34,13 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.component.MatchState.EXACT;
-import static com.sonatype.insight.brain.model.component.MatchState.UNKNOWN;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 public class RepositoryComponentDeleteServiceTest
     extends AbstractComponentTest
@@ -69,13 +65,6 @@ public class RepositoryComponentDeleteServiceTest
 
   @Mock
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
-    super.configure(binder);
-  }
 
   @Test
   public void testDeleteUnknownIgnoredComponents() {

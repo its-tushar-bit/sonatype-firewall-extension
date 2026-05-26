@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.servlets.tasks.Task;
+import com.sonatype.insight.brain.service.AdminTask;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -32,14 +32,14 @@ import org.slf4j.LoggerFactory;
  * (default 24h, system-config-backed and hot-reloadable).
  * <p>
  * Mirrors the {@link com.sonatype.insight.brain.repository.component.QuarantinedComponentAccessPurger}
- * pattern: extends {@link Task} for admin-side manual triggering, implements {@link InsightJob}
+ * pattern: extends {@link AdminTask} for admin-side manual triggering, implements {@link InsightJob}
  * for tenant-managed registration with the {@link TaskScheduler}.
  */
 @Named
 @Singleton
 @DisallowConcurrentExecution
 public class HostedDeploymentBlockCleanupTask
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
   public static final String NAME = "HostedDeploymentBlockCleanupTask";

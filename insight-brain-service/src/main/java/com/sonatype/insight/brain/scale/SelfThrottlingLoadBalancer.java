@@ -5,18 +5,16 @@
  */
 package com.sonatype.insight.brain.scale;
 
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.lifecycle.Managed;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 /**
  * The self-throttling load balancer tries to control the workload of the client using it by examining the number

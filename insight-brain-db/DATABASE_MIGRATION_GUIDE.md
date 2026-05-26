@@ -300,7 +300,7 @@ mvn clean install -Pquick
 
 # Run the application (triggers migration)
 cd insight-brain-service
-mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService \
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication \
   -Dexec.args='server src/test/resources/config-dev.yml'
 ```
 

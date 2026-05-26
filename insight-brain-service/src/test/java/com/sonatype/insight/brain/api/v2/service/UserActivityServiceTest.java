@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +29,13 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.After;
+
+import static org.mockito.Mockito.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -51,6 +59,26 @@ public class UserActivityServiceTest
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
+
+  @Before
+  public void bindSecurityManager() {
+    SecurityManager securityManager = mock(SecurityManager.class);
+    ThreadContext.bind(securityManager);
+    SecurityAspectControl.disableEnforcement();
+    SimplePrincipalCollection principals = new SimplePrincipalCollection("admin", "testRealm");
+    Subject subject = new Subject.Builder(securityManager)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(subject);
+  }
+
+  @After
+  public void unbindSecurityManager() {
+    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
+  }
 
   private static final int TEST_USER_LIMIT = 5;
 

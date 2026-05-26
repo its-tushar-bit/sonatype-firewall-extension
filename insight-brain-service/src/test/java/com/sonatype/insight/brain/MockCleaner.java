@@ -7,6 +7,7 @@ package com.sonatype.insight.brain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.rules.ExternalResource;
 import org.mockito.Mockito;
@@ -29,25 +30,33 @@ import org.mockito.mock.MockCreationSettings;
 public class MockCleaner
     extends ExternalResource
 {
-  private List<Object> mocks = new ArrayList<>();
+  private static final AtomicBoolean LISTENER_REGISTERED = new AtomicBoolean();
 
-  private MockCreationListener mockCreationListener = new MockCreationListener()
-  {
-    @Override
-    public void onMockCreated(Object mock, @SuppressWarnings("rawtypes") MockCreationSettings settings) {
-      mocks.add(mock);
-    }
-  };
+  private static final ThreadLocal<List<Object>> MOCKS = ThreadLocal.withInitial(ArrayList::new);
+
+  private static final MockCreationListener MOCK_CREATION_LISTENER =
+      (Object mock, @SuppressWarnings("rawtypes") MockCreationSettings settings) -> MOCKS.get().add(mock);
 
   @Override
   protected void before() {
-    Mockito.framework().addListener(mockCreationListener);
+    if (LISTENER_REGISTERED.compareAndSet(false, true)) {
+      Mockito.framework().addListener(MOCK_CREATION_LISTENER);
+    }
+    MOCKS.get().clear();
   }
 
   @Override
   protected void after() {
-    Mockito.reset(mocks.toArray());
-    Mockito.framework().removeListener(mockCreationListener);
-    mocks.clear();
+    List<Object> mocks = MOCKS.get()
+        .stream()
+        .filter(mock -> Mockito.mockingDetails(mock).isMock())
+        .toList();
+    try {
+      Mockito.reset(mocks.toArray());
+    }
+    finally {
+      MOCKS.get().clear();
+      MOCKS.remove();
+    }
   }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
 import javax.sql.DataSource;
@@ -37,8 +39,9 @@ public class QuartzHSQLDBDelegateTest
   private DataSource dataSource;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     dataSource = databaseRule.getOperationalDataStore().getDataSource();
+    clearQuartzTables();
   }
 
   @Test
@@ -58,6 +61,28 @@ public class QuartzHSQLDBDelegateTest
 
     assertThat(triggerKeys).extracting(Key::getName)
         .containsExactlyInAnyOrder(triggerForMe.getKey().getName(), staleTriggerForOther.getKey().getName());
+  }
+
+  private void clearQuartzTables() throws Exception {
+    String schema = databaseRule.getOperationalDataStore().getDatabaseSchema();
+    String[] tables = {
+      "QRTZ_FIRED_TRIGGERS",
+      "QRTZ_SIMPLE_TRIGGERS",
+      "QRTZ_SIMPROP_TRIGGERS",
+      "QRTZ_CRON_TRIGGERS",
+      "QRTZ_BLOB_TRIGGERS",
+      "QRTZ_TRIGGERS",
+      "QRTZ_JOB_DETAILS",
+      "QRTZ_CALENDARS",
+      "QRTZ_PAUSED_TRIGGER_GRPS",
+      "QRTZ_SCHEDULER_STATE",
+      "QRTZ_LOCKS"
+    };
+    try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+      for (String table : tables) {
+        statement.executeUpdate("DELETE FROM " + schema + "." + table);
+      }
+    }
   }
 
   private QuartzHSQLDBDelegate createQuartzHSQLDBDelegate(String instanceId) throws Exception {

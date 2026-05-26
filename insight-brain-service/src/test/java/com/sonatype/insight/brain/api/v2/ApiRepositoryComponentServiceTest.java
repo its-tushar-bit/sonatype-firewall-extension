@@ -21,12 +21,15 @@ import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -79,6 +82,8 @@ public class ApiRepositoryComponentServiceTest
 
   @Before
   public void setup() {
+    SecurityAspectControl.disableEnforcement();
+
     component1 = mock(RepositoryComponent.class);
     when(component1.getComponentId()).thenReturn(COMPONENT_ID_1);
     when(component1.getRepositoryId()).thenReturn(REPO_ID);
@@ -98,6 +103,11 @@ public class ApiRepositoryComponentServiceTest
 
     when(hostedComponentScanQueueDAO.createTransactionContext()).thenReturn(transactionContext);
     when(hostedComponentScanQueueDAO.hasInProgressByComponentIds(any(), any())).thenReturn(false);
+  }
+
+  @After
+  public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
   }
 
   @Test

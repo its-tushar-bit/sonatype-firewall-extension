@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import jakarta.servlet.http.HttpServletRequest;
 
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
@@ -117,6 +120,7 @@ import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificati
 import static com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint.COMPONENT_INFO;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ComponentInfoService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentInfoService.class);

@@ -5,6 +5,18 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.policy.violation.PolicyViolationConstraintFactsJsonAsyncDbMigration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.AllTenantsJob;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -13,20 +25,6 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.policy.violation.PolicyViolationConstraintFactsJsonAsyncDbMigration;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.AllTenantsJob;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -36,14 +34,14 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class HistoricalPolicyViolationTelemetryTask
-    extends Task
+    extends AdminTask
     implements InsightJob, AllTenantsJob
 {
+  public static final String PATH = "triggerHistoricalPolicyViolationTelemetryTask";
+
   private static final Logger log = LoggerFactory.getLogger(HistoricalPolicyViolationTelemetryTask.class);
 
   public static final String NAME = "HistoricalPolicyViolationTelemetryTask";
-
-  public static final String TASK_PATH = "triggerHistoricalPolicyViolationTelemetryTask";
 
   private static final String TASK_ERROR = "Error running HistoricalPolicyViolationTelemetryTask.";
 
@@ -69,12 +67,23 @@ public class HistoricalPolicyViolationTelemetryTask
       final TenantUtil tenantUtil,
       final MigrationTrackerDAO migrationTrackerDAO)
   {
-    super(TASK_PATH);
+    super(PATH);
     this.configuration = configuration;
     this.historicalPolicyViolationTelemetryService = historicalPolicyViolationTelemetryService;
     this.taskScheduler = taskScheduler;
     this.tenantUtil = tenantUtil;
     this.migrationTrackerDAO = migrationTrackerDAO;
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    if (tenantUtil.isSingleTenant() && historicalPolicyViolationTelemetryService.isTelemetryCollectionComplete()) {
+      output.write("Skipping scheduling " + NAME + " as telemetry collection is complete.\n");
+      return;
+    }
+
+    taskScheduler.scheduleOneTimeTask(this);
+    output.write("Scheduled run of " + NAME + "\n");
   }
 
   @Override
@@ -135,20 +144,6 @@ public class HistoricalPolicyViolationTelemetryTask
     // servers in the cluster to start up ensuring the task is only scheduled once.
     LocalDateTime startTime = now.plusMinutes(TASK_STARTUP_DELAY_MINUTES);
     return Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant());
-  }
-
-  /**
-   * This task will manually run the historical policy violation telemetry collection and sending for all tenants.
-   */
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter printWriter) {
-    if (tenantUtil.isSingleTenant() && historicalPolicyViolationTelemetryService.isTelemetryCollectionComplete()) {
-      printWriter.write("Skipping scheduling " + NAME + " as telemetry collection is complete.\n");
-      return;
-    }
-
-    taskScheduler.scheduleOneTimeTask(this);
-    printWriter.write("Scheduled run of " + NAME + "\n");
   }
 
   @Override

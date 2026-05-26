@@ -48,7 +48,7 @@ public class LegacyDatabaseMigrator
   }
 
   // Visible for testing
-  void exit(int status) {
+  public void exit(int status) {
     System.exit(status);
   }
 

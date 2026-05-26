@@ -5,15 +5,10 @@
  */
 package com.sonatype.insight.brain.micrometer;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.MtiqConfigSupport;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-
-import com.google.inject.Provider;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -22,6 +17,10 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.statsd.StatsdConfig;
 import io.micrometer.statsd.StatsdFlavor;
 import io.micrometer.statsd.StatsdMeterRegistry;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,9 @@ public class MultiTenantMeterRegistryProvider
 
   @Override
   public MeterRegistry get() {
-    MultiTenantInsightConfig config = (MultiTenantInsightConfig) insightConfig;
+    MultiTenantInsightConfig config = MtiqConfigSupport.requireMultiTenantInsightConfig(
+        insightConfig,
+        "MultiTenantMeterRegistryProvider.get");
     if (config.getStatsdMetricsConfig() == null || !config.getStatsdMetricsConfig().isEnabled()) {
       log.info("StatsdMetrics is disabled, cannot provide a MeterRegistry for Micrometer.");
       return null;

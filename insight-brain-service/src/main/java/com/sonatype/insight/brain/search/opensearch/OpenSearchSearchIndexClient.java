@@ -54,7 +54,6 @@ import com.sonatype.insight.error.exception.ConflictException;
 
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.ErrorCause;
@@ -96,15 +95,10 @@ import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * OpenSearch support for {@link SearchIndexClient}
- * <p>
- * Note: See {@link com.sonatype.insight.brain.search.SearchModule} for Guice bindings
  */
-@Singleton
-@InvisibleForScanner
 public class OpenSearchSearchIndexClient
     extends AbstractSearchIndexClient
 {

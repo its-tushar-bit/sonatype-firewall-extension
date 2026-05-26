@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.PULL_REQUEST_COMMENT_TELEMETRY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -15,16 +18,10 @@ import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry.PULL_REQUEST_COMMENT_TELEMETRY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class PullRequestCommentingMetricsServiceTest
     extends AbstractComponentAuditTest
@@ -34,12 +31,6 @@ public class PullRequestCommentingMetricsServiceTest
 
   @Inject
   private PullRequestCommentingMetricsService pullRequestCommentingMetricsService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testSendTelemetry() {

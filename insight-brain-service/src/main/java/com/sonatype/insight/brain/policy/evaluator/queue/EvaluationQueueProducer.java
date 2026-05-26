@@ -5,6 +5,35 @@
  */
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
+import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.configuration.KeyValue;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.VersionEvaluationWindow;
+import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
+import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.service.PageIterator;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -22,37 +51,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.configuration.KeyValueDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.VersionEvaluationWindowDAO;
-import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.configuration.KeyValue;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.configuration.VersionEvaluationWindow;
-import com.sonatype.insight.brain.model.evaluation.EvaluationQueue;
-import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.service.PageIterator;
-import com.sonatype.insight.brain.tenancy.TenantReference;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.dropwizard.servlets.tasks.Task;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -63,9 +61,11 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class EvaluationQueueProducer
-    extends Task
+    extends AdminTask
     implements InsightJob, ConfigurationListener
 {
+  public static final String PATH = "EvaluationQueueProducer";
+
   private static final Logger log = LoggerFactory.getLogger(EvaluationQueueProducer.class);
 
   private static final int DEFAULT_PAGE_SIZE = 10000;
@@ -115,7 +115,7 @@ public class EvaluationQueueProducer
       final ProductLicense productLicense,
       final Configuration configuration)
   {
-    super(TASK_NAME);
+    super(PATH);
     this.apiConfigurationService = apiConfigurationService;
     this.taskScheduler = taskScheduler;
     this.versionEvaluationWindowDAO = versionEvaluationWindowDAO;
@@ -130,6 +130,26 @@ public class EvaluationQueueProducer
   }
 
   @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    log.info("Manual request to run {}.", TASK_NAME);
+    Map<String, String> jobParameters = new HashMap<>();
+    jobParameters.put(RESET_CYCLE, String.valueOf(parameters.containsKey(RESET_CYCLE)));
+    if (parameters.containsKey(START_TIME)) {
+      String startTimeValue = parameters.get(START_TIME).get(0);
+      jobParameters.put(START_TIME, "now".equalsIgnoreCase(startTimeValue)
+          ? String.valueOf(System.currentTimeMillis())
+          : startTimeValue);
+    }
+    if (taskScheduler.isTaskScheduled(this)) {
+      taskScheduler.triggerTaskNow(this, jobParameters);
+    }
+    else {
+      log.debug("Evaluation queue is disabled, skipping execution.");
+    }
+    output.write("Completed manual execution of " + TASK_NAME + ".\n");
+  }
+
+  @Override
   public void register() {
     if (disableForTesting) {
       return;
@@ -138,6 +158,9 @@ public class EvaluationQueueProducer
   }
 
   private void reschedule(final EvaluationQueueConfig config) {
+    if (disableForTesting) {
+      return;
+    }
     if (config.enabled()) {
       log.debug("Scheduling evaluation queue producer every {} ms.", config.producerPeriodInMilliseconds());
       taskScheduler.schedulePeriodicTask(this, Duration.ofMillis(config.producerPeriodInMilliseconds()));
@@ -146,26 +169,6 @@ public class EvaluationQueueProducer
       log.debug("Unscheduling evaluation queue producer.");
       taskScheduler.unscheduleTask(this);
     }
-  }
-
-  @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
-    log.info("Manual request to run {}.", TASK_NAME);
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put(RESET_CYCLE, String.valueOf(map.containsKey(RESET_CYCLE)));
-    if (map.containsKey(START_TIME)) {
-      String startTimeValue = map.get(START_TIME).get(0);
-      parameters.put(START_TIME, "now".equalsIgnoreCase(startTimeValue)
-          ? String.valueOf(System.currentTimeMillis())
-          : startTimeValue);
-    }
-    if (taskScheduler.isTaskScheduled(this)) {
-      taskScheduler.triggerTaskNow(this, parameters);
-    }
-    else {
-      log.debug("Evaluation queue is disabled, skipping execution.");
-    }
-    printWriter.write("Completed manual execution of " + TASK_NAME + ".\n");
   }
 
   @Override

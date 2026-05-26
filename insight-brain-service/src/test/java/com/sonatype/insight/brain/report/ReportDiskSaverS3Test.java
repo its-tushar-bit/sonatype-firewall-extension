@@ -5,22 +5,19 @@
  */
 package com.sonatype.insight.brain.report;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
-
-import com.google.inject.Binder;
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.when;
 
 @Category(SlowTest.class)
 public class ReportDiskSaverS3Test
@@ -32,12 +29,6 @@ public class ReportDiskSaverS3Test
   @Inject
   private ReportDiskSaver reportDiskSaver;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(InsightConfig.class).toInstance(mockInsightConfig);
-    super.configure(binder);
-  }
-
   @Test
   public void testExecute_Unsupported_S3DataStoreConfig() {
     StorageConfig storageConfig = new StorageConfig();
@@ -47,7 +38,7 @@ public class ReportDiskSaverS3Test
     mockInsightConfig.setStorage(storageConfig);
 
     assertThatExceptionOfType(UnsupportedOperationException.class)
-        .isThrownBy(() -> reportDiskSaver.execute(null, null))
+        .isThrownBy(() -> reportDiskSaver.execute())
         .withMessageContaining("Report zip minification is only needed for legacy reports using local file storage.");
   }
 }

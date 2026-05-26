@@ -10,6 +10,9 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -40,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.8
  */
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ScanTask
     implements Runnable
 {

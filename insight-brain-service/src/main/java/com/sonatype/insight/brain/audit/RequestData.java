@@ -5,15 +5,12 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.util.Enumeration;
-import java.util.StringJoiner;
-
+import com.google.common.net.HttpHeaders;
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-
-import com.sonatype.insight.brain.security.SecurityModule;
-
-import com.google.common.net.HttpHeaders;
+import java.util.Enumeration;
+import java.util.StringJoiner;
 
 /**
  * Holds the audit data specific for a HTTP request.
@@ -45,7 +42,7 @@ class RequestData
       forwarded = getAllHeaders(httpRequest.getHeaders(HttpHeaders.X_FORWARDED_FOR));
     }
     String userAgent = httpRequest.getHeader(HttpHeaders.USER_AGENT);
-    String sessionId = getCookie(httpRequest, SecurityModule.SESSION_COOKIE_NAME);
+    String sessionId = getCookie(httpRequest, SecurityConfiguration.SESSION_COOKIE_NAME);
     return new RequestData(method, uri, remoteIpAddress, forwarded, userAgent, sessionId);
   }
 

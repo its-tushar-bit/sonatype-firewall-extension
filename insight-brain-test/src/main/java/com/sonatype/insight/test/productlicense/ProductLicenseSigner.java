@@ -7,6 +7,7 @@
 // Vendored/copied from hosted-data-services/insight-license-util
 package com.sonatype.insight.test.productlicense;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +18,9 @@ import java.security.Signature;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.security.FIPSModeDetector;
+import com.sonatype.insight.brain.security.certificate.CertificateFactory;
+import com.sonatype.insight.brain.security.keystore.KeyStoreFactory;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import org.sonatype.licensing.util.LicensingUtil;
 
@@ -34,9 +38,13 @@ public class ProductLicenseSigner
   }
 
   public void sign(SignedProductLicenseDetailsDTO signedProductLicenseDetailsDTO, String licenseFingerprint) {
-    try (InputStream keyStoreInputStream = new FileInputStream(keyStoreConfig.getKeyStorePath())) {
+    String keyStorePath = resolveKeyStorePath();
+    if (keyStorePath == null) {
+      throw new IllegalStateException("ProductLicenseConfig.keyStorePath is not configured");
+    }
+    try (InputStream keyStoreInputStream = new FileInputStream(keyStorePath)) {
       // Load key store.
-      KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+      KeyStore keyStore = createKeyStore();
       keyStore.load(keyStoreInputStream, getKeyStorePassword());
 
       // Load private key.
@@ -44,7 +52,7 @@ public class ProductLicenseSigner
       Key privateKey = keyStore.getKey(keyAlias, getKeyStorePassword());
 
       // Init signature.
-      Signature signature = Signature.getInstance("SHA256withRSA");
+      Signature signature = Signature.getInstance(getSignatureAlgorithm());
       signature.initSign((PrivateKey) privateKey);
 
       // Add data to be signed.
@@ -84,5 +92,25 @@ public class ProductLicenseSigner
 
   private char[] getKeyStorePassword() {
     return LicensingUtil.unobfuscate(OBFUSCATED_KEYSTORE_PASSWORD).toCharArray();
+  }
+
+  private String resolveKeyStorePath() {
+    String keyStorePath = keyStoreConfig.getKeyStorePath();
+    if (!FIPSModeDetector.isEnabled() || keyStorePath == null || !keyStorePath.endsWith(".p12")) {
+      return keyStorePath;
+    }
+
+    File fipsKeyStore = new File(keyStorePath.substring(0, keyStorePath.length() - 4) + ".bcfks");
+    return fipsKeyStore.exists() ? fipsKeyStore.getAbsolutePath() : keyStorePath;
+  }
+
+  private KeyStore createKeyStore() throws Exception {
+    return FIPSModeDetector.isEnabled() ? KeyStoreFactory.createKeyStore() : KeyStoreFactory.createPkcs12KeyStore();
+  }
+
+  private String getSignatureAlgorithm() {
+    return FIPSModeDetector.isEnabled()
+        ? CertificateFactory.getSignatureAlgorithm()
+        : CertificateFactory.SIGNATURE_ALGORITHM;
   }
 }

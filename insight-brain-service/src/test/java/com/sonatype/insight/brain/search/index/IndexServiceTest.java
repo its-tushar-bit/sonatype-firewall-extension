@@ -5,23 +5,20 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import java.time.Duration;
-import java.util.Collections;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Collections;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.verify;
 
 public class IndexServiceTest
     extends AbstractComponentTest
@@ -32,19 +29,11 @@ public class IndexServiceTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
-  @Mock
-  private IndexCreationScheduler mockIndexCreationScheduler;
+  @Inject
+  private IndexCreationScheduler indexCreationScheduler;
 
   @Inject
   private IndexService indexService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(IndexCreationScheduler.class).toInstance(mockIndexCreationScheduler);
-    binder.bind(SearchIndexClient.class).toInstance(searchIndexClientMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {
@@ -78,13 +67,13 @@ public class IndexServiceTest
   public void testCreateSearchIndexAsync() {
     indexService.createIndexAsync();
 
-    verify(taskSchedulerMock).scheduleOneTimeTask(mockIndexCreationScheduler);
+    verify(taskSchedulerMock).scheduleOneTimeTask(indexCreationScheduler);
   }
 
   @Test
   public void testIsFullIndexTriggered() {
     indexService.isFullIndexTriggered();
 
-    verify(taskSchedulerMock).isJobTriggered(mockIndexCreationScheduler, Collections.emptyMap());
+    verify(taskSchedulerMock).isJobTriggered(indexCreationScheduler, Collections.emptyMap());
   }
 }

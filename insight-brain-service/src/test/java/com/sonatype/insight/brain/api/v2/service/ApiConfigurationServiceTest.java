@@ -5,14 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -38,16 +43,20 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Maps;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -57,22 +66,16 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
+@ContextConfiguration(classes = ApiConfigurationServiceTest.ApiConfigurationServiceTestConfiguration.class)
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest
 {
@@ -88,10 +91,12 @@ public class ApiConfigurationServiceTest
   @Inject
   private SystemConfigurationPropertyDAO dao;
 
-  @Mock
-  private TaskScheduler mockTaskScheduler;
+  @Inject
+  @Named("testTaskScheduler")
+  private TaskScheduler taskScheduler;
 
-  @Mock
+  @Inject
+  @Named("mockConfigurationListener")
   private ConfigurationListener mockConfigurationListener;
 
   @Mock
@@ -107,26 +112,13 @@ public class ApiConfigurationServiceTest
   private TestProductLicense testProductLicense;
 
   @Inject
+  @Named("com.sonatype.insight.brain.api.v2.service.ApiConfigurationServiceTest$TestConfigurationListener")
   private TestConfigurationListener spyTestConfigurationListener;
 
-  private SystemConfigurationPropertyDAO spySystemConfigurationPropertyDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    spySystemConfigurationPropertyDAO = spy(daoFactory.createSystemConfigurationPropertyDAO());
-    binder.bind(SystemConfigurationPropertyDAO.class).toInstance(spySystemConfigurationPropertyDAO);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-
-    // Use Multibinder to add test listeners to the Set<ConfigurationListener>
-    Multibinder<ConfigurationListener> listenerBinder = newSetBinder(binder, ConfigurationListener.class);
-    listenerBinder.addBinding().toInstance(mockConfigurationListener);
-
-    TestConfigurationListener testListener = spy(new TestConfigurationListener());
-    binder.bind(TestConfigurationListener.class).toInstance(testListener);
-    listenerBinder.addBinding().toInstance(testListener);
-
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    binder.bind(com.sonatype.insight.brain.tenancy.TenantUtil.class).toInstance(mockTenantUtil);
+  @Before
+  public void resetConfigurationListenerDoubles() {
+    reset(taskScheduler, mockConfigurationListener, mockTelemetrySender, mockTenantUtil,
+        spyTestConfigurationListener);
   }
 
   @Test
@@ -296,7 +288,7 @@ public class ApiConfigurationServiceTest
     service.deleteConfiguration(SetUtils.hashSet(SystemConfigurationProperty.PURGE_SCAN_FILES));
 
     assertThat(dao.getByName(SystemConfigurationProperty.PURGE_SCAN_FILES)).isNull();
-    verify(mockTaskScheduler).scheduleOneTimeTask(any(ScanFileCleaner.class));
+    verify(taskScheduler).scheduleOneTimeTask(any(ScanFileCleaner.class));
   }
 
   @Test
@@ -311,7 +303,7 @@ public class ApiConfigurationServiceTest
     Map<String, String> parameters = new HashMap<>();
     parameters.put(ApiConfigurationService.TASK_PARAM_PROPERTIES,
         StringUtils.join(propertyNames, ApiConfigurationService.TASK_PARAM_PROPERTIES_DELIMITER));
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy, parameters);
+    verify(taskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy, parameters);
   }
 
   @Test
@@ -607,6 +599,14 @@ public class ApiConfigurationServiceTest
         Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId()));
 
     assertThat(dao.get(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)).isEqualTo(StageTypes.BUILD.getId());
+  }
+
+  @Test
+  public void testSetConfiguration_SuccessMetricsStageId_DevelopIsNormalizedToSource() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.DEVELOP.getId()));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)).isEqualTo(StageTypes.SOURCE.getId());
   }
 
   @Test
@@ -1793,7 +1793,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo("https://someNewHdsUrl.com/");
     verify(spyTestConfigurationListener).configurationChanged(
         Collections.singleton(SystemConfigurationProperty.HDS_URL));
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
+    verify(taskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
         Collections.singletonMap("properties", SystemConfigurationProperty.HDS_URL));
   }
 
@@ -1806,7 +1806,7 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
     verify(spyTestConfigurationListener).configurationChanged(
         Collections.singleton(SystemConfigurationProperty.HDS_URL));
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
+    verify(taskScheduler).scheduleOneTimeTaskForAllOtherNodes(service,
         Collections.singletonMap("properties", SystemConfigurationProperty.HDS_URL));
   }
 
@@ -2146,17 +2146,65 @@ public class ApiConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_NullPropertyName_RejectedInMtiqMode() {
-    // Configure mock to simulate MTIQ environment
     when(mockTenantUtil.isMultiTenant()).thenReturn(true);
 
-    // Create a map with a null key - this bypasses JSON serialization
     Map<String, Object> properties = new HashMap<>();
     properties.put(null, "some value");
 
-    // Verify that null property name is rejected with appropriate error message
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.setConfiguration(properties))
         .withMessage("Property name cannot be null");
+  }
+
+  @Test
+  public void testSetConfiguration_NonWhitelistedProperty_RejectedInMtiqMode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.setConfiguration(Map.of(SystemConfigurationProperty.HDS_URL, "https://example")))
+        .withMessage(String.format(
+            ApiConfigurationService.MTIQ_PROPERTY_NOT_ALLOWED_ERROR_MSG,
+            SystemConfigurationProperty.HDS_URL));
+  }
+
+  @Test
+  public void testDeleteConfiguration_NonWhitelistedProperty_RejectedInMtiqMode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.deleteConfiguration(Set.of(SystemConfigurationProperty.HDS_URL)))
+        .withMessage(String.format(
+            ApiConfigurationService.MTIQ_PROPERTY_NOT_ALLOWED_ERROR_MSG,
+            SystemConfigurationProperty.HDS_URL));
+  }
+
+  @Test
+  public void testSetConfiguration_QuarantinedItemCustomMessage_AllowedInMtiqMode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+
+    service.setConfiguration(Map.of(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE, "allowed"));
+
+    assertThat(dao.get(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE)).isEqualTo("allowed");
+  }
+
+  @TestConfiguration
+  static class ApiConfigurationServiceTestConfiguration
+  {
+    @Bean(name = "testTaskScheduler")
+    @Primary
+    public TaskScheduler testTaskScheduler() {
+      return mock(TaskScheduler.class);
+    }
+
+    @Bean(name = "mockConfigurationListener")
+    public ConfigurationListener mockConfigurationListener() {
+      return mock(ConfigurationListener.class);
+    }
+
+    @Bean(name = "com.sonatype.insight.brain.api.v2.service.ApiConfigurationServiceTest$TestConfigurationListener")
+    public TestConfigurationListener testConfigurationListener() {
+      return spy(new TestConfigurationListener());
+    }
   }
 
   @Named

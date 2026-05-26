@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Date;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -22,17 +25,11 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 public class ApiHashComponentIdentifierServiceTest
     extends AbstractComponentTest
@@ -45,12 +42,6 @@ public class ApiHashComponentIdentifierServiceTest
 
   @Mock
   private HdsClient mockHdsClient;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
 
   @Test
   public void testGet_ShortHash() {

@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -17,19 +18,19 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-
+@ContextConfiguration(classes = BaseUrlConfigurationMigratorTest.BaseUrlConfigurationMigratorTestConfiguration.class)
 public class BaseUrlConfigurationMigratorTest
     extends AbstractComponentTest
 {
@@ -45,16 +46,13 @@ public class BaseUrlConfigurationMigratorTest
   @Inject
   private BaseUrlConfigurationMigrator baseUrlConfigurationMigrator;
 
-  @Mock
+  @Inject
+  @Named("mockBaseUrlConfigurationListener")
   private ConfigurationListener mockBaseUrlConfigurationListener;
 
-  @Override
-  public void configure(Binder binder) {
-    // Add the mock listener to the multibinder set
-    Multibinder.newSetBinder(binder, ConfigurationListener.class)
-        .addBinding()
-        .toInstance(mockBaseUrlConfigurationListener);
-    super.configure(binder);
+  @Before
+  public void resetConfigurationListener() {
+    reset(mockBaseUrlConfigurationListener);
   }
 
   @Before
@@ -171,6 +169,15 @@ public class BaseUrlConfigurationMigratorTest
       else {
         verify(mockBaseUrlConfigurationListener).configurationChanged(propertyNames);
       }
+    }
+  }
+
+  @TestConfiguration
+  static class BaseUrlConfigurationMigratorTestConfiguration
+  {
+    @Bean(name = "mockBaseUrlConfigurationListener")
+    public ConfigurationListener mockBaseUrlConfigurationListener() {
+      return mock(ConfigurationListener.class);
     }
   }
 }

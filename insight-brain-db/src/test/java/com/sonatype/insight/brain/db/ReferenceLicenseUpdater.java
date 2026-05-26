@@ -23,7 +23,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.NotNull;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -116,7 +115,7 @@ public class ReferenceLicenseUpdater
     public String longDisplayName;
 
     @Override
-    public int compareTo(@NotNull final License o) {
+    public int compareTo(final License o) {
       return COMPARATOR.compare(this, o);
     }
   }

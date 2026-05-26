@@ -545,8 +545,9 @@ public class RepositoryResourceTest
             .parameter(repoManager.getId())
             .get();
     assertResponseStatus(307, iconResponse);
-    assertThat(iconResponse.getHeader("Location"))
-        .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_repository_manager.png");
+    String expectedDefaultIconLocation =
+        getRestBaseUrl().replaceFirst("/+$", "") + "/assets/img/defaulticon_repository_manager.png";
+    assertThat(iconResponse.getHeader("Location")).isEqualTo(expectedDefaultIconLocation);
 
     // Add icon
     defaultIconByteArray = IconUtils.loadIconFromProductAssets("defaulticon_repository_manager.png");

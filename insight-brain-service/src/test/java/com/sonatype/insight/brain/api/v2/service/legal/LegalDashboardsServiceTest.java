@@ -5,9 +5,22 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doReturn;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
+import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,27 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
-import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
-import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
-import com.sonatype.insight.brain.model.legal.ComponentObligation;
-import com.sonatype.insight.brain.model.legal.ObligationStatus;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
-import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
-
-import com.google.inject.Binder;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doReturn;
 
 @Category(SlowTest.class)
 public class LegalDashboardsServiceTest
@@ -49,12 +44,6 @@ public class LegalDashboardsServiceTest
 
   @Mock
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
-    super.configure(binder);
-  }
 
   @Test
   public void testObligationsIgnored() {

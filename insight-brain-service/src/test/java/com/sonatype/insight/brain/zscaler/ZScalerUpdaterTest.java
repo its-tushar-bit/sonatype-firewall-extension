@@ -5,31 +5,6 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import java.io.ByteArrayInputStream;
-import java.time.Duration;
-import java.util.List;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ZSCALER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
@@ -40,8 +15,30 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.test.LogOutput;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.time.Duration;
+import java.util.List;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 @RunWith(MockitoJUnitRunner.class)
 @Category(SlowTest.class)
@@ -77,19 +74,6 @@ public class ZScalerUpdaterTest
 
   @Inject
   private ZScalerUpdater underTest;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ZScalerMaliciousUrlFetcher.class)
-        .toInstance(mockZScalerMaliciousUrlFetcher);
-    binder.bind(ZScalerClient.class).toInstance(mockZScalerClient);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(ApiZScalerService.class).toInstance(mockApiZScalerService);
-    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
 
   @Before
   @Override

@@ -100,8 +100,6 @@ public class DevelopmentPrioritiesService
 
   private final ComponentReachabilityService componentReachabilityService;
 
-  private boolean isBulkRecommendationsEnabled;
-
   private final ApiComponentRemediationService apiComponentRemediationService;
 
   private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
@@ -229,7 +227,7 @@ public class DevelopmentPrioritiesService
         ? getSameComponentHashesInBothEvaluations(policyEvaluation, mainPolicyEvaluation)
         : Collections.emptySet();
 
-    isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
+    boolean isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
     // Batch fetch policy waivers and component info before stream processing
     Set<String> componentHashes = apiReportRawDataDTOV2.components.stream()
@@ -391,7 +389,9 @@ public class DevelopmentPrioritiesService
         })
         .filter(unprioritizedComponent -> unprioritizedComponent.isAllViolationsWaived
             || unprioritizedComponent.highestThreat > 0 || hasUpgradePathOfInnerSource(unprioritizedComponent))
-        .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
+        .sorted(Comparator.comparingInt((UnprioritizedComponent c) -> getScore(c, isBulkRecommendationsEnabled))
+            .thenComparingInt(this::getHighestThreat)
+            .reversed())
         .toList();
 
     List<UnprioritizedComponent> sortedComponentsWithRemediation = setRemediationForComponents(
@@ -400,7 +400,8 @@ public class DevelopmentPrioritiesService
         scanId,
         policyEvaluationStage,
         remediationSkip,
-        remediationLimit);
+        remediationLimit,
+        isBulkRecommendationsEnabled);
 
     // If skipCount and limit are not provided, return all sorted components without remediation
     return addPrioritiesToSortedList(sortedComponentsWithRemediation);
@@ -448,7 +449,8 @@ public class DevelopmentPrioritiesService
       final String scanId,
       final String stageId,
       final Integer remediationSkip,
-      final Integer remediationLimit)
+      final Integer remediationLimit,
+      final boolean isBulkRecommendationsEnabled)
   {
     if (remediationSkip != null && remediationLimit != null) {
       return IntStream.range(0, sortedComponents.size())
@@ -456,7 +458,8 @@ public class DevelopmentPrioritiesService
             UnprioritizedComponent unprioritizedComponent = sortedComponents.get(index);
 
             if (index >= remediationSkip && index < remediationSkip + remediationLimit) {
-              return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId);
+              return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId,
+                  isBulkRecommendationsEnabled);
             }
 
             return unprioritizedComponent;
@@ -471,7 +474,8 @@ public class DevelopmentPrioritiesService
       UnprioritizedComponent unprioritizedComponent,
       String applicationPublicId,
       String scanId,
-      String stageId)
+      String stageId,
+      boolean isBulkRecommendationsEnabled)
   {
 
     ComponentIdentifier componentIdentifier = unprioritizedComponent.getComponentIdentifier();
@@ -653,9 +657,12 @@ public class DevelopmentPrioritiesService
     return prioritizedComponents;
   }
 
-  private int getScore(final UnprioritizedComponent unprioritizedComponent) {
+  private int getScore(
+      final UnprioritizedComponent unprioritizedComponent,
+      final boolean isBulkRecommendationsEnabled)
+  {
     return getActionNumber(unprioritizedComponent.action) * 100000 +
-        getRecommendationNumber(unprioritizedComponent) * 100 +
+        getRecommendationNumber(unprioritizedComponent, isBulkRecommendationsEnabled) * 100 +
         unprioritizedComponent.highestReachableThreat;
   }
 
@@ -675,7 +682,10 @@ public class DevelopmentPrioritiesService
     }
   }
 
-  private int getRecommendationNumber(final UnprioritizedComponent unprioritizedComponent) {
+  private int getRecommendationNumber(
+      final UnprioritizedComponent unprioritizedComponent,
+      final boolean isBulkRecommendationsEnabled)
+  {
     if (isBulkRecommendationsEnabled && Objects.nonNull(unprioritizedComponent) &&
         Objects.nonNull(unprioritizedComponent.remediationVersion))
     {

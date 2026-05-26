@@ -5,35 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.HashMap;
-import java.util.Map;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
-import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
-import com.sonatype.insight.brain.model.jira.JiraConfiguration;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.Binder;
-import org.assertj.core.util.Maps;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-import org.slf4j.MDC;
-
 import static com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService.BAD_CONFIG_ERROR_MSG;
 import static com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService.NO_CONFIG_ERROR_MSG;
 import static com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService.NO_PASSWORD_ERROR_MSG;
@@ -45,6 +16,32 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
+import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import jakarta.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+import org.assertj.core.util.Maps;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 public class ApiJiraConfigurationServiceTest
     extends AbstractComponentTest
@@ -63,18 +60,6 @@ public class ApiJiraConfigurationServiceTest
 
   @Mock
   private JiraConfigurationListener mockJiraConfigurationListener;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-
-    // Use Multibinder to add test listeners to the Set<ConfigurationListener>
-    com.google.inject.multibindings.Multibinder<JiraConfigurationListener> listenerBinder =
-        com.google.inject.multibindings.Multibinder.newSetBinder(binder, JiraConfigurationListener.class);
-    listenerBinder.addBinding().toInstance(mockJiraConfigurationListener);
-
-    super.configure(binder);
-  }
 
   @Test
   public void testGetConfiguration_NotFound() {

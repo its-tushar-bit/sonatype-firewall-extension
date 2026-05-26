@@ -5,18 +5,6 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
@@ -25,9 +13,20 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.InsightJob;
-
-import io.dropwizard.servlets.tasks.Task;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.io.PrintWriter;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import org.jooq.exception.DataAccessException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -37,9 +36,11 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class SuccessMetricsPurger
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "purgeObsoleteSuccessMetrics";
+
   public static final String NAME = "SuccessMetricsPurger";
 
   private static final int MAX_RETRIES = 10;
@@ -68,7 +69,7 @@ public class SuccessMetricsPurger
       PolicyViolationDAO policyViolationDAO,
       TaskScheduler taskScheduler)
   {
-    super("purgeObsoleteSuccessMetrics");
+    super(PATH);
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
@@ -89,14 +90,9 @@ public class SuccessMetricsPurger
     // noop
   }
 
-  /**
-   * @since 1.114
-   */
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.debug("Triggering purging of obsolete success metrics");
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     taskScheduler.triggerTaskNow(this, null);
-    output.println("Triggered purging of obsolete success merics");
   }
 
   @Override
@@ -116,7 +112,7 @@ public class SuccessMetricsPurger
           }
           break;
         }
-        catch (org.jooq.exception.DataAccessException e) {
+        catch (DataAccessException e) {
           // This exception occurs usually when the embedded database is under too much load from concurrent queries.
           // To avoid having to start over the entire purging task, we retry to get this purging run completed.
           if (retry >= MAX_RETRIES) {

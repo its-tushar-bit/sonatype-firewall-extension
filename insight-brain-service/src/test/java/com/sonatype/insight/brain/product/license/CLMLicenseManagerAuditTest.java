@@ -5,14 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -20,14 +13,17 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.nio.file.Files;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class CLMLicenseManagerAuditTest
     extends AbstractComponentAuditTest
@@ -43,12 +39,6 @@ public class CLMLicenseManagerAuditTest
 
   @Mock
   private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

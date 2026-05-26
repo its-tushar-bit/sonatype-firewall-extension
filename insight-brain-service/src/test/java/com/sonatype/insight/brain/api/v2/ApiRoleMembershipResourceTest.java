@@ -573,7 +573,8 @@ public class ApiRoleMembershipResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2);
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""))
+        .path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2);
   }
 
   private void assertApiMemberDTO(

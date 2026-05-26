@@ -5,19 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
-import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -27,9 +15,18 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.servlets.tasks.Task;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -40,12 +37,12 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class CopyStorageTask
-    extends Task
+    extends AdminTask
     implements InsightJob, MtiqBatchJob, ConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(CopyStorageTask.class);
 
-  private static final String PATH = "copyStorage";
+  public static final String PATH = "copyStorage";
 
   private static final String FROM_PARAMETER = "from";
 
@@ -97,12 +94,10 @@ public class CopyStorageTask
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
-    String from = getFirstNotNull(map, FROM_PARAMETER).toUpperCase(Locale.ROOT);
-    String to = getFirstNotNull(map, TO_PARAMETER).toUpperCase(Locale.ROOT);
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    String from = getFirstNotNull(parameters, FROM_PARAMETER).toUpperCase(Locale.ROOT);
+    String to = getFirstNotNull(parameters, TO_PARAMETER).toUpperCase(Locale.ROOT);
 
-    // Although CopyStorageService does these checks internally,
-    // we repeat them here to avoid scheduling the job if we don't need to
     DataStoreType fromDataStoreType = DataStoreType.valueOf(from);
     DataStoreType toDataStoreType = DataStoreType.valueOf(to);
     copyStorageService.checkSupported(fromDataStoreType);
@@ -110,23 +105,23 @@ public class CopyStorageTask
     copyStorageService.checkPrimaryStorageIsTarget(toDataStoreType);
     copyStorageService.checkFromAndToAreDifferent(fromDataStoreType, toDataStoreType);
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put(FROM_PARAMETER, from);
-    parameters.put(TO_PARAMETER, to);
+    Map<String, String> jobParameters = new HashMap<>();
+    jobParameters.put(FROM_PARAMETER, from);
+    jobParameters.put(TO_PARAMETER, to);
 
-    taskScheduler.scheduleOneTimeTask(this, parameters);
+    taskScheduler.scheduleOneTimeTask(this, jobParameters);
   }
 
-  private String getFirstNotNull(final Map<String, List<String>> map, final String key) {
-    String value = getFirst(map, key);
+  private String getFirstNotNull(final Map<String, List<String>> parameters, final String key) {
+    String value = getFirst(parameters, key);
     if (value == null) {
       throw new BadRequestException("Missing required query parameter '" + key + "'.");
     }
     return value;
   }
 
-  private String getFirst(final Map<String, List<String>> map, final String key) {
-    return map.getOrDefault(key, List.of())
+  private String getFirst(final Map<String, List<String>> parameters, final String key) {
+    return parameters.getOrDefault(key, List.of())
         .stream()
         .findFirst()
         .orElse(null);
@@ -180,4 +175,5 @@ public class CopyStorageTask
       }
     }
   }
+
 }

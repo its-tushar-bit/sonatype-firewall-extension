@@ -5,12 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -35,11 +30,12 @@ import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyR
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SidebarServiceTest
     extends AbstractComponentTest
@@ -58,11 +54,6 @@ public class SidebarServiceTest
 
   @Inject
   private SidebarService sidebarService;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-  }
 
   @Test
   public void testGetOwnerDetails_Organization() {

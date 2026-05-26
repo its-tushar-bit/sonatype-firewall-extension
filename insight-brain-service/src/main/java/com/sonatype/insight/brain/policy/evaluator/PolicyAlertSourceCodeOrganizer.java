@@ -6,6 +6,11 @@
 
 package com.sonatype.insight.brain.policy.evaluator;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -17,10 +22,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.policy.ComponentFact;
-import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
-
+@Named
+@Singleton
 public class PolicyAlertSourceCodeOrganizer
 {
   private static final int INITIAL_DEPTH = 0;

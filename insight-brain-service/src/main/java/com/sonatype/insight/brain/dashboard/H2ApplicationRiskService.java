@@ -5,15 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 @Named
+@Singleton
 public class H2ApplicationRiskService
     extends AbstractApplicationRiskService
 {

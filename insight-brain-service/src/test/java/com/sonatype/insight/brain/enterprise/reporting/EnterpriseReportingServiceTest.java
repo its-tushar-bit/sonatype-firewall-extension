@@ -5,58 +5,6 @@
  */
 package com.sonatype.insight.brain.enterprise.reporting;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
-import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
-import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.security.UserDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.security.SsoUserService;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrlConfiguration;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.solution.Solution;
-import com.sonatype.insight.brain.solution.SolutionResolver;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.scan.util.HashUtils;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
@@ -75,6 +23,56 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
+import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.MembershipMappingService;
+import com.sonatype.insight.brain.security.SsoUserService;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrlConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.solution.Solution;
+import com.sonatype.insight.brain.solution.SolutionResolver;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.util.HashUtils;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
 
 public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
@@ -107,29 +105,33 @@ public class EnterpriseReportingServiceTest
   @Mock
   private SolutionResolver mockSolutionResolver;
 
-  @Inject
   private EnterpriseReportingService enterpriseReportingService;
+
+  @Inject
+  private ApplicationService applicationService;
 
   @Inject
   private InsightWork insightWork;
 
-  @Override
-  public void configure(Binder binder) {
+  @Before
+  public void setUpEnterpriseReportingService() {
     setupMockConfigurationInstance();
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(CurrentUser.class).toInstance(mockCurrentUser);
-    binder.bind(UserDAO.class).toInstance(mockUserDAO);
-    binder.bind(SsoUserService.class).toInstance(mockSsoUserService);
-    binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    binder.bind(SolutionResolver.class).toInstance(mockSolutionResolver);
-    super.configure(binder);
+    enterpriseReportingService = new EnterpriseReportingService(
+        mockHdsClient,
+        mockCurrentUser,
+        mockUserDAO,
+        mockSsoUserService,
+        mockMembershipMappingService,
+        applicationService,
+        insightWork,
+        mockTaskScheduler,
+        mockConfiguration,
+        mockSolutionResolver);
   }
 
   private void setupMockConfigurationInstance() {
-    when(mockConfiguration.getEventBusMaxThreadPoolSize()).thenReturn(1);
-    when(mockConfiguration.getEnterpriseReportingVersionCacheExpirationInMinutes()).thenReturn(1);
+    lenient().when(mockConfiguration.getEventBusMaxThreadPoolSize()).thenReturn(1);
+    lenient().when(mockConfiguration.getEnterpriseReportingVersionCacheExpirationInMinutes()).thenReturn(1);
   }
 
   @Test

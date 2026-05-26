@@ -32,10 +32,7 @@ public class ProductLicenseMigratorTest
 
   private static final String LICENSE_DETAILS_DATA = "licenseDetailsData";
 
-  @Inject
-  private ProductLicenseMigrator productLicenseMigrator;
-
-  private ProductLicenseMigrator productLicenseMigratorSpy;
+  private ProductLicenseMigrator productLicenseMigratorUnderTest;
 
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
@@ -51,8 +48,8 @@ public class ProductLicenseMigratorTest
 
   @Before
   public void before() {
-    productLicenseMigratorSpy = spy(productLicenseMigrator);
-    lenient().when(productLicenseMigratorSpy.userRoot()).thenReturn(rootNodeMock);
+    productLicenseMigratorUnderTest = spy(new ProductLicenseMigrator(migrationTrackerDAO, productLicenseDAO));
+    lenient().when(productLicenseMigratorUnderTest.userRoot()).thenReturn(rootNodeMock);
     lenient().when(rootNodeMock.node(CLMLicenseBuilder.PREFERENCES_PATH)).thenReturn(licenseNodeMock);
   }
 
@@ -62,7 +59,7 @@ public class ProductLicenseMigratorTest
     createProductLicenseLocally(LICENSE_KEY_DATA, LICENSE_DETAILS_DATA);
     assertThat(productLicenseDAO.get()).isNull();
 
-    productLicenseMigratorSpy.migrate();
+    productLicenseMigratorUnderTest.migrate();
 
     assertThat(migrationTrackerDAO.isTrackerPresent(ProductLicenseMigrator.MIGRATION_ID)).isTrue();
     ProductLicense productLicense = productLicenseDAO.get();
@@ -77,7 +74,7 @@ public class ProductLicenseMigratorTest
     createProductLicenseLocally(LICENSE_KEY_DATA, null);
     assertThat(productLicenseDAO.get()).isNull();
 
-    productLicenseMigratorSpy.migrate();
+    productLicenseMigratorUnderTest.migrate();
 
     assertThat(migrationTrackerDAO.isTrackerPresent(ProductLicenseMigrator.MIGRATION_ID)).isTrue();
     ProductLicense productLicense = productLicenseDAO.get();
@@ -91,7 +88,7 @@ public class ProductLicenseMigratorTest
     assertThat(migrationTrackerDAO.isTrackerPresent(ProductLicenseMigrator.MIGRATION_ID)).isFalse();
     assertThat(productLicenseDAO.get()).isNull();
 
-    productLicenseMigratorSpy.migrate();
+    productLicenseMigratorUnderTest.migrate();
 
     assertThat(migrationTrackerDAO.isTrackerPresent(ProductLicenseMigrator.MIGRATION_ID)).isTrue();
     assertThat(productLicenseDAO.get()).isNull();
@@ -104,7 +101,7 @@ public class ProductLicenseMigratorTest
     createProductLicenseLocally(productLicense.getLicenseKey() + "Different",
         productLicense.getLicenseDetails() + "Different");
 
-    productLicenseMigratorSpy.migrate();
+    productLicenseMigratorUnderTest.migrate();
 
     assertThat(migrationTrackerDAO.isTrackerPresent(ProductLicenseMigrator.MIGRATION_ID)).isTrue();
     ProductLicense actual = productLicenseDAO.get();

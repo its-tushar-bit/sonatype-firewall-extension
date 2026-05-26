@@ -5,32 +5,23 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.StreamingOutput;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-
-import jakarta.inject.Inject;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.StreamingOutput;
-
-import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApiAuditLogsServiceTest
     extends AbstractComponentTest
@@ -63,18 +54,13 @@ public class ApiAuditLogsServiceTest
 
   @Before
   public void before() throws Exception {
-    logDir = tempDir.getRoot().getAbsolutePath() + "/log";
+    // Set up sonatypeWork to point to temp directory
+    String sonatypeWork = tempDir.getRoot().getAbsolutePath();
+    insightConfig.setSonatypeWork(sonatypeWork);
+
+    // Create logs directory under sonatypeWork
+    logDir = sonatypeWork + "/logs";
     Files.createDirectory(Paths.get(logDir));
-    DefaultLoggingFactory loggingFactory = new DefaultLoggingFactory();
-    Map<String, JsonNode> logger = new HashMap<>();
-    JsonNode loggerNode =
-        new ObjectMapper()
-            .readTree(
-                "{ \"appenders\": [{\"type\": \"file\", \"currentLogFilename\": \"" + logDir.replace('\\', '/')
-                    + "/audit.log\" }] }");
-    logger.put(AuditRecorder.BASE_LOGGER_NAME, loggerNode);
-    loggingFactory.setLoggers(logger);
-    insightConfig.setLoggingFactory(loggingFactory);
   }
 
   @Test
@@ -127,10 +113,8 @@ public class ApiAuditLogsServiceTest
 
   @Test
   public void testGetAuditLogs_AuditLogNotConfigured() {
-    DefaultLoggingFactory loggingFactory = new DefaultLoggingFactory();
-    Map<String, JsonNode> logger = new HashMap<>();
-    loggingFactory.setLoggers(logger);
-    insightConfig.setLoggingFactory(loggingFactory);
+    // Set sonatypeWork to a non-existent directory to simulate no log path
+    insightConfig.setSonatypeWork("/nonexistent/path/that/does/not/exist");
 
     assertThatThrownBy(() -> apiAuditLogsService.getAuditLogs("2024-02-04", "2024-02-08"))
         .isInstanceOf(BadRequestException.class)

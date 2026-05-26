@@ -63,6 +63,18 @@ public class ApplicationsResourceTest
   @Test
   @Category(PostgresTestCategory.class)
   @PostgresTest
+  public void testGetApplicationDetails_InvalidSortBy_ReturnsBadRequest() throws Exception {
+    HttpResponse response = restRequest()
+        .path(ApplicationsResource.SBOMS_APPLICATIONS_PATH)
+        .query("sortBy", "invalidField")
+        .get();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
   public void testGetApplicationDetails() throws Exception {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())

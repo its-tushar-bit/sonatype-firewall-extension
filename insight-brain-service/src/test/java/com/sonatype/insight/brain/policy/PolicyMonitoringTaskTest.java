@@ -5,38 +5,25 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 public class PolicyMonitoringTaskTest
     extends AbstractComponentTest
 {
-  @Inject
-  private PolicyMonitoringTask policyMonitoringTask;
-
   @Mock
   private PolicyMonitor policyMonitorMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PolicyMonitor.class).toInstance(policyMonitorMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testExecute_QuartzJob() {
@@ -45,8 +32,10 @@ public class PolicyMonitoringTaskTest
       return null;
     }).when(policyMonitorMock).run();
 
+    PolicyMonitoringTask underTest = new PolicyMonitoringTask(() -> policyMonitorMock);
+
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
-      policyMonitoringTask.execute(mock(JobExecutionContext.class));
+      underTest.execute(mock(JobExecutionContext.class));
     }
 
     verify(policyMonitorMock).run();

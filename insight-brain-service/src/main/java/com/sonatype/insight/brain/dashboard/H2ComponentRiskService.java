@@ -5,17 +5,8 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.audit.AuditService;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -30,14 +21,22 @@ import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Singleton
 public class H2ComponentRiskService
     extends AbstractComponentRiskService
 {

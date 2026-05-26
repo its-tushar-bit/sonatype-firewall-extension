@@ -5,6 +5,13 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
+import com.codahale.metrics.annotation.Timed;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.GET;
@@ -13,19 +20,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.experimental.dto.ApiOwnerUserRateLimitsDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.codahale.metrics.annotation.Timed;
-
 /**
  * @since 1.162
  */
-@Named
+@Named("apiSourceControlResourceExperimental")
 @Timed
 @Path(PublicApiPaths.SOURCE_CONTROL_PATH_EXPERIMENTAL_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)

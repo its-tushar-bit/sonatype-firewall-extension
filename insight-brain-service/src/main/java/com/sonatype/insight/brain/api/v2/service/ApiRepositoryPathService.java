@@ -5,11 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
@@ -23,13 +18,19 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.125
  */
+@Named
+@Singleton
 public class ApiRepositoryPathService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiRepositoryPathService.class);

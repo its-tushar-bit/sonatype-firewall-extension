@@ -5,19 +5,17 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import jakarta.inject.Inject;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.slf4j.MDC;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.slf4j.MDC;
 
 public class IndexCreationSchedulerTest
     extends AbstractComponentTest
@@ -27,12 +25,6 @@ public class IndexCreationSchedulerTest
 
   @Mock
   private IndexService mockIndexService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(IndexService.class).toInstance(mockIndexService);
-    super.configure(binder);
-  }
 
   @Test
   public void testExecute() throws Exception {

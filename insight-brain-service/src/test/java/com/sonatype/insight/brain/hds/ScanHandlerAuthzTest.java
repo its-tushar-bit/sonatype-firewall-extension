@@ -5,29 +5,25 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.IOException;
-
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
-
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.scan.model.ClientScanType;
-
-import com.google.inject.Binder;
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.scan.model.ClientScanType;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Test;
+import org.mockito.Mock;
 
 public class ScanHandlerAuthzTest
     extends AbstractServiceAuthzTest
@@ -37,12 +33,6 @@ public class ScanHandlerAuthzTest
 
   @Mock
   private HdsClient hdsClient;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(HdsClient.class).toInstance(hdsClient);
-  }
 
   @Test
   public void testHandle_Authorized() throws Exception {

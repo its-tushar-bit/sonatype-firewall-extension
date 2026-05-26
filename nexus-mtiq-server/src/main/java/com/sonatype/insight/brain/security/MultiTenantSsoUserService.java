@@ -5,19 +5,17 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
-
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
-@InvisibleForScanner
+@Primary
 public class MultiTenantSsoUserService
     extends SsoUserService
 {

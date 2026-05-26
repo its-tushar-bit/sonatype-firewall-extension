@@ -5,16 +5,13 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
+import com.sonatype.insight.brain.migration.DataMigrator;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import datadog.trace.api.Trace;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.migration.DataMigrator;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-
-import datadog.trace.api.Trace;
-import io.dropwizard.lifecycle.Managed;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +21,6 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class TenantLifecycle
-    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(TenantLifecycle.class);
 

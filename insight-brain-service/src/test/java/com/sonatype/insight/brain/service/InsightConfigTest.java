@@ -5,6 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.config.StorageConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.test.LogOutput;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -13,27 +26,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
-import com.sonatype.insight.brain.service.config.StorageConfig;
-import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
-import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
-import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
-import com.sonatype.insight.test.LogOutput;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import io.dropwizard.core.Configuration;
-import io.dropwizard.util.Duration;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class InsightConfigTest
 {
@@ -64,18 +60,15 @@ public class InsightConfigTest
   public void testFeatures() {
     InsightConfig config = new InsightConfig();
 
-    // test unspecified feature is enabled
     assertThat(config.getFeatures()).isNull();
     assertThat(config.isFeatureEnabled(Feature.PR_COMMENTING)).isTrue();
 
-    // test feature is enabled, when feature flag is set to true
     Map<String, Boolean> features = new HashMap<>();
     features.put("featureOne", true);
     config.setFeatures(features);
     assertThat(config.getFeatures()).isNotNull();
     assertThat(config.isFeatureEnabled("featureOne")).isTrue();
 
-    // test feature is disabled, when feature flag is set to false
     features.put("featureOne", false);
     assertThat(config.getFeatures()).isNotNull();
     assertThat(config.isFeatureEnabled("featureOne")).isFalse();
@@ -122,8 +115,8 @@ public class InsightConfigTest
     config.setConsentToUpgradeToVersion_1_45(true);
 
     assertThat(logOutput).atWarnLevel()
-        .contains("The consentToUpgradeToVersion_1_45 configuration option is " +
-            "obsolete and can be removed from the config yml file.");
+        .contains("The consentToUpgradeToVersion_1_45 configuration option is obsolete and can be removed from the "
+            + "config yml file.");
   }
 
   @Test
@@ -150,126 +143,33 @@ public class InsightConfigTest
   }
 
   @Test
-  public void testDropwizardWebConfig_SetsHstsConfigCorrectly() {
+  public void testHstsConfigDefaults() {
     InsightConfig config = new InsightConfig();
-
-    // verify the defaults
-    assertThat(config.getWebConfiguration()).isNotNull();
-    assertThat(config.getWebConfiguration().getHstsHeaderFactory()).isNotNull();
-    assertThat(config.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isTrue();
-    assertThat(config.getWebConfiguration().getHstsHeaderFactory().getMaxAge()).isEqualTo(Duration.days(365));
-    assertThat(config.getWebConfiguration().getHstsHeaderFactory().isIncludeSubDomains()).isTrue();
+    assertThat(config.getHstsConfig().isEnabled()).isTrue();
+    assertThat(config.getHstsConfig().getMaxAgeSeconds()).isEqualTo(365L * 24 * 60 * 60);
+    assertThat(config.getHstsConfig().isIncludeSubDomains()).isTrue();
+    assertThat(config.getHstsConfig().isPreload()).isFalse();
   }
 
   @Test
-  public void testInsightConfigIsFrozen() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
-    objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    objectMapper.registerModule(new Jdk8Module());
-
-    InsightConfig insightConfig = new InsightConfig();
-    JsonNode allJsonNode = objectMapper.valueToTree(insightConfig);
-    Set<String> allFieldNames = new TreeSet<>();
-    getAllFieldNames("", allJsonNode, allFieldNames);
-    Set<String> inheritedFieldNames = new TreeSet<>();
-    Configuration configuration = new Configuration();
-    JsonNode inheritedJsonNode = objectMapper.valueToTree(configuration);
-    getAllFieldNames("", inheritedJsonNode, inheritedFieldNames);
-    Set<String> insightFieldNames = new TreeSet<>(allFieldNames);
-    insightFieldNames.removeAll(inheritedFieldNames);
-
-    assertThat(insightFieldNames)
-        .as(
-            "InsightConfig should not be changed except for migrating values from config.yml to the database." +
-                " Any new configuration should be added to the database," +
-                " see https://github.com/sonatype/insight-brain#adding-configuration for more information.")
-        .containsExactly(
-            "additionalDBParams",
-            "advancedSearchCSVExportDelimiter",
-            "baseUrl",
-            "blockBackslashInPath",
-            "blockNonAsciiInPath",
-            "blockSemicolonInPath",
-            "cdnUrl",
-            "clusterDirectory",
-            "connectTimeoutInSeconds",
-            "createSampleData",
-            "cspEnabled",
-            "csrfProtection",
-            "database",
-            "dbBackupDir",
-            "dbCacheSizePercent",
-            "defaultBranchMonitoring",
-            "enableDefaultPasswordWarning",
-            "eventBus",
-            "exitOnFatalError",
-            "externalHyperlinksAllowed",
-            "features",
-            "forceBaseUrl",
-            "hdsUrl",
-            "importReferencePoliciesFromHDS",
-            "jira",
-            "licenseFile",
-            "licenseLegalHdsRequestLimit",
-            "mail",
-            "matcherConfiguration",
-            "maxAdvancedSearchClauseCount",
-            "maxApplicationsToQueryOnDashboard",
-            "needsAcknowledgementOfInitialDashboardFilter",
-            "policyMonitoringHour",
-            "proxy",
-            "pullRequestMonitoringIntervalInSeconds",
-            "releaseGraphCacheSize",
-            "reportTimeoutInSeconds",
-            "reverseProxyAuthentication",
-            "search",
-            "socketTimeoutInSeconds",
-            "sonatypeWork",
-            "sourceControl",
-            "storage",
-            "storage.hybridConfig",
-            "storage.s3Config",
-            "storage.type",
-            "support",
-            "systemAllowlist",
-            "userAgentSuffix",
-            "web",
-            "web.content-type-options",
-            "web.content-type-options.enabled",
-            "web.cors",
-            "web.csp",
-            "web.frame-options",
-            "web.frame-options.enabled",
-            "web.frame-options.option",
-            "web.frame-options.origin",
-            "web.headers",
-            "web.hsts",
-            "web.hsts.enabled",
-            "web.hsts.includeSubDomains",
-            "web.hsts.maxAge",
-            "web.hsts.preload",
-            "web.uriPath",
-            "web.xss-protection",
-            "web.xss-protection.block",
-            "web.xss-protection.enabled",
-            "web.xss-protection.on",
-            "webhookSecretPassphrase",
-            "webhookSecretPassphraseFips");
+  public void testFrameOptionsConfigDefaults() {
+    InsightConfig config = new InsightConfig();
+    assertThat(config.getFrameOptionsConfig().isEnabled()).isFalse();
+    assertThat(config.getFrameOptionsConfig().buildHeaderValue()).isEqualTo("DENY");
   }
 
   @Test
   public void testGetApplicationConnectorPorts() {
     InsightConfig config = new InsightConfig();
-    assertThat(config.getApplicationConnectorPorts()).isNotNull();
+    assertThat(config.getApplicationConnectorPorts()).isEqualTo("8070");
   }
 
   @Test
   public void testStorageConfig_default() {
     InsightConfig config = new InsightConfig();
 
-    // Should be valid
     assertThat(config.isValidStorageConfig()).isTrue();
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -277,8 +177,8 @@ public class InsightConfigTest
     InsightConfig config = new InsightConfig();
     config.setStorage(null);
 
-    // Should be valid
     assertThat(config.isValidStorageConfig()).isTrue();
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -288,9 +188,8 @@ public class InsightConfigTest
     storageConfig.setType(DataStoreType.FILE);
     config.setStorage(storageConfig);
 
-    // Should be valid
     assertThat(config.isValidStorageConfig()).isTrue();
-    assertThat(logOutput).doesNotContain("Invalid storage config");
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -305,9 +204,8 @@ public class InsightConfigTest
     storageConfig.setS3Config(s3);
     config.setStorage(storageConfig);
 
-    // Should be valid
     assertThat(config.isValidStorageConfig()).isTrue();
-    assertThat(logOutput).doesNotContain("Invalid storage config");
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -317,7 +215,6 @@ public class InsightConfigTest
     storageConfig.setType(DataStoreType.S3);
     config.setStorage(storageConfig);
 
-    // Should be invalid
     assertThat(config.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
         .contains("Invalid storage configuration: s3Config is required when the data store type is S3.");
@@ -333,7 +230,6 @@ public class InsightConfigTest
     storageConfig.setS3Config(s3);
     config.setStorage(storageConfig);
 
-    // Should be invalid
     assertThat(config.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
         .contains("Invalid storage configuration: Property 'bucketName' must be provided and non-empty.");
@@ -349,7 +245,6 @@ public class InsightConfigTest
     storageConfig.setS3Config(s3);
     config.setStorage(storageConfig);
 
-    // Should be invalid
     assertThat(config.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
         .contains("Invalid storage configuration: Property 'region' must be provided and non-empty.");
@@ -367,12 +262,10 @@ public class InsightConfigTest
     storageConfig.setS3Config(s3);
     config.setStorage(storageConfig);
 
-    // Should be invalid
     assertThat(config.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
-        .contains(
-            "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
-                + S3DataStoreConfig.S3_KEY_PREFIX);
+        .contains("Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
+            + S3DataStoreConfig.S3_KEY_PREFIX);
   }
 
   @Test
@@ -391,8 +284,8 @@ public class InsightConfigTest
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
-        .contains("Invalid storage configuration: Property 'serverSideEncryption' " +
-            "with value 'doesNotExist' does not correspond to a known server side encryption algorithm.");
+        .contains("Invalid storage configuration: Property 'serverSideEncryption' with value 'doesNotExist' "
+            + "does not correspond to a known server side encryption algorithm.");
   }
 
   @Test
@@ -434,6 +327,7 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isTrue();
+    assertThat(logOutput).atErrorLevel().isEmpty();
   }
 
   @Test
@@ -444,7 +338,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("hybridConfig is required when the data store type is hybrid.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: hybridConfig is required when the "
+            + "data store type is hybrid.");
   }
 
   @Test
@@ -457,7 +353,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'types' must be provided "
+            + "and at least have 2 elements.");
   }
 
   @Test
@@ -471,7 +369,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'types' must be provided "
+            + "and at least have 2 elements.");
   }
 
   @Test
@@ -485,7 +385,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'types' must be provided "
+            + "and at least have 2 elements.");
   }
 
   @Test
@@ -499,7 +401,9 @@ public class InsightConfigTest
     insightConfig.setStorage(storageConfig);
 
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
-    assertThat(logOutput).atErrorLevel().contains("Property 'types' cannot contain 'HYBRID'.");
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'types' cannot contain "
+            + "'HYBRID'.");
   }
 
   @Test
@@ -516,6 +420,83 @@ public class InsightConfigTest
     assertThat(insightConfig.isValidStorageConfig()).isFalse();
     assertThat(logOutput).atErrorLevel()
         .contains("Invalid storage configuration: s3Config is required when the data store type is S3.");
+  }
+
+  @Test
+  public void testInsightConfigIsFrozen() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
+    objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+    objectMapper.registerModule(new Jdk8Module());
+
+    InsightConfig insightConfig = new InsightConfig();
+    JsonNode jsonNode = objectMapper.valueToTree(insightConfig);
+    Set<String> fieldNames = new TreeSet<>();
+    getAllFieldNames("", jsonNode, fieldNames);
+
+    assertThat(fieldNames)
+        .as(
+            "InsightConfig should not be changed except for migrating values from config.yml to the database."
+                + " Any new configuration should be added to the database,"
+                + " see https://github.com/sonatype/insight-brain#adding-configuration for more information.")
+        .containsExactly(
+            "additionalDBParams",
+            "admin",
+            "advancedSearchCSVExportDelimiter",
+            "baseUrl",
+            "blockBackslashInPath",
+            "blockNonAsciiInPath",
+            "blockSemicolonInPath",
+            "cdnUrl",
+            "clusterDirectory",
+            "connectTimeoutInSeconds",
+            "createSampleData",
+            "cspEnabled",
+            "csrfProtection",
+            "database",
+            "dbBackupDir",
+            "dbCacheSizePercent",
+            "defaultBranchMonitoring",
+            "enableDefaultPasswordWarning",
+            "eventBus",
+            "exitOnFatalError",
+            "externalHyperlinksAllowed",
+            "features",
+            "forceBaseUrl",
+            "hdsUrl",
+            "health",
+            "importReferencePoliciesFromHDS",
+            "jira",
+            "licenseFile",
+            "licenseLegalHdsRequestLimit",
+            "logging",
+            "mail",
+            "matcherConfiguration",
+            "maxAdvancedSearchClauseCount",
+            "maxApplicationsToQueryOnDashboard",
+            "metrics",
+            "needsAcknowledgementOfInitialDashboardFilter",
+            "policyMonitoringHour",
+            "proxy",
+            "pullRequestMonitoringIntervalInSeconds",
+            "releaseGraphCacheSize",
+            "reportTimeoutInSeconds",
+            "reverseProxyAuthentication",
+            "search",
+            "server",
+            "socketTimeoutInSeconds",
+            "sonatypeWork",
+            "sourceControl",
+            "storage",
+            "storage.hybridConfig",
+            "storage.s3Config",
+            "storage.type",
+            "support",
+            "systemAllowlist",
+            "userAgentSuffix",
+            "web",
+            "webhookSecretPassphrase",
+            "webhookSecretPassphraseFips");
   }
 
   private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {

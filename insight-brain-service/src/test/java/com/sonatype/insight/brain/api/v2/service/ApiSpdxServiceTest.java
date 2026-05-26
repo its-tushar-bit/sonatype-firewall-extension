@@ -37,7 +37,6 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Binder;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -90,12 +89,6 @@ public class ApiSpdxServiceTest
 
   @Mock
   private VersionService versionService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(VersionService.class).toInstance(versionService);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws IOException {

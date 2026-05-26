@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import jakarta.inject.Inject;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
@@ -34,20 +37,14 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApplicationSummaryServiceTest
     extends AbstractComponentTest
@@ -78,12 +75,6 @@ public class ApplicationSummaryServiceTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetApplications_SortedByCaseInsensitiveName_EVALUATE_APPLICATION() throws Exception {

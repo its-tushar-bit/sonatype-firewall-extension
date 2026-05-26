@@ -500,10 +500,7 @@ public class S3ApplicationReportPersistenceService
       final String scanId,
       final String name) throws IOException
   {
-    var ref = new Object()
-    {
-      boolean copied = false;
-    };
+    boolean[] copied = {false};
 
     var request = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
@@ -516,7 +513,7 @@ public class S3ApplicationReportPersistenceService
     wrapS3Exception(() -> {
       try {
         s3Client.copyObject(request);
-        ref.copied = true;
+        copied[0] = true;
       }
       catch (NoSuchKeyException e) {
         try {
@@ -528,7 +525,7 @@ public class S3ApplicationReportPersistenceService
             extractZipFileToS3(applicationId, scanId);
             try {
               s3Client.copyObject(request);
-              ref.copied = true;
+              copied[0] = true;
             }
             catch (NoSuchKeyException ex) {
               log.info("File '{}' not found in extracted contents for applicationId '{}' scanId '{}'",
@@ -543,7 +540,7 @@ public class S3ApplicationReportPersistenceService
         }
       }
     });
-    return ref.copied;
+    return copied[0];
   }
 
   /**

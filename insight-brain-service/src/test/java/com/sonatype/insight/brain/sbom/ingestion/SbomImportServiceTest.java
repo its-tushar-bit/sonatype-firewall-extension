@@ -5,6 +5,54 @@
  */
 package com.sonatype.insight.brain.sbom.ingestion;
 
+import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
+import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
+import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.ScanUploadService;
+import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.utils.SbomSummary;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.utils.ExistingFilesHelper;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.Retry;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -25,66 +73,34 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.insight.brain.PolicyEvaluationHelper;
-import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
-import com.sonatype.insight.brain.sbom.utils.SbomSummary;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.utils.ExistingFilesHelper;
-import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.ConflictException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.scan.file.SbomFormat;
-import com.sonatype.insight.scan.model.ItemContentType;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
-import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
-import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
+@ContextConfiguration(classes = SbomImportServiceTest.ExistingFilesHelperTestConfig.class)
 public class SbomImportServiceTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class ExistingFilesHelperTestConfig
+  {
+    @Bean
+    ExistingFilesHelper existingFilesHelper() {
+      return new ExistingFilesHelper();
+    }
+  }
+
   private static final String TEST_FILENAME_XML = "test-filename.xml";
 
   private static final String TEST_FILENAME_JSON = "test-filename.json";
@@ -119,15 +135,19 @@ public class SbomImportServiceTest
 
   private ThreadPoolExecutor executor;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
+    sbomImportService = lookup(SbomImportService.class);
+    ScanUploadService scanUploadService = lookup(ScanUploadService.class);
+    ScanUploader scanUploader = lookup(ScanUploader.class);
+    ReportDownloader reportDownloader = lookup(ReportDownloader.class);
+    TelemetrySender telemetrySender = lookup(TelemetrySender.class);
+    Mockito.reset(mockHdsClient, mockTelemetrySender);
+    ReflectionTestUtils.setField(sbomImportService, "telemetrySender", mockTelemetrySender);
+    ReflectionTestUtils.setField(scanUploader, "client", mockHdsClient);
+    ReflectionTestUtils.setField(reportDownloader, "client", mockHdsClient);
+    ReflectionTestUtils.setField(telemetrySender, "hdsClient", mockHdsClient);
+    ReflectionTestUtils.setField(scanUploadService, "telemetrySender", telemetrySender);
     application = tempEntity.newApplicationWithParent();
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
   }
@@ -1327,11 +1347,12 @@ public class SbomImportServiceTest
   private void mockHdsReportDownload() throws IOException, URISyntaxException {
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir).toURI()).toFile();
+    String scanId = tempEntity.newRandomHash();
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId("scanId");
+    scanReceipt.setScanId(scanId);
     when(mockHdsClient.put(any(), eq(ScanReceipt.class), eq("clientUserAgent"), eq(HDS_PATH), any(ScanEntity.class),
         any())).thenReturn(scanReceipt);
-    when(mockHdsClient.get(any(Retry.class), eq(InputStream.class), anyString(), isNull(), anyString()))
+    when(mockHdsClient.get(any(Retry.class), eq(InputStream.class), anyString(), isNull(), eq(scanId)))
         .thenReturn(Files.newInputStream(reportZip.toPath()));
   }
 

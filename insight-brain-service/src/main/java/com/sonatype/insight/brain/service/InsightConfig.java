@@ -5,19 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sonatype.insight.brain.spring.config.DropwizardLoggingConfig;
+import com.sonatype.insight.brain.spring.config.DropwizardServerConfig;
+import com.sonatype.insight.brain.spring.config.DropwizardWebConfig;
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.migration.JiraConfigurationMigrator;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
@@ -28,20 +21,25 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.config.StorageConfig;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.core.Configuration;
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.validation.ValidationMethod;
-import io.dropwizard.web.conf.WebConfiguration;
+import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Main configuration class for Nexus IQ Server.
+ * Migrated from Dropwizard Configuration to Spring Boot @ConfigurationProperties.
+ */
 public class InsightConfig
-    extends Configuration
 {
   private static final Logger log = LoggerFactory.getLogger(InsightConfig.class);
 
@@ -51,13 +49,8 @@ public class InsightConfig
 
   public static final String DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX = "^.*log[\\\\/].*log$";
 
-  {
-    setServerFactory(new InsightDefaultServerFactory());
-  }
-
   public InsightConfig() {
-    // default the setting of HSTS header to true
-    webConfiguration.getHstsHeaderFactory().setEnabled(true);
+    // Default constructor for YAML deserialization via DropwizardConfigLoader
   }
 
   @JsonProperty
@@ -321,12 +314,18 @@ public class InsightConfig
   private Integer maxApplicationsToQueryOnDashboard;
 
   /**
-   * @since 1.136
+   * HSTS (HTTP Strict Transport Security) configuration, migrated from Dropwizard's
+   * {@code web.hsts} section. HSTS is enabled by default to match legacy behavior.
    */
-  @Valid
-  @NotNull
-  @JsonProperty("web")
-  private WebConfiguration webConfiguration = new WebConfiguration();
+  @JsonIgnore
+  private HstsConfig hstsConfig = new HstsConfig();
+
+  /**
+   * X-Frame-Options configuration, compatible with legacy Dropwizard {@code web.frame-options} settings.
+   * Enabled by default with a value of {@code DENY} to preserve the current Spring migration behavior.
+   */
+  @JsonIgnore
+  private FrameOptionsConfig frameOptionsConfig = new FrameOptionsConfig();
 
   /**
    * This configuration limits the number of clauses a query can contain when using Advanced Search
@@ -351,6 +350,38 @@ public class InsightConfig
   @Valid
   @JsonProperty(value = "search")
   private SearchConfig searchConfig;
+
+  @JsonProperty
+  private DropwizardServerConfig server;
+
+  @JsonProperty
+  private DropwizardLoggingConfig logging;
+
+  @JsonProperty
+  private DropwizardWebConfig web;
+
+  @Deprecated
+  @JsonProperty
+  private Object metrics;
+
+  @JsonProperty
+  private Object admin;
+
+  @Deprecated
+  @JsonProperty
+  private Object health;
+
+  public DropwizardServerConfig getDropwizardServerConfig() {
+    return server;
+  }
+
+  public DropwizardLoggingConfig getDropwizardLoggingConfig() {
+    return logging;
+  }
+
+  public DropwizardWebConfig getDropwizardWebConfig() {
+    return web;
+  }
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -386,7 +417,7 @@ public class InsightConfig
   }
 
   @JsonIgnore
-  @ValidationMethod(message = "Cannot set sonatypeWork as the clusterDirectory.")
+  @AssertTrue(message = "Cannot set sonatypeWork as the clusterDirectory.")
   public boolean isValidClusterDirectory() {
     try {
       if (clusterDirectory == null) {
@@ -467,11 +498,7 @@ public class InsightConfig
     this.cdnUrl = cdnUrl;
   }
 
-  @JsonIgnore
-  @ValidationMethod(message = "server.applicationConnectors cannot be empty")
-  public boolean isValidApplicationConnectors() {
-    return !((DefaultServerFactory) getServerFactory()).getApplicationConnectors().isEmpty();
-  }
+  // isValidApplicationConnectors removed - Spring Boot manages server connectors via server.port properties
 
   /**
    * @since 1.8
@@ -970,12 +997,20 @@ public class InsightConfig
         + "Use the NXIQ_INITIAL_ADMIN_PASSWORD environment variable instead.");
   }
 
-  public WebConfiguration getWebConfiguration() {
-    return webConfiguration;
+  public HstsConfig getHstsConfig() {
+    return hstsConfig;
   }
 
-  public void setWebConfiguration(final WebConfiguration webConfiguration) {
-    this.webConfiguration = webConfiguration;
+  public void setHstsConfig(HstsConfig hstsConfig) {
+    this.hstsConfig = hstsConfig;
+  }
+
+  public FrameOptionsConfig getFrameOptionsConfig() {
+    return frameOptionsConfig;
+  }
+
+  public void setFrameOptionsConfig(FrameOptionsConfig frameOptionsConfig) {
+    this.frameOptionsConfig = frameOptionsConfig;
   }
 
   public Integer getMaxAdvancedSearchClauseCount() {
@@ -1003,7 +1038,7 @@ public class InsightConfig
   }
 
   @JsonIgnore
-  @ValidationMethod(message = "Invalid storage configuration")
+  @AssertTrue(message = "Invalid storage configuration")
   public boolean isValidStorageConfig() {
     StorageConfig storage = getStorage();
     try {
@@ -1026,12 +1061,226 @@ public class InsightConfig
     this.searchConfig = searchConfig;
   }
 
+  // getApplicationConnectorPorts removed - Spring Boot manages ports via server.port property
+  // Added back for backwards compatibility with telemetry ID generation
+  @JsonIgnore
+  private String applicationConnectorPorts = "8070";
+
+  @JsonIgnore
+  private String applicationConnectorTypes = "http";
+
+  @JsonIgnore
+  private String adminConnectorTypes = "http";
+
+  @JsonIgnore
+  private String serverLogFilename;
+
+  @JsonIgnore
+  private String requestLogFilename;
+
+  @JsonIgnore
+  private String auditLogFilename;
+
+  @JsonIgnore
+  private String policyViolationLogFilename;
+
+  @JsonIgnore
   public String getApplicationConnectorPorts() {
-    return ((DefaultServerFactory) getServerFactory()).getApplicationConnectors()
-        .stream()
-        .map(applicationConnector -> ((HttpConnectorFactory) applicationConnector).getPort())
-        .sorted()
-        .map(String::valueOf)
-        .collect(Collectors.joining(","));
+    return applicationConnectorPorts;
+  }
+
+  /**
+   * Sets the application connector ports string for telemetry ID generation.
+   * Used primarily for testing.
+   */
+  @JsonIgnore
+  public void setApplicationConnectorPorts(String ports) {
+    this.applicationConnectorPorts = ports;
+  }
+
+  @JsonIgnore
+  public String getApplicationConnectorTypes() {
+    return applicationConnectorTypes;
+  }
+
+  @JsonIgnore
+  public void setApplicationConnectorTypes(String applicationConnectorTypes) {
+    this.applicationConnectorTypes = applicationConnectorTypes;
+  }
+
+  @JsonIgnore
+  public String getAdminConnectorTypes() {
+    return adminConnectorTypes;
+  }
+
+  @JsonIgnore
+  public void setAdminConnectorTypes(String adminConnectorTypes) {
+    this.adminConnectorTypes = adminConnectorTypes;
+  }
+
+  @JsonIgnore
+  public String getServerLogFilename() {
+    return serverLogFilename;
+  }
+
+  @JsonIgnore
+  public void setServerLogFilename(String serverLogFilename) {
+    this.serverLogFilename = serverLogFilename;
+  }
+
+  @JsonIgnore
+  public String getRequestLogFilename() {
+    return requestLogFilename;
+  }
+
+  @JsonIgnore
+  public void setRequestLogFilename(String requestLogFilename) {
+    this.requestLogFilename = requestLogFilename;
+  }
+
+  @JsonIgnore
+  public String getAuditLogFilename() {
+    return auditLogFilename;
+  }
+
+  @JsonIgnore
+  public void setAuditLogFilename(String auditLogFilename) {
+    this.auditLogFilename = auditLogFilename;
+  }
+
+  @JsonIgnore
+  public String getPolicyViolationLogFilename() {
+    return policyViolationLogFilename;
+  }
+
+  @JsonIgnore
+  public void setPolicyViolationLogFilename(String policyViolationLogFilename) {
+    this.policyViolationLogFilename = policyViolationLogFilename;
+  }
+
+  /**
+   * HSTS configuration, compatible with legacy Dropwizard {@code web.hsts} settings.
+   * Enabled by default with a max-age of 365 days and includeSubDomains=true,
+   * matching the prior Dropwizard WebConfiguration defaults.
+   */
+  public static class HstsConfig
+  {
+    private boolean enabled = true;
+
+    private long maxAgeSeconds = 365L * 24 * 60 * 60; // 365 days in seconds
+
+    private boolean includeSubDomains = true;
+
+    private boolean preload = false;
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
+    }
+
+    public long getMaxAgeSeconds() {
+      return maxAgeSeconds;
+    }
+
+    public void setMaxAgeSeconds(long maxAgeSeconds) {
+      this.maxAgeSeconds = maxAgeSeconds;
+    }
+
+    public boolean isIncludeSubDomains() {
+      return includeSubDomains;
+    }
+
+    public void setIncludeSubDomains(boolean includeSubDomains) {
+      this.includeSubDomains = includeSubDomains;
+    }
+
+    public boolean isPreload() {
+      return preload;
+    }
+
+    public void setPreload(boolean preload) {
+      this.preload = preload;
+    }
+
+    /**
+     * Build the Strict-Transport-Security header value.
+     */
+    public String buildHeaderValue() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("max-age=").append(maxAgeSeconds);
+      if (includeSubDomains) {
+        sb.append("; includeSubDomains");
+      }
+      if (preload) {
+        sb.append("; preload");
+      }
+      return sb.toString();
+    }
+  }
+
+  /**
+   * X-Frame-Options configuration, compatible with legacy Dropwizard {@code web.frame-options} settings.
+   */
+  public static class FrameOptionsConfig
+  {
+    public enum FrameOption
+    {
+      DENY("DENY"),
+      SAMEORIGIN("SAMEORIGIN"),
+      ALLOW_FROM("ALLOW-FROM");
+
+      private final String value;
+
+      FrameOption(final String value) {
+        this.value = value;
+      }
+
+      public String getValue() {
+        return value;
+      }
+    }
+
+    private boolean enabled = false;
+
+    private FrameOption option = FrameOption.DENY;
+
+    private String origin;
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public void setEnabled(final boolean enabled) {
+      this.enabled = enabled;
+    }
+
+    public FrameOption getOption() {
+      return option;
+    }
+
+    public void setOption(final FrameOption option) {
+      this.option = option;
+    }
+
+    public String getOrigin() {
+      return origin;
+    }
+
+    public void setOrigin(final String origin) {
+      this.origin = origin;
+    }
+
+    public String buildHeaderValue() {
+      if (FrameOption.ALLOW_FROM == option) {
+        if (origin == null || origin.isBlank()) {
+          return FrameOption.DENY.getValue();
+        }
+        return option.getValue() + " " + origin;
+      }
+      return option.getValue();
+    }
   }
 }

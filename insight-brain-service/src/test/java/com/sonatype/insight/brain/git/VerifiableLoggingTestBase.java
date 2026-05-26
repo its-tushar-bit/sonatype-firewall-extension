@@ -12,6 +12,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.assertj.core.groups.Tuple;
+import org.junit.After;
 import org.junit.Before;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,13 @@ public class VerifiableLoggingTestBase
     listAppender = new ListAppender<>();
     listAppender.start();
     log.addAppender(listAppender);
+  }
+
+  @After
+  public void tearDown() {
+    Logger log = (Logger) LoggerFactory.getLogger(classUnderTest);
+    log.detachAppender(listAppender);
+    listAppender.stop();
   }
 
   protected Tuple debug(String message) {
@@ -67,6 +75,21 @@ public class VerifiableLoggingTestBase
     assertThat(listAppender.list)
         .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
         .contains(logMessageTuples);
+  }
+
+  protected void assertThatLogMessagesContainSubsequence(Tuple... logMessageTuples) {
+    assertThat(listAppender.list)
+        .extracting(ILoggingEvent::getFormattedMessage, ILoggingEvent::getLevel)
+        .containsSubsequence(logMessageTuples);
+  }
+
+  protected int logMessageCount() {
+    return listAppender.list.size();
+  }
+
+  protected boolean logMessagesContainTuple(Tuple logMessageTuple) {
+    return listAppender.list.stream()
+        .anyMatch(e -> logMessageTuple.equals(tuple(e.getFormattedMessage(), e.getLevel())));
   }
 
   protected void assertNoErrorsInLogs() {

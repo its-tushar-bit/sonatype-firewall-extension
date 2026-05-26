@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.repository.hosted;
 
+import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jakarta.inject.Inject;
@@ -32,7 +34,7 @@ import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
-import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.ApplicationLifecycle;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -45,8 +47,8 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Extends {@link AbstractPollDispatchQueueConsumer} for the Poll-and-Dispatch pattern
  * and implements {@link ConfigurationListener} for live configuration updates.
- * The Dropwizard Task endpoint is inherited from the base class and registered automatically
- * on the admin port as {@code POST /tasks/HostedComponentScanQueueConsumer}.
+ * Implements {@link AdminTask} for manual triggering via
+ * {@code POST /tasks/HostedComponentScanQueueConsumer} on the admin port.
  * <p>
  * Each tenant gets its own isolated thread pool. Within a tenant, jobs are processed serially
  * (1 worker thread by default) — tenants never block each other.
@@ -59,7 +61,9 @@ public class HostedComponentScanQueueConsumer
 {
   private static final Logger log = LoggerFactory.getLogger(HostedComponentScanQueueConsumer.class);
 
-  private static final String CONSUMER_NAME = "HostedComponentScanQueueConsumer";
+  public static final String PATH = "HostedComponentScanQueueConsumer";
+
+  private static final String CONSUMER_NAME = PATH;
 
   private final ApiConfigurationService apiConfigurationService;
 
@@ -101,6 +105,11 @@ public class HostedComponentScanQueueConsumer
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
     this.configs = new TenantReference<>(this::loadConfig);
+  }
+
+  public void execute(Map<String, List<String>> parameters, PrintWriter output) throws Exception {
+    log.info("Manual request to run {}.", CONSUMER_NAME);
+    triggerProcessing();
   }
 
   @Override
@@ -294,7 +303,7 @@ public class HostedComponentScanQueueConsumer
 
   @Override
   protected String getJitterSeed() {
-    return InsightBrainService.getInstanceId() + TenantThreadLocal.getTenant().tenantSlug;
+    return ApplicationLifecycle.getServerInstanceId() + TenantThreadLocal.getTenant().tenantSlug;
   }
 
   private HostedComponentScanQueueConfig loadConfig() {

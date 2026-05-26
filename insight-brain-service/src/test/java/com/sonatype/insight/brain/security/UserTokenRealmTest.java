@@ -5,14 +5,15 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.atlassian.crowd.exception.UserNotFoundException;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.security.Group;
@@ -25,9 +26,13 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
-
-import com.atlassian.crowd.exception.UserNotFoundException;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -37,14 +42,6 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class UserTokenRealmTest
     extends AbstractComponentTest
@@ -66,13 +63,6 @@ public class UserTokenRealmTest
 
   @Mock
   private CrowdClientFactory mockCrowdClientFactory;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
-    binder.bind(CrowdClientFactory.class).toInstance(mockCrowdClientFactory);
-    super.configure(binder);
-  }
 
   @Test
   public void testDoGetAuthenticationInfo() {

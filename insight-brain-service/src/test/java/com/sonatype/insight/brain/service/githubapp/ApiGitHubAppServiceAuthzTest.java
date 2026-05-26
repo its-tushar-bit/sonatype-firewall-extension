@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.service.githubapp;
 
-import java.util.Date;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
-import jakarta.inject.Inject;
-
-import com.google.inject.Binder;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
@@ -23,18 +24,14 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightProxy;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import org.mockito.Mock;
 
 public class ApiGitHubAppServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -83,19 +80,16 @@ public class ApiGitHubAppServiceAuthzTest
   @Inject
   private InsightProxy insightProxy;
 
-  private ApiGitHubAppService serviceWithMocks;
+  @Mock
+  private BaseUrl baseUrlMock;
 
-  @Override
-  public void configure(Binder binder) {
-    BaseUrl mockBaseUrl = mock(BaseUrl.class);
-    lenient().when(mockBaseUrl.get()).thenReturn("https://iqserver.example.com");
-    binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
-    super.configure(binder);
-  }
+  private ApiGitHubAppService serviceWithMocks;
 
   @Before
   public void setupGitHubMocks() {
     String mockServerUrl = githubMockServer.baseUrl();
+    lenient().when(baseUrlMock.get()).thenReturn("http://localhost");
+    applyBeanFieldOverride(ApiGitHubAppService.class, "baseUrl", baseUrlMock);
 
     // Create service instance with WireMock URLs for tests that need HTTP interactions
     serviceWithMocks = new ApiGitHubAppService(
@@ -112,7 +106,7 @@ public class ApiGitHubAppServiceAuthzTest
         mock(GitHubAppDeletionService.class),
         mockServerUrl, // githubApiBaseUrl
         mockServerUrl, // githubOAuthTokenUrl
-        mock(BaseUrl.class));
+        baseUrlMock);
 
     githubMockServer.stubFor(
         post(urlPathEqualTo("/login/oauth/access_token"))

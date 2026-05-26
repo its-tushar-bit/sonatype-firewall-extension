@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
@@ -18,17 +20,11 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ProxyServerConfigurationMigratorTest
     extends AbstractComponentTest
@@ -53,15 +49,6 @@ public class ProxyServerConfigurationMigratorTest
 
   @Mock
   private ProxyServerConfigurationListener proxyServerConfigurationListener;
-
-  @Override
-  public void configure(Binder binder) {
-    // Add the mock listener to the multibinder set
-    Multibinder.newSetBinder(binder, ProxyServerConfigurationListener.class)
-        .addBinding()
-        .toInstance(proxyServerConfigurationListener);
-    super.configure(binder);
-  }
 
   @Before
   public void clear() {

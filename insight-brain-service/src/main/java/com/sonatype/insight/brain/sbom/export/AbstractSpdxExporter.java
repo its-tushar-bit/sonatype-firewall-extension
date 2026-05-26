@@ -104,6 +104,8 @@ public abstract class AbstractSpdxExporter
 
   void init() {
     SbomSpdxUtils.initSpdxLibrary();
+    copyManager = new ModelCopyManager();
+    spdxIdsToComponentRefs = new HashMap<>();
     sbomFormat = SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat());
     format = sbomFormat == SbomFormat.JSON ? Format.JSON : Format.XML;
     InMemSpdxStore modelStore = new InMemSpdxStore();

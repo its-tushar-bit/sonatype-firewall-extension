@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.time.LocalTime;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -14,18 +18,13 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.time.LocalTime;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class PolicyMonitorSchedulerTest
     extends AbstractComponentTest
@@ -41,14 +40,6 @@ public class PolicyMonitorSchedulerTest
 
   @Mock
   private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-
-    super.configure(binder);
-  }
 
   private void enableLicenseForApplications(boolean enable) {
     lenient().when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(enable);
@@ -109,8 +100,8 @@ public class PolicyMonitorSchedulerTest
   }
 
   @Test
-  public void testExecute_DropwizardTask() {
-    policyMonitorScheduler.execute(null, null);
+  public void testExecute_AdminTask() throws Exception {
+    policyMonitorScheduler.execute(null, new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(taskSchedulerMock).triggerTaskNow(any(PolicyMonitoringTask.class), eq(null));
   }

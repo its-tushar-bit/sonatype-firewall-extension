@@ -67,7 +67,7 @@ abstract class AbstractSbomExporterTest
   private FileCleaner fileCleaner;
 
   @Mock
-  protected InsightWork mockInsightWork;
+  protected InsightWork mockSbomPersistenceInsightWork;
 
   protected String appId = "APP_ID";
 
@@ -86,7 +86,7 @@ abstract class AbstractSbomExporterTest
   }
 
   protected File mockSbomFileForApp(String applicationId, File sbomFile) {
-    when(mockInsightWork.getSbomDir(applicationId)).thenReturn(sbomFile.getParentFile());
+    when(mockSbomPersistenceInsightWork.getSbomDir(applicationId)).thenReturn(sbomFile.getParentFile());
     return sbomFile;
   }
 
@@ -119,6 +119,6 @@ abstract class AbstractSbomExporterTest
         thirdPartySbomMetadataDAO,
         thirdPartyFileDAO,
         thirdPartyScanDAO,
-        new FileSbomPersistenceService(mockInsightWork, fileCleaner));
+        new FileSbomPersistenceService(mockSbomPersistenceInsightWork, fileCleaner));
   }
 }

@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -94,14 +93,6 @@ public class ManualPullRequestServiceTest
 
   @Inject
   private ManualPullRequestService manualPullRequestService;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-    binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
-    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
-  }
 
   @Before
   public void setup() {

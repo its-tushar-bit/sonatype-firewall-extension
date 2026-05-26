@@ -5,21 +5,24 @@
  */
 package com.sonatype.insight.brain.support;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.support.SystemInfo.MASK;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import static com.sonatype.insight.brain.support.SystemInfo.MASK;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * @since 1.143
  */
+@Named
+@Singleton
 public class ConfigurationInfo
 {
   private final Configuration configuration;

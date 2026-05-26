@@ -784,6 +784,10 @@ public class TemporaryEntity
 
   @Override
   public void before() {
+    // Clear stale leak detection data from any previous test that may have failed during cleanup
+    // before reaching detectEntityLeaks(). Without this, leftover entries from a failed test's
+    // cleanup cascade into subsequent tests, causing false-positive entity leak detections.
+    AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
     this.operationalDataStore = dataStoreProvider.getOperationalDataStore();
     this.daoFactory = new TestDAOFactory(this.dataStoreProvider);
 
@@ -4737,8 +4741,8 @@ public class TemporaryEntity
     GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(uuid());
     gitHubApp.setOwnerId(ownerId);
-    // Generate unique app ID to avoid collisions
-    gitHubApp.setAppId((int) (System.currentTimeMillis() % Integer.MAX_VALUE));
+    // Generate unique app ID to avoid collisions across parallel test forks
+    gitHubApp.setAppId((int) ((System.currentTimeMillis() + (long) (Math.random() * 1_000_000)) % Integer.MAX_VALUE));
     gitHubApp.setSlug("test-app");
     gitHubApp.setClientId("Iv1.1234567890abcdef");
     gitHubApp.setClientSecret("client-secret-test");
@@ -4751,6 +4755,13 @@ public class TemporaryEntity
   }
 
   public GitHubApp newGitHubApp(GitHubApp gitHubApp) {
+    return newGitHubApp(gitHubApp, false);
+  }
+
+  public GitHubApp newGitHubApp(GitHubApp gitHubApp, boolean preserveActiveFlag) {
+    if (!preserveActiveFlag) {
+      gitHubApp.setActive(true);
+    }
     gitHubAppDAO.insert(gitHubApp);
     return gitHubApp;
   }

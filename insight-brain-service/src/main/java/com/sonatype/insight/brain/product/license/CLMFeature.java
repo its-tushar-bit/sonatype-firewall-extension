@@ -6,10 +6,11 @@
 package com.sonatype.insight.brain.product.license;
 
 import jakarta.inject.Named;
-
+import jakarta.inject.Singleton;
 import org.sonatype.licensing.feature.AbstractFeature;
 
 @Named(CLMFeature.ID)
+@Singleton
 public class CLMFeature
     extends AbstractFeature
 {

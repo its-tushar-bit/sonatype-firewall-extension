@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
@@ -16,15 +12,15 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 @Named
 @Singleton
-@InvisibleForScanner
 public class MultiTenantEncryptionKeyStore
     implements EncryptionKeyStore, TenantManaged
 {

@@ -5,29 +5,26 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.Collections;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentCategoryList;
-import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-import org.slf4j.MDC;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.component.ComponentCategoryList;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 public class ComponentCategoryUpdaterUnitTest
     extends AbstractComponentTest
@@ -38,27 +35,20 @@ public class ComponentCategoryUpdaterUnitTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  @Mock
   private ComponentCategoryDAO componentCategoryDAO;
 
   @Inject
   private ComponentCategoryUpdater componentCategoryUpdater;
 
-  @Override
-  public void configure(Binder binder) {
-    componentCategoryDAO = spy(daoFactory.createComponentCategoryDAO());
-
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(ComponentCategoryDAO.class).toInstance(componentCategoryDAO);
-    super.configure(binder);
-  }
-
   @Test
   public void testDoUpdate_Schedules_LoadComponentCategories_OnAllOtherNodes() {
     ComponentCategoryList componentCategoryList = new ComponentCategoryList();
     componentCategoryList.setComponentCategories(Collections.emptyList());
+    TransactionContext transactionContext = mock(TransactionContext.class);
     when(mockHdsClient.get(ComponentCategoryList.class, ComponentCategoryUpdater.HDS_COMPONENT_CATEGORY_PATH,
         null)).thenReturn(componentCategoryList);
+    when(componentCategoryDAO.createTransactionContext()).thenReturn(transactionContext);
 
     componentCategoryUpdater.doUpdate();
 

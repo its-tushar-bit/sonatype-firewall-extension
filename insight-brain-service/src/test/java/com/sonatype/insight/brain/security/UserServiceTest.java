@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
-import java.util.List;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertMatchingUser;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
@@ -23,7 +26,9 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -33,20 +38,16 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertEqualExceptNullDTOPassword;
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.assertMatchingUser;
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -78,15 +79,22 @@ public class UserServiceTest
   @Mock
   private ProductLicense productLicenseMock;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(SessionDAO.class).toInstance(sessionDAOMock);
-    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
-    super.configure(binder);
-  }
-
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
+
+  @Override
+  protected void grantDefaultTestUserAllPermissions() {
+    tempEntity.newUser(USERNAME, "Fixture", "User", USERNAME + "@void.com");
+    var role = tempEntity.newRole(true, Permission.values());
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), USERNAME);
+  }
+
+  @After
+  public void resetDefaultPasswordWarningConfiguration() {
+    configurationService
+        .deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+  }
 
   @Test
   public void testDeleteUserNoLdapRemovesContact() {
@@ -448,13 +456,15 @@ public class UserServiceTest
 
   private void testGetAllApiUserDTOs_User(String queryRealm, String expectedRealm) {
     User admin = userDAO.getByUsername(User.ADMIN_USERNAME);
+    User fixtureUser = userDAO.getByUsernameNotNull(USERNAME);
     User user = tempEntity.newUser();
 
     ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(queryRealm);
 
     assertThat(apiUserListDTO).isNotNull();
-    assertThat(apiUserListDTO.users).hasSize(2);
+    assertThat(apiUserListDTO.users).hasSize(3);
     assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, admin, expectedRealm);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, fixtureUser, expectedRealm);
     assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user, expectedRealm);
   }
 

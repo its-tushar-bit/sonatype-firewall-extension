@@ -5,34 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
-import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
-import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
-import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
-import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-import org.slf4j.MDC;
-
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,6 +15,29 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
+import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
+import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 public class ClusterTelemetryTaskTest
     extends AbstractComponentTest
@@ -62,19 +57,8 @@ public class ClusterTelemetryTaskTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  @Mock
-  private QuartzJobStoreTX quartzJobStoreTXMock;
-
   @Captor
   private ArgumentCaptor<List<TelemetryData>> allTelemetryDataCaptor;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(QuartzJobStoreTX.class).toInstance(quartzJobStoreTXMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {
@@ -101,7 +85,6 @@ public class ClusterTelemetryTaskTest
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
     }).when(telemetrySenderMock).send(anyList());
-    when(quartzJobStoreTXMock.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       clusterTelemetryTask.execute(mock(JobExecutionContext.class));

@@ -22,14 +22,19 @@ import static org.mockito.Mockito.when;
 
 public class MockReportDownloader
 {
-  private final ReportDownloader reportDownloader = mock(ReportDownloader.class);
+  private final ReportDownloader reportDownloader;
 
   private InsightWork insightWork;
 
   private final TemporaryFolder tempDir;
 
   public MockReportDownloader(TemporaryFolder tempDir) {
+    this(tempDir, mock(ReportDownloader.class));
+  }
+
+  public MockReportDownloader(TemporaryFolder tempDir, ReportDownloader reportDownloader) {
     this.tempDir = tempDir;
+    this.reportDownloader = reportDownloader;
   }
 
   /**

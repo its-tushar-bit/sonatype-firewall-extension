@@ -5,20 +5,17 @@
  */
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableSet;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
-import com.google.common.collect.ImmutableSet;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ApiSastServiceTest
     extends AbstractComponentTest
@@ -29,13 +26,6 @@ public class ApiSastServiceTest
   private final ProductLicense productLicense = mock(ProductLicense.class);
 
   private final FeaturesService featuresService = mock(FeaturesService.class);
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(FeaturesService.class).toInstance(featuresService);
-    super.configure(binder);
-  }
 
   @Test
   public void testValidate_withValidLicense_butNotDeveloperLicense() {

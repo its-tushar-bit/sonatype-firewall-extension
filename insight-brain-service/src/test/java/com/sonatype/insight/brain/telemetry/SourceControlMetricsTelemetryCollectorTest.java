@@ -77,6 +77,11 @@ public class SourceControlMetricsTelemetryCollectorTest
             metrics, organizationDAO, gitHubAppDAO, sourceControlEventDAO);
   }
 
+  @Override
+  protected void setUpTestLicenseThreatGroups() {
+    // This test class uses mocked DAOs for telemetry inputs and does not need LTG fixture data.
+  }
+
   @Test
   public void test_collectData_emptyLists() {
     JobExecutionContext mockContext = mock(JobExecutionContext.class);

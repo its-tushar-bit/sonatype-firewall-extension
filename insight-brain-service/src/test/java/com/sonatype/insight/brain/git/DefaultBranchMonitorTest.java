@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
@@ -18,23 +24,15 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.LocalTime;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DefaultBranchMonitorTest
     extends AbstractComponentTest
@@ -63,19 +61,19 @@ public class DefaultBranchMonitorTest
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
-    lenient().when(taskSchedulerMock.isTaskScheduled(any())).thenReturn(true);
-    lenient().when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+  @Before
+  public void setupBeanOverrides() {
+    applyBeanFieldOverride(DefaultBranchMonitor.class, "taskScheduler", taskSchedulerMock);
+    applyBeanFieldOverride(DefaultBranchMonitor.class, "licenseChecker", mockLicenseChecker);
+    applyBeanFieldOverride(DefaultBranchMonitor.class, "apiConfigFeaturesService", mockApiConfigFeaturesService);
+    applyBeanFieldOverride(DefaultBranchMonitorExecutor.class, "taskScheduler", taskSchedulerMock);
+    applyBeanFieldOverride(DefaultBranchMonitorExecutor.class, "sourceControlEventPublisher",
+        sourceControlEventPublisherMock);
+
     lenient().when(mockApiConfigFeaturesService.isDefaultBranchMonitoringEnabled()).thenReturn(true);
-
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
-    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
-    binder.bind(ApiConfigFeaturesService.class).toInstance(mockApiConfigFeaturesService);
-
-    super.configure(binder);
+    lenient().when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    lenient().when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
+    lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
   }
 
   @Test
@@ -204,6 +202,7 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NoRelevantUpdate() {
+    lenient().when(taskSchedulerMock.isTaskScheduled(any())).thenReturn(true);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);

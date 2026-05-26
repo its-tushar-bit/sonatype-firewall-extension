@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
@@ -31,23 +29,19 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLeve
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroupWithThreatLevel;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LicenseThreatGroupLevelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  @Inject
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  @Inject
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  @Inject
   private ComponentLoaderFactory componentLoaderFactory;
 
   private Organization org;
@@ -57,6 +51,28 @@ public class LicenseThreatGroupLevelConditionTypeTest
   private LicenseThreatGroup licenseThreatGroup2;
 
   private LicenseThreatGroup licenseThreatGroup5;
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    componentLoaderFactory = new ComponentLoaderFactory(
+        daoFactory.createMultiLicenseDAO(),
+        licenseThreatGroupDAO,
+        licenseThreatGroupLicenseDAO,
+        daoFactory.createLicenseOverrideDAO(),
+        daoFactory.createSecurityVulnerabilityOverrideDAO(),
+        daoFactory.createOwnerDAO(),
+        daoFactory.createComponentLabelDAO(),
+        daoFactory.createVulnerabilityCustomRemediationDAO(),
+        daoFactory.createVulnerabilityCustomCweDAO(),
+        daoFactory.createVulnerabilityCustomCvssVectorDAO(),
+        daoFactory.createVulnerabilityCustomCvssSeverityDAO(),
+        daoFactory.createVulnerabilityGroupDAO(),
+        daoFactory.createVulnerabilityGroupVulnerabilityDAO());
+  }
 
   @Before
   public void before() {

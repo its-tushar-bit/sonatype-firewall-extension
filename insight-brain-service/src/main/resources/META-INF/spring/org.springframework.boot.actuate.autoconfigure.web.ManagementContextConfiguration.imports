@@ -1,0 +1,3 @@
+com.sonatype.insight.brain.spring.config.AdminCompatibilityConfiguration
+com.sonatype.insight.brain.spring.config.DropwizardManagementConnectorConfiguration
+com.sonatype.insight.brain.spring.config.SingleTenantAdminFilterConfiguration

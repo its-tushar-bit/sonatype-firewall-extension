@@ -5,17 +5,20 @@
  */
 package com.sonatype.insight.brain.support;
 
-import java.util.SortedMap;
-import java.util.TreeMap;
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * @since 1.143
  */
+@Named
+@Singleton
 public class SourceControlConfigurationInfo
 {
   private final Configuration configuration;

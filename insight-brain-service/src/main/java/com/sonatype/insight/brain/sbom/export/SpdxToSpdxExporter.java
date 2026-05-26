@@ -10,6 +10,9 @@ import java.io.InputStream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -28,6 +31,7 @@ import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.model.v2.SpdxDocument;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SpdxToSpdxExporter
     extends AbstractSpdxExporter
 {

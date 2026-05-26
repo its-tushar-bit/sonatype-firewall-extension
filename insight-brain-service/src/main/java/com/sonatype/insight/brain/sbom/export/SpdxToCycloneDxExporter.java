@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -70,6 +73,7 @@ import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getSwid;
 import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getVulnerabilitiesForPackage;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SpdxToCycloneDxExporter
     extends AbstractCycloneDxExporter
 {

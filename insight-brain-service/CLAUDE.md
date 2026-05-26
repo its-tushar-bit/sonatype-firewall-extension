@@ -28,7 +28,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 - **Quartz**: Job scheduling for background tasks
 
 ### Main Entry Point
-- **Main Class**: `com.sonatype.insight.brain.service.InsightBrainService`
+- **Main Class**: `com.sonatype.insight.brain.spring.InsightBrainSpringApplication`
 - **Configuration**: Dropwizard YAML configuration (`config-dev.yml` for development)
 - **Port**: Default 8070, configurable via `-Ddw.server.applicationConnectors[0].port=XXXX`
 
@@ -67,10 +67,10 @@ mvn clean install -pl insight-brain-service -am
 From the `insight-brain-service/` directory:
 ```bash
 # Standard development server
-mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml'
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml'
 
 # Custom port (e.g., 8072)
-mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
 
 # Using compiled JAR
 java -jar target/insight-brain-service-*-SNAPSHOT-server.jar server src/test/resources/config-dev.yml

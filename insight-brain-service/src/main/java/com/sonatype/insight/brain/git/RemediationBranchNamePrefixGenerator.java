@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.git;
 
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 
+@Named
+@Singleton
 public class RemediationBranchNamePrefixGenerator
 {
   private static final int APP_ID_BRANCH_TRUNCATE_INDEX = 6;

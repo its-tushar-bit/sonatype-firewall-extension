@@ -5,21 +5,13 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import javax.net.ssl.SSLException;
+import static com.sonatype.insight.brain.common.config.ConfigUtil.getBooleanConfig;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT;
+import static com.sonatype.insight.brain.security.CurrentUser.ANONYMOUS;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.consumption.ActivityType;
 import com.sonatype.insight.brain.model.consumption.ConsumptionEvent;
@@ -44,17 +36,26 @@ import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import io.dropwizard.lifecycle.Managed;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.core.UriBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import javax.net.ssl.SSLException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -84,16 +85,16 @@ import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.common.config.ConfigUtil.getBooleanConfig;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT;
-import static com.sonatype.insight.brain.security.CurrentUser.ANONYMOUS;
+import com.sonatype.insight.brain.lifecycle.Managed;
+import org.springframework.context.annotation.Primary;
 
 /**
  * HTTP client for accessing Sonatype Data Services.
  */
 @Named
 @Singleton
+@Primary // Required: subclasses (PingHdsClient, FirewallQuarantineHdsClient, etc.) are also beans,
+         // so injection points that request the base HdsClient type need @Primary to disambiguate.
 public class HdsClient
     implements Managed
 {
@@ -264,10 +265,6 @@ public class HdsClient
   }
 
   protected void customizeConfiguration(@SuppressWarnings("unused") HttpClientUtils.Configuration configuration) {
-  }
-
-  @Override
-  public void start() throws Exception {
   }
 
   @Override
@@ -494,9 +491,27 @@ public class HdsClient
       HttpServletRequest request,
       Map<String, String> queryParams) throws IOException
   {
-    String url = buildUri(request, request.getPathInfo(), queryParams);
+    String url = buildUri(request, getForwardingProxyPath(request), queryParams);
     HttpUriRequest labReq = createRequest(request, url, null);
     return execute(retry, labReq);
+  }
+
+  private String getForwardingProxyPath(HttpServletRequest request) {
+    String path = request.getPathInfo();
+    if (path != null) {
+      return path;
+    }
+
+    String requestUri = request.getRequestURI();
+    if (requestUri == null) {
+      return request.getServletPath();
+    }
+
+    String contextPath = request.getContextPath();
+    if (contextPath != null && requestUri.startsWith(contextPath)) {
+      return requestUri.substring(contextPath.length());
+    }
+    return requestUri;
   }
 
   private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
@@ -982,6 +997,10 @@ public class HdsClient
 
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", productLicense.getFingerprint());
+
+    if (productLicense.isValid()) {
+      telemetryId.flushPendingTelemetry();
+    }
 
     maybeAddUsernameHeader(req);
 

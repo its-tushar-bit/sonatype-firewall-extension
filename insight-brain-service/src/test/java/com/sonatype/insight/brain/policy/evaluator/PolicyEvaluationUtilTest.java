@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.Collections;
-import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
@@ -24,18 +29,12 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PolicyEvaluationUtilTest
     extends AbstractComponentTest
@@ -51,21 +50,17 @@ public class PolicyEvaluationUtilTest
 
   private PolicyEvaluationUtil policyEvaluationUtil;
 
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mockStageTypeService.getLicensedStageTypes()).thenReturn(StageTypes.getAll());
-    binder.bind(StageTypeService.class).toInstance(mockStageTypeService);
-    binder.bind(ProductLicense.class).toInstance(mockProductLicense);
-    binder.bind(PersistedPolicyEvaluationPollingResultDAO.class)
-        .toInstance(mockPersistedPolicyEvaluationPollingResultDAO);
-    super.configure(binder);
-    policyEvaluationUtil = new PolicyEvaluationUtil(mockProductLicense, mockStageTypeService,
-        mockPersistedPolicyEvaluationPollingResultDAO);
+  @Before
+  public void setUp() {
+    policyEvaluationUtil =
+        new PolicyEvaluationUtil(mockProductLicense, mockStageTypeService,
+            mockPersistedPolicyEvaluationPollingResultDAO);
   }
 
   @Test
   public void testValidateEvaluationTypeAndFeature_CLI() {
     Stage stage = new Stage(Stage.ID_BUILD);
+    when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Set.of(StageTypes.BUILD));
 
     policyEvaluationUtil.validateEvaluationTypeAndFeature(IntegrationType.CLI, stage);
 
@@ -108,6 +103,7 @@ public class PolicyEvaluationUtilTest
   public void testValidateEvaluationTypeAndFeature_CLI_ProxyWithCorrectFeatureAndLicense() {
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
+    when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Set.of(StageTypes.BUILD, StageTypes.PROXY));
 
     Stage stage = new Stage(Stage.ID_PROXY);
 
@@ -121,6 +117,7 @@ public class PolicyEvaluationUtilTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CI_INTEGRATION)).thenReturn(false);
     lenient().when(mockProductLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)).thenReturn(true);
+    when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Set.of(StageTypes.BUILD, StageTypes.PROXY));
 
     Stage stage = new Stage(Stage.ID_PROXY);
 

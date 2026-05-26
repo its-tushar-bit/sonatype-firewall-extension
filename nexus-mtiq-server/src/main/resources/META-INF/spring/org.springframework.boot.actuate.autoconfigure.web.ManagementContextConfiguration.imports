@@ -1,0 +1,3 @@
+com.sonatype.insight.brain.service.MtiqAdminJerseyConfiguration
+com.sonatype.insight.brain.service.MtiqAdminFilterConfiguration
+com.sonatype.insight.brain.spring.config.DropwizardManagementConnectorConfiguration

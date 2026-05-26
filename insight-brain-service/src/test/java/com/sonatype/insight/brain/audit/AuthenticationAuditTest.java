@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.net.HttpCookie;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
@@ -18,18 +15,24 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationResource;
-import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.security.oauth2.JWTGenerator;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
+import com.sonatype.insight.test.LogOutput;
+import java.net.HttpCookie;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthenticationAuditTest
     extends AbstractAuditTest
 {
+  private StartedLogOutput authenticationLogOutput;
+
   private static final String RESTRICTED_PATH = "/" + ApplicationResource.RESOURCE_PATH;
 
   private static final String RESTRICTED_UNSAFE_PATH = RESTRICTED_PATH + "/applicationPublicId";
@@ -37,6 +40,25 @@ public class AuthenticationAuditTest
   private static final String AUTH_RESOURCE_PATH = "/" + UserSessionResource.RESOURCE_PATH;
 
   private final JWTGenerator jwtGenerator = new JWTGenerator();
+
+  @Before
+  public void startAuthenticationLogCapture() {
+    authenticationLogOutput =
+        new StartedLogOutput(AuditRecorder.toLoggerName(AuditEvent.AUTHENTICATION_FAILURE.getDomain()));
+    authenticationLogOutput.start();
+  }
+
+  @After
+  public void stopAuthenticationLogCapture() {
+    if (authenticationLogOutput != null) {
+      authenticationLogOutput.stop();
+    }
+  }
+
+  @Override
+  public LogOutput getLogOutput() {
+    return authenticationLogOutput;
+  }
 
   @Test
   public void testLoginLogout() throws Exception {
@@ -112,7 +134,7 @@ public class AuthenticationAuditTest
 
   @Test
   public void testBadSessionCookie() throws Exception {
-    restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityModule.SESSION_COOKIE_NAME, "bad").get();
+    restRequest().path(RESTRICTED_PATH).anon().cookie(SecurityConfiguration.SESSION_COOKIE_NAME, "bad").get();
 
     AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
     assertAuditLog(log, "GET", RESTRICTED_PATH, "bad-session");
@@ -205,5 +227,21 @@ public class AuthenticationAuditTest
     assertThat(auditDTO.domain).isEqualTo("authentication");
     assertThat(auditDTO.type).isEqualTo("failure");
     assertThat(auditDTO.error).isEqualTo(error);
+  }
+
+  private static final class StartedLogOutput
+      extends LogOutput
+  {
+    private StartedLogOutput(String... loggerNames) {
+      super(loggerNames);
+    }
+
+    private void start() {
+      before();
+    }
+
+    private void stop() {
+      after();
+    }
   }
 }

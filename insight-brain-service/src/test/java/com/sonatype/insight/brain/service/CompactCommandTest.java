@@ -39,7 +39,7 @@ public class CompactCommandTest
     final InsightConfig insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(databaseFile.getParent().getParent().toString());
 
-    new CompactCommand().run(null, null, insightConfig);
+    new CompactCommand(insightConfig).run(insightConfig);
 
     final long newSize = Files.size(databaseFile);
     assertThat(newSize).isLessThan(originalSize);
@@ -57,7 +57,7 @@ public class CompactCommandTest
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
 
-    assertThatThrownBy(() -> new CompactCommand().run(null, null, insightConfig)).isInstanceOf(
+    assertThatThrownBy(() -> new CompactCommand(insightConfig).run(insightConfig)).isInstanceOf(
         BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");
   }
 }

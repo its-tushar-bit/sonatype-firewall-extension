@@ -5,24 +5,21 @@
  */
 package com.sonatype.insight.brain.report;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ReportServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -32,12 +29,6 @@ public class ReportServiceAuthzTest
 
   @Mock
   private ReportDataStore reportDataStore;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportDataStore.class).toInstance(reportDataStore);
-    super.configure(binder);
-  }
 
   @Before
   public void before() throws Exception {

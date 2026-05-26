@@ -78,13 +78,13 @@ public class CpeMatchingConfigurationService
   }
 
   public CpeMatchingConfigurationDTO getCpeMatchingConfigurationNoAuthz(OwnerType ownerType, String ownerId) {
-    Owner owner = ownerDAO.getByIdNotNull(ownerId);
+    requireOwnerExists(ownerType, ownerId);
     CpeMatchingConfiguration ownerConfig = cpeMatchingConfigurationDAO.getByOwnerId(ownerId);
 
     // Find the first inherited configuration from an ancestor
     CpeMatchingConfiguration inheritedConfig = null;
     Owner inheritedFrom = null;
-    for (Owner parent : ownerDAO.walkHierarchy(owner)) {
+    for (Owner parent : ownerDAO.walkHierarchy(ownerId, ownerType)) {
       if (parent.getId().equals(ownerId)) {
         // Skip to avoid checking the owner itself
         continue;
@@ -217,7 +217,7 @@ public class CpeMatchingConfigurationService
       @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       final Boolean allowOverride)
   {
-    ownerDAO.getByIdNotNull(internalOwnerId); // will trigger a 404 if the owner does not exist
+    requireOwnerExists(ownerType, internalOwnerId);
     switch (ownerType) {
       case APPLICATION:
         disableForApplication(internalOwnerId);
@@ -246,6 +246,19 @@ public class CpeMatchingConfigurationService
     return productLicense.hasFeature(LicensedFeature.CPE_MATCHING) &&
         ((hasSbomManagerProduct(productLicense) && !hasLifecycleProduct(productLicense)) ||
             BooleanUtils.isTrue(getCpeMatchingConfigurationNoAuthz(OwnerType.APPLICATION, appInternalId).enabled));
+  }
+
+  private void requireOwnerExists(final OwnerType ownerType, final String ownerId) {
+    switch (ownerType) {
+      case APPLICATION:
+        applicationDAO.getByIdNotNull(ownerId);
+        break;
+      case ORGANIZATION:
+        organizationDAO.getByIdNotNull(ownerId);
+        break;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
   }
 
   private void disableForOrganization(final String orgId, final Boolean allowOverride) {

@@ -5,24 +5,16 @@
  */
 package com.sonatype.insight.brain.sbom;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.MediaType;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.UPLOADED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -38,8 +30,25 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -47,21 +56,23 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.UPLOADED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-
+@ContextConfiguration(classes = PendingSbomMetadataCleanerTest.ExistingFilesHelperTestConfig.class)
 public class PendingSbomMetadataCleanerTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class ExistingFilesHelperTestConfig
+  {
+    @Bean
+    ExistingFilesHelper existingFilesHelper() {
+      return new ExistingFilesHelper();
+    }
+  }
+
   @Inject
   private PendingSbomMetadataCleaner pendingSbomMetadataCleaner;
 
@@ -79,12 +90,6 @@ public class PendingSbomMetadataCleanerTest
 
   @Inject
   private ExistingFilesHelper existingFilesHelper;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {
@@ -109,8 +114,15 @@ public class PendingSbomMetadataCleanerTest
 
   @Test
   public void testExecute_AdminTask() throws Exception {
-    testExecute(
-        pendingSbomMetadataCleaner -> pendingSbomMetadataCleaner.execute(null, new PrintWriter(new StringWriter())));
+    testExecute(pendingSbomMetadataCleaner -> {
+      try {
+        pendingSbomMetadataCleaner.execute((Map<String, List<String>>) null,
+            new PrintWriter(OutputStream.nullOutputStream()));
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Test

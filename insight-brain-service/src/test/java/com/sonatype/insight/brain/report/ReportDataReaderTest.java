@@ -5,16 +5,18 @@
  */
 package com.sonatype.insight.brain.report;
 
-import com.sonatype.clm.dto.model.component.AnalysisSource;
-import com.sonatype.clm.dto.model.component.AnalysisType;
-import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
-
-import java.io.IOException;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.component.AnalysisSource;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
@@ -30,18 +32,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 public class ReportDataReaderTest
     extends AbstractComponentTest
@@ -62,13 +57,6 @@ public class ReportDataReaderTest
   private LicenseDAO licenseDAO;
 
   private Application app;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClient);
-    binder.bind(H2ApplicationRiskService.class).toInstance(h2ApplicationRiskService);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

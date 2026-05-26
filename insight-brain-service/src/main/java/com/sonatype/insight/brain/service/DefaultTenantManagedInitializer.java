@@ -5,16 +5,13 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Set;
-import jakarta.annotation.Priority;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
+import java.util.Set;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * This class ensure that, in a single tenant deployment, job registration/creation happens at startup and
@@ -24,34 +21,46 @@ import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
  * solve that we introduced the TenantJob class and register/deregister methods which can be called outside the boot
  * process.
  * </p>
- * The priority is set to be less than the TaskScheduler to ensure that start() is called on the TaskScheduler before
- * this bean runs so that jobs can be registered correctly and equally so that stop() is called before the TaskScheduler
- * is shutdown. See https://issues.sonatype.org/browse/CLM-24625.
+ * This bean explicitly depends on application boot and starts the scheduler before registering tenant-managed jobs. The
+ * direct scheduler dependency also ensures this bean is destroyed before the scheduler shuts down. See
+ * https://issues.sonatype.org/browse/CLM-24625.
  */
-@Named
+@Named("defaultTenantManagedInitializer")
 @Singleton
-@Priority(TenantManagedInitializer.PRIORITY)
-@Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
-@InvisibleForScanner
+@DependsOn({"staticInjectionInitializer", "defaultApplicationLifecycle", "taskScheduler"})
 public class DefaultTenantManagedInitializer
     implements TenantManagedInitializer
 {
   private final Set<TenantManaged> tenantManagedBeans;
 
+  private final TaskScheduler taskScheduler;
+
+  private volatile boolean started;
+
   @Inject
-  public DefaultTenantManagedInitializer(final Set<TenantManaged> tenantManagedBeans) {
+  public DefaultTenantManagedInitializer(
+      final Set<TenantManaged> tenantManagedBeans,
+      final TaskScheduler taskScheduler)
+  {
     this.tenantManagedBeans = tenantManagedBeans;
+    this.taskScheduler = taskScheduler;
   }
 
   @Override
   public void start() throws Exception {
+    taskScheduler.start();
+
     for (TenantManaged tenantLifecycle : tenantManagedBeans) {
       tenantLifecycle.register();
     }
+    started = true;
   }
 
   @Override
   public void stop() throws Exception {
+    if (!started) {
+      return;
+    }
     for (TenantManaged tenantLifecycle : tenantManagedBeans) {
       tenantLifecycle.deregister();
     }

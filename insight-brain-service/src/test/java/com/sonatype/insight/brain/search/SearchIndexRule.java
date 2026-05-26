@@ -5,16 +5,17 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
+import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpenSearchHttpTest;
 
 import com.sonatype.insight.brain.common.test.InsightFixtureRule;
-import com.sonatype.insight.brain.search.SearchIndexRule.SearchIndexType;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexFixture;
-
-import static com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.isOpenSearchHttpTest;
+import com.sonatype.insight.test.SpringTestExecutionContext;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -67,6 +68,16 @@ public class SearchIndexRule
 
   private static Class<?> currentTestClassType;
 
+  private boolean springContextFixturePrepared = false;
+
+  private SearchIndexType springContextFixtureType;
+
+  private Class<?> springContextTestClass;
+
+  private String springContextTestName;
+
+  private boolean springContextAnnotationFromMethod;
+
   protected SearchIndexRule() {
     // private constructor for singleton enforcement
   }
@@ -85,6 +96,111 @@ public class SearchIndexRule
       currentTestClassType = baseTestClassType;
     }
     return INSTANCE;
+  }
+
+  public synchronized void ensureInitializedForSpringContext() {
+    applySpringExecutionContext();
+
+    try {
+      before();
+      previousType = type;
+      isNewFixtureForCurrentTest = false;
+      springContextFixturePrepared = true;
+      springContextFixtureType = type;
+      springContextTestClass = currentTestClass;
+      springContextTestName = testName;
+      springContextAnnotationFromMethod =
+          hasMethodLevelFixtureAnnotation(SpringTestExecutionContext.getCurrentTestMethod());
+    }
+    catch (Throwable t) {
+      throw new IllegalStateException("Failed to initialize SearchIndexRule for Spring test context", t);
+    }
+  }
+
+  private void applySpringExecutionContext() {
+    Class<?> springTestClass = SpringTestExecutionContext.getCurrentTestClass();
+    Method springTestMethod = SpringTestExecutionContext.getCurrentTestMethod();
+
+    if (springTestClass == null && springTestMethod == null) {
+      return;
+    }
+
+    annotation = resolveFixtureAnnotation(springTestMethod, springTestClass);
+    testName = springTestMethod != null ? springTestMethod.getName() : springTestClass.getSimpleName();
+    currentTestClass = springTestClass;
+  }
+
+  private Annotation resolveFixtureAnnotation(final Method springTestMethod, final Class<?> springTestClass) {
+    Annotation methodAnnotation = resolveMethodFixtureAnnotation(springTestMethod);
+    if (methodAnnotation != null) {
+      return methodAnnotation;
+    }
+
+    if (springTestClass != null) {
+      for (Annotation candidate : springTestClass.getAnnotations()) {
+        if (SearchIndexRuleAnnotations.ANNOTATION_TYPES.contains(candidate.annotationType())) {
+          return candidate;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private Annotation resolveMethodFixtureAnnotation(final Method springTestMethod) {
+    if (springTestMethod == null) {
+      return null;
+    }
+    for (Annotation candidate : springTestMethod.getAnnotations()) {
+      if (SearchIndexRuleAnnotations.ANNOTATION_TYPES.contains(candidate.annotationType())) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  private boolean hasMethodLevelFixtureAnnotation(final Method springTestMethod) {
+    return resolveMethodFixtureAnnotation(springTestMethod) != null;
+  }
+
+  @Override
+  protected void before() throws Throwable {
+    if (shouldReuseSpringContextFixture()) {
+      return;
+    }
+
+    springContextFixturePrepared = false;
+    super.before();
+  }
+
+  private boolean shouldReuseSpringContextFixture() {
+    if (!springContextFixturePrepared || isCurrentFixtureDirty) {
+      return false;
+    }
+
+    SearchIndexType currentFixtureType = getType();
+    boolean sameClass = isSameTestClass(springContextTestClass, currentTestClass);
+    boolean sameScope = springContextAnnotationFromMethod
+        ? sameClass && Objects.equals(springContextTestName, testName)
+        : sameClass;
+
+    if (springContextFixtureType == currentFixtureType && sameScope) {
+      type = currentFixtureType;
+      return true;
+    }
+
+    springContextFixturePrepared = false;
+    return false;
+  }
+
+  private boolean isSameTestClass(final Class<?> left, final Class<?> right) {
+    if (left == right) {
+      return true;
+    }
+    if (left == null || right == null) {
+      return false;
+    }
+    return left.getName().equals(right.getName());
   }
 
   @Override
@@ -107,7 +223,7 @@ public class SearchIndexRule
     if (type.equals(SearchIndexType.OPENSEARCH_HTTP)) {
       throw new UnsupportedOperationException("OpenSearch tests have been removed");
     }
-    return new LuceneSearchIndexFixture(SearchIndexRuleAnnotations.getLuceneTest(annotation));
+    return new InProcessLuceneSearchIndexFixture();
   }
 
   @Override
@@ -121,12 +237,26 @@ public class SearchIndexRule
   }
 
   public SearchConfig getSearchConfig() {
-    return fixture.getSearchConfig();
+    return fixture != null ? fixture.getSearchConfig() : null;
   }
 
-  public enum SearchIndexType
+  private static final class InProcessLuceneSearchIndexFixture
+      implements SearchIndexFixture
   {
-    LUCENE,
-    OPENSEARCH_HTTP
+    @Override
+    public com.sonatype.insight.brain.search.SearchConfig getSearchConfig() {
+      // With legacy code a null SearchConfig means Lucene (which has no config)
+      return null;
+    }
+
+    @Override
+    public boolean isFixtureReusable() {
+      return true;
+    }
+
+    @Override
+    public void close() throws Exception {
+      // no-op
+    }
   }
 }

@@ -89,7 +89,7 @@ Two convenience scripts are provided for local development:
 ### Server Deployment
 Run from `insight-brain-service/` directory:
 ```bash
-mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml'
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml'
 ```
 Default credentials: admin/admin123
 

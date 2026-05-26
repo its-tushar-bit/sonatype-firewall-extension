@@ -5,20 +5,17 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-
-import com.sonatype.insight.brain.security.SecurityModule;
-
-import com.google.common.net.HttpHeaders;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.google.common.net.HttpHeaders;
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collections;
+import org.junit.Test;
 
 public class RequestDataTest
 {
@@ -87,7 +84,7 @@ public class RequestDataTest
   public void testNewInstance_SessionId() {
     HttpServletRequest mockHttpServletRequest = mockHttpServletRequest();
     when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
-      new Cookie("cookieName1", "cookieValue1"), new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+      new Cookie("cookieName1", "cookieValue1"), new Cookie(SecurityConfiguration.SESSION_COOKIE_NAME, "sessionId"),
       new Cookie("cookieName3", "cookieValue3")
     });
 

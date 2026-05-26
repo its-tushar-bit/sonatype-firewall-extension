@@ -5,26 +5,24 @@
  */
 package com.sonatype.insight.brain.component;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+
+import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
 
 public class RepositoryIdentifiedComponentPurgerTest
     extends AbstractComponentTest
@@ -37,13 +35,6 @@ public class RepositoryIdentifiedComponentPurgerTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(RepositoryIdentifiedComponentDAO.class).toInstance(mockRepositoryIdentifiedComponentDAO);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {
@@ -69,8 +60,10 @@ public class RepositoryIdentifiedComponentPurgerTest
   }
 
   @Test
-  public void testExecute_AdminTask() {
-    repositoryIdentifiedComponentPurger.execute(null, new PrintWriter(new StringWriter()));
+  public void testExecute_AdminTask() throws Exception {
+    repositoryIdentifiedComponentPurger.execute((Map<String, List<String>>) null,
+        new PrintWriter(OutputStream.nullOutputStream()));
+
     verify(mockTaskScheduler).triggerTaskNow(repositoryIdentifiedComponentPurger, null);
   }
 

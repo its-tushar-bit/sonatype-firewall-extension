@@ -5,31 +5,46 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.organization.OrganizationResource;
-import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.BaseUrl;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.organization.OrganizationResource;
+import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.Configuration;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class ThrowableHandlerResourceTest
     extends AbstractResourceTest
 {
   @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(BaseUrl.class).toInstance(mock(BaseUrl.class));
+  protected List<Class<?>> getTestConfigurationClasses() {
+    List<Class<?>> configs = new ArrayList<>(super.getTestConfigurationClasses());
+    configs.add(ThrowableHandlerResourceTestConfiguration.class);
+    return configs;
+  }
+
+  @TestConfiguration
+  static class ThrowableHandlerResourceTestConfiguration
+  {
+    @Bean
+    @Primary
+    public BaseUrl baseUrl(final Configuration configuration) {
+      return spy(new BaseUrl(configuration));
+    }
   }
 
   @Test

@@ -5,16 +5,14 @@
  */
 package com.sonatype.insight.brain.security;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.AssetPaths;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.version.VersionResource;
-
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
 public class TraceMethodBlockFilterTest
@@ -22,7 +20,7 @@ public class TraceMethodBlockFilterTest
 {
   @Test
   public void testTraceMethodBlocked() throws Exception {
-    HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACE");
+    HttpResponse response = restRequest().path(AssetPaths.BRAIN_ASSET_PATH, "index.html").send("TRACE");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
 
     response = restRequest().path(VersionResource.RESOURCE_PATH).send("TRACE");
@@ -31,7 +29,7 @@ public class TraceMethodBlockFilterTest
 
   @Test
   public void testTrackMethodBlocked() throws Exception {
-    HttpResponse response = restRequest().path(InsightBrainService.BRAIN_ASSET_PATH, "index.html").send("TRACK");
+    HttpResponse response = restRequest().path(AssetPaths.BRAIN_ASSET_PATH, "index.html").send("TRACK");
     assertResponseStatus(HttpStatus.METHOD_NOT_ALLOWED_405, response);
 
     response = restRequest().path(VersionResource.RESOURCE_PATH).send("TRACK");

@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -40,22 +44,15 @@ import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetrySt
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 public class SourceControlPullRequestServiceTest
     extends AbstractComponentTest
@@ -75,13 +72,6 @@ public class SourceControlPullRequestServiceTest
   public static final String DEFAULT_VERSION = "1.1.0";
 
   public static final String DEFAULT_REMEDIATION_VERSION = "1.2.0";
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
-    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

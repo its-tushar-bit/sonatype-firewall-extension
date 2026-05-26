@@ -5,16 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.BadRequestException;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -73,14 +66,19 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.lifecycle.Managed;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 /**
  * Service for policy evaluations for applications.
@@ -190,11 +188,6 @@ public class PolicyEvaluateService
   }
 
   @Override
-  public void start() throws Exception {
-    // no-op
-  }
-
-  @Override
   public void stop() throws Exception {
     executor.shutdown();
   }
@@ -261,10 +254,10 @@ public class PolicyEvaluateService
       Stage stage,
       ScanTriggerType scanTriggerType) throws IOException
   {
-    log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
-        applicationPublicId, scanId, stage.getStageTypeId());
-
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    log.debug("Received request to evaluate policy for app public id {}, scan id {}, stageTypeId {}",
+        app.getPublicId(), scanId, stage == null ? null : stage.getStageTypeId());
+
     ScanEntity scanEntity = scanPersistenceService.getScan(app.getId(), scanId);
     if (!scanEntity.exists()) {
       throw new NotFoundException("Cannot find scan with ID " + scanId);
@@ -1055,4 +1048,5 @@ public class PolicyEvaluateService
   {
     // actual work done by AOP interceptor
   }
+
 }

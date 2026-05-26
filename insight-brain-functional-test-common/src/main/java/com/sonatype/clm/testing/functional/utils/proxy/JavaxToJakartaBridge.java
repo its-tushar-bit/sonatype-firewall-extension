@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.utils.proxy;
 
+import jakarta.servlet.ServletConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,8 +16,6 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-
-import jakarta.servlet.ServletConnection;
 
 /**
  * Reverse bridge classes to adapt javax servlet API types to Jakarta servlet API types.
@@ -515,6 +514,20 @@ public class JavaxToJakartaBridge
     @Override
     public void sendRedirect(String location) throws IOException {
       javaxResponse.sendRedirect(location);
+    }
+
+    @Override
+    public void sendRedirect(String location, int sc, boolean clearBuffer) throws IOException {
+      if (sc == jakarta.servlet.http.HttpServletResponse.SC_FOUND && clearBuffer) {
+        javaxResponse.sendRedirect(location);
+        return;
+      }
+
+      if (clearBuffer) {
+        javaxResponse.resetBuffer();
+      }
+      javaxResponse.setStatus(sc);
+      javaxResponse.setHeader("Location", javaxResponse.encodeRedirectURL(location));
     }
 
     @Override

@@ -5,18 +5,19 @@
  */
 package com.sonatype.insight.brain.users;
 
-import java.net.HttpCookie;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.auth0.json.mgmt.users.User;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
@@ -39,21 +40,18 @@ import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.jaxrs.JsonUtils;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import com.auth0.json.mgmt.users.User;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import jakarta.inject.Inject;
+import java.net.HttpCookie;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class MtiqUserResourceTest
@@ -72,18 +70,32 @@ public class MtiqUserResourceTest
     tenantMetadataDAO = lookup(TenantMetadataDAO.class);
   }
 
-  @Override
-  protected List<Module> getBrainModules() {
-    List<Module> modules = new ArrayList<>(super.getBrainModules());
-    modules.add(new AbstractModule()
+  /**
+   * Test configuration that provides test service implementations.
+   */
+  @TestConfiguration
+  static class MtiqUserResourceTestConfig
+  {
+    @Bean
+    @Primary
+    MultiTenantAuth0ManagementService multiTenantAuth0ManagementService() {
+      return new TestMultiTenantAuth0ManagementService();
+    }
+
+    @Bean(name = "MTIQFeatureService")
+    @Primary
+    MTIQFeatureService mtiqFeatureService(
+        ProductLicense productLicense,
+        Configuration configuration,
+        SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+        ApiConfigFeaturesService service,
+        DeveloperEnablementService developerEnablementService,
+        MailConfigurationDAO mailConfigurationDAO,
+        TenantUtil tenantUtil)
     {
-      @Override
-      protected void configure() {
-        bind(MultiTenantAuth0ManagementService.class).to(TestMultiTenantAuth0ManagementService.class);
-        bind(MTIQFeatureService.class).to(TestMtiqFeatureService.class).asEagerSingleton();
-      }
-    });
-    return modules;
+      return new TestMtiqFeatureService(productLicense, configuration, systemConfigurationPropertyDAO,
+          service, developerEnablementService, mailConfigurationDAO, tenantUtil);
+    }
   }
 
   @Override

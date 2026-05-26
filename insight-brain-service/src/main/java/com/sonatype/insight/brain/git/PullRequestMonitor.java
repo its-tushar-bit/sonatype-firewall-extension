@@ -5,6 +5,34 @@
  */
 package com.sonatype.insight.brain.git;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.GitException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,40 +50,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
-import com.sonatype.nexus.git.utils.api.GitApi;
-import com.sonatype.nexus.git.utils.api.GitException;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * This class is the entry point for the Feature Branch Monitoring feature (part of Continuous Risk Profile). It detects
@@ -69,9 +67,11 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestMonitor
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "monitorPRs";
+
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
   public static final String TASK_NAME = "PullRequestMonitor";
@@ -125,7 +125,7 @@ public class PullRequestMonitor
       ApiConfigFeaturesService apiConfigFeaturesService,
       ShutdownHandler shutdownHandler)
   {
-    super("monitorPRs");
+    super(PATH);
     this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.gitApiFactory = gitApiFactory;
@@ -172,13 +172,6 @@ public class PullRequestMonitor
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter output) throws Exception {
-    log.debug("Triggering monitoring for all PRs");
-    taskScheduler.triggerTaskNow(this, null);
-    output.print("Triggered monitoring for all PRs");
-  }
-
-  @Override
   public void execute(JobExecutionContext context) {
     execute(() -> {
       if (apiConfigFeaturesService.isSaasLifecycleScmEnabled() && licenseChecker.isIqForScmSupported()) {
@@ -217,6 +210,11 @@ public class PullRequestMonitor
   @Override
   public void deregister() {
     // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    taskScheduler.triggerTaskNow(this, null);
   }
 
   @Override

@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-import java.util.Arrays;
-
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.Response.StatusType;
+import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.ARTIFACTORY_CONNECTION_NOT_FOUND_ERROR;
+import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.MISSING_CONNECTION_DATA_ERROR;
+import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.MISSING_CREDENTIALS_ERROR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
@@ -33,20 +35,15 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.StatusType;
+import java.io.IOException;
+import java.util.Arrays;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.ARTIFACTORY_CONNECTION_NOT_FOUND_ERROR;
-import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.MISSING_CONNECTION_DATA_ERROR;
-import static com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService.MISSING_CREDENTIALS_ERROR;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -80,12 +77,6 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Mock
   private ArtifactoryClient client;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ArtifactoryClientFactory.class).toInstance(mockFactory);
-    super.configure(binder);
-  }
 
   @After
   public void after() {

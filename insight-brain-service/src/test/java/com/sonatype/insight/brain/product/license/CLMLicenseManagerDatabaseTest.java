@@ -5,39 +5,41 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.TreeSet;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
-
-import org.sonatype.licensing.LicensingException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.List;
+import java.util.TreeSet;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.sonatype.licensing.LicensingException;
+import org.sonatype.licensing.PreferencesFactory;
+import org.sonatype.licensing.product.LicenseBuilder;
+import org.sonatype.licensing.product.LicenseChangeNotifier;
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.internal.DefaultProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseContent;
+import org.sonatype.licensing.product.util.LicenseFingerprintStrategy;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+import org.sonatype.licensing.trial.TrialLicenseManager;
 
 /**
  * Most CLMLicenseManager functionality is tested in CLMLicenseManagerTest against a mocked
@@ -55,9 +57,6 @@ public class CLMLicenseManagerDatabaseTest
   @ClassRule
   public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
-  @ClassRule
-  public static TemporaryFolder tempDir = new TemporaryFolder();
-
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
@@ -74,7 +73,7 @@ public class CLMLicenseManagerDatabaseTest
   private CLMLicenseManager clmLicenseManager;
 
   @Mock
-  private TaskScheduler taskSchedulerMock;
+  private TaskScheduler taskScheduler;
 
   @Before
   public void resetHdsServer() {
@@ -90,22 +89,28 @@ public class CLMLicenseManagerDatabaseTest
   }
 
   @Override
-  public void configure(Binder binder) {
-    Path hdsKeystorePath;
-    try {
-      hdsKeystorePath = Paths.get(getClass().getResource("/productlicense/licensing-keystore-hds.p12").toURI());
-    }
-    catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+  protected List<BeanFieldOverride> getBeanFieldOverrides() {
+    TrialLicenseManager trialLicenseManager = getApplicationContext().getBean(TrialLicenseManager.class);
+    LicenseBuilder licenseBuilder = getApplicationContext().getBean(LicenseBuilder.class);
+    LicenseChangeNotifier licenseChangeNotifier = getApplicationContext().getBean(LicenseChangeNotifier.class);
+    PreferencesFactory preferencesFactory = getApplicationContext().getBean(PreferencesFactory.class);
+    LicenseFingerprintStrategy licenseFingerprintStrategy =
+        getApplicationContext().getBean(LicenseFingerprintStrategy.class);
+    ProductLicenseDAO productLicenseDAO = getApplicationContext().getBean(ProductLicenseDAO.class);
 
-    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
-    productLicenseConfig.setKeyStorePath(hdsKeystorePath.toString());
-    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
+    ProductLicenseManager realProductLicenseManager =
+        new DefaultProductLicenseManager(trialLicenseManager, licenseBuilder, licenseChangeNotifier);
+    LicenseContent realLicenseContent =
+        new LicenseContent(licenseBuilder, realProductLicenseManager, preferencesFactory);
+    LicenseFingerprinter realLicenseFingerprinter =
+        new LicenseFingerprinter(licenseFingerprintStrategy, realLicenseContent);
+    ProductLicenseDetailsCache realProductLicenseDetailsCache = new ProductLicenseDetailsCache(productLicenseDAO);
 
-    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
+    return List.of(
+        beanFieldOverride(CLMLicenseManager.class, "licenseManager", realProductLicenseManager),
+        beanFieldOverride(CLMLicenseManager.class, "licenseContent", realLicenseContent),
+        beanFieldOverride(CLMLicenseManager.class, "licenseFingerprinter", realLicenseFingerprinter),
+        beanFieldOverride(CLMLicenseManager.class, "productLicenseDetailsCache", realProductLicenseDetailsCache));
   }
 
   private URL getTestLicenseUrl(String fingerprint) {

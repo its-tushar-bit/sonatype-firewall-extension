@@ -10,6 +10,9 @@ import java.io.InputStream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -32,6 +35,7 @@ import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CycloneDxToPdfExporter
     extends AbstractCycloneDxExporter
 {

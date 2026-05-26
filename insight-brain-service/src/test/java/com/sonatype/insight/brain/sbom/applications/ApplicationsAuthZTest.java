@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
-import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
@@ -71,10 +71,8 @@ public class ApplicationsAuthZTest
   public void testGetApplications_Authorized() {
     grantReadPermission(app.getId());
 
-    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
-        .withApplicationId(app.getId())
-        .withCreatedAt(new Date())
-        .build();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(
+        app.getId(), ThirdPartySbomMetadataStatus.ACTIVE, new Date());
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);

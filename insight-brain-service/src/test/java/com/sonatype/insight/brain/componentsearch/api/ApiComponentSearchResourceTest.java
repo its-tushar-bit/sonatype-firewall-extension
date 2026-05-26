@@ -35,7 +35,8 @@ public class ApiComponentSearchResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.COMPONENT_SEARCH_RESOURCE_PATH);
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""))
+        .path(PublicApiPaths.COMPONENT_SEARCH_RESOURCE_PATH);
   }
 
   @Test

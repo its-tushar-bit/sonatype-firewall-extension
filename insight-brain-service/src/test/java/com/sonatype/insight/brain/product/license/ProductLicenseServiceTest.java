@@ -5,12 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.TreeSet;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -19,15 +14,15 @@ import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.TreeSet;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ProductLicenseServiceTest
     extends AbstractComponentTest
@@ -53,15 +48,6 @@ public class ProductLicenseServiceTest
         new File(tempDir.getRoot(), "hds.p12").toPath());
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
-    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
-    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
-    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-    super.configure(binder);
   }
 
   @Test

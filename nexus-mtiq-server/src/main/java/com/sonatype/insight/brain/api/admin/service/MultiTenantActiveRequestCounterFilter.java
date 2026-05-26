@@ -13,8 +13,11 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
+import org.springframework.context.annotation.Primary;
+
 @Named
 @Singleton
+@Primary
 public class MultiTenantActiveRequestCounterFilter
     extends ActiveRequestCounterFilter
 {

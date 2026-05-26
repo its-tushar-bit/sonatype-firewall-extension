@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.queue;
 
-import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -17,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -24,7 +23,6 @@ import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.servlets.tasks.Task;
 import org.apache.commons.lang3.exception.UncheckedInterruptedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,8 @@ import org.slf4j.LoggerFactory;
  * dispatching each to an independent worker thread. One job failure never blocks others.
  * <p>
  * Subclasses provide domain-specific plug-in points via abstract methods, and may optionally
- * participate in the Dropwizard admin-port Task framework and the live-configuration
+ * implement {@link com.sonatype.insight.brain.service.AdminTask AdminTask} for manual
+ * triggering via the admin port and the live-configuration
  * ConfigurationListener framework by overriding the relevant hook methods.
  * <p>
  * Per-tenant isolation is achieved via {@link TenantReference}: each tenant gets its own
@@ -49,20 +48,22 @@ import org.slf4j.LoggerFactory;
  * poll tick. Once the limit is reached the job is marked FAILED permanently. Subclasses may
  * override {@link #onJobFailure} to change this behaviour (e.g. dead-letter queuing).
  * <p>
- * <b>Extending Task / ConfigurationListener:</b> Concrete subclasses that also extend
- * Task and implement ConfigurationListener should call
+ * <b>AdminTask / ConfigurationListener:</b> Concrete subclasses that also implement
+ * AdminTask and ConfigurationListener should call
  * {@link #handleConfigurationChanged(int, long, boolean)} from their {@code configurationChanged()}
  * implementation. This keeps the framework logic centralised here while giving subclasses full control.
  *
  * @param <T> the queue job type
  */
 public abstract class AbstractPollDispatchQueueConsumer<T>
-    extends Task
+    extends AdminTask
     implements TenantManaged
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractPollDispatchQueueConsumer.class);
 
   private final ShutdownHandler shutdownHandler;
+
+  private final String consumerName;
 
   private final TenantReference<TenantScheduledThreadPoolExecutor> scheduleExecutors;
 
@@ -82,6 +83,7 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
 
   protected AbstractPollDispatchQueueConsumer(final String consumerName, final ShutdownHandler shutdownHandler) {
     super(consumerName);
+    this.consumerName = consumerName;
     this.shutdownHandler = shutdownHandler;
     this.scheduleExecutors = new TenantReference<>(this::createScheduledExecutorService);
     this.executors = new TenantReference<>(this::createExecutorService);
@@ -177,17 +179,6 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    */
   protected void onReschedule(final long pollIntervalMs, final long initialDelayMs) {
     // no-op by default
-  }
-
-  /**
-   * Triggered via {@code POST /tasks/{consumerName}} on the admin port.
-   * Forces an immediate processing run for the current tenant.
-   */
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
-    log.info("Manual request to run {}.", getConsumerName());
-    triggerProcessing();
-    output.write("Completed manual execution of " + getConsumerName() + ".\n");
   }
 
   /**

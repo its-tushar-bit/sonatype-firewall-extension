@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -80,28 +81,25 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * End-to-end tests of indexing and searching to check queries return the desired results.
@@ -165,15 +163,11 @@ public abstract class AbstractIndexSearchingTest
   @Rule
   public HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
-  @Override
-  public void configure(Binder binder) {
+  @Before
+  public void setUpSearchOverrides() {
     spyOrganizationDAO = spy(daoFactory.createOrganizationDAO());
-    binder.bind(OrganizationDAO.class).toInstance(spyOrganizationDAO);
+    applyBeanFieldOverride(OwnerDAO.class, "orgDAO", spyOrganizationDAO);
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
-    binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
   }
 
   @Override
@@ -1157,7 +1151,8 @@ public abstract class AbstractIndexSearchingTest
     // Wait for the import processing to complete
     int totalWait = 0;
     String scanRequestId = scanTicket.statusUrl.substring(scanTicket.statusUrl.lastIndexOf('/') + 1);
-    ApiThirdPartyScanResultDTO scanResult = await().atMost(30, TimeUnit.SECONDS)
+    ApiThirdPartyScanResultDTO scanResult = await().pollInSameThread()
+        .atMost(30, TimeUnit.SECONDS)
         .pollInterval(Duration.ofSeconds(1))
         .until(() -> {
           try {

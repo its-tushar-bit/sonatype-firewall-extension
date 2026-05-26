@@ -5,14 +5,12 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import java.net.URI;
-
+import com.sonatype.insight.brain.service.AssetPaths;
+import com.sonatype.insight.brain.service.BaseUrl;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.core.UriBuilder;
-
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
+import java.net.URI;
 
 /**
  * Determines the actual target page when users browse to the server's context root.
@@ -34,7 +32,7 @@ public class LandingService
    */
   public URI getDestination() {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html");
+    uriBuilder.path(AssetPaths.BRAIN_ASSET_PATH).path("index.html");
     return uriBuilder.build();
   }
 
@@ -43,7 +41,7 @@ public class LandingService
    */
   public URI getGuideDestination() {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH).path("guide/index.html");
+    uriBuilder.path(AssetPaths.BRAIN_ASSET_PATH).path("guide/index.html");
     return uriBuilder.build();
   }
 }

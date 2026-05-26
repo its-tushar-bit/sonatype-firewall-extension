@@ -52,6 +52,11 @@ public class ApiAutoPolicyWaiverResourceTest
     licenseManager.reset();
   }
 
+  @Override
+  protected String getRestBaseUrl() {
+    return super.getRestBaseUrl().replaceFirst("/$", "");
+  }
+
   @Test
   public void testDeleteAutoPolicyWaiver() throws Exception {
     Application application = tempEntity.newApplicationWithParent();

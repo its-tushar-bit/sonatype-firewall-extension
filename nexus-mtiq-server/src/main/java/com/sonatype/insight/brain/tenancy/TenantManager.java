@@ -5,39 +5,34 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.invalidateTenant;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAs;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.sonatype.insight.brain.api.admin.service.TenantService;
+import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
+import com.sonatype.insight.brain.db.DatabaseProvisioner;
+import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.service.TenantLifecycle;
+import datadog.trace.api.Trace;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.api.admin.service.TenantService;
-import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
-import com.sonatype.insight.brain.db.DatabaseProvisioner;
-import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.TenantLifecycle;
-
-import com.google.common.annotations.VisibleForTesting;
-import datadog.trace.api.Trace;
-import io.dropwizard.lifecycle.Managed;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.invalidateTenant;
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAs;
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.toList;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 
 /**
  * Exposes setTenant methods to be called by tenant "entry-points" so that a tenant can be correctly provisioned.
@@ -49,10 +44,8 @@ import static java.util.stream.Collectors.toList;
  */
 @Named
 @Singleton
-@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
-@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
 public class TenantManager
-    implements Managed
+    implements SmartInitializingSingleton
 {
   private static final Logger log = LoggerFactory.getLogger(TenantManager.class);
 
@@ -64,7 +57,7 @@ public class TenantManager
 
   private final Provider<Set<TenantManaged>> tenantManagedBeansProvider;
 
-  // This is a provider to prevent circular dependencies between Guice beans
+  // This provider avoids a circular dependency between tenant lifecycle collaborators.
   private final Provider<TenantLifecycle> tenantLifecycle;
 
   private final DatabaseProvisioner databaseProvisioner;
@@ -128,8 +121,8 @@ public class TenantManager
   }
 
   @Override
-  public void start() {
-    preregisterAllTenants();
+  public void afterSingletonsInstantiated() {
+    ensureTenantsPreRegistered();
   }
 
   @VisibleForTesting
@@ -156,6 +149,12 @@ public class TenantManager
 
   public boolean areTenantsPreRegistered() {
     return tenantsPreRegistered;
+  }
+
+  public synchronized void ensureTenantsPreRegistered() {
+    if (!tenantsPreRegistered) {
+      preregisterAllTenants();
+    }
   }
 
   private void registerTenants(List<String> tenants) {

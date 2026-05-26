@@ -5,6 +5,54 @@
  */
 package com.sonatype.insight.brain.service;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+import static org.apache.commons.io.FileUtils.deleteDirectory;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+
+import com.google.common.collect.ImmutableSet;
+import com.sonatype.insight.brain.MockCleaner;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
+import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
+import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
+import com.sonatype.insight.brain.security.SsoUserService;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
+import com.sonatype.insight.brain.service.config.StorageConfig;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.json.store.JsonUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,62 +72,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.MockCleaner;
-import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
-import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
-import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
-import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
-import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
-import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.model.PerpetualLock;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
-import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
-import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
-import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
-import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
-import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
-import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
-import com.sonatype.insight.brain.security.EncryptionKeyStore;
-import com.sonatype.insight.brain.security.InternalRealm;
-import com.sonatype.insight.brain.security.SsoUserService;
-import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
-import com.sonatype.insight.brain.testing.BrainInjectedTest;
-import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.json.store.JsonUtils;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Binder;
-import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.Matcher;
-import com.google.inject.spi.InjectionListener;
-import com.google.inject.spi.TypeEncounter;
-import com.google.inject.spi.TypeListener;
-import io.dropwizard.lifecycle.Managed;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -96,32 +88,42 @@ import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.context.SharedConfigurationState;
-
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
-import static org.apache.commons.io.FileUtils.deleteDirectory;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import org.springframework.aop.framework.Advised;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.AopTestUtils;
 
 /**
- * Support class for tests of Sisu components.
+ * Support class for tests of Spring components.
+ *
+ * <p>
+ * <b>Migration Note:</b> This class uses the Spring-based test infrastructure.
+ * The old module-style customization hook is no longer supported. Use `@TestConfiguration`
+ * inner classes or override `setUpTestConfiguration()` to customize beans.
+ * </p>
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractComponentTest
     extends BrainInjectedTest
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  @Inject
   protected SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Inject
   protected SamlConfigurationService samlConfigurationService;
 
-  @Inject
+  protected InsightConfig insightConfig;
+
   protected InsightWork insightWork;
+
+  private String originalSonatypeWork;
 
   @Rule
   public MockCleaner mockCleaner = new MockCleaner();
@@ -143,34 +145,59 @@ public class AbstractComponentTest
 
   protected static final String USERNAME = "testuser";
 
+  private static final Class<?>[] STORAGE_SCOPED_SINGLETON_TYPES = {
+    com.sonatype.insight.brain.scan.datastore.ScanPersistenceService.class,
+    ApplicationReportPersistenceService.class,
+    SbomPersistenceService.class
+  };
+
   @Mock
   protected Subject subject;
 
   @Mock
   private SecurityManager securityManager;
 
-  private final Collection<Managed> managedComponents = new ArrayList<>();
+  private final Collection<DisposableBean> disposableComponents = new ArrayList<>();
 
   @Before
   public void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
+    if (systemConfigurationPropertyDAO == null) {
+      systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
+    }
+    if (samlConfigurationService == null) {
+      samlConfigurationService = lookupIfAvailable(SamlConfigurationService.class);
+    }
+    if (insightConfig == null) {
+      insightConfig = lookupIfAvailable(InsightConfig.class);
+    }
+    if (insightWork == null) {
+      insightWork = lookupIfAvailable(InsightWork.class);
+    }
+    if (insightConfig != null) {
+      originalSonatypeWork = insightConfig.getSonatypeWork().getPath();
+      customizeConfig(insightConfig);
+    }
     cleanupInsightWorkFiles();
     setUpTestLicenseThreatGroups();
+    grantDefaultTestUserAllPermissions();
     setUpSecurity();
+    unwrapInjectedSpringProxies();
   }
 
   @After
   public void afterTest() {
     log.info("After: {}", testName.getMethodName());
-    releaseScmPerpetualLock();
-    stopManagedComponents();
-    tearDownSecurity();
-    resetBaseUrl();
-    resetAccessAllowlist();
-    resetApiAccessAllowList();
-    SharedConfigurationState.clear();
-    disableSsoWithOAuth2();
-    disableSsoWithSaml();
+    runCleanupStep("release SCM perpetual lock", this::releaseScmPerpetualLock);
+    runCleanupStep("stop disposable components", this::stopDisposableComponents);
+    runCleanupStep("tear down security", this::tearDownSecurity);
+    runCleanupStep("reset base URL", this::resetBaseUrl);
+    runCleanupStep("reset access allowlist", this::resetAccessAllowlist);
+    runCleanupStep("reset API access allow list", this::resetApiAccessAllowList);
+    runCleanupStep("reset advanced reporting insights", this::resetAdvancedReportingInsightsEnabled);
+    runCleanupStep("disable OAuth2 SSO", this::disableSsoWithOAuth2);
+    runCleanupStep("disable SAML SSO", this::disableSsoWithSaml);
+    runCleanupStep("reset mutable singleton test state", this::resetMutableSingletonTestState);
   }
 
   public String getBaseUrl() {
@@ -191,7 +218,10 @@ public class AbstractComponentTest
   }
 
   public void resetBaseUrl() {
-    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
     Set<String> propertyNames =
         ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
@@ -199,21 +229,40 @@ public class AbstractComponentTest
   }
 
   public void resetAccessAllowlist() {
-    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ACCESS_ALLOWLIST);
     service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
   public void resetApiAccessAllowList() {
-    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
     service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }
 
+  public void resetAdvancedReportingInsightsEnabled() {
+    ApiConfigurationService service = lookupIfAvailable(ApiConfigurationService.class);
+    if (service == null) {
+      return;
+    }
+    Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED);
+    service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
+  }
+
   private void releaseScmPerpetualLock() {
-    PerpetualLockDAO perpetualLockDAO = lookup(PerpetualLockDAO.class);
+    PerpetualLockDAO perpetualLockDAO = lookupIfAvailable(PerpetualLockDAO.class);
+    if (perpetualLockDAO == null) {
+      return;
+    }
     String perpetualLockId = SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK;
     PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
     if (perpetualLock != null) {
@@ -226,12 +275,44 @@ public class AbstractComponentTest
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
 
+  protected void grantDefaultTestUserAllPermissions() {
+    tempEntity.newUser(USERNAME);
+    var role = tempEntity.newRole(true, Permission.values());
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), USERNAME);
+  }
+
   protected void setUpSecurity() {
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", InternalRealm.ID));
     lenient().when(subject.associateWith(any(Runnable.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
+        .thenAnswer(invocation -> {
+          Runnable runnable = invocation.getArgument(0);
+          return (Runnable) () -> {
+            ThreadContext.bind(securityManager);
+            ThreadContext.bind(subject);
+            try {
+              runnable.run();
+            }
+            finally {
+              ThreadContext.unbindSubject();
+              ThreadContext.unbindSecurityManager();
+            }
+          };
+        });
     lenient().when(subject.associateWith(any(Callable.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
+        .thenAnswer(invocation -> {
+          Callable<?> callable = invocation.getArgument(0);
+          return (Callable<Object>) () -> {
+            ThreadContext.bind(securityManager);
+            ThreadContext.bind(subject);
+            try {
+              return callable.call();
+            }
+            finally {
+              ThreadContext.unbindSubject();
+              ThreadContext.unbindSecurityManager();
+            }
+          };
+        });
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);
@@ -242,29 +323,11 @@ public class AbstractComponentTest
     ThreadContext.unbindSubject();
   }
 
-  private void bindManagedComponentObserver(Binder binder) {
-    InjectionListener<Object> injectionListener = injectee -> managedComponents.add((Managed) injectee);
-    TypeListener typeListener = new TypeListener()
-    {
-      @Override
-      public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
-        encounter.register(injectionListener);
-      }
-    };
-    binder.bindListener(new Matcher<TypeLiteral<?>>()
-    {
-      @Override
-      public boolean matches(TypeLiteral<?> typeLiteral) {
-        return Managed.class.isAssignableFrom(typeLiteral.getRawType());
-      }
-    }, typeListener);
-  }
-
-  private void stopManagedComponents() {
+  private void stopDisposableComponents() {
     // avoid leaking resources like thread pools
-    for (Managed managedComponent : managedComponents) {
+    for (DisposableBean component : disposableComponents) {
       try {
-        managedComponent.stop();
+        component.destroy();
       }
       catch (Exception ignored) {
         // irrelevant
@@ -272,49 +335,22 @@ public class AbstractComponentTest
     }
   }
 
-  @Override
-  protected void overrideTestBindings(Binder binder) {
-    // Call super to get any parent test bindings
-    super.overrideTestBindings(binder);
-
-    // Bind test-specific implementations in the override module so that
-    // subclass configure() methods can override these bindings
-    bindManagedComponentObserver(binder);
-    InsightConfig config = new InsightConfig();
-    try {
-      // Get or create the sonatype-work folder - may already exist from previous test in same JVM
-      File sonatypeWorkDir = new File(tempDir.getRoot(), "sonatype-work");
-      if (!sonatypeWorkDir.exists()) {
-        sonatypeWorkDir = tempDir.newFolder("sonatype-work");
-      }
-      config.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "https://clm-staging.sonatype.com/");
-    customizeConfig(config);
-    binder.bind(InsightConfig.class).toInstance(config);
-    binder.bind(ProductLicense.class).to(TestProductLicense.class);
-    binder.bind(ProductLicenseDetailsCache.class).to(TestProductLicenseDetailsCache.class);
-    binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-    binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
-    binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
-    binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
-    binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
-
-    binder.requestStaticInjection(ConditionTypes.class);
-    binder.requestStaticInjection(ConditionValueTypes.class);
-    binder.requestStaticInjection(ConfigurationUtils.class);
-    binder.requestStaticInjection(ComponentDetailsLoader.class);
-    binder.requestStaticInjection(SystemConfigurationPropertyFeature.class);
-    binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
-
-    // Ensure SAML tests use the test password factory
-    TestSamlFactory testSamlFactory = new TestSamlFactory();
-    binder.bind(SamlPasswordFactory.class).toInstance(testSamlFactory.createSamlPasswordFactory());
+  /**
+   * Register a disposable component to be cleaned up after the test.
+   */
+  protected void registerDisposable(DisposableBean component) {
+    disposableComponents.add(component);
   }
 
+  /**
+   * Hook for tests that need to mutate {@link InsightConfig} before lazy beans are looked up.
+   * Prefer dedicated {@code @TestConfiguration} beans when possible.
+   *
+   * <p>
+   * Must be side-effect-free beyond mutating the config argument - may be called during
+   * Spring context initialization before {@code @Before} methods run.
+   * </p>
+   */
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {
     // hook for tests to tweak config before components grab it
   }
@@ -438,7 +474,10 @@ public class AbstractComponentTest
   }
 
   public void disableSsoWithSaml() {
-    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    SamlConfigurationService samlConfigurationService = lookupIfAvailable(SamlConfigurationService.class);
+    if (samlConfigurationService == null) {
+      return;
+    }
 
     // maintain previous
     boolean previousValue = SAML_ENABLED.isEnabled();
@@ -450,8 +489,131 @@ public class AbstractComponentTest
   }
 
   private void loadSsoConfiguration() {
-    SsoUserService ssoUserService = lookup(SsoUserService.class);
+    SsoUserService ssoUserService = lookupIfAvailable(SsoUserService.class);
+    if (ssoUserService == null) {
+      return;
+    }
     ssoUserService.loadSsoConfiguration();
+  }
+
+  private <T> T lookupIfAvailable(Class<T> type) {
+    try {
+      return lookup(type);
+    }
+    catch (BeansException e) {
+      return null;
+    }
+  }
+
+  private void unwrapInjectedSpringProxies() {
+    if (preserveAopProxies()) {
+      return;
+    }
+
+    for (Class<?> type = getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+      for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+        if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+          continue;
+        }
+        if (!field.isAnnotationPresent(jakarta.inject.Inject.class)
+            && !field.isAnnotationPresent(org.springframework.beans.factory.annotation.Autowired.class))
+        {
+          continue;
+        }
+        try {
+          field.setAccessible(true);
+          Object bean = field.get(this);
+          Object target = unwrapProxy(bean);
+          if (target != null && target != bean) {
+            field.set(this, target);
+          }
+        }
+        catch (IllegalAccessException ignored) {
+          // best-effort test compatibility only
+        }
+      }
+    }
+  }
+
+  private static Object unwrapProxy(final Object bean) {
+    if (bean == null) {
+      return null;
+    }
+    try {
+      if (bean instanceof Advised advised) {
+        Object target = advised.getTargetSource().getTarget();
+        if (target != null) {
+          return target;
+        }
+      }
+      return AopTestUtils.getUltimateTargetObject(bean);
+    }
+    catch (Exception ignored) {
+      return bean;
+    }
+  }
+
+  private void resetMutableSingletonTestState() {
+    if (insightConfig != null) {
+      if (originalSonatypeWork != null) {
+        insightConfig.setSonatypeWork(originalSonatypeWork);
+      }
+      insightConfig.setStorage(new StorageConfig());
+      insightConfig.setDatabase(null);
+    }
+
+    resetProductLicenseTestState();
+    destroyStorageScopedSingletons();
+
+    SamlDeploymentManager samlDeploymentManager = lookupIfAvailable(SamlDeploymentManager.class);
+    if (samlDeploymentManager != null) {
+      samlDeploymentManager.deregister();
+    }
+  }
+
+  private void runCleanupStep(final String description, final Runnable cleanup) {
+    try {
+      cleanup.run();
+    }
+    catch (RuntimeException e) {
+      log.warn("Skipping cleanup step '{}' after partial test initialization failure", description, e);
+    }
+  }
+
+  private void resetProductLicenseTestState() {
+    TestProductLicenseManager testProductLicenseManager = lookupIfAvailable(TestProductLicenseManager.class);
+    if (testProductLicenseManager != null) {
+      testProductLicenseManager.reset();
+    }
+
+    TestProductLicenseDetailsCache testProductLicenseDetailsCache =
+        lookupIfAvailable(TestProductLicenseDetailsCache.class);
+    if (testProductLicenseDetailsCache != null) {
+      testProductLicenseDetailsCache.resetToDefaults();
+    }
+
+    TestProductLicense testProductLicense = lookupIfAvailable(TestProductLicense.class);
+    if (testProductLicense != null) {
+      testProductLicense.reset();
+    }
+  }
+
+  private void destroyStorageScopedSingletons() {
+    if (!(getApplicationContext() instanceof ConfigurableApplicationContext applicationContext)) {
+      return;
+    }
+
+    ConfigurableListableBeanFactory factory = applicationContext.getBeanFactory();
+    if (!(factory instanceof DefaultListableBeanFactory beanFactory)) {
+      return;
+    }
+    for (Class<?> singletonType : STORAGE_SCOPED_SINGLETON_TYPES) {
+      for (String beanName : applicationContext.getBeanNamesForType(singletonType, false, false)) {
+        if (beanFactory.containsSingleton(beanName)) {
+          beanFactory.destroySingleton(beanName);
+        }
+      }
+    }
   }
 
   private void cleanupInsightWorkFiles() {
@@ -461,7 +623,7 @@ public class AbstractComponentTest
     }
 
     try {
-      File sbomDir = insightWork.getSbomDir();
+      File sbomDir = insightWork.getSbomDir(false);
       if (sbomDir.exists()) {
         deleteDirectory(sbomDir);
       }
@@ -570,5 +732,44 @@ public class AbstractComponentTest
         return -1;
       }
     };
+  }
+
+  /**
+   * Test configuration for common test beans.
+   * Subclasses can override by providing their own @TestConfiguration.
+   *
+   * <p>
+   * Note: Many test beans (TestProductLicense, TestQuartzJobStoreTx, TestTaskScheduler, etc.)
+   * are auto-discovered by Spring via @Named/@Singleton annotations and @Inject constructors.
+   * Only beans without auto-discovery are defined here.
+   */
+  @TestConfiguration
+  static class ComponentTestConfiguration
+  {
+
+    @Bean
+    public InsightConfig insightConfig() {
+      return new InsightConfig();
+    }
+
+    @Bean
+    @Primary
+    public EncryptionKeyStore encryptionKeyStore() {
+      if (FIPSModeDetector.isEnabled()) {
+        return new TestFipsEncryptionKeyStore();
+      }
+      return new TestEncryptionKeyStore();
+    }
+
+    @Bean
+    public TelemetryId telemetryId() {
+      return mock(TelemetryId.class);
+    }
+
+    @Bean
+    public SamlPasswordFactory samlPasswordFactory() {
+      TestSamlFactory testSamlFactory = new TestSamlFactory();
+      return testSamlFactory.createSamlPasswordFactory();
+    }
   }
 }

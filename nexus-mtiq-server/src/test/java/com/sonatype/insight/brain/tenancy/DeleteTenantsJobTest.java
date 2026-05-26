@@ -5,16 +5,21 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS;
+import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.JOB_FREQUENCY_IN_HOURS;
+import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.TENANT_RETENTION_PERIOD_CONFIG_KEY;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setupNewTestTenant;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ApiSupplier;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -29,10 +34,12 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.Duration;
+import java.util.Date;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -41,18 +48,9 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
-
-import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.DEFAULT_TENANT_RETENTION_PERIOD_IN_HOURS;
-import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.JOB_FREQUENCY_IN_HOURS;
-import static com.sonatype.insight.brain.tenancy.DeleteTenantsJob.TENANT_RETENTION_PERIOD_CONFIG_KEY;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setupNewTestTenant;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class DeleteTenantsJobTest
@@ -98,17 +96,17 @@ public class DeleteTenantsJobTest
     }
   }
 
-  @Override
-  protected List<Module> getBrainModules() {
-    List<Module> brainModules = super.getBrainModules();
-    brainModules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(MultiTenantAuth0ManagementService.class).toInstance(new TestMultiTenantAuth0ManagementService());
-      }
-    });
-    return brainModules;
+  /**
+   * Test configuration that provides a test Auth0 management service.
+   */
+  @TestConfiguration
+  static class DeleteTenantsJobTestConfig
+  {
+    @Bean
+    @Primary
+    MultiTenantAuth0ManagementService multiTenantAuth0ManagementService() {
+      return new TestMultiTenantAuth0ManagementService();
+    }
   }
 
   @Test
@@ -309,7 +307,7 @@ public class DeleteTenantsJobTest
     Files.createDirectories(config.getClusterDirectory().toPath());
   }
 
-  private class TestMultiTenantAuth0ManagementService
+  private static class TestMultiTenantAuth0ManagementService
       extends MultiTenantAuth0ManagementService
   {
     public TestMultiTenantAuth0ManagementService() {

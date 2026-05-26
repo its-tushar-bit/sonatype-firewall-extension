@@ -23,7 +23,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,11 +53,6 @@ public class EnterpriseReportingFilterServiceTest
 
   @Inject
   private OAuth2UserDAO oAuth2UserDAO;
-
-  @Before
-  public void setUpUser() {
-    tempEntity.newUser(USERNAME);
-  }
 
   @After
   public void cleanupFilters() {

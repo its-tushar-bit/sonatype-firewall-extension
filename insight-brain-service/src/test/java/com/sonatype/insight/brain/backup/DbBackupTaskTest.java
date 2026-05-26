@@ -5,23 +5,22 @@
  */
 package com.sonatype.insight.brain.backup;
 
-import java.io.File;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
-
+import java.io.File;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DbBackupTaskTest
     extends AbstractResourceTest
@@ -34,7 +33,7 @@ public class DbBackupTaskTest
     assertResponseStatus(200, response);
     String message = response.getBodyText();
     assertThat(message).startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX);
-    File dbBackupDir = new File(message.substring(DbBackupTask.RESPONSE_MESSAGE_PREFIX.length()));
+    File dbBackupDir = new File(message.substring(DbBackupTask.RESPONSE_MESSAGE_PREFIX.length()).trim());
     assertThat(dbBackupDir).isDirectory();
     assertThat(dbBackupDir.getParentFile().getAbsolutePath()).isEqualTo(
         getCLMServer().getInstance(Configuration.class).getDbBackupDir());
@@ -46,13 +45,13 @@ public class DbBackupTaskTest
   @PostgresTest
   public void testBackup_NotH2Database() throws Exception {
     InsightConfig insightConfig = getCLMServer().getConfiguration();
-    com.sonatype.insight.brain.service.DatabaseConfig savedDatabaseConfig = insightConfig.getDatabase();
+    DatabaseConfig savedDatabaseConfig = insightConfig.getDatabase();
 
     try {
-      insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
+      insightConfig.setDatabase(new DatabaseConfig());
 
       HttpResponse response = adminRequest().path("tasks", DbBackupTask.PATH).post();
-      assertResponseStatus(500, response);
+      assertResponseStatus(400, response);
       String message = response.getBodyText();
       assertThat(message).contains("The DB backup task is supported only for h2 databases.");
     }

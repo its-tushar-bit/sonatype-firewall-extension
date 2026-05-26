@@ -266,6 +266,10 @@ public class QuartzJobStoreTX
     return schedulerStateRecord.getSchedulerInstanceId() + " - " + schedulerStateRecord.getCheckinTimestamp();
   }
 
+  public boolean isReadyForClusterQueries() {
+    return getClassLoadHelper() != null;
+  }
+
   public List<SchedulerStateRecord> getSchedulerStateRecords() throws JobPersistenceException {
     Connection conn = getNonManagedTXConnection();
     try {

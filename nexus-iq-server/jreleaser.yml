@@ -98,7 +98,7 @@ assemble:
         version: '25'
         groupId: com.sonatype.insight.brain
         artifactId: nexus-iq-server
-        mainClass: com.sonatype.insight.brain.service.InsightBrainService
+        mainClass: com.sonatype.insight.brain.spring.InsightBrainSpringApplication
         jvmOptions:
           # Runtime --add-opens flags read from jvm.options at the distribution root.
           universal:

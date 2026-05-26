@@ -120,7 +120,6 @@ public class DashboardFilterServiceTest
     tag2 = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app1.getId(), tag1.getId());
     tempEntity.newApplicationTag(app1.getId(), tag2.getId());
-    tempEntity.newUser(USERNAME);
   }
 
   @Test

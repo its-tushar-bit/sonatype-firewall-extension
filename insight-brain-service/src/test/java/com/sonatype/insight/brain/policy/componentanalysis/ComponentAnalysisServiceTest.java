@@ -6,16 +6,18 @@
 
 package com.sonatype.insight.brain.policy.componentanalysis;
 
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
+import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
+import static java.lang.System.currentTimeMillis;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
@@ -32,10 +34,11 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtil;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -44,23 +47,17 @@ import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
-
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
-import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
-import static java.lang.System.currentTimeMillis;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 public class ComponentAnalysisServiceTest
     extends AbstractComponentTest
@@ -97,21 +94,17 @@ public class ComponentAnalysisServiceTest
 
   private Application app;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HttpServletRequest.class).toInstance(httpRequest);
-    binder.bind(ScanHandler.class).toInstance(scanHandler);
-    binder.bind(StageTypeService.class).toInstance(stageTypeService);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
+    mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(lookup(InsightWork.class));
     app = tempEntity.newApplicationWithParent();
+
+    applyBeanFieldOverride(ComponentAnalysisService.class, "scanHandler", scanHandler);
+    applyBeanFieldOverride(ComponentAnalysisService.class, "telemetrySender", telemetrySender);
+    applyBeanFieldOverride(PolicyEvaluationUtil.class, "stageTypeService", stageTypeService);
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", mockReportDownloader.getMock());
+
     lenient().doReturn(StageTypes.getAll())
         .when(stageTypeService)
         .getLicensedStageTypes();

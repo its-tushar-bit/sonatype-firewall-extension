@@ -5,16 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
+import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
+import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
+import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingAggregationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiMetricsReportingDTOV2;
@@ -31,24 +29,28 @@ import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.successmetrics.PolicyViolationAggregationService;
 import com.sonatype.insight.error.exception.BadRequestException;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static com.sonatype.insight.brain.utils.ThreatLevel.CRITICAL;
-import static com.sonatype.insight.brain.utils.ThreatLevel.LOW;
-import static com.sonatype.insight.brain.utils.ThreatLevel.MODERATE;
-import static com.sonatype.insight.brain.utils.ThreatLevel.SEVERE;
-
 /**
  * @since 1.52
  */
+@Named
+@Singleton
 public class ApiMetricsReportingServiceV2
 {
   private static final Map<TimePeriod, DateParser> inputDateParsers = new EnumMap<>(TimePeriod.class);

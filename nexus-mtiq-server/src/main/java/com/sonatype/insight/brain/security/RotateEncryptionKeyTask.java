@@ -5,27 +5,25 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
+import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.BadRequestException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.ws.rs.BadRequestException;
-
-import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
-import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.apache.directory.api.util.Strings;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -36,7 +34,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class RotateEncryptionKeyTask
-    extends Task
+    extends AdminTask
     implements InsightJob, MtiqBatchJob
 {
   private static final Logger log = LoggerFactory.getLogger(RotateEncryptionKeyTask.class);
@@ -77,7 +75,7 @@ public class RotateEncryptionKeyTask
       final TaskScheduler taskScheduler,
       final EncryptionKeyStore encryptionKeyStore)
   {
-    super("triggerRotateEncryptionKey");
+    super(PATH);
     this.awsSecretsManagerClient = awsSecretsManagerClient;
     this.daoSecretRotator = daoSecretRotator;
     this.passwordHandler = passwordHandler;
@@ -89,31 +87,15 @@ public class RotateEncryptionKeyTask
     this.encryptionKeyStore = encryptionKeyStore;
   }
 
+  public static final String PATH = "triggerRotateEncryptionKey";
+
   @Override
   public String getJobName() {
     return NAME;
   }
 
-  /**
-   * This task rotates the tenant encryption key by decrypting all secrets using the current key and re-encrypt
-   * them using the new key. The new key is fetched from AWS Secrets Manager using the provided key name.
-   * ---
-   * Do not migrate webhook secrets as these use a secret set by the client in the configuration.
-   * ---
-   * This task should be run during a maintenance window and the tenant schema or database should be backed
-   * up before the task is started.
-   * If this task fails, the issue should be identified, fixed and then this task should be re-run.
-   * ---
-   * The `RotatableSecrets` interface represents a component that contains secrets which can be rotated.
-   * Implementations of this interface should inherit from the abstract class AbstractOperationalSqlDAO.
-   *
-   * @param parameters a map containing the parameters for the task execution.
-   *          The first key should be "newEncryptionKeyName", which holds a list of strings where the first element is
-   *          the name
-   *          of the new encryption key to be used.
-   */
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter printWriter) {
+  public void execute(Map<String, List<String>> parameters, PrintWriter output) throws Exception {
     String newEncryptionKeyName = parameters.getOrDefault(QUERY_PARAM_NEW_ENCRYPTION_KEY_NAME, List.of())
         .stream()
         .findFirst()
@@ -124,7 +106,6 @@ public class RotateEncryptionKeyTask
     }
 
     taskScheduler.scheduleOneTimeTask(this, Map.of(QUERY_PARAM_NEW_ENCRYPTION_KEY_NAME, newEncryptionKeyName));
-    printWriter.write("Scheduled run of " + getJobName() + "\n");
   }
 
   @Override

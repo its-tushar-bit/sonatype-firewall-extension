@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -31,14 +27,19 @@ import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
-
 import jakarta.inject.Inject;
-
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class ManualPullRequestService
 {
   protected static final Logger log = LoggerFactory.getLogger(ManualPullRequestService.class);

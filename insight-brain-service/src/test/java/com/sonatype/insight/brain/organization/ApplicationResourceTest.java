@@ -115,8 +115,9 @@ public class ApplicationResourceTest
         .parameter(applicationPublicId)
         .get();
     assertResponseStatus(307, iconResponse);
-    assertThat(iconResponse.getHeader("Location"))
-        .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_application.png");
+    String expectedDefaultIconLocation =
+        getRestBaseUrl().replaceFirst("/+$", "") + "/assets/img/defaulticon_application.png";
+    assertThat(iconResponse.getHeader("Location")).isEqualTo(expectedDefaultIconLocation);
 
     // Test Add Application Icon
     defaultIconByteArray = loadDefaultIcon();

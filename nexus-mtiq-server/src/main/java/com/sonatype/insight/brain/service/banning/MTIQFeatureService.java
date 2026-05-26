@@ -11,6 +11,7 @@ import java.util.Set;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
@@ -42,6 +43,7 @@ import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenant;
  * Configures which features are available to an MTIQ deployment.
  */
 @Named
+@Primary
 @Singleton
 public class MTIQFeatureService
     extends FeaturesService

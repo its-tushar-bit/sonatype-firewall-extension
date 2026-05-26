@@ -28,12 +28,14 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.sonatype.insight.brain.security.AuthzContext.Key;
 
 public class AuthorizationCheckerTest
@@ -549,6 +551,23 @@ public class AuthorizationCheckerTest
     ctx.put(Key.TYPE, OwnerType.APPLICATION);
     UserPrincipal userPrincipal = newPrincipal(user);
     assertThat(checker.isPermitted(userPrincipal, Permission.READ, ctx)).isTrue();
+  }
+
+  @Test
+  public void testIsPermitted_WithMissingApplicationPublicIdButRootPermission_ThrowsNotFound() {
+    User user = tempEntity.newUser();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    newMembershipMapping(user, Organization.ROOT_ORGANIZATION_ID, role.getId());
+
+    Map<Key, Object> ctx = new HashMap<>();
+    ctx.put(Key.ID, "missing-app");
+    ctx.put(Key.TYPE, OwnerType.APPLICATION);
+
+    UserPrincipal userPrincipal = newPrincipal(user);
+
+    assertThatThrownBy(() -> checker.isPermitted(userPrincipal, Permission.READ, ctx))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining("missing-app");
   }
 
   @Test

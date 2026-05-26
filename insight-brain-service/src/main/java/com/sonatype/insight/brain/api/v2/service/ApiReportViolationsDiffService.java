@@ -5,20 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationCommitDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -50,17 +40,29 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.82.0
  */
+@Named
+@Singleton
 public class ApiReportViolationsDiffService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReportViolationsDiffService.class);
@@ -348,7 +350,7 @@ public class ApiReportViolationsDiffService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Map<String, com.sonatype.insight.brain.model.policy.PolicyViolation> policyViolationById =
+    Map<String, PolicyViolation> policyViolationById =
         policyViolationDAO.getByIds(policyViolationIds)
             .stream()
             .collect(Collectors.toMap(PolicyViolation::getId, Function.identity()));

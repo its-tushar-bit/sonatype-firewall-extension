@@ -219,7 +219,7 @@ public class GitHubAppDAOTest
     gitHubApp.setPrivateKey("test-private-key");
     gitHubApp.setInstallationId(installationId);
     gitHubApp.setActive(isActive);
-    return tempEntity.newGitHubApp(gitHubApp);
+    return tempEntity.newGitHubApp(gitHubApp, true);
   }
 
   @Test
@@ -261,6 +261,6 @@ public class GitHubAppDAOTest
     gitHubApp.setPrivateKey("test-private-key");
     gitHubApp.setInstallationId(installationId);
     gitHubApp.setActive(isActive);
-    return tempEntity.newGitHubApp(gitHubApp);
+    return tempEntity.newGitHubApp(gitHubApp, true);
   }
 }

@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -102,11 +103,24 @@ public class TelemetryIdGenerator
       }
     }
 
-    String ports = insightConfig.getApplicationConnectorPorts();
+    String ports = normalizePorts(insightConfig.getApplicationConnectorPorts());
 
     String derivedId = calculateDerivedId(hostname, ports, hardwareAddresses);
     String result = generatedIdProperty.getValue() + "-" + derivedId;
     return result;
+  }
+
+  private static String normalizePorts(String ports) {
+    if (ports == null) {
+      return null;
+    }
+
+    return Pattern.compile(",")
+        .splitAsStream(ports)
+        .map(String::trim)
+        .filter(StringUtils::isNotEmpty)
+        .sorted()
+        .collect(Collectors.joining(","));
   }
 
   @SuppressWarnings("deprecation")

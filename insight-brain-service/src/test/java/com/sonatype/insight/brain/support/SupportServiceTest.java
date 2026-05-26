@@ -5,6 +5,23 @@
  */
 package com.sonatype.insight.brain.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.support.SupportService.SupportFile;
+import com.sonatype.insight.json.store.JsonUtils;
+import jakarta.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -24,23 +41,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.support.SupportService.SupportFile;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.inject.Inject;
 import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -49,8 +49,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @since 1.27
@@ -81,12 +79,12 @@ public class SupportServiceTest
 
   @Before
   public void before() {
-    originalConfigFile = InsightBrainService.getConfigFile();
+    originalConfigFile = ApplicationLifecycle.getConfigFile();
   }
 
   @After
   public void after() {
-    InsightBrainService.setConfigFile(originalConfigFile);
+    ApplicationLifecycle.setConfigFile(originalConfigFile);
   }
 
   private File getConfigYml() {
@@ -122,7 +120,7 @@ public class SupportServiceTest
   @Test
   public void testCreateSupportZip_DeletesFilteredFile() throws Exception {
     final File configYml = getConfigYml();
-    InsightBrainService.setConfigFile(configYml);
+    ApplicationLifecycle.setConfigFile(configYml);
     supportService.createSupportZip(false, null, false);
     final File filteredConfigYml = new File(supportService.getWorkDir(), "filtered-" + configYml.getName());
     assertThat(filteredConfigYml.exists()).isFalse();
@@ -180,7 +178,7 @@ public class SupportServiceTest
   @Test
   public void testCreateSupportZip_NoConfigFile() throws Exception {
     final File configYml = new File("config-I-dont-exist.yml");
-    InsightBrainService.setConfigFile(configYml);
+    ApplicationLifecycle.setConfigFile(configYml);
     final File supportZip = supportService.createSupportZip(false, null, false);
     // read file from zip and assert no config file entry
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
@@ -192,7 +190,7 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip_HasRequiredEntries() throws Exception {
-    InsightBrainService.setConfigFile(getConfigYml());
+    ApplicationLifecycle.setConfigFile(getConfigYml());
     final File supportZip = supportService.createSupportZip(false, null, false);
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -205,7 +203,7 @@ public class SupportServiceTest
 
   @Test
   public void testCreateSupportZip_HasEntryProductVersionSorted() throws Exception {
-    InsightBrainService.setConfigFile(getConfigYml());
+    ApplicationLifecycle.setConfigFile(getConfigYml());
     final File supportZip = supportService.createSupportZip(false, null, false);
     try (final ZipFile zipFile = new ZipFile(supportZip)) {
       final Enumeration<? extends ZipEntry> entries = zipFile.entries();

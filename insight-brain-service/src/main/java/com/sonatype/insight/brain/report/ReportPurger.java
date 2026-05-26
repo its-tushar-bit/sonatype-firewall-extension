@@ -5,6 +5,31 @@
  */
 package com.sonatype.insight.brain.report;
 
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.service.InsightWork;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -28,45 +53,21 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.service.InsightWork;
-
-import io.dropwizard.servlets.tasks.Task;
+import org.jooq.exception.DataAccessException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 @Named
 @Singleton
 @DisallowConcurrentExecution
 public class ReportPurger
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "purgeObsoleteReports";
+
   public static final String NAME = "ReportPurger";
 
   private static final String PURGE_ERROR = "Report Purging error";
@@ -138,7 +139,7 @@ public class ReportPurger
       final ApplicationReportPersistenceService applicationReportPersistenceService,
       final ScanPersistenceService scanPersistenceService)
   {
-    super("purgeObsoleteReports");
+    super(PATH);
     this.work = work;
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
@@ -168,16 +169,14 @@ public class ReportPurger
     // no-op
   }
 
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    taskScheduler.triggerTaskNow(this, null);
+  }
+
   /**
    * @since 1.95
    */
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.debug("Triggering purging of obsolete reports");
-    taskScheduler.triggerTaskNow(this, null);
-    output.println("Triggered purging of obsolete reports");
-  }
-
   @Override
   public void execute(JobExecutionContext context) {
     execute(this::purgeReports, log, PURGE_ERROR);
@@ -207,7 +206,7 @@ public class ReportPurger
           purged += purgeReports(application, contextId, trashBucket);
           break;
         }
-        catch (org.jooq.exception.DataAccessException e) {
+        catch (DataAccessException e) {
           // This exception occurs usually when the embedded database is under too much load from concurrent queries.
           // To avoid having to start over the entire purging task, we retry to get this purging run completed.
           if (retry >= MAX_RETRIES) {

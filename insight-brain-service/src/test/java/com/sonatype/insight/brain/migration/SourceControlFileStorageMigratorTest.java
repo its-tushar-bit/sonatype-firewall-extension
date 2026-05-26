@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,8 +35,9 @@ public class SourceControlFileStorageMigratorTest
   private SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     migrationTrackerDAO.deleteById(SourceControlFileStorageMigrator.MIGRATION_ID);
+    FileUtils.deleteDirectory(insightWork.getResolvedCloneDirectory());
   }
 
   @Test

@@ -15,10 +15,12 @@ import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SearchModuleTest
     extends BrainInjectedTest
 {

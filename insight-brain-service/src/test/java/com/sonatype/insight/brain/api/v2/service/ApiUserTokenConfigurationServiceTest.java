@@ -5,23 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.google.inject.Binder;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenConfigurationDTO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-
+import jakarta.inject.Inject;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApiUserTokenConfigurationServiceTest
     extends AbstractComponentTest
@@ -34,12 +31,6 @@ public class ApiUserTokenConfigurationServiceTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetConfiguration_NotConfigured() {

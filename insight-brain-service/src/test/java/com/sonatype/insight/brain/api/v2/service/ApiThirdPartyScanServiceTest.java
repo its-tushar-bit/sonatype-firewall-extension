@@ -5,14 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -38,16 +34,17 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.file.SbomFormat;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 public class ApiThirdPartyScanServiceTest
     extends AbstractComponentTest
@@ -62,13 +59,6 @@ public class ApiThirdPartyScanServiceTest
 
   @Mock
   private PolicyEvaluateService mockPolicyEvaluateService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PolicyEvaluateService.class).toInstance(mockPolicyEvaluateService);
-
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.List;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.model.Application;
@@ -25,22 +31,13 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
+import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ScanUploaderTest
     extends AbstractComponentTest
@@ -70,17 +67,17 @@ public class ScanUploaderTest
   private IntegrationVersionCache mockIntegrationVersionCache;
 
   @Override
-  public void configure(Binder binder) {
-    // Setup default mock behavior to skip integration version validation (lenient for tests that don't use it)
-    lenient().when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(null);
+  protected List<BeanFieldOverride> getBeanFieldOverrides() {
+    return List.of(
+        beanFieldOverride(ScanUploader.class, "client", mockHdsClient),
+        beanFieldOverride(ScanUploader.class, "configuration", mockConfiguration),
+        beanFieldOverride(ScanUploader.class, "cpeMatchingConfigurationService", mockCpeMatchingConfigurationService),
+        beanFieldOverride(ScanUploader.class, "integrationVersionCache", mockIntegrationVersionCache));
+  }
 
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(InsightConfig.class).toInstance(insightConfig);
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    binder.bind(ThirdPartyScanContext.class).toInstance(thirdPartyScanContext);
-    binder.bind(CpeMatchingConfigurationService.class).toInstance(mockCpeMatchingConfigurationService);
-    binder.bind(IntegrationVersionCache.class).toInstance(mockIntegrationVersionCache);
-    super.configure(binder);
+  @Before
+  public void disableIntegrationVersionValidation() {
+    lenient().when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(null);
   }
 
   @Test

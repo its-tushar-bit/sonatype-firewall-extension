@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -37,6 +36,7 @@ import com.google.common.collect.Table.Cell;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
@@ -58,6 +58,12 @@ public class PolicyViolationAggregationServiceTest
 
   @Inject
   private Configuration configuration;
+
+  @Before
+  public void resetSuccessMetricsStageConfiguration() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, null);
+    configuration.configurationChanged(Sets.newHashSet(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID));
+  }
 
   @Test
   public void testGeneratePolicyViolationAggregations_ViolationsWithoutHash_AllResolved() {
@@ -224,13 +230,13 @@ public class PolicyViolationAggregationServiceTest
   @Test
   public void testGeneratePolicyViolationAggregations_throwsExcepctionIfConfiguredStageIsNotLicensed() {
     final var app = tempEntity.newApplicationWithParent();
-    setSuccessMetricsStage(DevelopStageType.ID);
+    setSuccessMetricsStage(ProxyStageType.ID);
 
     final var thrown = assertThrows(BadRequestException.class, () -> service.generatePolicyViolationAggregations(
         Collections.singleton(app.getId()), DateTime.now(), true));
 
     assertThat(thrown.getMessage()).isEqualTo(
-        "Invalid value 'develop' provided for successMetricsStageId. Allowed values are: " +
+        "Invalid value 'proxy' provided for successMetricsStageId. Allowed values are: " +
             "'[operate, build, release, source, stage-release]'");
   }
 

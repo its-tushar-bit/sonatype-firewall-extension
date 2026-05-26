@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.aws.credentials;
 
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
-
+import jakarta.inject.Singleton;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
@@ -16,6 +16,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
  * Self-hosted should use the default credentials chain provider
  */
 @Named
+@Singleton
 public class DefaultInsightAwsCredentialProvider
     implements Provider<AwsCredentialsProvider>
 {

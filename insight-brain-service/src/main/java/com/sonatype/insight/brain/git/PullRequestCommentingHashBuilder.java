@@ -25,6 +25,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
+import jakarta.inject.Named;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 
 /**
  * Utility class that generates a hash from a policy violation diff and a remediation map, which are used in
@@ -33,6 +37,8 @@ import com.google.common.io.BaseEncoding;
  * The resulting hash is used to determine if a an existing PR comment needs to be updated or not
  * (i.e. on update, if the current computed hash is equal to the previous one, the update is skipped).
  */
+@Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PullRequestCommentingHashBuilder
 {
   private static final BaseEncoding encoder = BaseEncoding.base16().lowerCase();

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,8 @@ public class ApiMailConfigurationResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.MAIL_CONFIG_RESOURCE_PATH_V2);
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""))
+        .path(PublicApiPaths.MAIL_CONFIG_RESOURCE_PATH_V2);
   }
 
   @Test
@@ -106,10 +108,14 @@ public class ApiMailConfigurationResourceTest
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
+    MailboxTestUtil.clearAll();
+
     assertResponseStatus(204,
         restRequest().path(ApiMailConfigurationResource.TEST_CONFIGURATION)
             .parameter("user@test")
             .body(configurationDTO)
             .post());
+
+    assertThat(MailboxTestUtil.get("user@test")).hasSize(1);
   }
 }

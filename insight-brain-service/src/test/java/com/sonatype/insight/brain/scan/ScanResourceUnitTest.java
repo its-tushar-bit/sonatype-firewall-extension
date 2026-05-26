@@ -14,8 +14,14 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +51,26 @@ public class ScanResourceUnitTest
   private AntiCsrfFilter antiCsrfFilter;
 
   private final HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+
+  @Before
+  public void bindSecurityManager() {
+    SecurityManager securityManager = mock(SecurityManager.class);
+    ThreadContext.bind(securityManager);
+    SecurityAspectControl.disableEnforcement();
+    SimplePrincipalCollection principals = new SimplePrincipalCollection("testUser", "testRealm");
+    Subject subject = new Subject.Builder(securityManager)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(subject);
+  }
+
+  @After
+  public void unbindSecurityManager() {
+    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
+  }
 
   @Before
   public void setUp() {

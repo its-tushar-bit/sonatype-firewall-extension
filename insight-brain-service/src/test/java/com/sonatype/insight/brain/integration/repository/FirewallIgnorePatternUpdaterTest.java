@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
@@ -16,20 +18,15 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class FirewallIgnorePatternUpdaterTest
     extends AbstractComponentTest
@@ -45,13 +42,6 @@ public class FirewallIgnorePatternUpdaterTest
 
   @Mock
   private HdsClient hdsClientMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {
@@ -84,8 +74,9 @@ public class FirewallIgnorePatternUpdaterTest
   public void testUpdateFirewallIgnorePatterns() {
     com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns expectedFirewallIgnorePatterns =
         createFirewallIgnorePatterns();
-    when(hdsClientMock.get(FirewallIgnorePatterns.class, FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
-        .thenReturn(expectedFirewallIgnorePatterns.getFirewallIgnorePatterns());
+    when(hdsClientMock.get(com.sonatype.clm.dto.model.component.FirewallIgnorePatterns.class,
+        FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))
+            .thenReturn(expectedFirewallIgnorePatterns.getFirewallIgnorePatterns());
     assertFirewallIgnorePatterns(firewallIgnorePatternsDAO.get(),
         new com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns());
 

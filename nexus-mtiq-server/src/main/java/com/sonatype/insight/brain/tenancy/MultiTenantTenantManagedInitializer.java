@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.List;
 import java.util.Set;
-import jakarta.annotation.Priority;
+import org.springframework.context.annotation.DependsOn;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -17,9 +17,6 @@ import com.sonatype.insight.brain.service.TenantManagedInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
-
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -30,9 +27,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Named
 @Singleton
-@Priority(TenantManagedInitializer.PRIORITY)
-@Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
-@InvisibleForScanner
+@DependsOn("multiTenantTaskScheduler")
 public class MultiTenantTenantManagedInitializer
     implements TenantManagedInitializer
 {

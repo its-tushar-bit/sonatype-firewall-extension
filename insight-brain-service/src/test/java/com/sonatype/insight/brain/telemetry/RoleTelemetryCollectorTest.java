@@ -41,7 +41,10 @@ public class RoleTelemetryCollectorTest
 
   @Test
   public void testCollectAllData() {
-    List<String> roleNames = new ArrayList<>(roleDAO.getAll().stream().map(Role::getName).collect(toList()));
+    List<String> roleNames = new ArrayList<>(roleDAO.getAll()
+        .stream()
+        .map(role -> role.isBuiltIn() ? role.getName() : HdsClientAnalytics.obfuscate(role.getName()))
+        .collect(toList()));
     Role customRole = tempEntity.newRole(false, Permission.WRITE);
     String obfuscatedCustomRoleName = HdsClientAnalytics.obfuscate(customRole.getName());
     roleNames.add(obfuscatedCustomRoleName);

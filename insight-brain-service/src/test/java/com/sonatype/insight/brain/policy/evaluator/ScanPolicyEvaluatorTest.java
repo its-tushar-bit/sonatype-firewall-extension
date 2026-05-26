@@ -5,21 +5,44 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
+import static com.sonatype.insight.brain.jooq.generated.ods.Tables.POLICY_VIOLATION;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.SecurityVulnerabilityEpssScoreConditionType;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.findPolicyViolationByVulnerabilityIdentifier;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.EpssData;
 import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -137,7 +160,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.model.configuration.scanhealth.ScanHealthConfigDTO;
@@ -148,7 +171,9 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
+import com.sonatype.insight.brain.webhook.ApplicationEvaluationEventService;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
+import com.sonatype.insight.brain.webhook.PolicyAlertEventService;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -161,11 +186,21 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -184,43 +219,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
-import static com.sonatype.insight.brain.jooq.generated.ods.Tables.POLICY_VIOLATION;
 import static com.sonatype.insight.brain.model.OwnerType.APPLICATION;
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
-import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.SecurityVulnerabilityEpssScoreConditionType;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
-import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.findPolicyViolationByVulnerabilityIdentifier;
-import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toSet;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.AdditionalMatchers.not;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 @Category(SlowTest.class)
@@ -314,19 +314,6 @@ public class ScanPolicyEvaluatorTest
 
   private TelemetrySender mockTelemetrySender;
 
-  @Override
-  public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    mockTelemetrySender = mock(TelemetrySender.class);
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    mockComponentInfoService = mock(ComponentInfoService.class);
-    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
-    binder.bind(ApiVulnerabilityReachabilityStatusService.class)
-        .toInstance(apiVulnerabilityReachabilityStatusService);
-    super.configure(binder);
-  }
-
   @After
   public void after() {
     if (handler != null) {
@@ -342,7 +329,15 @@ public class ScanPolicyEvaluatorTest
   public void setup() {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
+    mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(insightWork);
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", mockReportDownloader.getMock());
+    applyBeanFieldOverride(ScanPolicyEvaluator.class, "currentUser", currentUser);
+    applyBeanFieldOverride(ApplicationEvaluationEventService.class, "currentUser", currentUser);
+    applyBeanFieldOverride(PolicyAlertEventService.class, "currentUser", currentUser);
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.PURGE_SCAN_FILES, null);
+    configuration.configurationChanged(Sets.newHashSet(SystemConfigurationProperty.PURGE_SCAN_FILES));
+    lenient().when(currentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
   }
 
   @Test
@@ -1992,6 +1987,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     newSecurityPolicy();
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -2009,7 +2005,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(event).isNotNull();
     assertThat(event.stageTypeId).isEqualTo(Stage.ID_BUILD);
     assertThat(event.ownerId).isEqualTo(application.getId());
-    assertThat(event.initiator).isEqualTo("testuser");
+    assertThat(event.initiator).isEqualTo(USERNAME);
     assertThat(event.policyEvaluationId).isEqualTo(scanPolicyEvaluatorResults.evaluation.getId());
     assertThat(event.evaluationDate).isEqualTo(scanPolicyEvaluatorResults.evaluation.getTime());
     assertThat(event.affectedComponentCount).isEqualTo(7);
@@ -2038,6 +2034,7 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testEvaluate_EmitsPolicyAlertEvent() throws IOException, InterruptedException {
     policyAlertHandler = new TestEventHandler<>(new CountDownLatch(1), PolicyAlertEvent.class);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     tempEntity.newPolicy(application.getId(), "Test Policy", 10, Action.ID_WARN, Stage.ID_BUILD,
         new Notifications(new WebhookNotification("id", Stage.ID_BUILD)));
 
@@ -2054,7 +2051,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(event).isNotNull();
     assertThat(event.applicationEvaluation.stageTypeId).isEqualTo(Stage.ID_BUILD);
     assertThat(event.applicationEvaluation.ownerId).isEqualTo(application.getId());
-    assertThat(event.initiator).isEqualTo("testuser");
+    assertThat(event.initiator).isEqualTo(USERNAME);
     assertThat(event.applicationEvaluation.policyEvaluationId).isEqualTo(scanPolicyEvaluatorResults.evaluation.getId());
     assertThat(event.applicationEvaluation.evaluationDate).isEqualTo(scanPolicyEvaluatorResults.evaluation.getTime());
     assertThat(event.applicationEvaluation.affectedComponentCount).isEqualTo(7);

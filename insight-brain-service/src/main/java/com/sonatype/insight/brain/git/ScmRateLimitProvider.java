@@ -5,27 +5,25 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.nexus.scm.api.DefaultRateLimitCapturers;
 import com.sonatype.nexus.scm.api.RateLimitCapturer;
 import com.sonatype.nexus.scm.api.RateLimitCapturerProvider;
 import com.sonatype.nexus.scm.api.RateLimitCapturers;
-import com.sonatype.nexus.scm.api.DefaultRateLimitCapturers;
-
-import io.dropwizard.lifecycle.Managed;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 @Named
 @Singleton
 public class ScmRateLimitProvider
-    implements RateLimitCapturers, Managed
+    implements RateLimitCapturers
 {
   private final TenantReference<RateLimitCapturers> rateLimitCapturers =
       new TenantReference<>(DefaultRateLimitCapturers::new);
 
-  @Override
-  public void start() throws Exception {
+  @PostConstruct
+  public void initialise() {
     RateLimitCapturerProvider.initialiseRateLimitCapturerProvider(this);
   }
 

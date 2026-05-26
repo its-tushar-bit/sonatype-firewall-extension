@@ -5,23 +5,30 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
+import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentCategory;
@@ -44,12 +51,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
-import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.ManualPullRequestNotPossibleDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationFailedDTO;
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO.PullRequestCreationPendingDTO;
@@ -94,10 +97,14 @@ import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ReportDataReader;
+import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryAllVersionsResponse;
 import com.sonatype.insight.brain.repository.RepositoryComponentResult;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
@@ -112,10 +119,25 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.MetadataRecorderUtils;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import com.google.common.cache.LoadingCache;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.DateTime;
@@ -123,28 +145,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
-import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
-import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
-import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.nexus.scm.SourceControlProvider;
+
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
@@ -167,9 +170,6 @@ public class ComponentInfoServiceTest
   // This is the tool name (ci, ide, rm) used in REST paths for HDS resources. Since we use it when we mock the HDS
   // client, it doesn't really matter what value we use here, because we don't really access HDS REST paths.
   private static final String TOOL_NAME = "ci";
-
-  @Inject
-  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
   @Inject
   private MultiLicenseDAO multiLicenseDAO;
@@ -220,19 +220,11 @@ public class ComponentInfoServiceTest
   @Inject
   private OrganizationDAO organizationDAO;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicenseMock);
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    binder.bind(ApiComponentDetailsServiceV2.class).toInstance(apiComponentDetailsServiceV2Mock);
-    binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
-    binder.bind(RepositoryQueryService.class).toInstance(repositoryQueryService);
-    binder.bind(ReportDataReader.class).toInstance(reportDataReader);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
+    resetProprietaryComponentNameDetector();
+    resetComponentPolicyEvaluatorCache();
+
     componentInfoService.setToolName(TOOL_NAME);
 
     application = tempEntity.newApplicationWithParent();
@@ -255,6 +247,39 @@ public class ComponentInfoServiceTest
     queryParams
         .put("componentIdentifier", ComponentIdentifierAdapter.toJson(componentDetails.getComponentIdentifier()));
     return queryParams;
+  }
+
+  private ProprietaryComponentNameDetector getProprietaryComponentNameDetector() {
+    try {
+      Field field = ComponentDetailsLoaderFactory.class.getDeclaredField("proprietaryComponentNameDetector");
+      field.setAccessible(true);
+      return (ProprietaryComponentNameDetector) field.get(componentDetailsLoaderFactory);
+    }
+    catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to access ProprietaryComponentNameDetector from test", e);
+    }
+  }
+
+  private void resetProprietaryComponentNameDetector() {
+    try {
+      Method method = ProprietaryComponentNameDetector.class.getDeclaredMethod("invalidateMatchers");
+      method.setAccessible(true);
+      method.invoke(getProprietaryComponentNameDetector());
+    }
+    catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to reset ProprietaryComponentNameDetector cache", e);
+    }
+  }
+
+  private void resetComponentPolicyEvaluatorCache() {
+    try {
+      Field field = ComponentPolicyEvaluator.class.getDeclaredField("droolsCodeKiaBase");
+      field.setAccessible(true);
+      ((LoadingCache<?, ?>) field.get(null)).invalidateAll();
+    }
+    catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to reset ComponentPolicyEvaluator cache", e);
+    }
   }
 
   private void mockLicenseFeature(boolean includeAdvancedStrategies) {
@@ -1802,11 +1827,14 @@ public class ComponentInfoServiceTest
     policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
     policy.setThreatLevel(8);
     policy.addConstraint(constraint);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
     tempEntity.newPolicy(policy);
 
-    proprietaryComponentNamePatternDAO
-        .insert(new ProprietaryComponentNamePattern(repository.getId(), MAVEN_A1_COORDINATES.getFormat())
-            .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID)));
+    getProprietaryComponentNameDetector().addPatterns(
+        MAVEN_A1_COORDINATES.getFormat(),
+        Collections.singletonList(
+            new ProprietaryComponentNamePattern(repository.getId(), MAVEN_A1_COORDINATES.getFormat())
+                .withNamespacePattern(MAVEN_A1_COORDINATES.get(ComponentIdentifier.MAVEN_GROUP_ID))));
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);

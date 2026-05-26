@@ -5,6 +5,16 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -16,20 +26,11 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 @Named
 @Singleton
+@Priority(2)
 public class TestProductLicense
     extends DefaultProductLicense
 {
@@ -41,12 +42,37 @@ public class TestProductLicense
 
   @Inject
   public TestProductLicense(
+      TestProductLicenseManager testProductLicenseManager)
+  {
+    this(testProductLicenseManager, true);
+  }
+
+  public TestProductLicense(
+      TestProductLicenseManager testProductLicenseManager,
+      boolean resetOnConstruct)
+  {
+    super();
+    this.testProductLicenseManager = testProductLicenseManager;
+    if (resetOnConstruct) {
+      reset();
+    }
+  }
+
+  /**
+   * Constructor for test injection with mock DeveloperEnablementService.
+   */
+  public TestProductLicense(
       TestProductLicenseManager testProductLicenseManager,
       DeveloperEnablementService developerEnablementService)
   {
-    this(testProductLicenseManager, true, developerEnablementService);
+    super(developerEnablementService);
+    this.testProductLicenseManager = testProductLicenseManager;
+    reset();
   }
 
+  /**
+   * Constructor for test injection with mock DeveloperEnablementService and reset control.
+   */
   public TestProductLicense(
       TestProductLicenseManager testProductLicenseManager,
       boolean resetOnConstruct,

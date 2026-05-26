@@ -5,6 +5,16 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.spring.InsightBrainCompatibilityCommand;
+import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,29 +32,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
-
-import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import io.dropwizard.core.cli.Cli;
-import io.dropwizard.core.cli.ConfiguredCommand;
-import io.dropwizard.core.setup.Bootstrap;
-import net.sourceforge.argparse4j.inf.Namespace;
-import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.67
  */
+@Named
 public class ExportEmbeddedDatabaseCommand
-    extends ConfiguredCommand<InsightConfig>
+    implements InsightBrainCompatibilityCommand
 {
+  public static final String NAME = "export-embedded-db";
+
+  public static final String DESCRIPTION =
+      "Exports the embedded database to a SQL file for import into an external database.";
+
   private static final Logger log = LoggerFactory.getLogger(ExportEmbeddedDatabaseCommand.class);
 
   private static final String NULL_VALUE = "NULL";
@@ -60,37 +62,38 @@ public class ExportEmbeddedDatabaseCommand
   static final Set<String> H2_EXPORT_EXCLUDED_TRACKERS = Set.of(
       "PolicyViolationIndexAsyncDbMigration");
 
-  ExportEmbeddedDatabaseCommand() {
-    super("export-embedded-db", "Exports the embedded database to a SQL file for import into an external database.");
+  private final InsightConfig insightConfig;
+
+  @Inject
+  public ExportEmbeddedDatabaseCommand(InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
   }
 
   @Override
-  public void configure(Subparser subparser) {
-    super.configure(subparser);
-    subparser.addArgument("-d", "--dump-file").help("path to the dump file to which the database is exported");
+  public String getName() {
+    return NAME;
   }
 
   @Override
-  public void onError(Cli cli, Namespace namespace, Throwable t) {
-    // throw up to let our main() method do the desired error logging/handling
-    throw new IllegalStateException("Error trying to export database: " + t.getMessage(), t);
+  public String getDescription() {
+    return DESCRIPTION;
   }
 
   @Override
-  protected void run(
-      final Bootstrap<InsightConfig> bootstrap,
-      final Namespace namespace,
-      final InsightConfig config) throws Exception
-  {
+  public void run(String... args) throws Exception {
+    run(insightConfig, parseDumpFilePath(args));
+  }
+
+  public void run(final InsightConfig config, final String dumpFilePath) throws Exception {
     long start = System.currentTimeMillis();
 
     if (!config.isDatabaseEmbedded()) {
-      throw new BadRequestException("The " + getName()
+      throw new BadRequestException("The " + NAME
           + " command can only be used when no external database is specified in the server's config.yml file.");
     }
 
     Path odsPath =
-        Paths.get(getConfiguration().getSonatypeWork().getAbsolutePath(), "data", databaseFileName());
+        Paths.get(config.getSonatypeWork().getAbsolutePath(), "data", databaseFileName());
     if (!Files.exists(odsPath)) {
       throw new BadRequestException("Cannot find the embedded database in " + odsPath.getParent());
     }
@@ -113,8 +116,9 @@ public class ExportEmbeddedDatabaseCommand
     aggregationDataStoreProvider.initialize();
     thirdPartyScansDataStore.initialize();
 
-    String path = namespace.getString("dump_file");
-    File dumpFile = path != null ? new File(path) : new File(config.getSonatypeWork(), "data/db-dump.sql.gz");
+    File dumpFile = dumpFilePath != null
+        ? new File(dumpFilePath)
+        : new File(config.getSonatypeWork(), "data/db-dump.sql.gz");
     dumpFile = dumpFile.getAbsoluteFile();
 
     log.info("Exporting database to {}", dumpFile);
@@ -126,6 +130,19 @@ public class ExportEmbeddedDatabaseCommand
       export(writer, thirdPartyScansDataStore.getDataSource());
     }
     log.info("Completed export to '{}' in {} ms.", dumpFile, System.currentTimeMillis() - start);
+  }
+
+  private String parseDumpFilePath(String... args) {
+    for (int i = 0; i < args.length; i++) {
+      if (("--dump-file".equals(args[i]) || "-d".equals(args[i])) && i + 1 < args.length) {
+        String value = args[i + 1];
+        if (value.startsWith("-")) {
+          throw new IllegalArgumentException("Missing value for " + args[i]);
+        }
+        return value;
+      }
+    }
+    return null;
   }
 
   private static String databaseFileName() {

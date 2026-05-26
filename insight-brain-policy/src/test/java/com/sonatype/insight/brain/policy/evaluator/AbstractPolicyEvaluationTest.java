@@ -5,16 +5,10 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -23,19 +17,12 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
-import com.sonatype.insight.brain.dataaccess.search.DefaultSearchIndexManager;
-import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -44,28 +31,36 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.utils.FirewallForContainerImagesHelper;
 import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
 import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
-import com.sonatype.insight.test.GuiceInjectedTest;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import com.sonatype.insight.test.SpringInjectedTest;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.experimental.categories.Category;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
+@Category(SlowTest.class)
+@ContextConfiguration(classes = AbstractPolicyEvaluationTest.PolicyEvaluationTestConfiguration.class)
 public abstract class AbstractPolicyEvaluationTest
-    extends GuiceInjectedTest
+    extends SpringInjectedTest
 {
   @Rule(order = 1)
   public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractPolicyEvaluationTest.class);
@@ -75,14 +70,11 @@ public abstract class AbstractPolicyEvaluationTest
   @Rule(order = 2)
   public TemporaryEntity tempEntity = new TemporaryEntity(databaseRule);
 
-  @Inject
   protected ComponentPolicyEvaluator componentPolicyEvaluator;
 
-  @Inject
   protected LabelDAO labelDAO;
 
   @Before
-  @Override
   public void setUp() throws Exception {
     daoFactory = new TestDAOFactory(databaseRule);
 
@@ -92,38 +84,33 @@ public abstract class AbstractPolicyEvaluationTest
     ConditionTypesTestHelper.initConditionTypes(daoFactory);
     ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
 
-    super.setUp();
+    // Manually create policy evaluation components (they depend on initialized data stores)
+    FirewallForContainerImagesHelper firewallHelper = new FirewallForContainerImagesHelper(
+        daoFactory.createOrganizationDAO(),
+        daoFactory.createRepositoryDAO(),
+        daoFactory.createOwnerDAO());
+    componentPolicyEvaluator = new ComponentPolicyEvaluator(
+        daoFactory.createPolicyWaiverDAO(),
+        daoFactory.createOwnerDAO(),
+        daoFactory.createPolicyDAO(),
+        firewallHelper);
+    labelDAO = daoFactory.createLabelDAO();
   }
 
-  @Override
-  protected Module getOverrideModule() {
-    return new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(OperationalDataStore.class).toInstance(databaseRule.getOperationalDataStore());
-        bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
-        bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
-        bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
-        // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
-        bind(ClusterLockManagerProvider.class);
-        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>()
-        {
-          @Inject
-          ClusterLockManagerProvider provider;
-
-          @Override
-          public ClusterLockManager get() {
-            return provider.get();
-          }
-        });
-        bind(SearchIndexManager.class).to(DefaultSearchIndexManager.class);
-        bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);
-
-        requestStaticInjection(ConditionTypes.class);
-        requestStaticInjection(ConditionValueTypes.class);
-      }
-    };
+  /**
+   * Test configuration that provides minimal beans for policy evaluation tests.
+   * Note: ComponentPolicyEvaluator and LabelDAO are created manually in setUp()
+   * because they depend on DatabaseRule data stores which are initialized by JUnit @Rule.
+   */
+  @TestConfiguration
+  static class PolicyEvaluationTestConfiguration
+  {
+    @Bean
+    @Singleton
+    @Named
+    public SourceControlSshValidator sourceControlSshValidator() {
+      return new DefaultSourceControlSshValidator();
+    }
   }
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {

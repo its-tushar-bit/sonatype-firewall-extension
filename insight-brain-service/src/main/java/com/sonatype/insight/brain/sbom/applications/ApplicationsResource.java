@@ -30,7 +30,7 @@ public class ApplicationsResource
 {
   public static final String RESOURCE_BASE_PATH = "rest/sbom";
 
-  public static final String SBOMS_APPLICATIONS_PATH = "/applications";
+  public static final String SBOMS_APPLICATIONS_PATH = "applications";
 
   public final SbomApplicationsService sbomApplicationsService;
 

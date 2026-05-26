@@ -5,24 +5,34 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import jakarta.inject.Inject;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.SCM_USERNAME;
+import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum.IQ_USERNAME;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
+import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
+import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getMappingForScmUserJsonStorage;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.entry;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
@@ -64,12 +74,23 @@ import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.base.MissingSourceControlConfigException;
 import com.sonatype.nexus.scm.api.model.SCMRepository;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -79,33 +100,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.SCM_USERNAME;
-import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum.IQ_USERNAME;
-import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
-import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
-import static com.sonatype.insight.brain.utils.ScmUserMappingsHelper.getMappingForScmUserJsonStorage;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.entry;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 @Category(SlowTest.class)
 public class ScmOnboardingServiceTest
@@ -176,14 +173,6 @@ public class ScmOnboardingServiceTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(SourceControlEventPublisher.class).toInstance(mockSourceControlEventPublisher);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
   public void setup() throws Exception {
     org = tempEntity.newOrganization();
@@ -205,7 +194,34 @@ public class ScmOnboardingServiceTest
 
   @Test
   public void testScmOnboardingService_AddsToShutdownHandler() {
-    verify(mockShutdownHandler).add(scmOnboardingService.getExecutor());
+    ScmOnboardingService localService = new ScmOnboardingService(
+        lookup(SourceControlDAO.class),
+        mockSourceControlEventPublisher,
+        lookup(ApplicationDAO.class),
+        lookup(OrganizationDAO.class),
+        lookup(SourceControlOrganizationImportEventDAO.class),
+        lookup(com.sonatype.insight.brain.organization.ApplicationHelper.class),
+        lookup(com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.class),
+        lookup(com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService.class),
+        lookup(com.sonatype.insight.brain.organization.OrganizationService.class),
+        lookup(GitClientFactory.class),
+        telemetrySenderMock,
+        lookup(ScmApplicationNameConverter.class),
+        lookup(IqForScmLicenseChecker.class),
+        lookup(com.sonatype.insight.brain.sourcecontrol.SourceControlUtils.class),
+        lookup(com.sonatype.insight.brain.service.InsightProxy.class),
+        lookup(com.sonatype.insight.brain.service.Configuration.class),
+        mockShutdownHandler,
+        lookup(ScmUserMatchingService.class),
+        lookup(ScmUserMappingService.class),
+        lookup(com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService.class));
+
+    try {
+      verify(mockShutdownHandler).add(localService.getExecutor());
+    }
+    finally {
+      localService.getExecutor().shutdownNow();
+    }
   }
 
   @Test

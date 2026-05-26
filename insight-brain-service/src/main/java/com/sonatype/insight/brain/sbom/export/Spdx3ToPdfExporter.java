@@ -34,8 +34,11 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomProcessingException;
 
 import org.cyclonedx.model.Bom;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class Spdx3ToPdfExporter
     extends Spdx3ToCycloneDxExporter
 {

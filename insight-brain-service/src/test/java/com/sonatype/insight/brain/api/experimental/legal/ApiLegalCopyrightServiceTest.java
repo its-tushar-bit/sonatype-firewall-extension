@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doReturn;
 
-import jakarta.inject.Inject;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.api.v2.dto.legal.CopyrightFilePathDTO;
@@ -30,19 +32,13 @@ import com.sonatype.insight.license.dto.model.LegalCommentDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentFilesDTO;
 import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.doReturn;
 
 public class ApiLegalCopyrightServiceTest
     extends AbstractComponentTest
@@ -55,12 +51,6 @@ public class ApiLegalCopyrightServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockHdsService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetCopyrightFilePaths_Unlicensed() {

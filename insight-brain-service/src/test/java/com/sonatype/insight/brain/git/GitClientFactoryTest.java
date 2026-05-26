@@ -5,51 +5,12 @@
  */
 package com.sonatype.insight.brain.git;
 
-import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.githubapp.GitHubApp;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.InsightProxy;
-import com.sonatype.nexus.scm.GitApiClientFactory;
-import com.sonatype.nexus.scm.api.ContributorInfoProvider;
-import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
-import com.sonatype.nexus.scm.api.GitApiClient;
-import com.sonatype.nexus.scm.api.GitApiClientUtils;
-import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantTestHelper;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.github.GitHubApiClient;
-import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
-
-import java.util.List;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.inject.Binder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-
-import java.io.IOException;
-import java.util.Date;
-
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
@@ -66,6 +27,40 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
+import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.ContributorInfoProvider;
+import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import com.sonatype.nexus.scm.api.GitApiClientUtils;
+import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
+import com.sonatype.nexus.scm.github.GitHubApiClient;
+import com.sonatype.nexus.scm.github.graphql.GitHubGraphQlClient;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class GitClientFactoryTest
     extends AbstractComponentTest
@@ -94,40 +89,20 @@ public class GitClientFactoryTest
   /**
    * Override GitHubAppAuthStrategyCache bean to use WireMock URL for tests.
    */
-  @Override
-  public void configure(Binder binder) {
-    // Get providers for dependencies - they'll be resolved lazily
-    Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
-    Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
-    Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
-    Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
-
-    // Create provider that uses WireMock URL
-    binder.bind(GitHubAppAuthStrategyCache.class)
-        .toProvider(() -> new GitHubAppAuthStrategyCache(
-            githubAppDAOProvider.get(),
-            insightProxyProvider.get(),
-            gitApiClientFactoryProvider.get(),
-            passwordHandlerProvider.get(),
-            "http://localhost:" + WIREMOCK_PORT));
-    super.configure(binder);
-  }
 
   @Before
   public void setup() {
+    // SpringInjectedTest already populates legacy spy* fields with Mockito spies and mirrors them onto
+    // matching injected fields. Re-spying that injected instance fails under Mockito 5.
+    spyGitClientFactory = org.mockito.Mockito.mockingDetails(gitClientFactory).isMock()
+        ? gitClientFactory
+        : spy(gitClientFactory);
+
     // Clear URL caches before each test to ensure test isolation
     gitClientFactory.clearUrlCaches();
-
-    spyGitClientFactory = spy(gitClientFactory);
-    mockGitApiClientUtils = mock(GitApiClientUtils.class);
-    lenient().doReturn(mockGitApiClientUtils)
-        .when(spyGitClientFactory)
-        .getClientUtils(eq(GITHUB),
-            any(Configuration.class));
   }
 
   @After
-  @Override
   public void tearDown() {
     // Reset tenant context after each test to prevent cross-test pollution
     TenantTestHelper.resetAfterTest();
@@ -136,6 +111,7 @@ public class GitClientFactoryTest
   @Test
   public void test_createApiClient_urlCaching() {
     // setup:
+    stubGitHubClientUtilsOnSpy();
     when(mockGitApiClientUtils.getApiUrl(any(), any())).thenReturn("https://github.com/api/v3/");
     GIT_REPO_INFO.normalizedRepositoryUrl = "https://github.com/org/repo";
 
@@ -163,6 +139,7 @@ public class GitClientFactoryTest
   @Test
   public void test_createPullRequestInfoClient_urlCaching() {
     // setup:
+    stubGitHubClientUtilsOnSpy();
     when(mockGitApiClientUtils.getPullRequestInfoProviderUrl(any(), any())).thenReturn("https://github.com/api/v4/");
     GIT_REPO_INFO.normalizedRepositoryUrl = "https://github.com/org/repo";
 
@@ -407,6 +384,25 @@ public class GitClientFactoryTest
         true, true, true, true, true, true, false, null);
   }
 
+  private void stubGitHubClientUtilsOnSpy() {
+    mockGitApiClientUtils = mock(GitApiClientUtils.class);
+    lenient().doReturn(mockGitApiClientUtils)
+        .when(spyGitClientFactory)
+        .getClientUtils(eq(GITHUB), any(Configuration.class));
+  }
+
+  private GitClientFactory createGitClientFactoryWithWireMockGitHubAppAuth() {
+    InsightProxy insightProxy = lookup(InsightProxy.class);
+    PasswordHandler passwordHandler = lookup(PasswordHandler.class);
+    GitHubAppAuthStrategyCache authStrategyCache = new GitHubAppAuthStrategyCache(
+        gitHubAppDAO,
+        insightProxy,
+        new GitApiClientFactory(),
+        passwordHandler,
+        "http://localhost:" + WIREMOCK_PORT);
+    return new GitClientFactory(insightProxy, authStrategyCache, passwordHandler);
+  }
+
   @Test
   public void testCreateApiClient_GitHubApp_NotFound() {
     // Given: A repository configured for GitHub App auth but the GitHub App ID doesn't exist in DB
@@ -503,12 +499,13 @@ public class GitClientFactoryTest
     repoInfo.authOwnerId = app.getId();
     repoInfo.githubAppId = githubApp.getId();
 
-    // Create GraphQL client and make API call
-    PullRequestInfoProvider prInfoClient = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    // Create GraphQL client and make API call using a cache configured to fetch tokens from WireMock
+    PullRequestInfoProvider prInfoClient =
+        createGitClientFactoryWithWireMockGitHubAppAuth().createPullRequestInfoClient(repoInfo);
     assertThat(prInfoClient).isInstanceOf(GitHubGraphQlClient.class);
 
     GitHubGraphQlClient graphQlClient = (GitHubGraphQlClient) prInfoClient;
-    graphQlClient.getPullRequestsSince("test-org", java.time.OffsetDateTime.now().minusDays(30), 10);
+    graphQlClient.getPullRequestsSince("test-org", OffsetDateTime.now().minusDays(30), 10);
 
     // Verify GraphQL endpoint was called with GitHub App authentication
     githubMockServer.verify(
@@ -572,19 +569,21 @@ public class GitClientFactoryTest
     repoInfo.authOwnerId = app.getId();
     repoInfo.githubAppId = githubApp.getId();
 
+    GitClientFactory gitClientFactoryWithWireMockAuth = createGitClientFactoryWithWireMockGitHubAppAuth();
+
     // Create first PullRequestInfoProvider and make API call - should fetch installation token
-    PullRequestInfoProvider prInfoClient1 = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    PullRequestInfoProvider prInfoClient1 = gitClientFactoryWithWireMockAuth.createPullRequestInfoClient(repoInfo);
     ((GitHubGraphQlClient) prInfoClient1).getPullRequestsSince("test-org",
-        java.time.OffsetDateTime.now().minusDays(30), 10);
+        OffsetDateTime.now().minusDays(30), 10);
 
     // Verify the token endpoint was called once
     githubMockServer.verify(1, postRequestedFor(urlPathEqualTo("/app/installations/7890123/access_tokens")));
 
     // Create second PullRequestInfoProvider with same GitHub App and make API call
     // Should reuse cached auth strategy without fetching token again
-    PullRequestInfoProvider prInfoClient2 = gitClientFactory.createPullRequestInfoClient(repoInfo);
+    PullRequestInfoProvider prInfoClient2 = gitClientFactoryWithWireMockAuth.createPullRequestInfoClient(repoInfo);
     ((GitHubGraphQlClient) prInfoClient2).getPullRequestsSince("test-org",
-        java.time.OffsetDateTime.now().minusDays(30), 10);
+        OffsetDateTime.now().minusDays(30), 10);
 
     // Verify the token endpoint was still only called once (cache was used)
     githubMockServer.verify(1, postRequestedFor(urlPathEqualTo("/app/installations/7890123/access_tokens")));
@@ -762,7 +761,7 @@ public class GitClientFactoryTest
 
   private GitHubApp createTestGitHubApp(String ownerId) {
     GitHubApp githubApp = new GitHubApp();
-    githubApp.setId(java.util.UUID.randomUUID().toString());
+    githubApp.setId(UUID.randomUUID().toString());
     githubApp.setOwnerId(ownerId);
     githubApp.setAppId(123456);
     githubApp.setSlug("test-app");

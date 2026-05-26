@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -41,19 +41,16 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class RepositoryPolicyAlertEmailerTest
     extends AbstractComponentTest
@@ -73,13 +70,6 @@ public class RepositoryPolicyAlertEmailerTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(InsightMail.class).toInstance(mail);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
     setBaseUrl("http://baseUrl");
@@ -87,7 +77,19 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Test
   public void testRepositoryPolicyAlertEmailer_AddsExecutorToShutdownHandler() {
-    verify(mockShutdownHandler).add(emailer.getExecutor(), ShutdownPriority.NOTIFICATIONS);
+    RepositoryPolicyAlertEmailer localEmailer = new RepositoryPolicyAlertEmailer(
+        mail,
+        lookup(com.sonatype.insight.brain.policy.evaluator.PolicyAlertEmailResolver.class),
+        baseUrl,
+        lookup(com.sonatype.insight.brain.audit.AuditRecorder.class),
+        mockShutdownHandler);
+
+    try {
+      verify(mockShutdownHandler).add(localEmailer.getExecutor(), ShutdownPriority.NOTIFICATIONS);
+    }
+    finally {
+      localEmailer.getExecutor().shutdownNow();
+    }
   }
 
   @Test

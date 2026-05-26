@@ -5,27 +5,25 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -138,19 +136,33 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.assertj.core.api.Condition;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -162,7 +174,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
@@ -207,7 +218,7 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private ApiLicenseLegalService apiLicenseLegalService;
 
-  private ApiLicenseLegalService apiLicenseLegalServiceSpy;
+  private ApiLicenseLegalService apiLicenseLegalServiceDouble;
 
   @Inject
   private ApiReportDataServiceV2 apiReportDataServiceV2;
@@ -286,11 +297,8 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-
+  @Before
+  public void setupComponentInfoServiceSpy() {
     // Init DAOs
     licenseDAO = daoFactory.createLicenseDAO();
     applicationDAO = daoFactory.createApplicationDAO();
@@ -301,15 +309,15 @@ public class ApiLicenseLegalServiceTest
     // Init Spys
     apiLicenseDataAdapterSpy =
         spy(new ApiLicenseDataAdapter(daoFactory.createMultiLicenseDAO()));
-    binder.bind(ApiLicenseDataAdapter.class).toInstance(apiLicenseDataAdapterSpy);
     lenient().when(configurationMock.isALPObservedLicenseDetectionEnabled()).thenReturn(true);
-    componentInfoServiceSpy = spy(buildComponentInfoService());
+    componentInfoServiceSpy = spy(lookup(ComponentInfoService.class));
 
-    binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceSpy);
-    binder.bind(ThirdPartyComponentDAO.class).toInstance(mockThirdPartyComponentDAO);
-    binder.bind(ComponentLegalService.class).toInstance(mockComponentLegalService);
-    binder.bind(SourceLinkOverrideDAO.class).toInstance(mockSourceLinkOverrideDAO);
-    super.configure(binder);
+    applyBeanFieldOverride(ApiLicenseLegalService.class, "apiLicenseLegalHdsService", mockApiLicenseLegalHdsService);
+    applyBeanFieldOverride(ApiLicenseLegalService.class, "componentLegalService", mockComponentLegalService);
+    applyBeanFieldOverride(ApiLicenseLegalService.class, "telemetrySender", telemetrySenderMock);
+    applyBeanFieldOverride(ApiLicenseLegalService.class, "apiLicenseDataAdapter", apiLicenseDataAdapterSpy);
+    applyBeanFieldOverride(ApiLicenseLegalService.class, "componentInfoService", componentInfoServiceSpy);
+    applyBeanFieldOverride(LegalDashboardsService.class, "apiLicenseLegalHdsService", mockApiLicenseLegalHdsService);
   }
 
   private ComponentInfoService buildComponentInfoService() {
@@ -1444,7 +1452,7 @@ public class ApiLicenseLegalServiceTest
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
         false);
   }
@@ -1457,7 +1465,7 @@ public class ApiLicenseLegalServiceTest
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
         BuildStageType.ID, true);
   }
@@ -1473,7 +1481,7 @@ public class ApiLicenseLegalServiceTest
     mockReport(policyEvaluation2);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation2.getScanId());
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS,
         ReleaseStageType.ID, false);
   }
@@ -1482,8 +1490,8 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_WithSingleLicensesInMultiLicenseIds() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ApiReportRawDataDTOV2 rawReport = getContent("lls-raw-report-multilicenses.json", ApiReportRawDataDTOV2.class);
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
+    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceDouble).getLastRawApplicationReport(anyString());
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata-multilicense.json",
         EXPECTED_LICENSE_IDS_FOR_MULTILICENSE, null, false);
   }
@@ -1492,10 +1500,10 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_NoLicenses() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ApiReportRawDataDTOV2 rawReport = getContent("lls-raw-report-no-license.json", ApiReportRawDataDTOV2.class);
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceSpy).getLastRawApplicationReport(anyString());
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
+    doReturn(Optional.of(rawReport)).when(apiLicenseLegalServiceDouble).getLastRawApplicationReport(anyString());
 
-    ApiLicenseLegalApplicationReportDTO licenseMetadataReport = apiLicenseLegalServiceSpy
+    ApiLicenseLegalApplicationReportDTO licenseMetadataReport = apiLicenseLegalServiceDouble
         .getLicenseLegalApplicationReport(app);
 
     assertThat(licenseMetadataReport).isNotNull();
@@ -1567,8 +1575,8 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
         stageId == null
-            ? apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app)
-            : apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app, stageId, includeInnerSource, false);
+            ? apiLicenseLegalServiceDouble.getLicenseLegalApplicationReport(app)
+            : apiLicenseLegalServiceDouble.getLicenseLegalApplicationReport(app, stageId, includeInnerSource, false);
 
     assertThat(licenseMetadataReport).isNotNull();
     assertLicenseLegalMetadata(licenseMetadataReport.components, licenseMetadataReport.licenseLegalMetadata, rawReport,
@@ -1611,15 +1619,16 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalApplicationReport_NoComponentsWithLicenses() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     ApiReportRawDataDTOV2 rawReport = getContent("raw-report-no-licenses.json", ApiReportRawDataDTOV2.class);
-    ApiLicenseLegalService apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    when(apiLicenseLegalServiceSpy.getLastRawApplicationReport(app.getPublicId())).thenReturn(Optional.of(rawReport));
+    ApiLicenseLegalService apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
+    when(apiLicenseLegalServiceDouble.getLastRawApplicationReport(app.getPublicId()))
+        .thenReturn(Optional.of(rawReport));
     when(mockApiLicenseLegalHdsService.getComponentLegalComments(componentIdentifiersArgumentCaptor.capture()))
         .thenReturn(new HashSet<>());
     when(mockApiLicenseLegalHdsService.getComponentLegalFiles(componentIdentifiersArgumentCaptor.capture()))
         .thenReturn(new HashSet<>());
 
     ApiLicenseLegalApplicationReportDTO licenseMetadataReport =
-        apiLicenseLegalServiceSpy.getLicenseLegalApplicationReport(app);
+        apiLicenseLegalServiceDouble.getLicenseLegalApplicationReport(app);
 
     verify(mockApiLicenseLegalHdsService, never()).getLicenseMetadata(any());
     assertThat(licenseMetadataReport.components).hasSize(3);
@@ -2290,10 +2299,7 @@ public class ApiLicenseLegalServiceTest
         .withMessageContaining("Unable to determine componentIdentifier.");
   }
 
-  @Test
-  public void testInitialize_ComponentInfoServiceToolNameSet() {
-    verify(componentInfoServiceSpy, atLeastOnce()).setToolName("ci");
-  }
+  // Removed: toolName field was removed in Spring migration; toolName is now passed per-request
 
   @Test
   public void testGetLicenseLegalComponentReport_ComponentIdentifierAndPackageUrl() {
@@ -3058,8 +3064,8 @@ public class ApiLicenseLegalServiceTest
     componentDto1.licenseData.effectiveLicenses.add(new ApiLicenseDTO("MIT", "MIT"));
     reportDto1.components.add(componentDto1);
 
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
-    doReturn(reportDto1).when(apiLicenseLegalServiceSpy)
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
+    doReturn(reportDto1).when(apiLicenseLegalServiceDouble)
         .getApiReportRawDataForMultiApplicationReport(app1,
             BuildStageType.ID);
 
@@ -3072,7 +3078,7 @@ public class ApiLicenseLegalServiceTest
     componentDto2.licenseData.effectiveLicenses.add(new ApiLicenseDTO("MIT", "MIT"));
     reportDto2.components.add(componentDto2);
 
-    doReturn(reportDto2).when(apiLicenseLegalServiceSpy)
+    doReturn(reportDto2).when(apiLicenseLegalServiceDouble)
         .getApiReportRawDataForMultiApplicationReport(app2,
             BuildStageType.ID);
 
@@ -3083,7 +3089,7 @@ public class ApiLicenseLegalServiceTest
         .getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
 
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> optionalResult =
-        apiLicenseLegalServiceSpy.getLicenseLegalMultiApplicationReport(Arrays.asList(app1, app2),
+        apiLicenseLegalServiceDouble.getLicenseLegalMultiApplicationReport(Arrays.asList(app1, app2),
             Arrays.asList(BuildStageType.ID, BuildStageType.ID), false, false);
 
     assertThat(optionalResult).isNotEmpty();
@@ -3104,7 +3110,7 @@ public class ApiLicenseLegalServiceTest
     mockReport(policyEvaluation);
     ApiReportRawDataDTOV2 rawReport =
         apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), policyEvaluation.getScanId());
-    apiLicenseLegalServiceSpy = spy(apiLicenseLegalService);
+    apiLicenseLegalServiceDouble = spy(apiLicenseLegalService);
     testGetLicenseLegalApplicationReport(app, rawReport, "lls-license-metadata.json", EXPECTED_LICENSE_IDS, null,
         false);
   }

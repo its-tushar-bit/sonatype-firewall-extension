@@ -5,28 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.mockito.Mock;
-
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +12,24 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
 
 public class PendoCacheTest
     extends AbstractComponentTest
@@ -52,12 +48,6 @@ public class PendoCacheTest
 
   @Inject
   private ObjectMapper objectMapper;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    super.configure(binder);
-  }
 
   @Before
   public void reset() {

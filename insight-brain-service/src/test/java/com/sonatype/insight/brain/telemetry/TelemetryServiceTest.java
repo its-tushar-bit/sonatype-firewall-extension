@@ -5,13 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import static org.mockito.Mockito.verify;
 
-import jakarta.inject.Inject;
-
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -20,13 +16,12 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
@@ -37,13 +32,6 @@ public class TelemetryServiceTest
   private TelemetryService telemetryService;
 
   private TelemetrySender mockTelemetrySender;
-
-  @Override
-  public void configure(Binder binder) {
-    mockTelemetrySender = mock(TelemetrySender.class);
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testForwardFrontendTelemetryToHds() {

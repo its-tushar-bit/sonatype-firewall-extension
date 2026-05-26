@@ -38,13 +38,13 @@ public class SourceControlComponentLoaderTest
   @Inject
   private InsightWork insightWork;
 
-  private Application application;
-
-  private final ComponentIdentifier log4jCoreComponentId =
+  private static final ComponentIdentifier LOG4J_CORE_COMPONENT_ID =
       ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j", "log4j-core", "2.6.1", "", "jar");
 
-  private final ComponentIdentifier log4jApiComponentId =
+  private static final ComponentIdentifier LOG4J_API_COMPONENT_ID =
       ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j", "log4j-api", "2.6.1", "", "jar");
+
+  private Application application;
 
   private final String unknownComponentHash = "3c2501b9238143b17d2c";
 
@@ -70,12 +70,12 @@ public class SourceControlComponentLoaderTest
     assertThat(details).isNotNull();
 
     // and: the display name and dep. info is available for log4j-core
-    ComponentInfo componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    ComponentInfo componentInfo = details.getComponentInfo(LOG4J_CORE_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isTrue();
 
     // and: the display name and dep. info is available for log4j-api
-    componentInfo = details.getComponentInfo(log4jApiComponentId);
+    componentInfo = details.getComponentInfo(LOG4J_API_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-api : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isFalse();
 
@@ -111,12 +111,12 @@ public class SourceControlComponentLoaderTest
     assertThat(details).isNotNull();
 
     // and: only the display name is available for log4j-core
-    ComponentInfo componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    ComponentInfo componentInfo = details.getComponentInfo(LOG4J_CORE_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isNull();
 
     // and: only the display name is available for log4j-api
-    componentInfo = details.getComponentInfo(log4jApiComponentId);
+    componentInfo = details.getComponentInfo(LOG4J_API_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-api : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isNull();
 
@@ -136,7 +136,7 @@ public class SourceControlComponentLoaderTest
 
     // one policy violation for a component already in the report
     PolicyViolation violation = new PolicyViolation();
-    violation.setComponentIdentifier(log4jCoreComponentId);
+    violation.setComponentIdentifier(LOG4J_CORE_COMPONENT_ID);
     policyViolations.add(violation);
 
     // second policy violation for a component not included in the report
@@ -156,7 +156,7 @@ public class SourceControlComponentLoaderTest
     assertThat(details).isNotNull();
 
     // and: log4j-core component info is unchanged
-    ComponentInfo componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    ComponentInfo componentInfo = details.getComponentInfo(LOG4J_CORE_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isTrue();
 
@@ -180,20 +180,20 @@ public class SourceControlComponentLoaderTest
 
     Map<ComponentIdentifier, ComponentInfo> identifierToComponentInfoMap = details.getIdentifierToComponentInfoMap();
     ComponentInfo componentInfo =
-        new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(log4jCoreComponentId).toString(), false);
-    identifierToComponentInfoMap.put(log4jCoreComponentId, componentInfo);
+        new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(LOG4J_CORE_COMPONENT_ID).toString(), false);
+    identifierToComponentInfoMap.put(LOG4J_CORE_COMPONENT_ID, componentInfo);
     List<PullRequestLineCommentDTO> lineComments =
         Collections.singletonList(
-            new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 0, 1, "456", 1)));
+            new PullRequestLineCommentDTO(LOG4J_CORE_COMPONENT_ID, new DiffPosition("path", 1, 0, 1, "456", 1)));
 
-    componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    componentInfo = details.getComponentInfo(LOG4J_CORE_COMPONENT_ID);
     assertThat(componentInfo.getDirectDependency()).isFalse();
 
     // when:
     loader.enhanceSourceControlComponentDetailsWithDirectDependencyInformation(details, lineComments);
 
     // and: log4j-core component info is unchanged
-    componentInfo = details.getComponentInfo(log4jCoreComponentId);
+    componentInfo = details.getComponentInfo(LOG4J_CORE_COMPONENT_ID);
     assertThat(componentInfo.getDisplayName()).isEqualTo("org.apache.logging.log4j : log4j-core : 2.6.1");
     assertThat(componentInfo.getDirectDependency()).isTrue();
   }

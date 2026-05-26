@@ -5,18 +5,16 @@
  */
 package com.sonatype.insight.brain.api.admin.authorization.provider;
 
-import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.service.Auth0Config;
-import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkException;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
+import com.sonatype.insight.brain.service.Auth0Config;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +34,12 @@ public class MultiTenantJwkAuth0Provider
   @Inject
   public MultiTenantJwkAuth0Provider(MultiTenantInsightConfig multiTenantInsightConfig) {
     auth0Config = multiTenantInsightConfig.getAuth0Config();
+
+    if (auth0Config == null || auth0Config.getDomain() == null || auth0Config.getDomain().isBlank()) {
+      log.info("Auth0 is not configured; Auth0 JWK provider will remain inactive.");
+      denyRequest = true;
+      return;
+    }
 
     try {
       // Caching for 2 keys (current, next) with 24h ttl.

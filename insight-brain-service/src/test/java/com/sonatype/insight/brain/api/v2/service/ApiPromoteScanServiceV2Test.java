@@ -5,6 +5,45 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.hds.ScanUploadService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtil;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.model.ClientScanType;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -15,47 +54,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
-import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.PolicyEvaluationHelper;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationResultDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiPromoteScanRequestDTOV2;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.hds.ScanUploadService;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
-import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
-import com.sonatype.insight.brain.scan.ScanContext;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.scan.model.ClientScanType;
-
-import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.Answer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ApiPromoteScanServiceV2Test
     extends AbstractComponentTest
@@ -95,18 +98,23 @@ public class ApiPromoteScanServiceV2Test
     app = tempEntity.newApplicationWithParent();
   }
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScanUploadService.class).toInstance(scanUploadService);
-    binder.bind(PolicyAlertNotifier.class).toInstance(policyAlertNotifier);
-    binder.bind(ScanPolicyEvaluator.class).toInstance(scanPolicyEvaluator);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Test
   public void testApiPromoteScanServiceV2_AddsExecutorToShutdownHandler() {
-    verify(mockShutdownHandler).add(service.getExecutor());
+    ApiPromoteScanServiceV2 localService = new ApiPromoteScanServiceV2(
+        lookup(ApplicationDAO.class),
+        lookup(PolicyEvaluationDAO.class),
+        lookup(PolicyEvaluateService.class),
+        lookup(PolicyEvaluationPollingResultUtils.class),
+        mockShutdownHandler,
+        lookup(PolicyEvaluationUtil.class),
+        lookup(ScanPersistenceService.class));
+
+    try {
+      verify(mockShutdownHandler).add(localService.getExecutor());
+    }
+    finally {
+      localService.getExecutor().shutdownNow();
+    }
   }
 
   @Test

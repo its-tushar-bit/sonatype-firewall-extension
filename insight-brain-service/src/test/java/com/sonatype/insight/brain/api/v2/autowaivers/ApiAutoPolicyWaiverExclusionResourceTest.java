@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.autowaivers;
 
-import java.util.Date;
-import java.util.List;
+import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -30,45 +34,26 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import java.util.Date;
+import java.util.List;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
-import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
-import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
 public class ApiAutoPolicyWaiverExclusionResourceTest
     extends AbstractResourceTest
 {
+  private static final String REPORT_RESOURCE = "/ApiAutoPolicyWaiverExclusionResourceTest/report";
+
   private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   private PolicyViolationDAO policyViolationDAO;
-
-  protected static ReportService reportService = mock(ReportService.class);
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportService.class).toInstance(reportService);
-    super.configure(binder);
-  }
 
   @Before
   public void setUp() {
@@ -76,12 +61,16 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     policyViolationDAO = lookup(PolicyViolationDAO.class);
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     licenseManager.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
-    Mockito.reset(reportService);
   }
 
   @After
   public void cleanup() {
     licenseManager.reset();
+  }
+
+  @Override
+  protected String getRestBaseUrl() {
+    return super.getRestBaseUrl().replaceFirst("/$", "");
   }
 
   @Test
@@ -161,12 +150,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     exclusion.policyViolationId = violation.getId();
     exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 
-    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
-        identifier,
-        violation);
-
-    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
-        createPolicyThreats(Lists.newArrayList(component1Threats)));
+    createPolicyThreatReport(application.getId(), exclusion.scanId, violation);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
@@ -190,13 +174,6 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
-        identifier,
-        violation);
-
-    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
-        createPolicyThreats(Lists.newArrayList(component1Threats)));
-
     ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
     exclusion.ownerId = app.getOrganizationId();
     exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
@@ -204,6 +181,8 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     exclusion.scanId = "scanId";
     exclusion.policyViolationId = violation.getId();
     exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
+
+    createPolicyThreatReport(app.getId(), exclusion.scanId, violation);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
@@ -235,12 +214,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     exclusion.policyViolationId = violation.getId();
     exclusion.matchStrategy = ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
 
-    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
-        identifier,
-        violation);
-
-    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
-        createPolicyThreats(Lists.newArrayList(component1Threats)));
+    createPolicyThreatReport(application.getId(), exclusion.scanId, violation);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
@@ -274,10 +248,9 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
 
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverExclusionResponseDTO exclusion = new ApiAutoPolicyWaiverExclusionResponseDTO();
+    ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
     exclusion.ownerId = application.getId();
     exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    exclusion.hash = "hash";
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_EXCLUSION_PATH + "/" + OWNERS_PATH)
@@ -292,7 +265,7 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
   public void testAddAutoPolicyWaiverExclusion_IncompleteDto() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
-    ApiAutoPolicyWaiverExclusionResponseDTO exclusion = new ApiAutoPolicyWaiverExclusionResponseDTO();
+    ApiAutoPolicyWaiverExclusionRequestDTO exclusion = new ApiAutoPolicyWaiverExclusionRequestDTO();
     exclusion.ownerId = application.getId();
     exclusion.autoPolicyWaiverId = autoPolicyWaiver.getId();
 
@@ -439,33 +412,17 @@ public class ApiAutoPolicyWaiverExclusionResourceTest
     return new ConstraintFact(constraintId, constraintName, null, conditionFacts);
   }
 
-  private PolicyThreats createPolicyThreats(final List<PolicyThreats.Component> components) {
-    final PolicyThreats policyThreats = new PolicyThreats();
-    policyThreats.aaData.addAll(components);
-
-    return policyThreats;
-  }
-
-  private PolicyThreats.Component createPolicyThreatsComponents(
-      ComponentIdentifier componentIdentifier,
-      PolicyViolation violation)
+  private void createPolicyThreatReport(
+      final String applicationId,
+      final String scanId,
+      final PolicyViolation violation) throws Exception
   {
-    PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
-    policyViolation.policyThreatLevel = violation.getThreatLevel();
-    policyViolation.policyViolationId = violation.getId();
-    policyViolation.policyName = violation.getPolicyName();
-    policyViolation.policyId = violation.getPolicyId();
-    policyViolation.actions = null;
-    policyViolation.constraints = null;
-    policyViolation.policyThreatCategory = null;
-    policyViolation.reachabilityStatus = null;
-    policyViolation.constraintFactsJson = violation.getConstraintFactsJson();
-
-    final PolicyThreats.Component component = new PolicyThreats.Component();
-    component.hash = violation.getHash();
-    component.componentIdentifier = componentIdentifier;
-    component.activeViolations.add(policyViolation);
-    component.allViolations.add(policyViolation);
-    return component;
+    final InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
+    ReportTestUtils.createReportFile(
+        applicationId,
+        scanId,
+        ReportTestUtils.zipReportDir(REPORT_RESOURCE, tempDir),
+        insightWork);
+    ReportHelper.createPolicyThreats(insightWork, applicationId, scanId, List.of(violation));
   }
 }

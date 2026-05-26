@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
@@ -21,14 +19,13 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 public class ApplicationCleanerTest
     extends AbstractComponentTest
@@ -47,12 +44,6 @@ public class ApplicationCleanerTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-  }
 
   @Test
   public void testDelete_DeleteDirectories() throws Exception {

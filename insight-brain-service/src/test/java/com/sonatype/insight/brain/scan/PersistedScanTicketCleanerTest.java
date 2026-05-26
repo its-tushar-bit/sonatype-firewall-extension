@@ -5,28 +5,24 @@
  */
 package com.sonatype.insight.brain.scan;
 
-import java.util.Date;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class PersistedScanTicketCleanerTest
     extends AbstractComponentTest
@@ -39,13 +35,6 @@ public class PersistedScanTicketCleanerTest
 
   @Mock
   private PersistedScanTicketDAO persistedScanTicketDAOMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(PersistedScanTicketDAO.class).toInstance(persistedScanTicketDAOMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testDisallowConcurrentExecution() {

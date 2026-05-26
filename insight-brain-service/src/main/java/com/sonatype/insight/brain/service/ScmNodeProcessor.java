@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.service;
 
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 /**
  * Default implementation allows all nodes to run SCM event and pull request polling processes
  */
+@Named
 @Singleton
 public class ScmNodeProcessor
 {

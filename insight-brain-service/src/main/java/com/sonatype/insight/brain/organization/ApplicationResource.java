@@ -209,12 +209,8 @@ public class ApplicationResource
   @Path(GET_APPLICATION_ICON_PATH)
   @Produces("image/png")
   public Response getIcon(@PathParam("applicationPublicId") final String applicationPublicId) throws IOException {
-    String applicationId = null;
-    Application application = applicationService.getApplicationByPublicIdForRead(applicationPublicId);
-    if (application != null) {
-      applicationId = application.getId();
-    }
-    return super.getIcon(applicationId, work.getApplicationIconDir());
+    Application application = applicationService.getApplicationByPublicIdNotNull(applicationPublicId);
+    return super.getIcon(application.getId(), work.getApplicationIconDir());
   }
 
   /**

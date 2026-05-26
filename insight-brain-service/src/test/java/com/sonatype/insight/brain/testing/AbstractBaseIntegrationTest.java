@@ -5,6 +5,84 @@
  */
 package com.sonatype.insight.brain.testing;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.MockCleaner;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
+import com.sonatype.insight.brain.TestLicenseFingerprinter;
+import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
+import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
+import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.jira.JiraClient;
+import com.sonatype.insight.brain.jira.JiraClientFactory;
+import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.TestProductLicenseRule;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.search.SearchIndexRule;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.TestCLMServer;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.ScanHelper;
+import com.sonatype.insight.client.utils.Authentication;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.mock.hds.HdsMockResponse;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryHeader;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.test.networking.PortAllocator;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,6 +90,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -27,87 +106,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import jakarta.mail.BodyPart;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMultipart;
-import jakarta.mail.util.ByteArrayDataSource;
-import jakarta.ws.rs.core.UriBuilder;
-
-import com.sonatype.clm.dto.model.ComponentSummary;
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.component.ComponentDetailsList;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.MockCleaner;
-import com.sonatype.insight.brain.StaticInjectionTestHelper;
-import com.sonatype.insight.brain.TestLicenseFingerprinter;
-import com.sonatype.insight.brain.TestProductLicenseManager;
-import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
-import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
-import com.sonatype.insight.brain.dataaccess.DAOFactory;
-import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
-import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
-import com.sonatype.insight.brain.db.rule.DatabaseRule;
-import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.ScanUploader;
-import com.sonatype.insight.brain.jira.JiraClient;
-import com.sonatype.insight.brain.jira.JiraClientFactory;
-import com.sonatype.insight.brain.model.PerpetualLock;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.product.TestProductLicenseRule;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
-import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
-import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
-import com.sonatype.insight.brain.security.EncryptionKeyStore;
-import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
-import com.sonatype.insight.brain.search.SearchIndexRule;
-import com.sonatype.insight.brain.service.HdsMockServerRule;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.TestCLMServer;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.brain.utils.ScanHelper;
-import com.sonatype.insight.client.utils.Authentication;
-import com.sonatype.insight.dependency.ComponentDependenciesDTO;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.mock.hds.HdsMockResponse;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryHeader;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import com.sonatype.insight.test.networking.PortAllocator;
-import org.sonatype.licensing.product.ProductLicenseManager;
-import org.sonatype.licensing.product.util.LicenseFingerprinter;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Module;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -115,18 +113,20 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import org.sonatype.licensing.product.ProductLicenseManager;
+import org.sonatype.licensing.product.util.LicenseFingerprinter;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 /**
  * <p>
  * Abstract base class for IQ integration tests. These are tests that run the 'CLM stack' which includes an IQ Server
- * (i.e. {@link InsightBrainService}) with various database setups, a mock HDS server, a mock Jira client, etc...
+ * with various database setups, a mock HDS server, a mock Jira client, etc...
  * <p>
  *
  * <p>
@@ -151,7 +151,7 @@ public abstract class AbstractBaseIntegrationTest
    * {@link #startIqTestServer(Configurator)} to start the server, optionally with a custom configuration.
    */
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ElementType.METHOD})
+  @Target({ElementType.METHOD, ElementType.TYPE})
   public @interface ManualIqServerInit
   {
   }
@@ -221,8 +221,10 @@ public abstract class AbstractBaseIntegrationTest
   // note: this is a rule but is initialized in the test reset process
   protected static TestCLMServer testCLMServer;
 
-  private static Class<? extends AbstractBaseIntegrationTest> binderConfigurationClass =
+  private static Class<? extends AbstractBaseIntegrationTest> testConfigurationClass =
       AbstractBaseIntegrationTest.class;
+
+  private static List<Class<?>> testConfigurationClasses = List.of();
 
   // Track the DatabaseContainer identity the server was created with.
   // When other test hierarchies (e.g. BrainInjectedTest) re-initialize the shared
@@ -233,6 +235,8 @@ public abstract class AbstractBaseIntegrationTest
   protected static JiraClient mockJiraClient = mock(JiraClient.class);
 
   private static JiraClientFactory mockJiraClientFactory = mock(JiraClientFactory.class);
+
+  private AutoCloseable testMocks;
 
   public abstract void setUpTestLicenseThreatGroups();
 
@@ -252,9 +256,11 @@ public abstract class AbstractBaseIntegrationTest
   @Before
   public void initTest() throws Exception {
     log.info("@Before (AbstractBaseIntegrationTest.initTest): {}", testName.getMethodName());
+    testMocks = MockitoAnnotations.openMocks(this);
     initHds();
 
     testProductLicense.reset();
+    Mockito.reset(mockDeveloperEnablementService, mockJiraClient, mockJiraClientFactory);
 
     if (!isTestUsingManualServerInit()) {
       startIqTestServer();
@@ -285,6 +291,10 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected boolean isTestUsingManualServerInit() throws Exception {
+    if (getClass().isAnnotationPresent(ManualIqServerInit.class)) {
+      return true;
+    }
+
     String testMethod = testName.getMethodName();
     int paramStart = testMethod.indexOf('[');
     if (paramStart >= 0) {
@@ -293,17 +303,21 @@ public abstract class AbstractBaseIntegrationTest
     return getClass().getMethod(testMethod).isAnnotationPresent(ManualIqServerInit.class);
   }
 
-  private Class<? extends AbstractBaseIntegrationTest> getConfigureBinderClass() throws Exception {
-    // Check both the new method name and the deprecated method name for backward compatibility
-    try {
-      return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configureTestBindings", Binder.class)
-          .getDeclaringClass();
+  @SuppressWarnings("unchecked") // safe: loop guard ensures candidate is assignable to AbstractBaseIntegrationTest
+  private Class<? extends AbstractBaseIntegrationTest> getTestConfigurationClass() {
+    for (Class<?> candidate = getClass(); candidate != null
+        && AbstractBaseIntegrationTest.class.isAssignableFrom(candidate); candidate = candidate.getSuperclass())
+    {
+      try {
+        Method method = candidate.getDeclaredMethod("getTestConfigurationClasses");
+        return (Class<? extends AbstractBaseIntegrationTest>) method.getDeclaringClass();
+      }
+      catch (NoSuchMethodException e) {
+        // keep walking the test-class hierarchy until we find the declaration we actually inherited
+      }
     }
-    catch (NoSuchMethodException e) {
-      // Fall back to checking the deprecated configure method
-      return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configure", Binder.class)
-          .getDeclaringClass();
-    }
+
+    return AbstractBaseIntegrationTest.class;
   }
 
   protected void startIqTestServer() throws Exception {
@@ -319,11 +333,24 @@ public abstract class AbstractBaseIntegrationTest
     maybeStopTestIqServer(configurator);
 
     // start the test IQ server
+    if (testCLMServer != null && !testCLMServer.isRunning()) {
+      testCLMServer.stop();
+      testCLMServer = null;
+    }
+
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(getInsightBrainServiceFactory(), isProxyRequiredToReachHds(), getBrainModules(),
+      testCLMServer = new TestCLMServer(getInsightBrainServiceFactory(), isProxyRequiredToReachHds(),
+          getTestConfigurationClasses(),
           configurator, hdsMockServer, databaseContainerRule.getDatabaseContainer());
-      testCLMServer.start();
-      serverDatabaseContainerIdentity = databaseContainerRule.getDatabaseContainer();
+      try {
+        testCLMServer.start();
+        serverDatabaseContainerIdentity = databaseContainerRule.getDatabaseContainer();
+      }
+      catch (Exception e) {
+        testCLMServer.stop();
+        testCLMServer = null;
+        throw e;
+      }
     }
 
     setBaseUrl("http://localhost");
@@ -339,7 +366,8 @@ public abstract class AbstractBaseIntegrationTest
     // default is the TestCLMServer is re-used and should not be restarted
     boolean stopIqServer = false;
 
-    Class<? extends AbstractBaseIntegrationTest> binderConfigurationClass = getConfigureBinderClass();
+    Class<? extends AbstractBaseIntegrationTest> testConfigurationClass = getTestConfigurationClass();
+    List<Class<?>> testConfigurationClasses = List.copyOf(getTestConfigurationClasses());
 
     if (testCLMServer != null) {
       if (!(testCLMServer.getCLMServer().getIsHdsProxyRequired() == isProxyRequiredToReachHds())) {
@@ -371,8 +399,10 @@ public abstract class AbstractBaseIntegrationTest
       // If a test wants to change the binding configuration via overriding configure (e.g. to use mocks/spies)
       // then we need to restart the server to account for those
       // additionally when going back to the original configuration in this class the server will also need restarting
-      if (AbstractBaseIntegrationTest.binderConfigurationClass != binderConfigurationClass) {
-        log.info("Test IQ server is not reusable due to different binder configuration. Will restart test IQ server.");
+      if (AbstractBaseIntegrationTest.testConfigurationClass != testConfigurationClass
+          || !AbstractBaseIntegrationTest.testConfigurationClasses.equals(testConfigurationClasses))
+      {
+        log.info("Test IQ server is not reusable due to different test configuration. Will restart test IQ server.");
         stopIqServer = true;
       }
 
@@ -385,7 +415,8 @@ public abstract class AbstractBaseIntegrationTest
       }
     }
 
-    AbstractBaseIntegrationTest.binderConfigurationClass = binderConfigurationClass;
+    AbstractBaseIntegrationTest.testConfigurationClass = testConfigurationClass;
+    AbstractBaseIntegrationTest.testConfigurationClasses = testConfigurationClasses;
 
     if (stopIqServer) {
       stopClmServer();
@@ -468,6 +499,14 @@ public abstract class AbstractBaseIntegrationTest
     }
 
     RolePermissionDAO.resetClearRolePermissionCacheForAllOtherNodes();
+    closeTestMocks();
+  }
+
+  private void closeTestMocks() throws Exception {
+    if (testMocks != null) {
+      testMocks.close();
+      testMocks = null;
+    }
   }
 
   protected void cleanTaskScheduler() throws Exception {
@@ -492,73 +531,98 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   /**
-   * Returns test-specific override modules. These modules provide test implementations (like TestProductLicense,
-   * TestTaskScheduler, etc.) and test-only modules (like DataStoreTestModule) that override or supplement
-   * production bindings.
-   * IMPORTANT: Do NOT include production modules here! The production modules are already loaded by
-   * InsightBrainService.modules(). Only test overrides should be returned here.
+   * Returns test-specific configuration classes. These configurations provide test implementations
+   * (like TestProductLicense, TestTaskScheduler, etc.) that override or supplement production beans.
    *
-   * @return list of test override modules
+   * <p>
+   * <b>Migration Note:</b> This method now returns Spring @Configuration classes for test overrides.
+   * Override this method to provide custom test configurations.
+   * </p>
+   *
+   * @return list of test configuration classes
    */
-  protected List<Module> getBrainModules() {
-    List<Module> modules = new ArrayList<>();
+  protected List<Class<?>> getTestConfigurationClasses() {
+    List<Class<?>> configs = new ArrayList<>();
 
-    // Test-specific module for binding DataStore instances
-    modules.add(new DataStoreTestModule(databaseContainerRule));
-    modules.add(new TestHelperModule());
+    // DataStore beans are provided by TestDatabaseConfiguration (active under "test" profile)
+    // via the TestDatabaseContainerHolder mechanism
 
-    // Test override bindings (TestProductLicense, TestTaskScheduler, mocks, etc.)
-    modules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        AbstractBaseIntegrationTest.this.configureTestBindings(binder());
-      }
-    });
+    configs.add(shouldBindTestEncryptionKeyStore()
+        ? BaseIntegrationTestConfigurationWithTestEncryptionKeyStore.class
+        : BaseIntegrationTestConfiguration.class);
 
-    return modules;
+    return configs;
   }
 
   /**
-   * Configure test-specific bindings that override production bindings. Override this method to provide custom
-   * test bindings for mocks, spies, or test implementations.
-   * Note that overriding this method will cause the server to restart if it's already running.
-   * Additionally, the server will restart again once the overridden method is no longer being used.
-   *
-   * @param binder the Guice binder for configuring test bindings
+   * Spring configuration for base integration test bindings.
    */
-  protected void configureTestBindings(final Binder binder) {
-    binder.bind(ProductLicense.class).to(TestProductLicense.class);
-    binder.bind(TestProductLicense.class).toInstance(testProductLicense);
-    binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-    binder.bind(TestProductLicenseManager.class).toInstance(licenseManager);
-    binder.bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-    binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
-    binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
+  @TestConfiguration
+  static class BaseIntegrationTestConfiguration
+  {
 
-    // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
-    binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
-
-    // Ensure SAML tests use the test password factory
-    TestSamlFactory testSamlFactory = new TestSamlFactory();
-    binder.bind(SamlPasswordFactory.class).toInstance(testSamlFactory.createSamlPasswordFactory());
-
-    // Only bind TestEncryptionKeyStore if the test doesn't manage its own EncryptionKeyStore binding
-    if (shouldBindTestEncryptionKeyStore()) {
-      binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
+    @Bean
+    @Primary
+    public ProductLicense productLicense() {
+      return testProductLicense;
     }
 
-    configure(binder);
+    @Bean
+    public ProductLicenseManager productLicenseManager() {
+      return licenseManager;
+    }
+
+    @Bean
+    @Primary
+    public DeveloperEnablementService developerEnablementService() {
+      return mockDeveloperEnablementService;
+    }
+
+    @Bean
+    public LicenseFingerprinter licenseFingerprinter() {
+      return licenseFingerprinter;
+    }
+
+    @Bean
+    public PolicyEvaluationHelper policyEvaluationHelper() {
+      return new PolicyEvaluationHelper();
+    }
+
+    // Note: TestQuartzJobStoreTx and TestTaskScheduler are auto-discovered by Spring
+    // via @Named/@Singleton annotations with @Inject constructors
+
+    @Bean
+    public JiraClientFactory jiraClientFactory() {
+      return mockJiraClientFactory;
+    }
+
+    @Bean
+    public SamlPasswordFactory samlPasswordFactory() {
+      TestSamlFactory testSamlFactory = new TestSamlFactory();
+      return testSamlFactory.createSamlPasswordFactory();
+    }
+
+    @Bean
+    @Primary
+    public ShutdownHandler shutdownHandler() {
+      return mock(ShutdownHandler.class);
+    }
+
+    @Bean
+    public TelemetryId telemetryId() {
+      return mock(TelemetryId.class);
+    }
   }
 
-  /**
-   * @deprecated Use {@link #configureTestBindings(Binder)} instead. This method is kept for backward compatibility
-   *             with tests that override it. It is called by configureTestBindings() to maintain compatibility.
-   */
-  @Deprecated
-  public void configure(final Binder binder) {
-    // Kept for backward compatibility with tests that override this method
-    // By default, does nothing - configureTestBindings() provides the default bindings
+  @TestConfiguration
+  static class BaseIntegrationTestConfigurationWithTestEncryptionKeyStore
+      extends BaseIntegrationTestConfiguration
+  {
+    @Bean
+    @Primary
+    public EncryptionKeyStore encryptionKeyStore() {
+      return new TestEncryptionKeyStore();
+    }
   }
 
   /**

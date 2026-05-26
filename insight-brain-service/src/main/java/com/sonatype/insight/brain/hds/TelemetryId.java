@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import com.sonatype.insight.brain.tenancy.TenantReference;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 @Named
 @Singleton
@@ -88,12 +87,12 @@ public class TelemetryId
 
       clusterIdentity = new ClusterIdentity(resolvedIds.assignedClusterId(), resolvedIds.assignedTelemetryId());
       tenantClusterIdentity.set(clusterIdentity);
-
-      // the clusterIdentificationService can queue up telemetry to be sent once the identity is fully resolved and
-      // set, which just happened above, so we can send that telemetry now
-      clusterIdentificationService.sendTelemetry();
     }
     return clusterIdentity;
+  }
+
+  public void flushPendingTelemetry() {
+    clusterIdentificationService.sendTelemetry();
   }
 
   private record ClusterIdentity(String clusterId, String telemetryId)

@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -32,6 +33,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStra
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -46,20 +49,21 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.mgt.SimpleSession;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class ApiComponentReleaseQuarantineServiceTest
     extends AbstractComponentTest
@@ -100,21 +104,30 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PolicyWaiverTelemetryCreator.class).toInstance(policyWaiverTelemetryCreator);
-    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
+    SecurityManager securityManager = lookup(SecurityManager.class);
+    SimplePrincipalCollection principals = new SimplePrincipalCollection();
+    principals.add(new UserPrincipal(USERNAME, USERNAME, User.INTERNAL_REALM_ID), User.INTERNAL_REALM_ID);
+
+    SimpleSession session = new SimpleSession();
+    session.setId(UUID.randomUUID().toString());
+    session.setStartTimestamp(new Date());
+
+    Subject authenticatedSubject = new Subject.Builder(securityManager)
+        .session(session)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(authenticatedSubject);
+
     policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
   }
 
   @Test
   public void testReleaseQuarantineWithoutReEval() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -131,7 +144,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     Date before = new Date();
     ApiComponentReleasedFromQuarantineDTO result =
-        service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+        service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), "comment");
     Date after = new Date();
 
     ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO =
@@ -174,7 +187,7 @@ public class ApiComponentReleaseQuarantineServiceTest
             packageURLIdentifier.ensureCompleteIdentifier(), false);
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), null))
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), null))
         .withMessage("Comment has not been specified.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
     verifyNoInteractions(repositoryComponentTelemetryCreator);
@@ -189,7 +202,7 @@ public class ApiComponentReleaseQuarantineServiceTest
             packageURLIdentifier.ensureCompleteIdentifier(), false);
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), ""))
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), ""))
         .withMessage("Comment has not been specified.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
     verifyNoInteractions(repositoryComponentTelemetryCreator);
@@ -204,7 +217,8 @@ public class ApiComponentReleaseQuarantineServiceTest
             packageURLIdentifier.ensureCompleteIdentifier(), false);
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment"))
+        .isThrownBy(
+            () -> service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), "comment"))
         .withMessage(
             "Component with quarantineId " + repositoryComponent.getId() + " is not quarantined.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
@@ -231,7 +245,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     Date before = new Date();
     ApiComponentReleasedFromQuarantineDTO result =
-        service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+        service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), "comment");
     Date after = new Date();
 
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
@@ -257,8 +271,10 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Test
   public void testReleaseQuarantineWithoutReEval_UnknownQuarantineId() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
+
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> service.releaseQuarantineWithoutReEval("unknownId", "comment"))
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repository.getId(), "unknownId", "comment"))
         .withMessage(
             "Cannot find a component with quarantineId unknownId.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
@@ -267,7 +283,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Test
   public void testReleaseQuarantineWithoutReEval_NullComponentIdentifier() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -283,7 +299,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     Date before = new Date();
     ApiComponentReleasedFromQuarantineDTO result =
-        service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
+        service.releaseQuarantineWithoutReEval(repository.getId(), repositoryComponent.getId(), "comment");
     Date after = new Date();
 
     ApiRepositoryComponentPolicyViolationDTO repositoryComponentPolicyViolationDTO =
@@ -422,6 +438,6 @@ public class ApiComponentReleaseQuarantineServiceTest
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        repository, before, after, policyViolations, currentUser.getUsername());
+        repository, before, after, policyViolations, currentUser.getUsernameOrSystem());
   }
 }

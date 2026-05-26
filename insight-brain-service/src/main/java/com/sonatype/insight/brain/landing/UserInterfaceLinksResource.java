@@ -5,21 +5,9 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import java.net.URI;
-import java.util.AbstractMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 
+import com.codahale.metrics.annotation.Timed;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -33,18 +21,28 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.AssetPaths;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.codahale.metrics.annotation.Timed;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.AbstractMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
-
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 
 /**
  * Provides URLs to parts of the UI for usage by enforcement points that wish to link to the CLM server's web interface.
@@ -61,7 +59,7 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 @UnlicensedPath
 public class UserInterfaceLinksResource
 {
-  public static final String ASSET_INDEX_PATH = InsightBrainService.BRAIN_ASSET_PATH + "index.html";
+  public static final String ASSET_INDEX_PATH = AssetPaths.BRAIN_ASSET_PATH + "index.html";
 
   public static final String DEFAULT_CDX_BOM_SPECIFICATION = ExportSpecification.DEFAULT.getVersion();
 
@@ -362,7 +360,8 @@ public class UserInterfaceLinksResource
       @PathParam("policyWaiverRequestId") String policyWaiverRequestId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ASSET_INDEX_PATH).fragment("/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}");
+    uriBuilder.path(ASSET_INDEX_PATH)
+        .fragment("/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}");
     return redirect(uriBuilder, ownerType, ownerId, policyWaiverRequestId);
   }
 

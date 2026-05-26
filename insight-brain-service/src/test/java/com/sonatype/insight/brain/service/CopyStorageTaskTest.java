@@ -5,133 +5,149 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
-import java.util.Map;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
-import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.inject.Binder;
-import com.google.inject.Inject;
-import io.dropwizard.servlets.tasks.Task;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.quartz.JobBuilder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
+import com.sonatype.insight.error.exception.BadRequestException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.quartz.JobBuilder;
+
+@RunWith(MockitoJUnitRunner.class)
 public class CopyStorageTaskTest
-    extends AbstractComponentTest
 {
-  @Mock
-  private TaskScheduler mockTaskScheduler;
+  private static final CopyStorageConfig COPY_STORAGE_CONFIG = new CopyStorageConfig(1, 1);
 
   @Mock
-  private CopyStorageService mockCopyStorageService;
+  private TaskScheduler taskScheduler;
 
-  @Inject
+  @Mock
+  private CopyStorageService copyStorageService;
+
+  @Mock
+  private ApiConfigurationService apiConfigurationService;
+
+  @Mock
+  private ShutdownHandler shutdownHandler;
+
   private CopyStorageTask copyStorageTask;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(CopyStorageService.class).toInstance(mockCopyStorageService);
-    super.configure(binder);
+  @Before
+  public void setUp() {
+    when(apiConfigurationService.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG))
+        .thenReturn(COPY_STORAGE_CONFIG);
+
+    copyStorageTask = new CopyStorageTask(
+        taskScheduler,
+        copyStorageService,
+        apiConfigurationService,
+        shutdownHandler);
   }
 
   @Test
-  public void testCopyStorageTask() {
-    assertThat(copyStorageTask).isInstanceOf(Task.class);
+  public void shouldImplementInsightJobAndMtiqBatchJob() {
     assertThat(copyStorageTask).isInstanceOf(InsightJob.class);
     assertThat(copyStorageTask).isInstanceOf(MtiqBatchJob.class);
   }
 
   @Test
-  public void testDisallowConcurrentExecution() {
+  public void shouldDisallowConcurrentExecution() {
     assertThat(JobBuilder.newJob(CopyStorageTask.class).build().isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test
-  public void testExecute_FromNotSpecified() {
-    Map<String, List<String>> map = Map.of(
-        "tenant", List.of("some-tenant"),
-        "to", List.of(DataStoreType.S3.name()));
+  public void shouldRejectMissingFromParameter() {
+    Map<String, List<String>> parameters = Map.of("to", List.of(DataStoreType.S3.name()));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> copyStorageTask.execute(map, null))
+        .isThrownBy(() -> copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream())))
         .withMessageContaining("Missing required query parameter 'from'.");
   }
 
   @Test
-  public void testExecute_ToNotSpecified() {
-    Map<String, List<String>> map = Map.of(
-        "tenant", List.of("some-tenant"),
-        "from", List.of(DataStoreType.FILE.name()));
+  public void shouldRejectMissingToParameter() {
+    Map<String, List<String>> parameters = Map.of("from", List.of(DataStoreType.FILE.name()));
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> copyStorageTask.execute(map, null))
+        .isThrownBy(() -> copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream())))
         .withMessageContaining("Missing required query parameter 'to'.");
   }
 
   @Test
-  public void testExecute_UnknownFrom() {
-    Map<String, List<String>> map = Map.of(
-        "tenant", List.of("some-tenant"),
+  public void shouldRejectUnknownFromDataStore() {
+    Map<String, List<String>> parameters = Map.of(
         "from", List.of("unknownFrom"),
         "to", List.of(DataStoreType.S3.name()));
 
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> copyStorageTask.execute(map, null));
+        .isThrownBy(() -> copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream())));
   }
 
   @Test
-  public void testExecute_UnknownTo() {
-    Map<String, List<String>> map = Map.of(
-        "tenant", List.of("some-tenant"),
+  public void shouldRejectUnknownToDataStore() {
+    Map<String, List<String>> parameters = Map.of(
         "from", List.of(DataStoreType.FILE.name()),
         "to", List.of("unknownTo"));
 
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> copyStorageTask.execute(map, null));
+        .isThrownBy(() -> copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream())));
   }
 
   @Test
-  public void testExecute_ChecksFromAndTo() throws Exception {
-    Map<String, List<String>> map = Map.of(
-        "from", List.of(DataStoreType.FILE.name()),
-        "to", List.of(DataStoreType.S3.name()));
+  public void shouldValidateFromAndToBeforeScheduling() throws Exception {
+    Map<String, List<String>> parameters = Map.of(
+        "from", List.of("file"),
+        "to", List.of("s3"));
 
-    copyStorageTask.execute(map, null);
+    copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream()));
 
-    verify(mockCopyStorageService).checkSupported(DataStoreType.FILE);
-    verify(mockCopyStorageService).checkSupported(DataStoreType.S3);
-    verify(mockCopyStorageService).checkFromAndToAreDifferent(DataStoreType.FILE, DataStoreType.S3);
-    verify(mockCopyStorageService).checkPrimaryStorageIsTarget(DataStoreType.S3);
+    InOrder inOrder = inOrder(copyStorageService, taskScheduler);
+    inOrder.verify(copyStorageService).checkSupported(DataStoreType.FILE);
+    inOrder.verify(copyStorageService).checkSupported(DataStoreType.S3);
+    inOrder.verify(copyStorageService).checkPrimaryStorageIsTarget(DataStoreType.S3);
+    inOrder.verify(copyStorageService).checkFromAndToAreDifferent(DataStoreType.FILE, DataStoreType.S3);
+    inOrder.verify(taskScheduler).scheduleOneTimeTask(same(copyStorageTask), eq(Map.of("from", "FILE", "to", "S3")));
   }
 
   @Test
-  public void testExecute_TriggersTheJob() throws Exception {
-    Map<String, List<String>> map = Map.of(
-        "from", List.of(DataStoreType.FILE.name()),
-        "to", List.of(DataStoreType.S3.name()));
+  @SuppressWarnings("unchecked")
+  public void shouldForwardUppercaseParametersWhenScheduling() throws Exception {
+    Map<String, List<String>> parameters = Map.of(
+        "from", List.of("file"),
+        "to", List.of("s3"));
 
-    copyStorageTask.execute(map, null);
+    copyStorageTask.execute(parameters, new PrintWriter(OutputStream.nullOutputStream()));
 
-    ArgumentCaptor<Map<String, String>> argumentCaptor = ArgumentCaptor.forClass(Map.class);
-    verify(mockTaskScheduler).scheduleOneTimeTask(eq(copyStorageTask), argumentCaptor.capture());
-    Map<String, String> value = argumentCaptor.getValue();
-    assertThat(value).containsEntry("from", DataStoreType.FILE.name());
-    assertThat(value).containsEntry("to", DataStoreType.S3.name());
+    ArgumentCaptor<Map<String, String>> jobParametersCaptor = ArgumentCaptor.forClass(Map.class);
+    verify(taskScheduler).scheduleOneTimeTask(same(copyStorageTask), jobParametersCaptor.capture());
+
+    assertThat(jobParametersCaptor.getValue())
+        .containsEntry("from", DataStoreType.FILE.name())
+        .containsEntry("to", DataStoreType.S3.name());
   }
 
   @Test
-  public void testGetJobName() {
+  public void shouldExposeCopyStorageJobName() {
     assertThat(copyStorageTask.getJobName()).isEqualTo("CopyStorageTask");
   }
 }

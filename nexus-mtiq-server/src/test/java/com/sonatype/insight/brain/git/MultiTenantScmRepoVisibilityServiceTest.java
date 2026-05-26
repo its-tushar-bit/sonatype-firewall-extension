@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
@@ -18,21 +22,15 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-
-import com.google.inject.Binder;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.experimental.categories.Category;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @Category(SlowTest.class)
 public class MultiTenantScmRepoVisibilityServiceTest
@@ -42,9 +40,27 @@ public class MultiTenantScmRepoVisibilityServiceTest
 
   private ScmRepoVisibilityService scmRepoVisibilityService;
 
+  @TestConfiguration
+  static class MultiTenantScmRepoVisibilityServiceTestConfig
+  {
+    @Bean
+    @Primary
+    GitClientFactory gitClientFactory() {
+      return Mockito.mock(GitClientFactory.class);
+    }
+
+    @Bean
+    @Primary
+    GitApiClient gitApiClient() {
+      return Mockito.mock(GitApiClient.class);
+    }
+  }
+
   private SourceControlUtils sourceControlUtils;
 
   private PasswordHandler passwordHandler;
+
+  private GitClientFactory gitClientFactory;
 
   private GitApiClient mockGitApiClient;
 
@@ -53,18 +69,11 @@ public class MultiTenantScmRepoVisibilityServiceTest
     scmRepoVisibilityService = lookup(ScmRepoVisibilityService.class);
     sourceControlUtils = lookup(SourceControlUtils.class);
     passwordHandler = lookup(PasswordHandler.class);
-  }
+    gitClientFactory = lookup(GitClientFactory.class);
+    mockGitApiClient = lookup(GitApiClient.class);
 
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-
-    GitClientFactory mockGitClientFactory = mock(GitClientFactory.class);
-    mockGitApiClient = mock(GitApiClient.class);
-
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-
-    when(mockGitClientFactory.createApiClient(Mockito.any())).thenReturn(mockGitApiClient);
+    Mockito.reset(gitClientFactory, mockGitApiClient);
+    when(gitClientFactory.createApiClient(Mockito.any())).thenReturn(mockGitApiClient);
   }
 
   @Test

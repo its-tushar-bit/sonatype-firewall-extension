@@ -5,29 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
-
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexCreationScheduler;
-
-import io.dropwizard.servlets.tasks.Task;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import org.quartz.DisallowConcurrentExecution;
 
 @Named
 @Singleton
 @DisallowConcurrentExecution
 public class PopulateSearchIndexTask
-    extends Task
+    extends AdminTask
 {
-  private static final String PATH = "populateSearchIndex";
+  public static final String PATH = "populateSearchIndex";
 
   private final TaskScheduler taskScheduler;
 
@@ -52,7 +47,7 @@ public class PopulateSearchIndexTask
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+  public void execute() {
     productLicense.validate();
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     taskScheduler.scheduleOneTimeTask(indexCreationScheduler, Map.of(

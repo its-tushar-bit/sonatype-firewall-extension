@@ -5,18 +5,24 @@
  */
 package com.sonatype.insight.brain.development.prioritization;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHBOARD;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -60,31 +66,21 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import oshi.util.tuples.Pair;
-
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS;
-import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
-import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHBOARD;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DevelopmentPrioritiesServiceTest
     extends AbstractComponentTest
@@ -150,16 +146,6 @@ public class DevelopmentPrioritiesServiceTest
         policyWaiverDAO, innerSourceService, autoPolicyWaiverDAO);
     prioritizationId = tempEntity.newDevelopmentPrioritization(GIVEN_SOME_SCAN_ID).getId();
     tempEntity.newApplicationWithParent(GIVEN_SOME_PUBLIC_APP_ID);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(FeaturesService.class).toInstance(featuresService);
-    binder.bind(DevelopmentPrioritiesReportService.class).toInstance(developmentPrioritiesReportService);
-    binder.bind(ReportService.class).toInstance(reportService);
-    binder.bind(ApiComponentRemediationService.class).toInstance(componentRemediationService);
-    binder.bind(PolicyEvaluationDiffService.class).toInstance(policyEvaluationDiffService);
-    super.configure(binder);
   }
 
   @Test

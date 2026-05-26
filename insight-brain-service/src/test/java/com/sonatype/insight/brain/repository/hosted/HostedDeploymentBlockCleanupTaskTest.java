@@ -24,33 +24,40 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.inject.Binder;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@ContextConfiguration(classes = HostedDeploymentBlockCleanupTaskTest.TestConfig.class)
 public class HostedDeploymentBlockCleanupTaskTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class TestConfig
+  {
+    @Bean("testTaskScheduler")
+    @Primary
+    TaskScheduler taskScheduler() {
+      return mock(TaskScheduler.class);
+    }
+  }
+
+  @Inject
+  private TaskScheduler taskSchedulerMock;
+
   @Inject
   private HostedDeploymentBlockCleanupTask cleanupTask;
 
   @Inject
   private HostedDeploymentBlockDAO blockDAO;
-
-  @Mock
-  private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
-  }
 
   @Test
   public void register_schedulesPeriodicTaskEvery24Hours() {

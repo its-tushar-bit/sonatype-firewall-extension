@@ -15,9 +15,9 @@ import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -25,48 +25,69 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Runs a scheduled or manually triggered Waiver Expiration Detection task.
- * This task detects recently expired waivers and emits webhook events.
+ * Runs the waiver expiration detection job and exposes the legacy admin task path.
  *
- * The @DisallowConcurrentExecution annotation prevents Quartz from running two jobs with the
- * same Quartz job key concurrently. In MTIQ, this allows parallel execution per tenant since
- * each tenant has a different job key.
- *
- * @since 1.178.0
+ * <p>
+ * The public no-arg constructor is retained for legacy Quartz compatibility checks and tests,
+ * while the injected constructor is used for normal Spring-managed execution.
+ * </p>
  */
 @Named
 @Singleton
 @DisallowConcurrentExecution
 public class WaiverExpirationDetectionTask
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "triggerWaiverExpirationDetection";
+
   private static final Logger log = LoggerFactory.getLogger(WaiverExpirationDetectionTask.class);
 
   private Provider<WaiverExpirationDetectionService> waiverExpirationDetectionServiceProvider;
+
+  public WaiverExpirationDetectionTask() {
+    super(PATH);
+    // Retained for persisted-job compatibility checks and lightweight construction in tests.
+  }
 
   @Inject
   public WaiverExpirationDetectionTask(
       Provider<WaiverExpirationDetectionService> waiverExpirationDetectionServiceProvider)
   {
-    super("triggerWaiverExpirationDetection");
+    super(PATH);
     this.waiverExpirationDetectionServiceProvider = waiverExpirationDetectionServiceProvider;
   }
 
   @Override
   public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    WaiverExpirationDetectionService service = getServiceIfAvailable();
+    if (service == null) {
+      log.info("Skipping legacy WaiverExpirationDetectionTask execution for persisted Quartz compatibility");
+      return;
+    }
+
     log.info("Automatic request to run Waiver Expiration Detection for tenant {}",
         TenantThreadLocal.getTenant());
-    execute(waiverExpirationDetectionServiceProvider.get(), log, "Waiver Expiration Detection error");
+    execute(service, log, "Waiver Expiration Detection error");
     log.info("Next Waiver Expiration Detection execution scheduled for {}",
         jobExecutionContext.getNextFireTime());
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    WaiverExpirationDetectionService service = getServiceIfAvailable();
+    if (service == null) {
+      log.info("Skipping legacy WaiverExpirationDetectionTask manual execution for persisted Quartz compatibility");
+      return;
+    }
+
     log.info("Manual request to run Waiver Expiration Detection");
-    waiverExpirationDetectionServiceProvider.get().run();
-    printWriter.write("Completed manual Waiver Expiration Detection execution\n");
+    service.run();
+    output.write("Completed manual Waiver Expiration Detection execution\n");
+  }
+
+  private WaiverExpirationDetectionService getServiceIfAvailable() {
+    return waiverExpirationDetectionServiceProvider == null ? null : waiverExpirationDetectionServiceProvider.get();
   }
 
   @Override

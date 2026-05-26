@@ -100,15 +100,17 @@ public class OrganizationResourceTest
         .parameter(organizationId)
         .get();
     assertResponseStatus(307, iconResponse);
+    String normalizedRestBaseUrl = getRestBaseUrl().replaceFirst("/+$", "");
     assertThat(iconResponse.getHeader("Location"))
-        .isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_organization.png");
+        .isEqualTo(normalizedRestBaseUrl + "/assets/img/defaulticon_organization.png");
 
     // Get icon (default Root Org icon)
     iconResponse = restRequest().path(OrganizationResource.ORGANIZATION_ICON_PATH)
         .parameter(Organization.ROOT_ORGANIZATION_ID)
         .get();
     assertResponseStatus(307, iconResponse);
-    assertThat(iconResponse.getHeader("Location")).isEqualTo(getRestBaseUrl() + "assets/img/defaulticon_root_org.png");
+    assertThat(iconResponse.getHeader("Location"))
+        .isEqualTo(normalizedRestBaseUrl + "/assets/img/defaulticon_root_org.png");
 
     // Add icon
     defaultIconByteArray = loadDefaultIcon();

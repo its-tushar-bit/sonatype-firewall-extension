@@ -5,25 +5,22 @@
  */
 package com.sonatype.insight.brain.service;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator.MailConfig;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
-
-import io.dropwizard.lifecycle.Managed;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 @Named
 @Singleton
 public class MultiTenantMailConfigurationService
-    implements Managed
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantMailConfigurationService.class);
 
@@ -44,8 +41,8 @@ public class MultiTenantMailConfigurationService
     this.passwordHandler = passwordHandler;
   }
 
-  @Override
-  public void start() throws Exception {
+  @PostConstruct
+  public void init() {
     log.info("Setting smtp email configuration");
 
     MailConfig mailConfig = insightConfig.getMailConfig();

@@ -5,23 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal.report;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
+import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
+import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.booleanThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
@@ -48,26 +43,27 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
-import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
-import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
-import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.booleanThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 public class ApplicationAttributionReportBuilderTest
     extends AbstractComponentTest
@@ -83,14 +79,6 @@ public class ApplicationAttributionReportBuilderTest
 
   @Inject
   private ApplicationAttributionReportBuilder reportBuilder;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ApiLicenseLegalService.class).toInstance(mockApiLicenseLegalService);
-    binder.bind(ApplicationService.class).toInstance(mockApplicationService);
-    binder.bind(UserFilterService.class).toInstance(mockUserFilterService);
-    super.configure(binder);
-  }
 
   @Test
   public void testDefaultSuccessfulReport() throws IOException {

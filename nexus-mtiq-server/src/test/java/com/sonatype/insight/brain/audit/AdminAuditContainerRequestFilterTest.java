@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ResourceInfo;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,13 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
-
-import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class AdminAuditContainerRequestFilterTest
 {
@@ -81,8 +80,8 @@ public class AdminAuditContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_AuditedMethod_Guice_SetsEvent() throws Exception {
-    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("audited"));
+  public void testFilter_AuditedMethod_ProxySubclass_SetsEvent() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestProxy$$.class.getMethod("audited"));
     when(mockContainerRequestContext.getProperty(SUBJECT_USER)).thenReturn("test@test.com");
 
     underTest.filter(mockContainerRequestContext);
@@ -93,9 +92,9 @@ public class AdminAuditContainerRequestFilterTest
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testFilter_NoAuditedMethod_Guice_ThrowsException() throws Exception {
+  public void testFilter_NoAuditedMethod_ProxySubclass_ThrowsException() throws Exception {
     when(mockResourceInfo.getResourceMethod())
-        .thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("onlyInAuditedAnnotationTestGuice$$"));
+        .thenReturn(AuditedAnnotationTestProxy$$.class.getMethod("onlyInAuditedAnnotationTestProxy$$"));
 
     underTest.filter(mockContainerRequestContext);
   }
@@ -111,7 +110,7 @@ public class AdminAuditContainerRequestFilterTest
     }
   }
 
-  private static class AuditedAnnotationTestGuice$$
+  private static class AuditedAnnotationTestProxy$$
       extends AuditedAnnotationTest
   {
     @Override
@@ -119,7 +118,7 @@ public class AdminAuditContainerRequestFilterTest
     }
 
     @SuppressWarnings("unused")
-    public void onlyInAuditedAnnotationTestGuice$$() {
+    public void onlyInAuditedAnnotationTestProxy$$() {
     }
 
     @Override

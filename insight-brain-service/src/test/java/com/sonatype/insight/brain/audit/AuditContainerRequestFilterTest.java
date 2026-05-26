@@ -5,13 +5,14 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import jakarta.annotation.Priority;
-import jakarta.ws.rs.Priorities;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ResourceInfo;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.UriInfo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -25,7 +26,13 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,15 +43,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class AuditContainerRequestFilterTest
     extends AbstractDataTest
@@ -129,8 +127,8 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_AuditedMethod_Guice_SetsEvent() throws Exception {
-    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("audited"));
+  public void testFilter_AuditedMethod_ProxySubclass_SetsEvent() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(AuditedAnnotationTestProxy$$.class.getMethod("audited"));
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
 
@@ -138,9 +136,9 @@ public class AuditContainerRequestFilterTest
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testFilter_NoAuditedMethod_Guice_ThrowsException() throws Exception {
+  public void testFilter_NoAuditedMethod_ProxySubclass_ThrowsException() throws Exception {
     when(mockResourceInfo.getResourceMethod())
-        .thenReturn(AuditedAnnotationTestGuice$$.class.getMethod("onlyInAuditedAnnotationTestGuice$$"));
+        .thenReturn(AuditedAnnotationTestProxy$$.class.getMethod("onlyInAuditedAnnotationTestProxy$$"));
 
     auditContainerRequestFilter.filter(mockContainerRequestContext);
   }
@@ -541,7 +539,7 @@ public class AuditContainerRequestFilterTest
     }
   }
 
-  private static class AuditedAnnotationTestGuice$$
+  private static class AuditedAnnotationTestProxy$$
       extends AuditedAnnotationTest
   {
     @Override
@@ -549,7 +547,7 @@ public class AuditContainerRequestFilterTest
     }
 
     @SuppressWarnings("unused")
-    public void onlyInAuditedAnnotationTestGuice$$() {
+    public void onlyInAuditedAnnotationTestProxy$$() {
     }
 
     @Override

@@ -68,7 +68,7 @@ public class AuthenticationTest
     this.securityManager = webSecurityManager;
 
     ThreadContext.bind(securityManager);
-    subject = (new Subject.Builder()).buildSubject();
+    subject = new Subject.Builder(securityManager).buildSubject();
     ThreadContext.bind(subject);
   }
 

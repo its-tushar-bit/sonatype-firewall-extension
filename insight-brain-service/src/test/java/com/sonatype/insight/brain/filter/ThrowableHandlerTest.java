@@ -5,25 +5,6 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.io.PrintWriter;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
-
-import com.google.inject.Binder;
-import jakarta.inject.Inject;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -32,6 +13,21 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
+import jakarta.inject.Inject;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.io.PrintWriter;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.InOrder;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class ThrowableHandlerTest
@@ -57,12 +53,6 @@ public class ThrowableHandlerTest
 
   @Mock
   private Response mockResponse;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(JaxRsExceptionMapper.class).toInstance(mockJaxRsExceptionMapper);
-  }
 
   @Test
   public void testHandle() throws Exception {

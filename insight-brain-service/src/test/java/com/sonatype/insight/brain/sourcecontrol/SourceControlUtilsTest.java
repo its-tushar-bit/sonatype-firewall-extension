@@ -5,37 +5,33 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
-import java.io.File;
-import java.nio.file.Files;
-
-import com.sonatype.insight.brain.model.githubapp.GitHubApp;
-import jakarta.inject.Inject;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.service.githubapp.GitHubAppSelectionService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.nio.file.Files;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
-import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.mockito.Mock;
 
 public class SourceControlUtilsTest
     extends AbstractComponentTest
@@ -46,14 +42,19 @@ public class SourceControlUtilsTest
 
   private static final String SCM_USERNAME = "username";
 
+  @Mock
   private SourceControlDataService mockSourceControlDataService;
 
+  @Mock
   private GitClientFactory mockGitClientFactory;
 
+  @Mock
   private GitApiClient mockGitClientApi;
 
+  @Mock
   private GitHubAppDAO mockGitHubAppDAO;
 
+  @Mock
   private GitHubAppSelectionService mockGitHubAppSelectionService;
 
   private Application application;
@@ -65,21 +66,6 @@ public class SourceControlUtilsTest
 
   @Inject
   private InsightWork insightWork;
-
-  @Override
-  public void configure(Binder binder) {
-    mockSourceControlDataService = mock(SourceControlDataService.class);
-    mockGitClientFactory = mock(GitClientFactory.class);
-    mockGitClientApi = mock(GitApiClient.class);
-    mockGitHubAppDAO = mock(GitHubAppDAO.class);
-    mockGitHubAppSelectionService = mock(GitHubAppSelectionService.class);
-    binder.bind(SourceControlDataService.class).toInstance(mockSourceControlDataService);
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    binder.bind(GitApiClient.class).toInstance(mockGitClientApi);
-    binder.bind(GitHubAppDAO.class).toInstance(mockGitHubAppDAO);
-    binder.bind(GitHubAppSelectionService.class).toInstance(mockGitHubAppSelectionService);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() {

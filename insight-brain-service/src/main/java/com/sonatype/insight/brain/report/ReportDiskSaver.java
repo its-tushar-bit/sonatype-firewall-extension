@@ -5,28 +5,23 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import de.schlichtherle.truezip.file.TFile;
 import de.schlichtherle.truezip.file.TVFS;
-import io.dropwizard.servlets.tasks.Task;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.slf4j.Logger;
@@ -43,11 +38,13 @@ import org.slf4j.LoggerFactory;
 @Named
 @DisallowConcurrentExecution
 public class ReportDiskSaver
-    extends Task
+    extends AdminTask
 {
   public static final String NAME = "ReportDiskSaver";
 
-  private static final List<String> toBeRemoved = ImmutableList.of(
+  public static final String PATH = "reduceReportZipSize";
+
+  private static final ImmutableList<String> toBeRemoved = ImmutableList.of(
       "appcheck.js",
       "detail.rptdesign",
       "flag_white.png",
@@ -106,13 +103,12 @@ public class ReportDiskSaver
 
   @Inject
   public ReportDiskSaver(InsightWork insightWork, InsightConfig insightConfig) {
-    super("reduceReportZipSize");
+    super(PATH);
     this.insightWork = insightWork;
     this.insightConfig = insightConfig;
   }
 
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
+  public void execute() {
     if (insightConfig.getStorage() != null &&
         insightConfig.getStorage().getType() == DataStoreType.S3)
     {

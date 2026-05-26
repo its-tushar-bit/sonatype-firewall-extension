@@ -5,15 +5,22 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_HASH_ALGORITHM;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.HASH_ITERATIONS;
+import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.PasswordService.ITERATIONS_PARAM;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService;
-
+import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import jakarta.inject.Inject;
 import org.apache.shiro.crypto.hash.HashRequest;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.crypto.support.hashes.argon2.Argon2HashProvider;
@@ -22,15 +29,6 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
-import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_HASH_ALGORITHM;
-import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
-import static com.sonatype.insight.brain.security.FIPSConfig.HASH_ITERATIONS;
-import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
-import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
-import static com.sonatype.insight.brain.security.PasswordService.ITERATIONS_PARAM;
-import static org.assertj.core.api.Assertions.assertThat;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
@@ -96,7 +94,7 @@ public class PasswordServiceTest
 
     ArchRule rule = ArchRuleDefinition.noClasses()
         .that()
-        .areNotAssignableTo(DefaultTestInsightBrainService.class)
+        .areNotAssignableTo(SpringTestInsightBrainService.class)
         .should()
         .callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
 

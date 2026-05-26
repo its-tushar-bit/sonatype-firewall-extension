@@ -5,7 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService.NO_DTO_ERROR_MSG;
+import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.NOT_FOUND_ERROR_MSG;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiReverseProxyAuthenticationConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
@@ -15,24 +22,12 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
-import static com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService.NO_DTO_ERROR_MSG;
-import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.NOT_FOUND_ERROR_MSG;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class ApiReverseProxyAuthenticationConfigurationServiceTest
     extends AbstractComponentTest
@@ -48,16 +43,6 @@ public class ApiReverseProxyAuthenticationConfigurationServiceTest
 
   @Mock
   private ReverseProxyAuthenticationConfigurationListener mockReverseProxyAuthenticationConfigurationListener;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    Multibinder<ReverseProxyAuthenticationConfigurationListener> multiBinder =
-        newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class);
-    multiBinder.addBinding().toInstance(mockReverseProxyAuthenticationConfigurationListener);
-
-    super.configure(binder);
-  }
 
   @Test
   public void testGetConfiguration_NotFound() {

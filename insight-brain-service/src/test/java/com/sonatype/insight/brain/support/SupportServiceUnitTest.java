@@ -5,124 +5,70 @@
  */
 package com.sonatype.insight.brain.support;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
-import com.sonatype.insight.brain.service.InsightConfig;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.sonatype.insight.brain.service.InsightConfig;
+import java.io.File;
+import java.io.IOException;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class SupportServiceUnitTest
 {
-  private static final String LOG_GOOD =
-      "{ \"appenders\": [{\"type\": \"file\", \"currentLogFilename\": \"name.log\" }] }";
-
-  private static final String LOG_NO_FILE_TYPE = "{ \"appenders\": [{\"type\": \"console\" }] }";
-
-  private static final String LOG_NO_FILE_NAME = "{ \"appenders\": [{\"type\": \"file\" }] }";
-
-  private static final String LOG_NO_APPENDER = "{ \"appenders\": [] }";
-
-  private static final String LOG_CONSOLE_THEN_FILE_TYPE =
-      "{ \"appenders\": [{\"type\": \"console\" }, {\"type\": \"file\", \"currentLogFilename\": \"name.log\" }] }";
-
-  private static final String LOG_TEXT_NODE = "\"INFO\"";
+  @Rule
+  public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
   public void testGetAuditLog() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_GOOD)).getName()).isEqualTo("name.log");
+    InsightConfig config = createConfigWithWorkDir();
+    File auditLog = tempDir.newFile("custom-audit.log");
+    config.setAuditLogFilename(auditLog.getAbsolutePath());
+
+    assertThat(SupportService.getAuditLog(config)).isEqualTo(auditLog);
   }
 
   @Test
-  public void testGetAuditLog_NoAuditLogger() {
-    assertThat(SupportService.getAuditLog(new InsightConfig())).isNull();
+  public void testGetAuditLog_NoAuditLogger() throws Exception {
+    InsightConfig config = createConfigWithWorkDir();
+    // No logs directory, so no audit log
+
+    assertThat(SupportService.getAuditLog(config)).isNull();
   }
 
   @Test
-  public void testGetAuditLog_NoFileType() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_NO_FILE_TYPE))).isNull();
-  }
+  public void testGetAuditLog_FallsBackToWorkDirAuditLogWhenConfiguredPathMissing() throws Exception {
+    InsightConfig config = createConfigWithWorkDir();
+    File logsDir = new File(config.getSonatypeWork(), "logs");
+    assertThat(logsDir.mkdirs()).isTrue();
+    File fallbackAuditLog = new File(logsDir, "audit.log");
+    assertThat(fallbackAuditLog.createNewFile()).isTrue();
+    config.setAuditLogFilename(new File(tempDir.getRoot(), "missing/custom-audit.log").getAbsolutePath());
 
-  @Test
-  public void testGetAuditLog_NoLogFileName() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_NO_FILE_NAME))).isNull();
-  }
-
-  @Test
-  public void testGetAuditLog_NoAppender() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_NO_APPENDER))).isNull();
-  }
-
-  @Test
-  public void testGetAuditLog_OnlyTextNode() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_TEXT_NODE))).isNull();
-  }
-
-  @Test
-  public void testGetAuditLog_FileFollowsConsole() throws Exception {
-    assertThat(SupportService.getAuditLog(getAuditConfig(LOG_CONSOLE_THEN_FILE_TYPE)).getName()).isEqualTo("name.log");
+    assertThat(SupportService.getAuditLog(config)).isEqualTo(fallbackAuditLog);
   }
 
   @Test
   public void testGetPolicyViolationLog() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_GOOD)).getName())
-        .isEqualTo("name.log");
+    InsightConfig config = createConfigWithWorkDir();
+    File policyLog = tempDir.newFile("custom-policy-violation.log");
+    config.setPolicyViolationLogFilename(policyLog.getAbsolutePath());
+
+    assertThat(SupportService.getPolicyViolationLog(config)).isEqualTo(policyLog);
   }
 
   @Test
-  public void testGetPolicyViolationLog_NoPolicyViolationLogger() {
-    assertThat(SupportService.getPolicyViolationLog(new InsightConfig())).isNull();
+  public void testGetPolicyViolationLog_NoPolicyViolationLogger() throws Exception {
+    InsightConfig config = createConfigWithWorkDir();
+    // No logs directory, so no policy violation log
+
+    assertThat(SupportService.getPolicyViolationLog(config)).isNull();
   }
 
-  @Test
-  public void testGetPolicyViolationLog_NoFileType() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_NO_FILE_TYPE))).isNull();
-  }
-
-  @Test
-  public void testGetPolicyViolationLog_NoLogFileName() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_NO_FILE_NAME))).isNull();
-  }
-
-  @Test
-  public void testGetPolicyViolationLog_NoAppender() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_NO_APPENDER))).isNull();
-  }
-
-  @Test
-  public void testGetPolicyViolationLog_OnlyTextNode() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_TEXT_NODE))).isNull();
-  }
-
-  @Test
-  public void testGetPolicyViolationLog_FileFollowsConsole() throws Exception {
-    assertThat(SupportService.getPolicyViolationLog(getPolicyViolationConfig(LOG_CONSOLE_THEN_FILE_TYPE)).getName())
-        .isEqualTo("name.log");
-  }
-
-  private InsightConfig getAuditConfig(String logString) throws Exception {
-    return getConfig(logString, AuditRecorder.BASE_LOGGER_NAME);
-  }
-
-  private InsightConfig getPolicyViolationConfig(String logString) throws Exception {
-    return getConfig(logString, AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
-  }
-
-  private InsightConfig getConfig(String logString, String loggerName) throws Exception {
-    DefaultLoggingFactory loggingFactory = new DefaultLoggingFactory();
-    Map<String, JsonNode> logger = new HashMap<>();
-    JsonNode loggerNode = new ObjectMapper().readTree(logString);
-    logger.put(loggerName, loggerNode);
-    loggingFactory.setLoggers(logger);
+  private InsightConfig createConfigWithWorkDir() throws IOException {
+    File workDir = tempDir.newFolder("work");
     InsightConfig config = new InsightConfig();
-    config.setLoggingFactory(loggingFactory);
+    config.setSonatypeWork(workDir.getAbsolutePath());
     return config;
   }
 }

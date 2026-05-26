@@ -537,7 +537,7 @@ public class HdsClientTest
 
     HttpServletRequest request = mock(HttpServletRequest.class);
 
-    when(request.getInputStream()).thenReturn(new ServletInputStreamImpl(test));
+    when(request.getInputStream()).thenReturn(createServletInputStream(test));
     when(request.getHeaderNames())
         .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
     // Use a smaller content-length than the actual incoming request (simulate gzip entity)
@@ -806,35 +806,31 @@ public class HdsClientTest
     assertThat("&" + requestUri).doesNotContain("name3");
   }
 
-  private static class ServletInputStreamImpl
-      extends ServletInputStream
-  {
+  private ServletInputStream createServletInputStream(byte[] data) {
     // ByteArrayInputStream.close is a noop, so we don't need to close this stream
-    private final ByteArrayInputStream wrappedInputStream;
+    ByteArrayInputStream wrappedInputStream = new ByteArrayInputStream(data);
+    return new ServletInputStream()
+    {
+      @Override
+      public int read() {
+        return wrappedInputStream.read();
+      }
 
-    public ServletInputStreamImpl(byte[] data) {
-      wrappedInputStream = new ByteArrayInputStream(data);
-    }
+      @Override
+      public boolean isFinished() {
+        return false;
+      }
 
-    @Override
-    public int read() {
-      return wrappedInputStream.read();
-    }
+      @Override
+      public boolean isReady() {
+        return false;
+      }
 
-    @Override
-    public boolean isFinished() {
-      return false;
-    }
-
-    @Override
-    public boolean isReady() {
-      return false;
-    }
-
-    @Override
-    public void setReadListener(final ReadListener readListener) {
-      // No implementation necessary
-    }
+      @Override
+      public void setReadListener(final ReadListener readListener) {
+        // No implementation necessary
+      }
+    };
   }
 
   @Test
@@ -882,18 +878,27 @@ public class HdsClientTest
     when(request.getMethod()).thenReturn("GET");
 
     client.relay(request, null, InputStream.class, testPath, null, new String[]{});
-    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+    assertClusterIdHeader(headers);
 
     client.post(String.class, testPath, "foo", new String[]{});
-    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+    assertClusterIdHeader(headers);
 
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
-    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+    assertClusterIdHeader(headers);
 
     client.put(null, String.class, null, testPath, new FileScanEntity(tempDir.newFile().toPath()),
         Collections.emptyMap(),
         new String[]{});
-    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+    assertClusterIdHeader(headers);
+  }
+
+  private void assertClusterIdHeader(Map<String, String> headers) {
+    if (telemetryId.getClusterId() == null) {
+      assertThat(headers.get(HdsClient.CLUSTER_ID_HEADER)).isNull();
+    }
+    else {
+      assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+    }
   }
 
   @Test

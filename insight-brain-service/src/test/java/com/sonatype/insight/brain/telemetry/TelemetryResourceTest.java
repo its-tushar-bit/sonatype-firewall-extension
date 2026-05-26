@@ -5,20 +5,17 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.net.HttpCookie;
-import java.util.Arrays;
-
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
+import java.net.HttpCookie;
+import java.util.Arrays;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
 public class TelemetryResourceTest
@@ -32,7 +29,7 @@ public class TelemetryResourceTest
 
     // The telemetry endpoint requires a user session, which it doesn't create itself. So we need to login first
     HttpResponse loginResponse = restRequest().path("rest/user/session").post();
-    HttpCookie sessionCookie = loginResponse.getCookie(SecurityModule.SESSION_COOKIE_NAME);
+    HttpCookie sessionCookie = loginResponse.getCookie(SecurityConfiguration.SESSION_COOKIE_NAME);
 
     HttpRequest request = restRequest().path(TelemetryResource.RESOURCE_PATH).body(postData).cookie(sessionCookie);
 

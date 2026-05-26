@@ -5,19 +5,20 @@
  */
 package com.sonatype.insight.brain.git;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
@@ -38,27 +39,22 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @Category(SlowTest.class)
 public class PullRequestMonitorTest
@@ -103,20 +99,6 @@ public class PullRequestMonitorTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
-    lenient().when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
-    binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
-    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
-    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
-    binder.bind(ApiConfigFeaturesService.class).toInstance(mockApiConfigFeaturesService);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
     lenient().when(gitApiFactoryMock.createGitApi(any())).thenReturn(gitApiMock);
@@ -136,6 +118,7 @@ public class PullRequestMonitorTest
 
   @Test
   public void testExecute() {
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
 
     PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
@@ -153,6 +136,7 @@ public class PullRequestMonitorTest
 
   @Test
   public void testExecute_Unlicensed() {
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     when(mockLicenseChecker.isIqForScmSupported()).thenReturn(false);
 
     PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
@@ -438,6 +422,8 @@ public class PullRequestMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NullConfiguration() {
+    when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
+
     configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(pullRequestMonitor,
@@ -446,6 +432,8 @@ public class PullRequestMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_UpdatedPullRequestMonitoringIntervalSeconds() {
+    when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
+
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(160);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);

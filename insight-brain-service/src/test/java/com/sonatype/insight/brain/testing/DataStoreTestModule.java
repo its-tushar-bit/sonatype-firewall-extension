@@ -5,30 +5,28 @@
  */
 package com.sonatype.insight.brain.testing;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
-
-import com.google.inject.Binder;
-import com.google.inject.Module;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Guice module that binds DataStore instances from a DatabaseContainerRule.
+ * Spring configuration that binds DataStore instances from a DatabaseContainerRule.
  * <p>
- * Uses providers to ensure we always get the current DataStore instance, which is critical
+ * Uses method-based beans to ensure we always get the current DataStore instance, which is critical
  * when database fixtures switch types (H2 <-> Postgres) - the old DataStore instances
  * must be released to prevent memory leaks of JDBCConfigurationImpl.
  * </p>
  */
+@Configuration
 public class DataStoreTestModule
-    implements Module
 {
   private final DatabaseContainerRule databaseContainerRule;
 
@@ -36,24 +34,41 @@ public class DataStoreTestModule
     this.databaseContainerRule = databaseContainerRule;
   }
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(OperationalDataStore.class).toProvider(() -> databaseContainerRule.getOperationalDataStore());
-    binder.bind(AggregationDataStore.class).toProvider(() -> databaseContainerRule.getAggregationDataStore());
-    binder.bind(DataMartDataStore.class).toProvider(() -> databaseContainerRule.getDataMartDataStore());
-    binder.bind(ThirdPartyScansDataStore.class).toProvider(() -> databaseContainerRule.getThirdPartyScansDataStore());
-    binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
-    // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
-    binder.bind(ClusterLockManagerProvider.class);
-    binder.bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>()
-    {
-      @Inject
-      ClusterLockManagerProvider provider;
+  @Bean
+  public OperationalDataStore operationalDataStore() {
+    return databaseContainerRule.getOperationalDataStore();
+  }
 
-      @Override
-      public ClusterLockManager get() {
-        return provider.get();
-      }
-    });
+  @Bean
+  public AggregationDataStore aggregationDataStore() {
+    return databaseContainerRule.getAggregationDataStore();
+  }
+
+  @Bean
+  public DataMartDataStore dataMartDataStore() {
+    return databaseContainerRule.getDataMartDataStore();
+  }
+
+  @Bean
+  public ThirdPartyScansDataStore thirdPartyScansDataStore() {
+    return databaseContainerRule.getThirdPartyScansDataStore();
+  }
+
+  @Bean
+  public DataStoreProvider dataStoreProvider() {
+    return databaseContainerRule.getDatabaseContainer();
+  }
+
+  @Bean
+  public ClusterLockManagerProvider clusterLockManagerProvider(
+      OperationalDataStore operationalDataStore,
+      PostgresAdvisoryLockDAO postgresAdvisoryLockDAO)
+  {
+    return new ClusterLockManagerProvider(operationalDataStore, postgresAdvisoryLockDAO);
+  }
+
+  @Bean
+  public ClusterLockManager clusterLockManager(ClusterLockManagerProvider provider) {
+    return provider.get();
   }
 }

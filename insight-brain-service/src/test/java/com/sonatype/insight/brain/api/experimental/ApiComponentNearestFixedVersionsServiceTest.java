@@ -5,31 +5,26 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Set;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
-import com.sonatype.insight.brain.api.experimental.ApiComponentNearestFixedVersionsRequestListDto.ApiComponentNearestFixedVersionsRequestDto;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
+import com.sonatype.insight.brain.api.experimental.ApiComponentNearestFixedVersionsRequestListDto.ApiComponentNearestFixedVersionsRequestDto;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import jakarta.inject.Inject;
+import java.util.Set;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class ApiComponentNearestFixedVersionsServiceTest
@@ -43,12 +38,6 @@ public class ApiComponentNearestFixedVersionsServiceTest
 
   @Captor
   private ArgumentCaptor<Set<ComponentIdentifier>> compomentIdentifierSetCaptor;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetNearestFixedVersions_nullComponentsList() {

@@ -5,25 +5,20 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 
 public class ApplicationSummaryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -36,13 +31,6 @@ public class ApplicationSummaryServiceAuthzTest
 
   @Inject
   private AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
-  }
 
   @Test
   public void testGetApplications_Authorized_NullGoal() {

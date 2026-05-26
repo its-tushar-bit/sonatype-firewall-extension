@@ -5,22 +5,21 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import java.util.UUID;
-
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.util.UUID;
 import org.quartz.Scheduler;
+import org.quartz.impl.SchedulerRepository;
 import org.quartz.spi.JobFactory;
 
 @Named
 @Singleton
-@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY + 1)
 public class TestTaskScheduler
     extends TaskScheduler
 {
@@ -62,10 +61,13 @@ public class TestTaskScheduler
       }
       try {
         scheduler.shutdown(false);
-        waitForShutdown();
       }
       catch (Exception e) {
         e.printStackTrace();
+      }
+      finally {
+        SchedulerRepository.getInstance().remove(schedulerName);
+        waitForShutdown();
       }
     }
   }

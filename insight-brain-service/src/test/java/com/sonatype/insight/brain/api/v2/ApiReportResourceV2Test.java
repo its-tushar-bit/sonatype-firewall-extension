@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
+import org.quartz.JobExecutionContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -109,7 +110,7 @@ public class ApiReportResourceV2Test
     dataRetentionPolicy.setMaxCount(2);
     dataRetentionPolicy.setPurgingEnabled(true);
     lookup(DataRetentionPolicyDAO.class).insert(dataRetentionPolicy);
-    lookup(ReportPurger.class).execute(null);
+    lookup(ReportPurger.class).execute((JobExecutionContext) null);
 
     // Only the 2 most recent reports should be included
     response = restRequest()

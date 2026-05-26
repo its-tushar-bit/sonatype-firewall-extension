@@ -58,6 +58,11 @@ public class AdminTenantFilter
     final String tenantName = getTenantParameter(request);
 
     if (StringUtils.isBlank(tenantName)) {
+      if (shouldPassThrough(request)) {
+        chain.doFilter(request, response);
+        return;
+      }
+
       createErrorResponse(response);
       log.debug("Invalid tenant parameter");
       return;
@@ -119,6 +124,13 @@ public class AdminTenantFilter
     }
 
     return null;
+  }
+
+  private boolean shouldPassThrough(final ServletRequest request) {
+    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    String requestUri = httpRequest.getRequestURI();
+    return request.getParameter(TENANT_PARAMETER) == null
+        && (requestUri == null || !requestUri.contains("/api/admin/tenants/"));
   }
 
   private void createErrorResponse(final ServletResponse response) throws IOException {

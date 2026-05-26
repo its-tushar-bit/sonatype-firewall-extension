@@ -7,17 +7,15 @@
 // Vendored/copied from hosted-data-services/insight-jaxrs-utils
 package com.sonatype.insight.jaxrs.error;
 
-import java.util.UUID;
+import com.sonatype.insight.error.HttpStatusCode;
 import jakarta.inject.Named;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-
-import com.sonatype.insight.error.HttpStatusCode;
-
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
+@Named("baseErrorResponseGenerator")
 public class ErrorResponseGenerator
 {
   private static final Logger log = LoggerFactory.getLogger(ErrorResponseGenerator.class);

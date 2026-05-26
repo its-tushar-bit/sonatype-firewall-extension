@@ -5,20 +5,17 @@
  */
 package com.sonatype.insight.brain.repository.autorelease;
 
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -42,10 +39,12 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class AutomaticQuarantineReleaseTask
-    extends Task
+    extends AdminTask
     implements InsightJob, MtiqBatchJob
 {
   public static final String NAME = "AutomaticQuarantineReleaseTask";
+
+  public static final String PATH = "triggerAutomaticQuarantineRelease";
 
   private static final Logger log = LoggerFactory.getLogger(AutomaticQuarantineReleaseTask.class);
 
@@ -53,18 +52,8 @@ public class AutomaticQuarantineReleaseTask
 
   @Inject
   public AutomaticQuarantineReleaseTask(Provider<AutomaticQuarantineRelease> automaticQuarantineReleaseProvider) {
-    super("triggerAutomaticQuarantineRelease");
+    super(PATH);
     this.automaticQuarantineReleaseProvider = automaticQuarantineReleaseProvider;
-  }
-
-  // To tigger the task:
-  // curl -X POST -u <user>:<password> http://localhost:8071/tasks/triggerAutomaticQuarantineRelease
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.info("Manual request to run Automatic Quarantine Release");
-
-    automaticQuarantineReleaseProvider.get().run();
-    output.write("Completed manual Automatic Quarantine Release execution\n");
   }
 
   @Override
@@ -72,6 +61,11 @@ public class AutomaticQuarantineReleaseTask
     log.info("Automatic request to run Automatic Quarantine Release for tenant {}", TenantThreadLocal.getTenant());
     execute(automaticQuarantineReleaseProvider.get()::run, log, "Error executing Automatic Quarantine Release");
     log.info("Next Automatic Quarantine Release execution scheduled for {}", context.getNextFireTime());
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    automaticQuarantineReleaseProvider.get().run();
   }
 
   @Override

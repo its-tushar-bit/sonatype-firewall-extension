@@ -5,12 +5,10 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.lang.reflect.Modifier;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
@@ -29,17 +27,13 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
+import jakarta.inject.Inject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class PolicyWaiverComponentPurlMigratorTest
     extends AbstractComponentTest
@@ -56,29 +50,13 @@ public class PolicyWaiverComponentPurlMigratorTest
   @Inject
   private PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator;
 
-  @Mock
-  ApplicationComponentDAO mockApplicationComponentDAO;
-
-  @Override
-  public void configure(Binder binder) {
-    configureApplicationComponentDAO(binder);
-    super.configure(binder);
-  }
-
-  private void configureApplicationComponentDAO(final Binder binder) {
-    // Funky config to be able to test testMigrate_waiverDoesNotRequireMigration but also allow the DAO to
-    // continue working to set up the rest of the test cases
-    binder.bindInterceptor(Matchers.subclassesOf(ApplicationComponentDAO.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
-        invocation.getMethod().invoke(mockApplicationComponentDAO, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-  }
+  private ApplicationComponentDAO applicationComponentDAO;
 
   @Before
   public void beforeEach() {
     migrationTrackerDAO.deleteById(PolicyWaiverComponentPurlMigrator.MIGRATION_ID);
+    applicationComponentDAO = spy(lookup(ApplicationComponentDAO.class));
+    applyBeanFieldOverride(PolicyWaiverComponentPurlMigrator.class, "applicationComponentDAO", applicationComponentDAO);
   }
 
   @Test
@@ -92,7 +70,7 @@ public class PolicyWaiverComponentPurlMigratorTest
 
   @Test
   public void testMigrate_waiverDoesNotRequireMigration() {
-    reset(mockApplicationComponentDAO);
+    reset(applicationComponentDAO);
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     Policy policy = tempEntity.newPolicy(organization);
@@ -101,7 +79,7 @@ public class PolicyWaiverComponentPurlMigratorTest
         ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, "comment");
 
     policyWaiverComponentPurlMigrator.migrate();
-    verifyNoInteractions(mockApplicationComponentDAO);
+    verifyNoInteractions(applicationComponentDAO);
   }
 
   @Test

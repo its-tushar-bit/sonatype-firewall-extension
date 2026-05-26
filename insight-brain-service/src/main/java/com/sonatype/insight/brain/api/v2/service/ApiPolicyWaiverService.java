@@ -288,8 +288,8 @@ public class ApiPolicyWaiverService
 
     validateExpireWhenRemediationAvailable(expireWhenRemediationAvailable, matcherStrategy);
 
-    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
-        waiverReasonId, expireWhenRemediationAvailable);
+    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy,
+        expiryTime, waiverReasonId, expireWhenRemediationAvailable);
   }
 
   /**
@@ -654,7 +654,8 @@ public class ApiPolicyWaiverService
         policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers =
-        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
+        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId)
+            .stream()
             .filter(policyWaiver -> filterWaiverByCriteria(constraintFactsJson, constraintFacts,
                 componentIdentifier, hash, policyWaiver))
             .map(policyWaiver -> ApiPolicyWaiverDTO.toDto(
@@ -1051,7 +1052,8 @@ public class ApiPolicyWaiverService
   }
 
   public ApiPolicyWaiverDTO getPolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
-    return getPolicyWaiverWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId), policyWaiverId);
+    return getPolicyWaiverWithAuthzCheck(idUtils.getOwnerNotNull(ownerType, ownerId),
+        policyWaiverId);
   }
 
   @Authorize(permission = Permission.READ)

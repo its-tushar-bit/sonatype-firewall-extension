@@ -6,17 +6,16 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -32,22 +31,17 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import static org.mockito.Mockito.verify;
-import org.junit.experimental.categories.Category;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 @Category(SlowTest.class)
 public class IntegrationServiceTest
@@ -75,12 +69,6 @@ public class IntegrationServiceTest
   private Organization org2;
 
   private Organization org3;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetIntegrationSummaries_InvalidPageOrPageSizeThrowsException_h2() {

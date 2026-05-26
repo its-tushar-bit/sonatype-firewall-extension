@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -18,22 +22,13 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ApiProxyServerConfigurationServiceTest
     extends AbstractComponentTest
@@ -52,15 +47,6 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Mock
   private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    Multibinder<ProxyServerConfigurationListener> multiBinder =
-        newSetBinder(binder, ProxyServerConfigurationListener.class);
-    multiBinder.addBinding().toInstance(proxyServerConfigurationListener);
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetConfiguration() {

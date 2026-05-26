@@ -5,15 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
@@ -25,15 +20,16 @@ import com.sonatype.insight.brain.model.security.OAuth2UserGroup;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class OAuth2SsoUserProviderTest
     extends AbstractComponentTest
@@ -57,10 +53,9 @@ public class OAuth2SsoUserProviderTest
   private OAuth2UserDAO spyOAuth2UserDAO;
 
   @Override
-  public void configure(Binder binder) {
-    spyOAuth2UserDAO = spy(daoFactory.createOAuth2UserDAO());
-    binder.bind(OAuth2UserDAO.class).toInstance(spyOAuth2UserDAO);
-    super.configure(binder);
+  protected List<BeanFieldOverride> getBeanFieldOverrides() {
+    spyOAuth2UserDAO = spy(oAuth2UserDAO);
+    return Collections.singletonList(beanFieldOverride(OAuth2SsoUserProvider.class, "oAuth2UserDAO", spyOAuth2UserDAO));
   }
 
   @Test

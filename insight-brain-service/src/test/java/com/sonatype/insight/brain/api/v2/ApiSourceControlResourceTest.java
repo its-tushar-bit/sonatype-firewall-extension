@@ -107,7 +107,9 @@ public class ApiSourceControlResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2).auth();
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""))
+        .path(PublicApiPaths.SOURCE_CONTROL_PATH_V2)
+        .auth();
   }
 
   @Test

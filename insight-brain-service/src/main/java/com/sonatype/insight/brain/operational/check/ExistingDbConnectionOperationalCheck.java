@@ -5,20 +5,18 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import java.sql.Connection;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * Verifies that the process can access the databases using existing/pooled connections.
@@ -45,7 +43,7 @@ public class ExistingDbConnectionOperationalCheck
   }
 
   @Override
-  protected void checkConnection(ResultBuilder resultBuilder, DataStore dataStore) {
+  protected void checkConnection(Health.Builder healthBuilder, DataStore dataStore) {
     String messageKey = dataStore.getID() + " database";
 
     try (Connection connection = dataStore.getDataSource().getConnection()) {
@@ -54,17 +52,17 @@ public class ExistingDbConnectionOperationalCheck
       long duration = System.currentTimeMillis() - start;
 
       if (!isValidConnection) {
-        resultBuilder.withDetail(messageKey,
-            "Cannot access the database. The connection failed after " + duration + " ms.");
-        resultBuilder.unhealthy();
+        healthBuilder.withDetail(messageKey,
+            "Cannot access the database. The connection failed after " + duration + " ms.")
+            .down();
         return;
       }
-      resultBuilder.withDetail(messageKey, "roundTripTimeInMs=" + duration);
+      healthBuilder.withDetail(messageKey, "roundTripTimeInMs=" + duration);
     }
     catch (Exception e) {
       log.error(e.getMessage(), e);
-      resultBuilder.withDetail(messageKey, "Cannot access the database: " + e.getMessage());
-      resultBuilder.unhealthy(e);
+      healthBuilder.withDetail(messageKey, "Cannot access the database: " + e.getMessage())
+          .down(e);
     }
   }
 }

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -17,8 +19,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -31,9 +33,23 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newApplicationDashboardComparator;
+import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newComponentDashboardComparator;
+import static com.sonatype.insight.brain.model.license.License.NOT_DECLARED_ID;
+import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
+import static com.sonatype.insight.brain.model.license.License.NO_SOURCES_ID;
+import static com.sonatype.insight.brain.model.license.License.NO_SOURCE_LICENSE_ID;
+import static com.sonatype.insight.brain.model.license.License.UNKNOWN_ID;
+import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
+import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
@@ -130,34 +146,16 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
-import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.LEGAL_SOURCE_LINK_COMPARATOR;
-import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newApplicationDashboardComparator;
-import static com.sonatype.insight.brain.api.v2.service.legal.LicenseLegalComparators.newComponentDashboardComparator;
-import static com.sonatype.insight.brain.model.license.License.NOT_DECLARED_ID;
-import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
-import static com.sonatype.insight.brain.model.license.License.NO_SOURCES_ID;
-import static com.sonatype.insight.brain.model.license.License.NO_SOURCE_LICENSE_ID;
-import static com.sonatype.insight.brain.model.license.License.UNKNOWN_ID;
-import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
-import static java.util.stream.Collectors.groupingBy;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 /**
  * Provides legal information for application components.
@@ -276,7 +274,8 @@ public class ApiLicenseLegalService
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
       IdUtils idUtils,
       TelemetryUtils telemetryUtils,
-      StageTypeService stageTypeService)
+      StageTypeService stageTypeService,
+      ExecutorThreadPools executorThreadPools)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -310,7 +309,7 @@ public class ApiLicenseLegalService
     this.stageTypeService = stageTypeService;
 
     attributionReportForkJoinPool =
-        ExecutorThreadPools.getInstance().createThreadPool(1, 5, 5, "insight.threads.attribution.report");
+        executorThreadPools.createThreadPool(1, 5, 5, "insight.threads.attribution.report");
   }
 
   @Override
@@ -335,7 +334,8 @@ public class ApiLicenseLegalService
     }
 
     Map<String, Application> mapApplicationIds =
-        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds).stream()
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(organizationIds, applicationIds, tagIds)
+            .stream()
             .collect(Collectors.toMap(Application::getId, Function.identity()));
     Set<String> applicationIdsToCheck = new HashSet<>(mapApplicationIds.keySet());
 
@@ -449,9 +449,10 @@ public class ApiLicenseLegalService
     }
 
     Map<String, Application> mapApplicationIds =
-        getApplicationsByIdsAndOrganizationIdsAndTagIds(filter.organizationIds, filter.applicationIds, filter.tagIds)
-            .stream()
-            .collect(Collectors.toMap(Application::getId, Function.identity()));
+        getApplicationsByIdsAndOrganizationIdsAndTagIds(filter.organizationIds, filter.applicationIds,
+            filter.tagIds)
+                .stream()
+                .collect(Collectors.toMap(Application::getId, Function.identity()));
     Set<String> applicationIdsToCheck = new HashSet<>(mapApplicationIds.keySet());
 
     Set<String> stageTypeIdsToCheck = isEmpty(filter.stageTypeIds)

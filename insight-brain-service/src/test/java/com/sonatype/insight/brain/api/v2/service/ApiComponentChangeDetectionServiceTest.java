@@ -9,11 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -30,7 +27,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ApiComponentChangeDetectionServiceTest
     extends AbstractComponentTest
 {
@@ -48,13 +44,6 @@ public class ApiComponentChangeDetectionServiceTest
 
   @Inject
   private ApiComponentChangeDetectionService underTest;
-
-  @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    underTest = new ApiComponentChangeDetectionService(configurationDAO, eventDAO, configuration, productLicense);
-  }
 
   @Test
   public void getConfiguration_returnsCorrectPage() {

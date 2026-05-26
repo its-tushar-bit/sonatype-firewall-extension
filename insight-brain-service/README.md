@@ -23,7 +23,7 @@ Before deploying, ensure your project has been [built](https://github.com/sonaty
 
 From the `insight-brain-service` directory, you can start the server as follows:
 
-`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml'`
+`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml'`
 
 Alternatively, you can also launch the server using the compiled jar (NOTE: replace `*` with the appropriate version):
 
@@ -43,7 +43,7 @@ The server runs on port `8070` by default. You can override the default port by 
 
 For example, to deploy to port 8072:
 
-`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`
+`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`
 
 ### Using the application
 

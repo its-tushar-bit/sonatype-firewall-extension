@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.lifecycle.Managed;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-
-import io.dropwizard.lifecycle.Managed;
 
 /**
  * Responsible for setting up (on startup) and tearing down (on shutdown) tenant managed beans.

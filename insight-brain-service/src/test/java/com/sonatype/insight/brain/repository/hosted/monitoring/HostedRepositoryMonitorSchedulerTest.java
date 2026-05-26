@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.repository.hosted.monitoring;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.Set;
 
 import jakarta.inject.Inject;
@@ -20,7 +19,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 
-import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,11 +46,11 @@ public class HostedRepositoryMonitorSchedulerTest
   @Mock
   private HostedRepositoryMonitor hostedRepositoryMonitorMock;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(HostedRepositoryMonitor.class).toInstance(hostedRepositoryMonitorMock);
-    super.configure(binder);
+  @Before
+  public void applyOverrides() {
+    applyBeanFieldOverride(HostedRepositoryMonitorScheduler.class, "taskScheduler", taskSchedulerMock);
+    applyBeanFieldOverride(HostedRepositoryMonitorScheduler.class, "hostedRepositoryMonitorProvider",
+        (jakarta.inject.Provider<HostedRepositoryMonitor>) () -> hostedRepositoryMonitorMock);
   }
 
   @Before
@@ -124,8 +122,8 @@ public class HostedRepositoryMonitorSchedulerTest
   }
 
   @Test
-  public void testExecute_dropwizardTask_triggersImmediately() {
-    scheduler.execute(Map.of(), new PrintWriter(new StringWriter()));
+  public void testExecute_AdminTask_triggersImmediately() throws Exception {
+    scheduler.execute(java.util.Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(hostedRepositoryMonitorMock).run();
   }

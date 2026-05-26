@@ -5,15 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
 
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
@@ -24,10 +16,14 @@ import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
-
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
-
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This service orchestrates and manages the different SSO User implementations in the application.
@@ -37,7 +33,6 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
  */
 @Named
 @Singleton
-@InvisibleForScanner
 public class SsoUserService
     implements TenantManaged
 {

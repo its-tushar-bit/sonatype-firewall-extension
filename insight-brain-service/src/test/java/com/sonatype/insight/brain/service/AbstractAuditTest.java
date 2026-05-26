@@ -37,6 +37,8 @@ public abstract class AbstractAuditTest
 
   @Before
   public void setupCommonFixture() {
+    logOutput.before();
+    logOutput.clear();
     unauthorizedUser = tempEntity.newUser();
   }
 

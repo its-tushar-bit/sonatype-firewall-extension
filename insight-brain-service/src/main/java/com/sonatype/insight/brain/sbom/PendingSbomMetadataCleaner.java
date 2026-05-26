@@ -5,6 +5,15 @@
  */
 package com.sonatype.insight.brain.sbom;
 
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.Instant;
@@ -13,17 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -38,15 +36,15 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PendingSbomMetadataCleaner
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "PendingSbomMetadataCleanerTask";
+
   private static final Logger log = LoggerFactory.getLogger(PendingSbomMetadataCleaner.class);
 
   // Visible for testing
   static final String JOB_NAME = "PendingSbomMetadataCleanerJob";
-
-  private static final String TASK_NAME = "PendingSbomMetadataCleanerTask";
 
   private static final Duration MAXIMUM_ALLOWED_HOURS_IN_INACTIVE_STATE = Duration.ofHours(24);
 
@@ -71,10 +69,15 @@ public class PendingSbomMetadataCleaner
       ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
-    super(TASK_NAME);
+    super(PATH);
     this.taskScheduler = taskScheduler;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyPersistenceService = thirdPartyPersistenceService;
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    doCleanup();
   }
 
   @Override
@@ -87,16 +90,11 @@ public class PendingSbomMetadataCleaner
   }
 
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    execute();
-  }
-
-  @Override
   public void execute(final JobExecutionContext context) {
-    execute(this::execute, log, String.format("Error in %s", JOB_NAME));
+    execute(this::doCleanup, log, String.format("Error in %s", JOB_NAME));
   }
 
-  private void execute() {
+  private void doCleanup() {
     log.info("Starting {} - {}", JOB_NAME, DESCRIPTION);
     long startTime = System.currentTimeMillis();
 

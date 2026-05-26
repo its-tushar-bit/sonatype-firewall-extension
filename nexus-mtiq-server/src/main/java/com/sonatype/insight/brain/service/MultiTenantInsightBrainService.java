@@ -5,101 +5,145 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
-import jakarta.inject.Inject;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.Filter;
-import jakarta.ws.rs.Path;
-
-import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
-import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFilter;
-import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
-import com.sonatype.insight.brain.db.DatabaseConfigProvider;
-import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.db.DatabaseProvisioner;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
-import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.health.ServerBootHealthCheck;
-import com.sonatype.insight.brain.mcp.McpModule;
-import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
-import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
-import com.sonatype.insight.brain.search.SearchModule;
-import com.sonatype.insight.brain.security.SecurityAopModule;
-import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.service.banning.rest.BlockEndpointsContainerRequestFilter;
-import com.sonatype.insight.brain.service.consumption.ConsumptionContextFilter;
-import com.sonatype.insight.brain.service.modules.ApiServiceBindingsModule;
-import com.sonatype.insight.brain.service.modules.AuthenticationModule;
-import com.sonatype.insight.brain.service.modules.ComponentModule;
-import com.sonatype.insight.brain.service.modules.CoreServiceModule;
-import com.sonatype.insight.brain.service.modules.DashboardModule;
-import com.sonatype.insight.brain.service.modules.DataAccessModule;
-import com.sonatype.insight.brain.service.modules.FirewallModule;
-import com.sonatype.insight.brain.service.modules.IntegrationModule;
-import com.sonatype.insight.brain.service.modules.MigrationModule;
-import com.sonatype.insight.brain.service.modules.MtiqOnlyAuthModule;
-import com.sonatype.insight.brain.service.modules.MtiqOnlyModule;
-import com.sonatype.insight.brain.service.modules.OperationalModule;
-import com.sonatype.insight.brain.service.modules.OrganizationModule;
-import com.sonatype.insight.brain.service.modules.PolicyModule;
-import com.sonatype.insight.brain.service.modules.ProductLicenseModule;
-import com.sonatype.insight.brain.service.modules.RepositoryModule;
-import com.sonatype.insight.brain.service.modules.ScannerModule;
-import com.sonatype.insight.brain.service.modules.SonatypeLicensingModule;
-import com.sonatype.insight.brain.service.modules.TelemetryModule;
-import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
-import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
-import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
+import com.sonatype.insight.brain.spring.DropwizardConfigBootstrap;
+import com.sonatype.insight.brain.spring.LaunchConfigurationResolver;
+import org.springframework.boot.WebApplicationType;
+import com.sonatype.insight.brain.spring.config.NamedBeanRegistrationConfiguration;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.version.MultiTenantVersionService;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
-import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
+import datadog.trace.api.GlobalTracer;
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.UUID;
+import jakarta.inject.Named;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Singleton;
-import com.google.inject.name.Names;
-import com.google.inject.servlet.ServletModule;
-import io.dropwizard.core.cli.Command;
-import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.core.setup.Environment;
-import org.apache.shiro.guice.web.GuiceShiroFilter;
-import ru.vyarus.dropwizard.guice.GuiceBundle;
-import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.ResourceInstaller;
-import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
-
+/**
+ * Main entry point for Nexus Multi-Tenant IQ Server.
+ * Migrated from Dropwizard to Spring Boot.
+ *
+ * Note: Spring Security auto-configuration is excluded because
+ * this application uses Apache Shiro for authentication/authorization.
+ */
+@SpringBootApplication
+@ComponentScan(
+    basePackages = {
+      "com.sonatype.insight.brain",
+      "com.sonatype.insight.jaxrs"
+    },
+    includeFilters = {
+      @ComponentScan.Filter(
+          type = FilterType.ANNOTATION,
+          classes = Named.class)
+    },
+    excludeFilters = {
+      @ComponentScan.Filter(
+          type = FilterType.CUSTOM,
+          classes = MtiqComponentScanExclusionFilter.class)
+    })
+@Import({
+  NamedBeanRegistrationConfiguration.class,
+  MultiTenantDataAccessConfiguration.class
+})
 public class MultiTenantInsightBrainService
-    extends InsightBrainService
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantInsightBrainService.class);
+
+  private static final String PRODUCT_NAME = "Nexus Multi-Tenant IQ Server";
+
   private static final String MULTI_TENANT_SERVER_NAME = "MTIQ Server";
 
   private static final String MULTI_TENANT_BATCH_NAME = "MTIQ Server (Batch Mode)";
 
-  public static final String ADMIN_BASE_PATH = "/api/*";
+  private static final String INSTANCE_ID = UUID.randomUUID().toString().substring(0, 8);
 
-  /**
-   * Instance of the admin resources bundle needed to register Admin APIs
-   */
-  private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle(ADMIN_BASE_PATH);
+  public static void main(String[] args) throws Exception {
+    // WARNING: No code that uses tenancy should be added before this line.
+    TenantThreadLocal.setDefaultTenantToGlobal();
+    assertRunningAsGlobalTenant();
+
+    SecurityProviderBootstrap.ensureBouncyCastleProviderIsLowestPreference();
+
+    // Initialize Datadog tracing
+    GlobalTracer.get().addTraceInterceptor(new DatadogInterceptor());
+
+    new TenantUtil().setGlobalTenant();
+
+    try {
+      printVersion();
+
+      if (!validateTempDir()) {
+        System.exit(1);
+      }
+
+      MultiTenantCommandDispatcher commandDispatcher = new MultiTenantCommandDispatcher();
+      if (commandDispatcher.handles(args)) {
+        commandDispatcher.dispatch(args);
+        return;
+      }
+
+      SpringApplication app = new SpringApplication(MultiTenantInsightBrainService.class);
+      app.setKeepAlive(true);
+      // Ensure Spring Boot runs as a servlet web application
+      app.setWebApplicationType(WebApplicationType.SERVLET);
+
+      LaunchConfigurationResolver.LaunchConfiguration launchConfiguration =
+          LaunchConfigurationResolver.resolve(args);
+
+      // MTIQ intentionally overrides the following single-tenant beans with @Primary:
+      // - jerseyResourceRegistry: MTIQ splits resources into main + admin ResourceConfig
+      // - resourceConfig: MTIQ uses its own ResourceConfig bean (mtiqMainResourceConfig)
+      // - jerseyFilter: MTIQ registers its own selective Jersey filter
+      // - auditContainerRequestFilter: MTIQ provides its own audit filter
+      // - insightJacksonMessageBodyProvider: MTIQ uses MTIQ-specific ObjectMapper
+      // - componentIdentifierParamConverterProvider: MTIQ uses MTIQ-specific ObjectMapper
+      // - taskScheduler: MTIQ uses MultiTenantTaskScheduler
+      // - productLicense: MTIQ uses MultiTenantProductLicense
+      // - multiTenantJwkProvider: MTIQ declares its own @Primary JWK provider
+      File configFile = new File(launchConfiguration.configFilePath()).getAbsoluteFile();
+      app.setDefaultProperties(Map.of(
+          "spring.main.keep-alive", "true",
+          "sonatype.mtiq.enabled", "true",
+          "config.file", configFile.getAbsolutePath(),
+          "config.class", MultiTenantInsightConfig.class.getName(),
+          "config.file.implicitDefault", Boolean.toString(launchConfiguration.implicitDefaultConfigFile())));
+
+      DropwizardConfigBootstrap.configure(app, launchConfiguration.configFilePath(), MultiTenantInsightConfig.class,
+          launchConfiguration.implicitDefaultConfigFile());
+
+      // Add listener for application ready to mark server as booted
+      app.addListeners((ApplicationListener<ApplicationReadyEvent>) event -> {
+        ServerBootHealthCheck.fullyBooted();
+        log.info(getServerInstanceMessage());
+      });
+
+      app.run(args);
+
+    }
+    catch (Throwable t) {
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(2);
+    }
+  }
 
   private static void assertRunningAsGlobalTenant() {
     if (!new TenantUtil().isGlobalTenant()) {
@@ -109,38 +153,7 @@ public class MultiTenantInsightBrainService
     }
   }
 
-  public static void main(final String[] args) {
-    // WARNING: No code that uses tenancy should be added before this line. Even if it doesn't touch tenancy, it's still
-    // better to avoid adding code before this line.
-    TenantThreadLocal.setDefaultTenantToGlobal();
-    assertRunningAsGlobalTenant();
-
-    datadog.trace.api.GlobalTracer.get().addTraceInterceptor(new DatadogInterceptor());
-
-    new TenantUtil().setGlobalTenant();
-
-    try {
-      MultiTenantInsightBrainService insightBrainService = new MultiTenantInsightBrainService();
-
-      insightBrainService.setupServerLogging(args);
-
-      if (!validateTempDir()) {
-        System.exit(1);
-      }
-
-      insightBrainService.run(args);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
-      // this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(2);
-    }
-  }
-
-  @Override
-  void printVersion() {
+  private static void printVersion() {
     VersionService versionService = new MultiTenantVersionService();
     String build = versionService.getBuild();
     log.info("|------------------------------------------");
@@ -150,240 +163,58 @@ public class MultiTenantInsightBrainService
     log.info("|------------------------------------------");
   }
 
-  @Override
-  String getServerInstanceMessage() {
+  private static String getServerInstanceMessage() {
     String build = new MultiTenantVersionService().getBuild();
     String name = new TenantUtil().isMtiqBatchMode() ? MULTI_TENANT_BATCH_NAME : MULTI_TENANT_SERVER_NAME;
     return name + " build " + build + " instance ID " + INSTANCE_ID + " on " + getLocalHostString() + ".";
   }
 
-  @Override
-  public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {
-    return new MultiTenantDatabaseContainer((MultiTenantInsightConfig) insightConfig);
-  }
-
-  @Override
-  protected DatabaseConfigProvider getDatabaseConfigProvider(final InsightConfig insightConfig) {
-    return new MultiTenantDatabaseConfigProvider(insightConfig);
-  }
-
-  @Override
-  public void run(String... arguments) throws Exception {
-    new TenantUtil().setGlobalTenant();
-
-    super.run(arguments);
-    ServerBootHealthCheck.fullyBooted();
-  }
-
-  @Override
-  public void initialize(final Bootstrap<InsightConfig> bootstrap) {
-    super.initialize(bootstrap);
-    bootstrap.addCommand(new MigrateTenantsCommand());
-    bootstrap.addBundle(adminResourceBundle);
-  }
-
-  @Override
-  protected void configureObjectMapperDeserializationFeature(ObjectMapper objectMapper) {
-    // Disable for MTIQ, allow unknown properties in Insight Config
-    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-  }
-
-  @Override
-  protected void customize(InsightConfig configuration, Environment environment) {
-    super.customize(configuration, environment);
-
-    // Most jersey components are injected automatically by dropwizard-guicey. However it seems to be unable
-    // to correctly handle @Context injections on @Providers. So for that case, we register them here. Note that
-    // even doing it manually, jersey won't do the @Context injection if you provide it a class, it only seems to
-    // work with an instance. This means that classes registered this way are effectively singletons
-    //
-    // Register the filter classes directly and let dropwizard-guicey's Jersey integration handle the
-    // Provider<ResourceInfo> injection via its JerseyComponentProvider bridge.
-    environment.jersey().register(BlockEndpointsContainerRequestFilter.class);
-
-    // Ensuring we have the same jersey configuration we have for the application context
-    adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));
-    adminResourceBundle.jersey().register(new ComponentIdentifierParamConverterProvider(environment.getObjectMapper()));
-    adminResourceBundle.jersey().register(AdminAuditContainerRequestFilter.class);
-    JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
-    adminResourceBundle.jersey().register(jaxRsExceptionMapper);
-
-    addAdminApiEndpoints();
-  }
-
-  private void addAdminApiEndpoints() {
-    // Use pure Guice to discover admin endpoints
-    // Get all bindings from the injector and check for MtiqAdminEndpoint annotation
-    Injector injector = getInjector();
-
-    for (com.google.inject.Binding<?> binding : injector.getAllBindings().values()) {
-      com.google.inject.Key<?> key = binding.getKey();
-      Class<?> type = key.getTypeLiteral().getRawType();
-
-      // Check if this class has both @Path and @MtiqAdminEndpoint annotations
-      if (type.isAnnotationPresent(Path.class) && type.isAnnotationPresent(MtiqAdminEndpoint.class)) {
-        try {
-          Object component = injector.getInstance(key);
-          adminResourceBundle.jersey().register(component);
-          log.debug("Added admin REST component: {}", component);
-        }
-        catch (Exception e) {
-          log.error("Unable to add admin REST component: {}", type, e);
-        }
-      }
+  private static String getLocalHostString() {
+    try {
+      return InetAddress.getLocalHost().toString();
+    }
+    catch (UnknownHostException e) {
+      return "unknown";
     }
   }
 
-  private void addAdminServletFilter(
-      Environment env,
-      Class<? extends Filter> filterType,
-      String... urlPatterns)
-  {
-    Filter filter = getInstance(filterType);
-    env.admin()
-        .addFilter(filterType.getSimpleName(), filter)
-        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
-  }
+  static boolean validateTempDir() {
+    // Ensure that temp directory can be written to. If not, exit and log reason.
+    String tmp = System.getProperty("java.io.tmpdir");
+    try {
+      File dir = new File(tmp);
 
-  @Override
-  protected void addServletFilters(Environment env) {
-    addServletFilter(env, true, ActiveRequestCounterFilter.class, "/*");
-
-    addServletFilter(env, true, TenantUrlFilter.class, "/*");
-
-    addServletFilter(env, true, ConsumptionContextFilter.class, "/*");
-
-    // We need to add the Header filter for the Admin endpoints before Admin Resources filter
-    addAdminServletFilter(env, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
-
-    // Add tenant filter for Admin resources. We need to ensure this filter is configured before the AuditFilter.
-    addAdminServletFilter(env, AdminTenantFilter.class, ADMIN_BASE_PATH);
-
-    // Add tenant filter for admin tasks api. We need to ensure this filter is configured after the AdminTenantFilter.
-    addAdminServletFilter(env, AdminTasksTenantFilter.class, "/api/admin/tenants/*", "/tasks/*");
-
-    // Add Authorization filter
-    addAdminServletFilter(env, JwtHttpAuthorizationFilter.class, ADMIN_BASE_PATH);
-
-    super.addServletFilters(env, true);
-  }
-
-  @Override
-  protected void addServerHeaderFilter(final Environment env) {
-    addServletFilter(env, false, MultiTenantServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
-  }
-
-  @Override
-  protected List<Module> modules() {
-    List<Module> modules = new ArrayList<>();
-
-    // Ensure URL rewriting filter is registered before other modules' filters, so they will act on the rewritten URLs
-    modules.add(new ServletModule()
-    {
-      @Override
-      protected void configureServlets() {
-        bind(PlatformContextFilter.class).in(Singleton.class);
-        filter(List.of(PlatformContextFilter.URL_PATTERNS)).through(PlatformContextFilter.class);
+      if (!dir.exists()) {
+        if (dir.mkdirs()) {
+          log.info("Created temporary folder: {}", dir.getAbsolutePath());
+        }
       }
-    });
-
-    modules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
-        bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
-
-        bind(GuiceShiroFilter.class);
-
-        // This binding is referenced by a class present in sonatype-licensing that we don't actually use.
-        // For unclear reasons, since the switch to dropwizard-guicey leaving this binding null has prevented
-        // the server from starting. A proper solution cound not be found, so just fill it in with a dummy value
-        bind(File.class).annotatedWith(Names.named("licensing.access.file")).toInstance(new File("workaround"));
+      else if (!dir.isDirectory()) {
+        log.error("It appears that the temporary location is not a folder. Please ensure that {} is a folder "
+            + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+            + "used for launching the server.", dir.getAbsolutePath());
+        return false;
       }
-    });
 
-    modules.add(new SecurityModule());
-    modules.add(new SecurityAopModule());
-    modules.add(new SearchModule());
-    modules.add(new DropwizardAwareModule<InsightConfig>()
-    {
-      @Override
-      protected void configure() {
-        bind(OperationalDataStore.class).toInstance(databaseContainer.getOperationalDataStore());
-        bind(AggregationDataStore.class).toInstance(databaseContainer.getAggregationDataStore());
-        bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
-        bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
-        bind(DataStoreProvider.class).toInstance(databaseContainer);
-        // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
-        bind(ClusterLockManagerProvider.class);
-        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<ClusterLockManager>()
-        {
-          @Inject
-          ClusterLockManagerProvider provider;
-
-          @Override
-          public ClusterLockManager get() {
-            return provider.get();
-          }
-        });
-        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
-
-        // MTIQ-specific bindings that need access to configuration or databaseContainer
-        bind(DatabaseProvisioner.class).toInstance(databaseContainer.getDatabaseProvisioner());
+      // Ensure we can actually create and delete a new temp file
+      File file = Files.createTempFile("clm-server-launcher", ".tmp").toFile();
+      try {
+        new FileCleaner().delete(file);
       }
-    });
-
-    modules.addAll(baseModules());
-
-    // Set up bindings based on which database is used.
-    modules.add(new DbBasedModule(() -> databaseContainer));
-
-    return modules;
-  }
-
-  @Override
-  protected Command createDbMigrationCommand() {
-    return new MultiTenantDbMigrationCommand();
-  }
-
-  @Override
-  protected List<Module> getAppModules() {
-    List<Module> modules = new ArrayList<>();
-
-    modules.add(new ApiServiceBindingsModule());
-    modules.add(new ComponentModule());
-    modules.add(new CoreServiceModule());
-    modules.add(new DashboardModule());
-    modules.add(new DataAccessModule());
-    modules.add(new FirewallModule());
-    modules.add(new IntegrationModule());
-    modules.add(new MtiqOnlyModule());
-    modules.add(new MtiqOnlyAuthModule());
-    modules.add(new MigrationModule());
-    modules.add(new OperationalModule());
-    modules.add(new OrganizationModule());
-    modules.add(new PolicyModule());
-    modules.add(new ProductLicenseModule());
-    modules.add(new SonatypeLicensingModule());
-    modules.add(new RepositoryModule());
-    modules.add(new ScannerModule());
-    modules.add(new AuthenticationModule());
-    modules.add(new TelemetryModule());
-    modules.add(new McpModule());
-
-    return modules;
-  }
-
-  @Override
-  public Class getConfigurationClass() {
-    return MultiTenantInsightConfig.class;
-  }
-
-  @Override
-  protected GuiceBundle.Builder customizeGuiceBundle(GuiceBundle.Builder builder) {
-    return builder
-        .disableInstallers(ResourceInstaller.class)
-        .installers(MtiqResourceInstaller.class);
+      catch (FileDeletionException fde) {
+        log.error("The server is not able to delete from the temporary folder. Please ensure server has access to {} "
+            + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+            + "used for launching the server.", dir.getAbsolutePath());
+        return false;
+      }
+    }
+    catch (IOException ex) {
+      log.error("The server is not able to write to the temporary folder. Please ensure server has access to {} "
+          + "or specify another folder by adding -Djava.io.tmpdir=<writeable-folder> to the command line "
+          + "used for launching the server.", tmp);
+      log.debug("Unable to validate temporary folder", ex);
+      return false;
+    }
+    return true;
   }
 }

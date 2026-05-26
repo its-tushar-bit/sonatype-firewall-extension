@@ -5,23 +5,6 @@
  */
 package com.sonatype.insight.brain.jira;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.Configuration;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static com.sonatype.insight.brain.jira.JiraField.DESCRIPTION;
 import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
 import static com.sonatype.insight.brain.jira.JiraField.PROJECT;
@@ -29,8 +12,20 @@ import static com.sonatype.insight.brain.jira.JiraField.REPORTER;
 import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.Test;
+import org.mockito.Mock;
 
 public class JiraServiceTest
     extends AbstractComponentTest
@@ -56,14 +51,6 @@ public class JiraServiceTest
     Map<String, String> reporterMap = new HashMap<>();
     reporterMap.put("name", "reporter_name");
     customFields.put(REPORTER, reporterMap);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
-    binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
   }
 
   @Test
@@ -152,6 +139,7 @@ public class JiraServiceTest
 
     jiraIssueCreateMeta.setProjects(jiraProjectList);
 
+    when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
     when(mockJiraClient.getIssueCreateMeta()).thenReturn(jiraIssueCreateMeta);
 
     createJiraConfiguration(customFields);

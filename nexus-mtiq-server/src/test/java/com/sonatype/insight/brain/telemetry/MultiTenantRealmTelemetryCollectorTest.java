@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -21,6 +22,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.io.Resources;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,11 +42,17 @@ public class MultiTenantRealmTelemetryCollectorTest
   @Override
   public void setup() {
     super.setup();
+    SecurityAspectControl.disableEnforcement();
 
     samlConfigurationService = new SamlConfigurationService(
         daoFactory.createSamlConfigurationInternalDAO(),
         new TestSamlFactory().createSamlConfigurationAdapter());
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationService);
+  }
+
+  @After
+  public void teardown() {
+    SecurityAspectControl.enableEnforcement();
   }
 
   @Test

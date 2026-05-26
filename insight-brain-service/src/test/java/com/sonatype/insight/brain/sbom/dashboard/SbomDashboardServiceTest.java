@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.sbom.dashboard;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Date;
-import java.util.List;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -29,16 +29,13 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
-
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
+import java.util.Date;
+import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
 public class SbomDashboardServiceTest
@@ -47,7 +44,7 @@ public class SbomDashboardServiceTest
   @Inject
   private SbomDashboardService service;
 
-  @jakarta.inject.Inject
+  @Inject
   private ProductLicense productLicense;
 
   private Application app;

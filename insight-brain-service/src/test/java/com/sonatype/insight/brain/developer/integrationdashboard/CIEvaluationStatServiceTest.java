@@ -6,15 +6,11 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import static com.sonatype.insight.brain.developer.integrationdashboard.CIEvaluationStatService.CICD_TRIGGERED_EVALUATION_CUT_OFF_MS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
@@ -22,15 +18,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.developer.integrationdashboard.CIEvaluationStatService.CICD_TRIGGERED_EVALUATION_CUT_OFF_MS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class CIEvaluationStatServiceTest
     extends AbstractComponentTest
@@ -44,12 +40,6 @@ public class CIEvaluationStatServiceTest
 
   @Inject
   private CIEvaluationStatService ciEvaluationStatService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(DateTimeService.class).toInstance(dateTimeService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetCiCdUsageStatsOverTime_ShouldReturnCorrectValuesGivenAnIncrementSizeAndNumber() {

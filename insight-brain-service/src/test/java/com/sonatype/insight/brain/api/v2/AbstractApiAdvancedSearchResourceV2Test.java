@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.search.export.SearchRowFactory.Header.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
@@ -26,14 +28,10 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.search.export.SearchRowFactory.Header.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 public abstract class AbstractApiAdvancedSearchResourceV2Test
     extends AbstractResourceTest

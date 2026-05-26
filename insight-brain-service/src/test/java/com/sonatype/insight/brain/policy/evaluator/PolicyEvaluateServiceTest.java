@@ -5,26 +5,29 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import jakarta.inject.Inject;
-import jakarta.mail.Message;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.BadRequestException;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
+import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.POLICY_EVALUATION_COMPLETE;
+import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
+import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
+import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
+import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
+import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
@@ -97,7 +100,6 @@ import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -105,6 +107,7 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -114,44 +117,52 @@ import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
-import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
-import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_PENDING;
-import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.POLICY_EVALUATION_COMPLETE;
-import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
-import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
-import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
-import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
-import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
+@ContextConfiguration(classes = PolicyEvaluateServiceTest.PolicyEvaluateServiceTestConfiguration.class)
 public class PolicyEvaluateServiceTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class PolicyEvaluateServiceTestConfiguration
+  {
+    @Bean
+    @Primary
+    ShutdownHandler mockShutdownHandler() {
+      return Mockito.mock(ShutdownHandler.class);
+    }
+  }
+
   @Inject
   private PolicyEvaluateService policyEvaluateService;
 
@@ -205,35 +216,30 @@ public class PolicyEvaluateServiceTest
 
   private Application app;
 
+  @Mock
   private JiraClientFactory mockJiraClientFactory;
 
   private MockReportDownloader mockReportDownloader;
 
-  private ScanHandler mockScanHandler;
-
-  private TelemetrySender mockTelemetrySender;
+  @Mock
+  private ReportDownloader reportDownloader;
 
   @Mock
-  private ShutdownHandler mockShutdownHandler;
+  private ScanHandler mockScanHandler;
 
-  @Override
-  public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    mockJiraClientFactory = mock(JiraClientFactory.class);
-    binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
-    mockTelemetrySender = mock(TelemetrySender.class);
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    mockScanHandler = mock(ScanHandler.class);
-    binder.bind(ScanHandler.class).toInstance(mockScanHandler);
-    binder.bind(TaskScheduler.class).toInstance(mock(TaskScheduler.class));
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+
+  @Inject
+  private ShutdownHandler mockShutdownHandler;
 
   @Before
   public void before() {
+    testProductLicense.reset();
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
     app = tempEntity.newApplicationWithParent();
+    mockReportDownloader = new MockReportDownloader(tempDir, reportDownloader);
 
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("127.0.0.1");

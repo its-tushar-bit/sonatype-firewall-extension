@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
@@ -26,7 +22,10 @@ import com.sonatype.nexus.iq.manager.RepositorySyncExecutor;
 import com.sonatype.nexus.scm.InvalidRepositoryUrlException;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.ValidationResult;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
@@ -36,6 +35,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Validates the Source Control config for a given application
  */
+@Named
+@Singleton
 public class ApiCompositeSourceControlConfigValidatorService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiCompositeSourceControlConfigValidatorService.class);

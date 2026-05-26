@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collections;
-
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -19,36 +17,40 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.spring.InsightBrainCompatibilityCommand;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
-
-import io.dropwizard.core.cli.ConfiguredCommand;
-import io.dropwizard.core.setup.Bootstrap;
-import net.sourceforge.argparse4j.inf.Namespace;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.66
  */
+@Named
 public class ResetAdminCommand
-    extends ConfiguredCommand<InsightConfig>
+    implements InsightBrainCompatibilityCommand
 {
+  public static final String NAME = "reset-admin";
+
+  public static final String DESCRIPTION = "Resets the admin user back to its default configuration.";
+
   private static final Logger log = LoggerFactory.getLogger(ResetAdminCommand.class);
 
-  // Visible for testing
   static final User DEFAULT_ADMIN = new User(User.ADMIN_USERNAME,
       "$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=", "Admin", "BuiltIn",
       "admin@localhost");
@@ -57,20 +59,45 @@ public class ResetAdminCommand
     DEFAULT_ADMIN.setId("ADMIN");
   }
 
+  private final InsightConfig insightConfig;
+
   private OperationalDataStore operationalDataStore;
 
   ResetAdminCommand() {
-    super("reset-admin", "Resets the admin user back to its default configuration.");
+    this(new InsightConfig());
+  }
+
+  @Inject
+  public ResetAdminCommand(InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
   }
 
   @Override
-  protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
+  public String getName() {
+    return NAME;
+  }
+
+  @Override
+  public String getDescription() {
+    return DESCRIPTION;
+  }
+
+  @Override
+  public void run(String... args) {
+    run(insightConfig);
+  }
+
+  void run(Object ignoredBootstrap, Object ignoredNamespace, InsightConfig runtimeConfig) {
+    run(runtimeConfig);
+  }
+
+  public void run(InsightConfig runtimeConfig) {
     try (AuditSession auditSession = new AuditRecorder(new ErrorResponseGenerator())
         .recordSystemEvent(AuditEvent.RESET_USER_PASSWORD))
     {
       AuditData.get().setData("username", DEFAULT_ADMIN.getUsername());
       try {
-        DatabaseConfig databaseConfig = DatabaseConfigProviderFactory.createDatabaseConfigProvider(insightConfig)
+        DatabaseConfig databaseConfig = DatabaseConfigProviderFactory.createDatabaseConfigProvider(runtimeConfig)
             .getDatabaseConfig(DatabaseName.ods);
         operationalDataStore = getOperationalDataStore(databaseConfig);
         operationalDataStore.initialize();
@@ -119,15 +146,12 @@ public class ResetAdminCommand
     UserIdePolicyEvaluationDAO userIdePolicyEvaluationDAO = new UserIdePolicyEvaluationDAO(operationalDataStore);
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO =
         new SystemConfigurationPropertyDAO(operationalDataStore);
-    UserDAO userDAO =
-        new UserDAO(operationalDataStore, membershipMappingDAO, userTokenDAO, dashboardFilterDAO, userFilterDAO,
-            userViewedProductNotificationDAO, userIdePolicyEvaluationDAO, systemConfigurationPropertyDAO);
-    return userDAO;
+    return new UserDAO(operationalDataStore, membershipMappingDAO, userTokenDAO, dashboardFilterDAO, userFilterDAO,
+        userViewedProductNotificationDAO, userIdePolicyEvaluationDAO, systemConfigurationPropertyDAO);
   }
 
   private void setAdminMemberOfIfNeeded(TransactionContext tx, String roleId) {
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO(operationalDataStore);
-    // Use the TransactionContext version to avoid nested transaction lock issues in H2
     if (membershipMappingDAO.getByContextIdAndRoleId(tx, MembershipMapping.GLOBAL_CONTEXT_ID, roleId)
         .stream()
         .noneMatch(

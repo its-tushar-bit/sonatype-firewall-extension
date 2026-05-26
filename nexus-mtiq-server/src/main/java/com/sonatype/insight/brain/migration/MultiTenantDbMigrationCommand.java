@@ -7,14 +7,12 @@ package com.sonatype.insight.brain.migration;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import jakarta.inject.Named;
 
+@Named
 public class MultiTenantDbMigrationCommand
     extends DbMigrationCommand
 {
-  public MultiTenantDbMigrationCommand() {
-    super();
-  }
-
   @Override
   protected boolean quartzSchedulerStateTableExists(final OperationalDataStore operationalDataStore) {
     // Multi-tenant quartz is in the global table

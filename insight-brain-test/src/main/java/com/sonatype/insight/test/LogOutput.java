@@ -121,6 +121,7 @@ public class LogOutput
       // Although the default level is DEBUG, we must set it here explicitly because it might have been changed
       // elsewhere. For ex, DropWizard sets the log level to INFO for everything when it starts.
       logger.setLevel(Level.DEBUG);
+      logger.detachAppender(appender);
       logger.addAppender(appender);
     }
   }

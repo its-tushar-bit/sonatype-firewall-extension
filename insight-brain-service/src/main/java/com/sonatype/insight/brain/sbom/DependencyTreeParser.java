@@ -36,6 +36,7 @@ public class DependencyTreeParser
   private final Map<ComponentIdentifier, String> dependencyType = new HashMap<>();
 
   public void parse(JsonNode dependenciesJsonData) throws IOException {
+    clear();
     if (dependenciesJsonData == null) {
       return;
     }
@@ -98,6 +99,11 @@ public class DependencyTreeParser
       return Optional.of(dependencies);
     }
     return Optional.empty();
+  }
+
+  void clear() {
+    dependencyTree.clear();
+    dependencyType.clear();
   }
 
   @VisibleForTesting

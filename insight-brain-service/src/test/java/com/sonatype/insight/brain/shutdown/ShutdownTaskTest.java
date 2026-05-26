@@ -5,22 +5,22 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.google.common.collect.Lists;
+import com.sonatype.insight.brain.service.Configuration;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-
-import com.sonatype.insight.brain.service.Configuration;
-
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ShutdownTaskTest
@@ -39,15 +39,15 @@ public class ShutdownTaskTest
   }
 
   @Test
-  public void testGetName() {
-    assertThat(shutdownTask.getName()).isEqualTo("shutdown");
+  public void testGetPath() {
+    assertThat(shutdownTask.getPath()).isEqualTo("shutdown");
   }
 
   @Test
   public void testExecute_SkipDefaultShouldNotExit() throws Exception {
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
 
-    shutdownTask.execute(Collections.emptyMap(), null);
+    shutdownTask.execute(Collections.emptyMap(), new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), false);
   }
@@ -56,7 +56,8 @@ public class ShutdownTaskTest
   public void testExecute_ShouldSkipExitIsFalse() throws Exception {
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
 
-    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("false")), null);
+    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("false")),
+        new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), false);
   }
@@ -65,7 +66,8 @@ public class ShutdownTaskTest
   public void testExecute_ShouldSkipExitIsTrue() throws Exception {
     when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(60);
 
-    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("true")), null);
+    shutdownTask.execute(Map.of(ShutdownTask.SKIP_SYSTEM_EXIT_QUERY_PARAM, Lists.newArrayList("true")),
+        new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(mockShutdownHandler).trigger(Duration.ofSeconds(660), true);
   }

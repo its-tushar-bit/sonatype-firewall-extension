@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -24,22 +27,20 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportDataStore;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
+import org.mockito.Mock;
 
 public class PolicyEvaluateServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -50,6 +51,9 @@ public class PolicyEvaluateServiceAuthzTest
   @Inject
   private InsightWork insightWork;
 
+  @Mock
+  private ScanHandler mockScanHandler;
+
   private MockReportDownloader mockReportDownloader;
 
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
@@ -58,19 +62,12 @@ public class PolicyEvaluateServiceAuthzTest
 
   @Before
   public void setup() {
+    mockReportDownloader = new MockReportDownloader(tempDir);
     mockReportDownloader.setInsightWork(insightWork);
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", mockReportDownloader.getMock());
+    applyBeanFieldOverride(PolicyEvaluateService.class, "scanHandler", mockScanHandler);
     persistedPolicyEvaluationPollingResultDAO = daoFactory.createPersistedPolicyEvaluationPollingResultDAO();
     organizationDAO = daoFactory.createOrganizationDAO();
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
-    binder.bind(ScanHandler.class).toInstance(mock(ScanHandler.class));
-
-    super.configure(binder);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -106,6 +103,7 @@ public class PolicyEvaluateServiceAuthzTest
   @Test
   public void testEvaluateWithPolling_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
+    stubSuccessfulPollingScan(app);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
         new Stage(BuildStageType.ID));
   }
@@ -116,6 +114,7 @@ public class PolicyEvaluateServiceAuthzTest
     Application application = tempEntity.newApplication("app", organization.getId());
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     grantPermission(application.getId(), Permission.EVALUATE_COMPONENT);
+    stubSuccessfulPollingScan(application);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
         null, new Stage(ProxyStageType.ID));
   }
@@ -255,6 +254,7 @@ public class PolicyEvaluateServiceAuthzTest
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     grantEvaluateComponentPermission(application.getId());
     login();
+    stubSuccessfulPollingScan(application);
     policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
         null, new Stage(ProxyStageType.ID));
   }
@@ -265,5 +265,16 @@ public class PolicyEvaluateServiceAuthzTest
     PersistedPolicyEvaluationPollingResult expected =
         new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
     persistedPolicyEvaluationPollingResultDAO.insert(expected);
+  }
+
+  private void stubSuccessfulPollingScan(Application application) throws Exception {
+    String scanId = mockReportDownloader.mockDownloadReport("/PolicyEvaluateServiceTest/report");
+    ScanHelper.createDummyScanFile(insightWork, application.getId(), scanId);
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    when(mockScanHandler.createTempScanFile(any(), any(Application.class))).thenReturn(mock(ScanEntity.class));
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
   }
 }

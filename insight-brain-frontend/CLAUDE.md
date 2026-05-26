@@ -62,7 +62,7 @@ npm install -g yarn@<version-from-pom>
 
 ```bash
 # Start backend on port 8072 (from insight-brain-service directory)
-mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
 
 # Start frontend dev server (from insight-brain-frontend directory)
 yarn start                     # Main bundle only (faster)

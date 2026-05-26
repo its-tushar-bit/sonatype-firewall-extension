@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
+import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -15,17 +17,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToAdd;
-import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTOToUpdate;
-import static org.assertj.core.api.Assertions.assertThat;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -41,12 +39,6 @@ public class UserServiceAuthzTest
 
   @Mock
   private SessionDAO sessionDAOMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(SessionDAO.class).toInstance(sessionDAOMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetAll_Authorized() {

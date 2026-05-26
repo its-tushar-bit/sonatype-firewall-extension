@@ -6,19 +6,18 @@
 package com.sonatype.insight.brain.testing;
 
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
-
-import com.google.inject.AbstractModule;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.test.context.TestConfiguration;
 
 /**
- * Guice module providing explicit bindings for test helper components.
- * This module binds test-only @Named components that cannot be bound in production modules.
+ * Spring configuration providing test helper components.
+ * This module binds test-only components that cannot be bound in production modules.
  */
+@TestConfiguration
 public class TestHelperModule
-    extends AbstractModule
 {
-  @Override
-  protected void configure() {
-    // Test helper components
-    bind(PolicyEvaluationHelper.class);
+  @Bean
+  public PolicyEvaluationHelper policyEvaluationHelper() {
+    return new PolicyEvaluationHelper();
   }
 }

@@ -288,7 +288,8 @@ public class MembershipMappingService
       grantRoleMembershipForGlobalContext(membershipMapping);
     }
     else {
-      grantRoleMembershipForNonGlobalContext(ownerType, membershipMapping.getContextId(), membershipMapping);
+      grantRoleMembershipForNonGlobalContext(ownerType, membershipMapping.getContextId(),
+          membershipMapping);
     }
 
     Map<String, List<Member>> roleToMembers = new HashMap<>();

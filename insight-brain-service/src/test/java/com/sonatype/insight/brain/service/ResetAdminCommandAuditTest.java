@@ -64,7 +64,7 @@ public class ResetAdminCommandAuditTest
 
   @Test
   public void testRun_Exception() {
-    assertThatExceptionOfType(Exception.class).isThrownBy(() -> new ResetAdminCommand().run(null, null, null));
+    assertThatExceptionOfType(Exception.class).isThrownBy(() -> new ResetAdminCommand().run((InsightConfig) null));
     assertAuditLog(AuditEvent.RESET_USER_PASSWORD, "server-error", SYSTEM_USER);
   }
 
@@ -76,6 +76,6 @@ public class ResetAdminCommandAuditTest
       protected OperationalDataStore getOperationalDataStore(final DatabaseConfig databaseConfig) {
         return databaseRule.getOperationalDataStore();
       }
-    }.run(null, null, insightConfig);
+    }.run(insightConfig);
   }
 }

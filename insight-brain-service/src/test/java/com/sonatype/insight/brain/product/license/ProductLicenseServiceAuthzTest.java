@@ -5,16 +5,12 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
@@ -28,12 +24,6 @@ public class ProductLicenseServiceAuthzTest
 
   @Mock
   private TaskScheduler taskSchedulerMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
-  }
 
   private InputStream getLicense() {
     return new ByteArrayInputStream(new byte[1]);

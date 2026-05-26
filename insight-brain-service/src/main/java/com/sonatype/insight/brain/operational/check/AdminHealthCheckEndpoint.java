@@ -5,19 +5,19 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MediaType;
-
-import io.dropwizard.core.setup.AdminEnvironment;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
+/**
+ * Interface for admin health check endpoints.
+ * With Spring Boot, health checks are typically registered via HealthIndicator beans.
+ */
 public interface AdminHealthCheckEndpoint
 {
   String getName();
@@ -61,15 +61,16 @@ public interface AdminHealthCheckEndpoint
     }
   }
 
-  static void addAdminHealthCheckEndpoint(
-      AdminEnvironment adminEnvironment,
-      AdminHealthCheckEndpoint adminHealthCheckEndpoint)
-  {
-    adminEnvironment.addServlet(adminHealthCheckEndpoint.getName(), new HttpServlet()
+  /**
+   * Creates a servlet for the health check endpoint.
+   * With Spring Boot, this can be registered via ServletRegistrationBean.
+   */
+  static HttpServlet createServlet(AdminHealthCheckEndpoint endpoint) {
+    return new HttpServlet()
     {
       @Override
       protected void service(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        HealthCheckResponse healthCheckResponse = adminHealthCheckEndpoint.getHealthCheckResponse();
+        HealthCheckResponse healthCheckResponse = endpoint.getHealthCheckResponse();
         String content = healthCheckResponse.getContent();
         boolean hasContent = StringUtils.isNotBlank(content);
         if (healthCheckResponse.isHealthy()) {
@@ -80,14 +81,14 @@ public interface AdminHealthCheckEndpoint
         }
         if (hasContent) {
           httpServletResponse.setContentType(MediaType.TEXT_PLAIN);
-          try (PrintWriter writer = httpServletResponse.getWriter()) {
+          try (var writer = httpServletResponse.getWriter()) {
             writer.println(healthCheckResponse.getContent());
           }
           catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
           }
         }
       }
-    }).addMapping(adminHealthCheckEndpoint.getPath());
+    };
   }
 }

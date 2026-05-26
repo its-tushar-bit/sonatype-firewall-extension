@@ -5,13 +5,20 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import com.sonatype.insight.brain.security.FIPSConfig;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
+import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -20,40 +27,42 @@ public class CLMLicenseManagerFIPSTest
     extends CLMLicenseManagerTest
 {
   @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  public EnvironmentVariables environmentVariables;
+
+  @Inject
+  private TestProductLicense testProductLicense;
+
+  @Inject
+  private TestProductLicenseDetailsCache testProductLicenseDetailsCache;
+
+  @After
+  public void afterFipsTest() {
+    removeBouncyCastleFipsProvider();
+  }
 
   @Before
   @Override
   public void before() throws Exception {
-    // Ensure that the Bouncy Castle FIPS provider is inserted before the tests.
-    insertBouncyCastleFipsProvider();
+    testProductLicense.reset();
+    testProductLicenseDetailsCache.resetToDefaults();
 
-    // Set the environment variable to enable FIPS mode.
-    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-
-    // Initialize the parent class.
-    super.before();
-
-    // TODO - Uncomment after the HDS code is updated to use the new keystore format. See HDS-3252
-    // try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.bcfks")) {
-    // assert in != null;
-    // Files.copy(in, new File(tempDir.getRoot(), "hds.bcfks").toPath());
-    // }
-    // hdsMockServer.reset();
-    // setHdsUrl(hdsMockServer.getHttpUrl());
+    try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.bcfks")) {
+      assert in != null;
+      Files.copy(in, new File(tempDir.getRoot(), "hds.bcfks").toPath());
+    }
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
-  /*
-   * TODO - Uncomment after the HDS code is updated to use the new keystore format. See HDS-3252
-   *
-   * @Override
-   * public void configure(Binder binder) {
-   * ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
-   * productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.bcfks").getAbsolutePath());
-   * productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
-   * binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
-   * binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-   * super.configure(binder);
-   * }
-   */
+  @Override
+  public TemporaryEntity createTemporaryEntity() {
+    // Ensure that the Bouncy Castle FIPS provider is inserted before the TemporaryEntity is created.
+    insertBouncyCastleFipsProvider();
+
+    // Initialize the environment rule here so the whole Spring test harness observes FIPS mode.
+    environmentVariables = new EnvironmentVariables();
+    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
+
+    return super.createTemporaryEntity();
+  }
 }

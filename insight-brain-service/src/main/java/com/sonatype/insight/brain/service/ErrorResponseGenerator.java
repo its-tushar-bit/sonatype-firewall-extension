@@ -5,29 +5,29 @@
  */
 package com.sonatype.insight.brain.service;
 
-import jakarta.inject.Named;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
-import jakarta.ws.rs.core.Response;
-
-import com.sonatype.insight.brain.organization.PartialDeletionException;
-import com.sonatype.insight.brain.security.ExpiredUserTokenException;
-import com.sonatype.insight.jaxrs.error.ErrorResponse;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
+import com.sonatype.insight.brain.organization.PartialDeletionException;
+import com.sonatype.insight.brain.security.ExpiredUserTokenException;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+import jakarta.inject.Named;
+import jakarta.ws.rs.core.Response;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingException;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Extends base error generator to handle additional exceptions like from Shiro.
  *
  * @since 1.7
  */
-@Named
+@Named("serviceErrorResponseGenerator")
+@Primary
 public class ErrorResponseGenerator
     extends com.sonatype.insight.jaxrs.error.ErrorResponseGenerator
 {

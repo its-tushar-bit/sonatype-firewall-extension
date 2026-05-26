@@ -10,7 +10,10 @@ import jakarta.inject.Named;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.springframework.context.annotation.Primary;
+
 @Named
+@Primary
 public class MtiqSourceControlSshValidator
     implements SourceControlSshValidator
 {

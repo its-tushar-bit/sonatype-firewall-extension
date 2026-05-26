@@ -5,30 +5,17 @@
  */
 package com.sonatype.insight.brain.configuration;
 
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
 
 public class AutomaticApplicationsConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private AutomaticApplicationsConfigurationService service;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
-  }
 
   @Test
   public void testUpdate_Authorized() {

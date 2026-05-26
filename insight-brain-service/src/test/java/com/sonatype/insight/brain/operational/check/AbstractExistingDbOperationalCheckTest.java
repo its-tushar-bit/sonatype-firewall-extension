@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import java.sql.Connection;
-import java.util.Map;
-
-import javax.sql.DataSource;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -16,20 +17,17 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-
-import com.codahale.metrics.health.HealthCheck.Result;
+import java.sql.Connection;
+import java.util.Map;
+import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(MockitoJUnitRunner.class)
@@ -63,13 +61,13 @@ abstract class AbstractExistingDbOperationalCheckTest
   }
 
   @Test
-  public void testExecute_Healthy() {
-    Result result = databaseOperationalCheck.execute();
+  public void testExecute_Healthy() throws Exception {
+    Health result = databaseOperationalCheck.execute();
     Map<String, Object> resultDetails = result.getDetails();
     for (DataStore dataStore : allDataStores) {
       assertThat((String) resultDetails.get(dataStore.getID() + " database")).matches("^roundTripTimeInMs=\\d+$");
     }
-    assertThat(result.isHealthy()).isTrue();
+    assertThat(result.getStatus()).isEqualTo(Status.UP);
   }
 
   @Test
@@ -99,8 +97,8 @@ abstract class AbstractExistingDbOperationalCheckTest
     when(mockDataSource.getConnection()).thenReturn(mockConnection);
     when(mockConnection.isValid(anyInt())).thenReturn(false);
 
-    Result result = databaseOperationalCheck.execute();
-    assertThat(result.isHealthy()).isFalse();
+    Health result = databaseOperationalCheck.execute();
+    assertThat(result.getStatus()).isEqualTo(Status.DOWN);
     Map<String, Object> resultDetails = result.getDetails();
     for (DataStore dataStore : allDataStores) {
       if (dataStore == unhealthyDataStore) {

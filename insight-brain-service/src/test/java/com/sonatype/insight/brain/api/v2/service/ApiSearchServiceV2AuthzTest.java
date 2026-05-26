@@ -5,21 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class ApiSearchServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -29,12 +26,6 @@ public class ApiSearchServiceV2AuthzTest
 
   @Mock
   private ReportService reportServiceMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportService.class).toInstance(reportServiceMock);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

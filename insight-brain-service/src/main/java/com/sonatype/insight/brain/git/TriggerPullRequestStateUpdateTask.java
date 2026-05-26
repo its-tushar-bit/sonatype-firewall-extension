@@ -9,11 +9,10 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.service.AdminTask;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import io.dropwizard.servlets.tasks.Task;
 
 /**
  * Admin task for manually triggering the PR state update job.
@@ -22,7 +21,7 @@ import io.dropwizard.servlets.tasks.Task;
 @Named
 @Singleton
 public class TriggerPullRequestStateUpdateTask
-    extends Task
+    extends AdminTask
 {
   private final PullRequestStateService pullRequestStateService;
 

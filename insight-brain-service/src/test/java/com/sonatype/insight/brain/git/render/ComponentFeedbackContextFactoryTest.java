@@ -5,35 +5,6 @@
  */
 package com.sonatype.insight.brain.git.render;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Optional;
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
-import com.sonatype.insight.brain.git.RemediationVersionDTO;
-import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
-import com.sonatype.insight.brain.git.render.model.MDImages;
-import com.sonatype.insight.brain.git.render.model.SecurityIssue;
-import com.sonatype.insight.brain.git.render.model.SeverityInfo;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityCustomData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
-import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.mockito.Mock;
-
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactoryTest.BreakingChangeType.FEW;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactoryTest.BreakingChangeType.MANY;
@@ -53,6 +24,32 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+
+import com.google.common.collect.ImmutableList;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
+import com.sonatype.insight.brain.git.render.model.MDImages;
+import com.sonatype.insight.brain.git.render.model.SecurityIssue;
+import com.sonatype.insight.brain.git.render.model.SeverityInfo;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityCustomData;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import jakarta.inject.Inject;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Optional;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
+import org.mockito.Mock;
 
 public class ComponentFeedbackContextFactoryTest
     extends AbstractComponentTest
@@ -124,12 +121,6 @@ public class ComponentFeedbackContextFactoryTest
   private EnumMap<TestCaseId, TestData> testCases = new EnumMap<>(TestCaseId.class);
 
   private String expectedRenderedOutputFilename;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(VulnerabilityDetailsService.class).toInstance(vulnerabilityDetailsServiceMock);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

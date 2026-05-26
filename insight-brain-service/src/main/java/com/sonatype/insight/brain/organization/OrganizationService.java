@@ -123,7 +123,7 @@ public class OrganizationService
 
   @Authorize(permission = Permission.READ)
   public Organization getOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId) {
-    return organizationDAO.getById(orgId);
+    return organizationDAO.getByIdNotNull(orgId);
   }
 
   @Authorize(permission = Permission.WRITE)

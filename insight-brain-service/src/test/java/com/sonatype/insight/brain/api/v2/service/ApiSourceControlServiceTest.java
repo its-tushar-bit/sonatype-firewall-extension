@@ -40,9 +40,11 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigur
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
+import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -59,6 +61,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlRepositoryUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -77,7 +80,6 @@ import com.sonatype.nexus.scm.github.dto.GithubRateLimitResponse;
 import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -182,12 +184,23 @@ public class ApiSourceControlServiceTest
   @Mock
   private GitApiFactory gitApiFactory;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(GitApiFactory.class).toInstance(gitApiFactory);
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    super.configure(binder);
+  @Before
+  public void setupBeanOverrides() {
+    ScmRepoVisibilityService testScmRepoVisibilityService =
+        new ScmRepoVisibilityService(lookup(FeaturesService.class), mockGitClientFactory);
+
+    applyBeanFieldOverride(ApiSourceControlService.class, "telemetrySender", telemetrySenderMock);
+    applyBeanFieldOverride(ApiSourceControlService.class, "gitClientFactory", mockGitClientFactory);
+    applyBeanFieldOverride(ApiSourceControlService.class, "scmRepoVisibilityService", testScmRepoVisibilityService);
+
+    applyBeanFieldOverride(ApiCompositeSourceControlConfigValidatorService.class,
+        "gitClientFactory", mockGitClientFactory);
+    applyBeanFieldOverride(ApiCompositeSourceControlConfigValidatorService.class,
+        "gitApiFactory", gitApiFactory);
+    applyBeanFieldOverride(ApiCompositeSourceControlConfigValidatorService.class,
+        "scmRepoVisibilityService", testScmRepoVisibilityService);
+
+    applyBeanFieldOverride(SourceControlRepositoryUtils.class, "gitApiFactory", gitApiFactory);
   }
 
   @Before

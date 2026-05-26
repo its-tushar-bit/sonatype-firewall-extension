@@ -106,7 +106,7 @@ public class ApplicationEvaluationResource
 
   @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
   @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
-  PolicyEvaluationReceipt evaluateWithPollingForContainerImageEvaluation(
+  public PolicyEvaluationReceipt evaluateWithPollingForContainerImageEvaluation(
       String applicationPublicId,
       IntegrationType integrationType,
       Stage stage,
@@ -117,7 +117,7 @@ public class ApplicationEvaluationResource
   }
 
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
-  PolicyEvaluationReceipt evaluateWithPollingForApplicationEvaluation(
+  public PolicyEvaluationReceipt evaluateWithPollingForApplicationEvaluation(
       String applicationPublicId,
       IntegrationType integrationType,
       Stage stage,

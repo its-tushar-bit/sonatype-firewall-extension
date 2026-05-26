@@ -18,8 +18,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
@@ -87,29 +89,29 @@ public class Configuration
 
   private final ApiConfigurationService configurationService;
 
-  private final Provider<List<HdsClient>> hdsClientsProvider;
+  private final ObjectProvider<HdsClient> hdsClients;
 
-  private final Provider<AsyncEventBus> asyncEventBusProvider;
+  private final AsyncEventBus asyncEventBus;
 
   private final TaskScheduler taskScheduler;
 
-  private final Provider<DefaultBranchMonitor> defaultBranchMonitorProvider;
+  private final DefaultBranchMonitor defaultBranchMonitor;
 
-  private final Provider<PullRequestMonitor> pullRequestMonitorProvider;
+  private final PullRequestMonitor pullRequestMonitor;
 
   private final ConfigurationMap configCache = new ConfigurationMap();
 
-  private final Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider;
+  private final ReleaseGraphCacheProvider releaseGraphCacheProvider;
 
-  private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
+  private final PolicyMonitorScheduler policyMonitorScheduler;
 
-  private final Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider;
+  private final HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask;
 
-  private final Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
+  private final HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler;
 
-  private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
+  private final AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler;
 
-  private final Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
+  private final WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler;
 
   private final TenantUtil tenantUtil;
 
@@ -120,35 +122,35 @@ public class Configuration
       JiraConfigurationDAO jiraConfigurationDAO,
       SourceControlConfigurationDAO sourceControlConfigurationDAO,
       ApiConfigurationService configurationService,
-      Provider<List<HdsClient>> hdsClientsProvider,
-      Provider<AsyncEventBus> asyncEventBusProvider,
+      ObjectProvider<HdsClient> hdsClients,
+      @Lazy AsyncEventBus asyncEventBus,
       TaskScheduler taskScheduler,
-      Provider<DefaultBranchMonitor> defaultBranchMonitorProvider,
-      Provider<PullRequestMonitor> pullRequestMonitorProvider,
-      Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
-      Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
-      Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider,
-      Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider,
-      Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider,
-      Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider,
+      @Lazy DefaultBranchMonitor defaultBranchMonitor,
+      @Lazy PullRequestMonitor pullRequestMonitor,
+      @Lazy ReleaseGraphCacheProvider releaseGraphCacheProvider,
+      @Lazy PolicyMonitorScheduler policyMonitorScheduler,
+      @Lazy HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler,
+      @Lazy AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler,
+      @Lazy WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler,
+      @Lazy HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask,
       TenantUtil tenantUtil)
   {
-    this.historicalPolicyViolationTelemetryTaskProvider = historicalPolicyViolationTelemetryTaskProvider;
+    this.historicalPolicyViolationTelemetryTask = historicalPolicyViolationTelemetryTask;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.jiraConfigurationDAO = jiraConfigurationDAO;
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
     this.configurationService = configurationService;
-    this.hdsClientsProvider = hdsClientsProvider;
-    this.asyncEventBusProvider = asyncEventBusProvider;
+    this.hdsClients = hdsClients;
+    this.asyncEventBus = asyncEventBus;
     this.taskScheduler = taskScheduler;
-    this.defaultBranchMonitorProvider = defaultBranchMonitorProvider;
-    this.pullRequestMonitorProvider = pullRequestMonitorProvider;
-    this.releaseGraphCacheProviderProvider = releaseGraphCacheProviderProvider;
-    this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
-    this.hostedRepositoryMonitorSchedulerProvider = hostedRepositoryMonitorSchedulerProvider;
-    this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
-    this.waivedComponentUpgradeSchedulerProvider = waivedComponentUpgradeSchedulerProvider;
+    this.defaultBranchMonitor = defaultBranchMonitor;
+    this.pullRequestMonitor = pullRequestMonitor;
+    this.releaseGraphCacheProvider = releaseGraphCacheProvider;
+    this.policyMonitorScheduler = policyMonitorScheduler;
+    this.hostedRepositoryMonitorScheduler = hostedRepositoryMonitorScheduler;
+    this.automaticQuarantineReleaseScheduler = automaticQuarantineReleaseScheduler;
+    this.waivedComponentUpgradeScheduler = waivedComponentUpgradeScheduler;
     this.tenantUtil = tenantUtil;
     initializeValues();
   }
@@ -297,19 +299,19 @@ public class Configuration
         prop -> prop.equals(SystemConfigurationProperty.HDS_URL) ||
             prop.equals(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
             prop.equals(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS),
-        prop -> hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged));
+        prop -> hdsClients.orderedStream().forEach(HdsClient::serverConfigurationChanged));
   }
 
   private void eventBusMaxThreadPoolSizeSetMaxPoolSize(Set<String> propertyNamesCopy) {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE),
-        prop -> asyncEventBusProvider.get().setMaxPoolSize(getEventBusMaxThreadPoolSize()));
+        prop -> asyncEventBus.setMaxPoolSize(getEventBusMaxThreadPoolSize()));
   }
 
   private void releaseGraphCacheSizeInitializeCache(Set<String> propertyNamesCopy) {
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE),
-        prop -> releaseGraphCacheProviderProvider.get().initializeCache());
+        prop -> releaseGraphCacheProvider.initializeCache());
   }
 
   private void firewallQuarantineHdsPoolSizeRestartWarning(Set<String> propertyNamesCopy) {
@@ -328,8 +330,8 @@ public class Configuration
         prop -> prop.equals(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
             !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
         prop -> {
-          policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
-          hostedRepositoryMonitorSchedulerProvider.get().reschedule();
+          policyMonitorScheduler.schedulePolicyMonitoring();
+          hostedRepositoryMonitorScheduler.reschedule();
         });
   }
 
@@ -340,7 +342,7 @@ public class Configuration
     filterAndAction(propertyNamesCopy,
         prop -> prop.equals(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR) &&
             !Objects.equals(currentHistoricalPolicyViolationTelemetryHour, getHistoricalPolicyViolationTelemetryHour()),
-        prop -> historicalPolicyViolationTelemetryTaskProvider.get().scheduleHistoricalPolicyViolationTelemetryTask());
+        prop -> historicalPolicyViolationTelemetryTask.scheduleHistoricalPolicyViolationTelemetryTask());
   }
 
   private void automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(
@@ -351,7 +353,7 @@ public class Configuration
         prop -> prop.equals(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
             && !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
                 getAutomaticQuarantineReleaseTimeIntervalInMinutes()),
-        prop -> automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease());
+        prop -> automaticQuarantineReleaseScheduler.scheduleAutomaticQuarantineRelease());
   }
 
   private void waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(
@@ -363,7 +365,7 @@ public class Configuration
         prop -> prop.equals(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
             isWaivedComponentUpgradeMonitoringEnabled && !Objects.equals(currentWaivedComponentUpgradeInspectionHour,
                 getWaivedComponentUpgradeInspectionHour()),
-        prop -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection());
+        prop -> waivedComponentUpgradeScheduler.scheduleWaivedComponentUpgradeInspection());
   }
 
   private void waivedComponentUpgradeMonitoringEnabledScheduleWaivedComponentUpgradeInspectionOrDeregister(
@@ -375,8 +377,8 @@ public class Configuration
             !Objects.equals(isWaivedComponentUpgradeMonitoringEnabled, getWaivedComponentUpgradeMonitoringEnabled()),
         prop -> {
           Runnable action = getWaivedComponentUpgradeMonitoringEnabled()
-              ? () -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection()
-              : () -> waivedComponentUpgradeSchedulerProvider.get().deregister();
+              ? () -> waivedComponentUpgradeScheduler.scheduleWaivedComponentUpgradeInspection()
+              : () -> waivedComponentUpgradeScheduler.deregister();
           action.run();
         });
   }
@@ -395,7 +397,7 @@ public class Configuration
   @Override
   public void proxyServerConfigurationChanged() {
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
-    hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged);
+    hdsClients.orderedStream().forEach(HdsClient::serverConfigurationChanged);
   }
 
   @Override
@@ -432,7 +434,6 @@ public class Configuration
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
-    DefaultBranchMonitor defaultBranchMonitor = defaultBranchMonitorProvider.get();
     if (!taskScheduler.isTaskScheduled(defaultBranchMonitor) ||
         !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
             sourceControlConfiguration.getDefaultBranchMonitoringStartTime())
@@ -451,7 +452,6 @@ public class Configuration
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
-    PullRequestMonitor pullRequestMonitor = pullRequestMonitorProvider.get();
     if (!taskScheduler.isTaskScheduled(pullRequestMonitor) ||
         currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() != sourceControlConfiguration
             .getPullRequestMonitoringIntervalSeconds())

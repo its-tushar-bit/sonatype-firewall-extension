@@ -4,14 +4,15 @@ sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
 # Shared directory for management data of a IQ cluster
 clusterDirectory: ${CLUSTER_DIRECTORY:-./sonatype-work/clm-cluster}
 
-# HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
-# HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable
-# Refer to https://github.com/dropwizard/dropwizard-web#supports for detailed configuration guide
+# HTTP Strict Transport Security (HSTS)
+# HSTS headers are enabled by default on HTTPS responses.
+# Uncomment the web: section below to customize or disable HSTS.
 #web:
 #  hsts:
 #    enabled: ${HSTS_ENABLED:-true}
 #    maxAge: 365 days
 #    includeSubDomains: true
+#    preload: false
 
 # HTTP-specific options.
 server:

@@ -5,23 +5,22 @@
  */
 package com.sonatype.insight.brain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator.MailConfig;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantMailConfigurationServiceTest
@@ -56,7 +55,7 @@ public class MultiTenantMailConfigurationServiceTest
     when(insightConfig.getMailConfig()).thenReturn(mailConfig);
     when(passwordHandler.encryptPassword(any(char[].class))).thenReturn("zzzz".toCharArray());
 
-    underTest.start();
+    underTest.init();
 
     verify(insightConfig).getMailConfig();
     verify(passwordHandler).encryptPassword("somepass".toCharArray());
@@ -69,7 +68,7 @@ public class MultiTenantMailConfigurationServiceTest
 
   @Test
   public void testStart_ThereIsNotMailConfig() throws Exception {
-    underTest.start();
+    underTest.init();
     verify(mailConfigurationDAO, never()).set(any());
   }
 }

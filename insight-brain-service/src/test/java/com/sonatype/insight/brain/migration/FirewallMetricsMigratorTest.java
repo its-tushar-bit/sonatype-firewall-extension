@@ -5,15 +5,21 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.function.Consumer;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
+import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
+import static com.sonatype.insight.brain.utils.DateConverter.toDate;
+import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -47,28 +53,19 @@ import com.sonatype.insight.jaxrs.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
-import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
-import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
-import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
-import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
-import static com.sonatype.insight.brain.utils.DateConverter.toDate;
-import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 
 public class FirewallMetricsMigratorTest
     extends AbstractComponentTest
@@ -96,12 +93,6 @@ public class FirewallMetricsMigratorTest
   private Repository repository1;
 
   private Repository repository2;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicenseDAO.class).toInstance(productLicenseDaoMock);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

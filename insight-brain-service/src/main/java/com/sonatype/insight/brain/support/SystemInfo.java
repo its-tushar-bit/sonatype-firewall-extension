@@ -5,6 +5,33 @@
  */
 package com.sonatype.insight.brain.support;
 
+import com.codahale.metrics.jvm.ThreadDump;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.GsonBuilder;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicensingModel;
+import com.sonatype.insight.brain.security.SamlDeploymentManager;
+import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.Feature;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -33,35 +60,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
-import com.sonatype.insight.brain.model.configuration.MailConfiguration;
-import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
-import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.ProductLicensingModel;
-import com.sonatype.insight.brain.security.SamlDeploymentManager;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.Feature;
-
-import com.codahale.metrics.jvm.ThreadDump;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -229,13 +227,13 @@ public class SystemInfo
   Entry<String, SortedMap<String, Object>> getInstallInfo() {
     final SortedMap<String, Object> entries = new TreeMap<>();
 
-    final Class<?> brainClass = InsightBrainService.class;
+    final Class<?> brainClass = ApplicationLifecycle.class;
     entries.put("application-jar", brainClass.getResource('/' + brainClass.getName().replace('.', '/') + ".class"));
 
-    entries.put("configfile", getAbsoluteLogPath(InsightBrainService.getConfigFile()));
+    entries.put("configfile", getAbsoluteLogPath(ApplicationLifecycle.getConfigFile()));
 
-    entries.put("instanceId", InsightBrainService.getInstanceId());
-    entries.put("hostname-ip", InsightBrainService.getLocalHostString());
+    entries.put("instanceId", ApplicationLifecycle.getServerInstanceId());
+    entries.put("hostname-ip", ApplicationLifecycle.getLocalHostString());
 
     final File sonatypeWork = insightConfig.getSonatypeWork();
     entries.put("sonatypeWork", sonatypeWork.getAbsolutePath());

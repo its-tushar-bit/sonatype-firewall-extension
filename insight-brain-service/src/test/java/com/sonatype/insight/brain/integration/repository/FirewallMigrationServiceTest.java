@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO.getErrMsgMissingRepo;
+import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
+import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
+import static com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus.CONFIRMED;
+import static java.util.stream.Collectors.joining;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
@@ -38,22 +41,15 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO.getErrMsgMissingRepo;
-import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
-import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
-import static com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus.CONFIRMED;
-import static java.util.stream.Collectors.joining;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.verify;
 
 public class FirewallMigrationServiceTest
     extends AbstractComponentTest
@@ -98,15 +94,27 @@ public class FirewallMigrationServiceTest
 
   private Policy policy;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Test
   public void testFirewallMigrationService_AddsExecutorToShutdownHandler() {
-    verify(mockShutdownHandler).add(migrationService.getExecutor());
+    FirewallMigrationService localService = new FirewallMigrationService(
+        lookup(com.sonatype.insight.brain.version.VersionService.class),
+        testProductLicense,
+        lookup(com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO.class),
+        lookup(RepositoryDAO.class),
+        lookup(RepositoryMigrationDAO.class),
+        lookup(RepositoryComponentDAO.class),
+        lookup(RepositoryPolicyViolationDAO.class),
+        lookup(LicenseOverrideDAO.class),
+        lookup(SecurityVulnerabilityOverrideDAO.class),
+        lookup(PolicyWaiverDAO.class),
+        mockShutdownHandler);
+
+    try {
+      verify(mockShutdownHandler).add(localService.getExecutor());
+    }
+    finally {
+      localService.getExecutor().shutdownNow();
+    }
   }
 
   @Before

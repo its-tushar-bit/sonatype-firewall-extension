@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
-import java.util.Date;
-import java.util.List;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionRequestDTO;
 import com.sonatype.insight.brain.model.Application;
@@ -23,17 +24,13 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
+import java.util.List;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 public class ApiAutoPolicyWaiverExclusionServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -43,12 +40,6 @@ public class ApiAutoPolicyWaiverExclusionServiceAuthzTest
 
   @Inject
   private ApiAutoPolicyWaiverExclusionService apiAutoPolicyWaiverExclusionService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportService.class).toInstance(reportService);
-    super.configure(binder);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testAddAutoPolicyWaiverExclusion_Unauthenticated() {

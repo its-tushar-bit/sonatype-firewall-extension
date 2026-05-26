@@ -48,6 +48,8 @@ public class JwtHttpAuthorizationFilterTest
   @Before
   public void before() {
     underTest = new JwtHttpAuthorizationFilter(multiTenantJwkProvider);
+    when(request.getRequestURI()).thenReturn("/api/admin/test");
+    when(request.getServletPath()).thenReturn("/api/admin/test");
   }
 
   @Test

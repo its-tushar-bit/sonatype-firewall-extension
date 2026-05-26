@@ -9,8 +9,8 @@ import java.io.PrintWriter;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -18,13 +18,13 @@ import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import io.dropwizard.servlets.tasks.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +40,11 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class HostedRepositoryMonitorScheduler
-    extends Task
+    extends AdminTask
     implements TenantManaged, ConfigurationListener
 {
+  public static final String PATH = "triggerHostedRepositoryMonitor";
+
   private static final Logger log = LoggerFactory.getLogger(HostedRepositoryMonitorScheduler.class);
 
   private static final int TIME_WINDOW_MINUTES = 120;
@@ -64,7 +66,7 @@ public class HostedRepositoryMonitorScheduler
       final HostedRepositoryMonitoringTask hostedRepositoryMonitoringTask,
       final Provider<HostedRepositoryMonitor> hostedRepositoryMonitorProvider)
   {
-    super("triggerHostedRepositoryMonitor");
+    super(PATH);
     this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.hostedRepositoryMonitoringTask = hostedRepositoryMonitoringTask;
@@ -107,14 +109,6 @@ public class HostedRepositoryMonitorScheduler
     }
   }
 
-  // To trigger manually:
-  // curl -X POST -u <user>:<password> http://localhost:8071/tasks/triggerHostedRepositoryMonitor
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
-    log.info("Manual request to run hosted repository CM");
-    hostedRepositoryMonitorProvider.get().run();
-  }
-
   private synchronized void startMonitoring() {
     if (disableForTesting) {
       return;
@@ -131,5 +125,10 @@ public class HostedRepositoryMonitorScheduler
     if (!disableForTesting && taskScheduler.unscheduleTask(hostedRepositoryMonitoringTask)) {
       log.info("Hosted repository CM stopped");
     }
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    hostedRepositoryMonitorProvider.get().run();
   }
 }

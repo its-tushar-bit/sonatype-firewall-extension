@@ -6,13 +6,14 @@
 package com.sonatype.insight.brain.product.license;
 
 import jakarta.inject.Named;
-
+import jakarta.inject.Singleton;
 import org.sonatype.licensing.feature.AbstractFeature;
 
 /**
  * @since 1.18.0
  */
 @Named(FirewallFeature.ID)
+@Singleton
 public class FirewallFeature
     extends AbstractFeature
 {

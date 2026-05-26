@@ -10,10 +10,13 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.version.VersionService;
 
+import org.springframework.context.annotation.Primary;
+
 /**
  * Servlet filter that adds the "Server" header to all responses.
  */
 @Named
+@Primary
 public class MultiTenantServerHeaderFilter
     extends ServerHeaderFilter
 {

@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_ID_PATTERN;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -15,17 +17,11 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
-
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.jetty.ConnectorFactory;
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.jetty.HttpsConnectorFactory;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_ID_PATTERN;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TelemetryIdTest
     extends AbstractDatabaseTest
@@ -193,25 +189,18 @@ public class TelemetryIdTest
   }
 
   private void setApplicationHttpConnectors(InsightConfig insightConfig, int... ports) {
-    DefaultServerFactory serverFactory = (DefaultServerFactory) insightConfig.getServerFactory();
-    List<ConnectorFactory> applicationConnectors = new ArrayList<>();
-    for (int port : ports) {
-      HttpConnectorFactory httpConnectorFactory = new HttpConnectorFactory();
-      httpConnectorFactory.setPort(port);
-      applicationConnectors.add(httpConnectorFactory);
-    }
-    serverFactory.setApplicationConnectors(applicationConnectors);
+    // Build a comma-separated string of ports for telemetry ID generation
+    String portsStr = String.join(",",
+        Arrays.stream(ports).mapToObj(String::valueOf).collect(Collectors.toList()));
+    insightConfig.setApplicationConnectorPorts(portsStr);
   }
 
   private void setApplicationHttpsConnectors(InsightConfig insightConfig, int... ports) {
-    DefaultServerFactory serverFactory = (DefaultServerFactory) insightConfig.getServerFactory();
-    List<ConnectorFactory> applicationConnectors = new ArrayList<>();
-    for (int port : ports) {
-      HttpsConnectorFactory httpsConnectorFactory = new HttpsConnectorFactory();
-      httpsConnectorFactory.setPort(port);
-      applicationConnectors.add(httpsConnectorFactory);
-    }
-    serverFactory.setApplicationConnectors(applicationConnectors);
+    // Build a comma-separated string of ports for telemetry ID generation
+    // HTTPS ports are treated the same as HTTP ports for telemetry purposes
+    String portsStr = String.join(",",
+        Arrays.stream(ports).mapToObj(String::valueOf).collect(Collectors.toList()));
+    insightConfig.setApplicationConnectorPorts(portsStr);
   }
 
   @Test
@@ -229,9 +218,19 @@ public class TelemetryIdTest
     assertThat(actualId).matches(TELEMETRY_ID_PATTERN).startsWith(generatedIdProperty.getValue());
   }
 
+  @Test
+  public void testGetId_DoesNotFlushClusterIdentificationTelemetryImmediately() {
+    var insightConfig = new InsightConfig();
+    setFirstApplicationConnectorPort(insightConfig, 1234);
+    var telemetryId = new TelemetryId(insightConfig, dao, mockClusterIdentificationService);
+
+    telemetryId.getId();
+
+    verify(mockClusterIdentificationService, never()).sendTelemetry();
+  }
+
   private void setFirstApplicationConnectorPort(InsightConfig insightConfig, int port) {
-    ((HttpConnectorFactory) ((DefaultServerFactory) insightConfig.getServerFactory()).getApplicationConnectors().get(0))
-        .setPort(port);
+    insightConfig.setApplicationConnectorPorts(String.valueOf(port));
   }
 
   @Test

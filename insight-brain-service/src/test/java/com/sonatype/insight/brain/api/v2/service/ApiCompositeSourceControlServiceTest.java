@@ -5,7 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
@@ -18,16 +20,11 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 public class ApiCompositeSourceControlServiceTest
     extends AbstractComponentTest
@@ -66,12 +63,6 @@ public class ApiCompositeSourceControlServiceTest
   protected SourceControl rootOrgSourcecontrol;
 
   protected static final String ENC = "CMMDwoV";
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws Exception {

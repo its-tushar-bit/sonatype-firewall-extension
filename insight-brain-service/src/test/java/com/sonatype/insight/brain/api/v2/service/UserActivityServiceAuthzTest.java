@@ -5,32 +5,27 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Collections;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
-import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-
-import com.google.inject.Binder;
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
+import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class UserActivityServiceAuthzTest
@@ -47,14 +42,6 @@ public class UserActivityServiceAuthzTest
 
   @Mock
   private ShutdownHandler shutdownHandler;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(AuditLogFilesProvider.class).toInstance(auditLogFilesProvider);
-    binder.bind(ClusterLockManager.class).toInstance(clusterLockManager);
-    binder.bind(ShutdownHandler.class).toInstance(shutdownHandler);
-    super.configure(binder);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetUserActivitySummary_Unauthenticated() {

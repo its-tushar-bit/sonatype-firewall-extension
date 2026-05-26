@@ -5,19 +5,15 @@
  */
 package com.sonatype.insight.brain.security;
 
+import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getDefaultEncryptionKeyStoreKey;
+
+import com.sonatype.insight.brain.service.InsightConfig;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
-import com.sonatype.insight.brain.service.InsightConfig;
-
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
-
-import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getDefaultEncryptionKeyStoreKey;
-
 @Named
 @Singleton
-@InvisibleForScanner
 public class DefaultEncryptionKeyStore
     implements EncryptionKeyStore
 {

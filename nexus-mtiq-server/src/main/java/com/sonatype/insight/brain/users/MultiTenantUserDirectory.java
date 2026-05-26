@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.users;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -16,9 +12,14 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.UserDirectory;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
+@Primary
 public class MultiTenantUserDirectory
     extends UserDirectory
 {

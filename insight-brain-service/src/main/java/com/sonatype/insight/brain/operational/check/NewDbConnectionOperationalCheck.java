@@ -5,26 +5,24 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import static java.lang.String.format;
 
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.lang.String.format;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * Verifies that the process can open new connections to the databases and that those connections are writable.
@@ -74,7 +72,7 @@ public class NewDbConnectionOperationalCheck
   }
 
   @Override
-  protected void checkConnection(ResultBuilder resultBuilder, DataStore dataStore) {
+  protected void checkConnection(Health.Builder healthBuilder, DataStore dataStore) {
     if (operationalDataStore.isDatabaseInMemory()) {
       // For the in memory db (tests only), this check is not interesting.
       return;
@@ -92,25 +90,25 @@ public class NewDbConnectionOperationalCheck
       long duration = System.currentTimeMillis() - start;
 
       if (!isValidConnection) {
-        resultBuilder.withDetail(messageKey,
-            "Cannot open new connections to the database. The connection failed after " + duration + " ms.");
-        resultBuilder.unhealthy();
+        healthBuilder.withDetail(messageKey,
+            "Cannot open new connections to the database. The connection failed after " + duration + " ms.")
+            .down();
         return;
       }
 
       if (isConnectionReadOnly(tempConnection, dataStore)) {
-        resultBuilder.withDetail(messageKey,
-            "New connections to the database are read-only. Cannot perform write operations.");
-        resultBuilder.unhealthy();
+        healthBuilder.withDetail(messageKey,
+            "New connections to the database are read-only. Cannot perform write operations.")
+            .down();
         return;
       }
 
-      resultBuilder.withDetail(messageKey, "roundTripTimeInMs=" + duration);
+      healthBuilder.withDetail(messageKey, "roundTripTimeInMs=" + duration);
     }
     catch (Exception e) {
       log.error(e.getMessage(), e);
-      resultBuilder.withDetail(messageKey, "Cannot open new connections to the database: " + e.getMessage());
-      resultBuilder.unhealthy(e);
+      healthBuilder.withDetail(messageKey, "Cannot open new connections to the database: " + e.getMessage())
+          .down(e);
     }
   }
 

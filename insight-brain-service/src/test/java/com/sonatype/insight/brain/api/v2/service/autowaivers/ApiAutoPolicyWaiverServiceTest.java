@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service.autowaivers;
 
-import java.util.Date;
-import java.util.List;
-import jakarta.inject.Inject;
-
-import com.google.inject.Binder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -34,16 +33,14 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
+import jakarta.inject.Inject;
+import java.util.Date;
+import java.util.List;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -62,12 +59,6 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Inject
   private ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testAddAutoPolicyWaiver_Application() {

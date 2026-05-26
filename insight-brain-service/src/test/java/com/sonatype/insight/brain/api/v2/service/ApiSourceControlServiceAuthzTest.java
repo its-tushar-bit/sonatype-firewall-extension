@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
@@ -19,19 +23,12 @@ import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 
 /**
  * @since 1.66
@@ -62,12 +59,6 @@ public class ApiSourceControlServiceAuthzTest
 
   @Mock
   private GitClientFactory mockGitClientFactory;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    super.configure(binder);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {

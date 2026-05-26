@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain;
 
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
 import java.net.HttpCookie;
-
-import com.sonatype.insight.brain.security.SecurityModule;
 
 public class HttpResponse
     extends com.sonatype.insight.test.jaxrs.testing.HttpResponse
@@ -17,6 +16,6 @@ public class HttpResponse
   }
 
   public HttpCookie getSessionCookie() {
-    return getCookie(SecurityModule.SESSION_COOKIE_NAME);
+    return getCookie(SecurityConfiguration.SESSION_COOKIE_NAME);
   }
 }

@@ -95,7 +95,7 @@ public class TestProductLicenseManager
   }
 
   public Integer getApplicationLimit() {
-    return mockProductLicenseManager.applicationLimit;
+    return mockProductLicenseManager.getApplicationLimit();
   }
 
   public void setMaxUsers(Integer maxUsers) {
@@ -119,7 +119,7 @@ public class TestProductLicenseManager
   }
 
   public Set<LicensedFeature> getFeatures() {
-    return mockProductLicenseManager.features;
+    return mockProductLicenseManager.getFeatures();
   }
 
   public void setStageTypes(StageType... stageTypes) {
@@ -128,11 +128,11 @@ public class TestProductLicenseManager
   }
 
   public Set<StageType> getStageTypes() {
-    return mockProductLicenseManager.stageTypes;
+    return mockProductLicenseManager.getStageTypes();
   }
 
   public Date getExpirationDate() {
-    return mockProductLicenseManager.expirationDate;
+    return mockProductLicenseManager.getExpirationDate();
   }
 
   public void setExpirationDate(Date date) {
@@ -161,10 +161,7 @@ public class TestProductLicenseManager
   }
 
   public Set<String> getProducts() {
-    if (mockProductLicenseManager.products == null) {
-      return null;
-    }
-    return new HashSet<>(Arrays.asList(mockProductLicenseManager.products));
+    return mockProductLicenseManager.getProducts();
   }
 
   public void setProducts(String... products) {
@@ -182,7 +179,7 @@ public class TestProductLicenseManager
     mockProductLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_VERSION, Integer.toString(version));
   }
 
-  private static class MockProductLicenseManager
+  static class MockProductLicenseManager
       implements ProductLicenseManager
   {
     private volatile boolean valid = true;
@@ -378,6 +375,29 @@ public class TestProductLicenseManager
       this.forceUninstallFailure = forceUninstallFailure;
     }
 
+    public Integer getApplicationLimit() {
+      return applicationLimit;
+    }
+
+    public Set<LicensedFeature> getFeatures() {
+      return features;
+    }
+
+    public Set<StageType> getStageTypes() {
+      return stageTypes;
+    }
+
+    public Date getExpirationDate() {
+      return expirationDate;
+    }
+
+    public Set<String> getProducts() {
+      if (products == null) {
+        return null;
+      }
+      return new HashSet<>(Arrays.asList(products));
+    }
+
     public void setProperty(String key, Object value) {
       if (valid) {
         if (value == null) {
@@ -390,4 +410,12 @@ public class TestProductLicenseManager
       }
     }
   }
+}
+
+/**
+ * Legacy binary name retained for downstream consumers of the insight-brain-service test-jar.
+ */
+class MockProductLicenseManager
+    extends TestProductLicenseManager.MockProductLicenseManager
+{
 }

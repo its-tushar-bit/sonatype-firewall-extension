@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-
+import com.sonatype.insight.brain.service.AssetPaths;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.license.model.LicensedFeature;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.WebApplicationException;
@@ -17,19 +17,19 @@ import jakarta.ws.rs.container.DynamicFeature;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.FeatureContext;
 import jakarta.ws.rs.core.Response;
-
 import com.sonatype.insight.brain.product.license.entitlement.EntitlementRequiredException;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.license.model.LicensedFeature;
-
+import java.io.IOException;
+import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ClassUtils;
 
 @Named
 public class LicenseAwareContainerDynamicFeature
     implements DynamicFeature
 {
+  private static final Logger log = LoggerFactory.getLogger(LicenseAwareContainerDynamicFeature.class);
+
   private final ProductLicense productLicense;
 
   private final BaseUrl baseUrl;
@@ -79,9 +79,9 @@ public class LicenseAwareContainerDynamicFeature
 
         // we want to redirect if going to an html page when unlicensed, unless of course they are going to the main
         // html page
-        if (path.endsWith("index.html") && !path.equals(InsightBrainService.BRAIN_ASSET_PATH + "index.html")) {
+        if (path.endsWith("index.html") && !path.equals(AssetPaths.BRAIN_ASSET_PATH + "index.html")) {
           throw new WebApplicationException(Response.seeOther(
-              baseUrl.redirect().path(InsightBrainService.BRAIN_ASSET_PATH).path("index.html").build()).build());
+              baseUrl.redirect().path(AssetPaths.BRAIN_ASSET_PATH).path("index.html").build()).build());
         }
         else {
           throw e;
@@ -94,25 +94,37 @@ public class LicenseAwareContainerDynamicFeature
   public void configure(final ResourceInfo resourceInfo, final FeatureContext featureContext) {
     // If the method is unlicensed,
     // or if the resource (class) is unlicensed AND the method is NOT looking for enforcement points,
-    // then DO NOT register a filter
-    // Note that ResourceInfo.getResourceClass() and ResourceInfo.getResourceMethod() may return proxied classes/methods
-    // without any annotations unless they're inherited, so make sure any annotations we're checking for are @Inherited
+    // then DO NOT register a filter.
+    // ResourceInfo may expose Spring-generated proxy types that do not carry method-level annotations, so resolve
+    // annotations against the user class and corresponding user-declared method where possible.
     Class<?> resourceClass = resourceInfo.getResourceClass();
+    Class<?> userClass = ClassUtils.getUserClass(resourceClass);
     Method resourceMethod = resourceInfo.getResourceMethod();
-    if (resourceMethod.isAnnotationPresent(UnlicensedPath.class) ||
-        (resourceClass.isAnnotationPresent(UnlicensedPath.class) &&
-            !resourceMethod.isAnnotationPresent(ProductLicenseEnforcementPoint.class)))
+    Method userMethod = resourceMethod;
+    if (resourceMethod != null && userClass != resourceClass) {
+      try {
+        userMethod = userClass.getMethod(resourceMethod.getName(), resourceMethod.getParameterTypes());
+      }
+      catch (NoSuchMethodException e) {
+        log.warn("Could not resolve user method for {}.{}, falling back to proxy method",
+            userClass.getSimpleName(), resourceMethod.getName());
+      }
+    }
+
+    if (userMethod.isAnnotationPresent(UnlicensedPath.class) ||
+        (userClass.isAnnotationPresent(UnlicensedPath.class) &&
+            !userMethod.isAnnotationPresent(ProductLicenseEnforcementPoint.class)))
     {
       return;
     }
 
-    ProductLicenseEnforcementPoint ep = resourceMethod.getAnnotation(ProductLicenseEnforcementPoint.class);
+    ProductLicenseEnforcementPoint ep = userMethod.getAnnotation(ProductLicenseEnforcementPoint.class);
     if (ep == null) {
       // method level enforcement annos will override whatever is in the resource, so don't check unless necessary
-      ep = resourceClass.getAnnotation(ProductLicenseEnforcementPoint.class);
+      ep = userClass.getAnnotation(ProductLicenseEnforcementPoint.class);
     }
 
-    RequiresEntitlement entitlementAnnotation = resourceMethod.getAnnotation(RequiresEntitlement.class);
+    RequiresEntitlement entitlementAnnotation = userMethod.getAnnotation(RequiresEntitlement.class);
     LicensedFeature entitlement = entitlementAnnotation != null ? entitlementAnnotation.value() : null;
 
     featureContext.register(new Filter(ep != null ? ep.value() : null, entitlement));

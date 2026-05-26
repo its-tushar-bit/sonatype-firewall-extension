@@ -5,27 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.quartz.JobExecutionContext;
-
 import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask.TASK_STARTUP_DELAY_MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +15,25 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.time.Duration;
+import java.util.Date;
+import java.util.Map;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.quartz.JobExecutionContext;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyWaiverTelemetryBackfillTaskTest
@@ -109,41 +107,41 @@ public class PolicyWaiverTelemetryBackfillTaskTest
   }
 
   @Test
-  public void testExecute() {
-    Map<String, List<String>> parameters = Map.of();
-    PrintWriter printWriter = new PrintWriter(System.out);
-
+  public void testExecute_AdminTask() throws Exception {
     when(tenantUtil.isSingleTenant()).thenReturn(true);
     when(policyWaiverTelemetryBackfillService.isTelemetryCollectionComplete()).thenReturn(false);
 
-    task.execute(parameters, printWriter);
+    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(taskScheduler).scheduleOneTimeTask(any());
   }
 
   @Test
-  public void testExecute_telemetryCollectionIsComplete() {
-    Map<String, List<String>> parameters = Map.of();
-    PrintWriter printWriter = new PrintWriter(System.out);
-
+  public void testExecute_AdminTask_telemetryCollectionIsComplete() throws Exception {
     when(tenantUtil.isSingleTenant()).thenReturn(true);
     when(policyWaiverTelemetryBackfillService.isTelemetryCollectionComplete()).thenReturn(true);
 
-    task.execute(parameters, printWriter);
+    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(taskScheduler, never()).scheduleOneTimeTask(any());
   }
 
   @Test
-  public void testExecute_telemetryCollectionIsComplete_multiTenant() {
-    Map<String, List<String>> parameters = Map.of();
-    PrintWriter printWriter = new PrintWriter(System.out);
-
+  public void testExecute_AdminTask_multiTenant() throws Exception {
     when(tenantUtil.isSingleTenant()).thenReturn(false);
 
-    task.execute(parameters, printWriter);
+    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(taskScheduler).scheduleOneTimeTask(any());
+  }
+
+  @Test
+  public void testExecute_QuartzJob() throws Exception {
+    when(tenantUtil.isSingleTenant()).thenReturn(true);
+
+    task.execute(jobExecutionContext);
+
+    verify(policyWaiverTelemetryBackfillService).collectAndSendPolicyWaiverBackfillTelemetry();
   }
 
   @Test

@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collections;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -15,18 +18,12 @@ import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexCreationScheduler;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 public class PopulateSearchIndexTaskTest
     extends AbstractComponentTest
@@ -41,30 +38,17 @@ public class PopulateSearchIndexTaskTest
   private Configuration mockConfiguration;
 
   @Inject
-  private PopulateSearchIndexTask populateSearchIndexTask;
-
-  @Inject
   private TestProductLicense testProductLicense;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(IndexCreationScheduler.class).toInstance(mockIndexCreationScheduler);
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    super.configure(binder);
-  }
-
-  @Test
-  public void testGetName() {
-    assertThat(populateSearchIndexTask.getName()).isEqualTo("populateSearchIndex");
-  }
+  @Inject
+  private PopulateSearchIndexTask task;
 
   @Test
   public void testExecute_AdvancedSearchConfigurationDisabled() {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
 
     assertThatExceptionOfType(NotAuthorizedException.class)
-        .isThrownBy(() -> populateSearchIndexTask.execute(Collections.emptyMap(), null))
+        .isThrownBy(() -> task.execute())
         .withMessage("advanced-search-configuration feature is disabled.");
 
     verifyNoInteractions(mockTaskScheduler);
@@ -75,7 +59,7 @@ public class PopulateSearchIndexTaskTest
     testProductLicense.clear();
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> populateSearchIndexTask.execute(Collections.emptyMap(), null));
+        () -> task.execute());
 
     verifyNoInteractions(mockTaskScheduler);
   }
@@ -85,7 +69,7 @@ public class PopulateSearchIndexTaskTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     when(mockConfiguration.getMaxConcurrentTenantIndexCreation()).thenReturn(5);
 
-    populateSearchIndexTask.execute(Collections.emptyMap(), null);
+    task.execute();
 
     Map<String, String> expectedJobDataMap = Map.of(
         QuartzConcurrencyListener.MAX_CONCURRENT, "5");
@@ -97,7 +81,7 @@ public class PopulateSearchIndexTaskTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     when(mockConfiguration.getMaxConcurrentTenantIndexCreation()).thenReturn(10);
 
-    populateSearchIndexTask.execute(Collections.emptyMap(), null);
+    task.execute();
 
     Map<String, String> expectedJobDataMap = Map.of(
         QuartzConcurrencyListener.MAX_CONCURRENT, "10");
@@ -109,7 +93,7 @@ public class PopulateSearchIndexTaskTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     when(mockConfiguration.getMaxConcurrentTenantIndexCreation()).thenReturn(0);
 
-    populateSearchIndexTask.execute(Collections.emptyMap(), null);
+    task.execute();
 
     Map<String, String> expectedJobDataMap = Map.of(
         QuartzConcurrencyListener.MAX_CONCURRENT, "0");
@@ -121,12 +105,8 @@ public class PopulateSearchIndexTaskTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     when(mockConfiguration.getMaxConcurrentTenantIndexCreation()).thenReturn(5);
 
-    // Pass some input parameters that should be ignored
-    Map<String, java.util.List<String>> inputParams = Map.of(
-        "param1", java.util.List.of("value1"),
-        "param2", java.util.List.of("value2"));
-
-    populateSearchIndexTask.execute(inputParams, null);
+    task.execute(Map.of("param1", java.util.List.of("value1"), "param2", java.util.List.of("value2")),
+        new PrintWriter(OutputStream.nullOutputStream()));
 
     Map<String, String> expectedJobDataMap = Map.of(
         QuartzConcurrencyListener.MAX_CONCURRENT, "5");

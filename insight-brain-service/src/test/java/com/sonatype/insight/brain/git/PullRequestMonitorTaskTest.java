@@ -5,44 +5,57 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
+
 public class PullRequestMonitorTaskTest
     extends AbstractComponentTest
 {
-  @Mock
-  private TaskScheduler taskSchedulerMock;
-
   @Inject
   private PullRequestMonitor underTest;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
+  @Mock
+  private IqForScmLicenseChecker mockLicenseChecker;
+
+  @Mock
+  private ApiConfigFeaturesService mockApiConfigFeaturesService;
+
+  @Before
+  public void setupBeanOverrides() {
+    applyBeanFieldOverride(PullRequestMonitor.class, "licenseChecker", mockLicenseChecker);
+    applyBeanFieldOverride(PullRequestMonitor.class, "apiConfigFeaturesService", mockApiConfigFeaturesService);
   }
 
   @Test
-  public void testExecute_dropWizardTaskExecuted_shouldTriggerNow() throws Exception {
-    final StringWriter writer = new StringWriter();
-    underTest.execute(null, new PrintWriter(writer));
-    verify(taskSchedulerMock).triggerTaskNow(underTest, null);
-    assertThat(writer.toString()).isEqualTo("Triggered monitoring for all PRs");
+  public void testExecute_shouldUpdatePullRequestDetails() {
+    when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+
+    PullRequestMonitor underTestSpy = spy(underTest);
+    doAnswer(invocation -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(underTestSpy).updatePullRequestDetails();
+
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    try (MDCUsernameScope ignored = MDCUsernameScope.forUser("username")) {
+      underTestSpy.execute(mockContext);
+    }
+
+    verify(underTestSpy).updatePullRequestDetails();
   }
 }

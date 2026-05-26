@@ -5,12 +5,18 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.api.PublicApiPaths.SOURCE_CONTROL_PATH_V2;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -29,30 +35,17 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.api.PublicApiPaths.SOURCE_CONTROL_PATH_V2;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ApiSourceControlResourceAuditTest
     extends AbstractAuditTest
@@ -68,12 +61,6 @@ public class ApiSourceControlResourceAuditTest
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(SourceControlUtils.class).toInstance(mock(SourceControlUtils.class));
-    super.configure(binder);
-  }
 
   @Before
   public void setup() {
@@ -224,10 +211,6 @@ public class ApiSourceControlResourceAuditTest
     tempEntity.newUser("othermyuser");
     tempEntity.newUser("anothermyuser");
 
-    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
-    when(getCLMServer().getInstance(SourceControlUtils.class)
-        .getGitRepositoryInfoForApplication(app.getId())).thenReturn(gitRepositoryInfo);
-
     HttpResponse response = roleAssignmentRestRequest()
         .parameter(app.getPublicId())
         .body(new SCMUserMappingsDTO(null, Lists.newArrayList(
@@ -248,15 +231,14 @@ public class ApiSourceControlResourceAuditTest
     assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, "unauthorized");
   }
 
-  protected HttpRequest roleAssignmentRestRequest() {
-    return super.restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2)
-        .path(ApiSourceControlResource.AUTOMATIC_ROLE_ASSIGNMENT_PATH);
+  @Override
+  protected HttpRequest restRequest() {
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""));
   }
 
-  private GitRepositoryInfo getGitRepositoryInfo() {
-    String repositoryUrl = String.format("%s/organization/project", gitService.baseUrl());
-    return new GitRepositoryInfo(repositoryUrl, null, "user", "pass",
-        SourceControlProvider.GITHUB, "main", true, true, true, true, true, true, false, null);
+  protected HttpRequest roleAssignmentRestRequest() {
+    return restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2)
+        .path(ApiSourceControlResource.AUTOMATIC_ROLE_ASSIGNMENT_PATH);
   }
 
   protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<String> members) {

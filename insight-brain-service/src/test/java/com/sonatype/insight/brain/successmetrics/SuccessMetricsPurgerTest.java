@@ -5,25 +5,21 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
@@ -32,21 +28,21 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.dataaccess.TransactionContext;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.jooq.exception.DataAccessException;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class SuccessMetricsPurgerTest
     extends AbstractComponentTest
@@ -72,12 +68,6 @@ public class SuccessMetricsPurgerTest
   private void fixViolation(PolicyViolation violation, PolicyEvaluation evaluation) {
     violation.setFixTime(evaluation.getTime());
     policyViolationDAO.update(violation);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
   }
 
   @Test
@@ -170,9 +160,7 @@ public class SuccessMetricsPurgerTest
   }
 
   @Test
-  @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
-  @Category(SlowTest.class)
-  public void testPurgeSuccessMetrics_RetryAfterLockTimeout() throws Exception {
+  public void testPurgeSuccessMetrics_RetryAfterLockTimeout() {
     Organization org = tempEntity.newOrganization();
     dataRetentionPolicyDAO.insert(
         new DataRetentionPolicy(org.getId(), DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, true, null, 365));
@@ -181,36 +169,25 @@ public class SuccessMetricsPurgerTest
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-1", monthsAgo(26));
     tempEntity.newPolicyViolation(evaluation, tempEntity.newPolicy(app));
 
-    CountDownLatch latchLocked = new CountDownLatch(1);
-    CountDownLatch latchUnlock = new CountDownLatch(1);
-    AtomicReference<Exception> error = new AtomicReference<>();
-    Thread thread = new Thread(() -> {
-      try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-        tx.begin();
-        tx.dsl().execute("SELECT * FROM policy_violation FOR UPDATE");
-        latchLocked.countDown();
-        latchUnlock.await(10, TimeUnit.SECONDS);
-        tx.commit();
-      }
-      catch (Exception e) {
-        error.set(e);
-      }
-    });
-    thread.start();
-
-    successMetricsPurger = spy(successMetricsPurger);
+    PolicyViolationDAO spyPolicyViolationDAO = spy(policyViolationDAO);
+    DataAccessException lockTimeout = new DataAccessException("lock timeout");
+    AtomicInteger deleteCalls = new AtomicInteger();
     doAnswer(invocation -> {
-      int retry = invocation.getArgument(0);
-      if (retry > 0) {
-        latchUnlock.countDown();
+      if (deleteCalls.getAndIncrement() == 0) {
+        throw lockTimeout;
       }
       return invocation.callRealMethod();
-    }).when(successMetricsPurger).getDelayForRetry(anyInt());
+    }).when(spyPolicyViolationDAO).deleteFixedByApplicationIdAndDate(eq(app.getId()), any(Date.class));
+    applyBeanFieldOverride(SuccessMetricsPurger.class, "policyViolationDAO", spyPolicyViolationDAO);
 
-    assertThat(latchLocked.await(10, TimeUnit.SECONDS)).isTrue();
+    successMetricsPurger = spy(successMetricsPurger);
+    doReturn(Duration.ZERO).when(successMetricsPurger).getDelayForRetry(anyInt());
+
     successMetricsPurger.purgeSuccessMetrics();
-    verify(successMetricsPurger).getDelayForRetry(1);
-    assertThat(error).hasValue(null);
+
+    assertThat(policyViolationDAO.getByApplicationId(app.getId())).hasSize(1);
+    verify(successMetricsPurger).getDelayForRetry(0);
+    verify(spyPolicyViolationDAO, times(2)).deleteFixedByApplicationIdAndDate(eq(app.getId()), any(Date.class));
   }
 
   @Test
@@ -226,9 +203,13 @@ public class SuccessMetricsPurgerTest
     verify(successMetricsPurgerSpy).purgeSuccessMetrics();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
-  public void testExecute_AdminTask() {
-    successMetricsPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(taskSchedulerMock).triggerTaskNow(successMetricsPurger, null);
+  public void testExecute_AdminTask() throws Exception {
+    SuccessMetricsPurger successMetricsPurgerSpy = spy(successMetricsPurger);
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    successMetricsPurgerSpy.executeForTest(mockJobExecutionContext, null);
+    verify(successMetricsPurgerSpy).purgeSuccessMetrics();
+    verifyNoInteractions(taskSchedulerMock);
   }
 }

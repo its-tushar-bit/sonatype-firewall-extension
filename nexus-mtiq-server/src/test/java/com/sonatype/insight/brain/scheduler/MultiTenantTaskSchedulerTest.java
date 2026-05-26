@@ -33,7 +33,9 @@ import static com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler.TASK
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -93,7 +95,6 @@ public class MultiTenantTaskSchedulerTest
     when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
     when(mockQuartzConcurrencyListener.getName()).thenReturn("mockQuartzConcurrencyListener");
     when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
-    when(mockTenantManager.areTenantsPreRegistered()).thenReturn(true);
     spyTenantUtil = spy(new TenantUtil());
     spyUnderTest = spy(new MultiTenantTaskScheduler(
         mockMultiTenantQuartzJobStoreTX,
@@ -223,6 +224,18 @@ public class MultiTenantTaskSchedulerTest
     assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
     assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
     assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void shouldEnsureTenantsArePreRegisteredBeforeStartingSchedulers() throws Exception {
+    doNothing().when(spyUnderTest).startScheduler(any(String.class), any(QuartzJobStoreTX.class));
+
+    spyUnderTest.afterSingletonsInstantiated();
+
+    org.mockito.InOrder inOrder = inOrder(mockTenantManager, spyUnderTest);
+
+    inOrder.verify(mockTenantManager).ensureTenantsPreRegistered();
+    inOrder.verify(spyUnderTest).startScheduler(spyUnderTest.schedulerName, mockMultiTenantQuartzJobStoreTX);
   }
 
   @Test

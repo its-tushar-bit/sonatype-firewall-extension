@@ -5,37 +5,29 @@
  */
 package com.sonatype.insight.brain.audit;
 
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
 
 @Named
 @Singleton
 public class DefaultAuditLogFilesProvider
     implements AuditLogFilesProvider
 {
+  private static final String DEFAULT_AUDIT_LOG_NAME = "audit.log";
+
   private final InsightConfig config;
 
   @Inject
@@ -43,21 +35,16 @@ public class DefaultAuditLogFilesProvider
     this.config = config;
   }
 
-  private static final DateTimeFormatter AUDIT_ARCHIVE_LOG_FORMATTER =
-      DateTimeFormatter.ofPattern("'audit-'yyyy-MM-dd'.log.gz'");
-
-  private static final String AUDIT_LOG_NAME = "audit.log";
-
   @Override
   public List<File> getAuditLogFiles(final LocalDate startUtcDate, final LocalDate endUtcDate) {
-    String auditLogParentFolder = getAuditLogParentFolder();
-    if (auditLogParentFolder == null) {
+    AuditLogDirectory auditLogDirectory = getAuditLogDirectory();
+    if (auditLogDirectory == null) {
       throw new BadRequestException("Cannot get the audit log path.");
     }
 
-    try (Stream<Path> stream = Files.list(Paths.get(auditLogParentFolder))) {
+    try (Stream<Path> stream = Files.list(auditLogDirectory.path())) {
       return stream
-          .filter(path -> filterForAuditLogs(path, startUtcDate, endUtcDate))
+          .filter(path -> filterForAuditLogs(path, startUtcDate, endUtcDate, auditLogDirectory.currentAuditLogName()))
           .map(Path::toFile)
           .sorted()
           .collect(Collectors.toList());
@@ -67,49 +54,95 @@ public class DefaultAuditLogFilesProvider
     }
   }
 
-  private static boolean filterForAuditLogs(final Path path, final LocalDate startUtcDate, final LocalDate endUtcDate) {
+  private boolean filterForAuditLogs(
+      final Path path,
+      final LocalDate startUtcDate,
+      final LocalDate endUtcDate,
+      final String currentAuditLogName)
+  {
     if (Files.isDirectory(path)) {
       return false;
     }
 
     String fileName = path.getFileName().toString();
-    if (fileName.equals(AUDIT_LOG_NAME) && endUtcDate.isEqual(LocalDate.now())) {
+    if (fileName.equals(currentAuditLogName) && endUtcDate.isEqual(LocalDate.now())) {
       return true;
     }
 
-    try {
-      LocalDate fileDate = LocalDate.parse(fileName, AUDIT_ARCHIVE_LOG_FORMATTER);
-      if (fileDate.isBefore(startUtcDate) || fileDate.isAfter(endUtcDate)) {
-        return false;
-      }
+    LocalDate fileDate = parseArchiveDate(fileName, currentAuditLogName);
+    if (fileDate == null && !DEFAULT_AUDIT_LOG_NAME.equals(currentAuditLogName)) {
+      fileDate = parseArchiveDate(fileName, DEFAULT_AUDIT_LOG_NAME);
     }
-    catch (DateTimeParseException e) {
+    if (fileDate == null) {
       return false;
     }
 
-    return true;
+    return !fileDate.isBefore(startUtcDate) && !fileDate.isAfter(endUtcDate);
   }
 
-  private String getAuditLogParentFolder() {
-    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
-    Map<String, JsonNode> loggers = loggingFactory.getLoggers();
-    JsonNode loggerNode = loggers.getOrDefault(AuditRecorder.BASE_LOGGER_NAME, MissingNode.getInstance());
-    String currentLogFilename = StreamSupport.stream(loggerNode.path("appenders").spliterator(), false /* parallel */)
-        .map(appender -> appender.path("currentLogFilename"))
-        .filter(JsonNode::isTextual)
-        .map(JsonNode::asText)
-        .findFirst()
-        .orElse(null);
-
-    if (currentLogFilename == null) {
+  private LocalDate parseArchiveDate(final String fileName, final String currentAuditLogName) {
+    String archivePrefix = archivePrefix(currentAuditLogName);
+    String archiveSuffix = archiveSuffix(currentAuditLogName);
+    if (!fileName.startsWith(archivePrefix) || !fileName.endsWith(archiveSuffix)) {
       return null;
     }
 
-    Path parent = Paths.get(currentLogFilename).getParent();
-    if (parent == null) {
-      return ".";
+    String datePortion = fileName.substring(archivePrefix.length(), fileName.length() - archiveSuffix.length());
+    try {
+      return LocalDate.parse(datePortion);
+    }
+    catch (DateTimeParseException e) {
+      return null;
+    }
+  }
+
+  private String archivePrefix(final String currentAuditLogName) {
+    if (currentAuditLogName.endsWith(".log")) {
+      return currentAuditLogName.substring(0, currentAuditLogName.length() - ".log".length()) + "-";
+    }
+    int extensionIndex = currentAuditLogName.lastIndexOf('.');
+    if (extensionIndex > 0) {
+      return currentAuditLogName.substring(0, extensionIndex) + "-";
+    }
+    return currentAuditLogName + "-";
+  }
+
+  private String archiveSuffix(final String currentAuditLogName) {
+    if (currentAuditLogName.endsWith(".log")) {
+      return ".log.gz";
+    }
+    int extensionIndex = currentAuditLogName.lastIndexOf('.');
+    if (extensionIndex > 0) {
+      return currentAuditLogName.substring(extensionIndex) + ".gz";
+    }
+    return ".gz";
+  }
+
+  private AuditLogDirectory getAuditLogDirectory() {
+    File configuredAuditLog = getConfiguredAuditLogFile();
+    if (configuredAuditLog != null) {
+      File configuredParent = configuredAuditLog.getAbsoluteFile().getParentFile();
+      if (configuredParent != null && configuredParent.isDirectory()) {
+        return new AuditLogDirectory(configuredParent.toPath(), configuredAuditLog.getName());
+      }
     }
 
-    return parent.toString();
+    File logDir = new File(config.getSonatypeWork(), "logs");
+    if (logDir.exists() && logDir.isDirectory()) {
+      return new AuditLogDirectory(logDir.toPath(), DEFAULT_AUDIT_LOG_NAME);
+    }
+    return null;
+  }
+
+  private File getConfiguredAuditLogFile() {
+    String auditLogFilename = config.getAuditLogFilename();
+    if (auditLogFilename == null || auditLogFilename.isBlank()) {
+      return null;
+    }
+    return new File(auditLogFilename);
+  }
+
+  private record AuditLogDirectory(Path path, String currentAuditLogName)
+  {
   }
 }

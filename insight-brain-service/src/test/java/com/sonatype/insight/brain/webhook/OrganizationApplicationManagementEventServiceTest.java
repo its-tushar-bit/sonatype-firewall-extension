@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
@@ -84,8 +86,89 @@ public class OrganizationApplicationManagementEventServiceTest
         .isEqualTo(organizationSummaries);
     assertThat(event.applications).usingRecursiveComparison()
         .isEqualTo(applicationSummaries);
+    assertThat(event.repositoryManagers).isEmpty();
+    assertThat(event.repositories).isEmpty();
 
     asyncEventBus.unregister(handler);
+  }
+
+  @Test
+  public void testPostEventForLifecycle_PopulatesOrganizationsAndApplicationsOnly() {
+    final AsyncEventBus eventBusSpy = spy(asyncEventBus);
+    final OrganizationApplicationManagementEventService orgAppSummaryEventService =
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
+
+    final Organization organization = tempEntity.newOrganization();
+    final Application application = tempEntity.newApplication(organization.getId());
+    tempEntity.newRepository();
+
+    orgAppSummaryEventService.postEventForLifecycle();
+    verify(eventBusSpy).post(eventArgumentCaptor.capture());
+
+    final OrganizationApplicationManagementEvent event = eventArgumentCaptor.getValue();
+    assertThat(event.organizations)
+        .extracting(summary -> summary.id)
+        .contains(organization.getId());
+    assertThat(event.applications)
+        .extracting(summary -> summary.id)
+        .contains(application.getId());
+    assertThat(event.repositoryManagers).isEmpty();
+    assertThat(event.repositories).isEmpty();
+  }
+
+  @Test
+  public void testPostEventForFirewall_PopulatesOrganizationsRepositoriesAndRepositoryManagersOnly() {
+    final AsyncEventBus eventBusSpy = spy(asyncEventBus);
+    final OrganizationApplicationManagementEventService orgAppSummaryEventService =
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
+
+    final Organization organization = tempEntity.newOrganization();
+    tempEntity.newApplication(organization.getId());
+    final RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("instance-id", "repo-manager", "Nexus Repository", "3.0");
+    final Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy");
+
+    orgAppSummaryEventService.postEventForFirewall();
+    verify(eventBusSpy).post(eventArgumentCaptor.capture());
+
+    final OrganizationApplicationManagementEvent event = eventArgumentCaptor.getValue();
+    assertThat(event.organizations)
+        .extracting(summary -> summary.id)
+        .contains(organization.getId());
+    assertThat(event.applications).isEmpty();
+    assertThat(event.repositoryManagers)
+        .extracting(summary -> summary.id)
+        .contains(repositoryManager.getId());
+    assertThat(event.repositories)
+        .extracting(summary -> summary.id)
+        .contains(repository.getId());
+  }
+
+  @Test
+  public void testPostEvent_DeprecatedCompatibilityPathDelegatesToLifecycle() {
+    final AsyncEventBus eventBusSpy = spy(asyncEventBus);
+    final OrganizationApplicationManagementEventService orgAppSummaryEventService =
+        new OrganizationApplicationManagementEventService(
+            eventBusSpy, organizationDAO, applicationDAO, repositoryManagerDAO, repositoryDAO, currentUser);
+
+    final Organization organization = tempEntity.newOrganization();
+    final Application application = tempEntity.newApplication(organization.getId());
+    tempEntity.newRepository();
+
+    orgAppSummaryEventService.postEvent();
+    verify(eventBusSpy).post(eventArgumentCaptor.capture());
+
+    final OrganizationApplicationManagementEvent event = eventArgumentCaptor.getValue();
+    assertThat(event.organizations)
+        .extracting(summary -> summary.id)
+        .contains(organization.getId());
+    assertThat(event.applications)
+        .extracting(summary -> summary.id)
+        .contains(application.getId());
+    assertThat(event.repositoryManagers).isEmpty();
+    assertThat(event.repositories).isEmpty();
   }
 
   @Test

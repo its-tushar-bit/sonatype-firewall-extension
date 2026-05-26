@@ -5,6 +5,16 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.AllTenantsJob;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -12,19 +22,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.AllTenantsJob;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -34,16 +31,16 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PolicyWaiverTelemetryBackfillTask
-    extends Task
+    extends AdminTask
     implements InsightJob, AllTenantsJob
 {
+  public static final String PATH = "triggerPolicyWaiverTelemetryBackfillTask";
+
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverTelemetryBackfillTask.class);
 
   private static final String NAME = PolicyWaiverTelemetryBackfillTask.class.getSimpleName();
 
   private static final String TASK_ERROR = "Error running " + NAME;
-
-  private static final String TASK_PATH = "trigger" + NAME;
 
   @VisibleForTesting
   static final long TASK_STARTUP_DELAY_MINUTES = 15L;
@@ -63,10 +60,21 @@ public class PolicyWaiverTelemetryBackfillTask
       TaskScheduler taskScheduler,
       TenantUtil tenantUtil)
   {
-    super(TASK_PATH);
+    super(PATH);
     this.policyWaiverTelemetryBackfillService = policyWaiverTelemetryBackfillService;
     this.taskScheduler = taskScheduler;
     this.tenantUtil = tenantUtil;
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    if (tenantUtil.isSingleTenant() && policyWaiverTelemetryBackfillService.isTelemetryCollectionComplete()) {
+      output.write("Skipping scheduling " + NAME + " as telemetry collection is complete.\n");
+      return;
+    }
+
+    taskScheduler.scheduleOneTimeTask(this);
+    output.write("Scheduled run of " + NAME + "\n");
   }
 
   @Override
@@ -80,17 +88,6 @@ public class PolicyWaiverTelemetryBackfillTask
   @Override
   public String getJobName() {
     return NAME;
-  }
-
-  @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter printWriter) {
-    if (tenantUtil.isSingleTenant() && policyWaiverTelemetryBackfillService.isTelemetryCollectionComplete()) {
-      printWriter.write("Skipping scheduling " + NAME + " as telemetry collection is complete.\n");
-      return;
-    }
-
-    taskScheduler.scheduleOneTimeTask(this);
-    printWriter.write("Scheduled run of " + NAME + "\n");
   }
 
   @Override

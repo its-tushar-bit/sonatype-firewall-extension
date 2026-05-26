@@ -39,6 +39,7 @@ public class ScmOnboardingServiceAuthzTest
   @Test
   public void testLoadRepositories_Authorized() {
     grantAddApplicationPermission(org.getId());
+    grantReadPermission(org.getId());
 
     assertThatThrownBy(() -> scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM))
         .isInstanceOf(BadRequestException.class)
@@ -64,6 +65,7 @@ public class ScmOnboardingServiceAuthzTest
   @Test
   public void testGetDefaultHostUrl_Authorized() {
     grantAddApplicationPermission(org.getId());
+    grantReadPermission(org.getId());
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 

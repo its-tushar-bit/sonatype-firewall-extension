@@ -60,6 +60,11 @@ public class JwtHttpAuthorizationFilter
       HttpServletResponse res,
       FilterChain chain) throws IOException, ServletException
   {
+    if (shouldPassThrough(req)) {
+      chain.doFilter(req, res);
+      return;
+    }
+
     if (multiTenantJwkProvider.denyRequest()) {
       log.warn("Can't authorize request for {} to {} {}", req.getRemoteAddr(), req.getMethod(), req.getServletPath());
       forbid(res, "No authorization provider configured");
@@ -108,6 +113,11 @@ public class JwtHttpAuthorizationFilter
     }
 
     return Optional.of(decodedJWT);
+  }
+
+  private static boolean shouldPassThrough(final HttpServletRequest req) {
+    String requestUri = req.getRequestURI();
+    return requestUri == null || !requestUri.startsWith("/api/admin/");
   }
 
   // Tell the client to come back with Bearer authorization

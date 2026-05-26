@@ -18,6 +18,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +31,11 @@ public class ConfigurationInfoTest
 
   @Inject
   private Configuration configuration;
+
+  @Before
+  public void refreshConfiguration() {
+    configuration.register();
+  }
 
   @Test
   public void testGetConfigurationInfo() throws Exception {
@@ -202,7 +208,7 @@ public class ConfigurationInfoTest
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
     assertThat(configNode.get(SystemConfigurationProperty.HDS_URL).asText())
-        .isEqualTo("https://clm-staging.sonatype.com/");
+        .isEqualTo("https://clm.sonatype.com/");
     assertThat(configNode.get(SystemConfigurationProperty.CSRF_PROTECTION).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.CDN_URL).asText()).isEqualTo("https://cdn.sonatype.com/");
     assertThat(configNode.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES).asText()).isEqualTo("31457280");

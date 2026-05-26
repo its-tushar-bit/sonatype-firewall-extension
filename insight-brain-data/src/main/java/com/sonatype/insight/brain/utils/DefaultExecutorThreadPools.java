@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -59,6 +60,11 @@ public class DefaultExecutorThreadPools
   public DefaultExecutorThreadPools() {
     generalUtilityThreads = initGeneralUtilThreads();
     daoForkJoinPool = initDaoForkJoinPool();
+  }
+
+  @PostConstruct
+  void registerAsStaticInstance() {
+    ExecutorThreadPools.injectInstance(this);
   }
 
   private ForkJoinPool initGeneralUtilThreads() {

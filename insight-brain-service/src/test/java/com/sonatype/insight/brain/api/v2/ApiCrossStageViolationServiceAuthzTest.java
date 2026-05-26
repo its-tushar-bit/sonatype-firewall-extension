@@ -29,14 +29,15 @@ public class ApiCrossStageViolationServiceAuthzTest
   @Inject
   private ApiCrossStageViolationService service;
 
-  private final ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
 
   @Test
   public void testGetCrossStageViolationById_Authorized() {
     grantReadPermission(app.getId());
     Policy policy = tempEntity.newPolicy(org.getId(), "p1", 7);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
-    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation.getId());
     assertThat(result.policyViolationId).isEqualTo(violation.getId());
@@ -47,7 +48,7 @@ public class ApiCrossStageViolationServiceAuthzTest
     grantWritePermission(app.getId());
     Policy policy = tempEntity.newPolicy(org.getId(), "p1", 7);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
-    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     service.getCrossStageViolationById(violation.getId());
   }
@@ -56,7 +57,7 @@ public class ApiCrossStageViolationServiceAuthzTest
   public void testGetCrossStageViolationById_Unauthenticated() {
     Policy policy = tempEntity.newPolicy(org.getId(), "p1", 7);
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
-    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     service.getCrossStageViolationById(violation.getId());
   }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -99,8 +100,10 @@ public class ApiReportDataResourceV2Test
         .get();
 
     assertResponseStatus(307, response);
-    assertThat(response.getHeader("Location"))
-        .isEqualTo(getRestBaseUrl() + "api/v2/applications/testAppPublicId/reports/testScanId/raw");
+    String expectedLocation = URI.create(getRestBaseUrl())
+        .resolve(ApiReportDataResourceV2.getDataUrl("testAppPublicId", "testScanId"))
+        .toString();
+    assertThat(response.getHeader("Location")).isEqualTo(expectedLocation);
   }
 
   @Test

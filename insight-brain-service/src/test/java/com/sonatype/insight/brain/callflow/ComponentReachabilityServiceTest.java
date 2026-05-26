@@ -6,17 +6,16 @@
 
 package com.sonatype.insight.brain.callflow;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.UNKNOWN;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -27,18 +26,15 @@ import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
-import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.UNKNOWN;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @Category(SlowTest.class)
 public class ComponentReachabilityServiceTest
@@ -63,12 +59,6 @@ public class ComponentReachabilityServiceTest
   public void before() {
     application = tempEntity.newApplicationWithParent();
     policy = tempEntity.newPolicy(application);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportService.class).toInstance(reportService);
-    super.configure(binder);
   }
 
   @Test

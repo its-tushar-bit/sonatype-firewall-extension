@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.sql.Connection;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -16,19 +16,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.sql.Connection;
+import org.jooq.impl.DSL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import org.jooq.impl.DSL;
 
 public class ClusterTelemetryCollectorTest
     extends AbstractComponentTest
@@ -44,12 +39,6 @@ public class ClusterTelemetryCollectorTest
 
   @Inject
   private OperationalDataStore operationalDataStore;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

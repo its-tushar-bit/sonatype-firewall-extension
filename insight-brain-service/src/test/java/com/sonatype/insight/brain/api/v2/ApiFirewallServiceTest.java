@@ -5,23 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallService.AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -100,27 +96,28 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
+import jakarta.inject.Inject;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.ApiFirewallService.AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -158,20 +155,7 @@ public class ApiFirewallServiceTest
   @Inject
   private ApplicationDAO applicationDAO;
 
-  @Mock
-  private RepositoryService repositoryServiceMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bindInterceptor(Matchers.subclassesOf(RepositoryService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getName().equals("evaluateComponents")) {
-        return invocation.getMethod().invoke(repositoryServiceMock, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-    super.configure(binder);
-  }
+  private RepositoryService spyRepositoryService;
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary() {
@@ -1113,8 +1097,8 @@ public class ApiFirewallServiceTest
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
 
     // when
     ApiRepositoryComponentEvaluationResultList result =
@@ -1160,8 +1144,8 @@ public class ApiFirewallServiceTest
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repositoryComponent, 10, false, "Policy Name", null);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
 
     ApiRepositoryComponentEvaluationResultList result =
         apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
@@ -1183,7 +1167,7 @@ public class ApiFirewallServiceTest
     assertThat(policyViolationDTOV2.threatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
     ArgumentCaptor<RepositoryComponentEvaluationDataRequestList> captor = ArgumentCaptor.forClass(
         RepositoryComponentEvaluationDataRequestList.class);
-    verify(repositoryServiceMock).evaluateComponents(any(Repository.class), anyString(), captor.capture(), eq(false),
+    verify(spyRepositoryService).evaluateComponents(any(Repository.class), anyString(), captor.capture(), eq(false),
         eq(true), isNull());
     RepositoryComponentEvaluationDataRequestList request = captor.getValue();
     assertThat(request.components.get(0).pathname).isEqualTo(fakePathname);
@@ -1211,8 +1195,8 @@ public class ApiFirewallServiceTest
     rced.quarantine = false;
     rced.catalogDate = new Date();
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
 
     ApiRepositoryComponentEvaluationResultList result =
         apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
@@ -1289,8 +1273,8 @@ public class ApiFirewallServiceTest
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
 
     // when
     ApiRepositoryComponentEvaluationResultList result =
@@ -1323,14 +1307,14 @@ public class ApiFirewallServiceTest
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
     repositoryServiceEvaluateResult.componentEvalResults.add(new RepositoryComponentEvaluationData());
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true), isNull());
 
     ApiRepositoryComponentEvaluationResultList result =
         apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList);
 
     assertThat(result).isNotNull();
-    verify(repositoryServiceMock).evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
+    verify(spyRepositoryService).evaluateComponents(any(Repository.class), anyString(), any(), eq(true), eq(true),
         isNull());
   }
 
@@ -1353,8 +1337,8 @@ public class ApiFirewallServiceTest
     v2.setWaiveTime(DateUtils.addDays(rced.catalogDate, 1));
     repositoryPolicyViolationDAO.update(v2);
     repositoryServiceEvaluateResult.componentEvalResults.add(rced);
-    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
-        isNull())).thenReturn(repositoryServiceEvaluateResult);
+    doReturn(repositoryServiceEvaluateResult).when(spyRepositoryService)
+        .evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true), isNull());
 
     ApiRepositoryComponentEvaluationResultList result =
         apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),

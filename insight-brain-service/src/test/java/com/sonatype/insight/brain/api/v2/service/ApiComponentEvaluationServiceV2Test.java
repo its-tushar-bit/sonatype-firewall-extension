@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -33,20 +30,36 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-
+@ContextConfiguration(
+    classes = ApiComponentEvaluationServiceV2Test.ApiComponentEvaluationServiceV2TestConfiguration.class)
 public class ApiComponentEvaluationServiceV2Test
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class ApiComponentEvaluationServiceV2TestConfiguration
+  {
+    @Bean
+    @Primary
+    ShutdownHandler mockShutdownHandler() {
+      return Mockito.mock(ShutdownHandler.class);
+    }
+  }
+
   private static final long RETRY_INTERVAL = 50;
 
   private static final int NUM_TRIES = 1000;
@@ -62,7 +75,7 @@ public class ApiComponentEvaluationServiceV2Test
   @Mock
   private HdsClient client;
 
-  @Mock
+  @Inject
   private ShutdownHandler mockShutdownHandler;
 
   private ComponentEvaluationV2Helper componentEvaluationV2Helper;
@@ -70,13 +83,6 @@ public class ApiComponentEvaluationServiceV2Test
   private Organization org;
 
   private Application app;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(client);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
 
   @Before
   public void setupApplication() {

@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
+import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -18,14 +16,12 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
-import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AdvancedSearchTelemetryCollectorTest
     extends AbstractComponentTest
@@ -44,13 +40,6 @@ public class AdvancedSearchTelemetryCollectorTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testCollectAllData_NoData() {

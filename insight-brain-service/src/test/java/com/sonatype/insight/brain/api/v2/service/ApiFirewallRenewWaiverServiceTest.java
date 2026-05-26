@@ -20,6 +20,9 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,6 +79,7 @@ public class ApiFirewallRenewWaiverServiceTest
 
   @Before
   public void setUp() {
+    SecurityAspectControl.disableEnforcement();
     service = new ApiFirewallRenewWaiverService(policyWaiverDAO, ownerDAO, currentUser);
 
     when(currentUser.getUsername()).thenReturn(USERNAME);
@@ -86,6 +90,11 @@ public class ApiFirewallRenewWaiverServiceTest
 
     when(mockOwner.getId()).thenReturn(INTERNAL_OWNER_ID);
     when(mockOwner.getType()).thenReturn(OwnerType.REPOSITORY);
+  }
+
+  @After
+  public void tearDown() {
+    SecurityAspectControl.enableEnforcement();
   }
 
   private void mockWaiverFound(PolicyWaiver waiver, String waiverId) {

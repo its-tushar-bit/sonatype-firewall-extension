@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.service.InsightJob;
 
 import org.junit.Test;
 import org.quartz.Job;
+import org.springframework.util.ClassUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -61,8 +62,14 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater",
         "FirewallIgnorePatternUpdater");
     insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.service.githubapp.GitHubAppCleanupTask",
+        "GitHubAppCleanupTask");
+    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner",
         "PersistedPolicyEvaluationPollingResultCleaner");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.policy.evaluator.queue.EvaluationQueueProducer",
+        "EvaluationQueueProducer");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.product.license.CLMLicenseManager",
         "ProductLicenseLoad");
     insightJobClassNameToExpectedJobName.put(
@@ -162,9 +169,11 @@ public class JobClassNameTest
   @Test
   public void testInsightJobHasExpectedJobName() {
     for (InsightJob insightJob : insightJobs) {
-      String expectedJobName = insightJobClassNameToExpectedJobName.get(insightJob.getClass().getName());
+      Class<?> userClass = ClassUtils.getUserClass(insightJob);
+      String insightJobClassName = userClass.getName();
+      String expectedJobName = insightJobClassNameToExpectedJobName.get(insightJobClassName);
       if (expectedJobName == null) {
-        fail("InsightJob " + insightJob.getClass().getName() + " has no expected job name, " +
+        fail("InsightJob " + insightJobClassName + " has no expected job name, " +
             "if this is a new class update this test with its fixed class/job names, " +
             "otherwise if this is a renamed class a migration script may be needed as well as updating this test " +
             "see https://issues.sonatype.org/browse/CLM-24241.");

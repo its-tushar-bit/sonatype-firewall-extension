@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.health;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 public class ServerBootHealthCheckTest
 {
@@ -29,10 +31,12 @@ public class ServerBootHealthCheckTest
     assertThat(healthCheck.getName()).isEqualTo("server-boot");
 
     // default is unhealthy
-    assertThat(healthCheck.check().isHealthy()).isFalse();
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
 
     ServerBootHealthCheck.fullyBooted();
 
-    assertThat(healthCheck.check().isHealthy()).isTrue();
+    health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
   }
 }

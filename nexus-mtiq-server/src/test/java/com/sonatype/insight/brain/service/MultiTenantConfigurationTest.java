@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.List;
 import java.util.Set;
-import jakarta.inject.Provider;
+
+import org.springframework.beans.factory.ObjectProvider;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -64,37 +64,37 @@ public class MultiTenantConfigurationTest
   ApiConfigurationService configurationService;
 
   @Mock
-  Provider<List<HdsClient>> hdsClientsProvider;
+  ObjectProvider<HdsClient> hdsClientsProvider;
 
   @Mock
-  Provider<AsyncEventBus> asyncEventBusProvider;
+  AsyncEventBus asyncEventBus;
 
   @Mock
   TaskScheduler taskScheduler;
 
   @Mock
-  Provider<DefaultBranchMonitor> defaultBranchMonitorProvider;
+  DefaultBranchMonitor defaultBranchMonitor;
 
   @Mock
-  Provider<PullRequestMonitor> pullRequestMonitorProvider;
+  PullRequestMonitor pullRequestMonitor;
 
   @Mock
-  Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider;
+  ReleaseGraphCacheProvider releaseGraphCacheProvider;
 
   @Mock
-  Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
+  PolicyMonitorScheduler policyMonitorScheduler;
 
   @Mock
-  Provider<HostedRepositoryMonitorScheduler> hostedRepositoryMonitorSchedulerProvider;
+  HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask;
 
   @Mock
-  Provider<HistoricalPolicyViolationTelemetryTask> historicalPolicyViolationTelemetryTaskProvider;
+  HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler;
 
   @Mock
-  Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
+  AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler;
 
   @Mock
-  Provider<WaivedComponentUpgradeScheduler> waivedComponentUpgradeSchedulerProvider;
+  WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler;
 
   @Mock
   TenantUtil tenantUtil;
@@ -108,10 +108,10 @@ public class MultiTenantConfigurationTest
 
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
-        asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
-        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, hostedRepositoryMonitorSchedulerProvider,
-        automaticQuarantineReleaseSchedulerProvider,
-        waivedComponentUpgradeSchedulerProvider, historicalPolicyViolationTelemetryTaskProvider, tenantUtil);
+        asyncEventBus, taskScheduler, defaultBranchMonitor, pullRequestMonitor,
+        releaseGraphCacheProvider, policyMonitorScheduler, hostedRepositoryMonitorScheduler,
+        automaticQuarantineReleaseScheduler,
+        waivedComponentUpgradeScheduler, historicalPolicyViolationTelemetryTask, tenantUtil);
   }
 
   @Test

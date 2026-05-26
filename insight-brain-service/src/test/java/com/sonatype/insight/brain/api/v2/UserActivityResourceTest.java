@@ -9,7 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.zip.GZIPOutputStream;
+
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import jakarta.ws.rs.core.MediaType;
 
@@ -35,13 +38,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserActivityResourceTest
     extends AbstractResourceTest
 {
-  private static final String LOG_DIR = "./log";
-
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
+  private Path logDir;
+
   @Before
-  public void before() {
+  public void before() throws IOException {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(true);
+
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
+    logDir = tempDir.getRoot().toPath().resolve("logs");
+    Files.createDirectories(logDir);
   }
 
   @After
@@ -51,7 +59,8 @@ public class UserActivityResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.USER_ACTIVITY_RESOURCE_PATH);
+    return HttpRequest.to(getRestBaseUrl().replaceFirst("/$", ""))
+        .path(PublicApiPaths.USER_ACTIVITY_RESOURCE_PATH);
   }
 
   @Test
@@ -277,11 +286,20 @@ public class UserActivityResourceTest
 
   private void copyTestResource(String filename) throws IOException {
     String filepath = getClass().getClassLoader().getResource(getClass().getSimpleName() + "/" + filename).getFile();
-    Files.copy(new File(filepath).toPath(), Paths.get(LOG_DIR, filename));
+    Path source = new File(filepath).toPath();
+    Path target = logDir.resolve(filename.endsWith(".gz") ? filename : filename + ".gz");
+
+    try (GZIPOutputStream outputStream = new GZIPOutputStream(Files.newOutputStream(target))) {
+      Files.copy(source, outputStream);
+    }
   }
 
   private void deleteAuditLogs() throws IOException {
-    Files.list(Paths.get(LOG_DIR))
+    if (logDir == null || !Files.exists(logDir)) {
+      return;
+    }
+
+    Files.list(logDir)
         .filter(file -> file.getFileName().toString().startsWith("audit") &&
             (file.getFileName().toString().endsWith(".log") || file.getFileName().toString().endsWith(".gz")))
         .forEach(file -> {

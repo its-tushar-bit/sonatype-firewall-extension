@@ -5,15 +5,16 @@
  */
 package com.sonatype.insight.brain.health;
 
-import com.sonatype.insight.brain.tenancy.TenantManager;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import com.sonatype.insight.brain.tenancy.TenantManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantRegistrationHealthCheckTest
@@ -27,9 +28,11 @@ public class TenantRegistrationHealthCheckTest
     assertThat(healthCheck.getName()).isEqualTo("tenant-registration");
 
     when(tenantManager.areTenantsPreRegistered()).thenReturn(false);
-    assertThat(healthCheck.check().isHealthy()).isFalse();
+    Health health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
 
     when(tenantManager.areTenantsPreRegistered()).thenReturn(true);
-    assertThat(healthCheck.check().isHealthy()).isTrue();
+    health = healthCheck.check();
+    assertThat(health.getStatus()).isEqualTo(Status.UP);
   }
 }

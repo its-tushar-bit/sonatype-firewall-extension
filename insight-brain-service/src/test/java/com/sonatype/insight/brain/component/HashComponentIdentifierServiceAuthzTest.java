@@ -5,29 +5,25 @@
  */
 package com.sonatype.insight.brain.component;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import jakarta.inject.Inject;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 
 @Category(SlowTest.class)
 public class HashComponentIdentifierServiceAuthzTest
@@ -48,12 +44,6 @@ public class HashComponentIdentifierServiceAuthzTest
 
   @Mock
   private HdsClient mockHdsClient;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-  }
 
   @Before
   public void resetMockHdsClient() {

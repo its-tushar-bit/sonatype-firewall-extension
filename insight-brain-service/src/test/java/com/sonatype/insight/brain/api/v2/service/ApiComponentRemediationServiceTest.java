@@ -5,15 +5,21 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -52,29 +58,21 @@ import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -137,24 +135,11 @@ public class ApiComponentRemediationServiceTest
   @Mock
   private ProductLicense productLicense;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
-    lenient().doReturn(ComponentSummary.create(true))
-        .when(hdsClientMock)
-        .get(eq(ComponentSummary.class),
-            eq("rest/component/summary"), anyMap());
-    super.configure(binder);
-  }
-
   @Before
   public void setupApplication() {
     app = tempEntity.newApplicationWithParent();
     mockHdsGetVersionScoringData();
+    mockHdsGetKnownComponentSummary();
   }
 
   @Test
@@ -769,6 +754,11 @@ public class ApiComponentRemediationServiceTest
     lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList(),
         eq(Map.of("stableVersionsOnly", "true"))))
         .thenReturn(new VersionScoringDTO[]{});
+  }
+
+  private void mockHdsGetKnownComponentSummary() {
+    lenient().when(hdsClientMock.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(true));
   }
 
   private void mockLicenseFeature(boolean includeAdvancedStrategies) {

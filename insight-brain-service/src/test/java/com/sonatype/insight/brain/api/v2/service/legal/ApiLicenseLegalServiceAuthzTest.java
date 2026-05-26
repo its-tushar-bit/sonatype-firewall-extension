@@ -5,11 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
@@ -21,20 +19,15 @@ import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Date;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 
 public class ApiLicenseLegalServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -47,19 +40,6 @@ public class ApiLicenseLegalServiceAuthzTest
 
   @Mock
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    Component component = new Component();
-    component.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"));
-    lenient().when(mockComponentInfoService.augmentComponentDetails(any(), any())).thenReturn(component);
-    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
-    lenient().when(mockApiLicenseLegalHdsService.getLicenseMetadata(any())).thenReturn(new ArrayList<>());
-    lenient().when(mockApiLicenseLegalHdsService.getComponentLegalComments(any())).thenReturn(new HashSet<>());
-    lenient().when(mockApiLicenseLegalHdsService.getComponentLegalFiles(any())).thenReturn(new HashSet<>());
-    binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
-  }
 
   @Test
   public void testGetLicenseLegalApplicationsDashboard_Unauthenticated() {
@@ -194,8 +174,12 @@ public class ApiLicenseLegalServiceAuthzTest
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
-  @Test
+  @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalComponentReport_ApplicationAuthorized() throws Exception {
+    doThrow(new NotFoundException("Component not found"))
+        .when(mockComponentInfoService)
+        .getUnaugmentedComponentDetails(any(), any(), any(), any(), any());
+
     grantLegalReviewerPermission(app.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
@@ -214,8 +198,12 @@ public class ApiLicenseLegalServiceAuthzTest
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
-  @Test
+  @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalComponentReport_OrganizationAuthorized() throws Exception {
+    doThrow(new NotFoundException("Component not found"))
+        .when(mockComponentInfoService)
+        .getUnaugmentedComponentDetails(any(), any(), any(), any(), any());
+
     grantLegalReviewerPermission(org.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
         .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
@@ -234,8 +222,12 @@ public class ApiLicenseLegalServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
-  @Test
+  @Test(expected = NotFoundException.class)
   public void testGetLicenseLegalComponentReport_RootOrganizationAuthorized() throws Exception {
+    doThrow(new NotFoundException("Component not found"))
+        .when(mockComponentInfoService)
+        .getUnaugmentedComponentDetails(any(), any(), any(), any(), any());
+
     grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
     apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);

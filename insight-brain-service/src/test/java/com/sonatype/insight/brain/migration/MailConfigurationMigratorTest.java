@@ -20,9 +20,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ContextConfiguration(classes = MailConfigurationMigratorTest.MailConfigurationMigratorTestConfiguration.class)
 public class MailConfigurationMigratorTest
     extends AbstractComponentTest
 {
@@ -222,5 +225,12 @@ public class MailConfigurationMigratorTest
     assertThat(dbConfig.getSystemEmail()).isEqualTo("system@email");
 
     assertThat(logOutput).atWarnLevel().contains(MailConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @TestConfiguration
+  static class MailConfigurationMigratorTestConfiguration
+  {
+    // Intentionally empty. Declaring an explicit concrete test configuration preserves the
+    // database-backed Spring test context for this migrator test under the migrated harness.
   }
 }

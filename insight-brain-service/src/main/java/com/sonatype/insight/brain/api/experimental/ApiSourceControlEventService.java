@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.api.experimental;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -18,7 +14,14 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Named
+@Singleton
 public class ApiSourceControlEventService
 {
   private final OwnerDAO ownerDAO;

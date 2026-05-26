@@ -41,6 +41,7 @@
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.21</logback.version>
     <jackson.version>2.21.2</jackson.version>
+    <dropwizard-jackson.version>5.0.0</dropwizard-jackson.version>
     <jooq.version>3.19.29</jooq.version>
     <!-- Placeholder schema name stamped into jOOQ-generated classes by codegen (insight-brain-db/pom.xml).
          Must match TransactionContext.PLACEHOLDER_SCHEMA so the render mapping can replace it at runtime. -->
@@ -59,19 +60,16 @@
     <bouncycastle.version>1.84</bouncycastle.version>
 
     <!--
-      Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.
+      This is intentionally pinned to the Sonatype-published milestone build.
       https://github.com/sonatype/insight-brain/pull/10613/files#r1394208485
     -->
     <clm.dto.model.version>2.1.25-01</clm.dto.model.version>
-    <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
+    <!-- The jetty.version must match (or be compatible with) the jersey version -->
     <jetty.version>12.1.7</jetty.version>
-    <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
-    <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
-    <dropwizard.version>5.0.0</dropwizard.version>
-    <dropwizard-guicey.version>8.0.0</dropwizard-guicey.version>
-    <guice.version>7.0.0</guice.version>
-    <!-- The jersey.version must match the jersey version used by dropwizard -->
-    <jersey.version>3.1.11</jersey.version>
+    <!-- Jetty EE11 session handling requires Servlet 6.1+ (HttpSession.Accessor) -->
+    <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
+    <!-- The jersey.version must match the jersey version -->
+    <jersey.version>4.0.2</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>10.1.0</drools.version>
@@ -91,7 +89,7 @@
     <opensearch-client.version>2.25.0</opensearch-client.version>
     <!-- Used transitively by various dependencies. OpenSearch requires it to be declared. -->
     <apache.httpclient5.version>5.4.4</apache.httpclient5.version>
-    <netty-version>4.1.133.Final</netty-version>
+    <netty-version>4.2.13.Final</netty-version>
 
     <!--
       Properties for functional test docker container used by insight-brain-java-functional-test
@@ -134,6 +132,9 @@
     <jdks-maven-plugin.jdk-dir-version>jdk-25.0.2+10</jdks-maven-plugin.jdk-dir-version>
     <gitlab4j-api.version>6.2.0</gitlab4j-api.version>
     <micrometer.version>1.15.4</micrometer.version>
+    <spring-boot.version>4.0.6</spring-boot.version>
+    <aspectj.version>1.9.25.1</aspectj.version>
+    <aspectj-maven-plugin.version>1.14.1</aspectj-maven-plugin.version>
   </properties>
 
   <scm>
@@ -144,7 +145,6 @@
   </scm>
 
   <modules>
-    <module>vendored-dropwizard-web</module>
     <module>hds-mock-server</module>
     <module>insight-json-store</module>
     <module>insight-brain-test</module>
@@ -305,11 +305,6 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
-        <artifactId>vendored-dropwizard-web</artifactId>
-        <version>1.205.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
         <version>1.205.0-SNAPSHOT</version>
       </dependency>
@@ -336,17 +331,8 @@
         <version>2.5.2</version>
       </dependency>
 
-      <!-- Avoid security vulnerabilities in Spring Core - CVE-2025-41249 -->
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-core</artifactId>
-        <version>6.2.15</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-jdbc</artifactId>
-        <version>6.2.15</version>
-      </dependency>
+      <!-- Spring Framework version managed by Spring Boot 4.0.6 (7.0.6) -->
+      <!-- CVE-2025-41249 is fixed in 6.2.x line, and Spring Framework 7.x includes the fix -->
 
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -611,11 +597,6 @@
         <artifactId>angus-activation</artifactId>
         <version>2.0.3</version>
       </dependency>
-      <dependency>
-        <groupId>com.google.inject</groupId>
-        <artifactId>guice</artifactId>
-        <version>${guice.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>org.apache.shiro</groupId>
@@ -643,19 +624,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <dependency>
-        <groupId>org.apache.shiro</groupId>
-        <artifactId>shiro-guice</artifactId>
-        <classifier>jakarta</classifier>
-        <version>${shiro.version}</version>
-        <exclusions>
-          <!-- Exclude non-jakarta shiro-core, we use shiro-core:jakarta -->
-          <exclusion>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-saml-adapter-core</artifactId>
@@ -753,10 +722,21 @@
         <version>3.0.1</version>
       </dependency>
 
+      <!-- Jackson BOM is managed by spring-boot-dependencies -->
+      <!-- Spring Boot 4 provides both Jackson 3.x (primary) and Jackson 2.x (compatibility) -->
+
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${jackson.version}</version>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty-version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -916,62 +896,6 @@
         <version>${jakarta.servlet-api.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-core</artifactId>
-        <version>${dropwizard.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
-            <groupId>org.glassfish.hk2.external</groupId>
-            <artifactId>aopalliance-repackaged</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-assets</artifactId>
-        <version>${dropwizard.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-forms</artifactId>
-        <version>${dropwizard.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.dropwizard.modules</groupId>
-        <artifactId>dropwizard-testing-junit4</artifactId>
-        <version>${dropwizard.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- no XML in REST messages, just JSON -->
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-jaxb</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Avoid conflicts with the version required by selenide -->
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.dropwizard</groupId>
-        <artifactId>dropwizard-validation</artifactId>
-        <version>${dropwizard.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- not using dangerous EL expressions -->
-            <groupId>org.glassfish</groupId>
-            <artifactId>jakarta.el</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>ru.vyarus</groupId>
-        <artifactId>dropwizard-guicey</artifactId>
-        <version>${dropwizard-guicey.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.glassfish.jersey</groupId>
         <artifactId>jersey-bom</artifactId>
         <version>${jersey.version}</version>
@@ -1091,17 +1015,6 @@
       <dependency>
         <groupId>org.eclipse.jetty.ee11</groupId>
         <artifactId>jetty-ee11-servlets</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <!-- EE10 dependencies brought in by Dropwizard 5.0 - must be kept in sync with jetty.version -->
-      <dependency>
-        <groupId>org.eclipse.jetty.ee10</groupId>
-        <artifactId>jetty-ee10-servlet</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty.ee10</groupId>
-        <artifactId>jetty-ee10-servlets</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -1374,12 +1287,59 @@
         <artifactId>micrometer-registry-statsd</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
+
+      <!-- Dropwizard Jackson compatibility pieces retained for legacy IQ JSON behavior -->
       <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-bom</artifactId>
-        <version>${netty-version}</version>
-        <type>pom</type>
-        <scope>import</scope>
+        <groupId>io.dropwizard</groupId>
+        <artifactId>dropwizard-jackson</artifactId>
+        <version>${dropwizard-jackson.version}</version>
+      </dependency>
+
+      <!-- Dropwizard Metrics - no longer managed by Spring Boot 4 -->
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>4.2.28</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-annotation</artifactId>
+        <version>4.2.28</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-healthchecks</artifactId>
+        <version>4.2.28</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jvm</artifactId>
+        <version>4.2.28</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jakarta-servlets</artifactId>
+        <version>4.2.37</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jersey3</artifactId>
+        <version>4.2.37</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-logback</artifactId>
+        <version>4.2.37</version>
+      </dependency>
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-jetty12</artifactId>
+        <version>4.2.37</version>
+      </dependency>
+      <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjrt</artifactId>
+        <version>${aspectj.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -1511,6 +1471,26 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>3.5.0</version>
+        </plugin>
+        <plugin>
+          <groupId>dev.aspectj</groupId>
+          <artifactId>aspectj-maven-plugin</artifactId>
+          <version>${aspectj-maven-plugin.version}</version>
+          <configuration>
+            <complianceLevel>17</complianceLevel>
+            <source>17</source>
+            <target>17</target>
+            <showWeaveInfo>true</showWeaveInfo>
+            <Xlint>ignore</Xlint>
+            <forceAjcCompile>true</forceAjcCompile>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.aspectj</groupId>
+              <artifactId>aspectjtools</artifactId>
+              <version>${aspectj.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
@@ -34,24 +33,19 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerLicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LicenseThreatGroupConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  @Inject
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  @Inject
   private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
 
-  @Inject
   private ComponentLoaderFactory componentLoaderFactory;
 
   private Organization org;
@@ -61,6 +55,28 @@ public class LicenseThreatGroupConditionTypeTest
   private LicenseThreatGroupLicense gpl20LicenseThreatGroupLicense;
 
   private ComponentLoader componentLoader;
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    licenseThreatGroupDAO = daoFactory.createLicenseThreatGroupDAO();
+    licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
+    componentLoaderFactory = new ComponentLoaderFactory(
+        daoFactory.createMultiLicenseDAO(),
+        licenseThreatGroupDAO,
+        licenseThreatGroupLicenseDAO,
+        daoFactory.createLicenseOverrideDAO(),
+        daoFactory.createSecurityVulnerabilityOverrideDAO(),
+        daoFactory.createOwnerDAO(),
+        daoFactory.createComponentLabelDAO(),
+        daoFactory.createVulnerabilityCustomRemediationDAO(),
+        daoFactory.createVulnerabilityCustomCweDAO(),
+        daoFactory.createVulnerabilityCustomCvssVectorDAO(),
+        daoFactory.createVulnerabilityCustomCvssSeverityDAO(),
+        daoFactory.createVulnerabilityGroupDAO(),
+        daoFactory.createVulnerabilityGroupVulnerabilityDAO());
+  }
 
   @Before
   public void before() {

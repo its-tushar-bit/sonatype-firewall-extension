@@ -111,6 +111,10 @@ public class BaseUrlTest
     mockHttpRequest("http://clm.sonatype.com:8080", "", "/foo", "x=y&a=b");
     assertThat(baseUrl.redirect().path("dst/index.html").build().toString())
         .isEqualTo("http://clm.sonatype.com:8080/dst/index.html?x=y&a=b");
+
+    mockHttpRequest("http://clm.sonatype.com:8080", "", "/foo", "");
+    assertThat(baseUrl.redirect().path(AssetPaths.BRAIN_ASSET_PATH).path("index.html").build().toString())
+        .isEqualTo("http://clm.sonatype.com:8080/assets/index.html");
   }
 
   @Test

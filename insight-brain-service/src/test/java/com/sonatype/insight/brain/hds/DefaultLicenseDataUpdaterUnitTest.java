@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.Collections;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -15,20 +18,14 @@ import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater.LicenseData;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class DefaultLicenseDataUpdaterUnitTest
     extends AbstractComponentTest
@@ -46,16 +43,12 @@ public class DefaultLicenseDataUpdaterUnitTest
   @Inject
   private DefaultLicenseDataUpdater defaultLicenseDataUpdater;
 
-  @Override
-  public void configure(Binder binder) {
-    licenseDAO = spy(daoFactory.createLicenseDAO());
-    multiLicenseDAO = spy(daoFactory.createMultiLicenseDAO());
-
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(LicenseDAO.class).toInstance(licenseDAO);
-    binder.bind(MultiLicenseDAO.class).toInstance(multiLicenseDAO);
-    super.configure(binder);
+  @Before
+  public void setUpDaoSpies() {
+    licenseDAO = spy(lookup(LicenseDAO.class));
+    multiLicenseDAO = spy(lookup(MultiLicenseDAO.class));
+    applyBeanFieldOverride(DefaultLicenseDataUpdater.class, "licenseDAO", licenseDAO);
+    applyBeanFieldOverride(DefaultLicenseDataUpdater.class, "multiLicenseDAO", multiLicenseDAO);
   }
 
   @Test

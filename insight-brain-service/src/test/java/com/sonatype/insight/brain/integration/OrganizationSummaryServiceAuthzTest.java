@@ -5,21 +5,16 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.clm.dto.model.organization.OrganizationSummary;
 import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class OrganizationSummaryServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -28,13 +23,6 @@ public class OrganizationSummaryServiceAuthzTest
   private OrganizationSummaryService service;
 
   private Organization otherOrg;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
-  }
 
   @Override
   public void beforeTest() {

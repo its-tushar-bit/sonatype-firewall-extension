@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
-import com.google.inject.Binder;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.After;
 import org.junit.Before;
@@ -79,12 +78,6 @@ public class SamlFilterTest
   @Before
   public void before() {
     spyServletHttpFacade = spy(new ServletHttpFacade(mockHttpServletRequest, mockHttpServletResponse));
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(Configuration.class).toInstance(mockConfiguration);
-    super.configure(binder);
   }
 
   @After

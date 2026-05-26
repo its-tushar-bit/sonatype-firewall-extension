@@ -5,16 +5,16 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.lang.reflect.Method;
+import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
+
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
-import jakarta.ws.rs.ext.Provider;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProperties.SUBJECT_USER;
+import java.lang.reflect.Method;
+import org.springframework.util.ClassUtils;
 
 /**
  * Audits the event kind for an Admin REST resource. Worth to highlight is that this request filter can grab the event
@@ -22,14 +22,14 @@ import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProp
  * differently, this request filter is the first opportunity where the request path has been mapped to a REST resource,
  * allowing to reason about the specific operation undertaken by the caller.
  */
-@Provider
+@jakarta.ws.rs.ext.Provider
 public class AdminAuditContainerRequestFilter
     implements ContainerRequestFilter
 {
-  private final jakarta.inject.Provider<ResourceInfo> resourceInfoProvider;
+  private final Provider<ResourceInfo> resourceInfoProvider;
 
   @Inject
-  public AdminAuditContainerRequestFilter(jakarta.inject.Provider<ResourceInfo> resourceInfoProvider) {
+  public AdminAuditContainerRequestFilter(Provider<ResourceInfo> resourceInfoProvider) {
     this.resourceInfoProvider = resourceInfoProvider;
   }
 
@@ -49,15 +49,10 @@ public class AdminAuditContainerRequestFilter
 
     Audited audited = method.getAnnotation(Audited.class);
 
-    if (audited == null && method.getDeclaringClass().getName().contains("Guice$$")) {
-      // workaround for https://github.com/google/guice/issues/201
-      // resource classes using AOP (e.g. for @Authorize) get subclassed but the generated subclasses miss the
-      // annotations, so we have to manually inspect the original class
+    Class<?> userClass = ClassUtils.getUserClass(method.getDeclaringClass());
+    if (audited == null && userClass != method.getDeclaringClass()) {
       try {
-        audited = method.getDeclaringClass()
-            .getSuperclass()
-            .getMethod(method.getName(), method.getParameterTypes())
-            .getAnnotation(Audited.class);
+        audited = userClass.getMethod(method.getName(), method.getParameterTypes()).getAnnotation(Audited.class);
       }
       catch (NoSuchMethodException e) {
         throw new IllegalStateException(e);

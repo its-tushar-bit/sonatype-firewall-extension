@@ -5,50 +5,35 @@
  */
 package com.sonatype.insight.brain.service;
 
-import org.junit.experimental.categories.Category;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.ArrayList;
-import java.util.List;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.quartz.Scheduler;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 @Category(SlowTest.class)
 public class MtiqShutdownTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  @Override
-  protected List<Module> getBrainModules() {
-    List<Module> modules = new ArrayList<>(super.getBrainModules());
-
-    // Add a module that registers our test TenantManaged bean using Multibinder
-    modules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        // Explicit binding required for TempTenantManaged
-        bind(TempTenantManaged.class);
-
-        // Use Multibinder to add our test TenantManaged bean to the set
-        Multibinder<TenantManaged> tenantManagedBinder = Multibinder.newSetBinder(binder(), TenantManaged.class);
-        tenantManagedBinder.addBinding().to(TempTenantManaged.class);
-      }
-    });
-
-    return modules;
+  /**
+   * Test configuration that registers TempTenantManaged as a TenantManaged bean.
+   */
+  @TestConfiguration
+  static class MtiqShutdownTestConfig
+  {
+    @Bean
+    TempTenantManaged tempTenantManaged() {
+      return new TempTenantManaged();
+    }
   }
 
   /**
@@ -66,11 +51,15 @@ public class MtiqShutdownTest
 
     assertThat(taskScheduler.getScheduler()).isNotNull();
 
-    TempTenantManaged tenantManaged = getCLMServer().getInstance(TempTenantManaged.class);
+    TempTenantManaged tenantManaged = getCLMServer()
+        .getApplicationContext()
+        .getBean("tempTenantManaged", TempTenantManaged.class);
 
-    stopClmServer();
+    getCLMServer().getInstance(TenantManagedInitializer.class).stop();
 
     assertThat(tenantManaged.schedulerDuringDeregistration).isNotNull();
+
+    stopClmServer();
   }
 
   @Named

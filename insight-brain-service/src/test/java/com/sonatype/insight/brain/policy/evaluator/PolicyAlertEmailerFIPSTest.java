@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
@@ -25,10 +24,7 @@ public class PolicyAlertEmailerFIPSTest
   public EnvironmentVariables environmentVariables;
 
   @After
-  @Override
-  public void tearDown() {
-    super.afterTest();
-
+  public void afterFipsTest() {
     // Ensure that the Bouncy Castle FIPS provider is removed after the tests as
     // some providers are accessed in the afterTest parent method.
     removeBouncyCastleFipsProvider();

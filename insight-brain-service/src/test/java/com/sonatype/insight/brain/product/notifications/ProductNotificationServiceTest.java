@@ -5,13 +5,8 @@
  */
 package com.sonatype.insight.brain.product.notifications;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.notification.ProductNotification;
 import com.sonatype.clm.dto.model.notification.ProductNotificationType;
@@ -19,13 +14,14 @@ import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotif
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class ProductNotificationServiceTest
     extends AbstractComponentTest
@@ -38,12 +34,6 @@ public class ProductNotificationServiceTest
 
   @Mock
   private HdsProductNotificationService hdsNotificationService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsProductNotificationService.class).toInstance(hdsNotificationService);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetNotifications_PageSizeGreaterThanNumItems() {

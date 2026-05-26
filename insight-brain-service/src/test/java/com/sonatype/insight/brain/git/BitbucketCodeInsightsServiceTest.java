@@ -5,16 +5,24 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_LOGO_URL;
+import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORTER;
+import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_KEY;
+import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_TITLE;
+import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_TYPE;
+import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.google.common.collect.ImmutableMap;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -35,9 +43,15 @@ import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClient;
 import com.sonatype.nexus.scm.bitbucket.BitbucketCodeInsightReportOutcome;
 import com.sonatype.nexus.scm.bitbucket.BitbucketLinkDataParameter;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,23 +59,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_LOGO_URL;
-import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORTER;
-import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_KEY;
-import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_TITLE;
-import static com.sonatype.insight.brain.git.BitbucketCodeInsightsService.CODE_INSIGHT_REPORT_TYPE;
-import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
-import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
-import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
-import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class BitbucketCodeInsightsServiceTest
     extends AbstractComponentTest
@@ -160,13 +157,6 @@ public class BitbucketCodeInsightsServiceTest
     // setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(
         featureBranchPolicyEvaluation.getApplicationId(), featureBranchPolicyEvaluation.getScanId());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScmReducedSecurityService.class).toInstance(mockScmReducedSecurityService);
-
-    super.configure(binder);
   }
 
   @Test

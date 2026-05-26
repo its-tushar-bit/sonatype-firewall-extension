@@ -5,14 +5,25 @@
  */
 package com.sonatype.insight.brain.git.pullrequestcreationservice;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
+import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.SAME_VERSION;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
-
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -29,14 +40,14 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
-import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.metrics.ScmOperationMetrics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -55,39 +66,49 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
-
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
-import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.ALREADY_REMEDIATED;
-import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NOT_ELIGIBLE;
-import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.NO_REMEDIATION;
-import static com.sonatype.insight.brain.metrics.ScmPrIneligibleReason.SAME_VERSION;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
+@ContextConfiguration(classes = ManualPullRequestCreationServiceTest.ManualPullRequestCreationServiceTestConfig.class)
 public class ManualPullRequestCreationServiceTest
     extends AbstractComponentTest
 {
+  private static final int WIREMOCK_PORT = 18091;
+
+  @TestConfiguration
+  static class ManualPullRequestCreationServiceTestConfig
+  {
+    @Bean
+    @Primary
+    GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache(
+        final GitHubAppDAO githubAppDAO,
+        final InsightProxy insightProxy,
+        final GitApiClientFactory gitApiClientFactory,
+        final PasswordHandler passwordHandler)
+    {
+      return new GitHubAppAuthStrategyCache(
+          githubAppDAO,
+          insightProxy,
+          gitApiClientFactory,
+          passwordHandler,
+          "http://localhost:" + WIREMOCK_PORT);
+    }
+  }
+
   private static final String DEFAULT_SCAN_ID = "scan-id";
 
   private static final String DEFAULT_VERSION = "1.0.0";
@@ -128,7 +149,7 @@ public class ManualPullRequestCreationServiceTest
           "/2Zcph16+6zclEkOgCD+Gw==";
 
   @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
+  public WireMockRule gitService = new WireMockRule(wireMockConfig().port(WIREMOCK_PORT));
 
   @Mock
   private ComponentInfoService mockComponentInfoService;
@@ -162,28 +183,6 @@ public class ManualPullRequestCreationServiceTest
   private ComponentIdentifier mavenComponent;
 
   private Stage stage;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
-    binder.bind(ScmOperationMetrics.class).toInstance(mockScmOperationMetrics);
-
-    // Override GitHubAppAuthStrategyCache to use WireMock URL for GitHub App endpoints
-    Provider<GitHubAppDAO> githubAppDAOProvider = binder.getProvider(GitHubAppDAO.class);
-    Provider<InsightProxy> insightProxyProvider = binder.getProvider(InsightProxy.class);
-    Provider<GitApiClientFactory> gitApiClientFactoryProvider = binder.getProvider(GitApiClientFactory.class);
-    Provider<PasswordHandler> passwordHandlerProvider = binder.getProvider(PasswordHandler.class);
-
-    binder.bind(GitHubAppAuthStrategyCache.class)
-        .toProvider(() -> new GitHubAppAuthStrategyCache(
-            githubAppDAOProvider.get(),
-            insightProxyProvider.get(),
-            gitApiClientFactoryProvider.get(),
-            passwordHandlerProvider.get(),
-            gitService.baseUrl()));
-
-    super.configure(binder);
-  }
 
   @Before
   public void setup() throws PlexusCipherException {

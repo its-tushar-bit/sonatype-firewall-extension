@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import java.util.List;
-
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -14,12 +12,11 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-
-import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -31,14 +28,16 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
-@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
-@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
+@Primary
 public class MultiTenantTaskScheduler
     extends TaskScheduler
+    implements SmartInitializingSingleton
 {
   // Visible for test
   static final String TASK_SCHEDULER_THREAD_POOL_SIZE = "TASK_SCHEDULER_THREAD_POOL_SIZE";
@@ -58,7 +57,7 @@ public class MultiTenantTaskScheduler
       MultiTenantQuartzJobStoreTX quartzJobStoreTX,
       MultiTenantBatchModeJobStoreTX mtiqBatchJobStoreTX,
       JobFactory jobFactory,
-      @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
+      @Value("${scheduler.name:" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
       QuartzConcurrencyListener quartzConcurrencyListener,
       Provider<TenantContextJobListener> tenantContextJobListener,
@@ -86,17 +85,24 @@ public class MultiTenantTaskScheduler
 
   @Override
   public void start() throws Exception {
-    assertTenantsArePreRegistered();
+    ensureTenantsArePreRegistered();
 
     doStart();
   }
 
-  private void assertTenantsArePreRegistered() {
-    if (!tenantManager.get().areTenantsPreRegistered()) {
-      // If this ever fails, ensure TenantManager is started BEFORE MultiTenantTaskScheduler
-      System.err.println("Fatal error: Task scheduler is trying to start but tenants are not pre-registered yet");
-      shutdownHandler.exit(11);
+  @Override
+  public void afterSingletonsInstantiated() {
+    ensureTenantsArePreRegistered();
+    try {
+      doStart();
     }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to start multi-tenant task scheduler", e);
+    }
+  }
+
+  private void ensureTenantsArePreRegistered() {
+    tenantManager.get().ensureTenantsPreRegistered();
   }
 
   private void doStart() throws Exception {

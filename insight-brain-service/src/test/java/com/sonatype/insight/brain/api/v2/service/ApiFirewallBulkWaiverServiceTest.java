@@ -42,6 +42,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+import org.junit.After;
+
+import static org.mockito.Mockito.mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService.MAX_BULK_WAIVER_VIOLATIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
@@ -126,6 +134,7 @@ public class ApiFirewallBulkWaiverServiceTest
 
   @Before
   public void setUp() throws Exception {
+    SecurityAspectControl.disableEnforcement();
     service = new ApiFirewallBulkWaiverService(
         ownerDAO,
         repositoryDAO,
@@ -134,6 +143,16 @@ public class ApiFirewallBulkWaiverServiceTest
         policyWaiverDAO,
         apiPolicyWaiverService,
         idUtils);
+
+    // Set up Shiro SecurityManager and authenticated subject for AspectJ-woven @Authorize checks
+    SecurityManager securityManager = mock(SecurityManager.class);
+    ThreadContext.bind(securityManager);
+    SimplePrincipalCollection principals = new SimplePrincipalCollection("admin", "testRealm");
+    Subject subject = new Subject.Builder(securityManager)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(subject);
 
     // Default mock setup
     when(idUtils.getInternalOwnerId(any(OwnerType.class), anyString())).thenReturn(INTERNAL_OWNER_ID);
@@ -157,6 +176,13 @@ public class ApiFirewallBulkWaiverServiceTest
 
     // Default mock for policyWaiverDAO - return empty list (no existing waivers)
     when(policyWaiverDAO.getActiveApplicableByOwnerId(anyString())).thenReturn(Collections.emptyList());
+  }
+
+  @After
+  public void unbindSecurityManager() {
+    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
   }
 
   // ============================================================================

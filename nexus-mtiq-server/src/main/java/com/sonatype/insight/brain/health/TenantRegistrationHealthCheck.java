@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.health;
 
+import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
+import com.sonatype.insight.brain.tenancy.TenantManager;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
-import com.sonatype.insight.brain.tenancy.TenantManager;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * A 'READY' health check to ensure all tenants are registered before the application is considered ready.
@@ -29,11 +29,10 @@ public class TenantRegistrationHealthCheck
   }
 
   @Override
-  protected Result check() throws Exception {
-    ResultBuilder resultBuilder = Result.builder();
+  public Health check() throws Exception {
     if (!tenantManager.areTenantsPreRegistered()) {
-      resultBuilder.unhealthy();
+      return Health.down().withDetail("message", "Tenants not pre-registered").build();
     }
-    return resultBuilder.build();
+    return Health.up().build();
   }
 }

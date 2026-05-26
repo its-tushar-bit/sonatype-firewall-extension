@@ -5,6 +5,14 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.utils.Retry;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -18,18 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.brain.utils.Retry;
-
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.DailyTimeIntervalScheduleBuilder;
 import org.quartz.Job;
@@ -47,17 +43,20 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.impl.DirectSchedulerFactory;
+import org.quartz.impl.SchedulerRepository;
 import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import com.sonatype.insight.brain.lifecycle.Managed;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.util.ClassUtils;
 
 @Named
 @Singleton
-@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
-@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY)
+@DependsOn("staticInjectionInitializer")
 public class TaskScheduler
     implements Managed
 {
@@ -92,7 +91,7 @@ public class TaskScheduler
   public TaskScheduler(
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
-      @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
+      @Value("${scheduler.name:" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
       QuartzConcurrencyListener quartzConcurrencyListener,
       ShutdownHandler shutdownHandler,
@@ -124,6 +123,16 @@ public class TaskScheduler
       return null;
     }
     try {
+      Scheduler existingScheduler = DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
+      if (existingScheduler != null) {
+        if (!existingScheduler.isShutdown()) {
+          log.warn("Reusing existing Quartz scheduler {}; this may indicate duplicate TaskScheduler initialization " +
+              "or leaked scheduler state from a previous test.", schedulerName);
+          return existingScheduler;
+        }
+        SchedulerRepository.getInstance().remove(schedulerName);
+      }
+
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
       DirectSchedulerFactory.getInstance()
@@ -144,6 +153,16 @@ public class TaskScheduler
 
   public void initialize() {
     createScheduler(schedulerName, quartzJobStoreTX);
+  }
+
+  /**
+   * Overrides the bridge default so that Spring's bean initialization does NOT auto-start the scheduler.
+   * DefaultApplicationLifecycle.boot() creates the scheduler, and DefaultTenantManagedInitializer
+   * starts it explicitly via {@link #start()} before tenant job registration.
+   */
+  @Override
+  public void afterPropertiesSet() {
+    // no-op — defer scheduler startup
   }
 
   @Override
@@ -179,9 +198,10 @@ public class TaskScheduler
   }
 
   public static Class<? extends Job> normalizeJobClass(Class<? extends Job> jobClass) {
-    if (jobClass.getName().contains("Guice$$")) {
-      // components employing AOP have runtime-generated subclasses, those aren't persistable for jobs
-      jobClass = jobClass.getSuperclass().asSubclass(Job.class);
+    Class<?> userClass = ClassUtils.getUserClass(jobClass);
+    if (userClass != jobClass && Job.class.isAssignableFrom(userClass)) {
+      // components employing AOP may be runtime-generated subclasses, which are not persistable Quartz job classes
+      return userClass.asSubclass(Job.class);
     }
     return jobClass;
   }
@@ -361,6 +381,9 @@ public class TaskScheduler
 
   // Visible for testing
   Set<String> getOtherNodeIds() {
+    if (!quartzJobStoreTX.isReadyForClusterQueries()) {
+      return Collections.emptySet();
+    }
     Set<String> otherNodeIds;
     try {
       otherNodeIds = quartzJobStoreTX.getSchedulerStateRecords()
@@ -428,12 +451,14 @@ public class TaskScheduler
   }
 
   public Date getNextExecutionTime(InsightJob insightJob) {
-    return getTrigger(toTriggerKey(insightJob), insightJob).getNextFireTime();
+    Trigger trigger = getTrigger(toTriggerKey(insightJob), insightJob);
+    return trigger != null ? trigger.getNextFireTime() : null;
   }
 
   private Trigger getTrigger(TriggerKey triggerKey, InsightJob insightJob) {
     try {
-      return getScheduler(insightJob).getTrigger(triggerKey);
+      Scheduler scheduler = getScheduler(insightJob);
+      return scheduler != null ? scheduler.getTrigger(triggerKey) : null;
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -447,10 +472,16 @@ public class TaskScheduler
   }
 
   public void shutdownScheduler(Scheduler scheduler) throws SchedulerException {
-    if (scheduler != null && !scheduler.isShutdown()) {
-      scheduler.shutdown();
-      log.info("Stopped task scheduler {}", scheduler.getSchedulerName());
+    if (scheduler == null) {
+      return;
     }
+
+    String schedulerName = scheduler.getSchedulerName();
+    if (!scheduler.isShutdown()) {
+      scheduler.shutdown();
+      log.info("Stopped task scheduler {}", schedulerName);
+    }
+    SchedulerRepository.getInstance().remove(schedulerName);
   }
 
   /**

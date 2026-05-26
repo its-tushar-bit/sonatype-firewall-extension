@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.Response.StatusType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiOwnerArtifactoryConnectionDTO;
@@ -22,17 +22,14 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.StatusType;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public class ApiArtifactoryConnectionServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -54,12 +51,6 @@ public class ApiArtifactoryConnectionServiceAuthzTest
 
   @Mock
   private ArtifactoryClient client;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ArtifactoryClientFactory.class).toInstance(mockFactory);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

@@ -78,6 +78,10 @@ public class ApiDevelopmentPrioritiesResourceTest
   @Test
   public void testGetPriorities_returnsCorrectErrorWhenLicenseDoesNotIncludeDevelopment() throws Exception {
     getTestProductLicenseManager().setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+    // Explicitly clear the DEVELOPER_DASHBOARD feature — reset() sets EnumSet.allOf(LicensedFeature.class)
+    // on DefaultProductLicense, and setProducts() alone doesn't update features in the mock manager,
+    // so the feature check falls through to super.getFeatures() which still has all features.
+    getTestProductLicenseManager().setFeatures();
 
     final HttpResponse response = restRequest()
         .auth()
@@ -128,6 +132,8 @@ public class ApiDevelopmentPrioritiesResourceTest
 
   @Test
   public void testGetPrioritiesExport_returnsSuccessWhenCorrectPermissions() throws Exception {
+    getTestProductLicenseManager().setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
         GIVEN_SCAN_ID, new Date(System.currentTimeMillis()));
 

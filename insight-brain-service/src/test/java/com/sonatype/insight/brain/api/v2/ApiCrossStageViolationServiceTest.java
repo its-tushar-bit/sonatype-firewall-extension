@@ -48,7 +48,8 @@ public class ApiCrossStageViolationServiceTest
 
   private Policy policy;
 
-  private final ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
+  private static final ComponentIdentifier COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
 
   @Inject
   private PolicyDAO policyDAO;
@@ -73,7 +74,7 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     violation1.setActionTypeId("fail");
     violation1.setFilename("foo.js");
@@ -83,7 +84,7 @@ public class ApiCrossStageViolationServiceTest
     // equivalent, different stage
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     violation2.setActionTypeId("warn");
     violation2.setFilename("foo.js");
@@ -92,19 +93,19 @@ public class ApiCrossStageViolationServiceTest
     // equivalent, different stage, opened after violation1 is fixed but before violation2 is fixed
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation3.setFilename("foo.js");
     policyViolationDAO.update(violation3);
 
     // equivalent, different app
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4",
         new Date(baseDate.getTime() + 4));
-    tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1234", "vuln1");
+    tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent (different constraint)
     PolicyEvaluation eval5 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan5",
         new Date(baseDate.getTime() + 4));
-    tempEntity.newPolicyViolation(eval5, policy, componentIdentifier, "1234", "vuln2");
+    tempEntity.newPolicyViolation(eval5, policy, COMPONENT_IDENTIFIER, "1234", "vuln2");
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.policyViolationId).isEqualTo(violation1.getId());
@@ -139,17 +140,17 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.policyOwner.ownerName).isEqualTo(policyOwnerOrg.getName());
     assertThat(result.policyOwner.ownerType).isEqualTo("organization");
 
-    assertThat(result.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+    assertThat(result.componentIdentifier.getFormat()).isEqualTo(COMPONENT_IDENTIFIER.getFormat());
     assertThat(result.componentIdentifier.getCoordinates().keySet().toArray())
-        .containsExactly(componentIdentifier.getCoordinates().keySet().toArray());
+        .containsExactly(COMPONENT_IDENTIFIER.getCoordinates().keySet().toArray());
     assertThat(result.componentIdentifier.getCoordinates().values().toArray())
-        .containsExactly(componentIdentifier.getCoordinates().values().toArray());
+        .containsExactly(COMPONENT_IDENTIFIER.getCoordinates().values().toArray());
   }
 
   @Test
   public void testGetCrossStageViolationById_WithFixTime() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     policyViolationDAO.update(violation1);
 
@@ -157,31 +158,31 @@ public class ApiCrossStageViolationServiceTest
     // that eval2 is still correctly picked up
     PolicyEvaluation eval6 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_OPERATE, "scan6",
         new Date(baseDate.getTime() + 6));
-    tempEntity.newPolicyViolation(eval6, policy, componentIdentifier, "1234", "vuln1");
+    tempEntity.newPolicyViolation(eval6, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // equivalent, different stage, opened before violation1 is fixed
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation2);
 
     // equivalent, different stage, opened after violation1 is fixed but before violation2 is fixed
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation3.setFixTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation3);
 
     // equivalent, different app
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4",
         new Date(baseDate.getTime() + 4));
-    tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1234", "vuln1");
+    tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent (different constraint)
     PolicyEvaluation eval5 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan5",
         new Date(baseDate.getTime() + 4));
-    tempEntity.newPolicyViolation(eval5, policy, componentIdentifier, "1234", "vuln2");
+    tempEntity.newPolicyViolation(eval5, policy, COMPONENT_IDENTIFIER, "1234", "vuln2");
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.fixTime.getTime()).isEqualTo(baseDate.getTime() + 5);
@@ -191,14 +192,14 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById_ViolationsClosedAfterOthersOpenedAndClosed() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation1);
 
     // equivalent, different stage
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 4));
     policyViolationDAO.update(violation2);
 
@@ -209,14 +210,14 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById_WithWaivers() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     policyViolationDAO.update(violation1);
 
     // equivalent, different stage
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     violation2.setWaiveTime(new Date(baseDate.getTime() + 3));
     policyViolationDAO.update(violation2);
@@ -224,7 +225,7 @@ public class ApiCrossStageViolationServiceTest
     // equivalent, different stage, opened after violation1 is fixed but before violation2 is fixed
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation3.setFixTime(new Date(baseDate.getTime() + 3));
     violation3.setWaiveTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation3);
@@ -241,12 +242,12 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById_IdOfNonFirstViolation() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // equivalent, different stage
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getCrossStageViolationById(violation2.getId()));
@@ -257,7 +258,7 @@ public class ApiCrossStageViolationServiceTest
     Application policyOwnerApp = tempEntity.newApplication("public-foo", org.getId());
     Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.policyOwner.ownerId).isEqualTo(policyOwnerApp.getId());
@@ -271,7 +272,7 @@ public class ApiCrossStageViolationServiceTest
     Application policyOwnerApp = tempEntity.newApplication("public-foo", org.getId());
     Policy policy = tempEntity.newPolicy(policyOwnerApp.getId(), "p1", 7);
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     policyDAO.delete(policy);
 
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
@@ -285,7 +286,7 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationByConstituentId() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     violation1.setFilename("foo.js");
     policyViolationDAO.update(violation1);
@@ -293,27 +294,27 @@ public class ApiCrossStageViolationServiceTest
     // equivalent, different stage
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation2);
 
     // equivalent, different stage, opened after violation1 is fixed but before violation2 is fixed
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent - same app
-    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1235", "vuln2");
+    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1235", "vuln2");
 
     // equivalent, different app
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation5 = tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation5 = tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent (different constraint and different app)
     PolicyEvaluation eval5 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, "scan6",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation6 = tempEntity.newPolicyViolation(eval5, policy, componentIdentifier, "1235", "vuln2");
+    PolicyViolation violation6 = tempEntity.newPolicyViolation(eval5, policy, COMPONENT_IDENTIFIER, "1235", "vuln2");
 
     // For the initial violation it should return its id
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
@@ -325,11 +326,11 @@ public class ApiCrossStageViolationServiceTest
     assertCrossStageData(crossViolation1, Stage.ID_BUILD, baseDate, "scan1", null);
     assertCrossStageData(crossViolation1, Stage.ID_RELEASE, violation2.getOpenTime(), "scan2", null);
     assertCrossStageData(crossViolation1, Stage.ID_STAGE_RELEASE, violation3.getOpenTime(), "scan3", null);
-    assertThat(crossViolation1.componentIdentifier.getFormat()).isEqualTo(componentIdentifier.getFormat());
+    assertThat(crossViolation1.componentIdentifier.getFormat()).isEqualTo(COMPONENT_IDENTIFIER.getFormat());
     assertThat(crossViolation1.componentIdentifier.getCoordinates().keySet().toArray())
-        .containsExactly(componentIdentifier.getCoordinates().keySet().toArray());
+        .containsExactly(COMPONENT_IDENTIFIER.getCoordinates().keySet().toArray());
     assertThat(crossViolation1.componentIdentifier.getCoordinates().values().toArray())
-        .containsExactly(componentIdentifier.getCoordinates().values().toArray());
+        .containsExactly(COMPONENT_IDENTIFIER.getCoordinates().values().toArray());
 
     // For an equivalent violation in a different stage it should return the earliest id
     ApiCrossStageViolationDTOV2 crossViolation2 = service.getCrossStageViolationByConstituentId(violation2.getId());
@@ -366,22 +367,22 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationByConstituentId_SingleStages() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent - same app
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan2",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1235", "vuln2");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1235", "vuln2");
 
     // equivalent, different app
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // not equivalent (different constraint and different app)
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_OPERATE, "scan4",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1235", "vuln2");
+    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1235", "vuln2");
 
     // For a single-stage violation its crossStageViolationId is its own id.
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
@@ -399,28 +400,28 @@ public class ApiCrossStageViolationServiceTest
     // A violation, closed.
     PolicyEvaluation eval1 =
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 1));
     policyViolationDAO.update(violation1);
 
     // Equivalent, same stage. Opened after violation1 was closed.
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation2.setFixTime(new Date(baseDate.getTime() + 5));
     policyViolationDAO.update(violation2);
 
     // Equivalent, different stage. Opened while violation2 was open.
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan3",
         new Date(baseDate.getTime() + 3));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation3.setFixTime(new Date(baseDate.getTime() + 7));
     policyViolationDAO.update(violation3);
 
     // Equivalent, different stage, opened after violation2 is fixed but before violation3 is fixed
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan4",
         new Date(baseDate.getTime() + 6));
-    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // If the given id is the id of the earliest violation then the calculated id should be the same
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
@@ -440,24 +441,24 @@ public class ApiCrossStageViolationServiceTest
   public void testGetCrossStageViolationByConstituentId_WithOpenEquivalentEarlierViolation() {
     // An earlier, closed violation.
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 1));
     policyViolationDAO.update(violation1);
 
     // First violation, unfixed
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // Equivalent, different stage, unfixed.
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scan2",
         new Date(baseDate.getTime() + 3));
-    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation3 = tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // Equivalent, different stage, unfixed.
     PolicyEvaluation eval4 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan3",
         new Date(baseDate.getTime() + 4));
-    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation4 = tempEntity.newPolicyViolation(eval4, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     ApiCrossStageViolationDTOV2 crossViolation1 = service.getCrossStageViolationByConstituentId(violation1.getId());
     assertThat(crossViolation1.policyViolationId).isEqualTo(violation1.getId());
@@ -485,19 +486,19 @@ public class ApiCrossStageViolationServiceTest
     // A waived violation
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
     PolicyViolation buildStageViolation1 =
-        tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+        tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     buildStageViolation1.setWaiveTime(new Date(baseDate.getTime() + 3));
 
     // equivalent, different stage, opened before violation1 is fixed
     PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2",
         new Date(baseDate.getTime() + 2));
-    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
 
     // The un-waived version of buildStageViolation1
     PolicyEvaluation eval3 =
         tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan3", new Date(baseDate.getTime() + 6));
     PolicyViolation buildStageViolation2 =
-        tempEntity.newPolicyViolation(eval3, policy, componentIdentifier, "1234", "vuln1");
+        tempEntity.newPolicyViolation(eval3, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     buildStageViolation1.setFixTime(new Date(baseDate.getTime() + 6));
     policyViolationDAO.update(buildStageViolation1);
 
@@ -524,7 +525,7 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById_WithAutoWaivers() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setFixTime(new Date(baseDate.getTime() + 3));
     violation1.setWaiveTime(new Date(baseDate.getTime() + 3));
     violation1.setAutoPolicyWaiverId("waiver1");
@@ -538,7 +539,7 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetCrossStageViolationById_OutsideOfLatestViolationDateRange() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     violation1.setOpenTime(new Date(baseDate.getTime() + 2000));
     violation1.setFixTime(new Date(baseDate.getTime() + 3000));
     policyViolationDAO.update(violation1);
@@ -558,7 +559,7 @@ public class ApiCrossStageViolationServiceTest
     // waived violation as soon as it appears
     Date time1 = new Date(baseDate.getTime());
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", time1);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     PolicyWaiver waiver1 = tempEntity.newWaiver(policy.getId(), policy.getOwnerId());
 
     violation1.setApplicationId(app.getId());
@@ -577,7 +578,7 @@ public class ApiCrossStageViolationServiceTest
   @Test
   public void testGetReachabilityStatus() {
     PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
-    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, COMPONENT_IDENTIFIER, "1234", "vuln1");
     policyViolationDAO.update(violation1);
     ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
     assertThat(result.reachabilityStatus).isNull();

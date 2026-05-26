@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.IOException;
-
-import io.dropwizard.core.server.DefaultServerFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.servlet.Filter;
@@ -21,14 +18,16 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Servlet filter that handles requests with the /platform/ prefix. When running with applicationContextPath="/", this
  * filter: - Redirects /platform and /platform/ to /platform/assets/index.html - Rewrites /platform/* to /* so
  * downstream filters (Shiro) can match security rules - Maintains /platform in getRequestURL() for JavaScript BASE_URL
- * detection - Forwards /platform/assets/* requests to the AssetsBundle servlet
+ * detection - Forwards /platform/assets/* requests to the assets servlet
  * <p>
  * This ensures that: 1. Shiro filter chains (configured for /rest/..., /api/...) work correctly 2. Anonymous access
  * rules (e.g., /rest/product/version) apply to /platform/rest/product/version 3. JAX-RS resources are accessible at
@@ -48,20 +47,9 @@ public class PlatformContextFilter
   private ServletContext servletContext;
 
   @Inject
-  public PlatformContextFilter(MultiTenantInsightConfig insightConfiguration) {
-    // Get the actual context path from Dropwizard config
-    if (insightConfiguration.getServerFactory() instanceof DefaultServerFactory serverFactory) {
-      applicationContextPath = serverFactory.getApplicationContextPath();
-    }
-    else {
-      log.warn(
-          "Unrecognized server factory type: {}. Assuming default application context path '/'",
-          insightConfiguration.getServerFactory().getClass().getName());
-      applicationContextPath = "/";
-    }
-  }
-
-  protected PlatformContextFilter(String applicationContextPath) {
+  public PlatformContextFilter(
+      @Value("${server.servlet.context-path:/}") String applicationContextPath)
+  {
     this.applicationContextPath = applicationContextPath;
   }
 
@@ -158,8 +146,8 @@ public class PlatformContextFilter
       }
     };
 
-    // Asset requests need to be forwarded to avoid 404 from Guice filter chain
-    // The AssetsBundle servlet is registered outside the Guice filter chain
+    // Asset requests need to be forwarded to avoid 404s from the main security filter chain.
+    // The asset servlet is registered separately from that chain.
     if (rewrittenPath.startsWith("/assets")) {
       log.trace("Forwarding asset request to asset servlet: {}", rewrittenPath);
       ServletContext ctx = servletContext != null ? servletContext : request.getServletContext();

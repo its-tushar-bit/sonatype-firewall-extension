@@ -5,23 +5,32 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.LocalTime;
-import java.util.Date;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalTime;
+import java.util.Date;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,13 +39,6 @@ import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ScanFileCleanerTest
     extends AbstractComponentTest
@@ -59,14 +61,10 @@ public class ScanFileCleanerTest
   private TaskScheduler taskSchedulerMock;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     migrationTrackerDAO.deleteById(ScanFileCleaner.MARKER_ID);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
+    Files.deleteIfExists(scanFileCleaner.getObsoleteMarkerFile());
+    applyBeanFieldOverride(ScanFileCleaner.class, "taskScheduler", taskSchedulerMock);
   }
 
   @Test
@@ -145,6 +143,77 @@ public class ScanFileCleanerTest
     scanFileCleaner.deleteScanFiles();
 
     assertThat(Files.list(scanDir)).containsExactly(newScanFile);
+
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_LogsWarningIfItCannotDeleteFile() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Application app = tempEntity.newApplicationWithParent();
+    Path scanDir = insightWork.getScanDir(app.getId()).toPath();
+    Path oldScanFile1 = scanDir.resolve("old-file1").toAbsolutePath();
+    Path oldScanFile2 = scanDir.resolve("old-file2").toAbsolutePath();
+    long oldTimestamp = System.currentTimeMillis() - ONE_HOUR - 1;
+
+    ScanEntity oldScanEntity1 = mock(ScanEntity.class);
+    when(oldScanEntity1.getLastModifiedTime()).thenReturn(oldTimestamp);
+    when(oldScanEntity1.toString()).thenReturn(oldScanFile1.toString());
+
+    ScanEntity oldScanEntity2 = mock(ScanEntity.class);
+    when(oldScanEntity2.getLastModifiedTime()).thenReturn(oldTimestamp);
+    when(oldScanEntity2.toString()).thenReturn(oldScanFile2.toString());
+
+    ScanPersistenceService mockScanPersistenceService = mock(ScanPersistenceService.class);
+    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(java.util.stream.Stream.of(oldScanEntity1,
+        oldScanEntity2));
+    doThrow(new SecurityException("Test exception")).when(mockScanPersistenceService).deleteScan(oldScanEntity1);
+
+    applyBeanFieldOverride(ScanFileCleaner.class, "scanPersistenceService", mockScanPersistenceService);
+
+    scanFileCleaner.deleteScanFiles();
+
+    verify(mockScanPersistenceService).deleteScan(oldScanEntity1);
+    verify(mockScanPersistenceService).deleteScan(oldScanEntity2);
+    assertThat(logOutput).atWarnLevel()
+        .contains("Error deleting scan file '" + oldScanFile1
+            + "': java.lang.SecurityException: Test exception");
+
+    assertMarkerExists();
+  }
+
+  @Test
+  public void testDeleteScanFiles_LogsWarningIfItCannotAccessFile() throws Exception {
+    assertMarkerDoesNotExist();
+
+    Application app = tempEntity.newApplicationWithParent();
+    Path scanDir = insightWork.getScanDir(app.getId()).toPath();
+    Path oldScanFile1 = scanDir.resolve("old-file1").toAbsolutePath();
+    Path oldScanFile2 = scanDir.resolve("old-file2").toAbsolutePath();
+    long oldTimestamp = System.currentTimeMillis() - ONE_HOUR - 1;
+
+    ScanEntity oldScanEntity1 = mock(ScanEntity.class);
+    when(oldScanEntity1.getLastModifiedTime()).thenThrow(new SecurityException("Test exception"));
+    when(oldScanEntity1.toString()).thenReturn(oldScanFile1.toString());
+
+    ScanEntity oldScanEntity2 = mock(ScanEntity.class);
+    when(oldScanEntity2.getLastModifiedTime()).thenReturn(oldTimestamp);
+    when(oldScanEntity2.toString()).thenReturn(oldScanFile2.toString());
+
+    ScanPersistenceService mockScanPersistenceService = mock(ScanPersistenceService.class);
+    when(mockScanPersistenceService.allScanFilesFor(app.getId())).thenReturn(java.util.stream.Stream.of(oldScanEntity1,
+        oldScanEntity2));
+
+    applyBeanFieldOverride(ScanFileCleaner.class, "scanPersistenceService", mockScanPersistenceService);
+
+    scanFileCleaner.deleteScanFiles();
+
+    verify(mockScanPersistenceService, never()).deleteScan(oldScanEntity1);
+    verify(mockScanPersistenceService).deleteScan(oldScanEntity2);
+    assertThat(logOutput).atWarnLevel()
+        .contains("Error accessing the last modified timestamp for scan file '"
+            + oldScanFile1 + "': java.lang.SecurityException: Test exception");
 
     assertMarkerExists();
   }

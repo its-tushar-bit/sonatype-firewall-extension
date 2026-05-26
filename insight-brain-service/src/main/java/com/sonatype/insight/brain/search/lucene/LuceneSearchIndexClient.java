@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
-import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
@@ -44,7 +43,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CheckIndex.CheckIndexException;
 import org.apache.lucene.index.CorruptIndexException;
@@ -72,15 +70,10 @@ import org.apache.lucene.store.LockReleaseFailedException;
 import org.apache.lucene.util.ThreadInterruptedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * Lucene support for {@link SearchIndexClient}
- * <p>
- * Note: See {@link SearchModule} for Guice bindings
  */
-@Singleton
-@InvisibleForScanner
 public class LuceneSearchIndexClient
     extends AbstractSearchIndexClient
 {

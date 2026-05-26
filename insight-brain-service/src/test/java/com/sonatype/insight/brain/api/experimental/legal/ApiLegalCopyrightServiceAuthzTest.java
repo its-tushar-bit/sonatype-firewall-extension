@@ -5,27 +5,23 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Collections;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
-import org.apache.shiro.authz.UnauthenticatedException;
-import org.apache.shiro.authz.UnauthorizedException;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import jakarta.inject.Inject;
+import java.util.Collections;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class ApiLegalCopyrightServiceAuthzTest
@@ -40,11 +36,10 @@ public class ApiLegalCopyrightServiceAuthzTest
   @Mock
   private ApiLicenseLegalHdsService mockHdsService;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockHdsService);
+  @Before
+  public void setUpMocks() {
     lenient().when(mockHdsService.getComponentLegalCommentFilePaths(any())).thenReturn(Collections.emptyList());
-    super.configure(binder);
+    lenient().when(mockHdsService.getAnameRawComponentLegalComments(any())).thenReturn(Collections.emptySet());
   }
 
   @Test

@@ -5,24 +5,29 @@
  */
 package com.sonatype.insight.brain.sbom;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.PRIMARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.SECONDARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.DEEP_DIVE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.cyclonedx.model.vulnerability.Vulnerability.Analysis.State.RESOLVED;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -56,12 +61,24 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.cyclonedx.exception.ParseException;
@@ -76,25 +93,6 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Analysis.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
-import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.PRIMARY;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.SECONDARY;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.DEEP_DIVE;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
-import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.cyclonedx.model.vulnerability.Vulnerability.Analysis.State.RESOLVED;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class SbomResultsMergerTest
     extends AbstractComponentTest
@@ -141,16 +139,13 @@ public class SbomResultsMergerTest
 
   private CpeResultsTelemetry cpeResultsTelemetry;
 
-  @Override
-  public void configure(Binder binder) {
-    mockTelemetrySender = mock(TelemetrySender.class);
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
-
   @Before
-  public void before() {
+  public void before() throws Exception {
+    mockTelemetrySender = mock(TelemetrySender.class);
     merger = mergerProvider.get();
+    Field telemetryField = SbomResultsMerger.class.getDeclaredField("telemetrySender");
+    telemetryField.setAccessible(true);
+    telemetryField.set(merger, mockTelemetrySender);
     application = tempEntity.newApplicationWithParent();
     cpeResultsTelemetry = new CpeResultsTelemetry();
   }
@@ -771,7 +766,7 @@ public class SbomResultsMergerTest
     // Insert Scenario 2: new third party coordinate security record is inserted in db with complete sonatype data
     // FG-R00275 with no third party vulnerability data in report zip or db
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(application.getId(), "1", file, PENDING);
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-security-data",
         application.getId(), SCAN_ID);
@@ -1078,7 +1073,7 @@ public class SbomResultsMergerTest
     // License only in DB with both SBOM and Sonatype identification sources, so it should be deleted from the DB.
     tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3", "Sonatype");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(application.getId(), "1", file, PENDING);
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/SbomResultsMergerTest/report-with-third-party-license-data",
         application.getId(), SCAN_ID);
@@ -1300,7 +1295,7 @@ public class SbomResultsMergerTest
         1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
         "advisories1", "SBOM");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(application.getId(), "1", file, PENDING);
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-dependencies",
         application.getId(), SCAN_ID);
@@ -1457,7 +1452,7 @@ public class SbomResultsMergerTest
     tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
         "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar", "componentRefB");
 
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata("appId", "1", file, PENDING);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(application.getId(), "1", file, PENDING);
 
     ReportHelper.saveMockReport(insightWork, tempDir,
         "/SbomResultsMergerTest/report-for-binary-with-duplicate-components-and-component-refs",
@@ -1558,14 +1553,8 @@ public class SbomResultsMergerTest
     thirdPartyScan.setPreviousScanId("previousScanId");
     thirdPartyScanDAO.update(thirdPartyScan);
 
-    String applicationReportPath = tempDir.getRoot()
-        .toPath()
-        .relativize(insightWork.getReportDir(appId).toPath())
-        .normalize()
-        .toString()
-        .concat("/");
-    tempDir.newFolder(applicationReportPath + thirdPartyScan.getPreviousScanId());
-    tempDir.newFolder(applicationReportPath + thirdPartyScan.getScanId());
+    FileUtils.forceMkdir(insightWork.getReportDir(appId, thirdPartyScan.getPreviousScanId()));
+    FileUtils.forceMkdir(insightWork.getReportDir(appId, thirdPartyScan.getScanId()));
 
     if (!featureEnabled) {
       SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.setEnabled(false);

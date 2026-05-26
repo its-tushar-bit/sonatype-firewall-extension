@@ -5,20 +5,18 @@
  */
 package com.sonatype.insight.brain.search;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
-import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
-
+import com.sonatype.insight.brain.testing.SpringTestInsightBrainService;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
@@ -36,7 +34,8 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-default-search.yml")
+        return SpringTestInsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-default-search.yml")
             .getFile();
       }
     });
@@ -55,7 +54,8 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-opensearch-http.yml")
+        return SpringTestInsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-http.yml")
             .getFile();
       }
     });
@@ -74,7 +74,8 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-opensearch-aws.yml")
+        return SpringTestInsightBrainService.class
+            .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws.yml")
             .getFile();
       }
     });
@@ -93,7 +94,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-hybrid-mode.yml")
             .getFile();
       }
@@ -113,7 +114,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-hybrid-mode.yml")
             .getFile();
       }
@@ -133,7 +134,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-opensearch-mode.yml")
             .getFile();
       }
@@ -153,7 +154,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-opensearch-mode.yml")
             .getFile();
       }
@@ -173,7 +174,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-aws-lucene-mode.yml")
             .getFile();
       }
@@ -193,7 +194,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-lucene-mode.yml")
             .getFile();
       }
@@ -213,7 +214,7 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class
+        return SearchModuleServerStartTest.class
             .getResource("/SearchModuleServerStartTest/config-with-opensearch-http-lucene-mode.yml")
             .getFile();
       }

@@ -206,6 +206,19 @@ public class ReportResource
    * @since 1.7
    */
   @GET
+  @Path(BROWSE_PATH)
+  @Authorize(permission = Permission.READ)
+  @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
+  public Response browseReportRoot(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("scanId") final String scanId,
+      @Context final HttpServletRequest httpRequest)
+  {
+    return browseReport(appPublicId, scanId, INDEX_HTML.getName(), httpRequest);
+  }
+
+  @GET
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
@@ -217,7 +230,7 @@ public class ReportResource
       @Context final HttpServletRequest httpRequest)
   {
     ReportEntry reportEntry = reportService.processBrowseReport(applicationDAO.getByPublicId(appPublicId).getId(),
-        scanId, path);
+        scanId, normalizeBrowsePath(path));
     if (reportEntry == null) {
       return Response.status(Status.NOT_FOUND).build();
     }
@@ -761,9 +774,33 @@ public class ReportResource
   }
 
   private static Response redirectToBrain(final BaseUrl baseUrl, final String path) {
-    UriBuilder uriBuilder = baseUrl.redirect().path(path);
+    String normalizedPath = normalizeRedirectPath(path);
+    java.net.URI baseUri = baseUrl.redirect().build();
+    if (normalizedPath.isEmpty()) {
+      return Response.temporaryRedirect(baseUri).build();
+    }
+
+    String baseLocation = baseUrl.get();
+    if (!baseLocation.endsWith("/")) {
+      baseLocation += "/";
+    }
+    UriBuilder uriBuilder = UriBuilder.fromUri(baseLocation + normalizedPath);
+    if (baseUri.getRawQuery() != null) {
+      uriBuilder.replaceQuery(baseUri.getRawQuery());
+    }
 
     return Response.temporaryRedirect(uriBuilder.build()).build();
+  }
+
+  private static String normalizeBrowsePath(final String path) {
+    if (StringUtils.isBlank(path) || "/".equals(path)) {
+      return INDEX_HTML.getName();
+    }
+    return normalizeRedirectPath(path);
+  }
+
+  private static String normalizeRedirectPath(final String path) {
+    return path == null ? "" : path.replaceFirst("^/+", "");
   }
 
   /**

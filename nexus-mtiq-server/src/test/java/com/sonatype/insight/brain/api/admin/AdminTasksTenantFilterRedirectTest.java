@@ -5,31 +5,34 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-
 import static com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter.TASKS_API_ERROR_MGS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class AdminTasksTenantFilterRedirectTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
+  @Mock
+  private ShutdownHandler shutdownHandler;
+
   @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(ShutdownHandler.class).toInstance(spy(new TestShutdownHandler()));
+  @Before
+  public void initTest() throws Exception {
+    super.initTest();
+    shutdownHandler = spy(new TestShutdownHandler());
   }
 
   @Test

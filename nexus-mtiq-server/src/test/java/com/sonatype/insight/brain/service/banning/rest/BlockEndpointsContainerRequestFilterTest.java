@@ -5,13 +5,17 @@
  */
 package com.sonatype.insight.brain.service.banning.rest;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,12 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class BlockEndpointsContainerRequestFilterTest
 {
@@ -75,8 +73,8 @@ public class BlockEndpointsContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_MethodAnnotated_Guice_SendsNotFoundResponse() throws Exception {
-    when(mockResourceInfo.getResourceMethod()).thenReturn(BlockedEndpointTestGuice$$.class.getMethod("blocked"));
+  public void testFilter_MethodAnnotated_ProxySubclass_SendsNotFoundResponse() throws Exception {
+    when(mockResourceInfo.getResourceMethod()).thenReturn(BlockedEndpointTestProxy$$.class.getMethod("blocked"));
 
     underTest.filter(mockContainerRequestContext);
 
@@ -84,9 +82,9 @@ public class BlockEndpointsContainerRequestFilterTest
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testFilter_MethodNotAnnotated_Guice_ThrowsException() throws Exception {
+  public void testFilter_MethodNotAnnotated_ProxySubclass_ThrowsException() throws Exception {
     when(mockResourceInfo.getResourceMethod()).thenReturn(
-        BlockedEndpointTestGuice$$.class.getMethod("onlyInBlockedAnnotationTestGuice"));
+        BlockedEndpointTestProxy$$.class.getMethod("onlyInBlockedAnnotationTestProxy"));
 
     underTest.filter(mockContainerRequestContext);
   }
@@ -110,8 +108,8 @@ public class BlockEndpointsContainerRequestFilterTest
   }
 
   @Test
-  public void testFilter_ClassAnnotated_Guice_SendsNotFoundResponse() {
-    when(mockResourceInfo.getResourceClass()).thenAnswer(invocationOnMock -> BlockedClassTestGuice$$.class);
+  public void testFilter_ClassAnnotated_ProxySubclass_SendsNotFoundResponse() {
+    when(mockResourceInfo.getResourceClass()).thenAnswer(invocationOnMock -> BlockedClassTestProxy$$.class);
 
     underTest.filter(mockContainerRequestContext);
 
@@ -135,7 +133,7 @@ public class BlockEndpointsContainerRequestFilterTest
     }
   }
 
-  private static class BlockedEndpointTestGuice$$
+  private static class BlockedEndpointTestProxy$$
       extends BlockedEndpointTest
   {
     @Override
@@ -143,7 +141,7 @@ public class BlockEndpointsContainerRequestFilterTest
     }
 
     @SuppressWarnings("unused")
-    public void onlyInBlockedAnnotationTestGuice() {
+    public void onlyInBlockedAnnotationTestProxy() {
     }
   }
 
@@ -155,7 +153,7 @@ public class BlockEndpointsContainerRequestFilterTest
     }
   }
 
-  private static class BlockedClassTestGuice$$
+  private static class BlockedClassTestProxy$$
       extends BlockedClassTest
   {
     @Override

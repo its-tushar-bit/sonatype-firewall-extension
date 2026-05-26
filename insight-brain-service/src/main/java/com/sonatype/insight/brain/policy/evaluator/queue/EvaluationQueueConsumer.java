@@ -5,24 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -47,20 +30,35 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.scan.model.ClientScanType;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.servlets.tasks.Task;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.exception.UncheckedInterruptedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,12 +67,12 @@ import org.springframework.util.function.ThrowingConsumer;
 @Named
 @Singleton
 public class EvaluationQueueConsumer
-    extends Task
+    extends AdminTask
     implements ConfigurationListener, TenantManaged
 {
-  private static final Logger log = LoggerFactory.getLogger(EvaluationQueueConsumer.class);
+  public static final String PATH = "EvaluationQueueConsumer";
 
-  private static final String TASK_NAME = "EvaluationQueueConsumer";
+  private static final Logger log = LoggerFactory.getLogger(EvaluationQueueConsumer.class);
 
   private final ApiConfigurationService apiConfigurationService;
 
@@ -140,7 +138,7 @@ public class EvaluationQueueConsumer
       final ShutdownHandler shutdownHandler,
       final ProductLicense productLicense)
   {
-    super(TASK_NAME);
+    super(PATH);
     this.apiConfigurationService = apiConfigurationService;
     this.evaluationQueueService = evaluationQueueService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -160,6 +158,13 @@ public class EvaluationQueueConsumer
     this.running = new TenantReference<>(AtomicBoolean::new);
     this.shutdownHandler = shutdownHandler;
     this.productLicense = productLicense;
+  }
+
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    log.info("Manual request to run {}.", PATH);
+    run();
+    output.write("Completed manual execution of " + PATH + ".\n");
   }
 
   @Override
@@ -261,13 +266,6 @@ public class EvaluationQueueConsumer
       log.info("Acquired {}, evaluated {} ({} failed, {} skipped) since last poll.",
           acquiredCount, evaluatedCount, failedCount, skippedCount);
     }
-  }
-
-  @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
-    log.info("Manual request to run {}.", TASK_NAME);
-    run();
-    printWriter.write("Completed manual execution of " + TASK_NAME + ".\n");
   }
 
   class EvaluationQueueTask

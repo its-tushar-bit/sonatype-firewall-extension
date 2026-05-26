@@ -128,6 +128,9 @@ public class OidcLoginFilter
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse res = (HttpServletResponse) response;
     String path = req.getPathInfo();
+    if (path == null) {
+      path = req.getRequestURI();
+    }
     String hash = req.getParameter("hash");
     String encodedHash = StringUtils.isNotBlank(hash) ? URLEncoder.encode(hash, StandardCharsets.UTF_8) : hash;
 

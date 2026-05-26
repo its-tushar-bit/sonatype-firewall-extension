@@ -5,18 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.springframework.context.annotation.Primary;
 
 @Named
 @Singleton
+@Primary
 public class MultiTenantInsightMail
     extends InsightMail
 {

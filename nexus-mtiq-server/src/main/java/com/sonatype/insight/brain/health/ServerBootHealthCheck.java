@@ -5,16 +5,16 @@
  */
 package com.sonatype.insight.brain.health;
 
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * A 'READY' health check to ensure the app is fully 'booted' before considered ready. Note there can be a delay between
- * when the port (8070/8071) is up (which happens in the DropWizard class `ServerCommand#run()`) and when the app has
- * truly completed all the boot logic. So the port is not enough for K8S to send traffic.
+ * when the port (8070/8071) is up and when the app has truly completed all the boot logic. So the port is not enough
+ * for K8S to send traffic.
  * <p>
  * Future note: this health check can be moved higher up to on-prem if needed.
  */
@@ -39,11 +39,10 @@ public class ServerBootHealthCheck
   }
 
   @Override
-  protected Result check() throws Exception {
-    ResultBuilder resultBuilder = Result.builder();
+  public Health check() throws Exception {
     if (!fullyBooted) {
-      resultBuilder.unhealthy();
+      return Health.down().withDetail("message", "Server not fully booted").build();
     }
-    return resultBuilder.build();
+    return Health.up().build();
   }
 }

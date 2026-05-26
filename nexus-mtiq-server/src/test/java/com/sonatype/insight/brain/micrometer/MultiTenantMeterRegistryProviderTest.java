@@ -5,17 +5,18 @@
  */
 package com.sonatype.insight.brain.micrometer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.statsd.StatsdMeterRegistry;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Category(SlowTest.class)
 public class MultiTenantMeterRegistryProviderTest
@@ -66,5 +67,15 @@ public class MultiTenantMeterRegistryProviderTest
     MeterRegistry meterRegistry = underTest.get();
 
     assertThat(meterRegistry).isNull();
+  }
+
+  @Test
+  public void testProvideMeterRegistryFailsWithActionableMessageForSingleTenantConfig() {
+    assertThatThrownBy(() -> new MultiTenantMeterRegistryProvider(new InsightConfig()).get())
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("MultiTenantMeterRegistryProvider.get")
+        .hasMessageContaining(MultiTenantInsightConfig.class.getName())
+        .hasMessageContaining(InsightConfig.class.getName())
+        .hasMessageContaining("config.class=" + MultiTenantInsightConfig.class.getName());
   }
 }

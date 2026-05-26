@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.sbom.export;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -21,6 +23,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 @Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CycloneDxToSpdx3Exporter
     extends SpdxToSpdx3Exporter
 {

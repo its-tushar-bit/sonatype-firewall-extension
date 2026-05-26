@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +46,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -76,6 +76,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.xmlunit.assertj.XmlAssert;
@@ -107,6 +108,15 @@ public class ApiSbomResourceTest
     insightWork = lookup(InsightWork.class);
 
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION);
+  }
+
+  @After
+  public void clearLeakDetectionData() {
+    // SBOM tests trigger async processing (policy evaluation, search indexing) that may create
+    // entities via background threads during or after TemporaryEntity.after() cleanup.
+    // These are not real leaks — the entities are cleaned by the cascading delete — but the
+    // detection data captured from the background thread's insert remains, causing false positives.
+    AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
   }
 
   @Override
@@ -561,8 +571,7 @@ public class ApiSbomResourceTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
-    dao.insert(sbomMetadata);
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), ACTIVE, "bom.xml");
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
@@ -616,8 +625,7 @@ public class ApiSbomResourceTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
-    dao.insert(sbomMetadata);
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), ACTIVE, "bom.xml");
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
@@ -685,8 +693,7 @@ public class ApiSbomResourceTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
 
     ThirdPartySbomMetadata sbomMetadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
-    dao.insert(sbomMetadata);
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), ACTIVE, "bom.xml");
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);

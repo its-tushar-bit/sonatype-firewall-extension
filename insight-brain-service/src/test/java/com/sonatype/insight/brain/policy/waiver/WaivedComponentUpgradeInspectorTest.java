@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.policy.waiver;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import jakarta.inject.Inject;
-
-import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
@@ -34,25 +38,14 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class WaivedComponentUpgradeInspectorTest
     extends AbstractComponentTest
@@ -88,22 +81,6 @@ public class WaivedComponentUpgradeInspectorTest
   private Configuration configurationMock;
 
   private static final String DUMMY_PURL = "pkg:maven/g1/a1@v1?type=jar";
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ComponentInfoService.class).toInstance(componentInfoServiceMock);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    binder.bind(HdsClient.class).toInstance(hdsClientMock);
-    binder.bind(ProductLicense.class).toInstance(productLicense);
-    binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
-    binder.bind(ApiComponentRemediationService.class).toInstance(apiComponentRemediationService);
-    binder.bind(Configuration.class).toInstance(configurationMock);
-    lenient().doReturn(ComponentSummary.create(true))
-        .when(hdsClientMock)
-        .get(eq(ComponentSummary.class),
-            eq("rest/component/summary"), anyMap());
-    super.configure(binder);
-  }
 
   @Before
   public void beforeEachTest() {

@@ -5,24 +5,23 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.validation.constraints.NotNull;
-
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-import org.sonatype.licensing.product.ProductLicenseKey;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.licensing.product.ProductLicenseKey;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * Describes the currently installed product license.
@@ -34,10 +33,22 @@ public class DefaultProductLicense
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultProductLicense.class);
 
-  private final DeveloperEnablementService developerEnablementService;
-
+  // Use @Lazy to break circular dependency with DeveloperEnablementService
   @Inject
-  public DefaultProductLicense(final DeveloperEnablementService developerEnablementService) {
+  @Lazy
+  private DeveloperEnablementService developerEnablementService;
+
+  /**
+   * Default constructor for Spring injection.
+   */
+  public DefaultProductLicense() {
+    // Field injection will populate developerEnablementService
+  }
+
+  /**
+   * Constructor for test injection.
+   */
+  protected DefaultProductLicense(DeveloperEnablementService developerEnablementService) {
     this.developerEnablementService = developerEnablementService;
   }
 

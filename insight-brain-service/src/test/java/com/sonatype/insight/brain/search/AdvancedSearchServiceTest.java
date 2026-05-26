@@ -5,13 +5,13 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.io.File;
-import java.util.Arrays;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -19,14 +19,17 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.File;
+import java.time.Duration;
+import java.util.Arrays;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.test.annotation.DirtiesContext;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class AdvancedSearchServiceTest
     extends AbstractComponentTest
 {
@@ -51,10 +54,12 @@ public class AdvancedSearchServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
-    super.configure(binder);
+  @Before
+  public void resetSearchIndexState() throws Exception {
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
+    taskScheduler.createScheduler();
+    taskScheduler.clear();
+    FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
   }
 
   @Test
@@ -155,9 +160,12 @@ public class AdvancedSearchServiceTest
 
     indexService.createIndexAsync();
 
-    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
+    await().pollDelay(Duration.ZERO)
+        .pollInterval(Duration.ofMillis(10))
+        .atMost(Duration.ofSeconds(1))
+        .untilAsserted(() -> assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isTrue());
 
-    assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isTrue();
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
   }
 
   private boolean isAdvancedSearchEnabled() {

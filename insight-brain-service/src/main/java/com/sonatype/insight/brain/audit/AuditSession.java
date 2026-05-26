@@ -25,7 +25,7 @@ public class AuditSession
 
   private final AuditData previous;
 
-  AuditSession(AuditData auditData) {
+  public AuditSession(AuditData auditData) {
     current = Objects.requireNonNull(auditData);
     previous = currentOfThread.get();
     currentOfThread.set(current);

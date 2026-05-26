@@ -5,19 +5,17 @@
  */
 package com.sonatype.insight.brain.policy.waiver;
 
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
-
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -40,16 +38,18 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class WaivedComponentUpgradeTask
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "triggerWaivedComponentUpgradeInspector";
+
   private static final Logger log = LoggerFactory.getLogger(WaivedComponentUpgradeTask.class);
 
   private Provider<WaivedComponentUpgradeInspector> waivedComponentUpgradeInspectorProvider;
 
   @Inject
   public WaivedComponentUpgradeTask(Provider<WaivedComponentUpgradeInspector> waivedComponentUpgradeInspectorProvider) {
-    super("triggerWaivedComponentUpgradeInspector");
+    super(PATH);
     this.waivedComponentUpgradeInspectorProvider = waivedComponentUpgradeInspectorProvider;
   }
 
@@ -63,10 +63,10 @@ public class WaivedComponentUpgradeTask
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     log.info("Manual request to run Waived Component Upgrade Inspector");
     waivedComponentUpgradeInspectorProvider.get().run();
-    printWriter.write("Completed manual Waived Component Upgrade Inspector execution\n");
+    output.write("Completed manual Waived Component Upgrade Inspector execution\n");
   }
 
   @Override

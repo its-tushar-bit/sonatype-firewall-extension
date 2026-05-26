@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.support;
 
 import java.time.LocalTime;
 
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -20,22 +17,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SourceControlConfigurationInfoTest
     extends AbstractComponentTest
 {
-  @Inject
-  private Configuration configuration;
-
-  @Inject
-  private SourceControlConfigurationInfo sourceControlConfigurationInfo;
-
-  @Inject
-  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
-
   @Test
   public void testGetSourceControlConfigurationInfo() throws Exception {
-    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
 
     sourceControlConfiguration.setCloneDirectory("some-clone-directory");
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
@@ -51,10 +41,8 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(280);
     sourceControlConfiguration.setGpgSigningKey("test-gpg-key");
     sourceControlConfiguration.setGpgPassphrase("encrypted-passphrase");
-    sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    configuration.sourceControlConfigurationChanged();
 
-    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
 
     assertThat(configNode.get("cloneDirectory").asText()).isEqualTo("some-clone-directory");
     assertThat(configNode.get("gitImplementation").asText()).isEqualTo(GitImplementation.NATIVE.toString());
@@ -74,7 +62,7 @@ public class SourceControlConfigurationInfoTest
 
   @Test
   public void testGetSourceControlConfigurationInfo_DefaultValuesReturnedWhenConfigDoesNotExist() throws Exception {
-    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+    JsonNode configNode = getSourceControlConfigurationInfo(null);
     SourceControlConfiguration defaultConfig = new SourceControlConfiguration();
 
     assertThat(configNode.get("cloneDirectory").asText()).isEqualTo(defaultConfig.getCloneDirectory());
@@ -98,13 +86,11 @@ public class SourceControlConfigurationInfoTest
 
   @Test
   public void testGetSourceControlConfigurationInfo_WithGpgPassphrase_ReturnsMasked() throws Exception {
-    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGpgSigningKey("test-key");
     sourceControlConfiguration.setGpgPassphrase("encrypted-value");
-    sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    configuration.sourceControlConfigurationChanged();
 
-    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
 
     assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
     assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("****");
@@ -112,15 +98,23 @@ public class SourceControlConfigurationInfoTest
 
   @Test
   public void testGetSourceControlConfigurationInfo_WithoutGpgPassphrase_ReturnsNull() throws Exception {
-    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGpgSigningKey("test-key");
     sourceControlConfiguration.setGpgPassphrase(null);
-    sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    configuration.sourceControlConfigurationChanged();
 
-    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+    JsonNode configNode = getSourceControlConfigurationInfo(sourceControlConfiguration);
 
     assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
     assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("null");
+  }
+
+  private JsonNode getSourceControlConfigurationInfo(
+      SourceControlConfiguration sourceControlConfiguration) throws Exception
+  {
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getSourceControlConfigurationOrDefault()).thenReturn(
+        sourceControlConfiguration == null ? new SourceControlConfiguration() : sourceControlConfiguration);
+
+    return JsonUtils.parse(new SourceControlConfigurationInfo(configuration).getSourceControlConfigurationInfo());
   }
 }

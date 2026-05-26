@@ -48,7 +48,7 @@ NOTE: For M1/ARM64 architectures, if you encounter error "Node Sass does not yet
 
 First, [build](../readme.md#building) the `insight-brain` project, and then [deploy](../insight-brain-service/README.md#deploying-iq-server-locally) it to port 8072 using the following command (executed from the `insight-brain-service` directory):
 
-`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`
+`mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072`
 
 You will probably notice that this is the same command that's used to normally [deploy](../insight-brain-service/README.md#deploying-iq-server-locally) the server locally but with a flag that tells it to run on port 8072.
 

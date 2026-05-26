@@ -5,21 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.util.Arrays;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -27,15 +12,51 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.cache.LoadingCache;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GitApiClient;
+import jakarta.inject.Inject;
+import java.io.IOException;
+import java.util.Arrays;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
+
+@ContextConfiguration(classes = ScmRepoVisibilityServiceTest.ScmRepoVisibilityServiceTestConfig.class)
 public class ScmRepoVisibilityServiceTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class ScmRepoVisibilityServiceTestConfig
+  {
+    @Bean
+    @Primary
+    GitClientFactory mockGitClientFactory() {
+      return Mockito.mock(GitClientFactory.class);
+    }
+
+    @Bean
+    GitApiClient mockGitApiClient() {
+      return Mockito.mock(GitApiClient.class);
+    }
+  }
+
   private static final String TEST_REPO_URL = "%s/sonatype/repo/";
 
-  @Mock
+  @Inject
   private GitClientFactory mockGitClientFactory;
 
-  @Mock
+  @Inject
   private GitApiClient mockGitApiClient;
 
   @Inject
@@ -44,11 +65,11 @@ public class ScmRepoVisibilityServiceTest
   @Inject
   private ScmRepoVisibilityService scmRepoVisibilityService;
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-
-    super.configure(binder);
+  @Before
+  public void before() {
+    Mockito.reset(mockGitClientFactory, mockGitApiClient);
+    testProductLicense.reset();
+    clearPrivateRepoCache();
   }
 
   @Test
@@ -160,6 +181,17 @@ public class ScmRepoVisibilityServiceTest
             scmRepoVisibilityService
                 .isRepositoryValidForPullRequestFeatures(newGitRepositoryInfo(repoName, sourceControlProvider)))
                     .isEqualTo(expected));
+  }
+
+  private void clearPrivateRepoCache() {
+    @SuppressWarnings("unchecked")
+    TenantReference<LoadingCache<GitRepositoryInfo, Boolean>> privateRepoCache =
+        (TenantReference<LoadingCache<GitRepositoryInfo, Boolean>>) ReflectionTestUtils.getField(
+            scmRepoVisibilityService,
+            "privateRepoCache");
+    if (privateRepoCache != null) {
+      privateRepoCache.get().invalidateAll();
+    }
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(String repoUrl, SourceControlProvider provider) {

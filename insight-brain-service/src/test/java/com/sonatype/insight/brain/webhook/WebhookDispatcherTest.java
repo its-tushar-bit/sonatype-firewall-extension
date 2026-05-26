@@ -5,13 +5,20 @@
  */
 package com.sonatype.insight.brain.webhook;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import jakarta.inject.Inject;
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
+import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static com.sonatype.insight.brain.webhook.WebhookDispatcher.JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -31,6 +38,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -52,39 +60,30 @@ import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
 import com.sonatype.insight.brain.webhook.dto.OrganizationSummary;
+import com.sonatype.insight.brain.webhook.dto.RepositoryManagerSummary;
+import com.sonatype.insight.brain.webhook.dto.RepositorySummary;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyAlertPayload.PolicyAlertDTO;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementPayload;
 import com.sonatype.insight.brain.webhook.dto.PolicyManagementType;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.SecurityVulnerabilityOverridePayload.SecurityVulnerabilityOverrideDTO;
+import com.sonatype.insight.brain.webhook.dto.WaiverExpirationPayload;
 import com.sonatype.insight.brain.webhook.dto.WaiverRequestPayload;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
-import org.junit.After;
-import org.junit.Before;
+import jakarta.inject.Inject;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
-import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
-import static com.sonatype.insight.brain.webhook.WebhookDispatcher.JIRA_CLOUD_PLUGIN_TELEMETRY_URL_IDENTIFIER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class WebhookDispatcherTest
     extends AbstractComponentTest
@@ -111,23 +110,6 @@ public class WebhookDispatcherTest
 
   @Mock
   private TelemetrySender telemetrySender;
-
-  @Before
-  public void before() {
-    webhookDispatcher.start();
-  }
-
-  @After
-  public void after() {
-    webhookDispatcher.stop();
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(WebhookClientUtil.class).toInstance(webhookClientUtil);
-    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
-    super.configure(binder);
-  }
 
   @Test
   public void testOn_HandlesApplicationEvaluationEvent() {
@@ -168,8 +150,10 @@ public class WebhookDispatcherTest
     assertThat(webhook.getUrl()).isEqualTo("http://localhost");
     assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
 
-    ApplicationEvaluationPayload webhookPayload = (ApplicationEvaluationPayload) webhookPayloadArgumentCaptor
-        .getValue();
+    WebhookPayload capturedPayload = webhookPayloadArgumentCaptor.getValue();
+    assertThat(capturedPayload).isInstanceOf(ApplicationEvaluationPayload.class);
+
+    ApplicationEvaluationPayload webhookPayload = (ApplicationEvaluationPayload) capturedPayload;
     assertThat(webhookPayload.initiator).isEqualTo("initiator");
     assertThat(webhookPayload.id).isEqualTo("policyEvaluationId");
 
@@ -223,9 +207,11 @@ public class WebhookDispatcherTest
         .post(any(Webhook.class), eq(WebhookEventType.APPLICATION_EVALUATION.getId()),
             webhookPayloadArgumentCaptor.capture());
 
+    WebhookPayload capturedPayload = webhookPayloadArgumentCaptor.getValue();
+    assertThat(capturedPayload).isInstanceOf(ContainerEvaluationPayload.class);
+
     // Verify Firewall context sends ContainerEvaluationPayload with container-specific fields
-    ContainerEvaluationPayload webhookPayload = (ContainerEvaluationPayload) webhookPayloadArgumentCaptor
-        .getValue();
+    ContainerEvaluationPayload webhookPayload = (ContainerEvaluationPayload) capturedPayload;
 
     ContainerEvaluationDTO containerEvaluationDTO = webhookPayload.containerEvaluation;
     assertThat(containerEvaluationDTO.stage).isEqualTo("proxy");
@@ -718,6 +704,54 @@ public class WebhookDispatcherTest
   }
 
   @Test
+  public void testOn_HandlesWaiverExpirationEvent() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    Webhook webhook =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.WAIVER_EXPIRATION));
+    webhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(webhook);
+
+    WaiverExpirationEvent event = new WaiverExpirationEvent();
+    event.initiator = "SYSTEM";
+    event.timestamp = LocalDateTime.now();
+    event.waiverId = "waiver-id";
+    event.expirationDate = event.timestamp.plusDays(1);
+    event.comment = "waiver comment";
+    event.creatorUsername = "creator";
+    event.creatorEmail = "creator@example.com";
+    event.componentPackageUrl = "pkg:maven/com.example/demo@1.0.0";
+    event.componentFormat = "maven";
+    event.componentDisplayName = "com.example/demo@1.0.0";
+    event.policyId = "policy-id";
+    event.policyName = "policy-name";
+    event.threatLevel = 7;
+    event.applicationId = "owner-id";
+    event.applicationPublicId = "owner-public-id";
+    event.applicationName = "owner-name";
+    event.iqReportUrl = "http://localhost/report";
+    event.status = "EXPIRING_IN_24_HOURS";
+
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookEventType.WAIVER_EXPIRATION.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    WebhookPayload capturedPayload = webhookPayloadArgumentCaptor.getValue();
+    assertThat(capturedPayload).isInstanceOf(WaiverExpirationPayload.class);
+
+    WaiverExpirationPayload webhookPayload = (WaiverExpirationPayload) capturedPayload;
+    assertThat(webhookPayload.initiator).isEqualTo("SYSTEM");
+    assertThat(webhookPayload.application.id).isEqualTo("owner-id");
+    assertThat(webhookPayload.policy.name).isEqualTo("policy-name");
+    assertThat(webhookPayload.waiver.id).isEqualTo("waiver-id");
+    assertThat(webhookPayload.reportUrl).isEqualTo("http://localhost/report");
+    assertThat(webhookPayload.status).isEqualTo("EXPIRING_IN_24_HOURS");
+  }
+
+  @Test
   public void testOn_HandlesOrganizationApplicationSummaryEvent() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
 
@@ -756,6 +790,52 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.timestamp).isNotNull();
     assertThat(webhookPayload.organizations).hasSameElementsAs(organizationSummaries);
     assertThat(webhookPayload.applications).hasSameElementsAs(applicationSummaries);
+    assertThat(webhookPayload.repositoryManagers).isNull();
+    assertThat(webhookPayload.repositories).isNull();
+  }
+
+  @Test
+  public void testOn_HandlesOrganizationRepositorySummaryEvent() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    Webhook webhook =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.ORG_APP_MANAGEMENT));
+    webhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(webhook);
+
+    final Organization organization = tempEntity.newOrganization();
+    final OrganizationSummary organizationSummary = new OrganizationSummary(organization);
+    final List<OrganizationSummary> organizationSummaries = Collections.singletonList(organizationSummary);
+
+    final RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("instance-id", "repo-manager", "Nexus Repository", "3.0");
+    final Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy");
+    final RepositoryManagerSummary repositoryManagerSummary = new RepositoryManagerSummary(repositoryManager);
+    final RepositorySummary repositorySummary = new RepositorySummary(repository);
+
+    final OrganizationApplicationManagementEvent event =
+        new OrganizationApplicationManagementEvent(
+            organizationSummaries,
+            Collections.emptyList(),
+            Collections.singletonList(repositoryManagerSummary),
+            Collections.singletonList(repositorySummary));
+    event.initiator = "initiator";
+    asyncEventBus.post(event);
+
+    final ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookEventType.ORG_APP_MANAGEMENT.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    final OrganizationApplicationSummaryPayload webhookPayload =
+        (OrganizationApplicationSummaryPayload) webhookPayloadArgumentCaptor.getValue();
+    assertThat(webhookPayload.initiator).isEqualTo("initiator");
+    assertThat(webhookPayload.organizations).hasSameElementsAs(organizationSummaries);
+    assertThat(webhookPayload.applications).isNull();
+    assertThat(webhookPayload.repositoryManagers).hasSize(1);
+    assertThat(webhookPayload.repositoryManagers.get(0).id).isEqualTo(repositoryManager.getId());
+    assertThat(webhookPayload.repositories).hasSize(1);
+    assertThat(webhookPayload.repositories.get(0).id).isEqualTo(repository.getId());
   }
 
   @Test

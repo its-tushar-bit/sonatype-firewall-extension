@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.service;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
 
 public class ExportEmbeddedDatabaseCommandTransformTest
 {
@@ -48,14 +48,14 @@ public class ExportEmbeddedDatabaseCommandTransformTest
   @Test
   public void testTransformInsertValues_String_Quoted() {
     assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("''")).isEqualTo("");
-    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("'abc \'\' \\N'")).isEqualTo("abc \' \\\\N");
+    assertThat(ExportEmbeddedDatabaseCommand.transformInsertValues("'abc '' \\N'")).isEqualTo("abc ' \\\\N");
   }
 
   @Test
   public void testTransformInsertValues_String_Encoded() {
     assertThat(ExportEmbeddedDatabaseCommand
-        .transformInsertValues("STRINGDECODE('abc \'\' \\n\\t\\\\ \\u20AC \\\\\\u20AC \\\\uASis')"))
-            .isEqualTo("abc \' \\n\\t\\\\ \u20AC \\\\\u20AC \\\\uASis");
+        .transformInsertValues("STRINGDECODE('abc '' \\n\\t\\\\ \\u20AC \\\\\\u20AC \\\\uASis')"))
+            .isEqualTo("abc ' \\n\\t\\\\ \u20AC \\\\€ \\\\uASis");
   }
 
   @Test

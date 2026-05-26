@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import jakarta.inject.Inject;
 
@@ -35,8 +36,24 @@ public class MarkerFileMigratorTest
   private MarkerFileMigrator markerFileMigrator;
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     migrationTrackerDAO.deleteById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID);
+    migrationTrackerDAO.deleteById(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(PolicySecurityVulnerabilityConditionTypeMigrator.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(ProprietaryConfigMigrator.MIGRATION_ID);
+    migrationTrackerDAO.deleteById(SecurityVulnerabilityOverrideMigrator.MIGRATION_ID);
+
+    deleteMarkerFile(
+        new File(insightWork.getWorkDir(), MarkerFileMigrator.POLICY_COORDINATES_CONDITION_TYPE_MARKER_FILE));
+    deleteMarkerFile(new File(insightWork.getWorkDir(),
+        MarkerFileMigrator.POLICY_SECURITY_VULNERABILITY_CONDITION_TYPE_MARKER_FILE));
+    deleteMarkerFile(new File(insightWork.getWorkDir(), MarkerFileMigrator.PROPRIETARY_CONFIG_MARKER_FILE));
+    deleteMarkerFile(new File(insightWork.getAuditDir(""),
+        MarkerFileMigrator.SECURITY_VULNERABILITY_OVERRIDE_MARKER_FILE));
+  }
+
+  private static void deleteMarkerFile(final File markerFile) throws IOException {
+    Files.deleteIfExists(markerFile.toPath());
   }
 
   @Test

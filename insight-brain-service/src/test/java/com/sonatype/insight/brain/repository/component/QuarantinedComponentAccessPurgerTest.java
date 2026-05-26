@@ -5,28 +5,28 @@
  */
 package com.sonatype.insight.brain.repository.component;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class QuarantinedComponentAccessPurgerTest
     extends AbstractComponentTest
@@ -42,12 +42,6 @@ public class QuarantinedComponentAccessPurgerTest
 
   private Date daysAgo(int days) {
     return Date.from(ZonedDateTime.now().minusDays(days).toInstant());
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    super.configure(binder);
   }
 
   @Test
@@ -81,8 +75,11 @@ public class QuarantinedComponentAccessPurgerTest
   }
 
   @Test
-  public void testExecute_AdminTask() {
-    quarantinedComponentAccessPurger.execute(null, new PrintWriter(new StringWriter()));
+  public void testExecute_AdminTask() throws Exception {
+    quarantinedComponentAccessPurger.execute((Map<String, List<String>>) null,
+        new PrintWriter(OutputStream.nullOutputStream()));
+
     verify(taskSchedulerMock).triggerTaskNow(quarantinedComponentAccessPurger, null);
+    verifyNoMoreInteractions(taskSchedulerMock);
   }
 }

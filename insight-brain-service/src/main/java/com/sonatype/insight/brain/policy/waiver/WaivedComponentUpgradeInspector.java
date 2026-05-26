@@ -15,6 +15,10 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
@@ -41,6 +45,8 @@ import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WaivedComponentUpgradeInspector
     implements Runnable
 {

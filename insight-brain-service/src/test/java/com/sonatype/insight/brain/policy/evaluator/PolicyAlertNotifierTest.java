@@ -5,9 +5,13 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.Arrays;
-import java.util.Collections;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -19,19 +23,12 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public class PolicyAlertNotifierTest
     extends AbstractComponentTest
@@ -53,14 +50,6 @@ public class PolicyAlertNotifierTest
 
   @Mock
   private PolicyAlertScmNotifier policyAlertScmNotifier;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PolicyAlertEmailer.class).toInstance(policyAlertEmailer);
-    binder.bind(JiraPolicyAlertNotifier.class).toInstance(jiraPolicyAlertNotifier);
-    binder.bind(PolicyAlertScmNotifier.class).toInstance(policyAlertScmNotifier);
-    super.configure(binder);
-  }
 
   @Test
   public void testLogging_NoNewViolations() {

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.utils.DateUtils;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 
 /**
  * This executor spreads out the start times or default monitoring for all tenants. The determines what time of the day
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
+@Primary
 public class MultiTenantDefaultBranchMonitorExecutor
     extends BranchMonitorExecutor
 {

@@ -5,19 +5,18 @@
  */
 package com.sonatype.insight.brain.service;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.UriBuilder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.HttpURI.Mutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Named
 @Singleton
@@ -67,13 +66,16 @@ public class BaseUrl
    */
   public String get() {
     BaseUrlConfiguration baseUrlConfiguration = configuration.getBaseUrlConfiguration();
-    if (!baseUrlConfiguration.isForceBaseUrl()) {
+    if (baseUrlConfiguration == null || !baseUrlConfiguration.isForceBaseUrl()) {
       String url = tryGetBaseUriWithEndingForwardSlash();
       if (url != null) {
         return url;
       }
     }
-    return getConfigured(baseUrlConfiguration);
+    if (baseUrlConfiguration != null) {
+      return getConfigured(baseUrlConfiguration);
+    }
+    throw new IllegalStateException(ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   /**
@@ -132,7 +134,11 @@ public class BaseUrl
 
   public UriBuilder redirect() {
     String queryString = getHttpRequest().getQueryString();
-    String escapedQueryString = StringUtils.replaceEach(queryString, UNSAFE_CHARACTERS, ESCAPED_CHARACTERS);
-    return UriBuilder.fromUri(get()).replaceQuery(escapedQueryString);
+    UriBuilder builder = UriBuilder.fromUri(get());
+    if (queryString != null) {
+      String escapedQueryString = StringUtils.replaceEach(queryString, UNSAFE_CHARACTERS, ESCAPED_CHARACTERS);
+      builder = builder.replaceQuery(escapedQueryString);
+    }
+    return builder;
   }
 }

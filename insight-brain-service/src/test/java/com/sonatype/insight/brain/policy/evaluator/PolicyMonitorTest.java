@@ -5,21 +5,18 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPOutputStream;
+import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -72,10 +69,23 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
 import jakarta.mail.Message;
 import jakarta.ws.rs.InternalServerErrorException;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -83,19 +93,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
-
-import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
-import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 @Category(SlowTest.class)
 public class PolicyMonitorTest
@@ -132,18 +129,13 @@ public class PolicyMonitorTest
     return mailConfiguration;
   }
 
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-  }
-
   @Before
   public void setup() {
     setBaseUrl("http://clm.sonatype.com/test");
     insightWork = getCLMServer().getInstance(InsightWork.class);
     policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
+    overrideField(policyMonitor, "shutdownHandler", mockShutdownHandler);
+    overrideField(policyMonitor, "telemetrySender", mockTelemetrySender);
     asyncEventBus = getCLMServer().getInstance(AsyncEventBus.class);
     policyEvaluationDAO = getCLMServer().getInstance(PolicyEvaluationDAO.class);
     policyViolationDAO = getCLMServer().getInstance(PolicyViolationDAO.class);
@@ -158,7 +150,7 @@ public class PolicyMonitorTest
     if (handler != null) {
       asyncEventBus.unregister(handler);
     }
-    Mockito.reset(mockTelemetrySender);
+    Mockito.reset(mockTelemetrySender, mockShutdownHandler);
   }
 
   @Test
@@ -956,6 +948,25 @@ public class PolicyMonitorTest
     scanReceipt.setTimeToReport(1L);
     mockScanReceipt(scanReceipt);
     mockReport(scanId, "/" + getClass().getSimpleName() + "/report");
+  }
+
+  private void overrideField(Object target, String fieldName, Object value) {
+    Class<?> type = target.getClass();
+    while (type != null) {
+      try {
+        Field field = type.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+        return;
+      }
+      catch (NoSuchFieldException e) {
+        type = type.getSuperclass();
+      }
+      catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to override field '" + fieldName + "'", e);
+      }
+    }
+    throw new IllegalArgumentException("Could not find field '" + fieldName + "' on " + target.getClass());
   }
 
   private void assertShutdownHandler() {

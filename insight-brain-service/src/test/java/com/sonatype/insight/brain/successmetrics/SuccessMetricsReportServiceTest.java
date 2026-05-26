@@ -48,7 +48,6 @@ public class SuccessMetricsReportServiceTest
     org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("app1", "app1", org.getId());
     app2 = tempEntity.newApplication("app2", "app2", org.getId());
-    tempEntity.newUser(USERNAME);
   }
 
   @Test

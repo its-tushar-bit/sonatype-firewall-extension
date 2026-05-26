@@ -5,9 +5,8 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.net.URI;
-
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -19,17 +18,13 @@ import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthentication
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import java.net.URI;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 public class ReverseProxyAuthenticationConfigurationMigratorTest
     extends AbstractComponentTest
@@ -51,15 +46,6 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
 
   @Inject
   private ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator;
-
-  @Override
-  public void configure(Binder binder) {
-    // Add the mock listener to the multibinder set
-    Multibinder.newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class)
-        .addBinding()
-        .toInstance(mockReverseProxyAuthenticationConfigurationListener);
-    super.configure(binder);
-  }
 
   @Before
   @After

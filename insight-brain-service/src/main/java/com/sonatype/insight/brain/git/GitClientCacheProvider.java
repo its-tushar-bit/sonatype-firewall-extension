@@ -5,30 +5,28 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.HashMap;
-import java.util.Map;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.scm.api.base.TokenUserCache;
 import com.sonatype.nexus.scm.api.base.TokenUserCacheProvider;
-
-import io.dropwizard.lifecycle.Managed;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Named
 @Singleton
 public class GitClientCacheProvider
-    implements TokenUserCache, Managed
+    implements TokenUserCache
 {
   public static final TenantReference<Map<String, String>> tokenCacheMap =
-      new TenantReference<>(HashMap::new);
+      new TenantReference<>(ConcurrentHashMap::new);
 
   /**
    * Initialise the nexus-scm-client library user token caching system
    **/
-  @Override
-  public void start() throws Exception {
+  @PostConstruct
+  public void initialise() {
     TokenUserCacheProvider.initialiseTokenProvider(this);
   }
 

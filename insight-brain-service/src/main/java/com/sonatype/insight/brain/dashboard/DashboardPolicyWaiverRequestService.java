@@ -5,21 +5,13 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
-import jakarta.inject.Inject;
-
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
@@ -43,18 +35,27 @@ import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.error.exception.BadRequestException;
-
-import com.google.common.collect.Lists;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
-import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-
+@Named
+@Singleton
 public class DashboardPolicyWaiverRequestService
 {
   private static final Logger log = LoggerFactory.getLogger(DashboardPolicyWaiverRequestService.class);
@@ -345,4 +346,5 @@ public class DashboardPolicyWaiverRequestService
       return ownerDAO.getOwnersByAppTagsAndOrgs(applicationIds, tagIds, organizationIds);
     }
   }
+
 }

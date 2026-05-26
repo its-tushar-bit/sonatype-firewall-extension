@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.model.Application;
@@ -17,29 +20,20 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.report.MockReportDownloader;
-import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
 
 @Category(SlowTest.class)
 public class SourceControlScanServiceAuditTest
@@ -69,20 +63,13 @@ public class SourceControlScanServiceAuditTest
 
   @Before
   public void before() {
+    applyBeanFieldOverride(SourceControlScanService.class, "gitApiFactory", mockGitApiFactory);
+    applyBeanFieldOverride(PolicyEvaluateService.class, "scanHandler", mockScanHandler);
     sourceControlScanService = lookup(SourceControlScanService.class);
-    mockReportDownloader.setInsightWork(insightWork);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mockGitApiFactory.createGitApi(any(GitRepositoryInfo.class))).thenReturn(mockGitApi);
-    binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
     mockReportDownloader = new MockReportDownloader(tempDir);
-    binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
-    binder.bind(TelemetrySender.class).toInstance(mock(TelemetrySender.class));
-    binder.bind(ScanHandler.class).toInstance(mockScanHandler);
-
-    super.configure(binder);
+    mockReportDownloader.setInsightWork(insightWork);
+    applyBeanFieldOverride(ReportDataStore.class, "reportDownloader", mockReportDownloader.getMock());
+    when(mockGitApiFactory.createGitApi(any())).thenReturn(mockGitApi);
   }
 
   @Test

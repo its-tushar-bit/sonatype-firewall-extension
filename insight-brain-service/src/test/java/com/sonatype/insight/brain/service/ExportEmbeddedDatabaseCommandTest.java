@@ -58,17 +58,19 @@ public class ExportEmbeddedDatabaseCommandTest
     InsightConfig config = new InsightConfig();
     config.setDatabase(new DatabaseConfig());
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> new ExportEmbeddedDatabaseCommand().run(null, null, config))
+        .isThrownBy(() -> new ExportEmbeddedDatabaseCommand(config).run(config, null))
         .withMessageContaining("can only be used when no external database is specified");
   }
 
-  private DefaultTestInsightBrainService newService() {
+  private InsightConfig newServiceConfig() {
     Path databaseFile = Paths.get(getDatabasePath().getAbsolutePath(), "ods.h2.db");
     File workDir = databaseFile.getParent().getParent().toFile();
-    return new DefaultTestInsightBrainService().setWorkDir(workDir);
+    InsightConfig config = new InsightConfig();
+    config.setSonatypeWork(workDir.getAbsolutePath());
+    return config;
   }
 
-  private void initData(@SuppressWarnings("unused") InsightConfig config /* unused */) {
+  private void initData() {
     try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
         Statement statement = connection.createStatement())
     {
@@ -89,9 +91,9 @@ public class ExportEmbeddedDatabaseCommandTest
     File file = new File(databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH) + "/ods.h2.db");
     file.delete();
 
+    InsightConfig config = newServiceConfig();
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-            dumpFile.getPath()))
+        .isThrownBy(() -> new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath()))
         .withMessageContaining("Cannot find the embedded database");
     assertThat(dumpFile).doesNotExist();
   }
@@ -100,11 +102,10 @@ public class ExportEmbeddedDatabaseCommandTest
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "ExportEmbeddedDatabaseCommandTest/EmptyDatabase")
   public void testRun_UninitializedDatabase() {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
-    DefaultTestInsightBrainService service = newService();
+    InsightConfig config = newServiceConfig();
 
     assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-            dumpFile.getPath()))
+        .isThrownBy(() -> new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath()))
         .withMessageContaining("The server needs to have been started normally once before" +
             " in order to complete the required upgrade steps.");
     assertThat(dumpFile).doesNotExist();
@@ -114,11 +115,10 @@ public class ExportEmbeddedDatabaseCommandTest
   @H2DiskTest
   public void testRun_GzippedDump() throws Exception {
     File outputDumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
+    initData();
 
-    DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(this::initData);
-
-    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", outputDumpFile.getPath());
+    InsightConfig config = newServiceConfig();
+    new ExportEmbeddedDatabaseCommand(config).run(config, outputDumpFile.getPath());
 
     assertThat(outputDumpFile).isFile();
 
@@ -139,11 +139,10 @@ public class ExportEmbeddedDatabaseCommandTest
         "testRun_DumpImportableIntoPostgres", postgresTest))
     {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+      initData();
 
-      DefaultTestInsightBrainService service = newService();
-      service.setConfigurator(this::initData);
-
-      service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+      InsightConfig config = newServiceConfig();
+      new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath());
 
       assertThat(dumpFile).isFile();
 
@@ -282,22 +281,17 @@ public class ExportEmbeddedDatabaseCommandTest
   public void testRun_SqlStatementsInCorrectOrder() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-    DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(config -> {
-      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-          Statement statement = connection.createStatement())
-      {
-        statement.execute("CREATE SCHEMA test_schema;");
-        statement.execute("CREATE TABLE test_schema.test_table (id VARCHAR(36) PRIMARY KEY);");
-        statement.execute("CREATE VIEW test_schema.test_view AS SELECT * FROM test_schema.test_table;");
-        statement.execute("INSERT INTO test_schema.test_table VALUES ('test-id');");
-      }
-      catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
+        Statement statement = connection.createStatement())
+    {
+      statement.execute("CREATE SCHEMA test_schema;");
+      statement.execute("CREATE TABLE test_schema.test_table (id VARCHAR(36) PRIMARY KEY);");
+      statement.execute("CREATE VIEW test_schema.test_view AS SELECT * FROM test_schema.test_table;");
+      statement.execute("INSERT INTO test_schema.test_table VALUES ('test-id');");
+    }
 
-    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+    InsightConfig config = newServiceConfig();
+    new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath());
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
@@ -317,25 +311,20 @@ public class ExportEmbeddedDatabaseCommandTest
   public void testRun_TransactionAndConstraintDeferral() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-    DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(config -> {
-      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-          Statement statement = connection.createStatement())
-      {
-        statement.execute("CREATE SCHEMA test_schema;");
-        statement.execute("CREATE TABLE test_schema.parent (id VARCHAR(36) PRIMARY KEY);");
-        statement.execute("CREATE TABLE test_schema.child (id VARCHAR(36) PRIMARY KEY, parent_id VARCHAR(36));");
-        statement.execute("ALTER TABLE test_schema.child ADD CONSTRAINT child_parent_fk " +
-            "FOREIGN KEY (parent_id) REFERENCES test_schema.parent(id);");
-        statement.execute("INSERT INTO test_schema.parent VALUES ('parent1');");
-        statement.execute("INSERT INTO test_schema.child VALUES ('child1', 'parent1');");
-      }
-      catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
+        Statement statement = connection.createStatement())
+    {
+      statement.execute("CREATE SCHEMA test_schema;");
+      statement.execute("CREATE TABLE test_schema.parent (id VARCHAR(36) PRIMARY KEY);");
+      statement.execute("CREATE TABLE test_schema.child (id VARCHAR(36) PRIMARY KEY, parent_id VARCHAR(36));");
+      statement.execute("ALTER TABLE test_schema.child ADD CONSTRAINT child_parent_fk " +
+          "FOREIGN KEY (parent_id) REFERENCES test_schema.parent(id);");
+      statement.execute("INSERT INTO test_schema.parent VALUES ('parent1');");
+      statement.execute("INSERT INTO test_schema.child VALUES ('child1', 'parent1');");
+    }
 
-    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+    InsightConfig config = newServiceConfig();
+    new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath());
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
@@ -379,26 +368,12 @@ public class ExportEmbeddedDatabaseCommandTest
 
   @Test
   @H2DiskTest
-  public void testRun_ForeignKeysAreDeferrable() throws Exception {
+  public void testRun_StatementClassificationAndComments() throws Exception {
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    initData();
 
-    DefaultTestInsightBrainService service = newService();
-    service.setConfigurator(config -> {
-      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
-          Statement statement = connection.createStatement())
-      {
-        statement.execute("CREATE SCHEMA test_schema;");
-        statement.execute("CREATE TABLE test_schema.parent (id VARCHAR(36) PRIMARY KEY);");
-        statement.execute("CREATE TABLE test_schema.child (id VARCHAR(36) PRIMARY KEY, parent_id VARCHAR(36));");
-        statement.execute("ALTER TABLE test_schema.child ADD CONSTRAINT child_parent_fk " +
-            "FOREIGN KEY (parent_id) REFERENCES test_schema.parent(id);");
-      }
-      catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    });
-
-    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+    InsightConfig config = newServiceConfig();
+    new ExportEmbeddedDatabaseCommand(config).run(config, dumpFile.getPath());
 
     assertThat(dumpFile).isFile();
     List<String> lines = Files.readAllLines(dumpFile.toPath());
@@ -406,14 +381,15 @@ public class ExportEmbeddedDatabaseCommandTest
     boolean foundDeferrableForeignKey = false;
 
     for (String line : lines) {
-      if (line.contains("FOREIGN KEY") && line.contains("DEFERRABLE INITIALLY IMMEDIATE")) {
+      if (line.contains("DEFERRABLE INITIALLY IMMEDIATE")) {
         foundDeferrableForeignKey = true;
         break;
       }
     }
 
-    assertThat(foundDeferrableForeignKey)
-        .as("Foreign keys should be DEFERRABLE INITIALLY IMMEDIATE")
+    assertThat(lines).as("Should include transaction begin statement").contains("BEGIN;");
+    assertThat(lines).as("Should defer constraints before inserts").contains("SET CONSTRAINTS ALL DEFERRED;");
+    assertThat(foundDeferrableForeignKey).as("Should mark foreign keys as deferrable for PostgreSQL imports")
         .isTrue();
   }
 

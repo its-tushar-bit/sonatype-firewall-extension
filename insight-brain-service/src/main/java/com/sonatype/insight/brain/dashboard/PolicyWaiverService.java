@@ -23,6 +23,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -69,6 +71,8 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+@Named
+@Singleton
 public class PolicyWaiverService
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverService.class);

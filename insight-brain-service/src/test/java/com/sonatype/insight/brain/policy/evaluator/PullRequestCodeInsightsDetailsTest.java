@@ -54,6 +54,7 @@ import com.sonatype.nexus.scm.bitbucket.dto.v1.BitbucketV1CodeInsightAnnotation;
 import com.sonatype.nexus.scm.bitbucket.dto.v2.BitbucketV2CodeInsightAnnotation;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.data.Index;
 import org.junit.Before;
 import org.junit.Test;
@@ -461,6 +462,8 @@ public class PullRequestCodeInsightsDetailsTest
       final String defaultBranchReportLocation,
       final String featureBranchReportLocation) throws IOException, URISyntaxException
   {
+    clearExistingReportData();
+
     // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir(defaultBranchReportLocation, tempDir),
         insightWork);
@@ -503,6 +506,11 @@ public class PullRequestCodeInsightsDetailsTest
         .when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
             any(GitRepositoryInfo.class), anyString(), anyString()))
         .thenReturn(locationDiscoveryResult);
+  }
+
+  private void clearExistingReportData() throws IOException {
+    FileUtils.deleteDirectory(insightWork.getReportDir(app.getId(), FROM_SCAN_ID));
+    FileUtils.deleteDirectory(insightWork.getReportDir(app.getId(), TO_SCAN_ID));
   }
 
   private void createTestData_Policies(boolean failInRelease) {

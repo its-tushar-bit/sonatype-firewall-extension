@@ -26,6 +26,12 @@ import com.sonatype.nexus.scm.api.model.ValidationResult;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
+import org.junit.After;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,6 +68,26 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     sourceControlSshService = mock(SourceControlSshService.class);
     service = new ApiCompositeSourceControlConfigValidatorService(sourceControlUtils, gitClientFactory,
         gitApiFactory, mockScmRepoVisibilityService, sourceControlSshService);
+  }
+
+  @Before
+  public void bindSecurityManager() {
+    SecurityAspectControl.disableEnforcement();
+    SecurityManager securityManager = mock(SecurityManager.class);
+    ThreadContext.bind(securityManager);
+    SimplePrincipalCollection principals = new SimplePrincipalCollection("admin", "testRealm");
+    Subject subject = new Subject.Builder(securityManager)
+        .principals(principals)
+        .authenticated(true)
+        .buildSubject();
+    ThreadContext.bind(subject);
+  }
+
+  @After
+  public void unbindSecurityManager() {
+    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
+    ThreadContext.unbindSecurityManager();
   }
 
   @Test

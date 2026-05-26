@@ -5,22 +5,19 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,6 +53,11 @@ public class DefaultTelemetrySchedulerTest
         telemetrySender, shutdownHandler, scheduledExecutorService);
   }
 
+  @Override
+  public void setUpTestLicenseThreatGroups() {
+    // noop - this test does not exercise LTG behavior
+  }
+
   @Test
   public void testGetScheduledThreadPoolExecutor_ReturnsCorrectExecutor() {
     ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
@@ -68,7 +70,7 @@ public class DefaultTelemetrySchedulerTest
   }
 
   @Test
-  public void testStart_Schedule() {
+  public void testAfterPropertiesSet_Schedule() {
     DefaultTelemetryScheduler defaultTelemetrySchedulerSpy = spy(defaultTelemetryScheduler);
     Runnable telemetryRunnable = mock(Runnable.class);
     when(defaultTelemetrySchedulerSpy.getTelemetryRunnable()).thenReturn(telemetryRunnable);
@@ -110,7 +112,7 @@ public class DefaultTelemetrySchedulerTest
   }
 
   @Test
-  public void testStop_ShutdownExecutor() {
+  public void testStop_ShutdownExecutor() throws Exception {
     defaultTelemetryScheduler.stop();
 
     verify(scheduledExecutorService).shutdown();

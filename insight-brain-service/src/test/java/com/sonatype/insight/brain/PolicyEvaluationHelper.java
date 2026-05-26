@@ -8,7 +8,6 @@ package com.sonatype.insight.brain;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-@Named
 public class PolicyEvaluationHelper
 {
   @Inject

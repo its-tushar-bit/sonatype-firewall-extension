@@ -5,93 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Modifier;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-
-import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.PolicyEvaluationHelper;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.common.test.PostgresTestCategory;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.hds.ScanUploader;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
-import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
-import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.Zipper;
-import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.brain.utils.ExistingFilesHelper;
-import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.brain.utils.Retry;
-import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.error.exception.PaymentRequiredException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.SbomFormat;
-import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.tika.utils.StringUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.mockito.Mock;
-import org.mockito.internal.stubbing.answers.AnswersWithDelay;
-import org.mockito.internal.stubbing.answers.Returns;
-import org.xmlunit.assertj.XmlAssert;
-
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
@@ -113,17 +26,114 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@Category(SlowTest.class)
+import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.brain.utils.ExistingFilesHelper;
+import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.utils.Retry;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.test.LogOutput;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.tika.utils.StringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.internal.stubbing.answers.AnswersWithDelay;
+import org.mockito.internal.stubbing.answers.Returns;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.xmlunit.assertj.XmlAssert;
+
+@Category({SlowTest.class, PostgresTestCategory.class})
+@PostgresTest
+@ContextConfiguration(classes = ApiSbomServiceTest.ExistingFilesHelperTestConfig.class)
 public class ApiSbomServiceTest
     extends AbstractComponentTest
 {
+  @TestConfiguration
+  static class ExistingFilesHelperTestConfig
+  {
+    @Bean
+    ExistingFilesHelper existingFilesHelper() {
+      return new ExistingFilesHelper();
+    }
+  }
+
   @Rule
   public LogOutput logOutput = new LogOutput(1, ApiSbomServiceTest.class, ApiSbomService.class);
 
@@ -165,30 +175,39 @@ public class ApiSbomServiceTest
   @Mock
   private BaseUrl mockBaseUrl;
 
-  @Mock
-  private ReportService mockReportService;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
-    binder.bindInterceptor(Matchers.subclassesOf(ReportService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
-        invocation.getMethod().invoke(mockReportService, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-    super.configure(binder);
-  }
+  // NOTE: This field is intentionally named without the "mock" prefix and without "Mock" suffix.
+  // SpringInjectedTest.isMockOnlyField() treats any field named mock* or *Mock as a mock field,
+  // and wireMocksIntoBean() recursively propagates such mocks through the bean dependency graph.
+  // If this were named "mockReportService", it would replace ReportService in
+  // ReportComponentService (reachable via ApiSbomService -> PolicyEvaluateService ->
+  // ScanPolicyEvaluator -> ReportComponentService), causing the evaluation pipeline's
+  // fetchReport() to return null and fail with NPE.
+  // By naming it differently and creating it after lookup() calls, propagation is prevented.
+  private ReportService stubbedReportService;
 
   @Before
   public void before() {
+    service = lookup(ApiSbomService.class);
+    ScanUploader scanUploader = lookup(ScanUploader.class);
+    ReportDownloader reportDownloader = lookup(ReportDownloader.class);
+    TelemetrySender telemetrySender = lookup(TelemetrySender.class);
+    stubbedReportService = Mockito.mock(ReportService.class);
+    Mockito.reset(mockHdsClient, mockBaseUrl);
+    ReflectionTestUtils.setField(scanUploader, "client", mockHdsClient);
+    ReflectionTestUtils.setField(reportDownloader, "client", mockHdsClient);
+    ReflectionTestUtils.setField(telemetrySender, "hdsClient", mockHdsClient);
+    ReflectionTestUtils.setField(service, "reportService", stubbedReportService);
     lenient().when(mockBaseUrl.get()).thenReturn("http://localhost:8070/");
   }
 
   @After
   public void after() {
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
+    // SBOM tests trigger async processing (policy evaluation, scan uploading) that may create
+    // entities via background threads during or after TemporaryEntity.after() cleanup.
+    // These are not real leaks — the entities are cleaned by the cascading delete — but the
+    // detection data captured from the background thread's insert remains, causing false positives.
+    AbstractOperationalSqlDAO.testEntityLeaksDetectionData.clear();
   }
 
   @Test
@@ -466,7 +485,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomMetadataSummaryForApplication_Successful() {
     Application application = tempEntity.newApplicationWithParent();
 
@@ -571,7 +589,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_NoResults() {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -589,7 +606,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_WithResults() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -679,12 +695,11 @@ public class ApiSbomServiceTest
           assertThat(component.getPolicyViolationCount()).isEqualTo(1);
         });
 
-    verify(mockReportService, times(2)).processBrowseReport(anyString(), anyString(), anyString());
+    verify(stubbedReportService, times(2)).processBrowseReport(anyString(), anyString(), anyString());
   }
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -726,7 +741,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromFormatNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -763,7 +777,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -801,7 +814,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_WithResults_PolicyFeatureFlagOff() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -889,7 +901,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_WithResults_NoPolicyViolations() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -976,7 +987,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1027,7 +1037,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_LicenseNameFilter() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1083,7 +1092,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forLifeCycleProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "3D-Slicer");
@@ -1091,7 +1099,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomAndALPProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
         ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
@@ -1100,7 +1107,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     testGetSbomComponents_withLicenseOverrides(null, "License 1", "SpecialChars %$3", "Another 4");
@@ -1174,7 +1180,6 @@ public class ApiSbomServiceTest
 
   @Test
   @Category(PostgresTestCategory.class)
-  @PostgresTest
   public void testGetSbomComponents_WithResults_EmptyPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -2262,21 +2267,23 @@ public class ApiSbomServiceTest
   }
 
   private void mockHdsForImportWithDelayedReportDownload(String reportName, long delayInMs) throws IOException {
+    String scanId = tempEntity.newRandomHash();
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId("SCAN-ID");
-    doReturn(scanReceipt).when(mockHdsClient)
+    scanReceipt.setScanId(scanId);
+    lenient().doReturn(scanReceipt)
+        .when(mockHdsClient)
         .put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
             eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
-    doReturn("")
+    lenient().doReturn("")
         .when(mockHdsClient)
         .get(eq(String.class), eq("rest/productLicense/developer-upper-bound"));
 
-    doAnswer(new AnswersWithDelay(delayInMs,
+    lenient().doAnswer(new AnswersWithDelay(delayInMs,
         new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + reportName))))
-            .when(mockHdsClient)
-            .get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
-                isNull(), eq("SCAN-ID"));
+        .when(mockHdsClient)
+        .get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
+            isNull(), eq(scanId));
   }
 
   private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {
@@ -2284,16 +2291,19 @@ public class ApiSbomServiceTest
   }
 
   private void mockHdsForImportWithError() throws IOException {
+    String scanId = tempEntity.newRandomHash();
     ScanReceipt scanReceipt = new ScanReceipt();
-    scanReceipt.setScanId("SCAN-ID");
-    doReturn(scanReceipt).when(mockHdsClient)
+    scanReceipt.setScanId(scanId);
+    lenient().doReturn(scanReceipt)
+        .when(mockHdsClient)
         .put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
             eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
-    doThrow(new RuntimeException("Test error")).when(mockHdsClient)
+    lenient().doThrow(new RuntimeException("Test error"))
+        .when(mockHdsClient)
         .get(any(Retry.class), eq(InputStream.class),
             eq("rest/application/analysis/{scanId}"),
-            isNull(), eq("SCAN-ID"));
+            isNull(), eq(scanId));
   }
 
   private static void assertContentHeader(

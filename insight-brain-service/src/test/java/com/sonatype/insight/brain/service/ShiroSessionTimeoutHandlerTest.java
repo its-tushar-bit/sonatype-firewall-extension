@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 import jakarta.inject.Inject;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.AbstractSessionManager;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +32,12 @@ public class ShiroSessionTimeoutHandlerTest
 
   @Inject
   private InsightSessionManager insightSessionManager;
+
+  @After
+  public void resetSessionTimeoutState() {
+    insightSessionManager.setGlobalSessionTimeout(AbstractSessionManager.DEFAULT_GLOBAL_SESSION_TIMEOUT);
+    insightSessionManager.setTenantSessionTimeout(null);
+  }
 
   @Test
   public void testShiroSessionTimeout() {

@@ -5,14 +5,11 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillService.WAIVER_REASON_MAPPING;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.WaiverReasonData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
@@ -20,18 +17,17 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillService.WAIVER_REASON_MAPPING;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class PolicyWaiverTelemetryBackfillServiceTest
     extends AbstractComponentTest
@@ -55,12 +51,6 @@ public class PolicyWaiverTelemetryBackfillServiceTest
           .stream()
           .collect(Collectors.toMap(PolicyWaiverReason::getId, reason -> reason));
     }
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
   }
 
   @Test

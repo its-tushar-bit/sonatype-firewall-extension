@@ -44,16 +44,16 @@ public class SbomExporterProvider
 
   @Inject
   public SbomExporterProvider(
-      final Provider<CycloneDxToCycloneDxExporter> cycloneDxToCycloneDxExporterProvider,
-      final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider,
-      final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider,
-      final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider,
-      final Provider<CycloneDxToPdfExporter> cycloneDxToPdfExporterProvider,
-      final Provider<SpdxToPdfExporter> spdxToPdfExporterProvider,
-      final Provider<SpdxToSpdx3Exporter> spdxToSpdx3ExporterProvider,
-      final Provider<CycloneDxToSpdx3Exporter> cycloneDxToSpdx3ExporterProvider,
-      final Provider<Spdx3ToCycloneDxExporter> spdx3ToCycloneDxExporterProvider,
-      final Provider<Spdx3ToPdfExporter> spdx3ToPdfExporterProvider)
+      @Named("cycloneDxToCycloneDxExporter") final Provider<CycloneDxToCycloneDxExporter> cycloneDxToCycloneDxExporterProvider,
+      @Named("spdxToSpdxExporter") final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider,
+      @Named("spdxToCycloneDxExporter") final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider,
+      @Named("cycloneDxToSpdxExporter") final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider,
+      @Named("cycloneDxToPdfExporter") final Provider<CycloneDxToPdfExporter> cycloneDxToPdfExporterProvider,
+      @Named("spdxToPdfExporter") final Provider<SpdxToPdfExporter> spdxToPdfExporterProvider,
+      @Named("spdxToSpdx3Exporter") final Provider<SpdxToSpdx3Exporter> spdxToSpdx3ExporterProvider,
+      @Named("cycloneDxToSpdx3Exporter") final Provider<CycloneDxToSpdx3Exporter> cycloneDxToSpdx3ExporterProvider,
+      @Named("spdx3ToCycloneDxExporter") final Provider<Spdx3ToCycloneDxExporter> spdx3ToCycloneDxExporterProvider,
+      @Named("spdx3ToPdfExporter") final Provider<Spdx3ToPdfExporter> spdx3ToPdfExporterProvider)
   {
     this.cycloneDxToCycloneDxExporterProvider = cycloneDxToCycloneDxExporterProvider;
     this.spdxToSpdxExporterProvider = spdxToSpdxExporterProvider;

@@ -5,13 +5,7 @@
  */
 package com.sonatype.insight.brain.features;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
@@ -21,17 +15,25 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.features.TenantFeature.SINGLE_TENANT;
 
 /**
  * Provides means to inspect the available features of the server.
  *
  * @since 1.9
  */
+@Named
+@Singleton
 public class FeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(FeaturesService.class);

@@ -43,6 +43,8 @@ public class H2DiskDatabaseFixture
 
   private H2DiskDataSourceProvider dataSourceProvider;
 
+  private boolean reusableForSpringContext;
+
   public H2DiskDatabaseFixture(final H2DiskTest h2DiskTest) {
     this(h2DiskTest.maxConnections(), h2DiskTest.copyExistingDatabase(), h2DiskTest.customSettings());
   }
@@ -125,9 +127,11 @@ public class H2DiskDatabaseFixture
 
   @Override
   public boolean isFixtureReusable() {
-    // Whenever we create an H2 disk DB, new directories and files are created on a temporary folder that then is
-    // deleted at the end of the test execution, so the DB cannot be re-used.
-    return false;
+    return reusableForSpringContext;
+  }
+
+  public void setReusableForSpringContext(final boolean reusableForSpringContext) {
+    this.reusableForSpringContext = reusableForSpringContext;
   }
 
   @Override

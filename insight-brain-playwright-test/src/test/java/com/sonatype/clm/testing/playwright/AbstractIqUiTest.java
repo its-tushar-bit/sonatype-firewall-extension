@@ -6,10 +6,12 @@
 package com.sonatype.clm.testing.playwright;
 
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -70,10 +72,7 @@ import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
-import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -88,10 +87,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
-import com.google.inject.matcher.Matchers;
-import io.dropwizard.core.server.DefaultServerFactory;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -196,12 +191,15 @@ public abstract class AbstractIqUiTest
     initMocks();
 
     String contextPath = TestCLMServer.WEBPACK_DEV_MODE ? "" : System.getProperty("iq.contextPath", "/iq-test");
+    if (!contextPath.isEmpty()) {
+      System.setProperty("iq.contextPath", contextPath);
+    }
     Configurator configurator = config -> {
-      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
     };
 
     testCLMServer = new TestCLMServer(new DefaultInsightBrainServiceFactory(),
-        false /* isProxyRequiredToReachHds */, getBrainModules(), configurator, databaseContainer);
+        false /* isProxyRequiredToReachHds */, List.of(PlaywrightTestConfiguration.class), configurator,
+        databaseContainer);
     int reverseProxyTarget = TestCLMServer.WEBPACK_DEV_MODE ? 8070 : testCLMServer.getCLMServer().getPort();
     reverseProxyServer = new ReverseProxyServer(reverseProxyTarget);
 
@@ -387,43 +385,37 @@ public abstract class AbstractIqUiTest
     }
   }
 
-  private static List<Module> getBrainModules() {
-    return Collections.singletonList(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(ProductLicense.class).toInstance(testProductLicense);
-        bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
-        bind(TestProductLicenseManager.class).toInstance(productLicenseManager);
-        bind(LicenseFingerprinter.class).toInstance(licenseFingerprinter);
-        bind(JiraService.class).toInstance(jiraService);
-        bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
-        bind(TaskScheduler.class).to(TestTaskScheduler.class);
+  static class PlaywrightTestConfiguration
+  {
+    @Bean
+    @Primary
+    public ProductLicense productLicense() {
+      return testProductLicense;
+    }
 
-        bind(EncryptionKeyStore.class).toInstance(() -> {
-          if (FIPSModeDetector.isEnabled()) {
-            return new TestFipsEncryptionKeyStore().getKey();
-          }
-          else {
-            return new TestEncryptionKeyStore().getKey();
-          }
-        });
+    @Bean
+    public ProductLicenseManager productLicenseManager() {
+      return productLicenseManager;
+    }
 
-        bindInterceptor(AbstractIqUiTest::isInterceptable, Matchers.any(),
-            invocation -> {
-              Object object = mocks.get(invocation.getMethod().getDeclaringClass());
-              if (object == null || invocation.getThis() == object) {
-                return invocation.proceed();
-              }
-              return invocation.getMethod().invoke(object, invocation.getArguments());
-            });
-      }
-    });
-  }
+    @Bean
+    public LicenseFingerprinter licenseFingerprinter() {
+      return licenseFingerprinter;
+    }
 
-  private static boolean isInterceptable(final Class<?> clazz) {
-    return !Modifier.isFinal(clazz.getModifiers()) && !Arrays.stream(clazz.getConstructors())
-        .allMatch(constructor -> Modifier.isPrivate(constructor.getModifiers()));
+    @Bean
+    @Primary
+    public JiraService jiraService() {
+      return jiraService;
+    }
+
+    @Bean
+    @Primary
+    public EncryptionKeyStore encryptionKeyStore() {
+      return () -> FIPSModeDetector.isEnabled()
+          ? new TestFipsEncryptionKeyStore().getKey()
+          : new TestEncryptionKeyStore().getKey();
+    }
   }
 
   public String getUsername() {

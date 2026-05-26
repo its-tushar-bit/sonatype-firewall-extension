@@ -5,22 +5,22 @@
  */
 package com.sonatype.insight.brain.backup;
 
+import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
+import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.H2DatabaseBackup;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.File;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
-import com.sonatype.insight.brain.db.H2DatabaseBackup;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import io.dropwizard.servlets.tasks.Task;
 
 /**
  * Creates a hot backup of the ODS database.
@@ -32,7 +32,7 @@ import io.dropwizard.servlets.tasks.Task;
  */
 @Named
 public class DbBackupTask
-    extends Task
+    extends AdminTask
 {
   public static final String PATH = "backupDb";
 
@@ -44,30 +44,56 @@ public class DbBackupTask
 
   private final OperationalDataStore operationalDataStore;
 
+  private final H2DatabaseBackup h2DatabaseBackup;
+
   @Inject
   public DbBackupTask(
       final InsightConfig config,
       final Configuration configuration,
       final OperationalDataStore operationalDataStore)
   {
+    this(config, configuration, operationalDataStore, new H2DatabaseBackup());
+  }
+
+  DbBackupTask(
+      final InsightConfig config,
+      final Configuration configuration,
+      final OperationalDataStore operationalDataStore,
+      final H2DatabaseBackup h2DatabaseBackup)
+  {
     super(PATH);
     this.config = config;
     this.configuration = configuration;
     this.operationalDataStore = operationalDataStore;
+    this.h2DatabaseBackup = h2DatabaseBackup;
   }
 
   @Override
-  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
+  public void execute(Map<String, List<String>> parameters, PrintWriter output) {
+    output.println(doBackup());
+  }
+
+  @Override
+  public void execute() {
+    doBackup();
+  }
+
+  public String doBackup() {
     if (!config.isDatabaseEmbedded()) {
       throw new BadRequestException("The DB backup task is supported only for h2 databases.");
     }
 
     File dbBackupDir = getDbBackupDir();
-    H2DatabaseBackup h2DatabaseBackup = new H2DatabaseBackup();
-    h2DatabaseBackup.backup(operationalDataStore.getDatabaseConfig(),
-        operationalDataStore.getDataSource(), dbBackupDir);
+    if (!dbBackupDir.mkdirs() && !dbBackupDir.isDirectory()) {
+      throw new IllegalStateException("Could not create db backup directory: " + dbBackupDir.getAbsolutePath());
+    }
 
-    output.write(RESPONSE_MESSAGE_PREFIX + dbBackupDir.getAbsolutePath());
+    h2DatabaseBackup.backup(
+        DatabaseConfigProviderFactory.createDatabaseConfigProvider(config).getDatabaseConfig(DatabaseName.ods),
+        operationalDataStore.getDataSource(),
+        dbBackupDir);
+
+    return RESPONSE_MESSAGE_PREFIX + dbBackupDir.getAbsolutePath();
   }
 
   private File getDbBackupDir() {

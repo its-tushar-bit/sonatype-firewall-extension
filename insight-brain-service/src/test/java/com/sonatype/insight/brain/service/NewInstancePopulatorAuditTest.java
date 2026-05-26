@@ -67,6 +67,12 @@ public class NewInstancePopulatorAuditTest
 
   @Override
   protected void startIqTestServer() throws Exception {
-    startIqTestServer(config -> config.setImportReferencePoliciesFromHDS(true));
+    // Start with the startup import disabled so this test can exercise populateIfNewInstance() explicitly below.
+    // Server startup reconfigures logging, so re-arm the audit log capture after the server is running and before the
+    // audited import is triggered.
+    startIqTestServer(config -> config.setImportReferencePoliciesFromHDS(false));
+    getCLMServer().getConfiguration().setImportReferencePoliciesFromHDS(true);
+    getLogOutput().before();
+    getLogOutput().clear();
   }
 }

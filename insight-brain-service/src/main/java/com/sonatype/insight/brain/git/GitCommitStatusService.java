@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
+import com.google.common.base.Strings;
+import com.google.common.eventbus.Subscribe;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -20,12 +18,12 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
-
-import com.google.common.base.Strings;
-import com.google.common.eventbus.Subscribe;
-import io.dropwizard.lifecycle.Managed;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.sonatype.insight.brain.lifecycle.Managed;
 
 /**
  * This class handles all the logic to create a <strong>Commit Status</strong>

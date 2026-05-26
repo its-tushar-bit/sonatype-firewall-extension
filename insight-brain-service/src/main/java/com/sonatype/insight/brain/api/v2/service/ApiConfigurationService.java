@@ -11,10 +11,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Lazy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -24,6 +27,8 @@ import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -76,6 +81,12 @@ public class ApiConfigurationService
   public static final String INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG =
       "Invalid value '%s' provided for %s. Allowed values are: '%s'";
 
+  @VisibleForTesting
+  static final String LEGACY_SUCCESS_METRICS_STAGE_ID = DevelopStageType.ID;
+
+  @VisibleForTesting
+  static final String NORMALIZED_SUCCESS_METRICS_STAGE_ID = SourceStageType.ID;
+
   // Visible for testing
   public static final String NO_PROPERTIES_ERROR_MSG = "No properties were specified.";
 
@@ -106,7 +117,7 @@ public class ApiConfigurationService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final Provider<Set<ConfigurationListener>> configurationListenersProvider;
+  private final ObjectProvider<ConfigurationListener> configurationListeners;
 
   private final InsightConfig insightConfig;
 
@@ -114,13 +125,13 @@ public class ApiConfigurationService
 
   private final ProductLicense productLicense;
 
-  private final Provider<ScanFileCleaner> scanFileCleanerProvider;
+  private final ScanFileCleaner scanFileCleaner;
 
   private final PermissionService permissionService;
 
   private final StageTypeService stageTypeService;
 
-  private final Provider<TelemetrySender> telemetrySenderProvider;
+  private final TelemetrySender telemetrySender;
 
   private final TenantUtil tenantUtil;
 
@@ -129,26 +140,26 @@ public class ApiConfigurationService
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      Provider<Set<ConfigurationListener>> configurationListenersProvider,
+      ObjectProvider<ConfigurationListener> configurationListeners,
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       ProductLicense productLicense,
-      Provider<ScanFileCleaner> scanFileCleanerProvider,
+      @Lazy @Nullable ScanFileCleaner scanFileCleaner,
       PermissionService permissionService,
       StageTypeService stageTypeService,
-      Provider<TelemetrySender> telemetrySenderProvider,
+      @Lazy @Nullable TelemetrySender telemetrySender,
       TenantUtil tenantUtil,
       RepositoryManagerDAO repositoryManagerDAO)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
-    this.configurationListenersProvider = configurationListenersProvider;
+    this.configurationListeners = configurationListeners;
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.productLicense = productLicense;
-    this.scanFileCleanerProvider = scanFileCleanerProvider;
+    this.scanFileCleaner = scanFileCleaner;
     this.permissionService = permissionService;
     this.stageTypeService = stageTypeService;
-    this.telemetrySenderProvider = telemetrySenderProvider;
+    this.telemetrySender = telemetrySender;
     this.tenantUtil = tenantUtil;
     this.repositoryManagerDAO = repositoryManagerDAO;
   }
@@ -247,7 +258,7 @@ public class ApiConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void setConfiguration(Map<String, Object> properties) {
-    if (tenantUtil.isMultiTenant()) {
+    if (tenantUtil.isMultiTenant() && properties != null) {
       validateMtiqWritableProperties(properties.keySet());
     }
 
@@ -294,25 +305,28 @@ public class ApiConfigurationService
       throw new InvalidLicenseException();
     }
     for (Entry<String, Object> property : properties.entrySet()) {
-      validatePropertyName(property.getKey());
-      validatePropertyValue(property.getKey(), property.getValue());
+      String propertyName = property.getKey();
+      Object normalizedPropertyValue = normalizePropertyValue(propertyName, property.getValue());
+
+      validatePropertyName(propertyName);
+      validatePropertyValue(propertyName, normalizedPropertyValue);
 
       // Check for existing value before setting (for telemetry action determination)
-      String existingValue = systemConfigurationPropertyDAO.get(tx, property.getKey());
+      String existingValue = systemConfigurationPropertyDAO.get(tx, propertyName);
       String action = (existingValue == null) ? "enable" : "update";
 
-      AuditData.get().setData(property.getKey(), property.getValue());
-      systemConfigurationPropertyDAO.set(tx, property.getKey(),
-          ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey())
+      AuditData.get().setData(propertyName, normalizedPropertyValue);
+      systemConfigurationPropertyDAO.set(tx, propertyName,
+          ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName)
               .getValueToString()
-              .apply(new Object[]{tx, existingValue}, property.getValue()));
-      sendTelemetryForIntegrationsSupportedVersionCount(property.getKey(), property.getValue(), action);
+              .apply(new Object[]{tx, existingValue}, normalizedPropertyValue));
+      sendTelemetryForIntegrationsSupportedVersionCount(propertyName, normalizedPropertyValue, action);
     }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteConfiguration(Set<String> propertyNames) {
-    if (tenantUtil.isMultiTenant()) {
+    if (tenantUtil.isMultiTenant() && propertyNames != null) {
       validateMtiqWritableProperties(propertyNames);
     }
 
@@ -356,8 +370,8 @@ public class ApiConfigurationService
   }
 
   private void scheduleTaskForConfigurationDeletion(String propertyName) {
-    if (propertyName.equals(PURGE_SCAN_FILES)) {
-      taskScheduler.scheduleOneTimeTask(scanFileCleanerProvider.get());
+    if (propertyName.equals(PURGE_SCAN_FILES) && scanFileCleaner != null) {
+      taskScheduler.scheduleOneTimeTask(scanFileCleaner);
     }
   }
 
@@ -366,7 +380,7 @@ public class ApiConfigurationService
   }
 
   public void applyConfigurationToClients(Set<String> propertyNames) {
-    configurationListenersProvider.get()
+    configurationListeners.orderedStream()
         .forEach(listener -> listener.configurationChanged(propertyNames));
   }
 
@@ -414,8 +428,9 @@ public class ApiConfigurationService
 
     if (SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID.equals(propertyName)) {
       final var validStageIds = stageTypeService.getValidSuccessMetricsStageTypeIds();
+      final var normalizedStageId = normalizeSuccessMetricsStageId((String) propertyValue);
 
-      if (!validStageIds.contains(propertyValue)) {
+      if (!validStageIds.contains(normalizedStageId)) {
         throw new BadRequestException(String.format(
             INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG,
             propertyValue,
@@ -423,6 +438,20 @@ public class ApiConfigurationService
             validStageIds));
       }
     }
+  }
+
+  private static Object normalizePropertyValue(final String propertyName, final Object propertyValue) {
+    if (SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID.equals(propertyName) && propertyValue instanceof String) {
+      return normalizeSuccessMetricsStageId((String) propertyValue);
+    }
+    return propertyValue;
+  }
+
+  public static String normalizeSuccessMetricsStageId(@Nullable final String stageTypeId) {
+    if (LEGACY_SUCCESS_METRICS_STAGE_ID.equals(stageTypeId)) {
+      return NORMALIZED_SUCCESS_METRICS_STAGE_ID;
+    }
+    return stageTypeId;
   }
 
   @VisibleForTesting
@@ -435,10 +464,13 @@ public class ApiConfigurationService
       return;
     }
     try {
+      if (telemetrySender == null) {
+        return;
+      }
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INTEGRATIONS_SUPPORTED_VERSION_COUNT_USAGE);
       telemetryData.getAttributes().put(SUPPORTED_VERSION_COUNT, propertyValue);
       telemetryData.getAttributes().put(ACTION, action);
-      telemetrySenderProvider.get().send(telemetryData);
+      telemetrySender.send(telemetryData);
     }
     catch (Exception e) {
       log.debug("Failed to send telemetry for integrations supported version count configuration", e);

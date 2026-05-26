@@ -5,11 +5,11 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -28,32 +29,29 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
-import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
+import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.api.v2.ApiFirewallMetricsService;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 
 public class CascadeReevaluationTaskTest
     extends AbstractComponentTest
@@ -132,14 +130,6 @@ public class CascadeReevaluationTaskTest
 
   private final String targetComponentHash = "target_hash_456";
 
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
-    binder.bind(AsyncEventBus.class).toInstance(mockEventBus);
-    binder.bind(RepositoryPolicyEvaluator.class).toInstance(mockRepositoryPolicyEvaluator);
-    super.configure(binder);
-  }
-
   /*
    * Setup:
    * - 3 repositories
@@ -204,7 +194,7 @@ public class CascadeReevaluationTaskTest
     ComponentEvaluationDataList response = new ComponentEvaluationDataList();
     // Ensure the components list is initialized
     if (response.components == null) {
-      response.components = new java.util.ArrayList<>();
+      response.components = new ArrayList<>();
     }
     response.components.add(createComponentResponse(component1InRepo1.getHash(),
         component1InRepo1.getComponentIdentifier(), MatchState.EXACT.getId(), 0));
@@ -230,7 +220,7 @@ public class CascadeReevaluationTaskTest
           RepositoryComponentEvaluationDataRequestList request = invocation.getArgument(1);
 
           RepositoryComponentEvaluationDataList evaluationDataList = new RepositoryComponentEvaluationDataList();
-          evaluationDataList.componentEvalResults = new java.util.ArrayList<>();
+          evaluationDataList.componentEvalResults = new ArrayList<>();
 
           // Return appropriate quarantine values based on request size
           if (request.components.size() == 2) {
@@ -302,7 +292,7 @@ public class CascadeReevaluationTaskTest
           RepositoryComponentEvaluationDataRequestList request = invocation.getArgument(1);
 
           RepositoryComponentEvaluationDataList evaluationDataList = new RepositoryComponentEvaluationDataList();
-          evaluationDataList.componentEvalResults = new java.util.ArrayList<>();
+          evaluationDataList.componentEvalResults = new ArrayList<>();
 
           // Return appropriate quarantine values based on request size (all false for Success test)
           for (int i = 0; i < request.components.size(); i++) {
@@ -381,7 +371,7 @@ public class CascadeReevaluationTaskTest
   public void testCascadeReevaluationTask_WithQuarantinedComponent() {
     // Create a simple mock that returns quarantined=true for all components in repository1
     RepositoryComponentEvaluationDataList repo1Results = new RepositoryComponentEvaluationDataList();
-    repo1Results.componentEvalResults = new java.util.ArrayList<>();
+    repo1Results.componentEvalResults = new ArrayList<>();
 
     // Add results for both components in repository1 - make BOTH quarantined for simplicity
     RepositoryComponentEvaluationData result1 = new RepositoryComponentEvaluationData();

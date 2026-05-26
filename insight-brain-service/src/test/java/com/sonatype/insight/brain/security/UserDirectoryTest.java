@@ -34,8 +34,10 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.AbstractSsoUser;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.OAuth2Group;
 import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
@@ -102,6 +104,13 @@ public class UserDirectoryTest
 
   @Inject
   private SsoUserService ssoUserService;
+
+  @Override
+  protected void grantDefaultTestUserAllPermissions() {
+    tempEntity.newUser(USERNAME, "Fixture", "User", USERNAME + "@void.com");
+    var role = tempEntity.newRole(true, Permission.values());
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), USERNAME);
+  }
 
   @Before
   public void before() {

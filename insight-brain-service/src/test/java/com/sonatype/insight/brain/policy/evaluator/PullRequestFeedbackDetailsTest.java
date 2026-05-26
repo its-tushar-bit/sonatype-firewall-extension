@@ -49,6 +49,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
@@ -1114,6 +1115,8 @@ public class PullRequestFeedbackDetailsTest
       final String featureBranchReportLocation,
       boolean forAdded) throws IOException, URISyntaxException
   {
+    clearExistingReportData();
+
     // setup reports
     createReportFile(app.getId(), FROM_SCAN_ID, zipReportDir(defaultBranchReportLocation, tempDir),
         insightWork);
@@ -1329,6 +1332,11 @@ public class PullRequestFeedbackDetailsTest
         pair.getRight()));
 
     return sourceControlComponentDetails;
+  }
+
+  private void clearExistingReportData() throws IOException {
+    FileUtils.deleteDirectory(insightWork.getReportDir(app.getId(), FROM_SCAN_ID));
+    FileUtils.deleteDirectory(insightWork.getReportDir(app.getId(), TO_SCAN_ID));
   }
 
   private GitRepositoryInfo getGitRepositoryInfo() {

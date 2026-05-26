@@ -5,30 +5,6 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.function.Consumer;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.HttpMethod;
-
-import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.test.LogOutput;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.net.HttpHeaders;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,6 +16,27 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.net.HttpHeaders;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.ErrorResponseGenerator;
+import com.sonatype.insight.brain.spring.config.SecurityConfiguration;
+import com.sonatype.insight.test.LogOutput;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.HttpMethod;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.function.Consumer;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 public class AuditRecorderTest
 {
@@ -144,7 +141,7 @@ public class AuditRecorderTest
     runRecordUserEventTest(
         recordingAuditData -> recordingAuditData.setHttpStatus(401),
         httpServletRequest -> when(httpServletRequest.getCookies()).thenReturn(
-            new Cookie[]{new Cookie(SecurityModule.SESSION_COOKIE_NAME, "AuthCookie")}),
+            new Cookie[]{new Cookie(SecurityConfiguration.SESSION_COOKIE_NAME, "AuthCookie")}),
         AuditEvent.AUTHENTICATION_FAILURE,
         AuditErrorType.BAD_SESSION.getValue());
   }
@@ -450,7 +447,7 @@ public class AuditRecorderTest
     when(mockHttpServletRequest.getHeader(HttpHeaders.USER_AGENT)).thenReturn("userAgent");
     when(mockHttpServletRequest.getCookies()).thenReturn(new Cookie[]{
       new Cookie("cookieName1", "cookieValue1"),
-      new Cookie(SecurityModule.SESSION_COOKIE_NAME, "sessionId"),
+      new Cookie(SecurityConfiguration.SESSION_COOKIE_NAME, "sessionId"),
       new Cookie("cookieName3", "cookieValue3")
     });
     return RequestData.newInstance(mockHttpServletRequest);

@@ -5,27 +5,21 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.net.HttpCookie;
-import java.util.Collections;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.test.networking.SslProperties;
-
-import io.dropwizard.jetty.HttpConnectorFactory;
-import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
+import java.net.HttpCookie;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 @Category(SlowTest.class)
 public class AntiCsrfFilterTest
@@ -39,14 +33,17 @@ public class AntiCsrfFilterTest
   @Before
   public void setUp() {
     reverseProxyAuthenticationConfigurationDAO = lookup(ReverseProxyAuthenticationConfigurationDAO.class);
-  }
-
-  @Override
-  protected void startIqTestServer() throws Exception {
-    startIqTestServer(config -> tempEntity.newReverseProxyAuthenticationConfiguration(true,
-        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null));
-    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
-        .applyReverseProxyAuthenticationConfigurationToClients();
+    if (reverseProxyAuthenticationConfigurationDAO != null) {
+      // Configure reverse proxy authentication for CSRF testing.
+      // Use set() (upsert) to handle both fresh databases and those where the
+      // DataMigrator has already inserted a default record during server boot.
+      ReverseProxyAuthenticationConfiguration rpConfig =
+          new ReverseProxyAuthenticationConfiguration(true,
+              ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
+      reverseProxyAuthenticationConfigurationDAO.set(rpConfig);
+      getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+          .applyReverseProxyAuthenticationConfigurationToClients();
+    }
   }
 
   @Test
@@ -150,22 +147,28 @@ public class AntiCsrfFilterTest
   @Test
   @ManualIqServerInit
   public void testRequestUsingHttpsInitializesCsrfCookieWithSecure() throws Exception {
-    startIqTestServer(config -> {
-      HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
-      applicationHttpsConnector.setUseForwardedHeaders(true);
-      applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
-      applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
-      DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
-      applicationHttpsConnector
-          .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());
-      defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));
-    });
-    HttpResponse response = super.restRequest().noCsrfToken().path("/assets/index.html").get();
-
-    HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
-    assertThat(csrfCookie).isNotNull();
-    assertThat(csrfCookie.getValue()).isNotNull();
-    assertThat(csrfCookie.getSecure()).isTrue();
+    try {
+      // SSL configuration is now handled by Spring Boot server.ssl.* properties
+      // Configure SSL via system properties for tests
+      System.setProperty("server.ssl.key-store", SslProperties.SERVER_STORE_FILE.getAbsolutePath());
+      System.setProperty("server.ssl.key-store-password", SslProperties.KEY_STORE_PASSWORD);
+      System.setProperty("server.ssl.key-store-type", "JKS");
+      startIqTestServer(config -> {
+        // SSL configuration handled above via system properties
+      });
+      // Tell the test framework about SSL so client URLs use https://
+      getCLMServer().setKeyStore(SslProperties.SERVER_STORE_FILE.getAbsolutePath(), SslProperties.KEY_STORE_PASSWORD);
+      HttpResponse response = super.restRequest().noCsrfToken().path("/assets/index.html").get();
+      HttpCookie csrfCookie = response.getCookie(AntiCsrfFilter.CSRF_COOKIE_NAME);
+      assertThat(csrfCookie).isNotNull();
+      assertThat(csrfCookie.getValue()).isNotNull();
+      assertThat(csrfCookie.getSecure()).isTrue();
+    }
+    finally {
+      System.clearProperty("server.ssl.key-store");
+      System.clearProperty("server.ssl.key-store-password");
+      System.clearProperty("server.ssl.key-store-type");
+    }
   }
 
   @Override

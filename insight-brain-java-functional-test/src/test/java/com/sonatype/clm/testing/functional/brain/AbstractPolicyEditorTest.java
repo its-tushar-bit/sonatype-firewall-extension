@@ -5,13 +5,27 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selenide.back;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.insight.brain.model.Color.dark_blue;
+import static com.sonatype.insight.brain.model.Color.dark_red;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_NO_SUPPORT_FOR;
+import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_SUPPORT_FOR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementCondition;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -98,30 +112,16 @@ import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.product.license.LicensedConditionTypesListener;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.back;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.insight.brain.model.Color.dark_blue;
-import static com.sonatype.insight.brain.model.Color.dark_red;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_NO_SUPPORT_FOR;
-import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_SUPPORT_FOR;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import org.mockito.AdditionalAnswers;
 
 public abstract class AbstractPolicyEditorTest
     extends AbstractFunctionalTest
@@ -155,7 +155,7 @@ public abstract class AbstractPolicyEditorTest
     // Manually trigger the LicensedConditionTypesListener to enable condition types
     // This is necessary because functional tests use TestProductLicenseManager which bypasses
     // the normal license change notification system. This must be done in @Before (not static block)
-    // because Guice's injectConditionTypes() method resets all condition types to their default
+    // because the condition-type bootstrap resets all condition types to their default
     // enabled/disabled state during dependency injection.
     LicensedConditionTypesListener listener = lookup(LicensedConditionTypesListener.class);
     listener.productLicenseChanged();
@@ -307,7 +307,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getEmailAddress())
         .isEqualTo("aaa@sonatype.com");
     assertThat(newPolicy.getNotifications().getUserNotifications().get(0).getStageIds())
-        .containsExactlyInAnyOrder(com.sonatype.clm.dto.model.policy.Stage.ID_BUILD);
+        .containsExactlyInAnyOrder(Stage.ID_BUILD);
 
     assertThat(newPolicy.getNotifications().getRoleNotifications()).hasSize(1);
     assertThat(newPolicy.getNotifications().getRoleNotifications().get(0).getStageIds())
@@ -352,13 +352,15 @@ public abstract class AbstractPolicyEditorTest
     refresh();
     SidebarNavigation.policiesNavigationButton().click();
     OwnerSummaryPage.policyTile().localPolicyList().shouldBe(visible).row(1).shouldBe(visible).click();
-    OrganizationService spyOrganizationService = spy(lookup(OrganizationService.class));
+    OrganizationService organizationService = lookup(OrganizationService.class);
+    OrganizationService delayedOrganizationService =
+        mock(OrganizationService.class, AdditionalAnswers.delegatesTo(organizationService));
     doAnswer(invocation -> {
       // Delay the REST call to /rest/organization/null to ensure it's the last request that gets fulfilled
       Selenide.sleep(2000);
-      return invocation.callRealMethod();
-    }).when(spyOrganizationService).getOrganization("null");
-    mocks.put(OrganizationService.class, spyOrganizationService);
+      return organizationService.getOrganization("null");
+    }).when(delayedOrganizationService).getOrganization("null");
+    mocks.put(OrganizationService.class, delayedOrganizationService);
 
     SidebarNavigation.policiesNavigationButton().click();
     // Make sure the delayed call completes
@@ -1747,7 +1749,7 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
     assertThreatDropdownSelectorState(policy.getThreatLevel(), isReadOnly);
 
-    com.codeborne.selenide.WebElementCondition disabledOrEnabled =
+    WebElementCondition disabledOrEnabled =
         isReadOnly || legacyViolationReadOnly ? disabled : enabled;
     summary.legacyViolationCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     if (legacyViolationReadOnly) {
@@ -1766,7 +1768,7 @@ public abstract class AbstractPolicyEditorTest
   {
     ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
 
-    com.codeborne.selenide.WebElementCondition disabledOrEnabled;
+    WebElementCondition disabledOrEnabled;
     if (OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       disabledOrEnabled = enabled;
     }
@@ -1826,7 +1828,7 @@ public abstract class AbstractPolicyEditorTest
     addNotificationItem.role().shouldNot(exist);
     addNotificationItem.addButton().shouldBe(disabled);
 
-    com.codeborne.selenide.WebElementCondition disabledOrEnabled =
+    WebElementCondition disabledOrEnabled =
         isReadOnly || notificationsReadOnly ? disabled : enabled;
 
     // Uncomment when fixing CLM-18677

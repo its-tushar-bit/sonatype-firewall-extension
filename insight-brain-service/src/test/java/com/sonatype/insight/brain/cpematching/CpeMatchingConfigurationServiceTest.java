@@ -238,7 +238,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION, appId, mockDto))
-        .withMessage("Owner with ID " + appId + " does not exist.");
+        .withMessage("Application with ID " + appId + " does not exist.");
   }
 
   @Test
@@ -247,9 +247,9 @@ public class CpeMatchingConfigurationServiceTest
     CpeMatchingConfigurationRequest mockDto = new CpeMatchingConfigurationRequest();
     mockDto.enabled = true;
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(
-            () -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION, orgId, mockDto))
-        .withMessage("Owner with ID " + orgId + " does not exist.");
+        .isThrownBy(() -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, orgId,
+            mockDto))
+        .withMessage("Organization with ID " + orgId + " does not exist.");
   }
 
   @Test
@@ -453,7 +453,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.APPLICATION,
             "fakeId", null))
-        .withMessageContaining("Owner with ID fakeId does not exist");
+        .withMessageContaining("Application with ID fakeId does not exist");
   }
 
   @Test
@@ -461,7 +461,7 @@ public class CpeMatchingConfigurationServiceTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> cpeMatchingConfigurationService.disableCpeMatchingConfiguration(OwnerType.ORGANIZATION,
             "fakeId", null))
-        .withMessageContaining("Owner with ID fakeId does not exist");
+        .withMessageContaining("Organization with ID fakeId does not exist");
   }
 
   @Test

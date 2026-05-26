@@ -5,13 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-import jakarta.ws.rs.core.HttpHeaders;
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
+import com.auth0.jwk.Jwk;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
+import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFilter;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
@@ -25,6 +36,8 @@ import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper.ConsumerWithException;
@@ -36,12 +49,12 @@ import com.sonatype.insight.brain.testing.MultiTenantRule;
 import com.sonatype.insight.brain.testing.MultiTenantTestInsightBrainServiceFactory;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.auth0.jwk.Jwk;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Binder;
+import jakarta.ws.rs.core.HttpHeaders;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.UncheckedException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -49,15 +62,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
-import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Base integration test class for multi-tenant IQ. {@link TemporaryEntity} resides here to manipulate data for the
@@ -81,6 +92,13 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
   // Not a @Rule - controlled below within the context of a tenant. MUST USE with `testAsTestTenant`
   protected TemporaryEntity tenantTemporaryEntity;
+
+  /**
+   * The base integration test infrastructure compares configurators by identity when deciding whether the server can
+   * be reused between tests. Keep the default MTIQ configurator as a singleton so ordinary MTIQ integration tests do
+   * not restart the full Spring test server for every test method.
+   */
+  static final Configurator DEFAULT_MTIQ_DATABASE_CONFIGURATOR = new MtiqDatabaseConfigurator();
 
   public static class MtiqDatabaseConfigurator
       implements Configurator
@@ -128,14 +146,17 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   public void cleanupTest() throws Exception {
     log.info("@After (AbstractMultiTenantBaseIntegrationTest.cleanupTest): {}", testName.getMethodName());
 
-    testAsTestTenant(test -> {
-      tenantTemporaryEntity.after();
-    });
+    if (testTenant != null && tenantTemporaryEntity != null) {
+      testAsTestTenant(test -> tenantTemporaryEntity.after());
+    }
 
     TenantTestHelper.setGlobalTenant();
-    afterDatabaseReset();
 
-    if (testCLMServer != null && testCLMServer.isRunning()) {
+    if (systemConfigurationPropertyDAO != null && testTenant != null) {
+      afterDatabaseReset();
+    }
+
+    if (testCLMServer != null && testCLMServer.isRunning() && systemConfigurationPropertyDAO != null) {
       disableSsoWithSaml();
       disableSsoWithOAuth2();
     }
@@ -146,7 +167,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   @Override
   protected void startIqTestServer(Configurator configurator) throws Exception {
     if (configurator == null) {
-      configurator = new MtiqDatabaseConfigurator();
+      configurator = DEFAULT_MTIQ_DATABASE_CONFIGURATOR;
     }
     super.startIqTestServer(configurator);
 
@@ -184,19 +205,11 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     return TestMultiTenantEncryptionKeyStore.class;
   }
 
-  @Override
-  protected void configureTestBindings(final Binder binder) {
-    binder.bind(TenantUtil.class).toInstance(tenantUtil);
-    MultiTenantJwkProvider multiTenantJwkTestProvider = mock(MultiTenantJwkProvider.class);
-    binder.bind(MultiTenantJwkProvider.class).toInstance(multiTenantJwkTestProvider);
-    super.configureTestBindings(binder);
-  }
-
   private void jwtSetup() {
     MultiTenantJwkProvider multiTenantJwkTestProvider = getCLMServer().getInstance(MultiTenantJwkProvider.class);
 
     try {
-      String jwt = AuthorizationTestHelper.createJwt();
+      String jwt = AuthorizationTestHelper.createJwt("local/");
       DecodedJWT decodedJWT = JWT.decode(jwt);
       Jwk jwk = AuthorizationTestHelper.createJwk(decodedJWT.getKeyId());
 
@@ -205,7 +218,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       lenient().when(multiTenantJwkTestProvider.getIssuers()).thenReturn(new String[]{decodedJWT.getIssuer()});
     }
     catch (Exception e) {
-      log.error("Failed to setup mock JWT for TestMultiTenantInsightBrainService", e);
+      log.error("Failed to setup mock JWT for SpringMultiTenantTestInsightBrainService", e);
     }
   }
 
@@ -227,6 +240,41 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   @Override
   protected InsightBrainServiceFactory getInsightBrainServiceFactory() {
     return new MultiTenantTestInsightBrainServiceFactory();
+  }
+
+  @Override
+  protected List<Class<?>> getTestConfigurationClasses() {
+    LinkedHashSet<Class<?>> configs = new LinkedHashSet<>(super.getTestConfigurationClasses());
+    configs.add(MtiqTestConfiguration.class);
+    if (shouldBindTestEncryptionKeyStore()) {
+      configs.add(MtiqTestConfigurationWithTestEncryptionKeyStore.class);
+    }
+    collectNestedTestConfigurationClasses(getClass()).stream()
+        .filter(config -> config != MtiqTestConfiguration.class
+            && config != MtiqTestConfigurationWithTestEncryptionKeyStore.class)
+        .forEach(configs::add);
+    return new ArrayList<>(configs);
+  }
+
+  static List<Class<?>> collectNestedTestConfigurationClasses(Class<?> testClass) {
+    List<Class<?>> hierarchy = new ArrayList<>();
+    for (Class<?> candidate = testClass; candidate != null
+        && AbstractMultiTenantBaseIntegrationTest.class.isAssignableFrom(candidate); candidate =
+            candidate.getSuperclass())
+    {
+      hierarchy.add(0, candidate);
+      if (candidate == AbstractMultiTenantBaseIntegrationTest.class) {
+        break;
+      }
+    }
+
+    LinkedHashSet<Class<?>> testConfigurations = new LinkedHashSet<>();
+    for (Class<?> candidate : hierarchy) {
+      Arrays.stream(candidate.getDeclaredClasses())
+          .filter(nestedClass -> nestedClass.isAnnotationPresent(TestConfiguration.class))
+          .forEach(testConfigurations::add);
+    }
+    return new ArrayList<>(testConfigurations);
   }
 
   @Override
@@ -291,6 +339,20 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     catch (Exception e) {
       throw new UncheckedException(e);
     }
+
+    // AbstractBaseIntegrationTest seeds the global base URL after server startup, but MTIQ requests execute under the
+    // tenant configuration. Persist the base URL directly for newly provisioned tenants and refresh the tenant-scoped
+    // configuration cache so request-scoped flows like SAML entity-id generation do not see a null
+    // BaseUrlConfiguration.
+    TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
+      systemConfigurationPropertyDAO.set(
+          com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.BASE_URL,
+          "http://localhost");
+      systemConfigurationPropertyDAO.set(
+          com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.FORCE_BASE_URL,
+          Boolean.toString(false));
+      initializeConfigurationForTenant();
+    });
   }
 
   /**
@@ -305,7 +367,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   protected HttpRequest adminRestRequest(String path) {
     String jwt;
     try {
-      jwt = AuthorizationTestHelper.createJwt();
+      jwt = AuthorizationTestHelper.createJwt("local/");
     }
     catch (Exception e) {
       throw new UncheckedException(e);
@@ -415,5 +477,94 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   private void loadSsoConfiguration() {
     SsoUserService ssoUserService = lookup(SsoUserService.class);
     ssoUserService.loadSsoConfiguration();
+  }
+
+  /**
+   * Test configuration for MTIQ integration tests.
+   * Provides test-specific beans for the Spring-based test context.
+   */
+  @TestConfiguration
+  static class MtiqTestConfiguration
+  {
+
+    @Bean
+    static BeanDefinitionRegistryPostProcessor removeSingleTenantProductLicenseTestBean() {
+      return new BeanDefinitionRegistryPostProcessor()
+      {
+        @Override
+        public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException {
+          if (registry.containsBeanDefinition("productLicense")) {
+            registry.removeBeanDefinition("productLicense");
+          }
+        }
+
+        @Override
+        public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException {
+          // no-op
+        }
+      };
+    }
+
+    @Bean
+    @Primary
+    TenantUtil tenantUtil() {
+      return tenantUtil;
+    }
+
+    @Bean
+    @Primary
+    ShutdownHandler shutdownHandler() {
+      return spy(new TestShutdownHandler());
+    }
+
+    @Bean
+    @Primary
+    BaseUrl baseUrl() {
+      Configuration configuration = mock(Configuration.class);
+      BaseUrlConfiguration baseUrlConfiguration = new BaseUrlConfiguration("http://localhost/", true);
+      lenient().when(configuration.getBaseUrlConfiguration()).thenReturn(baseUrlConfiguration);
+      return new BaseUrl(configuration);
+    }
+
+    @Bean
+    @Primary
+    BaseUrlFilter baseUrlFilter(BaseUrl baseUrl) {
+      return new BaseUrlFilter(baseUrl);
+    }
+
+    @Bean
+    @Primary
+    MultiTenantJwkProvider multiTenantJwkProvider() {
+      return mock(MultiTenantJwkProvider.class);
+    }
+
+    @Bean
+    @Primary
+    JwtHttpAuthorizationFilter jwtHttpAuthorizationFilter(MultiTenantJwkProvider multiTenantJwkProvider) {
+      return new JwtHttpAuthorizationFilter(multiTenantJwkProvider);
+    }
+  }
+
+  @TestConfiguration
+  static class MtiqTestConfigurationWithTestEncryptionKeyStore
+      extends MtiqTestConfiguration
+  {
+    @Bean
+    com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore() {
+      TestMultiTenantEncryptionKeyStore delegate = new TestMultiTenantEncryptionKeyStore();
+      com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore keyStore =
+          mock(com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore.class);
+      lenient().when(keyStore.getKey()).thenAnswer(invocation -> delegate.getKey());
+      return keyStore;
+    }
+
+    @Bean
+    @Primary
+    EncryptionKeyStore encryptionKeyStore() {
+      // MTIQ integration tests should not depend on tenant metadata/AWS-backed key lookup just to encrypt test-only
+      // secrets such as OIDC client credentials. Use the deterministic test keystore for all EncryptionKeyStore
+      // injections in this harness.
+      return new TestMultiTenantEncryptionKeyStore();
+    }
   }
 }

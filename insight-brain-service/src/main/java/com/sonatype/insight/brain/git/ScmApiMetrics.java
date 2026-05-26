@@ -5,21 +5,20 @@
  */
 package com.sonatype.insight.brain.git;
 
+import static com.sonatype.insight.brain.git.ScmMetricsTags.buildTagsWithTenantId;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.ApiMetricsListener;
 import com.sonatype.insight.client.utils.ApiMetricsRecorder;
-
-import io.dropwizard.lifecycle.Managed;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nullable;
+import com.sonatype.insight.brain.lifecycle.Managed;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
-
-import static com.sonatype.insight.brain.git.ScmMetricsTags.buildTagsWithTenantId;
-import static org.slf4j.LoggerFactory.getLogger;
 
 @Named
 @Singleton

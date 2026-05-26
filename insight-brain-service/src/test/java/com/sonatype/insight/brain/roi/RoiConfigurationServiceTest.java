@@ -5,36 +5,32 @@
  */
 package com.sonatype.insight.brain.roi;
 
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.stream.Stream;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
-import com.sonatype.insight.brain.model.roi.RoiConfiguration;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.roi.dtos.RoiConfigurationDTO;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
-import com.sonatype.insight.brain.model.roi.CurrencyTypes;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import com.google.inject.Binder;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
+import com.sonatype.insight.brain.model.roi.CurrencyTypes;
+import com.sonatype.insight.brain.model.roi.RoiConfiguration;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.roi.dtos.RoiConfigurationDTO;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import jakarta.inject.Inject;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 public class RoiConfigurationServiceTest
     extends AbstractComponentTest
@@ -53,12 +49,6 @@ public class RoiConfigurationServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
-  }
 
   @Before
   public void setup() {

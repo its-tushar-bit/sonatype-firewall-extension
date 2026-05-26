@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
+import java.io.File;
+
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,8 @@ public class UserActivityResourceAuditTest
   @Before
   public void before() {
     SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.setEnabled(true);
+    File logsDir = new File(getCLMServer().getConfiguration().getSonatypeWork(), "logs");
+    assertThat(logsDir.mkdirs() || logsDir.isDirectory()).isTrue();
   }
 
   @Override

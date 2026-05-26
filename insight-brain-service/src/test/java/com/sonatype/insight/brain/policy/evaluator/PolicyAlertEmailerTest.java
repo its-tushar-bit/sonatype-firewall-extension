@@ -5,17 +5,19 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import jakarta.inject.Inject;
-import javax.naming.NamingException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.atlassian.crowd.exception.OperationFailedException;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -78,30 +80,24 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
-
-import com.atlassian.crowd.exception.OperationFailedException;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import javax.naming.NamingException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -180,19 +176,10 @@ public class PolicyAlertEmailerTest
   @Inject
   OrganizationDAO organizationDAO;
 
-  @Override
-  public void configure(Binder binder) {
-    lenient().when(mailer.getServer()).thenReturn("localhost:587");
-    lenient().when(mailer.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
-    binder.bind(InsightMail.class).toInstance(mailer);
-    binder.bind(CrowdClientFactory.class).toInstance(mockCrowdClientFactory);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    super.configure(binder);
-  }
-
   @Before
   public void before() {
     setBaseUrl("http://localhost");
+    Mockito.lenient().when(mailer.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
   }
 
   @Test
@@ -543,7 +530,9 @@ public class PolicyAlertEmailerTest
     Throwable expectedException = new NamingException("Naming exception!");
     LdapService ldapServiceSpy = Mockito.spy(ldapService);
     doThrow(expectedException).when(ldapServiceSpy)
-        .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
+        .getUsersByGroup(
+            argThat(other -> other != null && ldapServers.get(0).getId().equals(other.getId())),
+            any(String.class));
 
     UserDirectory userDirectory =
         new UserDirectory(userDAO, ldapServerDAO, ssoUserService, ldapServiceSpy, mockCrowdClientFactory);
@@ -984,23 +973,5 @@ public class PolicyAlertEmailerTest
     policyFact.addComponentFact(componentFact);
 
     return policyFact;
-  }
-
-  private static class SameId
-      implements ArgumentMatcher<LdapServer>
-  {
-    private final String ldapServerId;
-
-    SameId(LdapServer ldapServer) {
-      ldapServerId = ldapServer.getId();
-    }
-
-    @Override
-    public boolean matches(LdapServer other) {
-      if (other == null) {
-        return false;
-      }
-      return ldapServerId.equals(other.getId());
-    }
   }
 }

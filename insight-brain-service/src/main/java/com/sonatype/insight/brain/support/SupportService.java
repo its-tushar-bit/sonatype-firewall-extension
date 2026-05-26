@@ -5,6 +5,27 @@
  */
 package com.sonatype.insight.brain.support;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
+import com.sonatype.insight.brain.configuration.ldap.LdapService;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.json.store.JsonUtils;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -21,51 +42,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
-import com.sonatype.insight.brain.audit.AuditRecorder;
-import com.sonatype.insight.brain.configuration.ldap.LdapService;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.json.store.JsonUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteStreams;
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.logging.common.AppenderFactory;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
-import io.dropwizard.logging.common.FileAppenderFactory;
-import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
-import io.dropwizard.request.logging.RequestLogFactory;
-import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import org.apache.commons.io.FileUtils;
+import org.springframework.context.annotation.Lazy;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -81,6 +65,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.27
  */
 @Named
+@Lazy
 public class SupportService
 {
   private static final Logger log = LoggerFactory.getLogger(SupportService.class);
@@ -182,68 +167,76 @@ public class SupportService
     return new File(config.getSonatypeWork(), "downloads");
   }
 
+  /**
+   * Get the server log file.
+   * With Spring Boot, this is typically in the working directory or configured via logging.file.path.
+   */
   static File getServerLog(final InsightConfig config) {
-    List<String> configuredLogFilenames = getFilenames(
-        ((DefaultLoggingFactory) config.getLoggingFactory()).getAppenders());
-    if (configuredLogFilenames.isEmpty()) {
-      return null;
+    if (config.getServerLogFilename() != null) {
+      return new File(config.getServerLogFilename());
     }
-    if (configuredLogFilenames.size() > 1) {
-      log.warn("Multiple server log files {}", configuredLogFilenames);
+
+    File logDir = new File(config.getSonatypeWork(), "logs");
+    File serverLog = new File(logDir, "clm-server.log");
+    if (serverLog.exists()) {
+      return serverLog;
     }
-    return new File(configuredLogFilenames.get(0));
+    File workingDirLog = new File("clm-server.log");
+    if (workingDirLog.exists()) {
+      return workingDirLog;
+    }
+    return null;
   }
 
+  /**
+   * Get the request log file.
+   */
   static File getRequestLog(final InsightConfig config) {
-    RequestLogFactory<?> requestLogFactory = ((DefaultServerFactory) config.getServerFactory()).getRequestLogFactory();
-    List<String> requestLogFilenames = null;
-    if (requestLogFactory instanceof LogbackAccessRequestLogFactory) {
-      requestLogFilenames = getFilenames(((LogbackAccessRequestLogFactory) requestLogFactory).getAppenders());
-    }
-    else if (requestLogFactory instanceof LogbackClassicRequestLogFactory) {
-      requestLogFilenames = getFilenames(((LogbackClassicRequestLogFactory) requestLogFactory).getAppenders());
-    }
-    else {
-      log.warn("Cannot get list of request files. Unexpected class type for requestLogFactory: "
-          + requestLogFactory.getClass().getName());
-      return null;
+    if (config.getRequestLogFilename() != null) {
+      return new File(config.getRequestLogFilename());
     }
 
-    if (requestLogFilenames.isEmpty()) {
-      return null;
+    File logDir = new File(config.getSonatypeWork(), "logs");
+    File requestLog = new File(logDir, "request.log");
+    if (requestLog.exists()) {
+      return requestLog;
     }
-    if (requestLogFilenames.size() > 1) {
-      log.warn("Multiple request log files {}", requestLogFilenames);
-    }
-    return new File(requestLogFilenames.get(0));
+    return null;
   }
 
+  /**
+   * Get the audit log file.
+   */
   static File getAuditLog(final InsightConfig config) {
-    return getLogFile(config, AuditRecorder.BASE_LOGGER_NAME);
+    if (config.getAuditLogFilename() != null) {
+      File configuredAuditLog = new File(config.getAuditLogFilename());
+      if (configuredAuditLog.exists()) {
+        return configuredAuditLog;
+      }
+    }
+
+    File logDir = new File(config.getSonatypeWork(), "logs");
+    File auditLog = new File(logDir, "audit.log");
+    if (auditLog.exists()) {
+      return auditLog;
+    }
+    return null;
   }
 
+  /**
+   * Get the policy violation log file.
+   */
   static File getPolicyViolationLog(final InsightConfig config) {
-    return getLogFile(config, AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
-  }
+    if (config.getPolicyViolationLogFilename() != null) {
+      return new File(config.getPolicyViolationLogFilename());
+    }
 
-  private static File getLogFile(final InsightConfig config, final String loggerName) {
-    DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
-    Map<String, JsonNode> loggers = loggingFactory.getLoggers();
-    JsonNode loggerNode = loggers.getOrDefault(loggerName, MissingNode.getInstance());
-    return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false /* parallel */)
-        .map(appender -> appender.path("currentLogFilename"))
-        .filter(JsonNode::isTextual)
-        .map(nameNode -> new File(nameNode.asText()))
-        .findFirst()
-        .orElse(null);
-  }
-
-  private static List<String> getFilenames(List<? extends AppenderFactory<?>> appenderFactories) {
-    return appenderFactories
-        .stream()
-        .filter(appenderFactory -> appenderFactory instanceof FileAppenderFactory)
-        .map(appenderFactory -> ((FileAppenderFactory<?>) appenderFactory).getCurrentLogFilename())
-        .collect(Collectors.toList());
+    File logDir = new File(config.getSonatypeWork(), "logs");
+    File policyLog = new File(logDir, "policy-violation.log");
+    if (policyLog.exists()) {
+      return policyLog;
+    }
+    return null;
   }
 
   private File createFilteredYml(final File rawYml, final File workDir) throws IOException {
@@ -344,7 +337,7 @@ public class SupportService
 
       addClusterLogFiles(filesToZip);
 
-      addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
+      addFileIfExists(filesToZip, createFilteredYml(ApplicationLifecycle.getConfigFile(), workDir), "config.yml",
           SupportFileType.CONFIG, true);
 
       addFileIfExists(filesToZip,
@@ -473,7 +466,7 @@ public class SupportService
       if (isTruncated) {
         final ZipEntry zipEntry = new ZipEntry(prefix + "/truncated");
         zos.putNextEntry(zipEntry);
-        zos.close();
+        zos.closeEntry();
       }
     }
     log.info("Created support.zip: {}", supportZip);

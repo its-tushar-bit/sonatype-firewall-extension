@@ -5,20 +5,18 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AdminTask;
+import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.AllTenantsJob;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.AllTenantsJob;
-import com.sonatype.insight.brain.tenancy.Tenant;
-
-import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -37,10 +35,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class AsyncDbMigrationScheduler
-    extends Task
+    extends AdminTask
     implements InsightJob, AllTenantsJob
 {
-  public static final String TASK_PATH = "runAsyncDbMigrations";
+  public static final String PATH = "runAsyncDbMigrations";
 
   private static final Logger log = LoggerFactory.getLogger(AsyncDbMigrationScheduler.class);
 
@@ -53,23 +51,23 @@ public class AsyncDbMigrationScheduler
       final Set<AbstractAsyncDbMigration> jobs,
       final TaskScheduler taskScheduler)
   {
-    super(TASK_PATH);
+    super(PATH);
     this.jobs = jobs;
     this.taskScheduler = taskScheduler;
   }
 
   @Override
-  public void register() {
-    taskScheduler.scheduleOneTimeTask(this);
-  }
-
-  @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     log.info("Manual request to run {}", getJobName());
 
     taskScheduler.scheduleOneTimeTask(this);
 
-    printWriter.write("Scheduled run of " + getJobName() + "\n");
+    output.write("Scheduled run of " + getJobName() + "\n");
+  }
+
+  @Override
+  public void register() {
+    taskScheduler.scheduleOneTimeTask(this);
   }
 
   @Override

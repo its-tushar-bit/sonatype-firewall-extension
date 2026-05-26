@@ -44,9 +44,6 @@ public class IDEComponentInfoResource
 
   private final ComponentInfoService componentInfoService;
 
-  @Context
-  private HttpServletRequest httpRequest;
-
   @Inject
   public IDEComponentInfoResource(ComponentInfoService componentInfoService) {
     this.componentInfoService = componentInfoService;
@@ -62,7 +59,8 @@ public class IDEComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier identifier,
       @QueryParam("matchState") String matchState,
       @QueryParam("hash") String hash,
-      @QueryParam("proprietary") boolean proprietary) throws IOException
+      @QueryParam("proprietary") boolean proprietary,
+      @Context HttpServletRequest httpRequest) throws IOException
   {
     return componentInfoService.getComponentDetails_EvaluateComponentPermission(applicationPublicId, identifier,
         matchState, hash, proprietary, httpRequest);

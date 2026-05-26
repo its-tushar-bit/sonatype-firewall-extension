@@ -5,24 +5,21 @@
  */
 package com.sonatype.insight.brain.organization;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.IconDAO;
+import com.sonatype.insight.brain.service.AssetPaths;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
+import com.sonatype.insight.error.exception.BadRequestException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Callable;
-
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
-
-import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.IconDAO;
-import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
-import com.sonatype.insight.error.exception.BadRequestException;
-
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 public abstract class AbstractResourceWithIcon
@@ -127,7 +124,7 @@ public abstract class AbstractResourceWithIcon
     }
     if (imageBytes == null) {
       UriBuilder defaultIconUriBuilder = baseUrl.redirect()
-          .path(InsightBrainService.BRAIN_ASSET_PATH)
+          .path(AssetPaths.BRAIN_ASSET_PATH)
           .path("img/" + getDefaultIconFilename(ownerId));
       return Response.temporaryRedirect(defaultIconUriBuilder.build()).build();
     }

@@ -5,17 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.core.Application;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -29,22 +21,28 @@ import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.inject.Binder;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.PathItem.HttpMethod;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Application;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 public class ApiEndpointsServiceTest
     extends AbstractComponentTest
@@ -72,12 +70,6 @@ public class ApiEndpointsServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(VersionService.class).toInstance(mockVersionService);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {
@@ -418,10 +410,10 @@ public class ApiEndpointsServiceTest
     assertThat(openAPI.getComponents().getSecuritySchemes()).containsKey(BEARER_AUTH_SCHEME_NAME);
 
     var basicAuth = openAPI.getComponents().getSecuritySchemes().get(BASIC_AUTH_SCHEME_NAME);
-    assertThat(basicAuth.getType()).isEqualTo(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP);
+    assertThat(basicAuth.getType()).isEqualTo(SecurityScheme.Type.HTTP);
     assertThat(basicAuth.getScheme()).isEqualTo(BASIC_SCHEME);
     var bearerAuth = openAPI.getComponents().getSecuritySchemes().get(BEARER_AUTH_SCHEME_NAME);
-    assertThat(bearerAuth.getType()).isEqualTo(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP);
+    assertThat(bearerAuth.getType()).isEqualTo(SecurityScheme.Type.HTTP);
     assertThat(bearerAuth.getScheme()).isEqualTo(BEARER_SCHEME);
     assertThat(bearerAuth.getBearerFormat()).isEqualTo(JWT_FORMAT);
     assertThat(openAPI.getSecurity()).isNotEmpty();

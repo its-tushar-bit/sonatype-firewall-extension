@@ -6,24 +6,21 @@
 
 package com.sonatype.insight.brain.organization;
 
-import java.time.LocalTime;
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import jakarta.inject.Inject;
+import java.time.LocalTime;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
 public class ApplicationCountHistoryKeeperTest
     extends AbstractComponentTest
@@ -36,12 +33,6 @@ public class ApplicationCountHistoryKeeperTest
 
   @Captor
   private ArgumentCaptor<LocalTime> timeCaptor;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
-  }
 
   @Test
   public void testApplicationCountHistoryKeeper__shouldRegisterCountHistoryTaskWhenFeatureEnabled() {

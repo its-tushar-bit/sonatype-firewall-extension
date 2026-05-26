@@ -5,26 +5,22 @@
  */
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.lang.reflect.Modifier;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
@@ -40,6 +36,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataSt
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -52,10 +49,21 @@ import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
 import jakarta.inject.Inject;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.lang3.exception.UncheckedInterruptedException;
 import org.junit.After;
 import org.junit.Before;
@@ -63,14 +71,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 public class EvaluationQueueConsumerTest
     extends AbstractComponentTest
@@ -81,17 +81,14 @@ public class EvaluationQueueConsumerTest
   @Inject
   private EvaluationQueueConsumer evaluationQueueConsumer;
 
-  @Mock
-  private EvaluationQueueConsumer mockEvaluationQueueConsumer;
+  @Inject
+  private EvaluationQueueProducer evaluationQueueProducer;
 
   @Mock
   private EvaluationQueueService mockEvaluationQueueService;
 
   @Inject
   private ApiConfigurationService apiConfigurationService;
-
-  @Mock
-  private ApiConfigurationService mockApiConfigurationService;
 
   @Inject
   private ScanPersistenceService scanPersistenceService;
@@ -112,37 +109,14 @@ public class EvaluationQueueConsumerTest
   private ShutdownHandler mockShutdownHandler;
 
   @Mock
-  private QuartzJobStoreTX mockQuartzJobStoreTX;
+  private ProductLicense mockProductLicense;
 
-  @Override
-  protected void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bindInterceptor(Matchers.subclassesOf(EvaluationQueueConsumer.class), Matchers.any(), invocation -> {
-      invocation.getMethod().invoke(mockEvaluationQueueConsumer, invocation.getArguments());
-      return invocation.proceed();
-    });
-    binder.bindInterceptor(Matchers.subclassesOf(EvaluationQueueService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
-        invocation.getMethod().invoke(mockEvaluationQueueService, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-    binder.bind(ScanUploadService.class).toInstance(mockScanUploadService);
-    binder.bind(ScanPolicyEvaluator.class).toInstance(mockScanPolicyEvaluator);
-    binder.bind(PolicyAlertNotifier.class).toInstance(mockPolicyAlertNotifier);
-    binder.bindInterceptor(Matchers.subclassesOf(ApiConfigurationService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
-        invocation.getMethod().invoke(mockApiConfigurationService, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-    binder.bind(QuartzJobStoreTX.class).toInstance(mockQuartzJobStoreTX);
-  }
+  @Mock
+  private QuartzJobStoreTX mockQuartzJobStoreTX;
 
   @Before
   public void before() {
+    evaluationQueueProducer.disableForTesting = true;
     lenient().when(mockQuartzJobStoreTX.getInstanceId()).thenReturn("worker");
     lenient().when(mockEvaluationQueueService.getInstanceId()).thenReturn("worker");
   }
@@ -217,36 +191,66 @@ public class EvaluationQueueConsumerTest
     setEvaluationQueueConfig(config);
 
     // Delay execution so we can ensure the queue fills up
-    EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    doAnswer((invocation) -> {
-      countDownLatch.await(2, TimeUnit.SECONDS);
-      return invocation.callRealMethod();
-    }).when(spyEvaluationQueueConsumer).evaluate(any());
+    CountDownLatch evaluationStarted = new CountDownLatch(1);
+    CountDownLatch releaseEvaluation = new CountDownLatch(1);
+    EvaluationQueueService spyEvaluationQueueService = spy(
+        new EvaluationQueueService(mockQuartzJobStoreTX, daoFactory.createEvaluationQueueDAO()));
+    EvaluationQueueConsumer blockingEvaluationQueueConsumer = new EvaluationQueueConsumer(
+        apiConfigurationService,
+        spyEvaluationQueueService,
+        lookup(ThirdPartySbomMetadataDAO.class),
+        lookup(ApplicationDAO.class),
+        lookup(ThirdPartyScanDAO.class),
+        lookup(PolicyEvaluationDAO.class),
+        daoFactory.createEvaluationQueueDAO(),
+        scanPersistenceService,
+        mockScanUploadService,
+        mockScanPolicyEvaluator,
+        mockPolicyAlertNotifier,
+        mockShutdownHandler,
+        mockProductLicense)
+    {
+      @Override
+      void evaluate(final EvaluationQueue item) throws IOException, InterruptedException {
+        evaluationStarted.countDown();
+        releaseEvaluation.await(2, TimeUnit.SECONDS);
+        super.evaluate(item);
+      }
+    };
 
     // Create some items to execute
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newEvaluationQueue(1, app.getId(), ComplianceStageType.ID, "2.0.0", new Date(0), new Date(0), null);
     tempEntity.newEvaluationQueue(2, app.getId(), ComplianceStageType.ID, "1.0.0", new Date(0), new Date(0), null);
 
-    // First run should start executing 1 item and queue 1 item
-    spyEvaluationQueueConsumer.run();
-    verify(mockEvaluationQueueService).acquireRows(2);
+    try {
+      // First run should start executing 1 item and queue 1 item
+      blockingEvaluationQueueConsumer.run();
+      verify(spyEvaluationQueueService).acquireRows(2);
+      assertThat(evaluationStarted.await(2, TimeUnit.SECONDS)).isTrue();
+      clearInvocations(spyEvaluationQueueService);
 
-    // Second run should add nothing and not try to acquire rows
-    spyEvaluationQueueConsumer.run();
-    verify(mockEvaluationQueueService, times(1)).acquireRows(2);
-
-    countDownLatch.countDown();
+      // Second run should add nothing and not try to acquire rows once the executor is already full
+      blockingEvaluationQueueConsumer.run();
+      verifyNoInteractions(spyEvaluationQueueService);
+    }
+    finally {
+      releaseEvaluation.countDown();
+      blockingEvaluationQueueConsumer.cleanup();
+    }
   }
 
   @Test
   public void testRun_disallowsConcurrentExecution() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
+    ApiConfigurationService blockingApiConfigurationService = mock(ApiConfigurationService.class);
     doAnswer(invocation -> {
       latch.await(5, TimeUnit.SECONDS);
-      return invocation.callRealMethod();
-    }).when(mockApiConfigurationService).getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+      return EvaluationQueueConfig.builder().enabled(true).build();
+    }).when(blockingApiConfigurationService)
+        .getConfigurationNoAuthz(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG);
+    applyBeanFieldOverride(EvaluationQueueConsumer.class, "apiConfigurationService", blockingApiConfigurationService);
+
     new Thread(() -> {
       try {
         evaluationQueueConsumer.run();
@@ -255,7 +259,6 @@ public class EvaluationQueueConsumerTest
         throw new UncheckedInterruptedException(e);
       }
     }).start();
-    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
 
     evaluationQueueConsumer.run();
 
@@ -271,7 +274,7 @@ public class EvaluationQueueConsumerTest
   public void testRun_exceptionUnacquiresRow() throws Exception {
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
     EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
-    doAnswer((invocation) -> {
+    lenient().doAnswer((invocation) -> {
       throw new IOException("some exception");
     }).when(spyEvaluationQueueConsumer).evaluate(any());
     Application app = tempEntity.newApplicationWithParent();
@@ -290,8 +293,9 @@ public class EvaluationQueueConsumerTest
     Application app = tempEntity.newApplicationWithParent();
     EvaluationQueue item =
         tempEntity.newEvaluationQueue(1, app.getId(), BuildStageType.ID, "1.0.0", new Date(0), new Date(0), null);
+    EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
 
-    evaluationQueueConsumer.evaluate(item);
+    spyEvaluationQueueConsumer.evaluate(item);
 
     logOutput.assertThat()
         .atWarnLevel()
@@ -299,7 +303,7 @@ public class EvaluationQueueConsumerTest
             "Unsupported evaluation queue item with priority %s for application id %s, stage %s, and version %s."
                 .formatted(
                     item.getPriority(), item.getApplicationId(), item.getStageTypeId(), item.getVersion()));
-    verify(mockEvaluationQueueConsumer, never()).evaluateSbom(item);
+    verify(spyEvaluationQueueConsumer, never()).evaluateSbom(item);
     EvaluationQueueDAO evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
     assertThat(evaluationQueueDAO.getById(item.getId())).isNull();
   }
@@ -309,37 +313,13 @@ public class EvaluationQueueConsumerTest
     Application app = tempEntity.newApplicationWithParent();
     EvaluationQueue item =
         tempEntity.newEvaluationQueue(1, app.getId(), ComplianceStageType.ID, "1.0.0", new Date(0), new Date(0), null);
+    EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
 
-    evaluationQueueConsumer.evaluate(item);
+    spyEvaluationQueueConsumer.evaluate(item);
 
-    verify(mockEvaluationQueueConsumer).evaluateSbom(item);
+    verify(spyEvaluationQueueConsumer).evaluateSbom(item);
     EvaluationQueueDAO evaluationQueueDAO = daoFactory.createEvaluationQueueDAO();
     assertThat(evaluationQueueDAO.getById(item.getId())).isNull();
-  }
-
-  @Test
-  public void testEvaluate_scopesConsumptionContextToInternalApplicationId() throws Exception {
-    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
-    try {
-      Application app = tempEntity.newApplicationWithParent();
-      EvaluationQueue item =
-          tempEntity.newEvaluationQueue(1, app.getId(), ComplianceStageType.ID, "1.0.0", new Date(0), new Date(0),
-              null);
-
-      AtomicReference<String> capturedAppId = new AtomicReference<>();
-      doAnswer(invocation -> {
-        ConsumptionContext ctx = ConsumptionContext.get();
-        capturedAppId.set(ctx == null ? null : ctx.getAppId());
-        return null;
-      }).when(mockEvaluationQueueConsumer).evaluateSbom(item);
-
-      evaluationQueueConsumer.evaluate(item);
-
-      assertThat(capturedAppId.get()).isEqualTo(app.getId());
-    }
-    finally {
-      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
-    }
   }
 
   @Test
@@ -514,11 +494,12 @@ public class EvaluationQueueConsumerTest
 
   @Test
   public void testConfigurationChanged_differentProperty() {
-    reset(mockApiConfigurationService);
+    ApiConfigurationService unusedApiConfigurationService = spy(apiConfigurationService);
+    applyBeanFieldOverride(EvaluationQueueConsumer.class, "apiConfigurationService", unusedApiConfigurationService);
 
     evaluationQueueConsumer.configurationChanged(Set.of("unrelated"));
 
-    verifyNoInteractions(mockApiConfigurationService);
+    verifyNoInteractions(unusedApiConfigurationService);
   }
 
   @Test
@@ -683,12 +664,38 @@ public class EvaluationQueueConsumerTest
   }
 
   @Test
-  public void testExecute_callsRun() throws Exception {
+  public void testExecute_AdminTask_callsRun() throws Exception {
     EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
 
-    spyEvaluationQueueConsumer.execute(null, mock(PrintWriter.class));
+    spyEvaluationQueueConsumer.execute(null, new PrintWriter(OutputStream.nullOutputStream()));
 
     verify(spyEvaluationQueueConsumer).run();
+  }
+
+  @Test
+  public void testEvaluate_scopesConsumptionContextToInternalApplicationId() throws Exception {
+    EvaluationQueueConsumer spyEvaluationQueueConsumer = spy(evaluationQueueConsumer);
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      Application app = tempEntity.newApplicationWithParent();
+      EvaluationQueue item =
+          tempEntity.newEvaluationQueue(1, app.getId(), ComplianceStageType.ID, "1.0.0", new Date(0), new Date(0),
+              null);
+
+      AtomicReference<String> capturedAppId = new AtomicReference<>();
+      doAnswer(invocation -> {
+        ConsumptionContext ctx = ConsumptionContext.get();
+        capturedAppId.set(ctx == null ? null : ctx.getAppId());
+        return null;
+      }).when(spyEvaluationQueueConsumer).evaluateSbom(item);
+
+      spyEvaluationQueueConsumer.evaluate(item);
+
+      assertThat(capturedAppId.get()).isEqualTo(app.getId());
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
   }
 
   private void setEvaluationQueueConfig(final EvaluationQueueConfig evaluationQueueConfig) {

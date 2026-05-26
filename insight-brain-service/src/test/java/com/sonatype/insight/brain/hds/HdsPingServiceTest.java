@@ -5,17 +5,14 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadGatewayException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class HdsPingServiceTest
     extends AbstractComponentTest
@@ -25,12 +22,6 @@ public class HdsPingServiceTest
 
   @Mock
   private PingHdsClient pingHdsClientMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PingHdsClient.class).toInstance(pingHdsClientMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testPingHds_alive() {

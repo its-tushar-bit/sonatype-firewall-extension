@@ -24,6 +24,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -115,7 +116,8 @@ public class PolicyViolationAggregationService
 
     long start = System.currentTimeMillis();
 
-    final String configuredSuccessMetricsStageId = configuration.getSuccessMetricsStageId();
+    final String configuredSuccessMetricsStageId =
+        ApiConfigurationService.normalizeSuccessMetricsStageId(configuration.getSuccessMetricsStageId());
 
     // this is also validated when the user sets the value, but we'll check again, here, in case
     // the licensed stages changed after it was set

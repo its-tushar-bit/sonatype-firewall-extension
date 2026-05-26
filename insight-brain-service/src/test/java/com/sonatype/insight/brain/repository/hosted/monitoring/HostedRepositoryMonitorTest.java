@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,13 +59,13 @@ public class HostedRepositoryMonitorTest
   @Mock
   private TransactionContext transactionContextMock;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(RepositoryDAO.class).toInstance(repositoryDAOMock);
-    binder.bind(RepositoryComponentDAO.class).toInstance(repositoryComponentDAOMock);
-    binder.bind(RepositoryPolicyEvaluator.class).toInstance(repositoryPolicyEvaluatorMock);
-    binder.bind(RepositoryPolicyViolationDAO.class).toInstance(repositoryPolicyViolationDAOMock);
-    super.configure(binder);
+  @Before
+  public void applyOverrides() {
+    applyBeanFieldOverride(HostedRepositoryMonitor.class, "repositoryDAO", repositoryDAOMock);
+    applyBeanFieldOverride(HostedRepositoryMonitor.class, "repositoryComponentDAO", repositoryComponentDAOMock);
+    applyBeanFieldOverride(HostedRepositoryMonitor.class, "repositoryPolicyEvaluator", repositoryPolicyEvaluatorMock);
+    applyBeanFieldOverride(HostedRepositoryMonitor.class, "repositoryPolicyViolationDAO",
+        repositoryPolicyViolationDAOMock);
   }
 
   @Before

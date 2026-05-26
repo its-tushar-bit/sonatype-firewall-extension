@@ -5,13 +5,12 @@
  */
 package com.sonatype.insight.brain.search.lucene;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -32,18 +31,16 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.search.index.IndexingContext;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.google.inject.Binder;
 import jakarta.inject.Inject;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DocumentBuilderHelperTest
     extends AbstractComponentTest
@@ -59,13 +56,6 @@ public class DocumentBuilderHelperTest
 
   @Mock
   private IndexingContext indexingContextMock;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(PolicyEvaluationDAO.class).toInstance(policyEvaluationDAOMock);
-    binder.bind(ReportService.class).toInstance(reportServiceMock);
-    super.configure(binder);
-  }
 
   @Test
   public void testBuildApplicationStageSVDocs_IoExceptionIsSwallowed() throws IOException {

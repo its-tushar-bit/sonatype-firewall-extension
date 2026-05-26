@@ -56,8 +56,9 @@ public class ApiOrganizationService
 
   public ApiOrganizationListDTO getOrganizations(Set<String> orgNames) {
     Map<String, List<Tag>> orgTagMap = new HashMap<>();
-    List<Organization> organizations =
-        orgNames.isEmpty() ? organizationService.getAllWithoutRelatedRepositories() : getOrganizationsByNames(orgNames);
+    List<Organization> organizations = orgNames.isEmpty()
+        ? organizationService.getAllWithoutRelatedRepositories()
+        : getOrganizationsByNames(orgNames);
     for (Organization organization : organizations) {
       List<Tag> tags = tagDAO.getByOrganizationId(organization.getId());
       orgTagMap.put(organization.getId(), tags);
@@ -100,7 +101,7 @@ public class ApiOrganizationService
 
   @Authorize(permission = Permission.READ)
   public ApiOrganizationDTO getOrganizationById(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
-    Organization organization = organizationDAO.getById(organizationId);
+    Organization organization = organizationDAO.getByIdNotNull(organizationId);
     List<Tag> tags = tagDAO.getByOrganizationId(organizationId);
     return ApiOrganizationAdapter.convert(organization, tags);
   }
@@ -131,4 +132,5 @@ public class ApiOrganizationService
   public void deleteOrganization(String organizationId) throws IOException {
     organizationService.deleteOrganization(organizationId);
   }
+
 }

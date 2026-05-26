@@ -16,6 +16,9 @@ import java.time.LocalDate;
 import java.util.Collections;
 import jakarta.inject.Inject;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -33,6 +36,14 @@ public class ReportPurgerTest
 {
   @Inject
   private InsightWork work;
+
+  @Before
+  public void cleanTrashDir() throws IOException {
+    File trashDir = work.getTrashDir();
+    if (trashDir.exists()) {
+      FileUtils.deleteDirectory(trashDir);
+    }
+  }
 
   @Override
   void mockReport(PolicyEvaluation evaluation) {

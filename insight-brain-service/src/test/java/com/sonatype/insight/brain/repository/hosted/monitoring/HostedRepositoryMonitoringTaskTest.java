@@ -6,10 +6,11 @@
 package com.sonatype.insight.brain.repository.hosted.monitoring;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
@@ -28,10 +29,10 @@ public class HostedRepositoryMonitoringTaskTest
   @Mock
   private HostedRepositoryMonitor hostedRepositoryMonitorMock;
 
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(HostedRepositoryMonitor.class).toInstance(hostedRepositoryMonitorMock);
-    super.configure(binder);
+  @Before
+  public void applyOverrides() {
+    applyBeanFieldOverride(HostedRepositoryMonitoringTask.class, "hostedRepositoryMonitorProvider",
+        (Provider<HostedRepositoryMonitor>) () -> hostedRepositoryMonitorMock);
   }
 
   @Test

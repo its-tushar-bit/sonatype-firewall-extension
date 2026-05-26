@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
@@ -20,12 +22,9 @@ import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskServic
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
-
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unused")
 public class DbBasedModuleTest

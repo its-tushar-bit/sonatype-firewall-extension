@@ -5,22 +5,18 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.List;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import io.dropwizard.jetty.ConnectorFactory;
-import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.Arrays;
 
 /**
+ * Collects configuration-related telemetry data.
+ *
  * @since 1.69
  */
 @Named
@@ -52,18 +48,21 @@ public class PropertiesTelemetryCollector
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CONFIGURATION_PROPERTIES);
     telemetryData.getAttributes().put(REPORT_TIMEOUT_SECONDS, configuration.getReportTimeoutInSeconds());
-    List<ConnectorFactory> connectorFactories =
-        ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors();
-    boolean http = connectorFactories.stream().anyMatch(factory -> !(factory instanceof HttpsConnectorFactory));
-    boolean https = connectorFactories.stream().anyMatch(factory -> factory instanceof HttpsConnectorFactory);
-    telemetryData.getAttributes().put(CONNECTOR_HTTP, http);
-    telemetryData.getAttributes().put(CONNECTOR_HTTPS, https);
-    connectorFactories = ((DefaultServerFactory) config.getServerFactory()).getAdminConnectors();
-    http = connectorFactories.stream().anyMatch(factory -> !(factory instanceof HttpsConnectorFactory));
-    https = connectorFactories.stream().anyMatch(factory -> factory instanceof HttpsConnectorFactory);
-    telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTP, http);
-    telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTPS, https);
+
+    telemetryData.getAttributes().put(CONNECTOR_HTTP, hasConnectorType(config.getApplicationConnectorTypes(), "http"));
+    telemetryData.getAttributes()
+        .put(CONNECTOR_HTTPS, hasConnectorType(config.getApplicationConnectorTypes(), "https"));
+    telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTP, hasConnectorType(config.getAdminConnectorTypes(), "http"));
+    telemetryData.getAttributes()
+        .put(ADMIN_CONNECTOR_HTTPS, hasConnectorType(config.getAdminConnectorTypes(), "https"));
+
     return telemetryData;
+  }
+
+  private boolean hasConnectorType(String connectorTypes, String connectorType) {
+    return Arrays.stream(connectorTypes.split(","))
+        .map(String::trim)
+        .anyMatch(type -> connectorType.equalsIgnoreCase(type));
   }
 
   @Override

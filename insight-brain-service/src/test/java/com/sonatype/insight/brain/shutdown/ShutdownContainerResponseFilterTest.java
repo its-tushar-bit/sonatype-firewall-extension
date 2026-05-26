@@ -5,20 +5,17 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
-
-import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 public class ShutdownContainerResponseFilterTest
     extends AbstractComponentTest
@@ -34,12 +31,6 @@ public class ShutdownContainerResponseFilterTest
 
   @Mock
   private ContainerResponseContext mockContainerResponseContext;
-
-  @Override
-  public void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-  }
 
   @Test
   public void testFilter_ShutdownTriggered() throws Exception {

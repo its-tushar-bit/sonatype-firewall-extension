@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingCondition
 import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
@@ -35,19 +36,17 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityDetectionConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityEpssScoreConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityEpssScoreConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 
 /**
- * {@link ConditionTypes} and {@link ConditionValueTypes} use static references. At runtime Guice
- * <a href="https://github.com/google/guice/wiki/Injections#static-injections">static-injection</a> is used to
- * populate the references. At test time we use this helper class.
+ * {@link ConditionTypes} and {@link ConditionValueTypes} use static references. The application bootstrap populates
+ * those references at runtime. At test time we use this helper class.
  */
 public class ConditionTypesTestHelper
 {

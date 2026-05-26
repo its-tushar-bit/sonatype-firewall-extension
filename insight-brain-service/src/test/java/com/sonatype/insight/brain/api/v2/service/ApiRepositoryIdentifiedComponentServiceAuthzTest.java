@@ -48,7 +48,7 @@ public class ApiRepositoryIdentifiedComponentServiceAuthzTest
     apiRepositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testClearCache_Authorized() {
     grantConfigureSystemPermission();
     apiRepositoryIdentifiedComponentService.deleteAllRepositoryIdentifiedComponents();

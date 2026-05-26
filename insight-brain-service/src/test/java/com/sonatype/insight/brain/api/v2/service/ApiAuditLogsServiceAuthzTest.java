@@ -5,25 +5,21 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Collections;
-
-import jakarta.inject.Inject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Collections;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ApiAuditLogsServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -33,12 +29,6 @@ public class ApiAuditLogsServiceAuthzTest
 
   @Mock
   private AuditLogFilesProvider auditLogFilesProvider;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(AuditLogFilesProvider.class).toInstance(auditLogFilesProvider);
-    super.configure(binder);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAuditLogs_Unauthenticated() {

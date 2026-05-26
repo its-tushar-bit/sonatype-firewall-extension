@@ -566,7 +566,8 @@ public class ApiPolicyWaiverRequestService
         policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     Map<Boolean, List<ApiPolicyWaiverRequestDTO>> applicableWaiverRequests =
-        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
+        getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId)
+            .stream()
             .filter(policyWaiverRequest -> filterPolicyWaiverRequestByCriteria(constraintFactsJson,
                 constraintFacts, componentIdentifier, hash, policyWaiverRequest))
             .map(policyWaiverRequest -> toDto(policyWaiverRequest,

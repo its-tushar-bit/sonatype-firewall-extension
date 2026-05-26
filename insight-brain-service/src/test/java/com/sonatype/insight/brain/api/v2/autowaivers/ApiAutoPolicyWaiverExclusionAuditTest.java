@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.autowaivers;
 
-import org.junit.experimental.categories.Category;
-import com.sonatype.insight.brain.common.test.SlowTest;
-
-import java.util.Date;
-import java.util.List;
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
@@ -18,6 +17,7 @@ import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExcl
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionResponseDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -26,46 +26,29 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
-import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Binder;
+import java.util.Date;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.experimental.categories.Category;
 
-import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.BY_AUTO_POLICY_WAIVER_EXCLUSION_ID_PATH;
-import static com.sonatype.insight.brain.api.v2.autowaivers.ApiAutoPolicyWaiverExclusionResource.OWNERS_PATH;
-import static com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.ComponentMatcherStrategyForExclusion.EXACT_COMPONENT;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("deprecation")
 @Category(SlowTest.class)
 public class ApiAutoPolicyWaiverExclusionAuditTest
     extends AbstractAuditTest
 {
-  protected static ReportService reportService = mock(ReportService.class);
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ReportService.class).toInstance(reportService);
-    super.configure(binder);
-  }
+  private static final String REPORT_RESOURCE = "/ApiAutoPolicyWaiverExclusionResourceTest/report";
 
   @Before
   public void setup() {
     when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     testProductLicense.setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.AUTO_WAIVER_MANAGEMENT);
-    Mockito.reset(reportService);
   }
 
   @After
@@ -84,14 +67,7 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, identifier, "fake", "fake");
 
-    tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
-
-    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
-        identifier,
-        violation);
-
-    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
-        createPolicyThreats(Lists.newArrayList(component1Threats)));
+    createPolicyThreatReport(app.getId(), eval.getScanId(), violation);
 
     ApiAutoPolicyWaiverExclusionRequestDTO dto = new ApiAutoPolicyWaiverExclusionRequestDTO();
     dto.applicationPublicId = app.getPublicId();
@@ -189,33 +165,17 @@ public class ApiAutoPolicyWaiverExclusionAuditTest
     assertOrganizationData(auditDTO, organization);
   }
 
-  private PolicyThreats createPolicyThreats(final List<Component> components) {
-    final PolicyThreats policyThreats = new PolicyThreats();
-    policyThreats.aaData.addAll(components);
-
-    return policyThreats;
-  }
-
-  private PolicyThreats.Component createPolicyThreatsComponents(
-      ComponentIdentifier componentIdentifier,
-      PolicyViolation violation)
+  private void createPolicyThreatReport(
+      final String applicationId,
+      final String scanId,
+      final PolicyViolation violation) throws Exception
   {
-    PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
-    policyViolation.policyThreatLevel = violation.getThreatLevel();
-    policyViolation.policyViolationId = violation.getId();
-    policyViolation.policyName = violation.getPolicyName();
-    policyViolation.policyId = violation.getPolicyId();
-    policyViolation.actions = null;
-    policyViolation.constraints = null;
-    policyViolation.policyThreatCategory = null;
-    policyViolation.reachabilityStatus = null;
-    policyViolation.constraintFactsJson = violation.getConstraintFactsJson();
-
-    final PolicyThreats.Component component = new PolicyThreats.Component();
-    component.hash = violation.getHash();
-    component.componentIdentifier = componentIdentifier;
-    component.activeViolations.add(policyViolation);
-    component.allViolations.add(policyViolation);
-    return component;
+    final InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
+    ReportTestUtils.createReportFile(
+        applicationId,
+        scanId,
+        ReportTestUtils.zipReportDir(REPORT_RESOURCE, tempDir),
+        insightWork);
+    ReportHelper.createPolicyThreats(insightWork, applicationId, scanId, List.of(violation));
   }
 }

@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.service.githubapp;
 
-import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
-
+import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
@@ -17,7 +14,10 @@ import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
-import io.dropwizard.servlets.tasks.Task;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
+
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -32,16 +32,18 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class GitHubAppCleanupTask
-    extends Task
+    extends AdminTask
     implements InsightJob
 {
+  public static final String PATH = "triggerGitHubAppCleanup";
+
   private static final Logger log = LoggerFactory.getLogger(GitHubAppCleanupTask.class);
 
   private final Provider<GitHubAppCleanupService> gitHubAppCleanupServiceProvider;
 
   @Inject
   public GitHubAppCleanupTask(final Provider<GitHubAppCleanupService> gitHubAppCleanupServiceProvider) {
-    super("triggerGitHubAppCleanup");
+    super(PATH);
     this.gitHubAppCleanupServiceProvider = gitHubAppCleanupServiceProvider;
   }
 
@@ -53,10 +55,10 @@ public class GitHubAppCleanupTask
   }
 
   @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
     log.info("Manual request to run GitHub App cleanup");
     gitHubAppCleanupServiceProvider.get().run();
-    printWriter.write("Completed manual GitHub App cleanup execution\n");
+    output.write("Completed manual GitHub App cleanup execution\n");
   }
 
   @Override

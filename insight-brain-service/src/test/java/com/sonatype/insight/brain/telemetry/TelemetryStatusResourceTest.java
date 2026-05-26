@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import com.sonatype.insight.brain.security.SecurityAspectControl;
+import org.junit.After;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -54,6 +56,7 @@ public class TelemetryStatusResourceTest
 
   @Before
   public void setup() {
+    SecurityAspectControl.disableEnforcement();
     MockitoAnnotations.openMocks(this);
     testSubject = new TelemetryStatusResource(
         mockApplicationDAO,
@@ -61,6 +64,11 @@ public class TelemetryStatusResourceTest
         mockConfiguration,
         mockProductLicense,
         mockTelemetryId);
+  }
+
+  @After
+  public void teardown() {
+    SecurityAspectControl.enableEnforcement();
   }
 
   @Test
@@ -137,13 +145,17 @@ public class TelemetryStatusResourceTest
 
   @Test
   public void testHttpGet() throws Exception {
+    TelemetryId telemetryId = lookup(TelemetryId.class);
+    when(telemetryId.getId()).thenReturn("test-telemetry-id");
+    when(telemetryId.getClusterId()).thenReturn(null);
+
     HttpResponse response = restRequest().get();
     assertResponseStatus(HttpStatus.SC_OK, response);
 
     var telemetryStatus = response.getBody(TelemetryStatusDTO.class);
     assertThat(telemetryStatus).isNotNull();
-    assertThat(telemetryStatus.telemetryId()).isNotBlank();
-    assertThat(telemetryStatus.clusterId()).isNotBlank();
+    assertThat(telemetryStatus.telemetryId()).isEqualTo("test-telemetry-id");
+    assertThat(telemetryStatus.clusterId()).isNull();
   }
 
   @Override

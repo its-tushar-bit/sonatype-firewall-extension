@@ -34,6 +34,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.sonatype.nexus.scm.github.auth.GitHubAppAuthStrategy;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -90,6 +91,8 @@ public class GitApiFactoryTest
 
   @Before
   public void setup() {
+    resetSourceControlConfiguration();
+
     // Initialize mocks
     MockitoAnnotations.openMocks(this);
 
@@ -105,6 +108,16 @@ public class GitApiFactoryTest
 
     // Note usage of spy in order to override isNativeGitAvailable
     spyGitApiFactory = spy(testGitApiFactory);
+  }
+
+  @After
+  public void tearDown() {
+    resetSourceControlConfiguration();
+  }
+
+  private void resetSourceControlConfiguration() {
+    sourceControlConfigurationDAO.delete();
+    configuration.sourceControlConfigurationChanged();
   }
 
   @Test

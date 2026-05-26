@@ -5,34 +5,18 @@
  */
 package com.sonatype.insight.brain.integration;
 
-import java.util.List;
-
-import jakarta.inject.Inject;
-
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
-import com.google.inject.Binder;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import jakarta.inject.Inject;
+import java.util.List;
+import org.junit.Test;
 
 public class RepositorySummaryServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private RepositorySummaryService service;
-
-  @Override
-  public void configure(Binder binder) {
-    super.configure(binder);
-    // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
-    binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
-
-    // Create another repository only to verify that it's not returned (the user doesn't have the required permission)
-    tempEntity.newRepository();
-  }
 
   @Test
   public void testGetApplications_Authorized() {

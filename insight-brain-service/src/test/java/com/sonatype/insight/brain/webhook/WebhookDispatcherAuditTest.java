@@ -58,7 +58,6 @@ public class WebhookDispatcherAuditTest
 
   @Before
   public void before() throws Exception {
-    webhookDispatcher.start();
     server = new Server(0);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
@@ -78,7 +77,6 @@ public class WebhookDispatcherAuditTest
     if (server != null) {
       server.stop();
     }
-    webhookDispatcher.stop();
   }
 
   @Test

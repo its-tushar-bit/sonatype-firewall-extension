@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.export;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -98,6 +100,7 @@ import org.spdx.storage.IModelStore;
 import org.spdx.storage.IModelStore.IdType;
 
 @Named
+@org.springframework.context.annotation.Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CycloneDxToSpdxExporter
     extends AbstractSpdxExporter
 {

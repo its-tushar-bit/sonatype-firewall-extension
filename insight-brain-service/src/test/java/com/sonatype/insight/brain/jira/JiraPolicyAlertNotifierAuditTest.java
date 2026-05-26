@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.jira;
 
-import java.util.Arrays;
-import java.util.List;
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -25,17 +27,12 @@ import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.error.exception.BadGatewayException;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class JiraPolicyAlertNotifierAuditTest
     extends AbstractComponentAuditTest
@@ -59,12 +56,6 @@ public class JiraPolicyAlertNotifierAuditTest
   private static final String PROJECT_KEY = "project-key";
 
   private static final String STAGE_ID = Stage.ID_BUILD;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(JiraService.class).toInstance(mockJiraService);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {

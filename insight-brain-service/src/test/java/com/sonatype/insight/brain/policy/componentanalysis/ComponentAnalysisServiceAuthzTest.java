@@ -6,24 +6,21 @@
 
 package com.sonatype.insight.brain.policy.componentanalysis;
 
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
-
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ComponentAnalysisServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -36,13 +33,6 @@ public class ComponentAnalysisServiceAuthzTest
 
   @Mock
   private ScanHandler scanHandler;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(HttpServletRequest.class).toInstance(httpRequest);
-    binder.bind(ScanHandler.class).toInstance(scanHandler);
-    super.configure(binder);
-  }
 
   @Test
   public void testAnalyzeComponentsWithPolling_Unauthenticated() {

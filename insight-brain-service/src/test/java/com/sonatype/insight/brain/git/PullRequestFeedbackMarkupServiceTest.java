@@ -5,16 +5,19 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
+import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
+import static com.sonatype.insight.brain.utils.TemplateHelper.readResource;
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -42,28 +45,22 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.mockito.Mock;
-
-import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
-import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
-import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
-import static com.sonatype.insight.brain.utils.TemplateHelper.assertRenderedOutput;
-import static com.sonatype.insight.brain.utils.TemplateHelper.readResource;
-import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
-import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
-import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
-import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 public class PullRequestFeedbackMarkupServiceTest
     extends AbstractComponentTest
@@ -111,13 +108,6 @@ public class PullRequestFeedbackMarkupServiceTest
   @After
   public void after() {
     TimeZone.setDefault(initialTimezone);
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(ScmReducedSecurityService.class).toInstance(mockScmReducedSecurityService);
-
-    super.configure(binder);
   }
 
   @Test

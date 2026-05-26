@@ -5,9 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.time.LocalTime;
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_CONFIG_ERROR_MSG;
+import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_DEFAULT_BRANCH_MONITORING_START_TIME;
+import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.NOT_FOUND_ERROR_MSG;
+import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.NO_CONFIG_ERROR_MSG;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
@@ -20,28 +30,13 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.Binder;
-import com.google.inject.multibindings.Multibinder;
+import jakarta.inject.Inject;
+import java.time.LocalTime;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
-
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
-import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_CONFIG_ERROR_MSG;
-import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_DEFAULT_BRANCH_MONITORING_START_TIME;
-import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.NOT_FOUND_ERROR_MSG;
-import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.NO_CONFIG_ERROR_MSG;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class ApiSourceControlConfigurationServiceTest
     extends AbstractComponentTest
@@ -60,16 +55,6 @@ public class ApiSourceControlConfigurationServiceTest
 
   @Mock
   private SourceControlConfigurationListener mockSourceControlConfigurationListener;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-
-    Multibinder<SourceControlConfigurationListener> multiBinder =
-        newSetBinder(binder, SourceControlConfigurationListener.class);
-    multiBinder.addBinding().toInstance(mockSourceControlConfigurationListener);
-    super.configure(binder);
-  }
 
   @Test
   public void testGetConfiguration_NotFound() {

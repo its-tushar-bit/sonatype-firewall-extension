@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
-
-import jakarta.inject.Inject;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
@@ -22,23 +25,16 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
-
-import com.google.inject.Binder;
-import org.apache.log4j.MDC;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.JobExecutionContext;
-
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import org.slf4j.MDC;
 
 public class ProprietaryComponentNameDetectorTest
     extends AbstractComponentTest
@@ -58,13 +54,10 @@ public class ProprietaryComponentNameDetectorTest
 
   @Before
   public void init() {
+    // Spring shares the detector singleton across test methods, so clear any cached matchers before
+    // creating method-local patterns to keep the class order-independent.
+    proprietaryComponentNameDetector.invalidateMatchers();
     repoManager = tempEntity.newRepositoryManager();
-  }
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    super.configure(binder);
   }
 
   private void assertMatch(ProprietaryComponentName conflict, String namePattern) {

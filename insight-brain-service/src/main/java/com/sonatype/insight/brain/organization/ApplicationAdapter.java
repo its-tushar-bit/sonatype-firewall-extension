@@ -22,10 +22,6 @@ import com.sonatype.insight.brain.security.UserDirectory;
 /**
  * Adapter class to translate between Application entity objects and ApplicationDTO and ApplicationManagementSummaryDTO
  * objects.
- * For performance reasons, it caches data in between calls, so instances of this class should have a short life span.
- * See https://issues.sonatype.org/browse/CLM-15996 for performance details.
- *
- * WARNING: This class is not thread-safe.
  *
  * @since 1.8
  */
@@ -33,8 +29,6 @@ import com.sonatype.insight.brain.security.UserDirectory;
 public class ApplicationAdapter
 {
   private final OrganizationDAO organizationDAO;
-
-  private final Map<String, Organization> organizationCacheById = new HashMap<>();
 
   private final ApplicationContactLoader applicationContactLoader;
 
@@ -61,7 +55,7 @@ public class ApplicationAdapter
 
     ContactDTO contact =
         includeContact ? applicationContactLoader.getContact(application.getContactInternalName()) : null;
-    return createApplicationDTO(application, contact);
+    return createApplicationDTO(application, contact, new HashMap<>());
   }
 
   /**
@@ -72,16 +66,12 @@ public class ApplicationAdapter
       return Collections.emptyList();
     }
 
+    Map<String, Organization> organizationCache = new HashMap<>();
     List<ApplicationDTO> applicationDTOList = new ArrayList<>(applicationList.size());
 
-    final List<String> internalNameList = new ArrayList<>(applicationList.size());
-    for (final Application application : applicationList) {
-      final String internalName = application.getContactInternalName();
-      internalNameList.add(internalName);
-    }
-
     for (int i = 0; i < applicationList.size(); i++) {
-      final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), null /* contact */);
+      final ApplicationDTO applicationDTO = createApplicationDTO(applicationList.get(i), null /* contact */,
+          organizationCache);
       applicationDTOList.add(applicationDTO);
     }
 
@@ -105,10 +95,11 @@ public class ApplicationAdapter
     final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
         applicationList.size());
 
+    Map<String, Organization> organizationCache = new HashMap<>();
     final List<String> internalNameList = new ArrayList<>(applicationList.size());
     for (final Application application : applicationList) {
       Organization organization =
-          organizationCacheById.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
+          organizationCache.computeIfAbsent(application.getOrganizationId(), organizationDAO::getByIdNotNull);
 
       if (nameFilter != null && !application.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)
           && !organization.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter))
@@ -188,7 +179,11 @@ public class ApplicationAdapter
     return summary;
   }
 
-  private ApplicationDTO createApplicationDTO(final Application application, ContactDTO contact) {
+  private ApplicationDTO createApplicationDTO(
+      final Application application,
+      ContactDTO contact,
+      Map<String, Organization> organizationCache)
+  {
     if (application == null) {
       return null;
     }
@@ -202,7 +197,7 @@ public class ApplicationAdapter
     final String organizationId = application.getOrganizationId();
     applicationDTO.setOrganizationId(organizationId);
     Organization org =
-        organizationCacheById.computeIfAbsent(organizationId, key -> organizationDAO.getByIdNotNull(key));
+        organizationCache.computeIfAbsent(organizationId, key -> organizationDAO.getByIdNotNull(key));
     applicationDTO.setOrganizationName(org.getName());
 
     applicationDTO.setContact(contact);

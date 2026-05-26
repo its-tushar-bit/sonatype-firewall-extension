@@ -208,9 +208,13 @@ public class InsightWork
   }
 
   public File getSbomDir() {
+    return getSbomDir(true);
+  }
+
+  public File getSbomDir(final boolean createIfNotExist) {
     File sbomTempDir = new File(insightConfig.getClusterDirectory(), "sboms");
 
-    if (!sbomTempDir.exists()) {
+    if (createIfNotExist && !sbomTempDir.exists()) {
       try {
         Files.createDirectories(sbomTempDir.toPath());
       }
@@ -223,7 +227,7 @@ public class InsightWork
 
   public File getSbomDir(final String appId, final boolean createIfNotExist) {
     IdValidationUtils.validate(appId);
-    File sbomTempDir = new File(getSbomDir(), appId);
+    File sbomTempDir = new File(getSbomDir(createIfNotExist), appId);
 
     if (!sbomTempDir.exists() && createIfNotExist) {
       try {

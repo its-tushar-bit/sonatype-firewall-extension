@@ -5,8 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import jakarta.inject.Inject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -16,20 +22,12 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class ApiCrowdConfigurationServiceTest
     extends AbstractComponentTest
@@ -43,7 +41,7 @@ public class ApiCrowdConfigurationServiceTest
   @Inject
   private CrowdConfigurationDAO dao;
 
-  private CrowdConfigurationDAO spyDAO;
+  private CrowdConfigurationDAO spyDao;
 
   @Captor
   private ArgumentCaptor<CrowdConfiguration> crowdConfigurationArgumentCaptor;
@@ -51,11 +49,10 @@ public class ApiCrowdConfigurationServiceTest
   @Inject
   private PasswordHandler passwordHandler;
 
-  @Override
-  public void configure(Binder binder) {
-    spyDAO = spy(daoFactory.createCrowdConfigurationDAO());
-    binder.bind(CrowdConfigurationDAO.class).toInstance(spyDAO);
-    super.configure(binder);
+  @Before
+  public void setUpSpyDao() {
+    spyDao = spy(lookup(CrowdConfigurationDAO.class));
+    applyBeanFieldOverride(ApiCrowdConfigurationService.class, "crowdConfigurationDAO", spyDao);
   }
 
   @Test
@@ -246,7 +243,7 @@ public class ApiCrowdConfigurationServiceTest
 
     ApiStatusDTO result = service.testCrowdConfiguration(dto);
 
-    verify(spyDAO).validate(crowdConfigurationArgumentCaptor.capture());
+    verify(spyDao).validate(crowdConfigurationArgumentCaptor.capture());
     CrowdConfiguration crowdConfiguration = crowdConfigurationArgumentCaptor.getValue();
     assertThat(crowdConfiguration.getServerUrl()).isEqualTo(dto.serverUrl);
     assertThat(crowdConfiguration.getApplicationName()).isEqualTo(dto.applicationName);
@@ -267,7 +264,7 @@ public class ApiCrowdConfigurationServiceTest
 
     ApiStatusDTO result = service.testCrowdConfiguration(dto);
 
-    verify(spyDAO).validate(crowdConfigurationArgumentCaptor.capture());
+    verify(spyDao).validate(crowdConfigurationArgumentCaptor.capture());
     CrowdConfiguration crowdConfiguration = crowdConfigurationArgumentCaptor.getValue();
     assertThat(crowdConfiguration.getServerUrl()).isEqualTo(dto.serverUrl);
     assertThat(crowdConfiguration.getApplicationName()).isEqualTo(dto.applicationName);

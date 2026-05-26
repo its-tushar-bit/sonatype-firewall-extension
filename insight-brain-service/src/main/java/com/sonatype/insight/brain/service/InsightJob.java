@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-
+import java.io.PrintWriter;
 import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 
 public interface InsightJob
@@ -28,6 +29,19 @@ public interface InsightJob
       log.error(t.getMessage(), t);
       System.exit(1);
     }
+  }
+
+  /**
+   * Executes the job directly for testing purposes.
+   *
+   * @param context the job execution context (can be null for tests)
+   * @param output the output writer (can be null for tests)
+   * @deprecated Use the Quartz-based execution via {@link #execute(JobExecutionContext)} instead.
+   *             This method is kept for backward compatibility with tests.
+   */
+  @Deprecated
+  default void executeForTest(JobExecutionContext context, PrintWriter output) throws Exception {
+    execute(context);
   }
 
   /**

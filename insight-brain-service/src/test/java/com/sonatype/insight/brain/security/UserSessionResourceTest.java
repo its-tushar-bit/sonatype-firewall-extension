@@ -113,9 +113,6 @@ public class UserSessionResourceTest
   public void testStatus() throws Exception {
     Integer originalGlobalSessionTimeout = (Integer) getProperty(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES);
     try {
-      // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
-      getTestProductLicenseManager().uninstallLicense();
-
       // logged out by default, so 401 expected
       HttpResponse response = status(null);
       assertResponseStatus(401, response);

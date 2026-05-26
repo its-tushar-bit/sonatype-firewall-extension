@@ -5,13 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
-import com.sonatype.insight.brain.tenancy.TenantManaged;
-
-import com.google.common.collect.ImmutableSet;
-import org.junit.Test;
-
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+import com.google.common.collect.ImmutableSet;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import org.junit.Test;
+import org.mockito.InOrder;
 
 public class DefaultTenantManagedInitializerTest
 {
@@ -20,15 +22,18 @@ public class DefaultTenantManagedInitializerTest
     InsightJob job1 = mock(InsightJob.class);
     InsightJob job2 = mock(InsightJob.class);
     TenantManaged tenantManaged = mock(TenantManaged.class);
+    TaskScheduler taskScheduler = mock(TaskScheduler.class);
 
     DefaultTenantManagedInitializer initializer =
-        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged));
+        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged), taskScheduler);
 
     initializer.start();
 
-    verify(job1).register();
-    verify(job2).register();
-    verify(tenantManaged).register();
+    InOrder inOrder = inOrder(taskScheduler, job1, job2, tenantManaged);
+    inOrder.verify(taskScheduler).start();
+    inOrder.verify(job1).register();
+    inOrder.verify(job2).register();
+    inOrder.verify(tenantManaged).register();
   }
 
   @Test
@@ -36,10 +41,12 @@ public class DefaultTenantManagedInitializerTest
     InsightJob job1 = mock(InsightJob.class);
     InsightJob job2 = mock(InsightJob.class);
     TenantManaged tenantManaged = mock(TenantManaged.class);
+    TaskScheduler taskScheduler = mock(TaskScheduler.class);
 
     DefaultTenantManagedInitializer initializer =
-        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged));
+        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged), taskScheduler);
 
+    initializer.start();
     initializer.stop();
 
     verify(job1).deregister();

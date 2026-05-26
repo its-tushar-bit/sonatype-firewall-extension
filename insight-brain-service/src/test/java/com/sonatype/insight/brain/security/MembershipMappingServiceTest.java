@@ -232,13 +232,16 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings applicableMembershipMappings =
         membershipMappingService.getApplicableMembershipMappings(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
 
-    assertThat(applicableMembershipMappings.membersByRole).hasSize(2);
+    assertThat(applicableMembershipMappings.membersByRole)
+        .extracting(membersByRole -> membersByRole.roleId)
+        .contains(Role.POLICY_ADMIN_ROLE_ID, Role.SYSTEM_ADMIN_ROLE_ID);
 
-    MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
+    MembersByRole membersByRoles = findMembersByRole(applicableMembershipMappings.membersByRole,
+        Role.POLICY_ADMIN_ROLE_ID);
     Member expectedMember = new Member(MemberType.GROUP, "test_group1", "test_group1", null, null);
     assertMembersByRoleGlobal(membersByRoles, roleDAO.getById(Role.POLICY_ADMIN_ROLE_ID), expectedMember);
 
-    membersByRoles = applicableMembershipMappings.membersByRole.get(1);
+    membersByRoles = findMembersByRole(applicableMembershipMappings.membersByRole, Role.SYSTEM_ADMIN_ROLE_ID);
     expectedMember =
         new Member(MemberType.USER, "test_user1", "Test User1", "test.user1@example.com", "Test LDAP Server");
     assertMembersByRoleGlobal(membersByRoles, roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID),
@@ -1063,14 +1066,12 @@ public class MembershipMappingServiceTest
         .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
 
     List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
-    assertThat(memberMappings).hasSize(2);
+    assertThat(memberMappings).extracting(dto -> dto.roleId).contains(POLICY_ADMIN_ROLE_ID, SYSTEM_ADMIN_ROLE_ID);
 
-    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = findApiRoleMemberMapping(memberMappings, POLICY_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).containsExactly("admin");
 
-    apiRoleMemberMappingDTO = memberMappings.get(1);
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
+    apiRoleMemberMappingDTO = findApiRoleMemberMapping(memberMappings, SYSTEM_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     assertApiMemberDTO(apiRoleMemberMappingDTO.members.get(0), MembershipMapping.GLOBAL_CONTEXT_ID, OwnerType.GLOBAL,
         MemberType.USER, "admin");
@@ -1192,18 +1193,33 @@ public class MembershipMappingServiceTest
         .getRoleMembershipsOmitEmpty(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID);
 
     List<ApiRoleMemberMappingDTO> memberMappings = listDTO.memberMappings;
-    assertThat(memberMappings).hasSize(2);
+    assertThat(memberMappings).extracting(dto -> dto.roleId).contains(POLICY_ADMIN_ROLE_ID, SYSTEM_ADMIN_ROLE_ID);
 
-    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = memberMappings.get(0);
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(POLICY_ADMIN_ROLE_ID);
+    ApiRoleMemberMappingDTO apiRoleMemberMappingDTO = findApiRoleMemberMapping(memberMappings, POLICY_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
 
-    apiRoleMemberMappingDTO = memberMappings.get(1);
-    assertThat(apiRoleMemberMappingDTO.roleId).isEqualTo(SYSTEM_ADMIN_ROLE_ID);
+    apiRoleMemberMappingDTO = findApiRoleMemberMapping(memberMappings, SYSTEM_ADMIN_ROLE_ID);
     assertThat(apiRoleMemberMappingDTO.members).extracting(dto -> dto.userOrGroupName).contains(username);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
     assertThat(handler.getEvent().action).isEqualTo(UPDATED);
+  }
+
+  private MembersByRole findMembersByRole(List<MembersByRole> membersByRoles, String roleId) {
+    return membersByRoles.stream()
+        .filter(membersByRole -> roleId.equals(membersByRole.roleId))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Missing role mapping for roleId=" + roleId));
+  }
+
+  private ApiRoleMemberMappingDTO findApiRoleMemberMapping(
+      List<ApiRoleMemberMappingDTO> memberMappings,
+      String roleId)
+  {
+    return memberMappings.stream()
+        .filter(memberMapping -> roleId.equals(memberMapping.roleId))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Missing API role mapping for roleId=" + roleId));
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

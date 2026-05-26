@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.policy.evaluator.queue;
 
-import java.io.PrintWriter;
-import java.lang.reflect.Modifier;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.evaluation.EvaluationQueueDAO;
@@ -26,16 +25,22 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
-import com.google.inject.matcher.Matchers;
 import jakarta.inject.Inject;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,14 +50,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -72,26 +69,11 @@ public class EvaluationQueueProducerTest
   @Inject
   private ApiConfigurationService apiConfigurationService;
 
-  @Mock
-  private ApiConfigurationService mockApiConfigurationService;
-
   @Inject
   private EvaluationQueueDAO evaluationQueueDAO;
 
   @Inject
   private TestProductLicense testProductLicense;
-
-  @Override
-  protected void configure(final Binder binder) {
-    super.configure(binder);
-    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bindInterceptor(Matchers.subclassesOf(ApiConfigurationService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
-        invocation.getMethod().invoke(mockApiConfigurationService, invocation.getArguments());
-      }
-      return invocation.proceed();
-    });
-  }
 
   @Test
   public void testRegister_withoutConfig() {
@@ -108,6 +90,7 @@ public class EvaluationQueueProducerTest
         .producerPeriod(EvaluationQueueConfig.DEFAULT_PRODUCER_PERIOD.plusMillis(1))
         .build();
     setEvaluationQueueConfig(evaluationQueueConfig);
+    Mockito.reset(mockTaskScheduler);
 
     evaluationQueueProducer.register();
 
@@ -120,7 +103,7 @@ public class EvaluationQueueProducerTest
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getCount()).isZero();
     assertThat(logOutput).atDebugLevel().contains("Evaluation queue requires policy monitoring, skipping execution.");
@@ -131,7 +114,7 @@ public class EvaluationQueueProducerTest
     EvaluationQueueConfig evaluationQueueConfig = EvaluationQueueConfig.builder().enabled(false).build();
     setEvaluationQueueConfig(evaluationQueueConfig);
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(logOutput).atDebugLevel().contains("Evaluation queue is disabled, skipping execution.");
   }
@@ -140,7 +123,7 @@ public class EvaluationQueueProducerTest
   public void testExecute_noAppsOrSboms() throws Exception {
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getCount()).isZero();
     assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
@@ -151,7 +134,7 @@ public class EvaluationQueueProducerTest
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
     tempEntity.newApplicationWithParent();
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getCount()).isZero();
     assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
@@ -165,7 +148,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
     Date now = new Date();
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     List<EvaluationQueue> stored = evaluationQueueDAO.getAll();
     assertThat(stored).hasSize(1);
@@ -186,7 +169,7 @@ public class EvaluationQueueProducerTest
     tempEntity.newPolicyMonitoring(app.getId(), ComplianceStageType.ID);
     tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(logOutput).atDebugLevel().contains("Processed 1 SBOM(s) up to latest offset 1.");
     assertThat(evaluationQueueDAO.getAll()).hasSize(1);
@@ -195,7 +178,7 @@ public class EvaluationQueueProducerTest
     evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
 
     // Executing again does nothing because the cycle already completed
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
 
     // Resetting the cycle though allows us to continue
@@ -213,7 +196,7 @@ public class EvaluationQueueProducerTest
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getAll()).isEmpty();
   }
@@ -228,7 +211,7 @@ public class EvaluationQueueProducerTest
     tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(0));
     ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(1));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion).contains(sbom2.getSbomVersion());
   }
@@ -243,7 +226,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(1));
     ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(2));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom3.getSbomVersion(), sbom2.getSbomVersion());
@@ -271,7 +254,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata app2Sbom3 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(6));
     ThirdPartySbomMetadata app2Sbom4 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(7));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     // app2 maxVersions=2: rank 0 (app2Sbom4) + rank 1 (app2Sbom3)
     // app1 maxVersions=1: only rank 0 (app1Sbom4)
@@ -287,7 +270,7 @@ public class EvaluationQueueProducerTest
     assertThat(logOutput).atInfoLevel().contains("Completed cycle.");
 
     evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
     assertThat(evaluationQueueDAO.getAll()).isEmpty();
   }
@@ -311,7 +294,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata app2Sbom2 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(3));
     ThirdPartySbomMetadata app2Sbom3 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(4));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     // app2 no window: all ranks — sbom3 (rank 0), sbom2 (rank 1), sbom1 (rank 2)
     // app1 maxVersions=1: only rank 0 (sbom2)
@@ -339,7 +322,7 @@ public class EvaluationQueueProducerTest
         new Date(now - Duration.ofDays(1).minusMinutes(1).toMillis()));
     ThirdPartySbomMetadata sbom4 = tempEntity.newThirdPartySbomMetadata("id4", app.getId(), ACTIVE, new Date());
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom4.getSbomVersion(), sbom3.getSbomVersion());
@@ -375,7 +358,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata app2Recent = tempEntity.newThirdPartySbomMetadata("a2s3", app2.getId(), ACTIVE,
         new Date(now));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     // rank 0: both newest SBOMs pass age filter → queued
     // rank 1: both 2nd SBOMs are > 1 day old → filtered by age, nothing passes → early break
@@ -410,7 +393,7 @@ public class EvaluationQueueProducerTest
         new Date(now - 1000));
     ThirdPartySbomMetadata app2Sbom2 = tempEntity.newThirdPartySbomMetadata(app2.getId(), ACTIVE, new Date(now));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     // All SBOMs pass age filter at every rank — no early break, iterates all ranks
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
@@ -452,7 +435,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata app2Recent = tempEntity.newThirdPartySbomMetadata("a2s3", app2.getId(), ACTIVE,
         new Date(now));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     // rank 0: app1Latest (passes maxVersions=1) + app2Recent (passes age) → both queued
     // rank 1: app1 filtered by maxVersions, app2's 2nd SBOM filtered by age → nothing passes → early break
@@ -477,7 +460,7 @@ public class EvaluationQueueProducerTest
     tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, ts3.getScanId(), futureTime);
     tempEntity.newThirdPartySbomMetadata(tf3.getId(), app.getId(), ACTIVE, "fileName3");
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom2.getSbomVersion(), sbom1.getSbomVersion());
@@ -498,12 +481,12 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(2));
 
     // Only 2 rows added due to the limit
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom3.getSbomVersion(), sbom2.getSbomVersion());
 
     // 0 rows added due to the limit
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom3.getSbomVersion(), sbom2.getSbomVersion());
 
@@ -514,19 +497,19 @@ public class EvaluationQueueProducerTest
             .filter(e -> e.getVersion().equals(sbom3.getSbomVersion()))
             .findFirst()
             .orElse(null));
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom2.getSbomVersion(), sbom1.getSbomVersion());
 
     // Pretend the rest got processed
     evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).isEmpty();
 
     // Sleep for 2 seconds to ensure the cycle starts again
     Thread.sleep(2000);
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).map(EvaluationQueue::getVersion)
         .containsExactly(sbom3.getSbomVersion(), sbom2.getSbomVersion());
   }
@@ -551,7 +534,7 @@ public class EvaluationQueueProducerTest
 
     ThirdPartySbomMetadata app3Sbom1 = tempEntity.newThirdPartySbomMetadata(app3.getId(), ACTIVE, new Date(5));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     List<EvaluationQueue> queued = evaluationQueueDAO.getAll();
     assertThat(queued).hasSize(6);
@@ -580,7 +563,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(1));
     ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(2));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     List<EvaluationQueue> queued = evaluationQueueDAO.getAll();
     assertThat(queued).hasSize(2);
@@ -589,7 +572,7 @@ public class EvaluationQueueProducerTest
 
     Thread.sleep(1000);
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     queued = evaluationQueueDAO.getAll();
     assertThat(queued).hasSize(2);
     assertThat(queued).map(EvaluationQueue::getVersion)
@@ -601,15 +584,16 @@ public class EvaluationQueueProducerTest
   public void testConfigurationChanged_enabledChangedToTrue_shouldSchedule() {
     EvaluationQueueConfig disabledConfig = EvaluationQueueConfig.builder().enabled(false).build();
     setEvaluationQueueConfig(disabledConfig);
+    Mockito.reset(mockTaskScheduler);
+
     evaluationQueueProducer.register();
+
     verify(mockTaskScheduler).unscheduleTask(evaluationQueueProducer);
     Mockito.reset(mockTaskScheduler);
 
     EvaluationQueueConfig enabledConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(enabledConfig);
-
-    evaluationQueueProducer.configurationChanged(Set.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG));
 
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(1));
   }
@@ -619,14 +603,15 @@ public class EvaluationQueueProducerTest
     EvaluationQueueConfig enabledConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(enabledConfig);
+    Mockito.reset(mockTaskScheduler);
+
     evaluationQueueProducer.register();
+
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(1));
     Mockito.reset(mockTaskScheduler);
 
     EvaluationQueueConfig disabledConfig = EvaluationQueueConfig.builder().enabled(false).build();
     setEvaluationQueueConfig(disabledConfig);
-
-    evaluationQueueProducer.configurationChanged(Set.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG));
 
     verify(mockTaskScheduler).unscheduleTask(evaluationQueueProducer);
   }
@@ -636,14 +621,16 @@ public class EvaluationQueueProducerTest
     EvaluationQueueConfig initialConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(initialConfig);
+    Mockito.reset(mockTaskScheduler);
+
     evaluationQueueProducer.register();
+
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(1));
+    Mockito.reset(mockTaskScheduler);
 
     EvaluationQueueConfig newConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(2)).build();
     setEvaluationQueueConfig(newConfig);
-
-    evaluationQueueProducer.configurationChanged(Set.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG));
 
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(2));
   }
@@ -653,15 +640,16 @@ public class EvaluationQueueProducerTest
     EvaluationQueueConfig initialConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(initialConfig);
+    Mockito.reset(mockTaskScheduler);
+
     evaluationQueueProducer.register();
+
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(1));
     Mockito.reset(mockTaskScheduler);
 
     EvaluationQueueConfig newConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(newConfig);
-
-    evaluationQueueProducer.configurationChanged(Set.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG));
 
     verify(mockTaskScheduler, never()).schedulePeriodicTask(eq(evaluationQueueProducer), any(Duration.class));
   }
@@ -671,7 +659,10 @@ public class EvaluationQueueProducerTest
     EvaluationQueueConfig initialConfig =
         EvaluationQueueConfig.builder().enabled(true).producerPeriod(Duration.ofSeconds(1)).build();
     setEvaluationQueueConfig(initialConfig);
+    Mockito.reset(mockTaskScheduler);
+
     evaluationQueueProducer.register();
+
     verify(mockTaskScheduler).schedulePeriodicTask(evaluationQueueProducer, Duration.ofSeconds(1));
     Mockito.reset(mockTaskScheduler);
 
@@ -686,30 +677,48 @@ public class EvaluationQueueProducerTest
   }
 
   @Test
-  public void testExecute_triggerTaskNow_noCycleReset() throws Exception {
-    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
-    evaluationQueueProducer.execute(new HashMap<>(), mock(PrintWriter.class));
+  public void testExecute_QuartzJob() throws Exception {
+    setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    when(mockContext.getMergedJobDataMap()).thenReturn(new JobDataMap());
 
-    Map<String, String> expectedJobDataMap = Map.of("resetCycle", "false");
-    verify(mockTaskScheduler).triggerTaskNow(evaluationQueueProducer, expectedJobDataMap);
+    assertThatNoException().isThrownBy(() -> evaluationQueueProducer.execute(mockContext));
   }
 
   @Test
-  public void testExecute_triggerTaskNow_resetCycle() throws Exception {
+  public void testExecute_AdminTask_triggerTaskNow_noCycleReset() throws Exception {
+    evaluationQueueProducer.register();
+    Mockito.reset(mockTaskScheduler);
     when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
-    evaluationQueueProducer.execute(Map.of("resetCycle", List.of("true")), mock(PrintWriter.class));
 
-    Map<String, String> expectedJobDataMap = Map.of("resetCycle", "true");
-    verify(mockTaskScheduler).triggerTaskNow(evaluationQueueProducer, expectedJobDataMap);
+    Map<String, List<String>> params = Map.of();
+    evaluationQueueProducer.execute(params, new PrintWriter(OutputStream.nullOutputStream()));
+
+    verify(mockTaskScheduler).triggerTaskNow(eq(evaluationQueueProducer),
+        eq(Map.of("resetCycle", "false")));
   }
 
   @Test
-  public void testExecute_doesNot_triggerTaskNow_ifNotScheduled() throws Exception {
+  public void testExecute_AdminTask_triggerTaskNow_resetCycle() throws Exception {
+    evaluationQueueProducer.register();
+    Mockito.reset(mockTaskScheduler);
+    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
+
+    Map<String, List<String>> params = Map.of("resetCycle", List.of("true"));
+    evaluationQueueProducer.execute(params, new PrintWriter(OutputStream.nullOutputStream()));
+
+    verify(mockTaskScheduler).triggerTaskNow(eq(evaluationQueueProducer),
+        eq(Map.of("resetCycle", "true")));
+  }
+
+  @Test
+  public void testExecute_AdminTask_doesNot_triggerTaskNow_ifNotScheduled() throws Exception {
     when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(false);
-    evaluationQueueProducer.execute(Map.of("resetCycle", List.of("true")), mock(PrintWriter.class));
 
-    Map<String, String> expectedJobDataMap = Map.of("resetCycle", "true");
-    verify(mockTaskScheduler, never()).triggerTaskNow(evaluationQueueProducer, expectedJobDataMap);
+    Map<String, List<String>> params = Map.of("resetCycle", List.of("true"));
+    evaluationQueueProducer.execute(params, new PrintWriter(OutputStream.nullOutputStream()));
+
+    verify(mockTaskScheduler, never()).triggerTaskNow(any(), any());
   }
 
   @Test
@@ -718,7 +727,7 @@ public class EvaluationQueueProducerTest
     // Add unparseable content for the EVALUATION_QUEUE_PRODUCER_CHECKPOINT key
     tempEntity.newKeyValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT, "{");
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getCount()).isZero();
     assertThat(logOutput).atDebugLevel().contains("Cycle already completed, skipping execution.");
@@ -742,7 +751,7 @@ public class EvaluationQueueProducerTest
     ThirdPartySbomMetadata sbom1 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(0));
 
     // First SBOM to process initially which gets added to the queue
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     List<EvaluationQueue> queued = evaluationQueueDAO.getAll();
     assertThat(queued).hasSize(1);
     assertThat(queued).map(EvaluationQueue::getVersion).containsExactly(sbom1.getSbomVersion());
@@ -750,7 +759,7 @@ public class EvaluationQueueProducerTest
     // Second SBOM gets added and the queue gets reset
     ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, new Date(0));
     Thread.sleep(1000);
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     // Even though the second SBOM is more recent, since the queue isn't reset it gets added after the first SBOM
     queued = evaluationQueueDAO.getAll();
     assertThat(queued).hasSize(2);
@@ -772,7 +781,7 @@ public class EvaluationQueueProducerTest
     tempEntity.newKeyValue(KeyValue.EVALUATION_QUEUE_PRODUCER_CHECKPOINT,
         JsonUtils.writeUnformatted(checkpoint));
 
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
 
     assertThat(evaluationQueueDAO.getCount()).isZero();
     assertThat(logOutput).atDebugLevel().contains("Waiting for policy monitoring hour, skipping execution.");
@@ -812,7 +821,7 @@ public class EvaluationQueueProducerTest
     tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName");
 
     // Complete a cycle first so resetCycle has something to reset
-    evaluationQueueProducer.execute(null);
+    evaluationQueueProducer.execute((JobExecutionContext) null);
     assertThat(evaluationQueueDAO.getAll()).hasSize(1);
     evaluationQueueDAO.getAll().forEach(evaluationQueueDAO::delete);
 
@@ -850,34 +859,26 @@ public class EvaluationQueueProducerTest
   @Test
   public void testExecute_manualTriggerPassesStartTime() throws Exception {
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
-    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
 
     String startTime = String.valueOf(System.currentTimeMillis());
-    evaluationQueueProducer.execute(
-        Map.of("startTime", List.of(startTime)),
-        mock(PrintWriter.class));
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put("startTime", startTime);
+    when(mockContext.getMergedJobDataMap()).thenReturn(jobDataMap);
 
-    Map<String, String> expectedJobDataMap = Map.of("resetCycle", "false", "startTime", startTime);
-    verify(mockTaskScheduler).triggerTaskNow(evaluationQueueProducer, expectedJobDataMap);
+    evaluationQueueProducer.execute(mockContext);
   }
 
   @Test
   public void testExecute_manualTriggerStartTimeNow() throws Exception {
     setEvaluationQueueConfig(EvaluationQueueConfig.builder().enabled(true).build());
-    when(mockTaskScheduler.isTaskScheduled(evaluationQueueProducer)).thenReturn(true);
 
-    long before = System.currentTimeMillis();
-    evaluationQueueProducer.execute(
-        Map.of("startTime", List.of("now")),
-        mock(PrintWriter.class));
-    long after = System.currentTimeMillis();
+    JobExecutionContext mockContext = mock(JobExecutionContext.class);
+    JobDataMap jobDataMap = new JobDataMap();
+    jobDataMap.put("startTime", String.valueOf(System.currentTimeMillis()));
+    when(mockContext.getMergedJobDataMap()).thenReturn(jobDataMap);
 
-    var captor = org.mockito.ArgumentCaptor.forClass(Map.class);
-    verify(mockTaskScheduler).triggerTaskNow(eq(evaluationQueueProducer), captor.capture());
-    Map<String, String> captured = captor.getValue();
-    assertThat(captured).containsEntry("resetCycle", "false");
-    long startTimeValue = Long.parseLong(captured.get("startTime"));
-    assertThat(startTimeValue).isBetween(before, after);
+    evaluationQueueProducer.execute(mockContext);
   }
 
   @Test
@@ -891,41 +892,41 @@ public class EvaluationQueueProducerTest
 
   @Test
   public void testGetInitialCycleStartTime_hourAlreadyPassedToday_returnsTomorrow() {
-    java.time.LocalDateTime pastToday =
-        java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-    long now = pastToday.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    LocalDateTime pastToday =
+        LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    long now = pastToday.plusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
     Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, 0, now);
 
-    long expectedTomorrow = pastToday.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    long expectedTomorrow = pastToday.plusDays(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedTomorrow));
   }
 
   @Test
   public void testGetInitialCycleStartTime_hourNotYetReachedToday_returnsToday() {
-    java.time.LocalDateTime todayAt22 =
-        java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
-    long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    LocalDateTime todayAt22 =
+        LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt22.minusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
     Date result = EvaluationQueueProducer.getInitialCycleStartTime(22, 0, now);
 
-    long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    long expectedToday = todayAt22.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
   }
 
   @Test
   public void testGetInitialCycleStartTime_exactlyAtHour_returnsTomorrow() {
-    java.time.LocalDateTime todayAtMidnight = java.time.LocalDateTime.now()
+    LocalDateTime todayAtMidnight = LocalDateTime.now()
         .withHour(0)
         .withMinute(0)
         .withSecond(0)
         .withNano(0);
-    long now = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    long now = todayAtMidnight.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
     Date result = EvaluationQueueProducer.getInitialCycleStartTime(0, 0, now);
 
     long expectedTomorrow =
-        todayAtMidnight.plusDays(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+        todayAtMidnight.plusDays(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedTomorrow));
   }
 
@@ -940,25 +941,25 @@ public class EvaluationQueueProducerTest
 
   @Test
   public void testGetRenewalCycleStartTime_hourAlreadyPassedToday_returnsToday() {
-    java.time.LocalDateTime todayAtMidnight =
-        java.time.LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-    long now = todayAtMidnight.plusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    LocalDateTime todayAtMidnight =
+        LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAtMidnight.plusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
     Date result = EvaluationQueueProducer.getRenewalCycleStartTime(0, 0, now);
 
-    long expectedToday = todayAtMidnight.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    long expectedToday = todayAtMidnight.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
   }
 
   @Test
   public void testGetRenewalCycleStartTime_hourNotYetReachedToday_returnsToday() {
-    java.time.LocalDateTime todayAt22 =
-        java.time.LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
-    long now = todayAt22.minusHours(1).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    LocalDateTime todayAt22 =
+        LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
+    long now = todayAt22.minusHours(1).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
     Date result = EvaluationQueueProducer.getRenewalCycleStartTime(22, 0, now);
 
-    long expectedToday = todayAt22.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+    long expectedToday = todayAt22.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     assertThat(result).isEqualTo(new Date(expectedToday));
   }
 
@@ -1009,6 +1010,7 @@ public class EvaluationQueueProducerTest
   private void setEvaluationQueueConfig(final EvaluationQueueConfig evaluationQueueConfig) {
     Map<String, Object> configMap = JsonUtils.convertValue(evaluationQueueConfig, Map.class);
     configMap.put("startTimeDelayEnabled", false);
-    apiConfigurationService.setConfiguration(Map.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG, configMap));
+    apiConfigurationService.setConfigurationNoAuthz(Map.of(SystemConfigurationProperty.EVALUATION_QUEUE_CONFIG,
+        configMap));
   }
 }

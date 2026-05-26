@@ -5,20 +5,20 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-import jakarta.mail.Message;
+import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -111,35 +111,32 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Release
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.hamcrest.MockitoHamcrest;
 
-import static com.sonatype.insight.brain.Assert.assertNotifications;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.extractProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
 
@@ -212,15 +209,6 @@ public class RepositoryPolicyEvaluatorTest
       AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   private PolicyViolationLogDTOAssert policyViolationLogDTOAssert;
-
-  @Override
-  public void configure(Binder binder) {
-    binder.bind(FirewallAuditHdsClient.class).toInstance(auditHdsClient);
-    binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
-    binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
-    super.configure(binder);
-  }
 
   @Before
   public void before() {
@@ -693,8 +681,8 @@ public class RepositoryPolicyEvaluatorTest
     Policy policy = new Policy(null, "test");
     policy.setOwnerId(repository.getId());
     Constraint constraint = new Constraint(null, "constraint", LogicalOperator.AND);
-    com.sonatype.insight.brain.model.policy.Condition condition =
-        new com.sonatype.insight.brain.model.policy.Condition(MatchStateConditionType.ID, "is",
+    Condition condition =
+        new Condition(MatchStateConditionType.ID, "is",
             MatchState.EXACT.toString());
     constraint.setConditions(Collections.singletonList(condition));
     policy.setConstraints(Collections.singletonList(constraint));

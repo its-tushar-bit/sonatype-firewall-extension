@@ -266,7 +266,8 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testVerifyOrCreateApplicationForContainerImage_MissingLicenseFeature() throws Exception {
-    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    setMissingFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
     HttpResponse response = restRequest()
         .path(ApplicationSummaryResource.VERIFY_OR_CREATE_APP_FOR_CONTAINER_IMAGE_PATH)

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 public enum FirewallSortableField
 {
+  EVALUATION_TIME("evaluationTime", "lastEvaluationTime"),
   QUARANTINE_TIME("quarantineTime", "quarantineTime"),
   RELEASE_QUARANTINE_TIME("releaseQuarantineTime", "unquarantineTime"),
   REPOSITORY_PUBLIC_ID("repositoryPublicId", "repositoryPublicId"),

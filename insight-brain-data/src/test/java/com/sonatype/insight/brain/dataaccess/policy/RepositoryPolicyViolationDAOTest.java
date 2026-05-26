@@ -482,6 +482,81 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  public void testGetRepositoryResultsDetails_FilterEvaluationTime_H2() {
+    testGetRepositoryResultsDetails_FilterEvaluationTime();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetRepositoryResultsDetails_FilterEvaluationTime_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetails_FilterEvaluationTime();
+  }
+
+  private void testGetRepositoryResultsDetails_FilterEvaluationTime() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "my-repo");
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p", 10);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3");
+
+    LocalDate localDate1 = LocalDate.of(2023, 10, 19);
+    LocalDate localDate2 = LocalDate.of(2023, 10, 18);
+    ZoneId defaultZoneId = ZoneId.systemDefault();
+    Date date1 = Date.from(localDate1.atStartOfDay(defaultZoneId).toInstant());
+    Date date2 = Date.from(localDate2.atStartOfDay(defaultZoneId).toInstant());
+
+    RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1",
+            componentIdentifier1, date1, null);
+    RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash2",
+            componentIdentifier2, date2, null);
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "g3/a3/v3/test-v3-c3.e3", "hash3",
+        componentIdentifier3, false);
+
+    RepositoryPolicyViolation c1v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c1.getPathname(), false,
+            policy.getId(), policy.getName(), c1.getComponentIdentifier());
+    RepositoryPolicyViolation c2v1 =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getThreatLevel(), c2.getPathname(), false,
+            policy.getId(), policy.getName(), c2.getComponentIdentifier());
+    Set<String> repositoryIds = ImmutableSet.of(repository.getId());
+
+    RepositoryResultsDetailsFilter repositoryResultsDetailsFilter = new RepositoryResultsDetailsFilter();
+    repositoryResultsDetailsFilter.page = 1;
+    repositoryResultsDetailsFilter.pageSize = 12;
+    repositoryResultsDetailsFilter.violationStateFilters = new HashSet<>();
+    repositoryResultsDetailsFilter.searchFilters = new HashMap<>();
+    repositoryResultsDetailsFilter.matchStateFilter = "";
+    List<RepositoryResultsDetails> repositoryResultsDetails;
+
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
+        .containsExactlyInAnyOrder(
+            toRepositoryResultsDetails(repository, c1, c1v1),
+            toRepositoryResultsDetails(repository, c2, c2v1));
+
+    repositoryResultsDetailsFilter.searchFilters.put("EVALUATION_TIME", "19");
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
+        .containsExactly(
+            toRepositoryResultsDetails(repository, c1, c1v1));
+
+    repositoryResultsDetailsFilter.searchFilters.put("EVALUATION_TIME", "18");
+    repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
+    assertThat(repositoryResultsDetails)
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields("constraintFactsJson")
+        .containsExactly(
+            toRepositoryResultsDetails(repository, c2, c2v1));
+  }
+
+  @Test
   public void testGetRepositoryResultsDetails_FilterThreatLevel_H2() {
     testGetRepositoryResultsDetails_FilterThreatLevel();
   }
@@ -889,6 +964,7 @@ public class RepositoryPolicyViolationDAOTest
         repositoryComponent.getDisplayName(),
         repositoryComponent.getHash(),
         repositoryComponent.getMatchStateId(),
+        repositoryComponent.getLastEvaluationTime(),
         (repositoryComponent.getQuarantineTime() != null &&
             repositoryComponent.getUnquarantineTime() == null) ? repositoryComponent.getQuarantineTime() : null,
         repositoryPolicyViolation.isWaived(),

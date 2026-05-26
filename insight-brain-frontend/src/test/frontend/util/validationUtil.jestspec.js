@@ -382,5 +382,33 @@ describe('validationUtil', function () {
       const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
       expect(filtersAreValid).toBe(false);
     });
+
+    it('evaluation time filter is valid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'EVALUATION_TIME',
+            value: '19',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(true);
+    });
+
+    it('evaluation time filter is invalid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'EVALUATION_TIME',
+            value: '1',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
   });
 });

@@ -62,6 +62,7 @@ public class RepositoryResultsDetailsRequestDto
     public enum FilterableField
     {
       POLICY_NAME,
+      EVALUATION_TIME,
       QUARANTINE_TIME,
       COMPONENT_COORDINATES,
       REPOSITORY_ID,

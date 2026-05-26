@@ -183,6 +183,7 @@ describe('repositoryResultsSummaryPageSlice', () => {
           {
             threatLevel: 4,
             policyName: 'Security-High',
+            lastEvaluationTime: null,
             quarantineTime: null,
             componentDisplayText: 'Component name 1',
             waived: false,
@@ -195,6 +196,7 @@ describe('repositoryResultsSummaryPageSlice', () => {
         {
           threatLevel: 4,
           policyName: 'Security-High',
+          lastEvaluationTime: null,
           quarantineTime: null,
           componentDisplayText: 'Component name 1',
           waived: false,

@@ -29,6 +29,8 @@ public class RepositoryResultsDetails
 
   public String matchStateId;
 
+  public Date lastEvaluationTime;
+
   public Date quarantineTime;
 
   public Boolean waived;
@@ -58,11 +60,13 @@ public class RepositoryResultsDetails
       final String componentDisplayName,
       final String hash,
       final String matchStateId,
+      final Date lastEvaluationTime,
       final Date quarantineTime,
       final Boolean waived)
   {
     this(policyThreatLevel, policyName, repositoryManagerId, repositoryId, componentIdFormat, pathname,
-        componentIdCoordinatesJson, componentDisplayName, hash, matchStateId, quarantineTime, waived, null, null);
+        componentIdCoordinatesJson, componentDisplayName, hash, matchStateId, lastEvaluationTime, quarantineTime,
+        waived, null, null);
   }
 
   public RepositoryResultsDetails(
@@ -76,6 +80,7 @@ public class RepositoryResultsDetails
       final String componentDisplayName,
       final String hash,
       final String matchStateId,
+      final Date lastEvaluationTime,
       final Date quarantineTime,
       final Boolean waived,
       final String constraintFactsJson,
@@ -91,6 +96,7 @@ public class RepositoryResultsDetails
     this.componentDisplayName = componentDisplayName;
     this.hash = hash;
     this.matchStateId = matchStateId;
+    this.lastEvaluationTime = lastEvaluationTime;
     this.quarantineTime = quarantineTime;
     this.waived = waived;
     this.constraintFactsJson = constraintFactsJson;

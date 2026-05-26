@@ -81,6 +81,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(0).hash).isEqualTo(repositoryComponent1.getHash());
     assertThat(repositoryResultsDetails.get(0).matchStateId).isEqualTo(repositoryComponent1.getMatchStateId());
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(repositoryComponent1.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(0).lastEvaluationTime)
+        .isEqualTo(repositoryComponent1.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(0).componentIdentifier))
         .isEqualTo(repositoryComponent1.getComponentIdentifier());
 
@@ -92,6 +94,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(1).hash).isEqualTo(repositoryComponent2.getHash());
     assertThat(repositoryResultsDetails.get(1).matchStateId).isEqualTo(repositoryComponent2.getMatchStateId());
     assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(repositoryComponent2.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(1).lastEvaluationTime)
+        .isEqualTo(repositoryComponent2.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(1).componentIdentifier))
         .isEqualTo(repositoryComponent2.getComponentIdentifier());
 
@@ -103,6 +107,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(2).hash).isEqualTo(repositoryComponent3.getHash());
     assertThat(repositoryResultsDetails.get(2).matchStateId).isEqualTo(repositoryComponent3.getMatchStateId());
     assertThat(repositoryResultsDetails.get(2).quarantineTime).isEqualTo(repositoryComponent3.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(2).lastEvaluationTime)
+        .isEqualTo(repositoryComponent3.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(2).componentIdentifier))
         .isEqualTo(repositoryComponent3.getComponentIdentifier());
 
@@ -125,6 +131,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(0).hash).isEqualTo(repositoryComponent2.getHash());
     assertThat(repositoryResultsDetails.get(0).matchStateId).isEqualTo(repositoryComponent2.getMatchStateId());
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(repositoryComponent2.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(0).lastEvaluationTime)
+        .isEqualTo(repositoryComponent2.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(0).componentIdentifier))
         .isEqualTo(repositoryComponent2.getComponentIdentifier());
 
@@ -136,6 +144,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(1).hash).isEqualTo(repositoryComponent3.getHash());
     assertThat(repositoryResultsDetails.get(1).matchStateId).isEqualTo(repositoryComponent3.getMatchStateId());
     assertThat(repositoryResultsDetails.get(1).quarantineTime).isEqualTo(repositoryComponent3.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(1).lastEvaluationTime)
+        .isEqualTo(repositoryComponent3.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(1).componentIdentifier))
         .isEqualTo(repositoryComponent3.getComponentIdentifier());
 
@@ -158,6 +168,8 @@ public class RepositoryResultsResourceTest
     assertThat(repositoryResultsDetails.get(0).hash).isEqualTo(repositoryComponent1.getHash());
     assertThat(repositoryResultsDetails.get(0).matchStateId).isEqualTo(repositoryComponent1.getMatchStateId());
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(repositoryComponent1.getQuarantineTime());
+    assertThat(repositoryResultsDetails.get(0).lastEvaluationTime)
+        .isEqualTo(repositoryComponent1.getLastEvaluationTime());
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(repositoryResultsDetails.get(0).componentIdentifier))
         .isEqualTo(repositoryComponent1.getComponentIdentifier());
   }

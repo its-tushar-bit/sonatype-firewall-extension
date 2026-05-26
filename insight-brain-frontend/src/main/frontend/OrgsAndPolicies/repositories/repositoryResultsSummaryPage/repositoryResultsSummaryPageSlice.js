@@ -57,19 +57,24 @@ const initialState = {
         sortPriority: 1,
       },
       {
-        sortableField: 'POLICY_THREAT_LEVEL',
+        sortableField: 'EVALUATION_TIME',
         asc: false,
         sortPriority: 2,
       },
       {
+        sortableField: 'POLICY_THREAT_LEVEL',
+        asc: false,
+        sortPriority: 3,
+      },
+      {
         sortableField: 'POLICY_NAME',
         asc: true,
-        sortPriority: 3,
+        sortPriority: 4,
       },
       {
         sortableField: 'COMPONENT_COORDINATES',
         asc: true,
-        sortPriority: 4,
+        sortPriority: 5,
       },
     ],
     aggregate: true,
@@ -80,6 +85,7 @@ const initialState = {
   hasMoreResults: null,
   searchFiltersValues: {
     POLICY_NAME: '',
+    EVALUATION_TIME: '',
     QUARANTINE_TIME: '',
     COMPONENT_COORDINATES: '',
   },
@@ -177,6 +183,7 @@ const clearFilters = (state) => {
   state.componentsRequestBody.threatLevelFilters = [...state.selectedThreatLevelFilters];
   state.searchFiltersValues = {
     POLICY_NAME: '',
+    EVALUATION_TIME: '',
     QUARANTINE_TIME: '',
     COMPONENT_COORDINATES: '',
   };

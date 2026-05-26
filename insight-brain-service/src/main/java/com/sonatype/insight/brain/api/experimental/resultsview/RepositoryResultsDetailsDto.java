@@ -45,6 +45,8 @@ public class RepositoryResultsDetailsDto
 
   public String matchStateId;
 
+  public Date lastEvaluationTime;
+
   public Date quarantineTime;
 
   public Boolean waived;
@@ -79,6 +81,7 @@ public class RepositoryResultsDetailsDto
     this.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifierFromJson);
     this.hash = details.hash;
     this.matchStateId = details.matchStateId;
+    this.lastEvaluationTime = details.lastEvaluationTime;
     this.quarantineTime = details.quarantineTime;
     this.waived = details.waived;
     this.constraints = parseConstraintFactsJson(details.constraintFactsJson);

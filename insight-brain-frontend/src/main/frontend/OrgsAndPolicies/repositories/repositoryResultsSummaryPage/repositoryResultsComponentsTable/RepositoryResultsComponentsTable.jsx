@@ -56,7 +56,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const loadNextPage = () => dispatch(actions.loadNextPage());
   const openFilterPopover = () => dispatch(actions.setShowFilterPopover(true));
 
-  const quarantineTime = (date) => formatDate(date, FIREWALL_DATE_TIME_FORMAT);
+  const formatDateTime = (date) => formatDate(date, FIREWALL_DATE_TIME_FORMAT);
   const formatThreatLevel = (row) => (row.threatLevel === null ? 0 : row.threatLevel);
   const toggleAggregateAndGetRepositoryComponents = () => dispatch(actions.toggleAggregateAndGetRepositoryComponents());
 
@@ -86,7 +86,8 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
         <NxThreatIndicator policyThreatLevel={formatThreatLevel(row)} /> {formatThreatLevel(row)}
       </NxTable.Cell>
       <NxTable.Cell>{!row.policyName ? 'No Violations' : row.policyName}</NxTable.Cell>
-      <NxTable.Cell>{quarantineTime(row.quarantineTime)}</NxTable.Cell>
+      <NxTable.Cell>{row.lastEvaluationTime ? formatDateTime(row.lastEvaluationTime) : ''}</NxTable.Cell>
+      <NxTable.Cell>{row.quarantineTime ? formatDateTime(row.quarantineTime) : ''}</NxTable.Cell>
       <NxTable.Cell className="iq-repository-component-cell">
         <NxOverflowTooltip>
           <div className="iq-repository-component-cell--text">{row.componentDisplayText}</div>
@@ -161,6 +162,20 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                 <NxTable.Cell
                   isSortable
                   sortDir={
+                    sortConfiguration.sortableField === 'EVALUATION_TIME'
+                      ? sortConfiguration.asc
+                        ? 'asc'
+                        : 'desc'
+                      : null
+                  }
+                  onClick={() => sortComponents('EVALUATION_TIME')}
+                  className="iq-repository-column--evaluation-date"
+                >
+                  EVALUATION TIME
+                </NxTable.Cell>
+                <NxTable.Cell
+                  isSortable
+                  sortDir={
                     sortConfiguration.sortableField === 'QUARANTINE_TIME'
                       ? sortConfiguration.asc
                         ? 'asc'
@@ -197,6 +212,15 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                     id="nx-repository-policy-filter"
                     onChange={(filterValue) => searchComponents({ filterValue, filterName: 'POLICY_NAME' })}
                     value={searchFiltersValues['POLICY_NAME']}
+                  />
+                </NxTable.Cell>
+                <NxTable.Cell className="iq-repository-filter--evaluation">
+                  <NxFilterInput
+                    name="EVALUATION_TIME"
+                    placeholder="date"
+                    id="nx-repository-evaluation-filter"
+                    onChange={(filterValue) => searchComponents({ filterValue, filterName: 'EVALUATION_TIME' })}
+                    value={searchFiltersValues['EVALUATION_TIME']}
                   />
                 </NxTable.Cell>
                 <NxTable.Cell className="iq-repository-filter--quarantine">

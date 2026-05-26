@@ -34,6 +34,7 @@ describe('RepositoryResultsComponentsTable', () => {
       {
         threatLevel: 1,
         policyName: 'No violations',
+        lastEvaluationTime: new Date('2023-10-19T14:34:13Z'),
         quarantineTime: null,
         componentDisplayText: 'Component name 1',
         waived: false,
@@ -56,6 +57,7 @@ describe('RepositoryResultsComponentsTable', () => {
       {
         threatLevel: 8,
         policyName: 'Security-High',
+        lastEvaluationTime: new Date('2023-10-19T15:00:00Z'),
         quarantineTime: null,
         componentDisplayText: 'Component name 2',
         waived: false,
@@ -190,15 +192,16 @@ describe('RepositoryResultsComponentsTable', () => {
       expect(screen.getByText(components[1].componentDisplayText)).toBeVisible();
     });
 
-    it('filters components by the name or policy or quarantine time', () => {
+    it('filters components by the name or policy or evaluation time or quarantine time', () => {
       renderComponent();
 
       const searchByNameInput = screen.getByPlaceholderText('component name');
       const searchByPolicyInput = screen.getByPlaceholderText('policy name');
-      const searchByQuarantineTime = screen.getByPlaceholderText('date');
+      const [searchByEvaluationTime, searchByQuarantineTime] = screen.getAllByPlaceholderText('date');
 
       fireEvent.change(searchByNameInput, { target: { value: 'component 1' } });
       fireEvent.change(searchByPolicyInput, { target: { value: 'High' } });
+      fireEvent.change(searchByEvaluationTime, { target: { value: '2023-10-19 14:34:13' } });
       fireEvent.change(searchByQuarantineTime, { target: { value: '2023-10-19 14:34:13' } });
 
       expect(searchComponentsSpy).toHaveBeenCalledWith({
@@ -211,6 +214,10 @@ describe('RepositoryResultsComponentsTable', () => {
       });
       expect(searchComponentsSpy).toHaveBeenCalledWith({
         filterValue: '2023-10-19 14:34:13',
+        filterName: 'EVALUATION_TIME',
+      });
+      expect(searchComponentsSpy).toHaveBeenCalledWith({
+        filterValue: '2023-10-19 14:34:13',
         filterName: 'QUARANTINE_TIME',
       });
     });
@@ -220,6 +227,7 @@ describe('RepositoryResultsComponentsTable', () => {
 
       const sortByThreatButton = screen.getByRole('button', { name: /threat unsorted/i });
       const sortByPolicyButton = screen.getByRole('button', { name: /policy unsorted/i });
+      const sortByEvaluationTimeButton = screen.getByRole('button', { name: /evaluation time unsorted/i });
       const sortByQuarantinedButton = screen.getByRole('button', { name: /quarantine time descending/i });
       const sortByComponentButton = screen.getByRole('button', { name: /component unsorted/i });
 
@@ -230,6 +238,10 @@ describe('RepositoryResultsComponentsTable', () => {
       fireEvent.click(sortByPolicyButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('POLICY_NAME');
       expect(screen.getByRole('button', { name: /policy descending/i })).toBeVisible();
+
+      fireEvent.click(sortByEvaluationTimeButton);
+      expect(sortComponentsSpy).toHaveBeenCalledWith('EVALUATION_TIME');
+      expect(screen.getByRole('button', { name: /evaluation time ascending/i })).toBeVisible();
 
       fireEvent.click(sortByQuarantinedButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('QUARANTINE_TIME');

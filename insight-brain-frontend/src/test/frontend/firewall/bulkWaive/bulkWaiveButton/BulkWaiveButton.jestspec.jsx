@@ -155,6 +155,7 @@ describe('BulkWaiveButton', () => {
     // Verify filters are cleared
     expect(state.repositoryResultsSummaryPage.searchFiltersValues).toEqual({
       POLICY_NAME: '',
+      EVALUATION_TIME: '',
       QUARANTINE_TIME: '',
       COMPONENT_COORDINATES: '',
     });

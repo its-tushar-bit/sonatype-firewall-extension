@@ -44,6 +44,7 @@ public class RepositoryResultsDetailsFilter
       POLICY_THREAT_LEVEL,
       POLICY_NAME,
       COMPONENT_COORDINATES,
+      EVALUATION_TIME,
       QUARANTINE_TIME
     }
   }

@@ -353,6 +353,7 @@ public class RepositoryPolicyViolationDAO
           " component.display_name," +
           " component.hash," +
           " component.match_state_id," +
+          " component.last_evaluation_time," +
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" +
           " component.quarantine_time END AS quarantine_time," +
           " violation.waived," +
@@ -390,6 +391,9 @@ public class RepositoryPolicyViolationDAO
         if (detailsFilter.searchFilters.containsKey("POLICY_NAME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("POLICY_NAME").toLowerCase()) + '%');
         }
+        if (detailsFilter.searchFilters.containsKey("EVALUATION_TIME")) {
+          params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("EVALUATION_TIME")) + '%');
+        }
         if (detailsFilter.searchFilters.containsKey("QUARANTINE_TIME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("QUARANTINE_TIME")) + '%');
         }
@@ -419,12 +423,13 @@ public class RepositoryPolicyViolationDAO
           .fetchStream()
           .map(record -> {
             Object[] array = record.intoArray();
-            String constraintFactsJson = extractClobAsString(array[12]);
-            String policyViolationId = (String) array[13];
+            String constraintFactsJson = extractClobAsString(array[13]);
+            String policyViolationId = (String) array[14];
             return new RepositoryResultsDetails(getInteger(array[0]), (String) array[1],
                 (String) array[2], (String) array[3], (String) array[4], (String) array[5], (String) array[6],
                 (String) array[7], (String) array[8], (String) array[9],
-                array[10] == null ? null : new Date(((Timestamp) array[10]).getTime()), (Boolean) array[11],
+                array[10] == null ? null : new Date(((Timestamp) array[10]).getTime()),
+                array[11] == null ? null : new Date(((Timestamp) array[11]).getTime()), (Boolean) array[12],
                 constraintFactsJson, policyViolationId);
           })
           .collect(Collectors.toList());
@@ -451,6 +456,7 @@ public class RepositoryPolicyViolationDAO
           .append(" ")
           .append(threatLevelPolicyNameParts[0])
           .append(" AS threat_level_and_policy_name,")
+          .append(" MAX(component.last_evaluation_time) AS last_evaluation_time,")
           .append(" MAX(CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)")
           .append(" THEN component.quarantine_time END) AS quarantine_time,")
           .append(" MAX(component.display_name) AS display_name")
@@ -490,6 +496,9 @@ public class RepositoryPolicyViolationDAO
         if (detailsFilter.searchFilters.containsKey("POLICY_NAME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("POLICY_NAME").toLowerCase()) + '%');
         }
+        if (detailsFilter.searchFilters.containsKey("EVALUATION_TIME")) {
+          params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("EVALUATION_TIME")) + '%');
+        }
         if (detailsFilter.searchFilters.containsKey("QUARANTINE_TIME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("QUARANTINE_TIME")) + '%');
         }
@@ -521,6 +530,7 @@ public class RepositoryPolicyViolationDAO
           " CASE WHEN(threat_level_and_policy_name <> '')" +
           " THEN " + threatLevelPolicyNameParts[2] +
           " ELSE NULL END AS policy_name," +
+          " last_evaluation_time," +
           " quarantine_time," +
           " display_name" +
           " FROM (" + select1 + ") AS t1";
@@ -536,6 +546,7 @@ public class RepositoryPolicyViolationDAO
           " component.display_name," +
           " component.hash," +
           " component.match_state_id," +
+          " component.last_evaluation_time," +
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
           " THEN component.quarantine_time END AS quarantine_time" +
           " FROM " + getDatabaseSchema() + ".repository_component component" +
@@ -562,6 +573,9 @@ public class RepositoryPolicyViolationDAO
                 (String) array[8],
                 (String) array[9],
                 array[10] == null ? null : new Date(((Timestamp) array[10]).getTime()),
+                array[11] == null ? null : new Date(((Timestamp) array[11]).getTime()),
+                null,
+                null,
                 null);
           })
           .collect(Collectors.toList());
@@ -627,6 +641,9 @@ public class RepositoryPolicyViolationDAO
       if (!MapUtils.isEmpty(detailsFilter.searchFilters)) {
         if (detailsFilter.searchFilters.containsKey("POLICY_NAME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("POLICY_NAME").toLowerCase()) + '%');
+        }
+        if (detailsFilter.searchFilters.containsKey("EVALUATION_TIME")) {
+          params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("EVALUATION_TIME")) + '%');
         }
         if (detailsFilter.searchFilters.containsKey("QUARANTINE_TIME")) {
           params.add('%' + escapeLikePattern(detailsFilter.searchFilters.get("QUARANTINE_TIME")) + '%');
@@ -749,6 +766,9 @@ public class RepositoryPolicyViolationDAO
       if (filters.containsKey("POLICY_NAME")) {
         query.append(" AND LOWER(violation.policy_name) LIKE ?");
       }
+      if (filters.containsKey("EVALUATION_TIME")) {
+        query.append(" AND (last_evaluation_time IS NOT NULL AND TO_CHAR(last_evaluation_time, 'YYYY-MM-DD') LIKE ?)");
+      }
       if (filters.containsKey("QUARANTINE_TIME")) {
         query.append(" AND (quarantine_time IS NOT NULL AND TO_CHAR(quarantine_time, 'YYYY-MM-DD') LIKE ?)");
       }
@@ -805,6 +825,8 @@ public class RepositoryPolicyViolationDAO
         return "policy_name";
       case COMPONENT_COORDINATES:
         return "display_name";
+      case EVALUATION_TIME:
+        return "last_evaluation_time";
       case QUARANTINE_TIME:
         return "quarantine_time";
       default:

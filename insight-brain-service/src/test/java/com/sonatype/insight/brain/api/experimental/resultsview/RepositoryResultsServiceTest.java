@@ -1161,6 +1161,66 @@ public class RepositoryResultsServiceTest
   }
 
   @Test
+  public void testGetDetails_Repository_EvaluationTimeFilter() {
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    SearchFilter searchFilter = new SearchFilter();
+    searchFilter.filterableField = FilterableField.EVALUATION_TIME;
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    searchFilter.value = simpleDateFormat.format(date);
+    detailsRequest.searchFilters = Collections.singletonList(searchFilter);
+
+    RepositoryResultsDetailsResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY, repository.getId(), detailsRequest);
+    List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+
+    assertThat(repositoryResultsDetails).hasSize(6);
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(1);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy3");
+    assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(0).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(0).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(1).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(1).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(1).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(1).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(2).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails.get(2).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(2).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(2).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(2).waived).isTrue();
+    assertThat(repositoryResultsDetails.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(3).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(3).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(repositoryResultsDetails.get(3).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(3).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(4).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(4).policyName).isEqualTo("policy1");
+    assertThat(repositoryResultsDetails.get(4).componentDisplayText).isEqualTo("g4 : a4 : e4 : c4 : v4");
+    assertThat(repositoryResultsDetails.get(4).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(4).waived).isFalse();
+    assertThat(repositoryResultsDetails.get(5).threatLevel).isNull();
+    assertThat(repositoryResultsDetails.get(5).policyName).isNull();
+    assertThat(repositoryResultsDetails.get(5).componentDisplayText).isEqualTo("g3 : a3 : e3 : c3 : v3");
+    assertThat(repositoryResultsDetails.get(5).lastEvaluationTime).isEqualTo(date);
+    assertThat(repositoryResultsDetails.get(5).waived).isNull();
+  }
+
+  @Test
   public void testGetDetails_Repository_hasNextPage() {
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;

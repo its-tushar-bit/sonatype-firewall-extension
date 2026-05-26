@@ -870,6 +870,7 @@ public class SbomResultHandler
           coordinateSecurity.setDetectionType(OTHER.getId());
           coordinateSecurity.setDescription(StringUtils.normalizeSpace(vulnerability.getDescription()));
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
+          persistAliasIdsFromReferences(coordinateSecurity, vulnerability);
           return coordinateSecurity;
         }
       }
@@ -1346,5 +1347,23 @@ public class SbomResultHandler
     else {
       return null;
     }
+  }
+
+  private static void persistAliasIdsFromReferences(
+      final ThirdPartyCoordinateSecurity coordinateSecurity,
+      final Vulnerability vulnerability)
+  {
+    if (CollectionUtils.isEmpty(vulnerability.getReferences())) {
+      return;
+    }
+    String primaryId = vulnerability.getId();
+    List<String> vulnIds = vulnerability.getReferences()
+        .stream()
+        .filter(ref -> ref != null && StringUtils.isNotBlank(ref.getId()))
+        .map(Vulnerability.Reference::getId)
+        .filter(id -> primaryId == null || !primaryId.equalsIgnoreCase(id))
+        .distinct()
+        .toList();
+    coordinateSecurity.setVulnIdsFromList(vulnIds);
   }
 }

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -541,7 +542,7 @@ public class ApiSpdxServiceTest
       Collection<ExternalRef> externalRefs = spdxPackage.getExternalRefs();
       assertThat(externalRefs).isNotEmpty();
       boolean purlRefFound = false;
-      int securityRefCount = 0;
+      Set<String> distinctRefIds = new HashSet<>();
       for (ExternalRef externalRef : externalRefs) {
         if (externalRef.getReferenceCategory() == ReferenceCategory.PACKAGE_MANAGER) {
           purlRefFound = true;
@@ -550,11 +551,14 @@ public class ApiSpdxServiceTest
         if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY &&
             (!externalRef.getComment().isPresent() || !"type: CycloneDX".equals(externalRef.getComment().get())))
         {
-          securityRefCount++;
+          String refId = SbomSpdxUtils.getRefIdForVulnerability(externalRef);
+          if (refId != null) {
+            distinctRefIds.add(refId);
+          }
         }
       }
       assertThat(purlRefFound).isTrue();
-      String secCountStr = String.format("%s -> %d", spdxPackage.getName().get(), securityRefCount);
+      String secCountStr = String.format("%s -> %d", spdxPackage.getName().get(), distinctRefIds.size());
       if (isSage) {
         assertThat(secCountStr).isIn(sageSecurityRefs);
       }
@@ -580,13 +584,13 @@ public class ApiSpdxServiceTest
 
   private static final Set<String> expectedSecurityRefs = ImmutableSet.of(
       "com.sonatype.testing:pr-comment-02 -> 0",
-      "org.apache.logging.log4j:log4j-core -> 5",
+      "org.apache.logging.log4j:log4j-core -> 3",
       "org.apache.logging.log4j:log4j-api -> 0",
       "org.slf4j:slf4j-api -> 0",
       "com.fasterxml.jackson.core:jackson-core -> 1",
       "com.fasterxml.jackson.core:jackson-databind -> 0",
       "com.fasterxml.jackson.core:jackson-annotations -> 0",
-      "net.sf.ehcache:ehcache -> 66",
+      "net.sf.ehcache:ehcache -> 67",
       "net.sf.ehcache:sizeof-agent -> 0");
 
   private static final Set<String> sageSecurityRefs = ImmutableSet.of(
@@ -597,7 +601,7 @@ public class ApiSpdxServiceTest
       "com.fasterxml.jackson.core:jackson-core -> 1",
       "com.fasterxml.jackson.core:jackson-databind -> 0",
       "com.fasterxml.jackson.core:jackson-annotations -> 0",
-      "net.sf.ehcache:ehcache -> 66",
+      "net.sf.ehcache:ehcache -> 67",
       "net.sf.ehcache:sizeof-agent -> 0");
 
   private static final Set<String> expectedLicenses = ImmutableSet.of(

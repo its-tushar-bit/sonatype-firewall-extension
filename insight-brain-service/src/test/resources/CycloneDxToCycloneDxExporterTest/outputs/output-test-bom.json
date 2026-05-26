@@ -95,6 +95,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "G,F"
         }
+      ],
+      "references" : [
+        {
+          "id" : "sonatype-2010-0053",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053"
+          }
+        }
       ]
     }
   ]

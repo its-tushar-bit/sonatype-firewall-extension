@@ -26,6 +26,16 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-23307",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
@@ -47,6 +57,11 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/org.example/abc-component",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/ABC-123",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "(GPL-2.0)",

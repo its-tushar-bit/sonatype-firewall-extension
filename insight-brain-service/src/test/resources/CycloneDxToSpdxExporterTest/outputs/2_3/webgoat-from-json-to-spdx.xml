@@ -37,6 +37,24 @@
       <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/ABC-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-23307</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>(MIT AND Apache-1.1 AND Aladdin)</licenseConcluded>
     <licenseDeclared>Apache-1.1</licenseDeclared>
@@ -58,6 +76,12 @@
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/commons-collections/commons-collections@3.1?type=jar</referenceLocator>
       <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2015-0002</referenceLocator>
+      <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>

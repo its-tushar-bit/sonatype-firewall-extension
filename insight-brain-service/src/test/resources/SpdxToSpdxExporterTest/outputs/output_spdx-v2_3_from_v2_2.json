@@ -32,6 +32,26 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2021-4560",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/GHSA-5469-c5p2-xv5g",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "Apache-2.0",
@@ -50,6 +70,11 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/junit/junit@4.12?type=jar",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "EPL-1.0",
@@ -125,6 +150,11 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0863",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : true,
     "licenseConcluded" : "NOASSERTION",

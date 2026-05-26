@@ -343,6 +343,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489"
+          }
+        }
       ]
     },
     {
@@ -377,6 +386,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "SBOM"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489"
+          }
         }
       ]
     }

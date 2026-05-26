@@ -8,14 +8,18 @@ package com.sonatype.insight.brain.sbom.export;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomTaxonomy;
+import com.sonatype.insight.brain.model.component.VulnerabilityUrlBuilder;
 import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -121,7 +125,65 @@ public class SbomExportUtils
       bomVulnerability.setAnalysis(null);
     }
 
+    List<Vulnerability.Reference> newRefs = buildReferencesForVulnerability(sonatypeVulnerability);
+    if (!newRefs.isEmpty()) {
+      List<Vulnerability.Reference> existing = bomVulnerability.getReferences();
+      List<Vulnerability.Reference> merged = existing != null ? new ArrayList<>(existing) : new ArrayList<>();
+      Set<String> seenKeys = merged.stream()
+          .map(SbomExportUtils::referenceKey)
+          .collect(Collectors.toCollection(HashSet::new));
+      newRefs.stream()
+          .filter(r -> seenKeys.add(referenceKey(r)))
+          .forEach(merged::add);
+      bomVulnerability.setReferences(merged);
+    }
+
     return bomVulnerability;
+  }
+
+  private static String referenceKey(final Vulnerability.Reference ref) {
+    String id = StringUtils.lowerCase(ref.getId(), Locale.ROOT);
+    String sourceName = ref.getSource() == null
+        ? null
+        : StringUtils.lowerCase(ref.getSource().getName(), Locale.ROOT);
+    return StringUtils.defaultString(id) + "|" + StringUtils.defaultString(sourceName);
+  }
+
+  public static List<Vulnerability.Reference> buildReferencesForVulnerability(
+      final ThirdPartyCoordinateSecurity sonatypeVulnerability)
+  {
+    return buildReferencesForVulnerability(
+        sonatypeVulnerability.getRefId(), sonatypeVulnerability.getVulnIdsParsed());
+  }
+
+  public static List<Vulnerability.Reference> buildReferencesForVulnerability(
+      final String primaryRefId,
+      final List<String> vulnIds)
+  {
+    List<Vulnerability.Reference> refs = vulnIds == null
+        ? new ArrayList<>()
+        : vulnIds.stream()
+            .filter(StringUtils::isNotBlank)
+            .filter(id -> !id.equalsIgnoreCase(primaryRefId))
+            .map(id -> newReference(id, VulnerabilityUrlBuilder.sourceFor(id), VulnerabilityUrlBuilder.urlFor(id)))
+            .collect(Collectors.toCollection(ArrayList::new));
+    String guideUrl = VulnerabilityUrlBuilder.guideUrlFor(primaryRefId);
+    if (StringUtils.isNotBlank(guideUrl)) {
+      refs.add(newReference(primaryRefId, VulnerabilityUrlBuilder.SONATYPE_GUIDE_SOURCE, guideUrl));
+    }
+    return refs;
+  }
+
+  private static Vulnerability.Reference newReference(final String id, final String sourceName, final String url) {
+    Vulnerability.Reference ref = new Vulnerability.Reference();
+    ref.setId(id);
+    Source source = new Source();
+    source.setName(sourceName);
+    if (StringUtils.isNotBlank(url)) {
+      source.setUrl(url);
+    }
+    ref.setSource(source);
+    return ref;
   }
 
   public static License createCycloneDxLicenseForThirdpartyLicense(ThirdPartyCoordinateLicense tpLicense) {

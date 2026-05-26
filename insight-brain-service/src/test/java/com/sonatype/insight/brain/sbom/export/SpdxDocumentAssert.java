@@ -77,10 +77,16 @@ public class SpdxDocumentAssert
   public SpdxDocumentAssert hasVulnerabilityCount(int expectedVulns) {
     isNotNull();
     try {
-      List<ExternalRef> allVulns = SbomSpdxUtils.getAllVulnerabilities(actual);
-      if (allVulns.size() != expectedVulns) {
+      Set<String> distinctRefIds = new HashSet<>();
+      for (ExternalRef ref : SbomSpdxUtils.getAllVulnerabilities(actual)) {
+        String refId = SbomSpdxUtils.getRefIdForVulnerability(ref);
+        if (refId != null) {
+          distinctRefIds.add(refId);
+        }
+      }
+      if (distinctRefIds.size() != expectedVulns) {
         failWithMessage("Expected document to have %s number of vulnerabilities but was %s", expectedVulns,
-            allVulns.size());
+            distinctRefIds.size());
       }
       return this;
     }

@@ -96,6 +96,15 @@
   <vulnerabilities>
     <vulnerability>
       <id>sonatype-2021-4560</id>
+      <references>
+        <reference>
+          <id>sonatype-2021-4560</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
@@ -104,6 +113,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2021-45046</id>
+      <references>
+        <reference>
+          <id>CVE-2021-45046</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
@@ -112,6 +130,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2021-45105</id>
+      <references>
+        <reference>
+          <id>CVE-2021-45105</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
@@ -120,6 +147,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2021-44228</id>
+      <references>
+        <reference>
+          <id>CVE-2021-44228</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44228</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
@@ -128,6 +164,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2021-44832</id>
+      <references>
+        <reference>
+          <id>CVE-2021-44832</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44832</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>e4ea175dcdab369a32a59e5977a8a2f6c0047820</ref>
@@ -136,6 +181,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2020-15250</id>
+      <references>
+        <reference>
+          <id>CVE-2020-15250</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>da83d3971bd00a068715210af7ae418b3fef1819</ref>
@@ -144,6 +198,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-25857</id>
+      <references>
+        <reference>
+          <id>CVE-2022-25857</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-25857</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -152,6 +215,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-38749</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38749</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38749</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -160,6 +232,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-41854</id>
+      <references>
+        <reference>
+          <id>CVE-2022-41854</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-41854</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -168,6 +249,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-1471</id>
+      <references>
+        <reference>
+          <id>CVE-2022-1471</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-1471</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -176,6 +266,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-38752</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38752</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38752</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -184,6 +283,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-38751</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38751</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38751</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -192,6 +300,15 @@
     </vulnerability>
     <vulnerability>
       <id>CVE-2022-38750</id>
+      <references>
+        <reference>
+          <id>CVE-2022-38750</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38750</url>
+          </source>
+        </reference>
+      </references>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>

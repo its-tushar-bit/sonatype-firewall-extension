@@ -99,6 +99,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "G,F"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-23307",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-23307"
+          }
+        }
       ]
     }
   ]

@@ -152,6 +152,15 @@
         {
           "ref": "e4ea175dcdab369a32a59e5977a8a2f6c0047820"
         }
+      ],
+      "references": [
+        {
+          "id": "sonatype-2021-4560",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560"
+          }
+        }
       ]
     },
     {
@@ -159,6 +168,15 @@
       "affects": [
         {
           "ref": "e4ea175dcdab369a32a59e5977a8a2f6c0047820"
+        }
+      ],
+      "references": [
+        {
+          "id": "CVE-2021-45046",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046"
+          }
         }
       ]
     },
@@ -168,6 +186,15 @@
         {
           "ref": "e4ea175dcdab369a32a59e5977a8a2f6c0047820"
         }
+      ],
+      "references": [
+        {
+          "id": "GHSA-5469-c5p2-xv5g",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/GHSA-5469-c5p2-xv5g"
+          }
+        }
       ]
     },
     {
@@ -175,6 +202,15 @@
       "affects": [
         {
           "ref": "e4ea175dcdab369a32a59e5977a8a2f6c0047820"
+        }
+      ],
+      "references": [
+        {
+          "id": "CVE-2021-45105",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105"
+          }
         }
       ]
     },
@@ -184,6 +220,15 @@
         {
           "ref": "da83d3971bd00a068715210af7ae418b3fef1819"
         }
+      ],
+      "references": [
+        {
+          "id": "CVE-2020-15250",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250"
+          }
+        }
       ]
     },
     {
@@ -191,6 +236,15 @@
       "affects": [
         {
           "ref": "b49e655c70aac8da66946dddd5ba52ac1ef6df53"
+        }
+      ],
+      "references": [
+        {
+          "id": "sonatype-2018-0863",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0863"
+          }
         }
       ]
     }

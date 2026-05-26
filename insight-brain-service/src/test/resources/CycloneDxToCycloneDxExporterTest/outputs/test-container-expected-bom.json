@@ -84,6 +84,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype-Container"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2024-10041",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2024-10041"
+          }
+        }
       ]
     }
   ]

@@ -121,6 +121,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "SBOM,Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2007-2353",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353"
+          }
+        }
       ]
     },
     {
@@ -159,6 +168,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "Sonatype-2024-123",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123"
+          }
         }
       ]
     }

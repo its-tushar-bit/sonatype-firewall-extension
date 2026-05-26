@@ -69,6 +69,11 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "homepage" : "http://acme.example.com/",
@@ -124,6 +129,11 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "homepage" : "http://github.com/FasterXML/jackson",

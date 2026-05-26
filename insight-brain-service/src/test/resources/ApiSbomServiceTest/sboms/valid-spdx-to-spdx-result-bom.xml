@@ -30,20 +30,32 @@
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
-      <referenceType>purl</referenceType>
-    </externalRefs>
-    <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
       <comment>source: SONATYPE</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>

@@ -384,6 +384,7 @@ public class ApiSbomServiceTest
         XmlAssert.assertThat(sbomContent)
             .and(expectedContentIn(outputFileName))
             .withNodeFilter(spdxDxIgnoreNodesFilter())
+            .withNodeMatcher(new com.sonatype.insight.brain.sbom.export.IgnoreXmlListOrderMatcher())
             .ignoreWhitespace()
             .areIdentical();
       }

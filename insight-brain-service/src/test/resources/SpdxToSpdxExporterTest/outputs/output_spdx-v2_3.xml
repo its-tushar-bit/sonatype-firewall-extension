@@ -26,6 +26,36 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45105</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44228</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2021-4560</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-45046</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2021-44832</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105</referenceLocator>
@@ -59,6 +89,12 @@
     <attributionTexts>Evidence license text for: (EPL-1.0)</attributionTexts>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2020-15250</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
@@ -158,6 +194,12 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38750</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857</referenceLocator>
@@ -170,9 +212,45 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38752</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38751</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-1471</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-25857</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-41854</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-38749</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
@@ -186,6 +264,12 @@
     <attributionTexts>Evidence license text for: (EPL-1.0 AND LGPL-3.0 AND LGPL-3.0+ AND MPL-2.0)</attributionTexts>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/sonatype-2018-0863</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/com.h2database/h2@2.3.232?type=jar</referenceLocator>

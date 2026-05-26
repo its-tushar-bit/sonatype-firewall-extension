@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -40,6 +42,9 @@ public class ApiSecurityIssueDTO
 
   @JsonInclude(Include.NON_NULL)
   public String cvssVectorSource;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public List<String> vulnIds;
 
   /**
    * @since 1.168.0

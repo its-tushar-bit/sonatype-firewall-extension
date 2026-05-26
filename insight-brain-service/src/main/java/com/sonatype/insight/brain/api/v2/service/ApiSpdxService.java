@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.sbom.export.AbstractSpdxExporter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -539,6 +540,8 @@ public class ApiSpdxService
             new ReferenceType("advisory"), securityUrl, comment);
         externalRefs.add(externalRef);
       }
+      externalRefs.addAll(AbstractSpdxExporter.newAliasAndGuideRefs(
+          document, securityIssue.reference, securityIssue.vulnIds));
     }
     return externalRefs;
   }

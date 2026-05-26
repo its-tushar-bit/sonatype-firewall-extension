@@ -577,6 +577,18 @@
             "name" : "NVD",
             "url" : "https://nvd.nist.gov/vuln/detail/CVE-2019-9997"
           }
+        }, {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "CVE",
+            "url" : "https://www.cve.org/CVERecord?id=CVE-2018-7489"
+          }
+        }, {
+          "id" : "SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111"
+          }
         }
       ],
       "ratings" : [
@@ -733,6 +745,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "SBOM"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-40155",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-40155"
+          }
         }
       ]
     }

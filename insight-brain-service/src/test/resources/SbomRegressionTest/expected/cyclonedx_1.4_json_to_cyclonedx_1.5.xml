@@ -397,6 +397,20 @@
             <url>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</url>
           </source>
         </reference>
+        <reference>
+          <id>CVE-2018-7489</id>
+          <source>
+            <name>CVE</name>
+            <url>https://www.cve.org/CVERecord?id=CVE-2018-7489</url>
+          </source>
+        </reference>
+        <reference>
+          <id>SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</url>
+          </source>
+        </reference>
       </references>
       <ratings>
         <rating>

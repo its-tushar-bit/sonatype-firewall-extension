@@ -32,6 +32,21 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://www.source.com/abc-123",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-23307",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2010-0053",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/ABC-123",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "(MIT AND Apache-1.1 AND Aladdin)",
@@ -51,6 +66,11 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/commons-collections/commons-collections@3.1?type=jar",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/sonatype-2015-0002",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",

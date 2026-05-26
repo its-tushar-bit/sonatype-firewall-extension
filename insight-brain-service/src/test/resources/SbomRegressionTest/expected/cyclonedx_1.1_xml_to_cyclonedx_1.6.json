@@ -375,6 +375,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2019-12384",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12384"
+          }
+        }
       ]
     },
     {
@@ -419,6 +428,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-42004",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42004"
+          }
+        }
       ]
     },
     {
@@ -452,6 +470,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2022-42003",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2022-42003"
+          }
         }
       ]
     },
@@ -487,6 +514,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2020-25649",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-25649"
+          }
+        }
       ]
     },
     {
@@ -521,6 +557,15 @@
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2020-36518",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2020-36518"
+          }
+        }
       ]
     },
     {
@@ -552,6 +597,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "SBOM"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2018-7489",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489"
+          }
         }
       ]
     },
@@ -586,6 +640,15 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
+        }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2019-12814",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2019-12814"
+          }
         }
       ]
     }

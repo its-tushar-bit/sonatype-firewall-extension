@@ -11,6 +11,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.model.component.VulnerabilityUrlBuilder;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -116,7 +119,41 @@ public abstract class AbstractSpdxExporter
     copyComponents(originalDocument, newDocument);
     newDocument.setExternalDocumentRefs(originalDocument.getExternalDocumentRefs());
     finalizeExtractedLicensingInfo(newDocument);
+    addSonatypeGuideRefsToAllPackages(newDocument);
     return newDocument;
+  }
+
+  private static void addSonatypeGuideRefsToAllPackages(
+      final SpdxDocument document) throws InvalidSPDXAnalysisException
+  {
+    for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(document)) {
+      Set<String> existingLocatorsLower = new HashSet<>();
+      Set<String> seenRefIds = new LinkedHashSet<>();
+      for (ExternalRef ref : pkg.getExternalRefs()) {
+        String loc = ref.getReferenceLocator();
+        if (loc != null) {
+          existingLocatorsLower.add(loc.toLowerCase(Locale.ROOT));
+        }
+        if (ref.getReferenceCategory() == ReferenceCategory.SECURITY) {
+          String refId = SbomSpdxUtils.getRefIdForVulnerability(ref);
+          if (StringUtils.isNotBlank(refId)) {
+            seenRefIds.add(refId);
+          }
+        }
+      }
+      for (String refId : seenRefIds) {
+        String guideUrl = VulnerabilityUrlBuilder.guideUrlFor(refId);
+        if (StringUtils.isBlank(guideUrl)
+            || existingLocatorsLower.contains(guideUrl.toLowerCase(Locale.ROOT)))
+        {
+          continue;
+        }
+        pkg.addExternalRef(document.createExternalRef(
+            ReferenceCategory.SECURITY, new ReferenceType("advisory"),
+            guideUrl, VulnerabilityUrlBuilder.SONATYPE_GUIDE_SPDX_COMMENT));
+        existingLocatorsLower.add(guideUrl.toLowerCase(Locale.ROOT));
+      }
+    }
   }
 
   void setMetadata(SpdxDocument newDocument) throws InvalidSPDXAnalysisException {
@@ -305,17 +342,90 @@ public abstract class AbstractSpdxExporter
     if (dbComponent != null) {
       List<ThirdPartyCoordinateSecurity> dbVulnerabilities =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(dbComponent.getId());
+      Set<String> existingLocators = collectExistingLocators(externalRefs);
       for (ThirdPartyCoordinateSecurity dbVulnerability : dbVulnerabilities) {
-        if (vulnerabilityAlreadyExists(externalRefs, dbVulnerability.getRefId())) {
-          continue;
+        boolean alreadyExists = vulnerabilityAlreadyExists(externalRefs, dbVulnerability.getRefId());
+        if (!alreadyExists) {
+          ExternalRef externalRef = newVulnerabilityRefFor(document, dbVulnerability);
+          if (externalRef != null) {
+            pkgBuilder.addExternalRef(externalRef);
+            existingLocators.add(normalizeLocator(externalRef.getReferenceLocator()));
+          }
         }
-        // new vulnerability not in original sbom. adding it
-        ExternalRef externalRef = newVulnerabilityRefFor(document, dbVulnerability);
-        if (externalRef != null) {
-          pkgBuilder.addExternalRef(externalRef);
+        for (ExternalRef aliasRef : newAliasRefsFor(document, dbVulnerability)) {
+          if (existingLocators.add(normalizeLocator(aliasRef.getReferenceLocator()))) {
+            pkgBuilder.addExternalRef(aliasRef);
+          }
         }
       }
     }
+  }
+
+  private static Set<String> collectExistingLocators(
+      final Collection<ExternalRef> externalRefs) throws InvalidSPDXAnalysisException
+  {
+    Set<String> locators = new HashSet<>();
+    for (ExternalRef ref : externalRefs) {
+      locators.add(normalizeLocator(ref.getReferenceLocator()));
+    }
+    return locators;
+  }
+
+  // Locator dedup uses lowercase comparison; matches addSonatypeGuideRefsToAllPackages so
+  // an externally-authored SBOM with differently-cased URLs cannot produce duplicates.
+  private static String normalizeLocator(final String locator) {
+    return locator == null ? null : locator.toLowerCase(Locale.ROOT);
+  }
+
+  /**
+   * Builds SECURITY ExternalRefs for HDS-supplied alias ids plus an always-emitted
+   * Sonatype Guide ExternalRef for the primary refId. URLs are derived per id via
+   * {@link VulnerabilityUrlBuilder}.
+   */
+  static List<ExternalRef> newAliasRefsFor(
+      final SpdxDocument document,
+      final ThirdPartyCoordinateSecurity dbVulnerability) throws InvalidSPDXAnalysisException
+  {
+    return newAliasAndGuideRefs(document, dbVulnerability.getRefId(), dbVulnerability.getVulnIdsParsed());
+  }
+
+  /**
+   * Builds SECURITY ExternalRefs for a primary vulnerability's aliases plus the always-emitted
+   * Sonatype Guide ref. SPDX ExternalRefs require a locator, so unknown-prefix aliases (no
+   * derivable URL) are silently skipped — the CDX path emits an "OTHER"-source reference with
+   * no URL instead. Used by both SBOM Manager re-export and Lifecycle paths.
+   */
+  public static List<ExternalRef> newAliasAndGuideRefs(
+      final SpdxDocument document,
+      final String primaryRefId,
+      final List<String> vulnIds) throws InvalidSPDXAnalysisException
+  {
+    List<ExternalRef> refs = new ArrayList<>();
+    if (vulnIds != null) {
+      for (String vulnId : vulnIds) {
+        if (vulnId == null || vulnId.isBlank()) {
+          continue;
+        }
+        // Skip the primary's own id — it is emitted separately as the primary ExternalRef.
+        if (primaryRefId != null && primaryRefId.equalsIgnoreCase(vulnId)) {
+          continue;
+        }
+        String aliasUrl = VulnerabilityUrlBuilder.urlFor(vulnId);
+        if (StringUtils.isBlank(aliasUrl)) {
+          continue;
+        }
+        refs.add(document.createExternalRef(
+            ReferenceCategory.SECURITY, new ReferenceType("advisory"),
+            aliasUrl, "source: " + VulnerabilityUrlBuilder.sourceFor(vulnId)));
+      }
+    }
+    String guideUrl = VulnerabilityUrlBuilder.guideUrlFor(primaryRefId);
+    if (StringUtils.isNotBlank(guideUrl)) {
+      refs.add(document.createExternalRef(
+          ReferenceCategory.SECURITY, new ReferenceType("advisory"),
+          guideUrl, VulnerabilityUrlBuilder.SONATYPE_GUIDE_SPDX_COMMENT));
+    }
+    return refs;
   }
 
   private boolean vulnerabilityAlreadyExists(

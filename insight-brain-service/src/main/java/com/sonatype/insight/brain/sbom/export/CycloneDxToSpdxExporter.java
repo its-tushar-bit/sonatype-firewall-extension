@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -26,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.VulnerabilityUrlBuilder;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
@@ -972,6 +976,9 @@ public class CycloneDxToSpdxExporter
   {
     if (CollectionUtils.isNotEmpty(baseBom.getVulnerabilities())) {
       List<Vulnerability> bomVulnerabilitiesList = baseBom.getVulnerabilities();
+      // Per-package locator tracker so duplicate alias URLs across multiple vulns on the
+      // same component don't produce duplicate SPDX ExternalRefs.
+      Map<SpdxPackage, Set<String>> emittedPerPackage = new HashMap<>();
       for (Vulnerability bomVulnerability : bomVulnerabilitiesList) {
         if (CollectionUtils.isNotEmpty(bomVulnerability.getAffects())) {
           List<Affect> affectsList = bomVulnerability.getAffects();
@@ -990,6 +997,35 @@ public class CycloneDxToSpdxExporter
             affectedPackage.addExternalRef(affectedPackage.createExternalRef(ReferenceCategory.SECURITY,
                 ListedReferenceTypes.getListedReferenceTypes().getListedReferenceTypeByName("advisory"),
                 vulnerabilitySourceUrl, "source: " + vulnerabilitySourceName));
+            Set<String> emittedLocators = emittedPerPackage.computeIfAbsent(affectedPackage, p -> new HashSet<>());
+            if (StringUtils.isNotBlank(vulnerabilitySourceUrl)) {
+              emittedLocators.add(vulnerabilitySourceUrl.toLowerCase(Locale.ROOT));
+            }
+            if (bomVulnerability.getReferences() != null) {
+              for (Vulnerability.Reference ref : bomVulnerability.getReferences()) {
+                if (ref == null || ref.getSource() == null
+                    || StringUtils.isBlank(ref.getSource().getUrl()))
+                {
+                  continue;
+                }
+                String refSourceName = ref.getSource().getName();
+                if (bomVulnerability.getId() != null
+                    && bomVulnerability.getId().equalsIgnoreCase(ref.getId())
+                    && !VulnerabilityUrlBuilder.SONATYPE_GUIDE_SOURCE.equals(refSourceName))
+                {
+                  continue;
+                }
+                if (!emittedLocators.add(ref.getSource().getUrl().toLowerCase(Locale.ROOT))) {
+                  continue;
+                }
+                String comment = VulnerabilityUrlBuilder.SONATYPE_GUIDE_SOURCE.equals(refSourceName)
+                    ? VulnerabilityUrlBuilder.SONATYPE_GUIDE_SPDX_COMMENT
+                    : "source: " + (StringUtils.isBlank(refSourceName) ? "UNKNOWN" : refSourceName);
+                affectedPackage.addExternalRef(affectedPackage.createExternalRef(ReferenceCategory.SECURITY,
+                    ListedReferenceTypes.getListedReferenceTypes().getListedReferenceTypeByName("advisory"),
+                    ref.getSource().getUrl(), comment));
+              }
+            }
           }
         }
       }

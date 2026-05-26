@@ -80,6 +80,7 @@ CREATE TABLE coordinate_security (
   sbom_metadata_id VARCHAR(50),
   research_type VARCHAR(50),
   detection_type VARCHAR(50),
+  vuln_ids TEXT,
   CONSTRAINT coordinate_security_pk PRIMARY KEY (coordinate_security_id),
   CONSTRAINT coordinate_security_uk UNIQUE (file_coordinate_id, ref_id),
   CONSTRAINT coordinate_security_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)

@@ -58,6 +58,15 @@
         <name>NVD</name>
         <url>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</url>
       </source>
+      <references>
+        <reference>
+          <id>CVE-2007-2353</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353</url>
+          </source>
+        </reference>
+      </references>
       <ratings>
         <rating>
           <source>
@@ -98,6 +107,15 @@
         <name>Sonatype</name>
         <url>http://link.to/vuln/Sonatype-2024-123</url>
       </source>
+      <references>
+        <reference>
+          <id>Sonatype-2024-123</id>
+          <source>
+            <name>Sonatype Guide</name>
+            <url>https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123</url>
+          </source>
+        </reference>
+      </references>
       <ratings>
         <rating>
           <source>

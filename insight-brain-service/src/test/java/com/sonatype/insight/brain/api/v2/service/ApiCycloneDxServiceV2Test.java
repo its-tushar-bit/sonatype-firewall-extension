@@ -734,6 +734,7 @@ public class ApiCycloneDxServiceV2Test
 
       vulnerability.addRating(rating);
       vulnerability.addCwe(20);
+      vulnerability.setReferences(List.of(buildSonatypeGuideRef("sonatype-2019-0115")));
 
       Vulnerability vulnerability2 = new Vulnerability();
 
@@ -758,6 +759,7 @@ public class ApiCycloneDxServiceV2Test
 
       vulnerability2.addRating(rating);
       vulnerability2.addCwe(20);
+      vulnerability2.setReferences(List.of(buildSonatypeGuideRef("sonatype-2019-0116")));
 
       assertThat(bom.getVulnerabilities())
           .usingRecursiveFieldByFieldElementComparatorIgnoringFields("affects.ref")
@@ -1381,5 +1383,15 @@ public class ApiCycloneDxServiceV2Test
     componentReportList.add(componentReport);
 
     return componentReport;
+  }
+
+  private static Vulnerability.Reference buildSonatypeGuideRef(String refId) {
+    Vulnerability.Reference ref = new Vulnerability.Reference();
+    ref.setId(refId);
+    Source guideSource = new Source();
+    guideSource.setName("Sonatype Guide");
+    guideSource.setUrl("https://links.sonatype.com/products/clm/vulnerability/" + refId);
+    ref.setSource(guideSource);
+    return ref;
   }
 }

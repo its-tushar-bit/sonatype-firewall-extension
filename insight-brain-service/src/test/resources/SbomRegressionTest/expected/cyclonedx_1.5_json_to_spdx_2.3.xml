@@ -96,6 +96,12 @@
       <referenceLocator>pkg:npm/acme/component@1.0.0</referenceLocator>
       <referenceType>purl</referenceType>
     </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-40155</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>(EPL-2.0)</licenseConcluded>
     <licenseDeclared>(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)</licenseDeclared>
@@ -280,6 +286,36 @@
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</referenceLocator>
       <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: CVE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://www.cve.org/CVERecord?id=CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.ArrayList;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -21,6 +23,7 @@ import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomDat
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.BaseUrl;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @since 1.13.0
@@ -68,6 +71,9 @@ public class ApiSecurityDataAdapter
       sv.cwe = vuln.getCwe();
       sv.cvssVectorSource = vuln.getVectorSource();
       sv.cvssVector = vuln.getVector();
+      if (CollectionUtils.isNotEmpty(vuln.getAliases())) {
+        sv.vulnIds = new ArrayList<>(vuln.getAliases());
+      }
 
       ThirdPartyVulnerabilityExploitabilityExchange analysis = vuln.getAnalysis();
       if (analysis != null) {
@@ -130,6 +136,9 @@ public class ApiSecurityDataAdapter
       sv.status = SecurityVulnerabilityOverrideStatus.OPEN.getName();
       sv.url = getSecurityUrl(vuln.getUrl(), vuln.getSource(), vuln.getRefId());
       sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
+      if (CollectionUtils.isNotEmpty(vuln.getAliases())) {
+        sv.vulnIds = new ArrayList<>(vuln.getAliases());
+      }
       securityData.securityIssues.add(sv);
     }
 

@@ -73,6 +73,15 @@
         {
           "ref" : "561b185af127451982d8950a3ebd1ec5"
         }
+      ],
+      "references" : [
+        {
+          "id" : "CVE-2023-20883",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2023-20883"
+          }
+        }
       ]
     },
     {
@@ -117,7 +126,16 @@
         "detail" : "TEST-ORIGINAL-VEX-INFO",
         "firstIssued" : "2025-01-22T17:04:23Z",
         "lastUpdated" : "2025-01-22T17:04:23Z"
-      }
+      },
+      "references" : [
+        {
+          "id" : "CVE-TEST",
+          "source" : {
+            "name" : "Sonatype Guide",
+            "url" : "https://links.sonatype.com/products/clm/vulnerability/CVE-TEST"
+          }
+        }
+      ]
     },
     {
       "bom-ref": "CVE-2018-6341-a1e171f9b0424bbbae700113cd34b78b",
@@ -161,6 +179,15 @@
         {
           "name": "sonatype:identification_sources",
           "value": "SBOM,Sonatype"
+        }
+      ],
+      "references": [
+        {
+          "id": "CVE-2018-6341",
+          "source": {
+            "name": "Sonatype Guide",
+            "url": "https://links.sonatype.com/products/clm/vulnerability/CVE-2018-6341"
+          }
         }
       ]
     }

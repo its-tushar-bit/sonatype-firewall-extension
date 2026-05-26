@@ -515,9 +515,10 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
-        .hasVulnerabilityCount(2);
+        .hasVulnerabilityCount(3);
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
-        .hasVulnerabilityCount(0);
+        .hasVulnerabilityCount(1)
+        .containsVulnerabilities("sonatype-2022-6438");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasVulnerabilityCount(2)
         .containsVulnerabilities("CVE-2022-42003", "CVE-2022-42004");

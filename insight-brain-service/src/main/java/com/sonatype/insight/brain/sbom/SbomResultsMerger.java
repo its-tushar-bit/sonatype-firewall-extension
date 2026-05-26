@@ -699,6 +699,11 @@ public class SbomResultsMerger
         thirdPartySecurity.setCwes(sonatypeVulnerabilityData.getCwe());
       }
     }
+    // When HDS supplies aliases, they replace any vuln_ids previously persisted by
+    // SbomResultHandler.parseVulnerability from the user-uploaded SBOM's <references>.
+    // If HDS returns no aliases, the SBOM-sourced ids are preserved (we treat HDS as
+    // authoritative only when it has data to assert).
+    thirdPartySecurity.setVulnIdsFromList(sonatypeVulnerabilityData.getAliases());
     thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }
 

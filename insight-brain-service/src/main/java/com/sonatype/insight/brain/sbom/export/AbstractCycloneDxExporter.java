@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.VulnerabilityUrlBuilder;
 import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -259,12 +260,41 @@ public abstract class AbstractCycloneDxExporter
     }
     bomVulnerabilitiesList.addAll(newBomVulnerabilities.values());
 
+    for (Vulnerability v : bomVulnerabilitiesList) {
+      ensureSonatypeGuideReference(v);
+    }
+
     // 1.6 requires properties tag to be a non-empty array for xml exports
     if (CollectionUtils.isEmpty(bom.getProperties())) {
       bom.setProperties(null);
     }
 
     return bom;
+  }
+
+  private static void ensureSonatypeGuideReference(final Vulnerability vulnerability) {
+    String refId = vulnerability.getId();
+    String guideUrl = VulnerabilityUrlBuilder.guideUrlFor(refId);
+    if (StringUtils.isBlank(guideUrl)) {
+      return;
+    }
+    List<Vulnerability.Reference> existing = vulnerability.getReferences();
+    boolean alreadyHasGuide = existing != null && existing.stream()
+        .filter(r -> r.getSource() != null)
+        .anyMatch(r -> VulnerabilityUrlBuilder.SONATYPE_GUIDE_SOURCE.equals(r.getSource().getName()));
+    if (alreadyHasGuide) {
+      return;
+    }
+    Vulnerability.Reference guideRef = new Vulnerability.Reference();
+    guideRef.setId(refId);
+    Vulnerability.Source guideSource = new Vulnerability.Source();
+    guideSource.setName(VulnerabilityUrlBuilder.SONATYPE_GUIDE_SOURCE);
+    guideSource.setUrl(guideUrl);
+    guideRef.setSource(guideSource);
+    List<Vulnerability.Reference> merged =
+        existing != null ? new ArrayList<>(existing) : new ArrayList<>();
+    merged.add(guideRef);
+    vulnerability.setReferences(merged);
   }
 
   private Map<String, List<ThirdPartyVulnerabilityExploitabilityExchange>> prefetchVexData(

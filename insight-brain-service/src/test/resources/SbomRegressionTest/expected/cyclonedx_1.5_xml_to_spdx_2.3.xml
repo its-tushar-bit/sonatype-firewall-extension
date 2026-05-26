@@ -208,6 +208,12 @@
       <referenceLocator>pkg:maven/com.example/myframework@1.0.0?packaging=war&amp;type=jar</referenceLocator>
       <referenceType>purl</referenceType>
     </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2022-40155</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <homepage>http://example.com/myframework</homepage>
     <licenseConcluded>NOASSERTION</licenseConcluded>
@@ -230,6 +236,36 @@
       <comment>source: Snyk</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2018-7489</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2019-9997</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: SONATYPE_GUIDE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://links.sonatype.com/products/clm/vulnerability/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: CVE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>https://www.cve.org/CVERecord?id=CVE-2018-7489</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>

@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.model.thirdpartyscans;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -14,11 +18,22 @@ import jakarta.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Entity
 @Table(name = "coordinate_security")
 public class ThirdPartyCoordinateSecurity
     implements HasStringId
 {
+  private static final Logger LOG = LoggerFactory.getLogger(ThirdPartyCoordinateSecurity.class);
+
+  private static final ObjectMapper VULN_IDS_MAPPER = new ObjectMapper();
+
   public ThirdPartyCoordinateSecurity() {
   }
 
@@ -96,6 +111,9 @@ public class ThirdPartyCoordinateSecurity
 
   @Column(name = "detection_type")
   private String detectionType;
+
+  @Column(name = "vuln_ids")
+  private String vulnIds;
 
   @Override
   public String getId() {
@@ -250,5 +268,49 @@ public class ThirdPartyCoordinateSecurity
 
   public void setDetectionType(final String detectionType) {
     this.detectionType = detectionType;
+  }
+
+  public String getVulnIds() {
+    return vulnIds;
+  }
+
+  public void setVulnIds(final String vulnIds) {
+    this.vulnIds = vulnIds;
+  }
+
+  public List<String> getVulnIdsParsed() {
+    if (StringUtils.isBlank(vulnIds)) {
+      return Collections.emptyList();
+    }
+    try {
+      return Arrays.stream(VULN_IDS_MAPPER.readValue(vulnIds, String[].class))
+          .filter(StringUtils::isNotBlank)
+          .collect(Collectors.toList());
+    }
+    catch (Exception e) {
+      LOG.warn("Failed to parse vuln_ids for coordinate_security id={}; returning empty list", id, e);
+      return Collections.emptyList();
+    }
+  }
+
+  public void setVulnIdsFromList(final List<String> ids) {
+    if (CollectionUtils.isEmpty(ids)) {
+      return;
+    }
+    List<String> cleaned = ids.stream()
+        .filter(StringUtils::isNotBlank)
+        .filter(id -> !id.equalsIgnoreCase(refId))
+        .distinct()
+        .collect(Collectors.toList());
+    if (cleaned.isEmpty()) {
+      return;
+    }
+    try {
+      this.vulnIds = VULN_IDS_MAPPER.writeValueAsString(cleaned);
+    }
+    catch (JsonProcessingException e) {
+      LOG.error("Failed to serialize vuln_ids for coordinate_security refId={} — alias references"
+          + " will be missing from this row's exports", refId, e);
+    }
   }
 }

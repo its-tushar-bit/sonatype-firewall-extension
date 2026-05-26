@@ -558,11 +558,26 @@ public class ApiCycloneDxServiceV2
           }
         }
       }
+      addReferences(vulnerability, securityIssue);
+
       vulnerabilities.put(vulnerability.getId(), vulnerability);
     }
     catch (Exception e) {
       log.error("Error creating SBoM Vulnerability for component {} with refId {}", purl, securityIssue.reference, e);
     }
+  }
+
+  private static void addReferences(final Vulnerability vulnerability, final ApiSecurityIssueDTO securityIssue) {
+    List<Vulnerability.Reference> refs = SbomExportUtils.buildReferencesForVulnerability(
+        securityIssue.reference, securityIssue.vulnIds);
+    if (refs.isEmpty()) {
+      return;
+    }
+    List<Vulnerability.Reference> existing = vulnerability.getReferences();
+    if (CollectionUtils.isNotEmpty(existing)) {
+      refs.addAll(0, existing);
+    }
+    vulnerability.setReferences(refs);
   }
 
   private void setSeverity(final ApiSecurityIssueDTO securityIssue, final Rating rating) {

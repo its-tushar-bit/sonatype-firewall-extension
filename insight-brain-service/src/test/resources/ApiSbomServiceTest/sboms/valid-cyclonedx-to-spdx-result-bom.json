@@ -27,6 +27,16 @@
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
       "referenceType" : "purl"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/Sonatype-2024-123",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE_GUIDE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "https://links.sonatype.com/products/clm/vulnerability/CVE-2007-2353",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "(MIT AND Apache-2.0)",

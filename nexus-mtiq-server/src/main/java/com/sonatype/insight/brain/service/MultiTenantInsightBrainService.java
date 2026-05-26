@@ -28,6 +28,10 @@ import java.util.UUID;
 import jakarta.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spdx.core.DefaultModelStore;
+import org.spdx.library.ModelCopyManager;
+import org.spdx.library.SpdxModelFactory;
+import org.spdx.storage.simple.InMemSpdxStore;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -134,6 +138,9 @@ public class MultiTenantInsightBrainService
         ServerBootHealthCheck.fullyBooted();
         log.info(getServerInstanceMessage());
       });
+
+      SpdxModelFactory.init();
+      DefaultModelStore.initialize(new InMemSpdxStore(), "https://spdx.org/spdxdocs/default", new ModelCopyManager());
 
       app.run(args);
 

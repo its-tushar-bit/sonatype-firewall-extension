@@ -145,6 +145,7 @@ public class Spdx3VersionHandler
 
   public byte[] generate(SpdxGenerationContext context) throws InvalidSPDXAnalysisException {
     try {
+      SpdxModelFactory.init();
       InMemSpdxStore baseStore = new InMemSpdxStore();
       ModelCopyManager copyManager = new ModelCopyManager();
       JsonLDStore store = new JsonLDStore(baseStore);
@@ -520,6 +521,7 @@ public class Spdx3VersionHandler
   }
 
   private SpdxDocument deserialize(String content) throws InvalidSPDXAnalysisException, IOException {
+    SpdxModelFactory.init();
     InMemSpdxStore baseStore = new InMemSpdxStore();
     ModelCopyManager copyManager = new ModelCopyManager();
     JsonLDStore store = new JsonLDStore(baseStore);

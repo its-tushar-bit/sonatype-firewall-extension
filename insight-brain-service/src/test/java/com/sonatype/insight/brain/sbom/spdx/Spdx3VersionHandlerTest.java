@@ -25,7 +25,6 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.spdx.library.SpdxModelFactory;
 
 public class Spdx3VersionHandlerTest
 {
@@ -33,7 +32,6 @@ public class Spdx3VersionHandlerTest
 
   @Before
   public void setUp() {
-    SpdxModelFactory.init();
     handler = new Spdx3VersionHandler();
   }
 

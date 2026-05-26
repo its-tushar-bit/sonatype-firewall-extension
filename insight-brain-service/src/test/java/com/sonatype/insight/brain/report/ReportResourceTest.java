@@ -1471,4 +1471,66 @@ public class ReportResourceTest
     JsonNode jsonNode = JsonUtils.parse(targetStream, JsonNode.class);
     assertThat(jsonNode.withArray("aaData").size()).isEqualTo(vulnerabilitiesSize);
   }
+
+  @Test
+  public void testAuditLog_includesOrgScopedEntries() throws Exception {
+    // Create an org-scoped license override audit entry directly in the org's audit directory
+    String orgId = app.getOrganizationId();
+    InsightWork work = getCLMServer().getInstance(InsightWork.class);
+    File orgAuditDir = work.getAuditDir(orgId);
+    boolean createdDir = orgAuditDir.mkdirs();
+
+    ArrayNode logArray = JsonUtils.arrayNode(null);
+    ObjectNode auditEntry = logArray.addObject();
+    auditEntry.put("time", System.currentTimeMillis());
+    auditEntry.put("user", "admin");
+    auditEntry.put("ip", "127.0.0.1");
+    auditEntry.putNull("where");
+    ArrayNode dataArray = auditEntry.putArray("data");
+    ObjectNode dataEntry = dataArray.addObject();
+    ObjectNode ci = dataEntry.putObject("componentIdentifier");
+    ci.put("format", "maven");
+    ObjectNode coords = ci.putObject("coordinates");
+    coords.put("groupId", "org.test");
+    coords.put("artifactId", "test-artifact");
+    coords.put("version", "1.0.0");
+    coords.put("classifier", "");
+    coords.put("extension", "jar");
+    dataEntry.put("status", "Overridden");
+    dataEntry.put("comment", "org-scoped override");
+
+    File licenseFile = new File(orgAuditDir, "licenses.json");
+    JsonUtils.write(licenseFile, logArray);
+
+    try {
+      // Call the audit log endpoint for the application
+      HttpResponse response = restRequest()
+          .path(ReportResource.RESOURCE_PATH)
+          .path("{scanId}/auditLog/{path}")
+          .parameter(app.getPublicId(), SCAN_ID, "licenses.json")
+          .get();
+      assertResponseStatus(200, response);
+
+      // Verify the org-scoped entry is included in the response
+      JsonNode body = response.getBody(JsonNode.class);
+      assertThat(body).isNotNull();
+      ArrayNode entries = (ArrayNode) body.get("aaData");
+      assertThat(entries).isNotNull();
+
+      boolean foundOrgEntry = false;
+      for (JsonNode entry : entries) {
+        if ("org-scoped override".equals(entry.path("comment").asText())) {
+          foundOrgEntry = true;
+          break;
+        }
+      }
+      assertThat(foundOrgEntry).as("Org-scoped audit entry should appear in app audit log").isTrue();
+    }
+    finally {
+      licenseFile.delete();
+      if (createdDir) {
+        orgAuditDir.delete();
+      }
+    }
+  }
 }

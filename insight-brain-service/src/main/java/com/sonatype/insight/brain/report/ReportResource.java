@@ -94,6 +94,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -727,14 +728,44 @@ public class ReportResource
     Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
     String appId = application.getId();
 
-    final JsonStore store = new JsonFileStore(work.getAuditDir(appId), appId, clusterLockManager);
     final ContainerNode<?> key = decodeKey(encodedKey);
-    final ContainerNode<?> feed = store.history(key, path.split("[+]+"));
-    if (feed != null) {
-      return Response.ok(JsonUtils.generate(feed)).build();
+    final String[] paths = path.split("[+]+");
+
+    // Read audit entries from the application directory
+    final JsonStore appStore = new JsonFileStore(work.getAuditDir(appId), appId, clusterLockManager);
+    final ContainerNode<?> feed = appStore.history(key, paths);
+
+    // Also read from ancestor organization directories to include org-scoped overrides
+    String orgId = application.getOrganizationId();
+    ContainerNode<?> mergedFeed = feed;
+    while (orgId != null) {
+      JsonStore orgStore = new JsonFileStore(work.getAuditDir(orgId), orgId, clusterLockManager);
+      ContainerNode<?> orgFeed = orgStore.history(key, paths);
+      mergedFeed = mergeFeeds(mergedFeed, orgFeed);
+      Organization org = organizationDAO.getById(orgId);
+      orgId = (org != null) ? org.getParentOrganizationId() : null;
+    }
+
+    if (mergedFeed != null) {
+      return Response.ok(JsonUtils.generate(mergedFeed)).build();
     }
 
     return Response.ok().build();
+  }
+
+  private ContainerNode<?> mergeFeeds(ContainerNode<?> base, ContainerNode<?> additional) {
+    if (additional == null) {
+      return base;
+    }
+    if (base == null) {
+      return additional;
+    }
+    JsonNode baseNode = base.get("aaData");
+    JsonNode additionalNode = additional.get("aaData");
+    if (baseNode instanceof ArrayNode baseEntries && additionalNode instanceof ArrayNode additionalEntries) {
+      baseEntries.addAll(additionalEntries);
+    }
+    return base;
   }
 
   @GET

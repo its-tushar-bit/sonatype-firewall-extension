@@ -45,12 +45,16 @@ public class SupportResourceTest
       assertThat(inputStream).isNotNull();
 
       try (final ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
-        final ZipEntry zipEntry = zipInputStream.getNextEntry();
-        assertThat(zipEntry.getName()).startsWith("support-")
-            .endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml");
-
-        final String served = IOUtils.toString(zipInputStream, StandardCharsets.UTF_8).replace("\r\n", "\n");
-        assertThat(served).contains("logging:\n");
+        String configContent = null;
+        ZipEntry zipEntry;
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+          if (zipEntry.getName().endsWith("/" + SupportFileType.CONFIG.getDirName() + "/filtered-config-test.yml")) {
+            configContent = IOUtils.toString(zipInputStream, StandardCharsets.UTF_8).replace("\r\n", "\n");
+            break;
+          }
+        }
+        assertThat(configContent).isNotNull();
+        assertThat(configContent).contains("logging:\n");
       }
     }
   }

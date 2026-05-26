@@ -10,8 +10,24 @@
   <dataLicense>CC0-1.0</dataLicense>
   <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-f2cd22d439e148f3803681c9927fc797/bom/db8bc370136b447c9262</documentNamespace>
   <packages>
+    <SPDXID>SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_vuln</name>
+    <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
+    <versionInfo>a140fd3c3ded4bb0a640dc31e2904dc9</versionInfo>
+  </packages>
+  <packages>
     <SPDXID>SPDXRef-435d9efa-2c0c-4078-91fb-7fdec24fcad0</SPDXID>
-    <attributionTexts>Evidence license text for: (Apache-2.0 AND MIT)</attributionTexts>
+    <attributionTexts>Evidence license text for: (MIT AND Apache-2.0)</attributionTexts>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
@@ -32,27 +48,11 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>(Apache-2.0 AND MIT)</licenseConcluded>
+    <licenseConcluded>(MIT AND Apache-2.0)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>apache:axis</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
     <versionInfo>1.0</versionInfo>
-  </packages>
-  <packages>
-    <SPDXID>SPDXRef-08dd5978-577c-46a6-8bae-4f3d1a243b43</SPDXID>
-    <copyrightText>NOASSERTION</copyrightText>
-    <downloadLocation>NOASSERTION</downloadLocation>
-    <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</referenceLocator>
-      <referenceType>purl</referenceType>
-    </externalRefs>
-    <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
-    <licenseDeclared>NOASSERTION</licenseDeclared>
-    <name>sonatype:iq_application_vuln</name>
-    <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
-    <versionInfo>a140fd3c3ded4bb0a640dc31e2904dc9</versionInfo>
   </packages>
   <relationships>
     <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>

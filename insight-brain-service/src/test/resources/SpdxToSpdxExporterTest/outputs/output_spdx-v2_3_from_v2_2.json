@@ -80,8 +80,8 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "(BSD-2-Clause AND BSD-3-Clause)",
-    "licenseDeclared" : "(BSD-2-Clause AND BSD-3-Clause)",
+    "licenseConcluded" : "(BSD-3-Clause AND BSD-2-Clause)",
+    "licenseDeclared" : "(BSD-3-Clause AND BSD-2-Clause)",
     "name" : "org.hamcrest:hamcrest-core",
     "versionInfo" : "1.3"
   }, {
@@ -130,6 +130,9 @@
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "NOASSERTION",
     "name" : "com.h2database:h2",
+    "packageVerificationCode" : {
+      "packageVerificationCodeValue" : "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
     "versionInfo" : "2.3.232"
   } ],
   "relationships" : [ {

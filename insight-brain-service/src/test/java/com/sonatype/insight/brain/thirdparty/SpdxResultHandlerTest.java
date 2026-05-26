@@ -57,7 +57,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.v2.SpdxDocument;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
@@ -95,6 +95,8 @@ public class SpdxResultHandlerTest
 
   private ThirdPartyScanContext thirdPartyScanContext;
 
+  private com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler spdx3VersionHandler;
+
   private TelemetryUtils telemetryUtils;
 
   private TelemetrySender telemetrySender;
@@ -128,10 +130,11 @@ public class SpdxResultHandlerTest
     // Mockito mocks with Boolean values return false by default instead of null
     // Change it to return null since we rely on this value
     when(thirdPartyScanContext.isValid()).thenReturn(null);
+    spdx3VersionHandler = new com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler();
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, thirdPartyScanContext);
+            telemetryUtils, telemetrySender, thirdPartyScanContext, spdx3VersionHandler);
   }
 
   @Test
@@ -266,7 +269,7 @@ public class SpdxResultHandlerTest
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, null);
+            telemetryUtils, telemetrySender, null, spdx3VersionHandler);
     testHandleAndFilterContents_invalid_isValidNull(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
   }
 
@@ -276,7 +279,7 @@ public class SpdxResultHandlerTest
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, null);
+            telemetryUtils, telemetrySender, null, spdx3VersionHandler);
     testHandleAndFilterContents_invalid_isValidNull(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
   }
 
@@ -298,7 +301,7 @@ public class SpdxResultHandlerTest
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, null);
+            telemetryUtils, telemetrySender, null, spdx3VersionHandler);
     testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomXmlFile("spdx-invalid.xml"),
         "spdx-invalid.xml");
   }
@@ -310,7 +313,7 @@ public class SpdxResultHandlerTest
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, null);
+            telemetryUtils, telemetrySender, null, spdx3VersionHandler);
     testHandleAndFilterContents_invalid_isValidNull_skipSbomImportValidation(getSbomJsonFile("spdx-invalid.json"),
         "spdx-invalid.json");
   }
@@ -514,7 +517,7 @@ public class SpdxResultHandlerTest
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, thirdPartyScanContext);
+            telemetryUtils, telemetrySender, thirdPartyScanContext, spdx3VersionHandler);
     FilteredThirdPartyContent filteredContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();

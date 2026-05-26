@@ -22,8 +22,9 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
+
+import org.apache.commons.lang3.StringUtils;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -40,6 +41,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.sbom.export.SbomExportException;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
@@ -96,10 +98,10 @@ import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.InvalidLicenseStringException;
-import org.spdx.library.model.license.LicenseInfoFactory;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.InvalidLicenseStringException;
+import org.spdx.library.LicenseInfoFactory;
 import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
@@ -439,7 +441,9 @@ public class SbomResultHandler
     try {
       if (StringUtils.isNotBlank(packageUrl)) {
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
-        if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
+        if (packageUrlIdentifier != null &&
+            StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion()))
+        {
           componentInfoTelemetry.incrementPurlCount();
           return createComponent(sourceComponent, packageUrlIdentifier);
         }
@@ -458,7 +462,9 @@ public class SbomResultHandler
     String cpe = sourceComponent.getCpe();
     if (StringUtils.isNotBlank(cpe)) {
       PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
-      if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
+      if (packageUrlIdentifier != null &&
+          StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion()))
+      {
         return createComponent(sourceComponent, packageUrlIdentifier);
       }
     }
@@ -981,9 +987,9 @@ public class SbomResultHandler
       if (expression != null && StringUtils.isNotEmpty(expression.getValue())) {
         AnyLicenseInfo anyLicenseInfo;
         try {
-          anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression.getValue());
+          anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseStringCompatV2(expression.getValue());
         }
-        catch (InvalidLicenseStringException e) {
+        catch (InvalidLicenseStringException | org.spdx.core.DefaultStoreNotInitializedException e) {
           componentInfoTelemetry.incrementInvalidLicensesCount();
           log.debug("Failed to parse spdx license string: {} for: {}.", expression, packageUrl);
           return;

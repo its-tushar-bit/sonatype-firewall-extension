@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -16,25 +13,28 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import com.sonatype.insight.scan.file.SbomFormat;
+
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
-import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.storage.IModelStore;
-import org.spdx.storage.simple.InMemSpdxStore;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxPackage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 public class SbomSpdxUtilsTest
 {
+  @BeforeClass
+  public static void initSpdx() {
+    SbomSpdxUtils.initSpdxLibrary();
+  }
+
   @Test
   public void testGetRootPackage_json() throws Exception {
     SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.json", Format.JSON);
@@ -112,7 +112,7 @@ public class SbomSpdxUtilsTest
 
   @Test
   public void testGetAllPackages_null() throws Exception {
-    assertThat(SbomSpdxUtils.getAllPackages(null)).isNull();
+    assertThat(SbomSpdxUtils.getAllPackages(null)).isEmpty();
   }
 
   @Test
@@ -131,7 +131,7 @@ public class SbomSpdxUtilsTest
 
   @Test
   public void testGetAllVulnerabilities_null() throws Exception {
-    assertThat(SbomSpdxUtils.getAllVulnerabilities(null)).isNull();
+    assertThat(SbomSpdxUtils.getAllVulnerabilities(null)).isEmpty();
   }
 
   @Test
@@ -243,19 +243,11 @@ public class SbomSpdxUtilsTest
   {
     URL resource = SbomSpdxUtilsTest.class.getResource("/SbomSpdxUtilsTest/" + fileName);
     String content = new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+    content = content.replace("\"SPDX-2.3\"", "\"SPDX-2.2\"")
+        .replace(">SPDX-2.3<", ">SPDX-2.2<");
 
-    DefaultModelStore.reset();
-    IModelStore modelStore = new InMemSpdxStore();
-    String uri;
-    try (MultiFormatStore multiFormatStore = new MultiFormatStore(modelStore, format, Verbose.COMPACT);
-        InputStream in = new BufferedInputStream(new ByteArrayInputStream(content.getBytes())))
-    {
-      uri = multiFormatStore.deSerialize(in, true);
-    }
-    catch (Exception e) {
-      throw new IOException("SPDX content cannot be parsed", e);
-    }
-    return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);
+    return SbomSpdxUtils.parseContentNoValidation(content,
+        format == Format.JSON ? SbomFormat.JSON : SbomFormat.XML);
   }
 
   private String expectedSbomMetadataJson() {

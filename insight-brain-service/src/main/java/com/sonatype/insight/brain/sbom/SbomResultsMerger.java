@@ -33,8 +33,9 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -542,7 +543,7 @@ public class SbomResultsMerger
       List<ThirdPartyCoordinateSecurity> disclosedVulnerabilities = null;
       List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
       String newComponentBomRef = UUID.randomUUID().toString().replace("-", "");
-      String newComponentRef = SbomIdentityUtils.getComponentRef(newComponentBomRef);
+      String newComponentRef = DigestUtils.sha1Hex(newComponentBomRef);
       if (sbomDbComponent == null) {
         sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(newComponentBomRef, hdsComponentJsonNode,
             thirdPartyFileId, tx);
@@ -579,7 +580,7 @@ public class SbomResultsMerger
 
     Component clone = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
     clone.addProperty(
-        SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, SbomIdentityUtils.getComponentRef(bomRef)));
+        SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, DigestUtils.sha1Hex(bomRef)));
     // Deprecated. this should be removed after SBOM-1208 is done
     Property sonatypeIdentifierComponentProperty = new Property();
     sonatypeIdentifierComponentProperty.setName("sonatypeIdentifier");
@@ -726,7 +727,7 @@ public class SbomResultsMerger
       final TransactionContext tx)
   {
     ThirdPartyFileCoordinate component = new ThirdPartyFileCoordinate();
-    component.setComponentRef(SbomIdentityUtils.getComponentRef(bomRef));
+    component.setComponentRef(DigestUtils.sha1Hex(bomRef));
     component.setThirdPartyFileId(thirdPartyFileId);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentNode);
     if (componentIdentifier != null) {

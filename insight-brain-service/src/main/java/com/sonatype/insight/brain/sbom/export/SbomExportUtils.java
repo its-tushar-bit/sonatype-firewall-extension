@@ -39,7 +39,7 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
-import org.spdx.library.model.license.ListedLicenses;
+import org.spdx.library.ListedLicenses;
 
 import static com.google.common.collect.Lists.newArrayList;
 

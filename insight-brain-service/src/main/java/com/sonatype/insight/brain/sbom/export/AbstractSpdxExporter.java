@@ -8,17 +8,19 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -40,28 +42,28 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.core.InvalidSPDXAnalysisException;
 import org.spdx.library.ModelCopyManager;
-import org.spdx.library.SpdxConstants;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.ModelObject;
-import org.spdx.library.model.ReferenceType;
-import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxCreatorInformation;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxModelFactory;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.ConjunctiveLicenseSet;
-import org.spdx.library.model.license.ExtractedLicenseInfo;
-import org.spdx.library.model.license.LicenseInfoFactory;
-import org.spdx.library.model.license.ListedLicenses;
-import org.spdx.library.model.license.SpdxListedLicense;
+import org.spdx.library.model.v2.SpdxConstantsCompatV2;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.ModelObjectV2;
+import org.spdx.library.model.v2.ReferenceType;
+import org.spdx.library.model.v2.Relationship;
+import org.spdx.library.model.v2.SpdxCreatorInformation;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxFile;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.SpdxPackageVerificationCode;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.ConjunctiveLicenseSet;
+import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.library.LicenseInfoFactory;
+import org.spdx.library.ListedLicenses;
+import org.spdx.library.model.v2.license.SpdxListedLicense;
 import org.spdx.storage.simple.InMemSpdxStore;
 
-import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
+import static org.spdx.library.model.v2.SpdxConstantsCompatV2.NON_STD_LICENSE_ID_PRENUM;
 
 public abstract class AbstractSpdxExporter
     extends AbstractSbomExporter
@@ -98,17 +100,18 @@ public abstract class AbstractSpdxExporter
   }
 
   void init() {
-    DefaultModelStore.reset();
+    SbomSpdxUtils.initSpdxLibrary();
     sbomFormat = SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat());
     format = sbomFormat == SbomFormat.JSON ? Format.JSON : Format.XML;
-    multiFormatStore = new MultiFormatStore(new InMemSpdxStore(), format, MultiFormatStore.Verbose.COMPACT);
+    InMemSpdxStore modelStore = new InMemSpdxStore();
+    multiFormatStore = new MultiFormatStore(modelStore, format, MultiFormatStore.Verbose.COMPACT);
   }
 
   SpdxDocument createNewDocumentFrom(
       final SpdxDocument originalDocument) throws InvalidSPDXAnalysisException
   {
     SpdxDocument newDocument =
-        SpdxModelFactory.createSpdxDocument(multiFormatStore, getBillOfMaterialsPath(), copyManager);
+        new SpdxDocument(multiFormatStore, getBillOfMaterialsPath(), copyManager, true);
     setMetadata(newDocument);
     copyComponents(originalDocument, newDocument);
     newDocument.setExternalDocumentRefs(originalDocument.getExternalDocumentRefs());
@@ -119,14 +122,14 @@ public abstract class AbstractSpdxExporter
   void setMetadata(SpdxDocument newDocument) throws InvalidSPDXAnalysisException {
     newDocument.setSpecVersion("SPDX-" + exportParams.exportSpecification.getVersion());
     newDocument.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()));
-    newDocument.setDataLicense(new SpdxListedLicense(SpdxConstants.SPDX_DATA_LICENSE_ID));
+    newDocument.setDataLicense(
+        new SpdxListedLicense(newDocument.getModelStore(), SbomSpdxUtils.SPDX_LISTED_LICENSE_URL,
+            SpdxConstantsCompatV2.SPDX_DATA_LICENSE_ID, newDocument.getCopyManager(), true));
 
-    SpdxCreatorInformation creatorInfo = new SpdxCreatorInformation();
     String date = LocalDateTime.now(ZoneOffset.UTC).format(DATE_TIME_FORMATTER.toFormatter());
-
-    creatorInfo.setCreated(date);
-    creatorInfo.getCreators().add("Tool: Sonatype SBOM Manager - " + versionService.getFullVersion());
-    // not adding data date (for NDE customers) until is needed.
+    List<String> creators = new ArrayList<>();
+    creators.add("Tool: Sonatype SBOM Manager - " + versionService.getFullVersion());
+    SpdxCreatorInformation creatorInfo = newDocument.createCreationInfo(creators, date);
     newDocument.setCreationInfo(creatorInfo);
   }
 
@@ -189,24 +192,45 @@ public abstract class AbstractSpdxExporter
         }
       }
 
+      String copyrightText = pkg.getCopyrightText();
+      if (copyrightText == null || copyrightText.isEmpty()) {
+        copyrightText = SpdxConstantsCompatV2.NOASSERTION_VALUE;
+      }
+      boolean filesAnalyzed = pkg.isFilesAnalyzed();
+      String downloadLocation = pkg.getDownloadLocation().orElse(SpdxConstantsCompatV2.NOASSERTION_VALUE);
       SpdxPackage.SpdxPackageBuilder pkgBuilder = newDocument
           // keeping the original declared license while updating concluded with any overridden licenses
-          .createPackage(pkg.getId(), pkgName, licenseConcluded, pkg.getCopyrightText(), pkg.getLicenseDeclared())
-          .setFilesAnalyzed(pkg.isFilesAnalyzed());
-      pkg.getDownloadLocation().ifPresent(pkgBuilder::setDownloadLocation);
+          .createPackage(pkg.getId(), pkgName, licenseConcluded, copyrightText, pkg.getLicenseDeclared())
+          .setFilesAnalyzed(filesAnalyzed)
+          .setDownloadLocation(downloadLocation);
 
       Collection<ExternalRef> externalRefs = pkg.getExternalRefs();
       externalRefs.forEach(pkgBuilder::addExternalRef);
 
       addVulnerabilityDiffs(newDocument, pkgBuilder, externalRefs, matchingDbComponent);
       pkg.getAttributionText().forEach(pkgBuilder::addAttributionText);
+      if (CollectionUtils.isNotEmpty(resolvedLicenses)) {
+        pkgBuilder.addAttributionText("Evidence license text for: " + licenseConcluded);
+      }
       pkg.getVersionInfo().ifPresent(pkgBuilder::setVersionInfo);
       pkg.getChecksums().forEach(pkgBuilder::addChecksum);
       pkg.getDescription().ifPresent(pkgBuilder::setDescription);
       pkg.getHomepage().ifPresent(pkgBuilder::setHomepage);
       pkg.getOriginator().ifPresent(pkgBuilder::setOriginator);
       pkg.getPackageFileName().ifPresent(pkgBuilder::setPackageFileName);
-      pkg.getPackageVerificationCode().ifPresent(pkgBuilder::setPackageVerificationCode);
+      if (pkg.getPackageVerificationCode().isPresent()) {
+        pkgBuilder.setPackageVerificationCode(pkg.getPackageVerificationCode().get());
+      }
+      else if (filesAnalyzed) {
+        String verificationValue = computePackageVerificationCode(pkg)
+            .orElse(DigestUtils.sha1Hex(""));
+        SpdxPackageVerificationCode verificationCode = new SpdxPackageVerificationCode(
+            multiFormatStore, newDocument.getDocumentUri(),
+            pkg.getId() + "-verificationCode",
+            copyManager, true);
+        verificationCode.setValue(verificationValue);
+        pkgBuilder.setPackageVerificationCode(verificationCode);
+      }
       pkg.getPrimaryPurpose().ifPresent(pkgBuilder::setPrimaryPurpose);
       pkg.getReleaseDate().ifPresent(pkgBuilder::setReleaseDate);
       pkg.getSourceInfo().ifPresent(pkgBuilder::setSourceInfo);
@@ -216,13 +240,7 @@ public abstract class AbstractSpdxExporter
       pkg.getFiles().forEach(pkgBuilder::addFile);
       pkg.getAnnotations().forEach(pkgBuilder::addAnnotation);
 
-      SpdxPackage newPkg = buildPackage(pkgBuilder);
-      if (CollectionUtils.isNotEmpty(resolvedLicenses)) {
-        ConjunctiveLicenseSet licenseSetForSpdxPackage = newPkg.createConjunctiveLicenseSet(resolvedLicenses);
-        if (Objects.nonNull(licenseSetForSpdxPackage)) {
-          newPkg.getAttributionText().add("Evidence license text for: " + licenseSetForSpdxPackage);
-        }
-      }
+      buildPackage(pkgBuilder);
     }
     copyDependencyRelationships(originalDocument, newDocument);
   }
@@ -261,6 +279,21 @@ public abstract class AbstractSpdxExporter
       final SpdxPackage.SpdxPackageBuilder pkgBuilder) throws InvalidSPDXAnalysisException
   {
     return pkgBuilder.build();
+  }
+
+  private Optional<String> computePackageVerificationCode(SpdxPackage pkg) throws InvalidSPDXAnalysisException {
+    List<String> sha1Values = new ArrayList<>();
+    for (SpdxFile file : pkg.getFiles()) {
+      String sha1 = file.getSha1();
+      if (StringUtils.isNotBlank(sha1)) {
+        sha1Values.add(sha1);
+      }
+    }
+    if (sha1Values.isEmpty()) {
+      return Optional.empty();
+    }
+    sha1Values.sort(String.CASE_INSENSITIVE_ORDER);
+    return Optional.of(DigestUtils.sha1Hex(String.join("", sha1Values)));
   }
 
   private void addVulnerabilityDiffs(
@@ -307,7 +340,7 @@ public abstract class AbstractSpdxExporter
     Map<String, AnyLicenseInfo> collect = new HashMap<>();
     for (ResolvedLicenseDTO license : resolvedLicenses) {
       if (LicenseInfoFactory.isSpdxListedLicenseId(license.licenseId())) {
-        AnyLicenseInfo licenseObject = LicenseInfoFactory.parseSPDXLicenseString(license.licenseId(),
+        AnyLicenseInfo licenseObject = LicenseInfoFactory.parseSPDXLicenseStringCompatV2(license.licenseId(),
             newDocument.getModelStore(), newDocument.getDocumentUri(), newDocument.getCopyManager());
         collect.put(StringUtils.lowerCase(licenseObject.getId()), licenseObject);
       }
@@ -329,7 +362,7 @@ public abstract class AbstractSpdxExporter
       componentRef = spdxIdsToComponentRefs.get(pkg.getId());
     }
     else {
-      componentRef = SbomIdentityUtils.getComponentRef(pkg);
+      componentRef = DigestUtils.sha1Hex(pkg.getId());
     }
     return componentRef != null
         ? thirdPartyFileCoordinateDAO.getByComponentRef(componentRef, exportParams.sbomMetadata.getThirdPartyFileId())
@@ -344,7 +377,7 @@ public abstract class AbstractSpdxExporter
         originalDocument.getDocumentDescribes()
             .stream()
             .filter(spdxElement -> spdxElement instanceof SpdxPackage)
-            .map(ModelObject::getId)
+            .map(ModelObjectV2::getId)
             .collect(Collectors.toSet());
     for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
       SpdxPackage newPackage = SbomSpdxUtils.getPackageById(newDocument, pkg.getId());

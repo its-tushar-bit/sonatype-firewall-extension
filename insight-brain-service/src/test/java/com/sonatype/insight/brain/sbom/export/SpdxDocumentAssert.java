@@ -26,12 +26,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.Nullable;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.SpdxCreatorInformation;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.SpdxCreatorInformation;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.assertj.core.api.Assertions.within;

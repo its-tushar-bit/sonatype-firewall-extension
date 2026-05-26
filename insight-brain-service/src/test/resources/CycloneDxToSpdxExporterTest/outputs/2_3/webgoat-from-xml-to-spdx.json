@@ -19,7 +19,7 @@
   "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003",
-    "attributionTexts" : [ "Evidence license text for: (Apache-1.1 AND MIT AND Aladdin)" ],
+    "attributionTexts" : [ "Evidence license text for: (MIT AND Apache-1.1 AND Aladdin)" ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
@@ -43,7 +43,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "(Apache-1.1 AND MIT AND Aladdin)",
+    "licenseConcluded" : "(MIT AND Apache-1.1 AND Aladdin)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "log4j:log4j",
     "primaryPackagePurpose" : "LIBRARY",
@@ -79,7 +79,7 @@
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "(Apache-1.1 AND LicenseRef-Not-Declared)",
+    "licenseDeclared" : "(LicenseRef-Not-Declared AND Apache-1.1)",
     "name" : "commons-digester:commons-digester",
     "primaryPackagePurpose" : "LIBRARY",
     "versionInfo" : "1.4.1"
@@ -98,7 +98,7 @@
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "(Apache-1.1 AND LicenseRef-Not-Declared)",
+    "licenseDeclared" : "(LicenseRef-Not-Declared AND Apache-1.1)",
     "name" : "commons-discovery:commons-discovery",
     "primaryPackagePurpose" : "LIBRARY",
     "versionInfo" : "0.2"

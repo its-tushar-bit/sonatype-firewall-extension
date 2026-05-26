@@ -163,6 +163,8 @@ CREATE TABLE sbom_metadata (
     -- The user-provided filename for the SBOM file. Not the name where it is stored on the server.
     -- Seemingly redundant with third_party_file.filename; more investigation needed.
     original_binary_file_name TEXT,
+    extended_profile_elements TEXT,
+    root_component_ref VARCHAR(40),
     CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
     CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)
        REFERENCES third_party_file (third_party_file_id),

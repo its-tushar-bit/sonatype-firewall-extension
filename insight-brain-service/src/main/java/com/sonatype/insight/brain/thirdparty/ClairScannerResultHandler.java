@@ -12,8 +12,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -117,7 +118,8 @@ public class ClairScannerResultHandler
       ThirdPartyFileCoordinate fileCoordinate =
           new ThirdPartyFileCoordinate(fakeHash, IdentificationSource.CLAIR.getId(), format, name, version,
               thirdPartyFile.getId());
-      fileCoordinate.setComponentRef(SbomIdentityUtils.getComponentRef(vulnerability));
+      fileCoordinate.setComponentRef(
+          DigestUtils.sha1Hex(format + ":" + name + ":" + version));
       fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
 
       fileCoordinateId = fileCoordinate.getId();

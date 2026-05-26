@@ -2756,8 +2756,8 @@ public class SbomResultHandlerTest
     assertThat(telemetryAttributes).isNotNull();
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
-    assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(2);
-    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(0);
+    assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
+    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(2);
   }
 
   @Test

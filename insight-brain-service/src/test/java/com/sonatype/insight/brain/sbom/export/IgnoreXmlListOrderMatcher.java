@@ -17,7 +17,12 @@ public class IgnoreXmlListOrderMatcher
 {
   public IgnoreXmlListOrderMatcher() {
     super(ElementSelectors.conditionalBuilder()
-        // externalRefs: match by referenceLocator (or switch to ./comment if you prefer)
+        // packages: match by SPDXID child element
+        .whenElementIsNamed("packages")
+        .thenUse(ElementSelectors.and(
+            ElementSelectors.byName,
+            ElementSelectors.byXPath("./SPDXID", ElementSelectors.byNameAndText)))
+        // externalRefs: match by referenceLocator
         .whenElementIsNamed("externalRefs")
         .thenUse(ElementSelectors.and(
             ElementSelectors.byName,
@@ -29,6 +34,16 @@ public class IgnoreXmlListOrderMatcher
             ElementSelectors.byXPath("./spdxElementId", ElementSelectors.byNameAndText),
             ElementSelectors.byXPath("./relationshipType", ElementSelectors.byNameAndText),
             ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)))
+        // checksums: match by algorithm
+        .whenElementIsNamed("checksums")
+        .thenUse(ElementSelectors.and(
+            ElementSelectors.byName,
+            ElementSelectors.byXPath("./algorithm", ElementSelectors.byNameAndText)))
+        // hasExtractedLicensingInfos: match by licenseId
+        .whenElementIsNamed("hasExtractedLicensingInfos")
+        .thenUse(ElementSelectors.and(
+            ElementSelectors.byName,
+            ElementSelectors.byXPath("./licenseId", ElementSelectors.byNameAndText)))
         // default: name-based matching
         .elseUse(ElementSelectors.byName)
         .build());

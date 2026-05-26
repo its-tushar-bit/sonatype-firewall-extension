@@ -138,6 +138,10 @@ import jakarta.validation.Validator;
 import jakarta.ws.rs.container.ResourceInfo;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
+import org.spdx.core.DefaultModelStore;
+import org.spdx.library.ModelCopyManager;
+import org.spdx.library.SpdxModelFactory;
+import org.spdx.storage.simple.InMemSpdxStore;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -508,6 +512,9 @@ public class InsightBrainService
     });
 
     bootstrap.setObjectMapper(configureObjectMapper(new ObjectMapper()));
+
+    SpdxModelFactory.init();
+    DefaultModelStore.initialize(new InMemSpdxStore(), "https://spdx.org/spdxdocs/default", new ModelCopyManager());
 
     bootstrap.addCommand(new CompactCommand());
     bootstrap.addCommand(new ExportEmbeddedDatabaseCommand());

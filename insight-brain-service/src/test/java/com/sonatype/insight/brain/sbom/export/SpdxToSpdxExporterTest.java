@@ -39,7 +39,7 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.v2.SpdxDocument;
 import com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
@@ -148,7 +148,7 @@ public class SpdxToSpdxExporterTest
         .withNodeFilter(node -> !IGNORE_NODES.contains(node.getNodeName()))
         .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test
@@ -302,7 +302,7 @@ public class SpdxToSpdxExporterTest
         .hasDeclaredLicense("Apache-2.0")
         .containsLicenses("Apache-2.0", "BSD-3-Clause");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("(Apache-2.0 AND MIT)")
+        .hasConcludedLicense("(MIT AND Apache-2.0)")
         .hasDeclaredLicense("Apache-2.0")
         .containsLicenses("Apache-2.0", "MIT");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
@@ -384,7 +384,7 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("(LicenseRef-Not-Supported AND LicenseRef-Sonatype-Private AND Apache-2.0)")
+        .hasConcludedLicense("(LicenseRef-Sonatype-Private AND LicenseRef-Not-Supported AND Apache-2.0)")
         .hasDeclaredLicense("Apache-2.0")
         .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
   }

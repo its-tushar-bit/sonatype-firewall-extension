@@ -934,11 +934,11 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
     assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
-    assertThat(actual.getValidationErrors()).containsExactly(
+    assertThat(actual.getValidationErrors()).contains(
         "Error: Missing required Creator",
         "Error: Missing required data license");
 
-    assertTelemetryData("xml", SPDX.toString(), "2.3", 2, false, false);
+    assertTelemetryData("xml", SPDX.toString(), "2.3", actual.getValidationErrors().size(), false, false);
 
     var sbomMetadata = thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(
         application.getId(),

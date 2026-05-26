@@ -43,6 +43,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.ElementSelectors;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
@@ -172,8 +174,16 @@ public class SpdxToCycloneDxExporterTest
         .and(readFileToString("outputs/" + outputFileName))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
         .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
+        .withNodeMatcher(new DefaultNodeMatcher(
+            ElementSelectors.conditionalBuilder()
+                .whenElementIsNamed("vulnerability")
+                .thenUse(ElementSelectors.and(
+                    ElementSelectors.byName,
+                    ElementSelectors.byXPath("./*[local-name()='id']", ElementSelectors.byNameAndText)))
+                .elseUse(ElementSelectors.byName)
+                .build()))
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test

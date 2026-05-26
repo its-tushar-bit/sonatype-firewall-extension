@@ -24,8 +24,7 @@ import org.junit.Test;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.v2.SpdxDocument;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -145,14 +144,12 @@ public class ApiSpdxResourceTest
   }
 
   private SpdxDocument deserialize(HttpResponse response, String format) throws Exception {
-    String uri;
     IModelStore modelStore = new InMemSpdxStore();
     try (MultiFormatStore multiFormatStore =
         new MultiFormatStore(modelStore, "json".equals(format) ? Format.JSON : Format.XML, Verbose.COMPACT);
         InputStream in = response.getBodyStream())
     {
-      uri = multiFormatStore.deSerialize(in, true);
+      return (SpdxDocument) multiFormatStore.deSerialize(in, true);
     }
-    return new SpdxDocument(modelStore, uri, DefaultModelStore.getDefaultCopyManager(), true);
   }
 }

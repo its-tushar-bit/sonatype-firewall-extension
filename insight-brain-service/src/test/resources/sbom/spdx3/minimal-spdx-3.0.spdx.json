@@ -1,0 +1,60 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/minimal-spdx3",
+      "creationInfo": {
+        "type": "CreationInfo",
+        "specVersion": "3.0.1",
+        "created": "2026-04-30T00:00:00Z",
+        "createdBy": [
+          "https://example.org/tool-sonatype"
+        ]
+      },
+      "name": "Minimal SPDX 3.0 Document",
+      "element": [
+        "https://example.org/minimal-spdx3-package"
+      ],
+      "rootElement": [
+        "https://example.org/minimal-spdx3-package"
+      ],
+      "namespaceMap": [
+        {
+          "type": "NamespaceMap",
+          "prefix": "spdx",
+          "namespace": "https://spdx.org/rdf/3.0.1/terms/"
+        }
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/minimal-spdx3-package",
+      "creationInfo": "_:creationInfo1",
+      "name": "example-lib",
+      "software_packageVersion": "1.0.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.example/example-lib@1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-04-30T00:00:00Z",
+      "createdBy": [
+        "https://example.org/tool-sonatype"
+      ]
+    }
+  ]
+}

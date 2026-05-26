@@ -155,7 +155,7 @@
     "versionInfo" : "1.0.0"
   }, {
     "SPDXID" : "SPDXRef-gnrtd2",
-    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (LGPL-2.1-only AND Apache-2.0)" ],
+    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (Apache-2.0 AND LGPL-2.1-only)" ],
     "checksums" : [ {
       "algorithm" : "MD5",
       "checksumValue" : "cfcb0b64aacd2f81c1cd546543de965a"

@@ -22,8 +22,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import jakarta.inject.Inject;
+
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.spdx.ParsedSpdxResult;
+import com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.SbomProcessingException;
@@ -47,9 +51,9 @@ import org.cyclonedx.model.Component;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxPackage;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxPackage;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -75,6 +79,13 @@ public class SbomFileDetector
   private final Tika tika = new Tika();
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+
+  private final Spdx3VersionHandler spdx3VersionHandler;
+
+  @Inject
+  public SbomFileDetector(Spdx3VersionHandler spdx3VersionHandler) {
+    this.spdx3VersionHandler = spdx3VersionHandler;
+  }
 
   private static final SAXParserFactory saxParserFactory;
 
@@ -156,6 +167,9 @@ public class SbomFileDetector
   {
     if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
       return tryDetectingAsCycloneDx(sbom, sbomResult, ignoreValidationError);
+    }
+    else if (looksLikeSpdx3JsonLd(sbom)) {
+      return detectSpdx3(sbom, sbomResult);
     }
     else if (SbomSpdxUtils.looksLikeSpdxDocument(sbom)) {
       return tryDetectingAsSpdx(sbom, sbomResult, ignoreValidationError);
@@ -461,6 +475,33 @@ public class SbomFileDetector
 
   private String getSbomStringContent(final File sbomFile) throws IOException {
     return FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
+  }
+
+  public static boolean looksLikeSpdx3JsonLd(String content) {
+    return ThirdPartyUtils.looksLikeSpdx3(content);
+  }
+
+  private SbomDetectionResult detectSpdx3(String sbom, SbomDetectionResult sbomResult) {
+    sbomResult.isSbom = true;
+    sbomResult.summary = new SbomSummary();
+    sbomResult.summary.specification = SbomSpecification.SPDX.toString();
+    sbomResult.summary.version = Spdx3VersionHandler.SPEC_VERSION;
+    sbomResult.summary.format = "json";
+
+    try {
+      ParsedSpdxResult parsed = spdx3VersionHandler.parse(sbom, SbomFormat.JSON);
+      sbomResult.isValid = true;
+      sbomResult.summary.componentCount = CollectionUtils.size(parsed.resolvedComponents());
+      sbomResult.summary.vulnerabilityCount = CollectionUtils.size(parsed.vulnerabilities());
+    }
+    catch (SbomProcessingException e) {
+      log.debug("Error validating SPDX 3.0 SBOM, file name: {}", sbomResult.filename, e);
+      sbomResult.isValid = false;
+      sbomResult.errorMessage = "Not a valid SPDX 3.0 SBOM file.";
+      sbomResult.validationErrors = getErrors(e);
+    }
+
+    return sbomResult;
   }
 
   static {

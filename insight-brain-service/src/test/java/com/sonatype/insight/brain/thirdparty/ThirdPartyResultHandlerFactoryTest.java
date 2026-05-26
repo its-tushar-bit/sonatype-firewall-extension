@@ -80,10 +80,12 @@ public class ThirdPartyResultHandlerFactoryTest
     when(mockConfigDao.getByName(any(), any(String.class))).thenReturn(null);
     SystemConfigurationPropertyFeature.injectDependencies(mockConfigDao);
 
+    com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler spdx3VersionHandler =
+        mock(com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler.class);
     factory = new ThirdPartyResultHandlerFactory(
         thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO,
-        thirdPartyVexDAO, telemetryUtils, telemetrySender, productLicense);
+        thirdPartyVexDAO, telemetryUtils, telemetrySender, productLicense, spdx3VersionHandler);
   }
 
   @Test

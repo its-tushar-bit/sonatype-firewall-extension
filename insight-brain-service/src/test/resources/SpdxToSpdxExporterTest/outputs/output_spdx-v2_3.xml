@@ -11,7 +11,7 @@
   <packages>
     <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</SPDXID>
     <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <comment>source: NVD</comment>
@@ -57,7 +57,7 @@
   <packages>
     <SPDXID>SPDXRef-maven-junit-junit-4.12</SPDXID>
     <attributionTexts>Evidence license text for: (EPL-1.0)</attributionTexts>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <comment>source: NVD</comment>
@@ -78,7 +78,7 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-generic-sonatype-iq-application-SCM-Test</SPDXID>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
@@ -94,7 +94,7 @@
   <packages>
     <SPDXID>SPDXRef-maven-org.hamcrest-hamcrest-core-1.3</SPDXID>
     <attributionTexts>Evidence license text for: (See-License-Clause AND BSD-3-Clause AND BSD-2-Clause)</attributionTexts>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
@@ -102,15 +102,15 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>(BSD-2-Clause AND BSD-3-Clause)</licenseConcluded>
-    <licenseDeclared>(BSD-2-Clause AND BSD-3-Clause)</licenseDeclared>
+    <licenseConcluded>(BSD-3-Clause AND BSD-2-Clause)</licenseConcluded>
+    <licenseDeclared>(BSD-3-Clause AND BSD-2-Clause)</licenseDeclared>
     <name>org.hamcrest:hamcrest-core</name>
     <versionInfo>1.3</versionInfo>
   </packages>
   <packages>
     <SPDXID>SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2</SPDXID>
     <attributionTexts>Evidence license text for: (See-License-Clause AND Apache-2.0)</attributionTexts>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
@@ -126,7 +126,7 @@
   <packages>
     <SPDXID>SPDXRef-maven-org.yaml-snakeyaml-1.29</SPDXID>
     <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
-    <copyrightText></copyrightText>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <comment>source: NVD</comment>
@@ -201,6 +201,9 @@
     <licenseConcluded>NOASSERTION</licenseConcluded>
     <licenseDeclared>NOASSERTION</licenseDeclared>
     <name>com.h2database:h2</name>
+    <packageVerificationCode>
+      <packageVerificationCodeValue>8ed9fdef1520210660a960e7f7b4613e4ef97bcf</packageVerificationCodeValue>
+    </packageVerificationCode>
     <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
     <versionInfo>2.3.232</versionInfo>
   </packages>

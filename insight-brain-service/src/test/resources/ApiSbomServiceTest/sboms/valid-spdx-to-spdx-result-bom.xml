@@ -10,9 +10,24 @@
   <dataLicense>CC0-1.0</dataLicense>
   <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-cbd0328c43a44de289504f6fc111be72/bom/afc83ed4b7374e77bd82</documentNamespace>
   <packages>
+    <SPDXID>SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
+    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseDeclared>NOASSERTION</licenseDeclared>
+    <name>sonatype:iq_application_SBOMTests</name>
+    <versionInfo>4daddd64a281411cb9ba2e6eabe12fa1</versionInfo>
+  </packages>
+  <packages>
     <SPDXID>SPDXRef-maven-apache-axis-1.0</SPDXID>
-    <attributionTexts>Evidence license text for: (Apache-2.0 AND MIT)</attributionTexts>
-    <copyrightText></copyrightText>
+    <attributionTexts>Evidence license text for: (MIT AND Apache-2.0)</attributionTexts>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
@@ -32,25 +47,10 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>(Apache-2.0 AND MIT)</licenseConcluded>
+    <licenseConcluded>(MIT AND Apache-2.0)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>apache:axis</name>
     <versionInfo>1.0</versionInfo>
-  </packages>
-  <packages>
-    <SPDXID>SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1</SPDXID>
-    <copyrightText></copyrightText>
-    <downloadLocation>NOASSERTION</downloadLocation>
-    <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</referenceLocator>
-      <referenceType>purl</referenceType>
-    </externalRefs>
-    <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
-    <licenseDeclared>NOASSERTION</licenseDeclared>
-    <name>sonatype:iq_application_SBOMTests</name>
-    <versionInfo>4daddd64a281411cb9ba2e6eabe12fa1</versionInfo>
   </packages>
   <relationships>
     <spdxElementId>SPDXRef-DOCUMENT</spdxElementId>

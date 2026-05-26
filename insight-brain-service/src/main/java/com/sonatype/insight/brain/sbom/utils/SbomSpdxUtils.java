@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +48,17 @@ import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.Read;
-import org.spdx.library.model.Checksum;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.ReferenceType;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxElement;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.enumerations.ChecksumAlgorithm;
-import org.spdx.library.model.enumerations.ReferenceCategory;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.SpdxModelFactory;
+import org.spdx.library.model.v2.Checksum;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.ReferenceType;
+import org.spdx.library.model.v2.SpdxConstantsCompatV2;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxElement;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 import us.springett.parsers.cpe.util.Validate;
@@ -65,6 +66,14 @@ import us.springett.parsers.cpe.util.Validate;
 public final class SbomSpdxUtils
 {
   private static final Logger log = LoggerFactory.getLogger(SbomSpdxUtils.class);
+
+  static {
+    initSpdxLibrary();
+  }
+
+  public static void initSpdxLibrary() {
+    SpdxModelFactory.init();
+  }
 
   private static final Gson gson = new GsonBuilder().create();
 
@@ -81,6 +90,8 @@ public final class SbomSpdxUtils
 
   private static final Pattern URL_REF_ID_PATTERN = Pattern.compile("([A-Za-z0-9]+(-[A-Za-z0-9]+)+(:[A-Za-z0-9]+)?)");
 
+  public static final String SPDX_LISTED_LICENSE_URL = "http://spdx.org/licenses/";
+
   private static final Set<String> SOURCE_NVD_DOMAINS = ImmutableSet.of("cve.mitre.org", "nvd.nist.gov", "cve.org");
 
   private static final String SOURCE_OSV_DOMAIN = "osv.dev";
@@ -96,18 +107,25 @@ public final class SbomSpdxUtils
     // no-op
   }
 
+  private static String extractSpdxId(String objectUri, String docUri) {
+    if (objectUri.startsWith(docUri + "#")) {
+      return objectUri.substring(docUri.length() + 1);
+    }
+    return objectUri;
+  }
+
   public static SpdxDocument parseContentNoValidation(String content, SbomFormat sbomFormat) {
     return parseContentStreamNoValidation(IOUtils.toInputStream(content, StandardCharsets.UTF_8), sbomFormat);
   }
 
   public static SpdxDocument parseContentStreamNoValidation(InputStream is, SbomFormat sbomFormat) {
     Format format = sbomFormat == SbomFormat.JSON ? Format.JSON : Format.XML;
-    DefaultModelStore.reset();
-    IModelStore baseStore = new InMemSpdxStore();
 
-    try (MultiFormatStore multiFormatStore = new MultiFormatStore(baseStore, format, Verbose.COMPACT)) {
-      return new SpdxDocument(multiFormatStore, multiFormatStore.deSerialize(is, true),
-          DefaultModelStore.getDefaultCopyManager(), true);
+    try {
+      IModelStore baseStore = new InMemSpdxStore();
+      try (MultiFormatStore multiFormatStore = new MultiFormatStore(baseStore, format, Verbose.COMPACT)) {
+        return (SpdxDocument) multiFormatStore.deSerialize(is, true);
+      }
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -187,9 +205,21 @@ public final class SbomSpdxUtils
 
   public static List<SpdxPackage> getAllPackages(SpdxDocument document) throws InvalidSPDXAnalysisException {
     if (document != null) {
-      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri()).collect(Collectors.toList());
+      IModelStore store = document.getModelStore();
+      String docUri = document.getDocumentUri();
+      return store.getAllItems(docUri, SpdxConstantsCompatV2.CLASS_SPDX_PACKAGE)
+          .map(tv -> {
+            try {
+              return new SpdxPackage(store, docUri, extractSpdxId(tv.getObjectUri(), docUri),
+                  document.getCopyManager(), false);
+            }
+            catch (InvalidSPDXAnalysisException e) {
+              throw new RuntimeException(e);
+            }
+          })
+          .collect(Collectors.toList());
     }
-    return null;
+    return Collections.emptyList();
   }
 
   public static SpdxPackage getPackageById(
@@ -197,9 +227,19 @@ public final class SbomSpdxUtils
       String packageId) throws InvalidSPDXAnalysisException
   {
     if (document != null) {
-      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri())
-          .filter(it -> it.getId()
-              .equals(packageId))
+      IModelStore store = document.getModelStore();
+      String docUri = document.getDocumentUri();
+      return store.getAllItems(docUri, SpdxConstantsCompatV2.CLASS_SPDX_PACKAGE)
+          .map(tv -> {
+            try {
+              return new SpdxPackage(store, docUri, extractSpdxId(tv.getObjectUri(), docUri),
+                  document.getCopyManager(), false);
+            }
+            catch (InvalidSPDXAnalysisException e) {
+              throw new RuntimeException(e);
+            }
+          })
+          .filter(pkg -> pkg.getId().equals(packageId))
           .findAny()
           .orElse(null);
     }
@@ -273,7 +313,7 @@ public final class SbomSpdxUtils
       }
       return vulnerabilities;
     }
-    return null;
+    return Collections.emptyList();
   }
 
   public static Pair<String, String> getRefIdAndSourceForVulnerability(

@@ -20,6 +20,7 @@ import jakarta.inject.Named;
 
 import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -33,7 +34,6 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,32 +63,32 @@ import org.cyclonedx.model.Variants;
 import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.ModelCopyManager;
-import org.spdx.library.SpdxConstants;
-import org.spdx.library.model.Checksum;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.ReferenceType;
-import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxElement;
-import org.spdx.library.model.SpdxFile;
-import org.spdx.library.model.SpdxModelFactory;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
-import org.spdx.library.model.enumerations.ChecksumAlgorithm;
-import org.spdx.library.model.enumerations.FileType;
-import org.spdx.library.model.enumerations.Purpose;
-import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.enumerations.RelationshipType;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.ConjunctiveLicenseSet;
-import org.spdx.library.model.license.ExtractedLicenseInfo;
-import org.spdx.library.model.license.InvalidLicenseStringException;
-import org.spdx.library.model.license.LicenseInfoFactory;
-import org.spdx.library.model.license.ListedLicenses;
-import org.spdx.library.model.license.SpdxNoAssertionLicense;
-import org.spdx.library.model.license.SpdxNoneLicense;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.core.IModelCopyManager;
+import org.spdx.library.model.v2.SpdxConstantsCompatV2;
+import org.spdx.library.model.v2.Checksum;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.ReferenceType;
+import org.spdx.library.model.v2.Relationship;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxElement;
+import org.spdx.library.model.v2.SpdxFile;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.SpdxPackage.SpdxPackageBuilder;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.FileType;
+import org.spdx.library.model.v2.enumerations.Purpose;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.ConjunctiveLicenseSet;
+import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.library.model.v2.license.InvalidLicenseStringException;
+import org.spdx.core.DefaultStoreNotInitializedException;
+import org.spdx.library.LicenseInfoFactory;
+import org.spdx.library.ListedLicenses;
+import org.spdx.library.model.v2.license.SpdxNoAssertionLicense;
+import org.spdx.library.model.v2.license.SpdxNoneLicense;
 import org.spdx.library.referencetype.ListedReferenceTypes;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.IModelStore.IdType;
@@ -219,7 +219,7 @@ public class CycloneDxToSpdxExporter
     try {
       String documentUri = getBillOfMaterialsPath();
       // map CycloneDx contents to SPDX contents
-      SpdxDocument newDocument = SpdxModelFactory.createSpdxDocument(spdxModelStore, documentUri, copyManager);
+      SpdxDocument newDocument = new SpdxDocument(spdxModelStore, documentUri, copyManager, true);
       setMetadata(newDocument);
       setComponents(baseBom, newDocument);
       setDescribes(baseBom, newDocument);
@@ -388,11 +388,12 @@ public class CycloneDxToSpdxExporter
     SpdxElement element;
     String elementId = bomRefToSpdxId(component.getBomRef());
     if (elementId == null) {
-      elementId = newDocument.getModelStore().getNextId(IdType.SpdxId, newDocument.getDocumentUri());
+      elementId = newDocument.getModelStore().getNextId(IdType.SpdxId);
     }
 
     if (hasComponentRefs) {
-      spdxIdsToComponentRefs.put(elementId, SbomIdentityUtils.getComponentRef(component));
+      String componentRef = SbomIdentityUtils.getComponentRef(component);
+      spdxIdsToComponentRefs.put(elementId, componentRef);
     }
 
     String name = component.getName();
@@ -420,7 +421,7 @@ public class CycloneDxToSpdxExporter
     }
     String copyright = component.getCopyright();
     if (copyright == null) {
-      copyright = SpdxConstants.NOASSERTION_VALUE;
+      copyright = SpdxConstantsCompatV2.NOASSERTION_VALUE;
     }
 
     if (Type.FILE.equals(componentType) && !containsPackageOnlyProperties(component)) {
@@ -436,7 +437,7 @@ public class CycloneDxToSpdxExporter
               .setFilesAnalyzed(false);
 
       // Primary purpose is not supported by SPDX 2.2
-      if (!ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.get(org.spdx.library.Version.TWO_POINT_TWO_VERSION)
+      if (!SbomExportParams.ExportSpecification.SPDX_22.getVersion()
           .equals(exportParams.getExportSpecification().getVersion()))
       {
         packageBuilder.setPrimaryPurpose(COMPONENT_TYPE_TO_PURPOSE.get(componentType));
@@ -525,7 +526,7 @@ public class CycloneDxToSpdxExporter
       setExternalReferences(externalReferences, spdxPackage);
     }
     if (!spdxPackage.getDownloadLocation().isPresent()) {
-      spdxPackage.setDownloadLocation(SpdxConstants.NOASSERTION_VALUE);
+      spdxPackage.setDownloadLocation(SpdxConstantsCompatV2.NOASSERTION_VALUE);
     }
     OrganizationalEntity supplier = component.getSupplier();
     if (supplier != null && !supplier.getName().isEmpty()) {
@@ -732,10 +733,10 @@ public class CycloneDxToSpdxExporter
       Expression expression = licenseChoice.getExpression();
       if (expression != null && StringUtils.isNotEmpty(expression.getValue())) {
         try {
-          retval.add(LicenseInfoFactory.parseSPDXLicenseString(expression.getValue(),
+          retval.add(LicenseInfoFactory.parseSPDXLicenseStringCompatV2(expression.getValue(),
               parentElement.getModelStore(), parentElement.getDocumentUri(), parentElement.getCopyManager()));
         }
-        catch (InvalidLicenseStringException ex) {
+        catch (InvalidLicenseStringException | DefaultStoreNotInitializedException ex) {
           log.debug("Invalid license expression '" + expression + "'");
         }
       }
@@ -759,7 +760,7 @@ public class CycloneDxToSpdxExporter
       License cdxLicense,
       IModelStore modelStore,
       String documentUri,
-      ModelCopyManager copyManager) throws InvalidSPDXAnalysisException
+      IModelCopyManager copyManager) throws InvalidSPDXAnalysisException
   {
     String id = cdxLicense.getId();
     if (id == null) {
@@ -770,7 +771,7 @@ public class CycloneDxToSpdxExporter
         .isSpdxListedLicenseId(id))
     {
       return ListedLicenses.getListedLicenses()
-          .getListedLicenseById(id);
+          .getListedLicenseByIdCompatV2(id);
     }
     if (!cdxLicenseIdToSpdxLicense.containsKey(id)) {
       // create the extracted license info
@@ -798,7 +799,7 @@ public class CycloneDxToSpdxExporter
   }
 
   private String cdxLicenseIdToSpdxLicenseId(String id) {
-    return SpdxConstants.NON_STD_LICENSE_ID_PRENUM + id.replaceAll(INVALID_REF_REGEX, "-");
+    return SpdxConstantsCompatV2.NON_STD_LICENSE_ID_PRENUM + id.replaceAll(INVALID_REF_REGEX, "-");
   }
 
   private AnyLicenseInfo listToLicenseSet(
@@ -815,7 +816,7 @@ public class CycloneDxToSpdxExporter
       ConjunctiveLicenseSet retval = new ConjunctiveLicenseSet(parentElement.getModelStore(),
           parentElement.getDocumentUri(),
           parentElement.getModelStore()
-              .getNextId(IdType.Anonymous, parentElement.getDocumentUri()),
+              .getNextId(IdType.Anonymous),
           parentElement.getCopyManager(), true);
       retval.getMembers()
           .addAll(licenses);
@@ -827,7 +828,7 @@ public class CycloneDxToSpdxExporter
     if (Objects.isNull(bomRef)) {
       return null;
     }
-    return SpdxConstants.SPDX_ELEMENT_REF_PRENUM + bomRef.replaceAll(INVALID_REF_REGEX, "-");
+    return SpdxConstantsCompatV2.SPDX_ELEMENT_REF_PRENUM + bomRef.replaceAll(INVALID_REF_REGEX, "-");
   }
 
   private void setExternalReferences(

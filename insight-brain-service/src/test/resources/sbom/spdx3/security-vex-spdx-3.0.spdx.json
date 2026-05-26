@@ -1,0 +1,128 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/security-vex-spdx3",
+      "creationInfo": "_:creationInfo1",
+      "name": "Security VEX SPDX 3.0 Document",
+      "element": [
+        "https://example.org/vex-pkg-jackson",
+        "https://example.org/vex-pkg-log4j",
+        "https://example.org/vuln-cve-2024-1001",
+        "https://example.org/vuln-cve-2024-1002"
+      ],
+      "rootElement": [
+        "https://example.org/vex-pkg-jackson"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/vex-pkg-jackson",
+      "creationInfo": "_:creationInfo1",
+      "name": "jackson-databind",
+      "software_packageVersion": "2.16.1",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.16.1"
+        }
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/vex-pkg-log4j",
+      "creationInfo": "_:creationInfo1",
+      "name": "log4j-core",
+      "software_packageVersion": "2.17.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/org.apache.logging.log4j/log4j-core@2.17.0"
+        }
+      ]
+    },
+    {
+      "type": "security_Vulnerability",
+      "spdxId": "https://example.org/vuln-cve-2024-1001",
+      "creationInfo": "_:creationInfo1",
+      "name": "CVE-2024-1001",
+      "description": "Remote code execution in jackson-databind via polymorphic deserialization",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "cve",
+          "identifier": "CVE-2024-1001"
+        }
+      ]
+    },
+    {
+      "type": "security_Vulnerability",
+      "spdxId": "https://example.org/vuln-cve-2024-1002",
+      "creationInfo": "_:creationInfo1",
+      "name": "CVE-2024-1002",
+      "description": "Denial of service in log4j-core via crafted log message",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "cve",
+          "identifier": "CVE-2024-1002"
+        }
+      ]
+    },
+    {
+      "type": "security_VexAffectedVulnAssessmentRelationship",
+      "spdxId": "https://example.org/vex-affected-1",
+      "creationInfo": "_:creationInfo1",
+      "security_assessedElement": "https://example.org/vex-pkg-jackson",
+      "from": "https://example.org/vuln-cve-2024-1001",
+      "to": ["https://example.org/vex-pkg-jackson"],
+      "relationshipType": "affects",
+      "security_actionStatement": "Upgrade to jackson-databind 2.17.0 or later"
+    },
+    {
+      "type": "security_VexNotAffectedVulnAssessmentRelationship",
+      "spdxId": "https://example.org/vex-not-affected-1",
+      "creationInfo": "_:creationInfo1",
+      "security_assessedElement": "https://example.org/vex-pkg-log4j",
+      "from": "https://example.org/vuln-cve-2024-1001",
+      "to": ["https://example.org/vex-pkg-log4j"],
+      "relationshipType": "doesNotAffect",
+      "security_justificationType": "componentNotPresent",
+      "security_impactStatement": "Log4j does not use jackson-databind polymorphic deserialization"
+    },
+    {
+      "type": "security_VexUnderInvestigationVulnAssessmentRelationship",
+      "spdxId": "https://example.org/vex-under-investigation-1",
+      "creationInfo": "_:creationInfo1",
+      "security_assessedElement": "https://example.org/vex-pkg-log4j",
+      "from": "https://example.org/vuln-cve-2024-1002",
+      "to": ["https://example.org/vex-pkg-log4j"],
+      "relationshipType": "underInvestigationFor"
+    },
+    {
+      "type": "security_VexFixedVulnAssessmentRelationship",
+      "spdxId": "https://example.org/vex-fixed-1",
+      "creationInfo": "_:creationInfo1",
+      "security_assessedElement": "https://example.org/vex-pkg-jackson",
+      "from": "https://example.org/vuln-cve-2024-1002",
+      "to": ["https://example.org/vex-pkg-jackson"],
+      "relationshipType": "fixedIn"
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-04-30T00:00:00Z",
+      "createdBy": ["https://example.org/tool-sonatype"]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    }
+  ]
+}

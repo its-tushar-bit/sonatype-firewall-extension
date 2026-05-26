@@ -48,6 +48,18 @@ public class SbomTestHelper
   public static final String[] SPDX_JSON_IGNORE_FIELDS =
       {"creationInfo.created", "documentNamespace", "creationInfo.creators"};
 
+  public static final String[] SPDX3_JSON_IGNORE_FIELDS = {
+    "@graph[*].creationInfo.created",
+    "@graph[*].creationInfo.createdBy",
+    "@graph[*].created",
+    "@graph[*].createdBy",
+    "@graph[*].createdBy[*]",
+    "@graph[*].spdxId",
+    "@graph[*].rootElement",
+    "@graph[*].from",
+    "@graph[*].to"
+  };
+
   public static final String[] CYCLONEDX_JSON_IGNORE_FIELDS = {
     "metadata.timestamp", "metadata.tools.components[0].version",
     "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",

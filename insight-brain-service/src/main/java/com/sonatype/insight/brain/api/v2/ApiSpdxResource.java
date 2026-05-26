@@ -93,7 +93,7 @@ public class ApiSpdxResource
       @Parameter(description = "Set to `true` to generate an equivalent CycloneDx SBOM. Both SBOMs will be combined " +
           "as a tar.gz archive.") @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
       @Parameter(
-          description = "Enter the desired SPDX version, possible values are 2.2|2.3") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
+          description = "Enter the desired SPDX version, possible values are 2.2|2.3|3.0 (3.0 only supports JSON format)") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
   {
     return apiSpdxService.getLatestForStage(applicationId, stageId, format, generateCycloneDx, spdxVersion);
   }
@@ -131,7 +131,7 @@ public class ApiSpdxResource
       @Parameter(description = "Set to `true` to generate an equivalent CycloneDx SBOM. Both SBOMs will be combined " +
           "as a tar.gz archive.") @DefaultValue("false") @QueryParam("generateCycloneDx") boolean generateCycloneDx,
       @Parameter(
-          description = "Enter the desired SPDX version, possible values are 2.2|2.3") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
+          description = "Enter the desired SPDX version, possible values are 2.2|2.3|3.0 (3.0 only supports JSON format)") @DefaultValue(DEFAULT_SPDX_VERSION) @QueryParam("spdxVersion") String spdxVersion)
   {
     return apiSpdxService.getByScanId(applicationId, scanId, format, generateCycloneDx, spdxVersion);
   }

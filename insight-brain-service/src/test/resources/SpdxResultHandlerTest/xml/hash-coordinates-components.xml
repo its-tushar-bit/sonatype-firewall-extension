@@ -11,7 +11,9 @@
   <documentNamespace>test</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-test</SPDXID>
+    <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
     <name>tomcat-catalina</name>
     <versionInfo>9.0.14</versionInfo>
     <checksums>

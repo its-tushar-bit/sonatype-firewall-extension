@@ -8,15 +8,17 @@ package com.sonatype.insight.brain.sbom.export;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.AbstractAssert;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
 import org.thymeleaf.util.StringUtils;
 
 import static org.xmlunit.assertj.error.ShouldNotHaveThrown.shouldNotHaveThrown;
@@ -32,7 +34,7 @@ public class SpdxPackageAssert
     isNotNull();
     try {
       AnyLicenseInfo license = actual.getLicenseConcluded();
-      if (!StringUtils.equals(license, expectedLicenseId)) {
+      if (!licenseExpressionsEqual(license.toString(), expectedLicenseId)) {
         failWithMessage("Expected concluded license to be %s but  was %s", expectedLicenseId, license);
       }
       return this;
@@ -46,7 +48,7 @@ public class SpdxPackageAssert
     isNotNull();
     try {
       AnyLicenseInfo license = actual.getLicenseDeclared();
-      if (!StringUtils.equals(license, expectedLicenseId)) {
+      if (!licenseExpressionsEqual(license.toString(), expectedLicenseId)) {
         failWithMessage("Expected declared license to be %s but  was %s", expectedLicenseId, license);
       }
       return this;
@@ -54,6 +56,26 @@ public class SpdxPackageAssert
     catch (InvalidSPDXAnalysisException e) {
       throw assertionError(shouldNotHaveThrown(e));
     }
+  }
+
+  private static boolean licenseExpressionsEqual(String actual, String expected) {
+    if (StringUtils.equals(actual, expected)) {
+      return true;
+    }
+    Set<String> actualMembers = parseLicenseMembers(actual);
+    Set<String> expectedMembers = parseLicenseMembers(expected);
+    return actualMembers.equals(expectedMembers);
+  }
+
+  private static Set<String> parseLicenseMembers(String expression) {
+    if (expression == null) {
+      return Set.of();
+    }
+    String trimmed = expression.trim();
+    if (trimmed.startsWith("(") && trimmed.endsWith(")")) {
+      trimmed = trimmed.substring(1, trimmed.length() - 1);
+    }
+    return new TreeSet<>(Arrays.asList(trimmed.split(" AND ")));
   }
 
   public SpdxPackageAssert hasVulnerabilityCount(Integer expected) {

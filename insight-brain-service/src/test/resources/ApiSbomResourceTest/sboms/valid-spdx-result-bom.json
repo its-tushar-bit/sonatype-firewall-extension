@@ -9,9 +9,23 @@
   "dataLicense" : "CC0-1.0",
   "documentNamespace" : "http://localhost:10074/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-ad4962ce995442ce9c72d8ab682904b8/bom/4144de3f14aa4b5b8e39",
   "packages" : [ {
+    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1",
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "sonatype:iq_application_SBOMTests",
+    "versionInfo" : "4daddd64a281411cb9ba2e6eabe12fa1"
+  }, {
     "SPDXID" : "SPDXRef-maven-apache-axis-1.0",
-    "attributionTexts" : [ "Evidence license text for: (Apache-2.0 AND MIT)" ],
-    "copyrightText" : "",
+    "attributionTexts" : [ "Evidence license text for: (MIT AND Apache-2.0)" ],
+    "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
       "referenceCategory" : "PACKAGE-MANAGER",
@@ -29,24 +43,10 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "(Apache-2.0 AND MIT)",
+    "licenseConcluded" : "(MIT AND Apache-2.0)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "apache:axis",
     "versionInfo" : "1.0"
-  }, {
-    "SPDXID" : "SPDXRef-generic-sonatype-iq-application-SBOMTests-4daddd64a281411cb9ba2e6eabe12fa1",
-    "copyrightText" : "",
-    "downloadLocation" : "NOASSERTION",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "NOASSERTION",
-    "name" : "sonatype:iq_application_SBOMTests",
-    "versionInfo" : "4daddd64a281411cb9ba2e6eabe12fa1"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",

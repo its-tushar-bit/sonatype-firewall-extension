@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.SbomTaxonomy;
+
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
@@ -79,17 +80,17 @@ import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.metadata.ToolInformation;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.LicenseInfoFactory;
-import org.spdx.library.model.license.ListedLicenses;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.LicenseInfoFactory;
+import org.spdx.library.ListedLicenses;
 
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.addOrUpdateBomElementProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseForResolvedLicense;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxLegacyPropertyIfPresent;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxVulnerabilityFromDbData;
-import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
+import static org.spdx.library.model.v2.SpdxConstantsCompatV2.NON_STD_LICENSE_ID_PRENUM;
 
 public abstract class AbstractCycloneDxExporter
     extends AbstractSbomExporter
@@ -466,7 +467,7 @@ public abstract class AbstractCycloneDxExporter
   protected List<License> parseLicenseChoiceExpression(String expression, String purl) {
     List<License> licenses = new ArrayList<>();
     try {
-      AnyLicenseInfo anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression);
+      AnyLicenseInfo anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseStringCompatV2(expression);
       Map<String, String> processedLicenses = new HashMap<>();
       spdxLicenseExpressionUtil.parseLicenses(anyLicenseInfo, processedLicenses, purl);
       for (String licenseId : processedLicenses.keySet()) {

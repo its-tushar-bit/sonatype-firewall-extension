@@ -14,9 +14,10 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -45,6 +46,8 @@ public class ThirdPartyResultHandlerFactory
 
   protected final ProductLicense productLicense;
 
+  protected final Spdx3VersionHandler spdx3VersionHandler;
+
   @Inject
   public ThirdPartyResultHandlerFactory(
       final ThirdPartyFileDAO thirdPartyFileDAO,
@@ -56,7 +59,8 @@ public class ThirdPartyResultHandlerFactory
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
       final TelemetrySender telemetrySender,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final Spdx3VersionHandler spdx3VersionHandler)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.fileCoordinatePersister = fileCoordinatePersister;
@@ -68,6 +72,7 @@ public class ThirdPartyResultHandlerFactory
     this.telemetryUtils = telemetryUtils;
     this.telemetrySender = telemetrySender;
     this.productLicense = productLicense;
+    this.spdx3VersionHandler = spdx3VersionHandler;
   }
 
   public ThirdPartyScanResultHandler newHandler(
@@ -86,7 +91,7 @@ public class ThirdPartyResultHandlerFactory
     else if (ItemContentType.SPDX.equals(itemContentType)) {
       return new SpdxResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
-          telemetrySender, thirdPartyScanContext);
+          telemetrySender, thirdPartyScanContext, spdx3VersionHandler);
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)
         || ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType))

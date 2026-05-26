@@ -17,8 +17,9 @@ import java.util.UUID;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -53,13 +54,13 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.vulnerability.Vulnerability;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.enumerations.ChecksumAlgorithm;
-import org.spdx.library.model.enumerations.RelationshipType;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.Relationship;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getChecksum;
 import static com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils.getCpe;
@@ -171,7 +172,7 @@ public class SpdxToCycloneDxExporter
   private void setComponents(List<SpdxPackage> packages, String rootPackageId, final Bom target) {
     for (SpdxPackage spdxPackage : packages) {
       Component newComponent = createCdxBomComponentFromSpdxPackage(spdxPackage, rootPackageId);
-      componentRefToComponent.put(SbomIdentityUtils.getComponentRef(spdxPackage), newComponent);
+      componentRefToComponent.put(DigestUtils.sha1Hex(spdxPackage.getId()), newComponent);
       target.addComponent(newComponent);
     }
   }

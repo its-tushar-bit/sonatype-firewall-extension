@@ -10,7 +10,7 @@
   "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-e55549bbb59141c1a192ec75aafb6d7d/bom/1f675c2374244a4ab2d1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-435d9efa-2c0c-4078-91fb-7fdec24fcad0",
-    "attributionTexts" : [ "Evidence license text for: (Apache-2.0 AND MIT)" ],
+    "attributionTexts" : [ "Evidence license text for: (MIT AND Apache-2.0)" ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
@@ -29,7 +29,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "(Apache-2.0 AND MIT)",
+    "licenseConcluded" : "(MIT AND Apache-2.0)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "apache:axis",
     "primaryPackagePurpose" : "LIBRARY",

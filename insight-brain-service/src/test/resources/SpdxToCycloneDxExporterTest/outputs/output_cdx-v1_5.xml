@@ -49,10 +49,10 @@
       <version>1.3</version>
       <licenses>
         <license bom-ref="d0ac1b28-f10e-41c0-a093-25ddd406e43d">
-          <id>BSD-2-Clause</id>
+          <id>BSD-3-Clause</id>
         </license>
         <license bom-ref="b8bb3f73-fa3e-46d7-ab89-80d93f2c3187">
-          <id>BSD-3-Clause</id>
+          <id>BSD-2-Clause</id>
         </license>
       </licenses>
       <purl>pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar</purl>

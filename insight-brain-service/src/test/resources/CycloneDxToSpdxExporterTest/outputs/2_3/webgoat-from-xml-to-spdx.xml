@@ -21,7 +21,7 @@
   <documentNamespace>nullui/links/sbomManager/management/view/application/webgoat/bom/v1</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003</SPDXID>
-    <attributionTexts>Evidence license text for: (Apache-1.1 AND MIT AND Aladdin)</attributionTexts>
+    <attributionTexts>Evidence license text for: (MIT AND Apache-1.1 AND Aladdin)</attributionTexts>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
@@ -48,7 +48,7 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>(Apache-1.1 AND MIT AND Aladdin)</licenseConcluded>
+    <licenseConcluded>(MIT AND Apache-1.1 AND Aladdin)</licenseConcluded>
     <licenseDeclared>Apache-1.1</licenseDeclared>
     <name>log4j:log4j</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
@@ -87,7 +87,7 @@
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
-    <licenseDeclared>(Apache-1.1 AND LicenseRef-Not-Declared)</licenseDeclared>
+    <licenseDeclared>(LicenseRef-Not-Declared AND Apache-1.1)</licenseDeclared>
     <name>commons-digester:commons-digester</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
     <versionInfo>1.4.1</versionInfo>
@@ -108,7 +108,7 @@
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
-    <licenseDeclared>(Apache-1.1 AND LicenseRef-Not-Declared)</licenseDeclared>
+    <licenseDeclared>(LicenseRef-Not-Declared AND Apache-1.1)</licenseDeclared>
     <name>commons-discovery:commons-discovery</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
     <versionInfo>0.2</versionInfo>

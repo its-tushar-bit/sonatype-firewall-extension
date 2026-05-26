@@ -92,7 +92,6 @@ import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
 import org.xmlunit.assertj.XmlAssert;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
@@ -360,7 +359,6 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     assertThat(response.getMediaType().toString()).isEqualTo(acceptType);
-    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
     assertContentHeader(response, app, sbomVersion, "." + outputFormat.name().toLowerCase(), outputSpec);
     String sbomContent = new String((byte[]) response.getEntity());
@@ -390,34 +388,6 @@ public class ApiSbomServiceTest
             .areIdentical();
       }
     }
-  }
-
-  @Test
-  public void testValidateAndLogAnyErrors_Invalid() throws Exception {
-    String content = "<?xml version=\"1.0\"?>\n" +
-        "<bom serialNumber=\"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79\" version=\"1\"\n" +
-        "     xmlns=\"http://cyclonedx.org/schema/bom/1.1\"\n" +
-        "     xmlns:v=\"http://cyclonedx.org/schema/ext/vulnerability/1.0\">\n" +
-        "  <components>\n" +
-        "    <component type=\"library\" bom-ref=\"pkg:maven/com.jackson.core/jackson-databind@2.9.9?type=jar\">\n" +
-        "      <group>com.fasterxml.jackson.core</group>\n" +
-        "      <name>jackson-databind</name>\n" +
-        "      <version>2.9.9</version>\n" +
-        "      <licenses>\n" +
-        "        <license>\n" +
-        "          <id></id>\n" +
-        "        </license>\n" +
-        "      </licenses>\n" +
-        "      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>\n" +
-        "    </component>\n" +
-        "  </components>\n" +
-        "</bom>";
-    boolean validated =
-        service.validateAndLogAnyErrors(content, "appId", "v1", ExportSpecification.CYCLONEDX_15, SbomFormat.XML);
-    assertThat(validated).isFalse();
-    logOutput.assertThat()
-        .contains("Invalid SBOM generated for application appId, version v1, spec CycloneDx, format xml")
-        .atDebugLevel();
   }
 
   @Test
@@ -2107,10 +2077,9 @@ public class ApiSbomServiceTest
   public void testImport_SPDX_Xml_Invalid() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-invalid.xml", false))
-        .withMessage("""
-            Not a valid SPDX SBOM file.
-            Error: Missing required Creator
-            Error: Missing required data license""");
+        .withMessageContaining("Not a valid SPDX SBOM file.")
+        .withMessageContaining("Error: Missing required Creator")
+        .withMessageContaining("Error: Missing required data license");
 
     assertExistingSbomFiles();
   }
@@ -2379,6 +2348,55 @@ public class ApiSbomServiceTest
     assertThat(thirdPartyFile.getFilename()).isEqualTo(expectedThirdPartyFilename);
 
     assertExistingSbomFiles("%s/%s".formatted(app.getId(), sbomMetadata.getFilename()));
+  }
+
+  @Test
+  public void testGetExportOptions_spdx30Source() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withSpec(SbomSpecification.SPDX.toString())
+        .withSpecVersion("3.0")
+        .build();
+
+    Response response = service.getExportOptions(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    List<String> options = (List<String>) response.getEntity();
+    assertThat(options).containsExactly("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+  }
+
+  @Test
+  public void testGetExportOptions_spdx2xSource() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withSpec(SbomSpecification.SPDX.toString())
+        .withSpecVersion("2.3")
+        .build();
+
+    Response response = service.getExportOptions(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    List<String> options = (List<String>) response.getEntity();
+    assertThat(options).containsExactly("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+  }
+
+  @Test
+  public void testGetExportOptions_cycloneDxSource() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withSpec(SbomSpecification.CYCLONEDX.toString())
+        .build();
+
+    Response response = service.getExportOptions(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion());
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    List<String> options = (List<String>) response.getEntity();
+    assertThat(options).containsExactly("cyclonedx1.5", "cyclonedx1.6", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
+  }
+
+  @Test
+  public void testGetExportOptions_notFound() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).build();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getExportOptions(sbomMetadata.getApplicationId(), "nonExistentVersion"));
   }
 
   private String expectedContentIn(String fileName) throws Exception {

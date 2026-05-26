@@ -85,7 +85,6 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +113,14 @@ public class ApiSbomService
 
   public static final String STATE_PARAM = "state";
 
-  public static final String SBOM_VALIDATED_HEADER = "X-SBOM-Validated";
+  private static final List<String> EXPORT_OPTIONS_SPDX3_SOURCE =
+      List.of("spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+
+  private static final List<String> EXPORT_OPTIONS_SPDX2_SOURCE =
+      List.of("spdx2.2", "spdx2.3", "spdx3.0", "cyclonedx1.5", "cyclonedx1.6", "pdf");
+
+  private static final List<String> EXPORT_OPTIONS_CDX_SOURCE =
+      List.of("cyclonedx1.5", "cyclonedx1.6", "spdx2.2", "spdx2.3", "spdx3.0", "pdf");
 
   private final ThirdPartySbomMetadataDAO dao;
 
@@ -251,12 +257,6 @@ public class ApiSbomService
       final String type)
   {
     String content = sbomExporterProvider.get(sbomExportParams).export();
-    boolean validity = validateAndLogAnyErrors(
-        content,
-        applicationId,
-        sbomVersion,
-        sbomExportParams.getExportSpecification(),
-        sbomExportParams.getTargetFormat());
     content = content != null ? content : "";
     String fileName = getExportFileName(
         applicationId,
@@ -265,7 +265,6 @@ public class ApiSbomService
         sbomExportParams.getExportSpecification().getSpecification(),
         null);
     return Response.ok(content.getBytes(StandardCharsets.UTF_8), type)
-        .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
         .build();
   }
@@ -327,30 +326,6 @@ public class ApiSbomService
         .orElseThrow(exceptionSupplier);
   }
 
-  @VisibleForTesting
-  boolean validateAndLogAnyErrors(
-      String content,
-      final String applicationId,
-      final String version,
-      ExportSpecification exportSpec,
-      SbomFormat sbomFormat)
-  {
-    try {
-      if (SbomSpecification.CYCLONEDX.equals(exportSpec.getSpecification())) {
-        ThirdPartyUtils.parseAndValidateCycloneDx(content, sbomFormat);
-      }
-      else if (SbomSpecification.SPDX.equals(exportSpec.getSpecification())) {
-        ThirdPartyUtils.parseAndValidateSpdx(content, sbomFormat);
-      }
-      return true;
-    }
-    catch (Exception e) {
-      log.debug("Invalid SBOM generated for application {}, version {}, spec {}, format {}", applicationId, version,
-          exportSpec.getSpecification(), sbomFormat, e);
-      return false;
-    }
-  }
-
   private void validateRequestParams(final String targetSpecification, final String acceptMediaType) {
     if (ExportSpecification.getSpecificationForRequest(targetSpecification) == null) {
       throw new BadRequestException(
@@ -360,6 +335,26 @@ public class ApiSbomService
       throw new BadRequestException(
           String.format("requested output format %s not supported", acceptMediaType));
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public Response getExportOptions(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String version)
+  {
+    ThirdPartySbomMetadata sbomMetadata = findSbomMetadataRecord(applicationId, version);
+    String sourceSpec = sbomMetadata.getSpec();
+    String sourceVersion = sbomMetadata.getSpecVersion();
+
+    List<String> options;
+    if (SbomSpecification.SPDX.toString().equals(sourceSpec)) {
+      options = "3.0".equals(sourceVersion) ? EXPORT_OPTIONS_SPDX3_SOURCE : EXPORT_OPTIONS_SPDX2_SOURCE;
+    }
+    else {
+      options = EXPORT_OPTIONS_CDX_SOURCE;
+    }
+
+    return Response.ok(options).build();
   }
 
   private Response getOriginalSbom(final String applicationId, final String version) {

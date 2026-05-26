@@ -157,7 +157,7 @@ public class ApiSbomResource
           description = "The state of the sbom version. Allowed values [original|current]. default = current") @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
 
       @Parameter(description = "Target specification of the sbom. Allowed values " +
-          "[cyclonedx1.6|cyclonedx1.5|spdx2.2|spdx2.3]. default = cyclonedx1.6") @DefaultValue(DEFAULT_SBOM_SPECIFICATION) @QueryParam("specification") String targetSpecification,
+          "[cyclonedx1.6|cyclonedx1.5|spdx2.2|spdx2.3|spdx3.0]. default = cyclonedx1.6") @DefaultValue(DEFAULT_SBOM_SPECIFICATION) @QueryParam("specification") String targetSpecification,
 
       @Parameter(in = ParameterIn.HEADER, name = "Accept", description = "Output format(json/xml) of the sbom. " +
           "Changing the output format only applicable when downloading the current form of the SBOM. " +
@@ -167,6 +167,27 @@ public class ApiSbomResource
           "Allowed values {'application/json'|'application/xml'}. default = null") @HeaderParam(HttpHeaders.ACCEPT) String acceptMediaType)
   {
     return apiSbomService.getSbomVersion(applicationId, version, sbomState, targetSpecification, acceptMediaType);
+  }
+
+  @Operation(summary = "Gets available export options for an SBOM version",
+      description = "Returns the list of available export specifications based on the source SBOM's format and version",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "Available export options",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "404", description = "Supplied sbom version not found")
+      })
+  @GET
+  @Path(SBOM_VERSION_PATH + "/export-options")
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getExportOptions(
+      @Parameter(description = "The internal id of the application",
+          required = true) @PathParam("applicationId") String applicationId,
+      @Parameter(description = "URL Encoded version value of the sbom",
+          required = true) @PathParam("version") String version)
+  {
+    return apiSbomService.getExportOptions(applicationId, version);
   }
 
   @Operation(summary = "Gets a paginated list of SBOMs for an application",

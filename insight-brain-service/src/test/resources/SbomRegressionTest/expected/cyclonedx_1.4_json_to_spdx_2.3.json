@@ -10,7 +10,7 @@
   "documentNamespace" : "http://localhost:10110/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-pkg-npm-acme-component-1.0.0",
-    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (LGPL-2.1-only AND Apache-2.0)", "Evidence license text for: (EPL-2.0)" ],
+    "attributionTexts" : [ "Copyright 2012 Google Inc. All Rights Reserved.", "Copyright (C) 2004,2005 Dave Brosius <dbrosius@users.sourceforge.net>", "Copyright (C) 2005 William Pugh", "Copyright (C) 2004,2005 University of Maryland", "Evidence license text for: (Apache-2.0 AND LGPL-2.1-only)", "Evidence license text for: (EPL-2.0)" ],
     "checksums" : [ {
       "algorithm" : "SHA256",
       "checksumValue" : "d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964"

@@ -1,0 +1,170 @@
+{
+  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+  "@graph": [
+    {
+      "type": "SpdxDocument",
+      "spdxId": "https://example.org/software-profile-spdx3",
+      "creationInfo": "_:creationInfo1",
+      "name": "Software Profile SPDX 3.0 Document",
+      "element": [
+        "https://example.org/root-app",
+        "https://example.org/pkg-commons-lang",
+        "https://example.org/pkg-guava",
+        "https://example.org/pkg-jackson-core",
+        "https://example.org/pkg-slf4j-api",
+        "https://example.org/pkg-logback-classic"
+      ],
+      "rootElement": [
+        "https://example.org/root-app"
+      ]
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/root-app",
+      "creationInfo": "_:creationInfo1",
+      "name": "my-application",
+      "software_packageVersion": "2.0.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.example/my-application@2.0.0"
+        }
+      ],
+      "software_declaredLicense": "Apache-2.0"
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/pkg-commons-lang",
+      "creationInfo": "_:creationInfo1",
+      "name": "commons-lang3",
+      "software_packageVersion": "3.14.0",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/org.apache.commons/commons-lang3@3.14.0"
+        },
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "cpe23",
+          "identifier": "cpe:2.3:a:apache:commons_lang:3.14.0:*:*:*:*:*:*:*"
+        }
+      ],
+      "software_declaredLicense": "Apache-2.0"
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/pkg-guava",
+      "creationInfo": "_:creationInfo1",
+      "name": "guava",
+      "software_packageVersion": "33.0.0-jre",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.google.guava/guava@33.0.0-jre"
+        }
+      ],
+      "software_declaredLicense": "Apache-2.0"
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/pkg-jackson-core",
+      "creationInfo": "_:creationInfo1",
+      "name": "jackson-core",
+      "software_packageVersion": "2.16.1",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.16.1"
+        }
+      ],
+      "software_declaredLicense": "Apache-2.0"
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/pkg-slf4j-api",
+      "creationInfo": "_:creationInfo1",
+      "name": "slf4j-api",
+      "software_packageVersion": "2.0.9",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/org.slf4j/slf4j-api@2.0.9"
+        }
+      ],
+      "software_declaredLicense": "MIT"
+    },
+    {
+      "type": "software_Package",
+      "spdxId": "https://example.org/pkg-logback-classic",
+      "creationInfo": "_:creationInfo1",
+      "name": "logback-classic",
+      "software_packageVersion": "1.4.14",
+      "externalIdentifier": [
+        {
+          "type": "ExternalIdentifier",
+          "externalIdentifierType": "packageUrl",
+          "identifier": "pkg:maven/ch.qos.logback/logback-classic@1.4.14"
+        }
+      ],
+      "software_declaredLicense": "EPL-1.0 OR LGPL-2.1-only"
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-commons",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/root-app",
+      "to": ["https://example.org/pkg-commons-lang"]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-guava",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/root-app",
+      "to": ["https://example.org/pkg-guava"]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-jackson",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/root-app",
+      "to": ["https://example.org/pkg-jackson-core"]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-app-to-slf4j",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/root-app",
+      "to": ["https://example.org/pkg-slf4j-api"]
+    },
+    {
+      "type": "Relationship",
+      "spdxId": "https://example.org/rel-slf4j-to-logback",
+      "creationInfo": "_:creationInfo1",
+      "relationshipType": "dependsOn",
+      "from": "https://example.org/pkg-slf4j-api",
+      "to": ["https://example.org/pkg-logback-classic"]
+    },
+    {
+      "@id": "_:creationInfo1",
+      "type": "CreationInfo",
+      "specVersion": "3.0.1",
+      "created": "2026-04-30T00:00:00Z",
+      "createdBy": ["https://example.org/tool-sonatype"]
+    },
+    {
+      "type": "Agent",
+      "spdxId": "https://example.org/tool-sonatype",
+      "creationInfo": "_:creationInfo1",
+      "name": "Sonatype Test"
+    }
+  ]
+}

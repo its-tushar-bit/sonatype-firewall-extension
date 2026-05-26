@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.model.SpdxDocument;
+import org.spdx.library.model.v2.SpdxDocument;
 
 public abstract class AbstractSbomExporter
     implements SbomExporter
@@ -128,7 +128,7 @@ public abstract class AbstractSbomExporter
         new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
         ByteArrayOutputStream out = new ByteArrayOutputStream())
     {
-      multiFormatStore.serialize(document.getDocumentUri(), out);
+      multiFormatStore.serialize(out);
       return out.toString(StandardCharsets.UTF_8);
     }
     catch (Exception e) {

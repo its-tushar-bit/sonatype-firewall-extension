@@ -45,8 +45,8 @@ import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.ElementSelector;
 import org.xmlunit.diff.ElementSelectors;
 
-import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.SPDX3_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.SPDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
@@ -196,6 +196,8 @@ public class SbomRegressionTest
       {"cyclonedx", "1.6", "xml", "spdx", "2.3", "json", ""},
       {"cyclonedx", "1.6", "json", "spdx", "2.3", "xml", ""},
       {"cyclonedx", "1.6", "json", "spdx", "2.3", "json", ""},
+      {"cyclonedx", "1.6", "json", "spdx", "3.0", "json", ""},
+      {"cyclonedx", "1.6", "xml", "spdx", "3.0", "json", ""},
     };
     return Arrays.asList(data);
   }
@@ -247,7 +249,6 @@ public class SbomRegressionTest
         .header(HttpHeaders.ACCEPT, getAcceptMediaType(exportSpecFormat))
         .get();
     assertResponseStatus(Status.OK.getStatusCode(), exportResponse);
-    assertThat(exportResponse.getHeader(SBOM_VALIDATED_HEADER)).isEqualTo("true");
     assertThat(exportResponse.getContentType()).isEqualTo("application/%s".formatted(exportSpecFormat));
 
     String sbomContent = new String(exportResponse.getBodyBytes());
@@ -311,11 +312,17 @@ public class SbomRegressionTest
     }
     else {
       ConfigurableJsonAssert asserter = assertThatJson(sbomContent);
-      asserter =
-          exportSpec.equals("spdx")
-              ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
-                  .withOptions(IGNORING_ARRAY_ORDER)
-              : asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
+      if (exportSpec.equals("spdx") && "3.0".equals(exportSpecVersion)) {
+        asserter = asserter.whenIgnoringPaths(SPDX3_JSON_IGNORE_FIELDS)
+            .withOptions(IGNORING_ARRAY_ORDER);
+      }
+      else if (exportSpec.equals("spdx")) {
+        asserter = asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+            .withOptions(IGNORING_ARRAY_ORDER);
+      }
+      else {
+        asserter = asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
+      }
       asserter.isEqualTo(expectedContent);
     }
   }

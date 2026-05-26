@@ -39,11 +39,17 @@ public class SbomExportParams
     CYCLONEDX_15("1.5", CYCLONEDX),
     SPDX_22("2.2", SPDX),
     SPDX_23("2.3", SPDX),
+    SPDX_30("3.0", SPDX),
     PDF("pdf", null);
 
     private static final Map<String, ExportSpecification> SUPPORTED_EXPORT_SPECIFICATIONS =
-        ImmutableMap.of("cyclonedx1.6", CYCLONEDX_16, "cyclonedx1.5", CYCLONEDX_15, "spdx2.2", SPDX_22, "spdx2.3",
-            SPDX_23);
+        ImmutableMap.<String, ExportSpecification>builder()
+            .put("cyclonedx1.6", CYCLONEDX_16)
+            .put("cyclonedx1.5", CYCLONEDX_15)
+            .put("spdx2.2", SPDX_22)
+            .put("spdx2.3", SPDX_23)
+            .put("spdx3.0", SPDX_30)
+            .build();
 
     private final String version;
 

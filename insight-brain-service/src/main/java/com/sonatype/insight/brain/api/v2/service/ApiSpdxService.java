@@ -49,6 +49,10 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler;
+import com.sonatype.insight.brain.sbom.spdx.SpdxGenerationContext;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -73,26 +77,29 @@ import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.SpdxConstants;
-import org.spdx.library.model.Checksum;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.ReferenceType;
-import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxCreatorInformation;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxElement;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
-import org.spdx.library.model.enumerations.ChecksumAlgorithm;
-import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.enumerations.RelationshipType;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.ExtractedLicenseInfo;
-import org.spdx.library.model.license.ListedLicenses;
-import org.spdx.library.model.license.SpdxListedLicense;
-import org.spdx.library.model.license.SpdxNoAssertionLicense;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.SpdxConstantsCompatV2;
+import org.spdx.library.model.v2.Checksum;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.ReferenceType;
+import org.spdx.library.model.v2.Relationship;
+import org.spdx.library.model.v2.SpdxCreatorInformation;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxElement;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.SpdxPackage.SpdxPackageBuilder;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.ExtractedLicenseInfo;
+import org.spdx.library.LicenseInfoFactory;
+import org.spdx.library.ListedLicenses;
+import org.spdx.library.ModelCopyManager;
+import org.spdx.library.model.v2.license.SpdxListedLicense;
+import org.spdx.library.model.v2.license.SpdxNoAssertionLicense;
+import org.spdx.storage.IModelStore;
+import org.spdx.storage.simple.InMemSpdxStore;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.buildFakeParentPackageUrl;
 
@@ -126,6 +133,8 @@ public class ApiSpdxService
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;
 
+  private final Spdx3VersionHandler spdx3VersionHandler;
+
   @Inject
   public ApiSpdxService(
       ApiReportDataServiceV2 apiReportDataServiceV2,
@@ -134,7 +143,8 @@ public class ApiSpdxService
       BaseUrl baseUrl,
       PolicyEvaluationDAO policyEvaluationDAO,
       MultiLicenseDAO multiLicenseDAO,
-      VersionService versionService)
+      VersionService versionService,
+      Spdx3VersionHandler spdx3VersionHandler)
   {
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.apiCycloneDxService = apiCycloneDxService;
@@ -143,6 +153,7 @@ public class ApiSpdxService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.versionService = versionService;
+    this.spdx3VersionHandler = spdx3VersionHandler;
   }
 
   @Authorize(permission = Permission.READ)
@@ -153,10 +164,11 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    ThirdPartyUtils.validateSpdxVersion(spdxVersion);
+    String validatedFormat = validateFormat(format);
+    validateSpdxVersion(spdxVersion, validatedFormat);
 
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
-    return getByScanId(application, scanId, validateFormat(format), generateCycloneDx, spdxVersion);
+    return getByScanId(application, scanId, validatedFormat, generateCycloneDx, spdxVersion);
   }
 
   @Authorize(permission = Permission.READ)
@@ -167,7 +179,8 @@ public class ApiSpdxService
       boolean generateCycloneDx,
       String spdxVersion)
   {
-    ThirdPartyUtils.validateSpdxVersion(spdxVersion);
+    String validatedFormat = validateFormat(format);
+    validateSpdxVersion(spdxVersion, validatedFormat);
 
     if (StageTypes.getById(stageId) == null) {
       throw new BadRequestException("Invalid stage: " + stageId + ".");
@@ -179,7 +192,7 @@ public class ApiSpdxService
       throw new NotFoundException("Unable to locate a policy evaluation for " + applicationId + " in stage " + stageId);
     }
 
-    return getByScanId(application, evaluation.getScanId(), validateFormat(format), generateCycloneDx, spdxVersion);
+    return getByScanId(application, evaluation.getScanId(), validatedFormat, generateCycloneDx, spdxVersion);
   }
 
   private Response getByScanId(
@@ -190,6 +203,10 @@ public class ApiSpdxService
       String spdxVersion)
   {
     AuditData.get().setScanId(scanId);
+
+    if (spdxVersion != null && spdxVersion.startsWith(Spdx3VersionHandler.SPEC_VERSION)) {
+      return generateSpdx3Response(application, scanId, generateCycloneDx);
+    }
 
     try {
       ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
@@ -215,6 +232,92 @@ public class ApiSpdxService
     }
     catch (Exception e) {
       throw new RuntimeException("An error occurred while generating the SPDX file", e);
+    }
+  }
+
+  private Response generateSpdx3Response(
+      Application application,
+      String scanId,
+      boolean generateCycloneDx)
+  {
+    try {
+      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
+      String documentUri = getReportUrl(application.getPublicId(), scanId);
+
+      List<ThirdPartyFileCoordinate> components = new ArrayList<>();
+      List<ThirdPartyCoordinateSecurity> vulnerabilities = new ArrayList<>();
+
+      for (ApiReportComponentDTOV2 reportComponent : data.components) {
+        String packageUrl = getPackageUrl(reportComponent);
+        if (packageUrl == null) {
+          continue;
+        }
+
+        ThirdPartyFileCoordinate coord = new ThirdPartyFileCoordinate();
+        coord.setId(generateSpdxId(packageUrl));
+        coord.setPackageUrl(packageUrl);
+        coord.setName(createSpdxNameFromPurl(packageUrl));
+        if (reportComponent.componentIdentifier != null) {
+          coord.setVersion(
+              reportComponent.componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION));
+        }
+
+        components.add(coord);
+
+        if (reportComponent.securityData != null) {
+          for (ApiSecurityIssueDTO issue : reportComponent.securityData.securityIssues) {
+            if (StringUtils.isNotBlank(issue.reference)) {
+              ThirdPartyCoordinateSecurity security = new ThirdPartyCoordinateSecurity();
+              security.setRefId(issue.reference);
+              security.setFileCoordinateId(coord.getId());
+              vulnerabilities.add(security);
+            }
+          }
+        }
+      }
+
+      String cdxFilename = generateCycloneDx ? createFileName(application, scanId, ".bom") + ".json" : null;
+
+      SpdxGenerationContext context = new SpdxGenerationContext(
+          components,
+          vulnerabilities,
+          Map.of(),
+          List.of(),
+          List.of(),
+          application.getName(),
+          scanId,
+          Spdx3VersionHandler.SPEC_VERSION,
+          null,
+          documentUri,
+          cdxFilename,
+          null);
+
+      byte[] jsonLd = spdx3VersionHandler.generate(context);
+      String spdxContent = new String(jsonLd, StandardCharsets.UTF_8);
+      String spdxFilename = createFileName(application, scanId, ".spdx") + ".json";
+
+      if (generateCycloneDx) {
+        Response cdxResponse = apiCycloneDxService.getByScanId(
+            application, scanId, MediaType.APPLICATION_JSON, org.cyclonedx.Version.VERSION_16,
+            "file://" + spdxFilename);
+        String cdxContent = (String) cdxResponse.getEntity();
+
+        String filename = createFileName(application, scanId, "") + ".tar.gz";
+        File outputFile = createTarGzFromContent(spdxContent, spdxFilename, cdxContent, cdxFilename);
+        return Response.ok(outputFile, MediaType.APPLICATION_OCTET_STREAM)
+            .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename))
+            .build();
+      }
+
+      return Response.ok(spdxContent, MediaType.APPLICATION_JSON_TYPE)
+          .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(spdxFilename))
+          .build();
+    }
+    catch (RuntimeException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      throw new RuntimeException("An error occurred while generating the SPDX 3.0 file", e);
     }
   }
 
@@ -315,9 +418,9 @@ public class ApiSpdxService
       name = "unknown";
     }
     SpdxPackage spdxPackage = document.createPackage(spdxId, name,
-        new SpdxNoAssertionLicense(), SpdxConstants.NOASSERTION_VALUE, new SpdxNoAssertionLicense())
+        new SpdxNoAssertionLicense(), SpdxConstantsCompatV2.NOASSERTION_VALUE, new SpdxNoAssertionLicense())
         .setFilesAnalyzed(false)
-        .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+        .setDownloadLocation(SpdxConstantsCompatV2.NOASSERTION_VALUE)
         .setVersionInfo("unknown")
         .build();
     if (packageUrl != null) {
@@ -399,7 +502,7 @@ public class ApiSpdxService
 
     if (reportComponent.swid != null) {
       additionalExternalRefs.add(document.createExternalRef(ReferenceCategory.SECURITY,
-          new ReferenceType(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "swid"),
+          new ReferenceType(SpdxConstantsCompatV2.SPDX_LISTED_REFERENCE_TYPES_PREFIX + "swid"),
           "swid:" + reportComponent.swid.getTagId(),
           null));
     }
@@ -407,7 +510,7 @@ public class ApiSpdxService
     if (reportComponent.cpe != null) {
       String cpeVersion = SbomSpdxUtils.getSpdxCpeVersion(reportComponent.cpe);
       additionalExternalRefs.add(document.createExternalRef(ReferenceCategory.SECURITY,
-          new ReferenceType(SpdxConstants.SPDX_LISTED_REFERENCE_TYPES_PREFIX + cpeVersion), reportComponent.cpe,
+          new ReferenceType(SpdxConstantsCompatV2.SPDX_LISTED_REFERENCE_TYPES_PREFIX + cpeVersion), reportComponent.cpe,
           null));
     }
 
@@ -464,27 +567,26 @@ public class ApiSpdxService
     }
     if (licenseSet.size() == 1) {
       String licenseId = licenseSet.iterator().next().getId();
-      return createLicenseObject(licenseId, extractedLicenseInfoMap);
+      return createLicenseObject(licenseId, document, extractedLicenseInfoMap);
     }
     List<AnyLicenseInfo> members = new ArrayList<>();
     for (License license : licenseSet) {
-      members.add(createLicenseObject(license.getId(), extractedLicenseInfoMap));
+      members.add(createLicenseObject(license.getId(), document, extractedLicenseInfoMap));
     }
     return document.createDisjunctiveLicenseSet(members);
   }
 
   private AnyLicenseInfo createLicenseObject(
       String licenseId,
+      SpdxDocument document,
       Map<String, ExtractedLicenseInfo> extractedLicenseInfoMap) throws InvalidSPDXAnalysisException
   {
-    if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
-      // Recover valid SPDX license ID here respecting the case instead of trusting original value which might not
-      // be an exact match. As a fallback we use the original value
+    if (LicenseInfoFactory.isSpdxListedLicenseId(licenseId)) {
       Optional<String> foundSpdxLicenseIdCaseSensitiveOptional = ListedLicenses.getListedLicenses()
           .listedLicenseIdCaseSensitive(licenseId);
-      return ListedLicenses.getListedLicenses()
-          .getListedLicenseById(foundSpdxLicenseIdCaseSensitiveOptional
-              .orElse(licenseId));
+      String correctedId = foundSpdxLicenseIdCaseSensitiveOptional.orElse(licenseId);
+      return LicenseInfoFactory.parseSPDXLicenseStringCompatV2(correctedId,
+          document.getModelStore(), document.getDocumentUri(), document.getCopyManager());
     }
     if (extractedLicenseInfoMap.containsKey(licenseId)) {
       return extractedLicenseInfoMap.get(licenseId);
@@ -514,8 +616,8 @@ public class ApiSpdxService
 
     String copyrightText = null;
 
-    if (org.spdx.library.Version.TWO_POINT_TWO_VERSION.endsWith(spdxVersion)) {
-      copyrightText = SpdxConstants.NOASSERTION_VALUE;
+    if ("2.2".equals(spdxVersion)) {
+      copyrightText = SpdxConstantsCompatV2.NOASSERTION_VALUE;
     }
 
     SpdxPackageBuilder packageBuilder =
@@ -525,7 +627,7 @@ public class ApiSpdxService
             copyrightText,
             declaredLicenseInfo)
             .setFilesAnalyzed(false)
-            .setDownloadLocation(SpdxConstants.NOASSERTION_VALUE)
+            .setDownloadLocation(SpdxConstantsCompatV2.NOASSERTION_VALUE)
             .addExternalRef(purlRef);
 
     for (ExternalRef externalRef : additionalExternalRefs) {
@@ -601,13 +703,18 @@ public class ApiSpdxService
       String uri,
       ApiReportRawDataDTOV2 data) throws InvalidSPDXAnalysisException
   {
-    DefaultModelStore.reset();
-    SpdxDocument spdxDocument = new SpdxDocument(uri);
+    SbomSpdxUtils.initSpdxLibrary();
+
+    // Create SPDX document with explicit store/copyManager (avoids DefaultModelStore thread-safety issues)
+    IModelStore modelStore = new InMemSpdxStore();
+    ModelCopyManager copyManager = new ModelCopyManager();
+    SpdxDocument spdxDocument = new SpdxDocument(modelStore, uri, copyManager, true);
     spdxDocument.setSpecVersion("SPDX-" + spdxVersion);
     spdxDocument.setName(spdxDocument.getId());
-    spdxDocument.setDataLicense(new SpdxListedLicense(SpdxConstants.SPDX_DATA_LICENSE_ID));
+    spdxDocument.setDataLicense(
+        new SpdxListedLicense(modelStore, SbomSpdxUtils.SPDX_LISTED_LICENSE_URL,
+            SpdxConstantsCompatV2.SPDX_DATA_LICENSE_ID, copyManager, true));
 
-    SpdxCreatorInformation creatorInfo = new SpdxCreatorInformation();
     DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()
         .appendPattern("yyyy-MM-dd")
         .appendLiteral('T')
@@ -615,8 +722,9 @@ public class ApiSpdxService
         .appendLiteral('Z');
     String date = LocalDateTime.now(ZoneOffset.UTC).format(builder.toFormatter());
 
-    creatorInfo.setCreated(date);
-    creatorInfo.getCreators().add("Tool: Sonatype IQ Server - " + versionService.getFullVersion());
+    List<String> creators = new ArrayList<>();
+    creators.add("Tool: Sonatype IQ Server - " + versionService.getFullVersion());
+    SpdxCreatorInformation creatorInfo = spdxDocument.createCreationInfo(creators, date);
     if (StringUtils.isNotBlank(data.globalInformation.dataVersionDate)) {
       creatorInfo.setComment("Data Date: " + data.globalInformation.dataVersionDate);
     }
@@ -647,14 +755,14 @@ public class ApiSpdxService
         new MultiFormatStore(document.getModelStore(), spdxFormat, Verbose.STANDARD);
         ByteArrayOutputStream out = new ByteArrayOutputStream())
     {
-      multiFormatStore.serialize(document.getDocumentUri(), out);
+      multiFormatStore.serialize(out);
       spdxContent = out.toString(StandardCharsets.UTF_8);
     }
 
     if (generateCycloneDx) {
       Response response = apiCycloneDxService.getByScanId(
           application, scanId, "application/" + format, Version.VERSION_16, "file://" + spdxFilename);
-      String cdxContent = response.getEntity().toString();
+      String cdxContent = (String) response.getEntity();
 
       String filename = createFileName(application, scanId, "") + ".tar.gz";
       File outputFile = createTarGzFromContent(spdxContent, spdxFilename, cdxContent, cdxFilename);
@@ -682,16 +790,18 @@ public class ApiSpdxService
         TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut))
     {
       // SPDX entry
+      byte[] spdxBytes = spdxContent.getBytes(StandardCharsets.UTF_8);
       TarArchiveEntry spdxEntry = new TarArchiveEntry(spdxFilename);
-      spdxEntry.setSize(spdxContent.length());
+      spdxEntry.setSize(spdxBytes.length);
       tarOut.putArchiveEntry(spdxEntry);
-      tarOut.write(spdxContent.getBytes(StandardCharsets.UTF_8));
+      tarOut.write(spdxBytes);
       tarOut.closeArchiveEntry();
       // CycloneDX entry
+      byte[] cdxBytes = cdxContent.getBytes(StandardCharsets.UTF_8);
       TarArchiveEntry cdxEntry = new TarArchiveEntry(cdxFilename);
-      cdxEntry.setSize(cdxContent.length());
+      cdxEntry.setSize(cdxBytes.length);
       tarOut.putArchiveEntry(cdxEntry);
-      tarOut.write(cdxContent.getBytes(StandardCharsets.UTF_8));
+      tarOut.write(cdxBytes);
       tarOut.closeArchiveEntry();
 
       tarOut.finish();
@@ -725,5 +835,15 @@ public class ApiSpdxService
       return format;
     }
     throw new BadRequestException("Invalid format: " + format + ". Supported formats: " + SPDX_FORMATS);
+  }
+
+  private void validateSpdxVersion(String spdxVersion, String format) {
+    if (spdxVersion != null && spdxVersion.startsWith(Spdx3VersionHandler.SPEC_VERSION)) {
+      if ("xml".equals(format)) {
+        throw new BadRequestException("SPDX 3.0 does not support XML format. Use JSON format instead.");
+      }
+      return;
+    }
+    ThirdPartyUtils.validateSpdxVersion(spdxVersion);
   }
 }

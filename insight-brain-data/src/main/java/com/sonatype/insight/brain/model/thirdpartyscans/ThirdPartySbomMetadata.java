@@ -71,6 +71,12 @@ public class ThirdPartySbomMetadata
   @Column(name = "original_binary_file_name")
   private String originalBinaryFileName;
 
+  @Column(name = "extended_profile_elements")
+  private String extendedProfileElements;
+
+  @Column(name = "root_component_ref")
+  private String rootComponentRef;
+
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
@@ -224,5 +230,21 @@ public class ThirdPartySbomMetadata
 
   public void setOriginalBinaryFileName(final String originalBinaryFileName) {
     this.originalBinaryFileName = originalBinaryFileName;
+  }
+
+  public String getExtendedProfileElements() {
+    return extendedProfileElements;
+  }
+
+  public void setExtendedProfileElements(final String extendedProfileElements) {
+    this.extendedProfileElements = extendedProfileElements;
+  }
+
+  public String getRootComponentRef() {
+    return rootComponentRef;
+  }
+
+  public void setRootComponentRef(final String rootComponentRef) {
+    this.rootComponentRef = rootComponentRef;
   }
 }

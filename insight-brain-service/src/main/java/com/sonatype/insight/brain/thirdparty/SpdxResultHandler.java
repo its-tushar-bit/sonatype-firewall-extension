@@ -18,13 +18,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -35,8 +35,14 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
+import com.sonatype.insight.brain.sbom.spdx.ParsedSpdxResult;
+import com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -70,20 +76,18 @@ import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.Read;
-import org.spdx.library.SpdxConstants;
-import org.spdx.library.model.ExternalRef;
-import org.spdx.library.model.ModelObject;
-import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxPackage;
-import org.spdx.library.model.enumerations.ChecksumAlgorithm;
-import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.enumerations.RelationshipType;
-import org.spdx.library.model.license.AnyLicenseInfo;
-import org.spdx.library.model.license.SpdxNoAssertionLicense;
-import org.spdx.library.model.license.SpdxNoneLicense;
+import org.spdx.core.InvalidSPDXAnalysisException;
+import org.spdx.library.model.v2.ExternalRef;
+import org.spdx.library.model.v2.ModelObjectV2;
+import org.spdx.library.model.v2.Relationship;
+import org.spdx.library.model.v2.SpdxDocument;
+import org.spdx.library.model.v2.SpdxPackage;
+import org.spdx.library.model.v2.enumerations.ChecksumAlgorithm;
+import org.spdx.library.model.v2.enumerations.ReferenceCategory;
+import org.spdx.library.model.v2.enumerations.RelationshipType;
+import org.spdx.library.model.v2.license.AnyLicenseInfo;
+import org.spdx.library.model.v2.license.SpdxNoAssertionLicense;
+import org.spdx.library.model.v2.license.SpdxNoneLicense;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
@@ -97,6 +101,8 @@ public class SpdxResultHandler
 {
   private static final Logger log = LoggerFactory.getLogger(SpdxResultHandler.class);
 
+  private final Spdx3VersionHandler spdx3VersionHandler;
+
   public SpdxResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
@@ -107,11 +113,13 @@ public class SpdxResultHandler
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
       final TelemetrySender telemetrySender,
-      final ThirdPartyScanContext thirdPartyScanContext)
+      final ThirdPartyScanContext thirdPartyScanContext,
+      final Spdx3VersionHandler spdx3VersionHandler)
   {
     super(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
         telemetrySender, thirdPartyScanContext);
+    this.spdx3VersionHandler = spdx3VersionHandler;
   }
 
   @Override
@@ -121,26 +129,10 @@ public class SpdxResultHandler
   {
     try {
       if (StringUtils.isNotBlank(content.getContent())) {
-        Pair<SpdxDocument, Boolean> spdxDocumentAndIsValid = parseSpdxContent(content);
-        SpdxDocument spdxDocument = spdxDocumentAndIsValid.getLeft();
-        boolean isValid = spdxDocumentAndIsValid.getRight();
-        Bom targetBom = new Bom();
-        List<ProjectScanItem> moduleDependencies = new ArrayList<>();
-
-        log.info("Processing SPDX content for file: {}", content.getPath());
-        processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies, isValid);
-        componentInfoTelemetry.setSpec(SPDX.name());
-        componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
-        componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
-
-        TelemetryData thirdPartyScanComponentInfoTelemetryData =
-            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
-                SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
-        telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
-
-        String sbomContent =
-            CollectionUtils.isEmpty(targetBom.getComponents()) ? content.getContent() : generateFilteredSbom(targetBom);
-        return new FilteredThirdPartyContent(sbomContent, moduleDependencies, !isValid);
+        if (SbomFileDetector.looksLikeSpdx3JsonLd(content.getContent())) {
+          return handleSpdx3Content(content, thirdPartyFile);
+        }
+        return handleSpdx2Content(content, thirdPartyFile);
       }
 
       return new FilteredThirdPartyContent(content.getContent());
@@ -148,6 +140,263 @@ public class SpdxResultHandler
     catch (Exception e) {
       throw new RuntimeException("Error filtering SPDX file " + content.getPath(), e);
     }
+  }
+
+  private FilteredThirdPartyContent handleSpdx3Content(
+      final ThirdPartyScanContent content,
+      final ThirdPartyFile thirdPartyFile) throws SbomProcessingException
+  {
+    String extension = FilenameUtils.getExtension(content.getPath());
+    SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
+    // SPDX 3.0 is always JSON-LD; fallback if extension is unrecognized (e.g., .jsonld)
+    if (sbomFormat == null) {
+      sbomFormat = SbomFormat.JSON;
+    }
+    componentInfoTelemetry.setContentType(sbomFormat.name());
+
+    log.info("Processing SPDX 3.0 content for file: {}", content.getPath());
+
+    ParsedSpdxResult parsed = spdx3VersionHandler.parse(content.getContent(), sbomFormat);
+
+    long identifiedCount = parsed.resolvedComponents().stream().filter(p -> p.getLeft() != null).count();
+    log.info("SPDX 3.0 parsed: {} total components, {} with identifiers",
+        parsed.resolvedComponents().size(), identifiedCount);
+
+    Bom targetBom = new Bom();
+    List<ProjectScanItem> moduleDependencies = new ArrayList<>();
+
+    try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
+      tx.begin();
+      String thirdPartyIdentificationSource =
+          getTruncatedThirdPartyIdentificationSource(determineThirdPartyIdentificationSource(content.getPath()));
+
+      int persistedCount = 0;
+      Map<String, String> bomRefToFileCoordinateId = new HashMap<>();
+      for (Pair<ComponentIdentifier, Component> resolved : parsed.resolvedComponents()) {
+        if (resolved.getLeft() != null) {
+          ComponentIdentifier componentIdentifier = resolved.getLeft();
+          Component component = resolved.getRight();
+          String hash = getOrCreateFakeHash(component, componentIdentifier);
+          ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(
+              hash, thirdPartyIdentificationSource, componentIdentifier.getFormat(),
+              component.getName(), component.getVersion(), thirdPartyFile.getId());
+          fileCoordinate.setPackageUrl(component.getPurl());
+          if (component.getCpe() != null) {
+            fileCoordinate.setCpe(component.getCpe());
+          }
+          fileCoordinate.setComponentRef(SbomIdentityUtils.getComponentRef(component));
+          fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
+          componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
+          fileCoordinate = fileCoordinatePersister.persist(tx, fileCoordinate);
+          targetBom.addComponent(component);
+          persistedCount++;
+          if (component.getBomRef() != null) {
+            bomRefToFileCoordinateId.put(component.getBomRef(), fileCoordinate.getId());
+          }
+        }
+        else {
+          Component component = resolved.getRight();
+          targetBom.addComponent(component);
+          log.debug("SPDX 3.0 component filtered for matching only with hash information: {}", component.getName());
+        }
+      }
+      log.info("SPDX 3.0 persisted {} components to thirdPartyFile {}", persistedCount, thirdPartyFile.getId());
+
+      persistSpdx3Vulnerabilities(parsed, bomRefToFileCoordinateId, tx);
+      persistSpdx3Vex(parsed, bomRefToFileCoordinateId, tx);
+
+      if (thirdPartyScanContext != null
+          && (parsed.unsupportedProfiles() != null || parsed.rootComponentRef() != null))
+      {
+        ThirdPartySbomMetadata sbomMetadata =
+            thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+        if (sbomMetadata != null) {
+          if (parsed.unsupportedProfiles() != null) {
+            sbomMetadata.setExtendedProfileElements(parsed.unsupportedProfiles());
+          }
+          if (parsed.rootComponentRef() != null) {
+            sbomMetadata.setRootComponentRef(parsed.rootComponentRef());
+          }
+          thirdPartySbomMetadataDAO.update(sbomMetadata);
+        }
+        else {
+          log.warn(
+              "SPDX 3.0: sbomMetadata not found for thirdPartyFile {}, extended profile elements will not be persisted",
+              thirdPartyFile.getId());
+        }
+      }
+
+      tx.commit();
+    }
+
+    processSpdx3DependencyGraph(parsed.dependencies(), targetBom, moduleDependencies, thirdPartyFile);
+
+    componentInfoTelemetry.setSpec(SPDX.name());
+    componentInfoTelemetry.setSpecVersion("3.0");
+    componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
+
+    TelemetryData thirdPartyScanComponentInfoTelemetryData =
+        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
+            SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), true);
+    telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
+
+    String sbomContent =
+        CollectionUtils.isEmpty(targetBom.getComponents()) ? content.getContent() : generateFilteredSbom(targetBom);
+    return new FilteredThirdPartyContent(sbomContent, moduleDependencies, false);
+  }
+
+  private void persistSpdx3Vulnerabilities(
+      final ParsedSpdxResult parsed,
+      final Map<String, String> bomRefToFileCoordinateId,
+      final TransactionContext tx)
+  {
+    if (parsed.vulnerabilities().isEmpty()) {
+      return;
+    }
+
+    Map<String, Set<String>> vulnToPackageUris = parsed.vulnerabilityToPackageUris();
+    int persistedVulnCount = 0;
+
+    for (ThirdPartyCoordinateSecurity vuln : parsed.vulnerabilities()) {
+      Set<String> affectedUris = vulnToPackageUris.getOrDefault(vuln.getRefId(), Set.of());
+      for (String packageUri : affectedUris) {
+        String fileCoordinateId = bomRefToFileCoordinateId.get(packageUri);
+        if (fileCoordinateId != null) {
+          ThirdPartyCoordinateSecurity vulnCopy = new ThirdPartyCoordinateSecurity(
+              fileCoordinateId, vuln.getRefId(), null, vuln.getDescription(), null, 0.0f, null);
+          vulnCopy.setVulnerabilitySource(vuln.getVulnerabilitySource());
+          vulnCopy.setDetectionType(vuln.getDetectionType());
+          vulnCopy.setIdentificationSources(IdentificationSource.SBOM.getId());
+          if (thirdPartyScanContext != null) {
+            vulnCopy.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+          }
+          thirdPartyCoordinateSecurityDAO.insertSafely(tx, vulnCopy);
+          persistedVulnCount++;
+        }
+      }
+    }
+
+    log.info("SPDX 3.0 persisted {} vulnerability records (from {} unique vulnerabilities)",
+        persistedVulnCount, parsed.vulnerabilities().size());
+  }
+
+  private void persistSpdx3Vex(
+      final ParsedSpdxResult parsed,
+      final Map<String, String> bomRefToFileCoordinateId,
+      final TransactionContext tx)
+  {
+    if (parsed.vexAnnotations().isEmpty()) {
+      return;
+    }
+
+    List<Set<String>> vexAffectedPackageUris = parsed.vexAffectedPackageUris();
+    int persistedVexCount = 0;
+
+    for (int i = 0; i < parsed.vexAnnotations().size(); i++) {
+      ThirdPartyVulnerabilityExploitabilityExchange vex = parsed.vexAnnotations().get(i);
+      Set<String> affectedUris = i < vexAffectedPackageUris.size() ? vexAffectedPackageUris.get(i) : Set.of();
+      for (String packageUri : affectedUris) {
+        String fileCoordinateId = bomRefToFileCoordinateId.get(packageUri);
+        if (fileCoordinateId != null) {
+          ThirdPartyCoordinateSecurity existing =
+              thirdPartyCoordinateSecurityDAO.getByFileCoordinateIdAndRefId(tx, fileCoordinateId, vex.getRefId());
+          if (existing != null) {
+            ThirdPartyVulnerabilityExploitabilityExchange vexCopy =
+                new ThirdPartyVulnerabilityExploitabilityExchange(
+                    existing.getId(), vex.getRefId(), vex.getState(),
+                    vex.getJustification(), vex.getResponse(), vex.getDetail());
+            thirdPartyVexDAO.saveOrUpdate(tx, vexCopy);
+            componentInfoTelemetry.incrementVulnerabilitiesWithVexInfoCount();
+            persistedVexCount++;
+          }
+        }
+      }
+    }
+
+    log.info("SPDX 3.0 persisted {} VEX records (from {} unique VEX annotations)",
+        persistedVexCount, parsed.vexAnnotations().size());
+  }
+
+  private void processSpdx3DependencyGraph(
+      final List<Dependency> dependencies,
+      final Bom targetBom,
+      final List<ProjectScanItem> moduleDependencies,
+      final ThirdPartyFile thirdPartyFile)
+  {
+    try {
+      if (CollectionUtils.isEmpty(dependencies) || CollectionUtils.isEmpty(targetBom.getComponents())) {
+        return;
+      }
+
+      // Identify root: a dependency ref that is never a "to" target of another dependency
+      Set<String> allTargets = new HashSet<>();
+      for (Dependency dep : dependencies) {
+        if (dep.getDependencies() != null) {
+          for (Dependency child : dep.getDependencies()) {
+            allTargets.add(child.getRef());
+          }
+        }
+      }
+
+      // Find a root component: appears as a dependency "from" but never as a target
+      Component rootComponent = null;
+      for (Dependency dep : dependencies) {
+        if (dep.getRef() != null && !allTargets.contains(dep.getRef())) {
+          for (Component comp : targetBom.getComponents()) {
+            if (dep.getRef().equals(comp.getBomRef())) {
+              rootComponent = comp;
+              break;
+            }
+          }
+          if (rootComponent != null) {
+            break;
+          }
+        }
+      }
+
+      if (rootComponent == null) {
+        return;
+      }
+
+      Metadata metadata = new Metadata();
+      metadata.setComponent(rootComponent);
+      targetBom.setMetadata(metadata);
+
+      Pair<Dependency, String> rootModuleAndRef = resolveRootModuleAndRef(dependencies, targetBom);
+      if (rootModuleAndRef != null) {
+        processValidDependencyGraph(rootModuleAndRef, thirdPartyFile, targetBom,
+            moduleDependencies, dependencies);
+      }
+    }
+    catch (Exception e) {
+      log.warn("Error processing SPDX 3.0 dependency graph", e);
+    }
+  }
+
+  private FilteredThirdPartyContent handleSpdx2Content(
+      final ThirdPartyScanContent content,
+      final ThirdPartyFile thirdPartyFile) throws Exception
+  {
+    Pair<SpdxDocument, Boolean> spdxDocumentAndIsValid = parseSpdxContent(content);
+    SpdxDocument spdxDocument = spdxDocumentAndIsValid.getLeft();
+    boolean isValid = spdxDocumentAndIsValid.getRight();
+    Bom targetBom = new Bom();
+    List<ProjectScanItem> moduleDependencies = new ArrayList<>();
+
+    log.info("Processing SPDX content for file: {}", content.getPath());
+    processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies, isValid);
+    componentInfoTelemetry.setSpec(SPDX.name());
+    componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
+    componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
+
+    TelemetryData thirdPartyScanComponentInfoTelemetryData =
+        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
+            SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
+    telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
+
+    String sbomContent =
+        CollectionUtils.isEmpty(targetBom.getComponents()) ? content.getContent() : generateFilteredSbom(targetBom);
+    return new FilteredThirdPartyContent(sbomContent, moduleDependencies, !isValid);
   }
 
   private Pair<SpdxDocument, Boolean> parseSpdxContent(
@@ -213,10 +462,10 @@ public class SpdxResultHandler
       final TransactionContext tx,
       final boolean isValid) throws InvalidSPDXAnalysisException
   {
-    List<? extends ModelObject> items = getSpdxPackages(spdxDocument);
+    List<? extends ModelObjectV2> items = getSpdxPackages(spdxDocument);
     if (!items.isEmpty()) {
       Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
-      for (ModelObject item : items) {
+      for (ModelObjectV2 item : items) {
         SpdxPackage spdxPackage = (SpdxPackage) item;
         processSpdxPackage(spdxPackage, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
             resolvedComponents, componentRefs, rootPackageId, tx, isValid);
@@ -224,12 +473,10 @@ public class SpdxResultHandler
     }
   }
 
-  private List<? extends ModelObject> getSpdxPackages(
+  private List<? extends ModelObjectV2> getSpdxPackages(
       final SpdxDocument spdxDocument) throws InvalidSPDXAnalysisException
   {
-    return Read
-        .getAllItems(spdxDocument.getModelStore(), spdxDocument.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
-        .collect(Collectors.toList());
+    return SbomSpdxUtils.getAllPackages(spdxDocument);
   }
 
   private void processSpdxPackage(
@@ -246,7 +493,7 @@ public class SpdxResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
       if (resolvedComponent != null) {
-        String componentRef = SbomIdentityUtils.getComponentRef(spdxPackage);
+        String componentRef = DigestUtils.sha1Hex(spdxPackage.getId());
         resolvedComponent.getRight()
             .addProperty(SbomExportUtils.createCycloneDxProperty(PROPERTY_COMPONENT_REF, componentRef));
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
@@ -428,10 +675,12 @@ public class SpdxResultHandler
       if (purlOptional.isPresent()) {
         String packageUrl = purlOptional.get();
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
-        packageUrlIdentifier.ensureCompleteIdentifier();
-        if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
-          componentInfoTelemetry.incrementPurlCount();
-          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, cpe);
+        if (packageUrlIdentifier != null) {
+          packageUrlIdentifier.ensureCompleteIdentifier();
+          if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+            componentInfoTelemetry.incrementPurlCount();
+            return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, cpe);
+          }
         }
         else {
           log.debug("PackageUrl is not valid {}", packageUrl);
@@ -447,7 +696,9 @@ public class SpdxResultHandler
 
     if (StringUtils.isNotBlank(cpe)) {
       PackageUrlIdentifier packageUrlIdentifier = SbomCommonUtils.getPackageUrlIdentifierFromCpe(cpe);
-      if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
+      if (packageUrlIdentifier != null &&
+          StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion()))
+      {
         return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, cpe);
       }
     }
@@ -585,8 +836,8 @@ public class SpdxResultHandler
     Map<String, Dependency> dependencyMap = new HashMap<>();
 
     // relationships are attached to packages in the SPDX object model
-    List<? extends ModelObject> items = getSpdxPackages(spdxDocument);
-    for (ModelObject item : items) {
+    List<? extends ModelObjectV2> items = getSpdxPackages(spdxDocument);
+    for (ModelObjectV2 item : items) {
       SpdxPackage spdxPackage = (SpdxPackage) item;
       Collection<Relationship> relationships = spdxPackage.getRelationships();
       for (Relationship relationship : relationships) {

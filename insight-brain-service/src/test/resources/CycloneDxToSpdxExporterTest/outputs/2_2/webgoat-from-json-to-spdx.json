@@ -10,7 +10,7 @@
   "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003",
-    "attributionTexts" : [ "Evidence license text for: (Apache-1.1 AND MIT AND Aladdin)" ],
+    "attributionTexts" : [ "Evidence license text for: (MIT AND Apache-1.1 AND Aladdin)" ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
@@ -34,7 +34,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "(Apache-1.1 AND MIT AND Aladdin)",
+    "licenseConcluded" : "(MIT AND Apache-1.1 AND Aladdin)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "log4j:log4j",
     "versionInfo" : "1.2.8"

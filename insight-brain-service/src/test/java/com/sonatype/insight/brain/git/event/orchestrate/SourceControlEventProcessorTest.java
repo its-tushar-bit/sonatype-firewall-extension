@@ -29,7 +29,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-import com.sonatype.insight.brain.tenancy.MeteredThreadPoolExecutor;
+import com.sonatype.insight.brain.common.metering.MeteredThreadPoolExecutor;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 

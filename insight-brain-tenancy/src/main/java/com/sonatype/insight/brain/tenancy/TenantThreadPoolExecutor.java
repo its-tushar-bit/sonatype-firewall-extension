@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import com.sonatype.insight.brain.common.metering.MeteredThreadPoolExecutor;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;

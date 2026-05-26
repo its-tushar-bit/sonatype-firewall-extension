@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tenancy;
+package com.sonatype.insight.brain.common.metering;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import io.micrometer.core.instrument.Tags;
-import org.jetbrains.annotations.NotNull;
 
 public class TaggedRunnableFuture<V>
     implements RunnableFuture<V>, HasTags
@@ -53,7 +52,7 @@ public class TaggedRunnableFuture<V>
   @Override
   public V get(
       final long timeout,
-      @NotNull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
+      final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
   {
     return runnableFuture.get(timeout, unit);
   }

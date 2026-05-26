@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.tenancy.TaggedRunnable;
+import com.sonatype.insight.brain.common.metering.TaggedRunnable;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import io.micrometer.core.instrument.Tags;
 import jakarta.inject.Inject;

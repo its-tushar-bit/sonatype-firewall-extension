@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.tenancy;
+package com.sonatype.insight.brain.common.metering;
 
 import io.micrometer.core.instrument.Tags;
 

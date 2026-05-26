@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import com.sonatype.insight.brain.common.metering.HasTags;
+
 import java.util.concurrent.Callable;
 
 import io.micrometer.core.instrument.Tags;

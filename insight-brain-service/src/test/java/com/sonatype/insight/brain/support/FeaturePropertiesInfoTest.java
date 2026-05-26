@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(31);
+    assertThat(sysConfigNode.size()).isEqualTo(32);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -58,6 +58,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_BINARY_SCANNING).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();
@@ -79,7 +80,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(31);
+    assertThat(sysConfigNode.size()).isEqualTo(32);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -107,6 +108,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_BINARY_SCANNING).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();

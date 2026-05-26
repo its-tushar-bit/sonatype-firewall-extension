@@ -16,6 +16,7 @@ import {
   getSbomSummaryUrl,
   getBillOfMaterialsComponentsUrl,
   getSbomDownloadPdfUrl,
+  getDownloadSbomFileUrl,
 } from 'MainRoot/util/CLMLocation';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
 import { initialState as billOfMaterialsPageInitialState } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -687,6 +688,42 @@ describe('BillOfMaterials Page', () => {
           name: 'This SBOM has validation errors which may result in partial or incorrect information.',
         })
       ).toBeInTheDocument();
+    });
+  });
+
+  it('exports SPDX 3.0 source SBOM with spdx3.0 specification instead of spdx2.3', async () => {
+    const spdx30Metadata = {
+      ...getSbomMetadataResponsePayload,
+      specification: 'SPDX',
+      specVersion: '3.0',
+      fileFormat: 'json',
+    };
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock.onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, spdx30Metadata);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+    const expectedUrl = getDownloadSbomFileUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION, 'current', 'spdx3.0');
+    axiosMock.onGet(expectedUrl).reply(200, new Blob(['test']));
+
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
+    await user.click(exportButton);
+
+    await waitFor(() => {
+      const getRequests = axiosMock.history.get;
+      const exportRequest = getRequests.find((req) => req.url === expectedUrl);
+      expect(exportRequest).toBeDefined();
     });
   });
 });

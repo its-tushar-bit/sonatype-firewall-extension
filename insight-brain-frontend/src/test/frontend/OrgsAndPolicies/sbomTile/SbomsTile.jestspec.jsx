@@ -315,9 +315,10 @@ describe('SbomsTile', () => {
         expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
         expect(screen.getByText(/SBOM Specification/)).toBeVisible();
-        expect(screen.getByLabelText(/Cyclone DX/)).toBeVisible();
-        expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
-        expect(screen.getByLabelText(/SPDX/)).toBeVisible();
+        expect(screen.getByLabelText(/CycloneDX/)).toBeVisible();
+        expect(screen.getByLabelText(/CycloneDX/)).toBeChecked();
+        expect(screen.getByLabelText(/SPDX 2\.3/)).toBeVisible();
+        expect(screen.getByLabelText(/SPDX 3\.0/)).toBeVisible();
 
         expect(screen.getByText(/SBOM Format/)).toBeVisible();
         expect(screen.getByLabelText(/JSON/)).toBeVisible();

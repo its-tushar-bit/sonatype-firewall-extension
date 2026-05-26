@@ -35,6 +35,7 @@ export const EXPORT_SBOM_FILE_FORMAT = Object.freeze({
 export const EXPORT_SBOM_SPECIFICATION = Object.freeze({
   cyclonedx: 'cyclonedx1.6',
   spdx: 'spdx2.3',
+  spdx30: 'spdx3.0',
 });
 
 export const EXPORT_SBOM_STATE = Object.freeze({
@@ -64,6 +65,9 @@ const setShowSbomAdditionalExportOptionsModal = (state, { payload: { application
 const setExportSbomSpecification = (state, { payload }) => {
   if (includes(payload, values(EXPORT_SBOM_SPECIFICATION))) {
     state.sbomSpecification = payload;
+    if (payload === EXPORT_SBOM_SPECIFICATION.spdx30) {
+      state.sbomFileFormat = EXPORT_SBOM_FILE_FORMAT.json;
+    }
   } else {
     throw new TypeError('Invalid SBOM specification');
   }
@@ -71,6 +75,9 @@ const setExportSbomSpecification = (state, { payload }) => {
 
 const setExportSbomFileFormat = (state, { payload }) => {
   if (includes(payload, values(EXPORT_SBOM_FILE_FORMAT))) {
+    if (payload === EXPORT_SBOM_FILE_FORMAT.xml && state.sbomSpecification === EXPORT_SBOM_SPECIFICATION.spdx30) {
+      return;
+    }
     state.sbomFileFormat = payload;
   } else {
     throw new TypeError('Invalid SBOM format');

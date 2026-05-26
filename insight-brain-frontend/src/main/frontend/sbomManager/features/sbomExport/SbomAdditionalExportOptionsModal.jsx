@@ -13,6 +13,8 @@ export default function SbomAdditionalExportOptionsModal() {
   const dispatch = useDispatch();
   const { showModal, sbomSpecification, sbomFileFormat } = useSelector(selectSbomExportSlice);
 
+  const isSpdx30 = sbomSpecification === EXPORT_SBOM_SPECIFICATION.spdx30;
+
   const closeModal = () => dispatch(actions.closeShowSbomAdditionalExportOptionsModal());
   const exportAndDownloadSbom = () => dispatch(actions.exportAndDownloadSbom({ state: EXPORT_SBOM_STATE.current }));
 
@@ -49,13 +51,19 @@ export default function SbomAdditionalExportOptionsModal() {
           <NxModal.Content tabIndex={0}>
             <NxFieldset label="SBOM Specification">
               <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.cyclonedx)}>
-                Cyclone DX
+                CycloneDX
               </NxRadio>
-              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx)}>SPDX</NxRadio>
+              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx)}>SPDX 2.3</NxRadio>
+              <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx30)}>SPDX 3.0</NxRadio>
             </NxFieldset>
             <NxFieldset label="SBOM Format">
               <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.json)}>JSON</NxRadio>
-              <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.xml)}>XML</NxRadio>
+              <NxRadio
+                {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.xml)}
+                disabled={isSpdx30}
+              >
+                XML{isSpdx30 ? ' (not available for SPDX 3.0)' : ''}
+              </NxRadio>
             </NxFieldset>
           </NxModal.Content>
           <NxFooter>

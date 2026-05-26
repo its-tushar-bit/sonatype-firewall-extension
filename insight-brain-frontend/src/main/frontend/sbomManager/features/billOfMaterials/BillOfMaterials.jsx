@@ -143,12 +143,21 @@ export default function BillOfMaterials() {
   const isLoading =
     loadingProductFeatures || loadingInternalAppId || loadingSbomVersions || loadingSbomMetadata || loadingSbomSummary;
 
+  const getDefaultExportSpecification = () => {
+    if (!sbomMetadata.specification) return undefined;
+    const spec = toLower(sbomMetadata.specification);
+    if (spec === 'spdx' && sbomMetadata.specVersion === '3.0') {
+      return EXPORT_SBOM_SPECIFICATION.spdx30;
+    }
+    return EXPORT_SBOM_SPECIFICATION[spec];
+  };
+
   const downloadLatestSbomFile = () =>
     exportAndDownloadSbom({
       applicationId: internalAppId,
       sbomVersion: currentSbomVersion,
       state: EXPORT_SBOM_STATE.current,
-      specification: EXPORT_SBOM_SPECIFICATION[toLower(sbomMetadata.specification)],
+      specification: getDefaultExportSpecification(),
       fileFormat: EXPORT_SBOM_FILE_FORMAT[toLower(sbomMetadata.fileFormat)],
     });
 

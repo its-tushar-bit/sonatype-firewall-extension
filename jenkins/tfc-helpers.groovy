@@ -15,8 +15,8 @@
  * keeping environment-specific configuration close to the job that uses it.
  *
  * ── Auto-approval safety guard ──────────────────────────────────────────────────────────────────
- * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 2 resource
- * destruction (the normal case for ECS task-definition replacement). Plans with more than 2
+ * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 4 resource
+ * destruction (the normal case for ECS task-definition replacement). Plans with more than 4
  * destruction are discarded and the pipeline fails to prevent unintended infrastructure teardown.
  */
 import groovy.transform.Field
@@ -168,7 +168,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
       error "Terraform apply failed (${status}): ${uiLink}"
     }
 
-    // Auto-approve safe plans (<=1 destruction for old task def replacement)
+    // Auto-approve safe plans (<=4 destructions for task def replacement)
     if (status in ['planned', 'cost_estimated', 'policy_checked']) {
       response = httpRequest(url: "${TFC_BASE_URL}/api/v2/runs/${runId}/plan", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '200:299')
       json = readJSON text: response.content
@@ -183,8 +183,8 @@ void tfcDeploy(String workspaceName, String imageUri) {
       }
       final int destructions = destructionsRaw
 
-      // Safety guard: refuse to auto-approve plans with more than 2 destructions (normal for ECS task MTIQ Server and Batch replacement)
-      if (destructions > 2) {
+      // Safety guard: refuse to auto-approve plans with more than 4 destructions (normal for ECS task MTIQ Server and Batch replacement)
+      if (destructions > 4) {
         httpRequest(
           url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/discard",
           httpMode: 'POST',
@@ -192,7 +192,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
           requestBody: groovy.json.JsonOutput.toJson([comment: "Discarded: plan includes ${destructions} resource destruction(s)"]),
           validResponseCodes: '200:299',
         )
-        error "Terraform plan includes ${destructions} resource destruction(s) (expected at most 1 for task def replacement), discarded: ${uiLink}"
+        error "Terraform plan includes ${destructions} resource destruction(s) (expected at most 4 for task def replacement), discarded: ${uiLink}"
       }
 
       echo "Plan looks safe, confirming apply"

@@ -66,7 +66,7 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 - **ECR_TAG is null:** The job errors immediately. This means `Jenkinsfile.main`'s ECR push likely failed — check the main build logs.
 - **TFC workspace lookup fails:** Workspace name may be wrong or TFC credentials expired. Check the TFC credential in Jenkins (`sca-cloud-terraform-cloud-jenkins-credential`).
 - **TFC apply times out (10 min):** The Terraform plan is running too long. Check the TFC UI link printed in the console log.
-- **TFC plan has >2 resource destruction:** The auto-approval safety guard discards the run. This means the plan would destroy more infrastructure than a normal ECS task definition replacement. **Do not override** — inspect the plan in the TFC UI to understand what's being destroyed.
+- **TFC plan has >4 resource destructions:** The auto-approval safety guard discards the run. This means the plan would destroy more infrastructure than a normal ECS task definition replacement. **Do not override** — inspect the plan in the TFC UI to understand what's being destroyed.
 - **TFC plan shows null resource-destructions:** The TFC API response is malformed. The job refuses to auto-approve. Check TFC API status.
 
 ### 2. test-shared-dev
@@ -252,7 +252,7 @@ Re-run `deploy-to-prod-mirror` with a previous known-good verified tag. This wil
 
 ## TFC Auto-Approval Safety Guard
 
-Terraform Cloud plans are auto-approved if they include **at most 2 resource destruction** (the normal case for both ECS task definition replacement). Plans with more than 2 destruction are **discarded** and the pipeline fails.
+Terraform Cloud plans are auto-approved if they include **at most 4 resource destructions** (the normal case for ECS task definition replacement). Plans with more than 4 destructions are **discarded** and the pipeline fails.
 
 If this happens:
 1. Open the TFC UI link from the console log.

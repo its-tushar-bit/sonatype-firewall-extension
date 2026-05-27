@@ -243,12 +243,33 @@ public class ApiReportViolationsDiffService
       throw new NotFoundException(CANT_CALCULATE_DIFF_MESSAGE);
     }
 
+    Set<String> allHashes = Stream.of(
+        policyViolationDiff.getAppeared().stream(),
+        policyViolationDiff.getSame().values().stream(),
+        policyViolationDiff.getCleared().stream())
+        .flatMap(Function.identity())
+        .map(PolicyViolation::getHash)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> stageTypeIds = Stream.of(
+        fromPolicyEvaluation.getStageTypeId(),
+        toPolicyEvaluation.getStageTypeId())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey =
+        allHashes.isEmpty()
+            ? Map.of()
+            : applicationComponentDAO.getMapByApplicationIdsAndStageTypeIdsAndHashes(
+                Set.of(application.getId()), stageTypeIds, allHashes);
+
     dto.addedViolations = buildPolicyViolationsDtos(policyViolationDiff.getAppeared(), application.getId(),
-        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames);
+        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames, componentsByKey);
     dto.sameViolations = buildPolicyViolationsDtos(policyViolationDiff.getSame().values(), application.getId(),
-        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames);
+        toPolicyEvaluation.getStageTypeId(), toEvaluationComponentNames, componentsByKey);
     dto.removedViolations = buildPolicyViolationsDtos(policyViolationDiff.getCleared(), application.getId(),
-        fromPolicyEvaluation.getStageTypeId(), fromEvaluationComponentNames);
+        fromPolicyEvaluation.getStageTypeId(), fromEvaluationComponentNames, componentsByKey);
     dto.fromCommit = buildEvaluationCommit(application.getPublicId(), fromPolicyEvaluation);
     dto.toCommit = buildEvaluationCommit(application.getPublicId(), toPolicyEvaluation);
     dto.application =
@@ -261,12 +282,13 @@ public class ApiReportViolationsDiffService
       final Collection<PolicyViolation> policyViolations,
       final String applicationId,
       final String stageTypeId,
-      final Map<String, String> componentNamesMap)
+      final Map<String, String> componentNamesMap,
+      final Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey)
   {
     final Set<ApiPolicyViolationForDiffDTO> set = new HashSet<>(policyViolations.size());
     policyViolations.forEach(violation -> {
       if (violation.isActive()) {
-        set.add(buildDiffPolicyViolationDTO(applicationId, stageTypeId, violation, componentNamesMap));
+        set.add(buildDiffPolicyViolationDTO(applicationId, stageTypeId, violation, componentNamesMap, componentsByKey));
       }
     });
     return set;
@@ -276,16 +298,16 @@ public class ApiReportViolationsDiffService
       String applicationId,
       String stageTypeId,
       PolicyViolation policyViolation,
-      final Map<String, String> componentNamesMap)
+      final Map<String, String> componentNamesMap,
+      final Map<ApplicationComponentDAO.ApplicationComponentKey, ApplicationComponent> componentsByKey)
   {
-
     final ApiPolicyViolationForDiffDTO apiPolicyViolationForDiffDTO = new ApiPolicyViolationForDiffDTO();
     apiPolicyViolationForDiffDTO.policyId = policyViolation.getPolicyId();
     apiPolicyViolationForDiffDTO.policyName = policyViolation.getPolicyName();
     apiPolicyViolationForDiffDTO.policyViolationId = policyViolation.getId();
     apiPolicyViolationForDiffDTO.threatLevel = policyViolation.getThreatLevel();
-    final ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
-        applicationId, stageTypeId, policyViolation.getHash());
+    final ApplicationComponent applicationComponent = componentsByKey.get(
+        new ApplicationComponentDAO.ApplicationComponentKey(applicationId, stageTypeId, policyViolation.getHash()));
     apiPolicyViolationForDiffDTO.component = new ApiComponentDTOV2();
     apiPolicyViolationForDiffDTO.component.hash = policyViolation.getHash();
     apiPolicyViolationForDiffDTO.component.proprietary = applicationComponent != null

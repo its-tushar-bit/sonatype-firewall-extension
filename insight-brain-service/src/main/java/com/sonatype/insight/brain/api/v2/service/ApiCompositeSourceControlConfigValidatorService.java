@@ -127,8 +127,23 @@ public class ApiCompositeSourceControlConfigValidatorService
               "Authentication failed. Please verify your credentials."));
           break;
         case HttpStatus.SC_FORBIDDEN:
+          // The SCM client now ships an auth-strategy-aware reason phrase (PAT vs. GitHub
+          // App). Surface it directly so a GitHub App user is pointed at App installation
+          // and permissions instead of PAT "scopes" terminology. Use getReasonPhrase()
+          // rather than getMessage() so we don't leak "status code: NNN, reason phrase: ".
+          //
+          // Security contract: this call site assumes the SCM client constructs the reason
+          // phrase itself as a curated, user-safe string and does NOT echo a verbatim
+          // upstream provider response (which could include server-side details). The
+          // surrounding catch blocks deliberately suppress exception messages for that
+          // reason; this branch is only safe so long as the SCM client upholds its end of
+          // the contract. If a future SCM client change ever passes through a raw upstream
+          // body, fall back to the hard-coded message instead.
+          String reason = e.getReasonPhrase();
           result.setTokenPermissions(new ValidationResult(false,
-              "Insufficient permissions. Please verify the token has the required scopes."));
+              (reason != null && !reason.isBlank())
+                  ? reason
+                  : "Insufficient permissions. Please verify the token has the required scopes."));
           break;
         default:
           result.setTokenPermissions(new ValidationResult(false,

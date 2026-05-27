@@ -491,14 +491,45 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_tokenPermissions_forbidden() throws Exception {
+  public void testValidateSourceControlConfig_tokenPermissions_forbidden_surfacesReasonPhrase() throws Exception {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
 
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
-    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(403, "Forbidden"));
+    // The SCM client supplies an auth-strategy-aware reason phrase (PAT vs. GitHub App);
+    // the validator surfaces it directly so the wording fits the auth type in use.
+    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(403,
+        "Insufficient permissions. Verify the App is installed on this repository and has the required permissions."));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTokenPermissions().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().getMessage())
+        .isEqualTo(
+            "Insufficient permissions. Verify the App is installed on this repository and has the required permissions.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_forbidden_fallsBackWhenReasonPhraseNull() throws Exception {
+    assertForbiddenFallback(null);
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_tokenPermissions_forbidden_fallsBackWhenReasonPhraseBlank() throws Exception {
+    assertForbiddenFallback("   ");
+  }
+
+  private void assertForbiddenFallback(String reasonPhrase) throws Exception {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenThrow(new HttpResponseException(403, reasonPhrase));
 
     ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
 

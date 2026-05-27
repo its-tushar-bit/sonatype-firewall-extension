@@ -6,7 +6,6 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Flex } from '@radix-ui/themes';
 import {
   PageLayout,
   FilteredPageLayout,
@@ -30,6 +29,7 @@ import {
 import { searchComponents } from 'GuideRoot/api/componentsBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
+import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import type { ComponentSearchResponse, ComponentsSearchOptions } from '@guide/ui-core/types';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 
@@ -78,12 +78,8 @@ export function ComponentsSearchPage() {
 
   if (loading && data === null) return <FilteredPageSkeleton variant="components" />;
 
-  if (error && !data) {
-    return (
-      <Flex align="center" justify="center" style={{ minHeight: '60vh' }}>
-        <p>Error loading components: {error}</p>
-      </Flex>
-    );
+  if (error) {
+    return <ErrorPage retryHref="/components" showGoBack={false} />;
   }
 
   const isPending = loading || filterPending || toolbarPending;
@@ -111,7 +107,6 @@ export function ComponentsSearchPage() {
         onFilterSidebarPendingChange={setFilterPending}
         onToolbarPendingChange={setToolbarPending}
       >
-        {error && <p>Error loading components: {error}</p>}
         {!isPending && components.length === 0 ? (
           <EmptyComponentsResults />
         ) : (

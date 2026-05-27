@@ -5,22 +5,25 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams, Outlet, Link } from 'react-router';
-import { Flex } from '@radix-ui/themes';
+import { useParams, Outlet } from 'react-router';
 import {
   PageLayout,
+  PageHeading,
+  BodyText,
+  Button,
+  HeroSection,
   ComponentDetailsHeader,
   ComponentTabsLayout,
   ComponentProvider,
   MalwareBanner,
 } from '@guide/ui-core';
-import { tokens } from '@guide/ui-core/utils';
 import {
   getComponentDetail,
   getComponentVulnerabilities,
   getComponentVersions,
   getComponentDependencies,
 } from 'GuideRoot/api/componentsBackend';
+import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { ComponentDetailSkeleton } from './ComponentDetailSkeleton';
 import type { ComponentDetails } from '@guide/ui-core/types';
 
@@ -80,28 +83,20 @@ export function ComponentDetailPage() {
   if (loading) return <ComponentDetailSkeleton />;
 
   if (error) {
-    return (
-      <PageLayout>
-        <Flex align="center" justify="center" style={{ minHeight: '60dvh' }}>
-          <p>Error loading component: {error}</p>
-        </Flex>
-      </PageLayout>
-    );
+    return <ErrorPage retryHref="/components" />;
   }
 
   if (!state) {
     return (
       <PageLayout>
-        <Flex
-          direction="column"
-          align="center"
-          justify="center"
-          gap={tokens.space.section}
-          style={{ minHeight: '60dvh' }}
-        >
-          <p>Component not found.</p>
-          <Link to="/components">Back to components</Link>
-        </Flex>
+        <HeroSection>
+          <PageHeading>Component Not Found</PageHeading>
+          <BodyText align="center">
+            Could not find component data for &ldquo;{ecosystem}/{pkg}/{version}&rdquo;.
+          </BodyText>
+          <BodyText align="center">Please check the URL and try again.</BodyText>
+          <Button variant="primary" href="/">Go to home</Button>
+        </HeroSection>
       </PageLayout>
     );
   }

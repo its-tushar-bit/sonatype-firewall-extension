@@ -80,18 +80,23 @@ describe('ComponentDetailPage', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText(/component not found/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /component not found/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('link', { name: /back to components/i })).toBeInTheDocument();
+    expect(screen.getByText(/please check the url and try again/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /go to home/i })).toHaveAttribute('href', '/');
   });
 
-  it('shows error message when fetch rejects', async () => {
+  it('shows error state when fetch rejects', async () => {
     mockGetComponentDetail.mockRejectedValue(new Error('Network error'));
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText(/error loading component/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /we hit a snag/i })).toBeInTheDocument();
     });
+
+    expect(screen.getByText(/please try again/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/components');
+    expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
   });
 });

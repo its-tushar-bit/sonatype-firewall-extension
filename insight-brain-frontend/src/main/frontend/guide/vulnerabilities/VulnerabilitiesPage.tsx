@@ -28,6 +28,7 @@ import {
 import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
+import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
 
 export function VulnerabilitiesPage() {
@@ -73,11 +74,7 @@ export function VulnerabilitiesPage() {
   if (isPending && response === null) return <FilteredPageSkeleton variant="vulnerabilities" />;
 
   if (error) {
-    return (
-      <div style={{ padding: '2rem', color: 'var(--red-11)' }}>
-        Error loading vulnerabilities: {error}
-      </div>
-    );
+    return <ErrorPage retryHref="/vulnerabilities" showGoBack={false} />;
   }
 
   // Use defaults while pending or if no response

@@ -137,8 +137,14 @@ describe('ComponentsSearchPage', () => {
 
     render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
 
-    await screen.findByText(/Error loading components:.*Network error/i);
-    expect(screen.queryByText(/Results:/)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /we hit a snag/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/please try again/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/components');
+    // Go back button is hidden when showGoBack=false
+    expect(screen.queryByRole('button', { name: /go back/i })).not.toBeInTheDocument();
   });
 
   it('passes query param from URL to searchComponents', async () => {

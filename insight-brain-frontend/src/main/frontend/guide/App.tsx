@@ -10,6 +10,8 @@ import { Spinner, Flex } from '@radix-ui/themes';
 import { useReactRouterAdapter } from './reactRouterAdapter';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './layout/AppShell';
+import { NotFoundPage } from './layout/NotFoundPage';
+import { ErrorBoundary } from './layout/ErrorBoundary';
 import { ComponentsSearchPage } from './components/ComponentsSearchPage';
 import { VulnerabilitiesPage } from './vulnerabilities/VulnerabilitiesPage';
 import { VulnerabilityDetailLayout } from './vulnerabilities/VulnerabilityDetailLayout';
@@ -50,59 +52,62 @@ function AuthGate() {
       <LicenseGate requires={GUIDE_PRODUCTS}>
         <FeatureFlagProvider>
           <AppShell>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route
-                path="/components"
-                element={
-                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                    <ComponentsSearchPage />
-                  </FeatureGate>
-                }
-              />
-              <Route
-                path="/vulnerabilities"
-                element={
-                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                    <VulnerabilitiesPage />
-                  </FeatureGate>
-                }
-              />
-              <Route
-                path="/vulnerability/:vulnId"
-                element={
-                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                    <VulnerabilityDetailLayout />
-                  </FeatureGate>
-                }
-              >
-                <Route index element={<SecurityDetailsTab />} />
-                <Route path="components-impacted" element={<ComponentsImpactedTab />} />
-                <Route path="sonatype-research" element={<SonatypeResearchTab />} />
-              </Route>
-              <Route
-                path="/search"
-                element={
-                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                    <SearchPage />
-                  </FeatureGate>
-                }
-              />
-              <Route path="/mcp" element={<McpPage />} />
-              <Route
-                path="/component/:ecosystem/:pkg/:version"
-                element={
-                  <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                    <ComponentDetailPage />
-                  </FeatureGate>
-                }
-              >
-                <Route index element={<OverviewTab />} />
-                <Route path="versions" element={<VersionsTab />} />
-                <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
-                <Route path="dependencies" element={<DependenciesTab />} />
-              </Route>
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route
+                  path="/components"
+                  element={
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                      <ComponentsSearchPage />
+                    </FeatureGate>
+                  }
+                />
+                <Route
+                  path="/vulnerabilities"
+                  element={
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                      <VulnerabilitiesPage />
+                    </FeatureGate>
+                  }
+                />
+                <Route
+                  path="/vulnerability/:vulnId"
+                  element={
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                      <VulnerabilityDetailLayout />
+                    </FeatureGate>
+                  }
+                >
+                  <Route index element={<SecurityDetailsTab />} />
+                  <Route path="components-impacted" element={<ComponentsImpactedTab />} />
+                  <Route path="sonatype-research" element={<SonatypeResearchTab />} />
+                </Route>
+                <Route
+                  path="/search"
+                  element={
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                      <SearchPage />
+                    </FeatureGate>
+                  }
+                />
+                <Route path="/mcp" element={<McpPage />} />
+                <Route
+                  path="/component/:ecosystem/:pkg/:version"
+                  element={
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                      <ComponentDetailPage />
+                    </FeatureGate>
+                  }
+                >
+                  <Route index element={<OverviewTab />} />
+                  <Route path="versions" element={<VersionsTab />} />
+                  <Route path="vulnerabilities" element={<VulnerabilitiesTab />} />
+                  <Route path="dependencies" element={<DependenciesTab />} />
+                </Route>
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </ErrorBoundary>
           </AppShell>
         </FeatureFlagProvider>
       </LicenseGate>

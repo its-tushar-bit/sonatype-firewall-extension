@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { render, type RenderOptions } from '@testing-library/react';
-import { MemoryRouter, type MemoryRouterProps } from 'react-router';
+import { MemoryRouter, Routes, Route, type MemoryRouterProps } from 'react-router';
 import { Theme } from '@radix-ui/themes';
 import { NavigationProvider } from '@guide/ui-core';
 import { useReactRouterAdapter } from 'GuideRoot/reactRouterAdapter';
@@ -19,8 +19,19 @@ jest.mock('GuideRoot/auth/loginApi', () => ({
   }),
 }));
 
+interface RouteConfig {
+  path: string;
+}
+
 interface RouterOptions {
   initialEntries?: MemoryRouterProps['initialEntries'];
+  /**
+   * When provided, wraps children in a <Routes> block with the given path patterns so that
+   * useParams() resolves correctly. Each entry's `element` is always the rendered children.
+   *
+   * Example: `[{ path: '/vulnerability/:vulnId' }, { path: '/vulnerability' }]`
+   */
+  routes?: RouteConfig[];
 }
 
 function AdapterBridge({ children }: { children: React.ReactNode }) {
@@ -34,12 +45,20 @@ function AdapterBridge({ children }: { children: React.ReactNode }) {
 
 function createWrapper(routerOptions: RouterOptions = {}) {
   return function AllTheProviders({ children }: { children: React.ReactNode }) {
+    const content = routerOptions.routes ? (
+      <Routes>
+        {routerOptions.routes.map(({ path }) => (
+          <Route key={path} path={path} element={children} />
+        ))}
+      </Routes>
+    ) : children;
+
     return (
       <MemoryRouter initialEntries={routerOptions.initialEntries ?? ['/']}>
         <Theme appearance="dark" accentColor="indigo" panelBackground="solid">
           <AuthProvider>
             <AdapterBridge>
-              {children}
+              {content}
             </AdapterBridge>
           </AuthProvider>
         </Theme>

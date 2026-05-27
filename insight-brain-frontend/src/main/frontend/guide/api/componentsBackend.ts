@@ -296,27 +296,31 @@ export interface ComponentVersionsResponse {
   aggregations: Record<string, Record<string, number>>;
 }
 
-function mockComponentToDetails(ecosystem: string, pkg: string, version: string): ComponentDetails {
+function mockComponentToDetails(ecosystem: string, pkg: string, version: string): ComponentDetails | null {
   const { name } = parsePackageIdentifier(pkg);
-  const match =
-    mockComponents.find((c) => c.name === name && c.format === ecosystem && c.version === version) ??
-    mockComponents.find((c) => c.name === name && c.format === ecosystem) ??
-    mockComponents[0];
-  return {
-    ...mockComponentDetail,
-    format: match.format,
-    originId: match.originId,
-    namespace: match.namespace ?? '',
-    name: match.name,
-    version: match.version,
-    registryLink: match.registryLink,
-    maxCvss: match.maxCvss ?? 0,
-    licenses: match.licenses ?? [],
-    categories: match.categories,
-    versionScore: match.versionScore ?? 0,
-    isMalware: match.isMalware ?? false,
-    dts: makeDts(match.versionScore ?? 0),
-  };
+  // Try exact match (name + ecosystem + version)
+  const exactMatch = mockComponents.find(
+    (c) => c.name === name && c.format === ecosystem && c.version === version
+  );
+  if (exactMatch) {
+    return {
+      ...mockComponentDetail,
+      format: exactMatch.format,
+      originId: exactMatch.originId,
+      namespace: exactMatch.namespace ?? '',
+      name: exactMatch.name,
+      version: exactMatch.version,
+      registryLink: exactMatch.registryLink,
+      maxCvss: exactMatch.maxCvss ?? 0,
+      licenses: exactMatch.licenses ?? [],
+      categories: exactMatch.categories,
+      versionScore: exactMatch.versionScore ?? 0,
+      isMalware: exactMatch.isMalware ?? false,
+      dts: makeDts(exactMatch.versionScore ?? 0),
+    };
+  }
+  // Return null if no exact match (component not found at that version)
+  return null;
 }
 
 export async function getComponentDetail(
@@ -344,6 +348,9 @@ export async function getComponentVulnerabilities(
     {
       mockHandler: () => {
         const component = mockComponentToDetails(ecosystem, pkg, version);
+        if (!component) {
+          return { hits: [], total: 0, offset, limit, aggregations: {} };
+        }
         const all = component.maxCvss > 0 ? mockVulnerabilities : [];
         const filtered = filterVulnerabilities(all, query, filters);
         const sorted = sortField

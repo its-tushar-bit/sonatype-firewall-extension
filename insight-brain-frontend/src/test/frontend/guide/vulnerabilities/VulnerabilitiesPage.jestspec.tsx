@@ -141,13 +141,14 @@ describe('VulnerabilitiesPage', () => {
 
       render(<VulnerabilitiesPage />);
 
-      // Wait for error state to be displayed
       await waitFor(() => {
-        expect(screen.getByText(/Error loading vulnerabilities/)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /we hit a snag/i })).toBeInTheDocument();
       });
 
-      // Error message should be visible
-      expect(screen.getByText(/Network error/)).toBeInTheDocument();
+      expect(screen.getByText(/please try again/i)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/vulnerabilities');
+      // Go back button is hidden when showGoBack=false
+      expect(screen.queryByRole('button', { name: /go back/i })).not.toBeInTheDocument();
     });
   });
 

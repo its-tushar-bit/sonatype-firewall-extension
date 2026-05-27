@@ -42,7 +42,7 @@ describe('FirewallContainerQuarantineTable', () => {
     expect(headerColumnHeaders).toHaveLength(5);
     expect(headerColumnHeaders[0]).toHaveTextContent('Threat');
     expect(headerColumnHeaders[1]).toHaveTextContent('Policy');
-    expect(headerColumnHeaders[2]).toHaveTextContent('Quarantine Time');
+    expect(headerColumnHeaders[2]).toHaveTextContent('Evaluation Time');
     expect(headerColumnHeaders[3]).toHaveTextContent('Container');
     expect(headerColumnHeaders[4]).toHaveTextContent('Repository');
     expect(bodyCells).toHaveLength(1);

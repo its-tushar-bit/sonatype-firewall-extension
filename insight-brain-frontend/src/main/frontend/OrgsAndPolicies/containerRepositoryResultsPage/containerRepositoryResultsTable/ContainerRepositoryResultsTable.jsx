@@ -155,7 +155,7 @@ const ContainerRepositoryResultsTable = () => {
                   sortDir={getSortDirection('QUARANTINE_TIME')}
                   onClick={() => sortColumn('QUARANTINE_TIME')}
                 >
-                  QUARANTINE TIME
+                  EVALUATION TIME
                 </NxTable.Cell>
 
                 <NxTable.Cell

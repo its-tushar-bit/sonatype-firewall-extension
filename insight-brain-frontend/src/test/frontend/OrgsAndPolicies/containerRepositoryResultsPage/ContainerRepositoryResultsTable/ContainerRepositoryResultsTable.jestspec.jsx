@@ -105,7 +105,7 @@ describe('ContainerRepositoryResultsTable', () => {
 
       expect(screen.getByText('THREAT')).toBeVisible();
       expect(screen.getByText('POLICY')).toBeVisible();
-      expect(screen.getByText('QUARANTINE TIME')).toBeVisible();
+      expect(screen.getByText('EVALUATION TIME')).toBeVisible();
       expect(screen.getByText('OBJECT')).toBeVisible();
 
       expect(rows[2].querySelector('.container-repository-results-table__threat-level-cell').textContent).toContain(

@@ -75,8 +75,8 @@ export default function FirewallContainerQuarantineTable(props) {
               <NxTableCell id="policyName-header" className="iq-cell--policy-type">
                 Policy
               </NxTableCell>
-              <NxTableCell id="quarantineTime-header" className="iq-cell--quarantine-date">
-                Quarantine Time
+              <NxTableCell id="evaluationTime-header" className="iq-cell--quarantine-date">
+                Evaluation Time
               </NxTableCell>
               <NxTableCell id="component-header" className="iq-cell--component">
                 Container

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, screen, act } from 'TestRoot/SpecUtil';
 import * as repositoriesSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import * as ownerSideNavSelectors from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { actions as repositoriesActions, VIEW_TYPES } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
@@ -429,76 +429,200 @@ describe('RepositoriesConfigurationTile', () => {
     });
   });
 
-  describe('Component cleanup behavior', () => {
+  describe('Filter reset behavior', () => {
     let resetViewFiltersSpy;
+    let selectSelectedOwnerSpy;
 
     beforeEach(() => {
       resetViewFiltersSpy = jest.spyOn(repositoriesActions, 'resetViewFilters');
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
+      jest
+        .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+        .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
     });
 
-    describe('when component unmounts at container level', () => {
+    describe('at container level', () => {
       beforeEach(() => {
-        jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
-        jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
         jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
-        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
-          id: 'repositoryContainerId',
-          instanceId: 'containerInstanceId',
-          name: 'Repository Container',
-        });
-        jest
-          .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
-          .mockReturnValue(groupBy(prop('managerInstanceId'))(repos));
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+        selectSelectedOwnerSpy = jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue({ id: 'containerIdA', instanceId: 'containerInstanceIdA', name: 'Container A' });
       });
 
-      it('should dispatch resetViewFilters with CONTAINER viewType on unmount', () => {
+      it('does not reset CONTAINER filter when unmounting with same owner (e.g. navigating to a repository page)', () => {
         const { unmount } = renderComponent();
-
-        // Verify component mounted successfully
-        expect(screen.getByText('Configuration')).toBeInTheDocument();
-
-        // Clear any calls from mount
         resetViewFiltersSpy.mockClear();
 
-        // Unmount the component
         unmount();
 
-        // Verify resetViewFilters was called with CONTAINER viewType
-        expect(resetViewFiltersSpy).toHaveBeenCalledTimes(1);
+        expect(resetViewFiltersSpy).not.toHaveBeenCalled();
+      });
+
+      it('does not reset CONTAINER filter when remounting with same owner (navigating to a repo page and back)', () => {
+        // Simulate: mount tile → navigate to repository page (unmount) → navigate back (remount)
+        // prevStateIsRepositorySection stays true throughout (came from within repo section)
+        const { unmount } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        unmount();
+
+        // Remount — same owner, still within repository section
+        renderComponent();
+
+        expect(resetViewFiltersSpy).not.toHaveBeenCalled();
+      });
+
+      it('resets CONTAINER filter when owner changes (navigating to a different container)', () => {
+        const { store } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        selectSelectedOwnerSpy.mockReturnValue({
+          id: 'containerIdB',
+          instanceId: 'containerInstanceIdB',
+          name: 'Container B',
+        });
+        act(() => {
+          store.dispatch({ type: 'orgsAndPolicies/loadSelectedOwner/fulfilled', payload: { id: 'containerIdB' } });
+        });
+
         expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.CONTAINER);
       });
     });
 
-    describe('when component unmounts at repository manager level', () => {
+    describe('at repository manager level', () => {
       beforeEach(() => {
-        jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
-        jest.spyOn(repositoriesSelectors, 'selectRepositories').mockReturnValue([]);
         jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
-        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
-          id: 'repositoryManagerId',
-          instanceId: 'managerInstanceId',
-          name: 'managerName',
-        });
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+        selectSelectedOwnerSpy = jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue({ id: 'managerIdA', instanceId: 'managerInstanceIdA', name: 'Manager A' });
         jest
           .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
           .mockReturnValue(groupBy(prop('managerInstanceId'))(reposAtManagerLevel));
       });
 
-      it('should dispatch resetViewFilters with MANAGER viewType on unmount', () => {
+      it('does not reset MANAGER filter when unmounting with same owner (e.g. navigating to a repository page)', () => {
         const { unmount } = renderComponent();
-
-        // Verify component mounted successfully
-        expect(screen.getByText('Configuration')).toBeInTheDocument();
-
-        // Clear any calls from mount
         resetViewFiltersSpy.mockClear();
 
-        // Unmount the component
         unmount();
 
-        // Verify resetViewFilters was called with MANAGER viewType
-        expect(resetViewFiltersSpy).toHaveBeenCalledTimes(1);
+        expect(resetViewFiltersSpy).not.toHaveBeenCalled();
+      });
+
+      it('resets MANAGER filter when owner changes (navigating to a different manager)', () => {
+        const { store } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        selectSelectedOwnerSpy.mockReturnValue({
+          id: 'managerIdB',
+          instanceId: 'managerInstanceIdB',
+          name: 'Manager B',
+        });
+        act(() => {
+          store.dispatch({ type: 'orgsAndPolicies/loadSelectedOwner/fulfilled', payload: { id: 'managerIdB' } });
+        });
+
         expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.MANAGER);
+      });
+    });
+
+    describe('when navigating from outside the repository section (e.g. Dashboard)', () => {
+      beforeEach(() => {
+        jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+        jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue({ id: 'containerIdA', instanceId: 'containerInstanceIdA', name: 'Container A' });
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(false);
+      });
+
+      it('resets CONTAINER filter when arriving from a non-repository page (same owner)', () => {
+        renderComponent();
+
+        expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.CONTAINER);
+      });
+
+      it('resets CONTAINER filter on cold deep-link even when owner loads async (ownerJustLoaded does not suppress non-repo entry)', () => {
+        // prevStateIsRepositorySection is false (arriving from outside repo section)
+        // Owner is initially undefined (async load) — ownerJustLoaded must NOT suppress the reset
+        const ownerSpy = jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue(undefined);
+        const { store } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        ownerSpy.mockReturnValue({ id: 'containerIdA', instanceId: 'containerInstanceIdA', name: 'Container A' });
+        act(() => {
+          store.dispatch({ type: 'orgsAndPolicies/loadSelectedOwner/fulfilled', payload: { id: 'containerIdA' } });
+        });
+
+        expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.CONTAINER);
+      });
+
+      it('resets CONTAINER filter when navigating away to a non-repository page without owner or view change', () => {
+        // Start within repo section, then prevStateIsRepositorySection becomes false
+        // (user navigated away to Dashboard) without owner or isRepositoryManager changing.
+        // The main effect's deps don't change so only the secondary effect handles this.
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+        const { store } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        // Simulate router updating prevState to a non-repo route (user navigated to Dashboard)
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(false);
+        act(() => {
+          store.dispatch(repositoriesActions.setRepositoryPublicIdFilter(''));
+        });
+
+        expect(resetViewFiltersSpy).toHaveBeenCalledWith(VIEW_TYPES.CONTAINER);
+      });
+
+      it('does not reset filter when owner resolves from undefined to defined (async data load, not navigation)', () => {
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(true);
+        const ownerSpy = jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue(undefined);
+        const { store } = renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        ownerSpy.mockReturnValue({ id: 'containerIdA', instanceId: 'containerInstanceIdA', name: 'Container A' });
+        act(() => {
+          store.dispatch({ type: 'orgsAndPolicies/loadSelectedOwner/fulfilled', payload: { id: 'containerIdA' } });
+        });
+
+        expect(resetViewFiltersSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when navigating to a repository results page and back', () => {
+      beforeEach(() => {
+        jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
+        jest
+          .spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner')
+          .mockReturnValue({ id: 'containerIdA', instanceId: 'containerInstanceIdA', name: 'Container A' });
+      });
+
+      it.each([
+        ['firewall.repository-report', 'non-docker repo results'],
+        ['firewall.containerRepositoryResults', 'docker container repo results'],
+        ['hostedRepoComponents', 'hosted repo components'],
+      ])('does not reset filter when returning from %s (%s)', (prevRouteName) => {
+        jest.spyOn(routerSelectors, 'selectPrevStateIsRepositorySection').mockReturnValue(
+          prevRouteName.includes('repository_container') ||
+            prevRouteName.includes('repository_manager') ||
+            prevRouteName.includes('management.view.repository') ||
+            prevRouteName.includes('firewall.repository-report') ||
+            prevRouteName.includes('firewall.containerRepositoryResults') ||
+            prevRouteName.includes('hostedRepoComponents')
+        );
+        renderComponent();
+        resetViewFiltersSpy.mockClear();
+
+        // Remount (coming back from the results page)
+        renderComponent();
+
+        expect(resetViewFiltersSpy).not.toHaveBeenCalled();
       });
     });
   });

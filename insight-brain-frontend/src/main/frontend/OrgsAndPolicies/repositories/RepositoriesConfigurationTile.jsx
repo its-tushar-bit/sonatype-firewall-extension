@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   NxStatefulForm,
   NxH2,
@@ -45,7 +45,7 @@ import { selectRepoManagerOwnersEntriesSorted } from 'MainRoot/OrgsAndPolicies/o
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsRepositoryManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoryManager, selectPrevStateIsRepositorySection } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const RepositoriesConfigurationTile = () => {
   const dispatch = useDispatch();
@@ -83,6 +83,7 @@ const RepositoriesConfigurationTile = () => {
   const repositoryFormatsFilter = useSelector(selectRepositoryFormatsFilter);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const owner = useSelector(selectSelectedOwner);
+  const prevStateIsRepositorySection = useSelector(selectPrevStateIsRepositorySection);
 
   const uiRouterState = useRouterState();
 
@@ -111,21 +112,54 @@ const RepositoriesConfigurationTile = () => {
     }
   };
 
-  useEffect(() => {
-    // Set the current view context based on whether we're in repository manager or container view
-    const viewType = isRepositoryManager ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER;
-    dispatch(actions.setCurrentView(viewType));
+  const prevOwnerIdRef = useRef(owner?.id);
+  const prevIsRepositoryManagerRef = useRef(isRepositoryManager);
+  // Captured as a ref so its value at effect execution time is used without
+  // adding it to the dependency array (which would cause spurious reloads
+  // whenever router prevState changes mid-session).
+  const prevStateIsRepositorySectionRef = useRef(prevStateIsRepositorySection);
+  prevStateIsRepositorySectionRef.current = prevStateIsRepositorySection;
 
-    // Load repositories for the appropriate view
+  useEffect(() => {
+    const viewType = isRepositoryManager ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER;
+    const prevOwnerId = prevOwnerIdRef.current;
+    const ownerChanged = prevOwnerId !== owner?.id;
+    // Skip reset when owner transitions undefined → defined: that is an async
+    // data-load, not a navigation event, and should not clear active filters.
+    const ownerJustLoaded = prevOwnerId === undefined && owner?.id !== undefined;
+
+    // Reset filters when navigating to a different container/manager (owner changed),
+    // or when arriving from outside the repository section entirely (e.g. Dashboard).
+    // Do NOT reset when navigating within the section (e.g. container -> repository -> back),
+    // so the filter is preserved when the user drills into a repo and returns.
+    // ownerJustLoaded only suppresses the ownerChanged branch — not the !prevStateIsRepositorySection
+    // branch, so cold deep-links while owner loads async still clear stale cross-session filters.
+    if ((!ownerJustLoaded && ownerChanged) || !prevStateIsRepositorySectionRef.current) {
+      const prevViewType = prevIsRepositoryManagerRef.current ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER;
+      dispatch(actions.resetViewFilters(prevViewType));
+    }
+    prevOwnerIdRef.current = owner?.id;
+    prevIsRepositoryManagerRef.current = isRepositoryManager;
+
+    dispatch(actions.setCurrentView(viewType));
     if (isRepositoryManager) {
       loadRepositoriesByManagerId();
     } else {
       loadRepositories();
     }
-    return () => {
-      dispatch(actions.resetViewFilters(viewType));
-    };
   }, [isRepositoryManager, owner?.id]);
+
+  // When the user navigates away to a non-repository section without changing owner or view
+  // type (so the main effect's deps don't change and its cleanup never fires), we still need
+  // to reset the active filters so they don't persist stale across that navigation.
+  // Watching prevStateIsRepositorySection going false is the signal for that case.
+  const currentViewTypeRef = useRef(isRepositoryManager ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER);
+  currentViewTypeRef.current = isRepositoryManager ? VIEW_TYPES.MANAGER : VIEW_TYPES.CONTAINER;
+  useEffect(() => {
+    if (!prevStateIsRepositorySection) {
+      dispatch(actions.resetViewFilters(currentViewTypeRef.current));
+    }
+  }, [prevStateIsRepositorySection]);
 
   const deleteModal = (
     <NxModal

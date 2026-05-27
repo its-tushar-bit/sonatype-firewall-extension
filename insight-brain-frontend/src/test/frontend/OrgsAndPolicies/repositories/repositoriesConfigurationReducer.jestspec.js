@@ -1206,4 +1206,337 @@ describe('repositoriesConfigurationSliceReducer', () => {
       });
     });
   });
+
+  describe('race condition protection (PR #16106 fix)', () => {
+    describe('loadRepositoriesByManagerId/fulfilled', () => {
+      it('applies payload when currentView matches the view that made the request', () => {
+        const sortConfig = [{ key: 'publicId', dir: 'asc' }];
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.MANAGER,
+          pendingLoadView: VIEW_TYPES.MANAGER, // Guard: request started in MANAGER view
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          loading: true,
+          loadError: null,
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: sortConfig,
+            [VIEW_TYPES.MANAGER]: sortConfig,
+          },
+        });
+
+        const payload = [
+          {
+            managerInstanceId: '1',
+            repository: { id: '1', publicId: 'a', enabled: true },
+          },
+        ];
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+          payload,
+        });
+
+        // Should apply since pendingLoadView === currentView
+        expect(result.repositories[VIEW_TYPES.MANAGER]).toHaveLength(1);
+        expect(result.loading).toBe(false);
+      });
+
+      it('ignores payload when currentView changes during in-flight request (stale response)', () => {
+        const sortConfig = [{ key: 'publicId', dir: 'asc' }];
+        const existingManagerRepos = [
+          {
+            managerInstanceId: '2',
+            repository: { id: '2', publicId: 'existing', enabled: true },
+          },
+        ];
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.CONTAINER, // User switched to CONTAINER view
+          pendingLoadView: VIEW_TYPES.MANAGER, // But request started in MANAGER view
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: existingManagerRepos,
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: existingManagerRepos,
+          },
+          loading: true,
+          loadError: null,
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: sortConfig,
+            [VIEW_TYPES.MANAGER]: sortConfig,
+          },
+        });
+
+        const stalePayload = [
+          {
+            managerInstanceId: '1',
+            repository: { id: '1', publicId: 'stale', enabled: true },
+          },
+        ];
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+          payload: stalePayload,
+        });
+
+        // Should NOT apply stale payload - view changed
+        // Manager repos should remain unchanged (not overwritten with stale data)
+        expect(result.repositories[VIEW_TYPES.MANAGER]).toEqual(existingManagerRepos);
+        expect(result.repositories[VIEW_TYPES.CONTAINER]).toEqual([]);
+        // Loading should still be set to false (resolve the loading state)
+        expect(result.loading).toBe(false);
+      });
+
+      it('applies payload when pendingLoadView is null (backward compatible with existing behavior)', () => {
+        const sortConfig = [{ key: 'publicId', dir: 'asc' }];
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.MANAGER,
+          pendingLoadView: null, // No guard set - proceed with update
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          loading: true,
+          loadError: null,
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: sortConfig,
+            [VIEW_TYPES.MANAGER]: sortConfig,
+          },
+        });
+
+        const payload = [
+          {
+            managerInstanceId: '1',
+            repository: { id: '1', publicId: 'a', enabled: true },
+          },
+        ];
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+          payload,
+        });
+
+        // Should apply - null pendingLoadView means no race condition guard set
+        expect(result.repositories[VIEW_TYPES.MANAGER]).toHaveLength(1);
+        expect(result.repositories[VIEW_TYPES.MANAGER][0].repository.publicId).toBe('a');
+        expect(result.loading).toBe(false);
+        expect(result.pendingLoadView).toBe(null);
+      });
+    });
+
+    describe('loadRepositories/fulfilled', () => {
+      it('applies payload when currentView matches the view that made the request', () => {
+        const sortConfig = [{ key: 'publicId', dir: 'asc' }];
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.CONTAINER,
+          pendingLoadView: VIEW_TYPES.CONTAINER, // Guard: request started in CONTAINER view
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          loading: true,
+          loadError: null,
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: sortConfig,
+            [VIEW_TYPES.MANAGER]: sortConfig,
+          },
+        });
+
+        const payload = [
+          {
+            managerInstanceId: '1',
+            repository: { id: '1', publicId: 'a', enabled: true },
+          },
+        ];
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositories/fulfilled',
+          payload,
+        });
+
+        // Should apply since pendingLoadView === currentView
+        expect(result.repositories[VIEW_TYPES.CONTAINER]).toHaveLength(1);
+        expect(result.loading).toBe(false);
+      });
+
+      it('ignores payload when currentView changes during in-flight request (stale response)', () => {
+        const sortConfig = [{ key: 'publicId', dir: 'asc' }];
+        const existingContainerRepos = [
+          {
+            managerInstanceId: '2',
+            repository: { id: '2', publicId: 'existing', enabled: true },
+          },
+        ];
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.MANAGER, // User switched to MANAGER view
+          pendingLoadView: VIEW_TYPES.CONTAINER, // But request started in CONTAINER view
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: existingContainerRepos,
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: existingContainerRepos,
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          loading: true,
+          loadError: null,
+          sortConfiguration: {
+            [VIEW_TYPES.CONTAINER]: sortConfig,
+            [VIEW_TYPES.MANAGER]: sortConfig,
+          },
+        });
+
+        const stalePayload = [
+          {
+            managerInstanceId: '1',
+            repository: { id: '1', publicId: 'stale', enabled: true },
+          },
+        ];
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositories/fulfilled',
+          payload: stalePayload,
+        });
+
+        // Should NOT apply stale payload - view changed
+        expect(result.repositories[VIEW_TYPES.CONTAINER]).toEqual(existingContainerRepos);
+        expect(result.repositories[VIEW_TYPES.MANAGER]).toEqual([]);
+        // Loading should still be set to false (resolve the loading state)
+        expect(result.loading).toBe(false);
+      });
+    });
+
+    describe('loadRepositoriesByManagerId/pending', () => {
+      it('stores the current view as pendingLoadView when request starts', () => {
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.MANAGER,
+          pendingLoadView: null,
+          repositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          originalRepositories: {
+            [VIEW_TYPES.CONTAINER]: [],
+            [VIEW_TYPES.MANAGER]: [],
+          },
+          loading: false,
+          loadError: 'previous error',
+          submitMaskState: true,
+        });
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositoriesByManagerId/pending',
+        });
+
+        expect(result.pendingLoadView).toBe(VIEW_TYPES.MANAGER);
+        expect(result.loading).toBe(true);
+        expect(result.loadError).toBeNull();
+        expect(result.submitMaskState).toBeNull();
+      });
+    });
+
+    describe('loadRepositories/pending', () => {
+      it('stores the current view as pendingLoadView when request starts', () => {
+        const state = Object.freeze({
+          currentView: VIEW_TYPES.CONTAINER,
+          pendingLoadView: VIEW_TYPES.MANAGER, // Previous stale value
+          loading: false,
+          loadError: 'previous error',
+          submitMaskState: true,
+        });
+
+        const result = reducer(state, {
+          type: 'repositories/loadRepositories/pending',
+        });
+
+        expect(result.pendingLoadView).toBe(VIEW_TYPES.CONTAINER);
+        expect(result.loading).toBe(true);
+        expect(result.loadError).toBeNull();
+        expect(result.submitMaskState).toBeNull();
+      });
+    });
+  });
+
+  describe('filter bleed between repository managers (PR #16106 fix)', () => {
+    const sortConfig = [{ key: 'publicId', dir: 'asc' }, { key: 'format', dir: 'asc' }];
+
+    it('resets publicIdFilter when a new manager loads so text filter does not bleed to next manager', () => {
+      const state = Object.freeze({
+        currentView: VIEW_TYPES.MANAGER,
+        pendingLoadView: null,
+        loading: true,
+        loadError: null,
+        repositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        originalRepositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        sortConfiguration: { [VIEW_TYPES.CONTAINER]: sortConfig, [VIEW_TYPES.MANAGER]: sortConfig },
+        repositoryPublicIdFilter: { [VIEW_TYPES.CONTAINER]: '', [VIEW_TYPES.MANAGER]: 'pypi' },
+        repositoryFormatsFilter: { [VIEW_TYPES.CONTAINER]: new Set(), [VIEW_TYPES.MANAGER]: new Set() },
+      });
+
+      const result = reducer(state, {
+        type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+        payload: [{ managerInstanceId: '2', repository: { id: '1', publicId: 'maven-central', format: 'maven2' } }],
+      });
+
+      expect(result.repositoryPublicIdFilter[VIEW_TYPES.MANAGER]).toBe('');
+    });
+
+    it('strips stale format filter values not present in newly loaded repos', () => {
+      const state = Object.freeze({
+        currentView: VIEW_TYPES.MANAGER,
+        pendingLoadView: null,
+        loading: true,
+        loadError: null,
+        repositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        originalRepositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        sortConfiguration: { [VIEW_TYPES.CONTAINER]: sortConfig, [VIEW_TYPES.MANAGER]: sortConfig },
+        repositoryPublicIdFilter: { [VIEW_TYPES.CONTAINER]: '', [VIEW_TYPES.MANAGER]: '' },
+        repositoryFormatsFilter: { [VIEW_TYPES.CONTAINER]: new Set(), [VIEW_TYPES.MANAGER]: new Set(['apt']) },
+      });
+
+      const result = reducer(state, {
+        type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+        payload: [{ managerInstanceId: '2', repository: { id: '1', publicId: 'central', format: 'maven2' } }],
+      });
+
+      expect(result.repositoryFormatsFilter[VIEW_TYPES.MANAGER].has('apt')).toBe(false);
+      expect(result.repositoryFormatsFilter[VIEW_TYPES.MANAGER].size).toBe(0);
+    });
+
+    it('preserves format filter values that still exist in the newly loaded repos', () => {
+      const state = Object.freeze({
+        currentView: VIEW_TYPES.MANAGER,
+        pendingLoadView: null,
+        loading: true,
+        loadError: null,
+        repositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        originalRepositories: { [VIEW_TYPES.CONTAINER]: [], [VIEW_TYPES.MANAGER]: [] },
+        sortConfiguration: { [VIEW_TYPES.CONTAINER]: sortConfig, [VIEW_TYPES.MANAGER]: sortConfig },
+        repositoryPublicIdFilter: { [VIEW_TYPES.CONTAINER]: '', [VIEW_TYPES.MANAGER]: '' },
+        repositoryFormatsFilter: { [VIEW_TYPES.CONTAINER]: new Set(), [VIEW_TYPES.MANAGER]: new Set(['maven2']) },
+      });
+
+      const result = reducer(state, {
+        type: 'repositories/loadRepositoriesByManagerId/fulfilled',
+        payload: [{ managerInstanceId: '2', repository: { id: '1', publicId: 'central', format: 'maven2' } }],
+      });
+
+      expect(result.repositoryFormatsFilter[VIEW_TYPES.MANAGER].has('maven2')).toBe(true);
+    });
+  });
 });

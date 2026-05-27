@@ -64,13 +64,13 @@ export const selectRepositoryPublicIdFilter = createSelector(
   (slice, currentView) => slice?.repositoryPublicIdFilter?.[currentView] || ''
 );
 
-export const selectRepositoryFormats = createSelector(
-  selectOriginalRepositories,
-  pipe(pluck('repository'), pluck('format'), uniq)
-);
-
 export const selectRepositoryFormatsFilter = createSelector(
   selectRepositoriesSlice,
   selectCurrentView,
   (slice, currentView) => slice?.repositoryFormatsFilter?.[currentView] || EMPTY_SET
+);
+
+export const selectRepositoryFormats = createSelector(
+  selectOriginalRepositories,
+  pipe(pluck('repository'), pluck('format'), uniq)
 );

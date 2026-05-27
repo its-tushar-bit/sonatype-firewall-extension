@@ -18,7 +18,7 @@ export const selectRouterStateUrl = createSelector(selectRouterState, prop('url'
 export const selectCurrentRouteName = createSelector(selectRouterState, prop('name'));
 export const selectCurrentRouteTitle = createSelector(selectRouterState, path(['data', 'title']));
 
-export const selectRouterPrevState = createSelector(selectRouterSlice, prop('prevState'));
+export const selectRouterPrevState = createSelector(selectRouterSlice, (router) => prop('prevState', router) ?? {});
 
 export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('prevParams'));
 
@@ -277,6 +277,17 @@ export const selectPrevStateIsFirewallDashboard = createSelector(selectRouterPre
 
 export const selectPrevStateIsRepositoryManagerView = createSelector(selectRouterPrevState, (prevState) =>
   prevState.name?.includes('management.view.repository_manager')
+);
+
+export const selectPrevStateIsRepositorySection = createSelector(selectRouterPrevState, (prevState) =>
+  Boolean(
+    prevState.name?.includes('repository_container') ||
+    prevState.name?.includes('repository_manager') ||
+    prevState.name?.includes('management.view.repository') || // covers repo summary/detail child pages
+    prevState.name?.includes('firewall.repository-report') || // non-docker repo results page
+    prevState.name?.includes('firewall.containerRepositoryResults') || // docker repo results page
+    prevState.name?.includes('hostedRepoComponents') // hosted repo components page
+  )
 );
 
 export const selectHideBackButtonParam = createSelector(selectRouterCurrentParams, propOr(false, 'hideBackButton'));

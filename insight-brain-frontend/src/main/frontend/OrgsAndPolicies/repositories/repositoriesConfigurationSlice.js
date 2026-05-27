@@ -63,6 +63,10 @@ export const initialState = {
   // Current view context (container or manager)
   currentView: VIEW_TYPES.CONTAINER,
 
+  // Guard against race conditions: tracks which view initiated the load request.
+  // Fulfilled handlers check this to avoid writing stale data to the wrong view slot.
+  pendingLoadView: null,
+
   // Keyed by view type to maintain independent state
   originalRepositories: {
     [VIEW_TYPES.CONTAINER]: [],
@@ -164,24 +168,26 @@ const loadRepositoriesRequested = (state) => {
   state.loading = true;
   state.loadError = null;
   state.submitMaskState = null;
+  // Store the view that initiated this request for race condition protection
+  state.pendingLoadView = state.currentView;
 };
 
 const loadRepositoriesFulfilled = (state, { payload }) => {
   const currentView = state.currentView;
+  // Race condition protection: skip if view changed during request
+  // (pendingLoadView is set to the view that started the request)
+  if (state.pendingLoadView !== null && state.pendingLoadView !== undefined && state.pendingLoadView !== currentView) {
+    // View changed during in-flight request - discard stale response
+    state.loading = false;
+    state.pendingLoadView = null;
+    return state;
+  }
   const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration[currentView])]);
-  return {
-    ...state,
-    loading: false,
-    loadError: null,
-    originalRepositories: {
-      ...state.originalRepositories,
-      [currentView]: repos,
-    },
-    repositories: {
-      ...state.repositories,
-      [currentView]: repos,
-    },
-  };
+  state.loading = false;
+  state.loadError = null;
+  state.pendingLoadView = null;
+  state.originalRepositories[currentView] = repos;
+  filterRepositories(state);
 };
 
 const loadRepositoriesFailed = (state, { payload }) => {
@@ -189,6 +195,7 @@ const loadRepositoriesFailed = (state, { payload }) => {
   return {
     ...state,
     loading: false,
+    pendingLoadView: null,
     repositories: {
       ...state.repositories,
       [currentView]: null,
@@ -321,8 +328,8 @@ const setRepositoryFormatsFilter = (state, { payload }) => {
 
 const filterRepositories = (state) => {
   const currentView = state.currentView;
-  const publicIdFilter = state.repositoryPublicIdFilter[currentView];
-  const formatsFilter = state.repositoryFormatsFilter[currentView];
+  const publicIdFilter = state.repositoryPublicIdFilter?.[currentView] ?? '';
+  const formatsFilter = state.repositoryFormatsFilter?.[currentView] ?? new Set();
   const originalRepos = state.originalRepositories[currentView];
 
   if (!originalRepos) {
@@ -348,42 +355,66 @@ const loadRepositoriesByManagerIdRequested = (state) => {
   return {
     ...state,
     loading: true,
+    pendingLoadView: currentView,
     loadError: null,
     repositories: {
       ...state.repositories,
       [currentView]: [],
     },
-    originalRepositories: {
-      ...state.originalRepositories,
-      [currentView]: [],
-    },
+    // originalRepositories is intentionally kept until fulfilled so that the
+    // format filter options list stays stable during loading — clearing it here
+    // causes NxFilterDropdown to crash when a filter is active on return nav.
     submitMaskState: null,
   };
 };
 
 const loadRepositoriesByManagerIdFulfilled = (state, { payload }) => {
   const currentView = state.currentView;
+  // Race condition protection: skip if view changed during request
+  // (pendingLoadView is set to the view that started the request)
+  if (state.pendingLoadView !== null && state.pendingLoadView !== undefined && state.pendingLoadView !== currentView) {
+    // View changed during in-flight request - discard stale response
+    state.loading = false;
+    state.pendingLoadView = null;
+    return state;
+  }
   const repos = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration[currentView])]);
-  return {
-    ...state,
-    loading: false,
-    loadError: null,
-    originalRepositories: {
-      ...state.originalRepositories,
-      [currentView]: repos,
-    },
-    repositories: {
-      ...state.repositories,
-      [currentView]: repos,
-    },
-  };
+  state.loading = false;
+  state.loadError = null;
+  state.pendingLoadView = null;
+  state.originalRepositories[currentView] = repos;
+
+  // Strip any format filter values that don't exist in the newly loaded repos, and reset
+  // the text filter. This handles the case where the component remounts with a fresh key
+  // for a new manager (key="manager-view-{id}") — Redux retains the previous manager's
+  // filter state but the new manager may not have those formats or matching repo names.
+  if (state.repositoryPublicIdFilter) {
+    state.repositoryPublicIdFilter[currentView] = '';
+  }
+  const availableFormats = new Set(repos.map((r) => r?.repository?.format).filter(Boolean));
+  const formatsFilter = state.repositoryFormatsFilter?.[currentView];
+  if (formatsFilter) {
+    for (const format of [...formatsFilter]) {
+      if (!availableFormats.has(format)) {
+        formatsFilter.delete(format);
+      }
+    }
+  }
+
+  filterRepositories(state);
 };
 
 const loadRepositoriesByManagerIdFailed = (state, { payload }) => {
   const currentView = state.currentView;
   state.loading = false;
-  state.repositories[currentView] = null;
-  state.originalRepositories[currentView] = null;
+  state.pendingLoadView = null;
+  // Use optional chaining for safety when state may be incomplete in tests
+  if (state.repositories) {
+    state.repositories[currentView] = null;
+  }
+  if (state.originalRepositories) {
+    state.originalRepositories[currentView] = null;
+  }
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +15,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -20,6 +23,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.awaitility.Awaitility.await;
+import org.mockito.ArgumentCaptor;
+
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
@@ -51,6 +56,19 @@ public class PullRequestPollingSchedulerTest
 
   public PullRequestPollingSchedulerTest() {
     super(PullRequestPollingScheduler.class);
+  }
+
+  @After
+  public void shutdownAllExecutors() throws InterruptedException {
+    ArgumentCaptor<ExecutorService> captor = ArgumentCaptor.forClass(ExecutorService.class);
+    verify(mockShutdownHandler, atLeast(0)).add(captor.capture());
+    List<ExecutorService> executors = captor.getAllValues();
+    for (ExecutorService executor : executors) {
+      executor.shutdownNow();
+    }
+    for (ExecutorService executor : executors) {
+      executor.awaitTermination(10, TimeUnit.SECONDS);
+    }
   }
 
   @Test

@@ -96,7 +96,7 @@ export default function EnterpriseReportingDashboardPage() {
   }, [dispatch, routerPrevState.name]);
 
   useEffect(() => {
-    if (combinedDashboards) {
+    if (combinedDashboards?.length) {
       dispatch(actions.updateDashboardPage(id, groupId, isDashboardDisabled));
     }
   }, [dispatch, combinedDashboards, id, groupId]);

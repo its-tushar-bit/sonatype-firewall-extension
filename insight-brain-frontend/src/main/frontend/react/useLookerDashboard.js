@@ -41,8 +41,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
   const [iframeError, setIframeError] = useState(false);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   // Both 'enterprise' and 'firewall' category dashboards support filter embedding
-  const supportsFilters =
-    selectedDashboard?.category === 'enterprise' || selectedDashboard?.category === 'firewall';
+  const supportsFilters = selectedDashboard?.category === 'enterprise' || selectedDashboard?.category === 'firewall';
 
   const tokens = useRef({});
   const dashboardCommunicationRef = useRef(null);
@@ -155,9 +154,17 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
     }
   };
 
+  const clearIframeContainer = () => {
+    const container = document.querySelector(iframeContainerId);
+    if (container) {
+      container.innerHTML = '';
+    }
+  };
+
   // This prevents dashboards loading twice if link is double clicked, or breaking if navigating
   // too quickly between dashboards
   const runLookerQuery = useDebounceCallback(function runLookerQuery() {
+    clearIframeContainer();
     LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
     if (supportsFilters) {
       embedDashboardWithFilters();

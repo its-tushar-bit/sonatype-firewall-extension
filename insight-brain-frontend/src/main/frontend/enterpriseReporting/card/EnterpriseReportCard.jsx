@@ -118,7 +118,9 @@ export default function EnterpriseReportCard(props) {
                   onClick={() => {
                     dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
                   }}
-                  data-analytics-id={dashboard.dashboardId ? `lc-reporting-${dashboard.dashboardId}-view-cta` : undefined}
+                  data-analytics-id={
+                    dashboard.dashboardId ? `lc-reporting-${dashboard.dashboardId}-view-cta` : undefined
+                  }
                 >
                   {/* dashboardId must stay stable — Gainsight tracks lc-reporting-${dashboardId}-view-cta */}
                   {dashboard.accessButtonText}

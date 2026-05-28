@@ -18,7 +18,7 @@
 
 # Start backend in foreground on port 8072
 cd insight-brain-service && mvn exec:java \
-    -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService \
+    -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication \
     -Dexec.args="server src/test/resources/config-dev.yml" \
     -Ddw.server.applicationConnectors[0].port=8072
 

@@ -28,7 +28,6 @@ import {
 
 export default function useLookerDashboard(iframeContainerId = '#dashboard', customSelectors = {}) {
   const dispatch = useDispatch();
-  // Use custom selectors if provided, otherwise use defaults
   const selectBaseUrl = customSelectors.selectBaseUrl || defaultSelectBaseUrl;
   const selectSelectedDashboard = customSelectors.selectSelectedDashboard || defaultSelectSelectedDashboard;
 
@@ -40,18 +39,14 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
 
   const [iframeError, setIframeError] = useState(false);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
-  // Both 'enterprise' and 'firewall' category dashboards support filter embedding
   const supportsFilters = selectedDashboard?.category === 'enterprise' || selectedDashboard?.category === 'firewall';
 
   const tokens = useRef({});
   const dashboardCommunicationRef = useRef(null);
-  // Track current dashboard to prevent stale iframe events from interfering with new dashboard if user moves
-  // between pages before dashboard finishes loading
   const currentDashboardId = useRef(null);
   // Incremented on every embed attempt; callbacks check this to discard events from superseded embeds
   const embedGeneration = useRef(0);
 
-  // Update filters values & force iframe reload if filterState = 'applying'
   useEffect(() => {
     if (filterState === FILTER_STATES.APPLYING && dashboardCommunicationRef.current && appliedFilter) {
       dashboardCommunicationRef.current.send('dashboard:filters:update', { filters: appliedFilter });
@@ -59,8 +54,6 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
     }
   }, [filterState, dispatch]);
 
-  // Determines which filters to apply on dashboard load. If appliedFilterName !== null, find matching savedFilter,
-  // otherwise, return an empty object to allow Looker to load its default filter values.
   const filtersToApplyOnLoad = useMemo(() => {
     if (appliedFilterName) {
       const savedFilter = findFilterByName(appliedFilterName, savedFilters);
@@ -89,7 +82,6 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         tokens.current = data;
         return data;
       });
-  // Embed a Looker dashboard without filter support (used for non-enterprise dashboards)
   const embedDashboard = async () => {
     const generation = embedGeneration.current;
     try {
@@ -102,6 +94,11 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         .withDynamicIFrameHeight()
         .build()
         .connect();
+      if (embedGeneration.current !== generation) {
+        removeStaleIframe();
+      } else {
+        removeLeadingStaleIframe();
+      }
     } catch (error) {
       setIframeError(true);
     } finally {
@@ -110,16 +107,12 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
       }
     }
   };
-  // Embed a Looker dashboard with filter support and event handlers (used for enterprise dashboards)
   const embedDashboardWithFilters = async () => {
+    const generation = embedGeneration.current;
     try {
       setLoadingDashboard(true);
-      // Capture the dashboardId and generation for current iframe instance to prevent race conditions from stale
-      // listeners — both when the user navigates away and when clearIframeContainer starts a new embed before
-      // the previous connect() promise resolves
       const selectedId = selectedDashboard.dashboardId;
       currentDashboardId.current = selectedId;
-      const generation = embedGeneration.current;
 
       const dashboard = await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
         .appendTo(iframeContainerId)
@@ -128,28 +121,24 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
           _theme: '{"show_title": false}',
         })
         .withDynamicIFrameHeight()
-        // Fires once when dashboard initially loads
         .on('dashboard:loaded', (evt) => {
           if (currentDashboardId.current !== selectedId || embedGeneration.current !== generation) {
             return;
           }
           dispatch(filterActions.handleDashLoaded(evt.dashboard.dashboard_filters));
         })
-        // Fires immediately when user updates a filter in the iframe prior to refreshing the iframe
         .on('dashboard:filters:changed', () => {
           if (embedGeneration.current !== generation) {
             return;
           }
           dispatch(filterActions.handleDashChanged());
         })
-        // Fires when dashboard is loading (either initial load or any re-load of iframe)
         .on('dashboard:run:start', () => {
           if (embedGeneration.current !== generation) {
             return;
           }
           dispatch(filterActions.setLoadingIframe(true));
         })
-        // Fires when dashboard finishes running with new data
         .on('dashboard:run:complete', (evt) => {
           if (currentDashboardId.current !== selectedId || embedGeneration.current !== generation) {
             return;
@@ -158,8 +147,10 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         })
         .build()
         .connect();
-      // Guard against stale connect() resolving after a newer embed has already started
-      if (embedGeneration.current === generation) {
+      if (embedGeneration.current !== generation) {
+        removeStaleIframe();
+      } else {
+        removeLeadingStaleIframe();
         dashboardCommunicationRef.current = dashboard;
       }
     } catch (error) {
@@ -171,16 +162,35 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
     }
   };
 
+  // SDK has no disconnect API — stale connect() appends its iframe as lastChild; remove it.
+  // Only removes when > 1 children exist: if only 1 child is present it must be the active embed
+  // (triple-rapid-switch: gen=N stale resolves when gen=N+2 active is the only iframe).
+  // Using > 0 here would wrongly delete that active iframe — > 1 is the intentional safe minimum.
+  const removeStaleIframe = () => {
+    const container = document.querySelector(iframeContainerId);
+    if (container?.children.length > 1) {
+      container.removeChild(container.lastElementChild);
+    }
+  };
+
+  // When the active embed resolves but a stale iframe resolved first (stale-before-active ordering),
+  // the stale iframe sits at firstElementChild. Remove it if two element children are present.
+  const removeLeadingStaleIframe = () => {
+    const container = document.querySelector(iframeContainerId);
+    if (container?.children.length > 1) {
+      container.removeChild(container.firstElementChild);
+    }
+  };
+
   const clearIframeContainer = () => {
     embedGeneration.current += 1;
+    setLoadingDashboard(true);
     const container = document.querySelector(iframeContainerId);
     if (container) {
       container.innerHTML = '';
     }
   };
 
-  // This prevents dashboards loading twice if link is double clicked, or breaking if navigating
-  // too quickly between dashboards
   const runLookerQuery = useDebounceCallback(function runLookerQuery() {
     clearIframeContainer();
     LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
@@ -193,11 +203,9 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
 
   useEffect(() => {
     if (baseUrl && selectedDashboard) {
-      // Reset the dashboardCommunicationRef & currentDashboardId when selectedDashboard changes to invalidate old event handlers
       currentDashboardId.current = null;
       dashboardCommunicationRef.current = null;
 
-      // Wait for filters to initialize before loading filter-supporting dashboards
       if (!supportsFilters || !loadingAllFilters) {
         setIframeError(false);
         runLookerQuery();

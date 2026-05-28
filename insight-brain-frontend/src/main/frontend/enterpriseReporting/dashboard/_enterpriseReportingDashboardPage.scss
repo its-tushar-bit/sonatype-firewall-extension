@@ -52,9 +52,7 @@ enterprise-reporting-dashboard-page {
 }
 
 .enterprise-reporting-dashboard {
-  // the skeleton loader for Looker seems to be about 120px, temporarily hard code the
-  // container's height to prevent elements underneath from jumping on the page as Looker
-  // iframe loads
+  // min-height prevents layout jumping while Looker iframe loads
   &__container {
     display: block;
     width: 100%;
@@ -65,10 +63,6 @@ enterprise-reporting-dashboard-page {
     iframe {
       width: 100% !important;
       max-width: 100%;
-    }
-
-    &.loading {
-      height: 120px;
     }
   }
 

@@ -64,6 +64,7 @@ public class ApiFirewallContainerImageResourceTest
         tempEntity.newPolicyEvaluation(application.getId(), ProxyStageType.ID, "scanId");
     repository = tempEntity.newRepository("docker-repo");
     repository.setFormat("docker");
+    repository.setQuarantineEnabled(true);
     repositoryDAO.update(repository);
     repository.setRelatedOrganizationId(organization.getId());
     repositoryDAO.update(repository);
@@ -146,5 +147,49 @@ public class ApiFirewallContainerImageResourceTest
         .get();
 
     assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testGetContainersInQuarantine_onlyQuarantineEnabledRepoImagesAppear() throws Exception {
+    // Set up a second org/app/repo that is audit-only (quarantine_enabled = false)
+    Organization auditOrg = tempEntity.newOrganization();
+    Application auditApp = tempEntity.newApplicationWithParent(auditOrg);
+    Policy auditPolicy = tempEntity.newPolicy(auditApp);
+    PolicyEvaluation auditEval =
+        tempEntity.newPolicyEvaluation(auditApp.getId(), ProxyStageType.ID, "auditScanId");
+
+    Repository auditOnlyRepo = tempEntity.newRepository("audit-only-repo");
+    auditOnlyRepo.setFormat("docker");
+    // quarantineEnabled intentionally left false (default)
+    repositoryDAO.update(auditOnlyRepo);
+    auditOnlyRepo.setRelatedOrganizationId(auditOrg.getId());
+    repositoryDAO.update(auditOnlyRepo);
+    auditOrg.setRelatedRepositoryId(auditOnlyRepo.getId());
+    organizationDAO.update(auditOrg);
+
+    // Add a violation in the audit-only repo — should never appear in quarantine results
+    tempEntity.newPolicyViolation(auditEval, auditPolicy, 10, PolicyThreatCategory.OTHER, "test-group-id",
+        "audit-artifact", "v1", "test-hash", FailActionType.ID);
+
+    HttpResponse response = restRequest()
+        .path(QUARANTINED_PATH)
+        .query("page", "1")
+        .query("pageSize", "100")
+        .get();
+
+    assertResponseStatus(200, response);
+
+    TypeReference<ApiPageResult<ContainerImageInQuarantineData>> typeReference =
+        new TypeReference<>()
+        {
+        };
+    ApiPageResult<ContainerImageInQuarantineData> data =
+        new ObjectMapper().readValue(response.getBodyBytes(), typeReference);
+
+    // Only the quarantine-enabled repo's image must appear; the audit-only repo's image must not
+    assertThat(data.getResults())
+        .extracting(ContainerImageInQuarantineData::repositoryPublicId)
+        .containsOnly(repository.getPublicId())
+        .doesNotContain(auditOnlyRepo.getPublicId());
   }
 }

@@ -1761,6 +1761,7 @@ public class PolicyViolationDAO
                  JOIN %1$s.organization o ON a.organization_id = o.organization_id
                  JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
         WHERE r.format = 'docker'
+          AND r.quarantine_enabled = true
           AND pv.stage_type_id = 'proxy'
           AND pv.action_type_id = 'fail'
           AND pv.waive_time IS NULL
@@ -1805,6 +1806,7 @@ public class PolicyViolationDAO
                  JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
                           AND apv.max_open_time = pe.time
         WHERE r.format = 'docker'
+          AND r.quarantine_enabled = true
         ORDER BY  apv.max_open_time DESC, a.application_id ASC
         """, getDatabaseSchema());
 

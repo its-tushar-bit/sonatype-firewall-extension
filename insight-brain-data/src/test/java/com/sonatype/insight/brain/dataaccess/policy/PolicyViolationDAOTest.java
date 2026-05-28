@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO.ContainerImageInQuarantineData;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainer;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
@@ -101,6 +102,8 @@ public class PolicyViolationDAOTest
 
   private OrganizationDAO organizationDAO;
 
+  private RepositoryDAO repositoryDAO;
+
   @Before
   @Override
   public void setup() {
@@ -108,6 +111,7 @@ public class PolicyViolationDAOTest
     dao = daoFactory.createPolicyViolationDAO();
     constraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
     organizationDAO = daoFactory.createOrganizationDAO();
+    repositoryDAO = daoFactory.createRepositoryDAO();
 
   }
 
@@ -2260,6 +2264,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2281,6 +2287,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine_accountForMultipleComponents() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2306,6 +2314,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine_returnsMultipleContainerImages() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2321,6 +2331,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine_returnsPagedList() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2339,6 +2351,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine_returnsAllFromMultipleOrgs() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2357,6 +2371,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesInQuarantine_doesNotIncludeWaivedViolations() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2387,6 +2403,8 @@ public class PolicyViolationDAOTest
   public void testGetContainerImagesInQuarantine_IncludesLegacyViolations() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2416,6 +2434,8 @@ public class PolicyViolationDAOTest
   public void getContainerImagesQuarantinedCount() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2455,6 +2475,8 @@ public class PolicyViolationDAOTest
   public void testGetContainerImagesQuarantinedCount_IncludesLegacyViolations() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    repo1.setQuarantineEnabled(true);
+    repositoryDAO.update(repo1);
     Organization org1 = tempEntity.newOrganization("org1");
     org1.setRelatedRepositoryId(repo1.getId());
     organizationDAO.update(org1);
@@ -2474,6 +2496,46 @@ public class PolicyViolationDAOTest
 
     // Firewall should count legacy violations as quarantined
     assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void getContainerImagesInQuarantine_excludesAuditOnlyRepos() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    // audit-only repo: quarantine_enabled = false
+    Repository auditOnlyRepo = tempEntity.newRepository("audit-repo", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1-audit");
+    org1.setRelatedRepositoryId(auditOnlyRepo.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation, policy, 10, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+
+    List<ContainerImageInQuarantineData> result = dao.getContainerImagesInQuarantine(1, 10);
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void getContainerImagesQuarantinedCount_excludesAuditOnlyRepos() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    // audit-only repo: quarantine_enabled = false
+    Repository auditOnlyRepo = tempEntity.newRepository("audit-repo", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1-audit");
+    org1.setRelatedRepositoryId(auditOnlyRepo.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation, policy, 10, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id", "v1", "test-hash", FailActionType.ID);
+
+    assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(0);
   }
 
   @Test

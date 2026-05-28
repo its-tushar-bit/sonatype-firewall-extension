@@ -11,6 +11,7 @@ import { tokens } from '@guide/ui-core/utils';
 import { SearchWithSuggestions } from '@guide/ui-core';
 import { GuideLogo } from './GuideLogo';
 import { ThemeToggle } from './ThemeToggle';
+import { ProductSwitcher } from './ProductSwitcher/ProductSwitcher';
 import { useAuth } from '../auth/AuthProvider';
 import { searchAll } from '../api/searchBackend';
 import type { GlobalSearchFilters, GlobalSearchOptions } from '@guide/ui-core/types';
@@ -80,6 +81,7 @@ export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigati
       <div className={styles.actions}>
         <Flex align="center" gap={tokens.space.item} justify="end">
           <ThemeToggle />
+          <ProductSwitcher />
           <Avatar
             size={tokens.sizes.caption}
             radius="full"

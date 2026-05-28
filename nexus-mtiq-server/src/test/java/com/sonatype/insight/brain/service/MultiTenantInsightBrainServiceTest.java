@@ -18,8 +18,6 @@ import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresComponentRiskService;
 import com.sonatype.insight.brain.dashboard.PostgresDashboardViolationRiskService;
-import static org.mockito.Mockito.mock;
-
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -28,8 +26,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Category(SlowTest.class)
 public class MultiTenantInsightBrainServiceTest
@@ -48,7 +44,8 @@ public class MultiTenantInsightBrainServiceTest
   @ManualIqServerInit
   public void shouldNotBindAwsRelatedClasses_WhenUsingDefaultEncryptionKeyStore() {
     try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-      context.register(DefaultEncryptionKeyStoreAliasBeans.class, TenantManagedBeans.class,
+      context.register(EncryptionKeyStoreAliasTestFixtures.DefaultEncryptionKeyStoreAliasBeans.class,
+          EncryptionKeyStoreAliasTestFixtures.TenantManagedBeans.class,
           MtiqConfigurationAliases.class);
       context.refresh();
 
@@ -66,7 +63,8 @@ public class MultiTenantInsightBrainServiceTest
   @ManualIqServerInit
   public void shouldBindAwsRelatedClasses_WhenNotUsingDefaultEncryptionKeyStore() {
     try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-      context.register(MultiTenantEncryptionKeyStoreAliasBeans.class, TenantManagedBeans.class,
+      context.register(EncryptionKeyStoreAliasTestFixtures.MultiTenantEncryptionKeyStoreAliasBeans.class,
+          EncryptionKeyStoreAliasTestFixtures.TenantManagedBeans.class,
           MtiqConfigurationAliases.class);
       context.refresh();
 
@@ -125,57 +123,6 @@ public class MultiTenantInsightBrainServiceTest
 
   @Override
   protected boolean shouldBindTestEncryptionKeyStore() {
-    // Use the production MTIQ EncryptionKeyStore alias instead of the base test keystore binding.
-    return false;
-  }
-
-  @Configuration
-  static class TenantManagedBeans
-  {
-    @Bean
-    Configuration configuration() {
-      return mock(Configuration.class);
-    }
-  }
-
-  @Configuration
-  static class DefaultEncryptionKeyStoreAliasBeans
-  {
-    @Bean
-    InsightConfig insightConfig() {
-      MultiTenantInsightConfig config = new MultiTenantInsightConfig();
-      config.setUsingDefaultEncryptionKeyStore(true);
-      return config;
-    }
-
-    @Bean
-    DefaultEncryptionKeyStore defaultEncryptionKeyStore() {
-      return mock(DefaultEncryptionKeyStore.class);
-    }
-
-    // Note: MultiTenantEncryptionKeyStore is NOT registered here.
-    // In production, @ConditionalOnProperty prevents its registration
-    // when using the default encryption keystore.
-  }
-
-  @Configuration
-  static class MultiTenantEncryptionKeyStoreAliasBeans
-  {
-    @Bean
-    InsightConfig insightConfig() {
-      MultiTenantInsightConfig config = new MultiTenantInsightConfig();
-      config.setUsingDefaultEncryptionKeyStore(false);
-      return config;
-    }
-
-    @Bean
-    DefaultEncryptionKeyStore defaultEncryptionKeyStore() {
-      return mock(DefaultEncryptionKeyStore.class);
-    }
-
-    @Bean
-    MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore() {
-      return mock(MultiTenantEncryptionKeyStore.class);
-    }
+    return true;
   }
 }

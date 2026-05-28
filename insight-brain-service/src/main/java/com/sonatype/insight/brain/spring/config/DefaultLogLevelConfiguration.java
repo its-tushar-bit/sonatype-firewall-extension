@@ -101,7 +101,7 @@ public class DefaultLogLevelConfiguration
   }
 
   private boolean isUserConfigured(InsightConfig insightConfig, String loggerName) {
-    DropwizardLoggingConfig loggingConfig = insightConfig.getDropwizardLoggingConfig();
+    DropwizardLoggingConfig loggingConfig = insightConfig.getLogging();
     return loggingConfig != null
         && loggingConfig.loggers != null
         && loggingConfig.loggers.containsKey(loggerName);

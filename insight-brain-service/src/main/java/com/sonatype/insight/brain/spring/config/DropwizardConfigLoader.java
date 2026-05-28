@@ -23,6 +23,8 @@ import org.springframework.core.env.MutablePropertySources;
  */
 public class DropwizardConfigLoader
 {
+  public static final String MTIQ_AUDIT_LOG_APPENDER_TYPE = "mtiq-audit-log";
+
   private static final Logger log = LoggerFactory.getLogger(DropwizardConfigLoader.class);
 
   private final DropwizardConfigSourceReader configSourceReader;
@@ -276,7 +278,7 @@ public class DropwizardConfigLoader
     appenders.stream()
         .filter(Map.class::isInstance)
         .map(Map.class::cast)
-        .filter(appender -> "mtiq-audit-log".equals(appender.get("type")))
+        .filter(appender -> MTIQ_AUDIT_LOG_APPENDER_TYPE.equals(appender.get("type")))
         .map(appender -> appender.get("auditLogBasePath"))
         .filter(this::isScalarValue)
         .findFirst()

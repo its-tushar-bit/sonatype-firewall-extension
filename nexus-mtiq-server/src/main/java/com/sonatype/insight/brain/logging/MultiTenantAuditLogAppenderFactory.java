@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.logging;
 
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.sift.MDCBasedDiscriminator;
 import ch.qos.logback.classic.sift.SiftingAppender;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -19,6 +18,7 @@ import ch.qos.logback.core.rolling.TimeBasedFileNamingAndTriggeringPolicy;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.util.FileSize;
 import com.google.common.annotations.VisibleForTesting;
+import com.sonatype.insight.brain.spring.config.DropwizardAppenderFactory;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.error.exception.InternalServerException;
 import java.io.File;
@@ -106,7 +106,7 @@ public class MultiTenantAuditLogAppenderFactory
    * Create a SiftingAppender for multi-tenant audit logging.
    * This should be called during Logback configuration.
    */
-  public static Appender<ILoggingEvent> createAppender(final LoggerContext loggerContext) {
+  public static Appender<ILoggingEvent> createAppender(final LoggerContext loggerContext, final Object layoutConfig) {
     final SiftingAppender siftingAppender = new SiftingAppender();
     siftingAppender.setName("audit-log-sift-appender");
     siftingAppender.setContext(loggerContext);
@@ -128,10 +128,8 @@ public class MultiTenantAuditLogAppenderFactory
       rollingFileAppender.setFile(auditLogFile);
       rollingFileAppender.setBufferSize(new FileSize(FileAppender.DEFAULT_BUFFER_SIZE));
 
-      final LayoutWrappingEncoder<ILoggingEvent> layoutEncoder = new LayoutWrappingEncoder<>();
-      layoutEncoder.setLayout(new PatternLayout());
-      ((PatternLayout) layoutEncoder.getLayout()).setPattern("%msg%n");
-      layoutEncoder.setContext(innerContext);
+      LayoutWrappingEncoder<ILoggingEvent> layoutEncoder =
+          DropwizardAppenderFactory.createEncoderWithLayout((LoggerContext) innerContext, "%msg%n", layoutConfig);
       layoutEncoder.start();
       rollingFileAppender.setEncoder(layoutEncoder);
 

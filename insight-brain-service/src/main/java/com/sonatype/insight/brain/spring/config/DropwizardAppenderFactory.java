@@ -27,7 +27,7 @@ import io.dropwizard.logging.json.EventJsonLayoutBaseFactory;
 import java.util.Map;
 import java.util.TimeZone;
 
-final class DropwizardAppenderFactory
+public final class DropwizardAppenderFactory
 {
   static final String DEFAULT_LOG_FORMAT = "%-5p [%d{ISO8601,UTC}] %c: %m%n%rEx";
 
@@ -205,7 +205,7 @@ final class DropwizardAppenderFactory
   }
 
   @SuppressWarnings("unchecked")
-  static LayoutWrappingEncoder<ILoggingEvent> createEncoderWithLayout(
+  public static LayoutWrappingEncoder<ILoggingEvent> createEncoderWithLayout(
       LoggerContext context,
       String logFormat,
       Object layoutConfig)

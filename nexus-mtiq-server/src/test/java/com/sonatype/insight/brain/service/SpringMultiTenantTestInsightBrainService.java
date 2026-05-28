@@ -284,6 +284,10 @@ public class SpringMultiTenantTestInsightBrainService
     builder.initializers(configuratorInitializer());
 
     builder.profiles("test");
+    // System properties override application.yml (which hardcodes port 8070/8071).
+    // builder.properties alone are "default properties" with lowest priority.
+    System.setProperty("server.port", String.valueOf(testPort));
+    System.setProperty("management.server.port", String.valueOf(testAdminPort));
     builder.properties(
         "server.port=" + testPort,
         "server.servlet.context-path=/",

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,16 +26,37 @@ import org.springframework.core.annotation.Order;
 @Configuration
 public class DropwizardLoggingAppenderConfiguration
 {
+  public interface CustomAppenderFactory
+  {
+    /**
+     * The appender type this factory handles (e.g. "mtiq-audit-log").
+     */
+    String supportedType();
+
+    /**
+     * Create the appender. Only called when {@code type} matches {@link #supportedType()}.
+     * The framework applies {@code threshold}, {@code queueSize}, {@code discardingThreshold}, and {@code neverBlock}
+     * from the raw config, and wraps the appender in {@code AsyncAppender}. Do not add your own async wrapping.
+     */
+    Appender<ILoggingEvent> create(LoggerContext context, Object rawConfig);
+  }
+
   private static final org.slf4j.Logger log =
       LoggerFactory.getLogger(DropwizardLoggingAppenderConfiguration.class);
 
   private final DropwizardConfigSourceReader configSourceReader = new DropwizardConfigSourceReader();
 
+  private final ObjectProvider<CustomAppenderFactory> customAppenderFactories;
+
+  DropwizardLoggingAppenderConfiguration(ObjectProvider<CustomAppenderFactory> customAppenderFactories) {
+    this.customAppenderFactories = customAppenderFactories;
+  }
+
   @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
   SmartInitializingSingleton dropwizardLoggingAppenderInitializer(final InsightConfig insightConfig) {
     return () -> {
-      DropwizardLoggingConfig loggingConfig = insightConfig.getDropwizardLoggingConfig();
+      DropwizardLoggingConfig loggingConfig = insightConfig.getLogging();
       if (loggingConfig == null) {
         return;
       }
@@ -175,15 +197,21 @@ public class DropwizardLoggingAppenderConfiguration
         yield null;
       }
       default -> {
-        deferredWarnings.add(() -> log.warn(
-            "Unrecognized Dropwizard logging appender type '{}' for logger '{}' will be ignored",
-            type, loggerName));
+        Appender<ILoggingEvent> customAppender = tryCreateCustomAppender(context, type, rawConfig);
+        if (customAppender == null) {
+          deferredWarnings.add(() -> log.warn(
+              "Unrecognized Dropwizard logging appender type '{}' for logger '{}' will be ignored",
+              type, loggerName));
+        }
         config = null;
-        yield null;
+        yield customAppender;
       }
     };
 
-    if (appender != null && config != null) {
+    if (appender != null) {
+      if (config == null) {
+        config = configSourceReader.convertValue(rawConfig, DropwizardAppenderConfig.class);
+      }
       DropwizardAppenderFactory.applyThresholdFilter(appender, config.threshold);
       int queueSize = config.queueSize != null ? config.queueSize : DropwizardAppenderFactory.DEFAULT_QUEUE_SIZE;
       int discardingThreshold = config.discardingThreshold != null
@@ -264,4 +292,19 @@ public class DropwizardLoggingAppenderConfiguration
     }
   }
 
+  private Appender<ILoggingEvent> tryCreateCustomAppender(LoggerContext context, String type, Object rawConfig) {
+    for (CustomAppenderFactory factory : customAppenderFactories.orderedStream().toList()) {
+      if (!type.equals(factory.supportedType())) {
+        continue;
+      }
+      try {
+        return factory.create(context, rawConfig);
+      }
+      catch (RuntimeException e) {
+        log.warn("CustomAppenderFactory {} threw an exception for appender type '{}': {}",
+            factory.getClass().getSimpleName(), type, e.getMessage(), e);
+      }
+    }
+    return null;
+  }
 }

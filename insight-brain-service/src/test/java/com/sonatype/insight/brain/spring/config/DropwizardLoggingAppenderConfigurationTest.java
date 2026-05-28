@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.stream.Stream;
+import org.springframework.beans.factory.ObjectProvider;
 import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -271,7 +273,13 @@ public class DropwizardLoggingAppenderConfigurationTest
           reader.readConfigMap(Files.writeString(tempFolder.newFile("init.yml").toPath(), yaml).toFile());
       InsightConfig insightConfig = reader.convertValue(configMap, InsightConfig.class);
 
-      DropwizardLoggingAppenderConfiguration config = new DropwizardLoggingAppenderConfiguration();
+      DropwizardLoggingAppenderConfiguration config = new DropwizardLoggingAppenderConfiguration(new ObjectProvider<>()
+      {
+        @Override
+        public Stream<DropwizardLoggingAppenderConfiguration.CustomAppenderFactory> orderedStream() {
+          return Stream.empty();
+        }
+      });
       config.dropwizardLoggingAppenderInitializer(insightConfig).afterSingletonsInstantiated();
     }
     catch (IOException e) {
@@ -601,5 +609,78 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     cleanupLoggerNames.add("org.example.test");
     assertThat(loggerContext.getLogger("org.example.test").getLevel()).isEqualTo(Level.DEBUG);
+  }
+
+  @Test
+  public void testCustomAppenderFactory_delegatesToRegisteredFactory() throws IOException {
+    loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    \"com.sonatype.insight.audit\":",
+        "      appenders:",
+        "        - type: mtiq-audit-log",
+        "          auditLogBasePath: ./target/test-audit-logs",
+        ""));
+
+    loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+    DropwizardLoggingAppenderConfiguration.CustomAppenderFactory testFactory =
+        new DropwizardLoggingAppenderConfiguration.CustomAppenderFactory()
+        {
+          @Override
+          public String supportedType() {
+            return "mtiq-audit-log";
+          }
+
+          @Override
+          public Appender<ILoggingEvent> create(LoggerContext context, Object rawConfig) {
+            ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<>();
+            appender.setName("test-mtiq-audit-appender");
+            appender.setContext(context);
+            appender.start();
+            return appender;
+          }
+        };
+
+    DropwizardConfigSourceReader reader = new DropwizardConfigSourceReader();
+    Map<String, Object> configMap =
+        reader.readConfigMap(Files.writeString(tempFolder.newFile("custom.yml").toPath(), lastConfigYaml).toFile());
+    InsightConfig insightConfig = reader.convertValue(configMap, InsightConfig.class);
+
+    ObjectProvider<DropwizardLoggingAppenderConfiguration.CustomAppenderFactory> provider = new ObjectProvider<>()
+    {
+      @Override
+      public DropwizardLoggingAppenderConfiguration.CustomAppenderFactory getObject() {
+        return testFactory;
+      }
+
+      @Override
+      public Stream<DropwizardLoggingAppenderConfiguration.CustomAppenderFactory> orderedStream() {
+        return Stream.of(testFactory);
+      }
+    };
+
+    DropwizardLoggingAppenderConfiguration config = new DropwizardLoggingAppenderConfiguration(provider);
+    config.dropwizardLoggingAppenderInitializer(insightConfig).afterSingletonsInstantiated();
+
+    cleanupLoggerNames.add("com.sonatype.insight.audit");
+    Logger auditLogger = loggerContext.getLogger("com.sonatype.insight.audit");
+    Appender<ILoggingEvent> topAppender = auditLogger.iteratorForAppenders().next();
+    assertThat(topAppender).isInstanceOf(ch.qos.logback.classic.AsyncAppender.class);
+    ch.qos.logback.classic.AsyncAppender asyncAppender = (ch.qos.logback.classic.AsyncAppender) topAppender;
+    Appender<ILoggingEvent> inner = asyncAppender.iteratorForAppenders().next();
+    assertThat(inner.getName()).isEqualTo("test-mtiq-audit-appender");
+  }
+
+  private Appender<ILoggingEvent> findAppenderByName(String loggerName, String appenderName) {
+    Logger logger = loggerContext.getLogger(loggerName);
+    Iterator<Appender<ILoggingEvent>> iter = logger.iteratorForAppenders();
+    while (iter.hasNext()) {
+      Appender<ILoggingEvent> appender = iter.next();
+      if (appenderName.equals(appender.getName())) {
+        return appender;
+      }
+    }
+    return null;
   }
 }

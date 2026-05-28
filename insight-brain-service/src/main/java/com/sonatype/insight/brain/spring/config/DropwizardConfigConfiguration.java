@@ -117,9 +117,9 @@ public class DropwizardConfigConfiguration
     InsightConfig config = configSourceReader.convertValueStrict(configMap, configClass);
     DropwizardConfigCompat.warnOnDeprecatedFields(config, "config.yml");
 
-    DropwizardServerConfig serverConfig = config.getDropwizardServerConfig();
-    DropwizardLoggingConfig loggingConfig = config.getDropwizardLoggingConfig();
-    DropwizardWebConfig webConfig = config.getDropwizardWebConfig();
+    DropwizardServerConfig serverConfig = config.getServer();
+    DropwizardLoggingConfig loggingConfig = config.getLogging();
+    DropwizardWebConfig webConfig = config.getWeb();
 
     if (serverConfig != null) {
       validateConnectorCount(serverConfig.applicationConnectors, "applicationConnectors");

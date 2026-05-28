@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 public class MtiqConfigurationAliasesTest
 {
@@ -86,7 +86,7 @@ public class MtiqConfigurationAliasesTest
     };
   }
 
-  @Configuration
+  @TestConfiguration
   static class ValidAliasBeans
   {
     @Bean
@@ -95,7 +95,7 @@ public class MtiqConfigurationAliasesTest
     }
   }
 
-  @Configuration
+  @TestConfiguration
   static class InvalidAliasBeans
   {
     @Bean
@@ -104,7 +104,7 @@ public class MtiqConfigurationAliasesTest
     }
   }
 
-  @Configuration
+  @TestConfiguration
   static class DefaultEncryptionKeyStoreAliasBeans
   {
     @Bean
@@ -124,7 +124,7 @@ public class MtiqConfigurationAliasesTest
     // when using the default encryption keystore.
   }
 
-  @Configuration
+  @TestConfiguration
   static class MultiTenantEncryptionKeyStoreAliasBeans
   {
     @Bean

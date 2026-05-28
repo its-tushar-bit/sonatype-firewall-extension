@@ -1,17 +1,23 @@
 importReferencePoliciesFromHDS: false
 
-# Audit log base path for multi-tenant audit logging
-auditLogBasePath: "./target/test-audit-logs"
-
 logging:
-  level:
-    com.sonatype: DEBUG
-    org.apache.directory: ERROR
-    org.apache.http.headers: DEBUG
-    org.eclipse.jetty.server.HttpChannel: DEBUG
-    com.sonatype.insight.brain.concurrent.PerpetualLockManager: TRACE
-  pattern:
-    console: "%date %-5level [%X{tenant}] [%thread] %logger - %msg%n"
+  level: INFO
+  loggers:
+    "com.sonatype": DEBUG
+    "com.sonatype.insight.audit":
+      appenders:
+      - type: console
+    "org.apache.directory": ERROR
+    "org.apache.http.headers": DEBUG
+    "org.eclipse.jetty.server.HttpChannel": DEBUG
+    "com.sonatype.insight.brain.concurrent.PerpetualLockManager": TRACE
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: mtiq-audit-log
+          auditLogBasePath: "./target/test-audit-logs"
+  appenders:
+    - type: console
+      logFormat: "%date %-5level [%X{tenant}] [%thread] %logger - %msg%n"
 
 # for tests we disable the health checks
 mtiq-health:

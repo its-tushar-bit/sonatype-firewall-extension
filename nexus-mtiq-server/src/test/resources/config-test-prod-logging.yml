@@ -1,0 +1,39 @@
+importReferencePoliciesFromHDS: false
+logging:
+  level: DEBUG
+  loggers:
+    software.amazon.awssdk: INFO
+    io.netty.handler: INFO
+    io.dropwizard.health: INFO
+    com.sonatype.insight.scan: INFO
+    eu.medsea.mimeutil.MimeUtil2: INFO
+    org.apache.http: INFO
+    org.apache.http.wire: ERROR
+    org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter: INFO
+    org.apache.commons.beanutils: INFO
+    org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader: WARN
+    org.eclipse.jetty: INFO
+    org.postgresql.jdbc.PgConnection: INFO
+    org.quartz: INFO
+    org.zeroturnaround.exec: INFO
+    com.networknt.schema: false
+    org.apache.shiro.mgt: INFO
+    org.apache.shiro.session.mgt: INFO
+    com.sonatype.insight.brain.dataaccess.lock.PostgresAdvisoryLockDAO: INFO
+    com.sonatype.insight.brain.report.S3ApplicationReportPersistenceService: INFO
+    com.sonatype.insight.brain.sbom.datastore.S3SbomPersistenceService: INFO
+    com.sonatype.insight.brain.scan.datastore.S3ScanPersistenceService: INFO
+    com.sonatype.insight.brain.scheduler.TaskSchedulerClusterStateMonitor: TRACE
+    com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler: TRACE
+    com.sonatype.insight.audit:
+      appenders:
+      - type: mtiq-audit-log
+        auditLogBasePath: "/sonatype-work/clm-cluster"
+  appenders:
+  - type: console
+    layout:
+      type: json
+    threshold: ALL
+mtiq-health:
+  type: mtiq-health
+  enabled: false

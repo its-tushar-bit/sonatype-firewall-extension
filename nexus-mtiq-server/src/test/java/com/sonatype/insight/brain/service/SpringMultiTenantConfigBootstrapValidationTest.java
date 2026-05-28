@@ -32,7 +32,7 @@ public class SpringMultiTenantConfigBootstrapValidationTest
             "spring.main.web-application-type=none",
             "spring.main.lazy-initialization=false",
             "spring.main.allow-bean-definition-overriding=true");
-    DropwizardConfigBootstrap.configure(builder, TestInsightBrainService.DEFAULT_CONFIG_FILE_PATH);
+    DropwizardConfigBootstrap.configure(builder, "target/test-classes/config-test-base.yml");
 
     assertThatThrownBy(builder::run)
         .rootCause()

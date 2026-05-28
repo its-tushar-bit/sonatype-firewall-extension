@@ -371,15 +371,15 @@ public class InsightConfig
   @JsonProperty
   private Object health;
 
-  public DropwizardServerConfig getDropwizardServerConfig() {
+  public DropwizardServerConfig getServer() {
     return server;
   }
 
-  public DropwizardLoggingConfig getDropwizardLoggingConfig() {
+  public DropwizardLoggingConfig getLogging() {
     return logging;
   }
 
-  public DropwizardWebConfig getDropwizardWebConfig() {
+  public DropwizardWebConfig getWeb() {
     return web;
   }
 

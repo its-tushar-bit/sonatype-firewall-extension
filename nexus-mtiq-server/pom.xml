@@ -271,17 +271,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <testIncludes>
-            <!-- Only compile tests that are ready to run; the remaining MTIQ tests have pre-existing
-                 compilation failures from the Spring migration (CLM-39214) -->
-            <testInclude>**/service/MtiqAdminJerseyConfigurationTest.java</testInclude>
-            <testInclude>**/service/MtiqAdminFilterConfigurationTest.java</testInclude>
-            <testInclude>**/telemetry/MultiTenantRealmTelemetryCollectorTest.java</testInclude>
-            <testInclude>**/health/MtiqHealthConfigTest.java</testInclude>
-            <testInclude>**/health/ScheduledHealthCheckRunnerTest.java</testInclude>
-          </testIncludes>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -390,8 +379,8 @@
             contexts are lighter or CI agents are larger.
           -->
           <forkCount>0.375C</forkCount>
-          <!-- Increased heap from 1G to 2G to prevent OOM and GC pressure during tests -->
-          <argLine>@{argLine} -Xmx2048M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <!-- Heap set to 3G to prevent OOM during Spring Boot integration tests -->
+          <argLine>@{argLine} -Xmx3072M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <!-- Used by the test MTIQ server to set the work directory (to not use the same work dir across all forks). -->
             <test.forkId>#${surefire.forkNumber}</test.forkId>

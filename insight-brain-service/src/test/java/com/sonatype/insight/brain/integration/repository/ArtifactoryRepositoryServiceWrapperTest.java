@@ -126,6 +126,22 @@ public class ArtifactoryRepositoryServiceWrapperTest
     assertMigration(newRMInstanceId1, newRMInstanceId1, repositoryId1, 2, 2, 2);
   }
 
+  @Test
+  public void testMigration_configuredIsTrueAfterMigration() {
+    String repositoryId = randomRepositoryId();
+    String legacyRMInstanceId = ArtifactoryRepositoryServiceWrapper.getLegacyRepositoryInstanceId(repositoryId);
+    String newRMInstanceId = "artifactory-configured-check";
+
+    RepositoryManager legacyRepositoryManager = tempEntity.newRepositoryManager(legacyRMInstanceId);
+    tempEntity.newRepository(legacyRepositoryManager, repositoryId);
+
+    String resultInstanceId = wrapper.getRepositoryManagerInstanceId(newRMInstanceId, repositoryId);
+
+    RepositoryManager migratedRepositoryManager = repositoryManagerDAO.getByInstanceId(resultInstanceId);
+    assertThat(migratedRepositoryManager).isNotNull();
+    assertThat(migratedRepositoryManager.isConfigured()).isTrue();
+  }
+
   private void assertMigration(
       final String repositoryManagerInstanceId,
       final String legacyRepositoryManagerInstanceId, // note: this may be the same as the first parameter

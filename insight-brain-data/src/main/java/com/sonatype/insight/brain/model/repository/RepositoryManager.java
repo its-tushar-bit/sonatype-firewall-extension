@@ -58,6 +58,7 @@ public class RepositoryManager
 
   public RepositoryManager(String instanceId) {
     this.instanceId = instanceId;
+    this.configured = true;
   }
 
   @Override

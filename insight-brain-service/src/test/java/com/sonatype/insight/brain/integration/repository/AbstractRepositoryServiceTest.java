@@ -243,6 +243,7 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
     assertThat(repositoryManager).isNotNull();
+    assertThat(repositoryManager.isConfigured()).isTrue();
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 

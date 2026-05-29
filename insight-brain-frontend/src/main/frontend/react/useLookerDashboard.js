@@ -46,6 +46,12 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
   const currentDashboardId = useRef(null);
   // Incremented on every embed attempt; callbacks check this to discard events from superseded embeds
   const embedGeneration = useRef(0);
+  // Counts in-flight connect() calls for the current generation; reset on each tab switch so
+  // hung stale connect() calls from prior generations cannot hold the spinner indefinitely
+  const pendingEmbeds = useRef(0);
+  // Tracks the last dashboardId that triggered an embed; prevents double-embed when the filter
+  // slice resets loadingAllFilters (true→false) on enterprise→enterprise tab switches
+  const lastEmbeddedDashboardId = useRef(null);
 
   useEffect(() => {
     if (filterState === FILTER_STATES.APPLYING && dashboardCommunicationRef.current && appliedFilter) {
@@ -84,6 +90,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
       });
   const embedDashboard = async () => {
     const generation = embedGeneration.current;
+    pendingEmbeds.current += 1;
     try {
       setLoadingDashboard(true);
       await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
@@ -100,15 +107,26 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         removeLeadingStaleIframe();
       }
     } catch (error) {
-      setIframeError(true);
-    } finally {
+      // Only surface errors from the current generation; a stale rejected connect() must not
+      // overwrite the error state of the active embed.
       if (embedGeneration.current === generation) {
+        setIframeError(true);
+      }
+    } finally {
+      pendingEmbeds.current -= 1;
+      // Floor at 0 so stale generations never leave the counter negative.
+      if (pendingEmbeds.current < 0) {
+        pendingEmbeds.current = 0;
+      }
+      // Only clear spinner from the current generation; stale generations were reset by clearIframeContainer
+      if (pendingEmbeds.current === 0 && embedGeneration.current === generation) {
         setLoadingDashboard(false);
       }
     }
   };
   const embedDashboardWithFilters = async () => {
     const generation = embedGeneration.current;
+    pendingEmbeds.current += 1;
     try {
       setLoadingDashboard(true);
       const selectedId = selectedDashboard.dashboardId;
@@ -154,9 +172,19 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
         dashboardCommunicationRef.current = dashboard;
       }
     } catch (error) {
-      setIframeError(true);
-    } finally {
+      // Only surface errors from the current generation; a stale rejected connect() must not
+      // overwrite the error state of the active embed.
       if (embedGeneration.current === generation) {
+        setIframeError(true);
+      }
+    } finally {
+      pendingEmbeds.current -= 1;
+      // Floor at 0 so stale generations never leave the counter negative.
+      if (pendingEmbeds.current < 0) {
+        pendingEmbeds.current = 0;
+      }
+      // Only clear spinner from the current generation; stale generations were reset by clearIframeContainer
+      if (pendingEmbeds.current === 0 && embedGeneration.current === generation) {
         setLoadingDashboard(false);
       }
     }
@@ -184,6 +212,8 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
 
   const clearIframeContainer = () => {
     embedGeneration.current += 1;
+    // Reset counter so hung stale connect() calls from the prior generation cannot hold the spinner
+    pendingEmbeds.current = 0;
     setLoadingDashboard(true);
     const container = document.querySelector(iframeContainerId);
     if (container) {
@@ -192,6 +222,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
   };
 
   const runLookerQuery = useDebounceCallback(function runLookerQuery() {
+    lastEmbeddedDashboardId.current = selectedDashboard.dashboardId;
     clearIframeContainer();
     LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
     if (supportsFilters) {
@@ -203,10 +234,18 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard', cus
 
   useEffect(() => {
     if (baseUrl && selectedDashboard) {
-      currentDashboardId.current = null;
-      dashboardCommunicationRef.current = null;
+      // For filter-supporting dashboards, skip re-embedding if this dashboard was already embedded.
+      // The filter slice resets loadingAllFilters (true→false) on every enterprise→enterprise tab
+      // switch (unmount/remount of EnterpriseReportingFilter), which would otherwise trigger a second
+      // runLookerQuery for the same dashboardId, producing two iframes and a permanently stuck spinner.
+      const alreadyEmbedded = supportsFilters && lastEmbeddedDashboardId.current === selectedDashboard.dashboardId;
 
-      if (!supportsFilters || !loadingAllFilters) {
+      if (!alreadyEmbedded && (!supportsFilters || !loadingAllFilters)) {
+        // Only clear communication refs when actually replacing the embed; leaving them populated when
+        // alreadyEmbedded is true preserves filter-send and dashboard:run:complete routing for the
+        // still-active embed.
+        currentDashboardId.current = null;
+        dashboardCommunicationRef.current = null;
         setIframeError(false);
         runLookerQuery();
       }

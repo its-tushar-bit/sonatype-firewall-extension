@@ -293,6 +293,81 @@ describe('RepositoryManagerSummaryView', () => {
     expect(accessTile).toBeVisible();
   });
 
+  describe('RepositoriesConfigurationTile showHostedRepoLink prop wiring', () => {
+    const hostedRepo = {
+      oldestEvalTimestamp: null,
+      managerInstanceId: 'managerInstanceId',
+      managerName: 'managerName',
+      repository: {
+        id: 'hostedRepo',
+        repositoryManagerId: 'c47da5d840b84eda8585381de5ebb189',
+        publicId: 'hostedRepoName',
+        auditEnabled: false,
+        quarantineEnabled: false,
+        format: 'maven',
+        repositoryType: 'hosted',
+      },
+    };
+
+    const stateWithFeatureEnabled = {
+      productFeatures: { productFeatures: { 'hosted-repository-evaluation': true } },
+    };
+
+    beforeEach(() => {
+      jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(true);
+      jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        ...ownerInfo,
+        instanceId: 'managerInstanceId',
+      });
+      jest
+        .spyOn(repositoriesSelectors, 'selectRepositoriesByManagerInstanceId')
+        .mockReturnValue(groupBy(prop('managerInstanceId'))([hostedRepo]));
+      axiosMock.onGet(getRepositoryManagerById(ownerId)).reply(200, ownerInfo);
+      axiosMock.onGet(getRepositoryListUrl(ownerInfo.id)).reply(200, [hostedRepo]);
+    });
+
+    it('passes showHostedRepoLink=false when in Firewall context', async () => {
+      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
+
+      renderComponent({ ...preloadedState, ...stateWithFeatureEnabled });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(screen.queryByTestId('repositories_configuration-hosted-link')).not.toBeInTheDocument();
+    });
+
+    it('passes showHostedRepoLink=true when in Lifecycle context with feature enabled', async () => {
+      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
+
+      renderComponent({ ...preloadedState, ...stateWithFeatureEnabled });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(screen.getByTestId('repositories_configuration-hosted-link')).toBeVisible();
+    });
+
+    it('passes showHostedRepoLink=false when in Lifecycle context with feature disabled', async () => {
+      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
+
+      renderComponent(preloadedState);
+
+      await screen.findByTestId('repositories_configuration');
+      expect(screen.queryByTestId('repositories_configuration-hosted-link')).not.toBeInTheDocument();
+    });
+
+    it('passes showHostedRepoLink=false when in SBOM Manager context with feature enabled', async () => {
+      jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(false);
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+
+      renderComponent({ ...preloadedState, ...stateWithFeatureEnabled });
+
+      await screen.findByTestId('repositories_configuration');
+      expect(screen.queryByTestId('repositories_configuration-hosted-link')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Limited Firewall Access Alert', () => {
     it('shows limited firewall access alert when showLimitedFirewallAccessAlert is true', async () => {
       // Mock the repository manager API to return 403, which will set showLimitedFirewallAccessAlert to true

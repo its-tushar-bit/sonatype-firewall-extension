@@ -26,8 +26,11 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsFirewall, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsHostedRepositoryEvaluationEnabled,
+  selectIsWaiverExpirationNotificationEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function RepositoryManagerSummaryView() {
   const dispatch = useDispatch();
@@ -38,7 +41,9 @@ export default function RepositoryManagerSummaryView() {
   const owner = useSelector(selectSelectedOwner);
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
   const isFirewall = useSelector(selectIsFirewall);
+  const isSbomManager = useSelector(selectIsSbomManager);
   const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
+  const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
   const getIconUrl = () => getAddIconUrl('repository_manager', owner.id) + `?${Math.random()}`;
@@ -73,7 +78,10 @@ export default function RepositoryManagerSummaryView() {
             id="repositories-summary-sections"
           >
             <div id="scrollable-content">
-              <RepositoriesConfigurationTile key={`manager-view-${entityId}`} />
+              <RepositoriesConfigurationTile
+                key={`manager-view-${entityId}`}
+                showHostedRepoLink={!isFirewall && !isSbomManager && isHostedRepositoryEvaluationEnabled}
+              />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
               {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}

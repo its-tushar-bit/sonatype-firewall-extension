@@ -104,7 +104,7 @@ describe('RepositoriesConfigurationTile', () => {
     axiosMock.onDelete(getRepositoryInfoUrl('repositoryA')).reply(204);
     axiosMock.onGet(getRepositoryListUrl('repositoryManagerId')).reply(200, reposAtManagerLevel);
 
-    renderComponent = () => render(<RepositoriesConfigurationTile />);
+    renderComponent = (props = {}) => render(<RepositoriesConfigurationTile {...props} />);
   });
 
   describe('when data are being loaded', () => {
@@ -209,6 +209,35 @@ describe('RepositoriesConfigurationTile', () => {
       expect(repositories[1].format).toBeVisible();
       expect(repositories[1].repositoryType).toBeVisible();
       expect(repositories[1].enablement).toBeVisible();
+    });
+
+    it('renders hosted repo as plain text when showHostedRepoLink is false (default)', () => {
+      renderComponent();
+      expect(screen.queryByTestId('repositories_configuration-hosted-link')).not.toBeInTheDocument();
+      expect(screen.getByText('repositoryNameB')).toBeVisible();
+    });
+
+    it('renders hosted repo as a link when showHostedRepoLink is true and owner has instanceId', () => {
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: 'repositoryManagerIdB',
+        instanceId: 'managerInstanceIdB',
+        name: 'managerNameB',
+      });
+      renderComponent({ showHostedRepoLink: true });
+      const link = screen.getByTestId('repositories_configuration-hosted-link');
+      expect(link).toBeVisible();
+      expect(link).toHaveTextContent('repositoryNameB');
+    });
+
+    it('renders hosted repo as plain text when showHostedRepoLink is true but owner has no instanceId (SaaS)', () => {
+      jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+        id: 'repositoryManagerIdB',
+        instanceId: undefined,
+        name: 'managerNameB',
+      });
+      renderComponent({ showHostedRepoLink: true });
+      expect(screen.queryByTestId('repositories_configuration-hosted-link')).not.toBeInTheDocument();
+      expect(screen.getByText('repositoryNameB')).toBeVisible();
     });
 
     describe('Delete modal', () => {

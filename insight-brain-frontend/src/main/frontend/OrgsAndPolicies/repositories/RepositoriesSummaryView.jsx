@@ -60,7 +60,7 @@ export default function RepositoriesSummaryView() {
             id="repositories-summary-sections"
           >
             <div id="scrollable-content">
-              <RepositoriesConfigurationTile key="container-view" />
+              <RepositoriesConfigurationTile key="container-view" showHostedRepoLink={false} />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile />
               {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}

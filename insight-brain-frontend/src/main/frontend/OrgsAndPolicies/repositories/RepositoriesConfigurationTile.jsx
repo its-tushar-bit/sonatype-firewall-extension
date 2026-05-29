@@ -46,8 +46,9 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsRepositoryManager, selectPrevStateIsRepositorySection } from 'MainRoot/reduxUiRouter/routerSelectors';
+import PropTypes from 'prop-types';
 
-const RepositoriesConfigurationTile = () => {
+const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
   const dispatch = useDispatch();
 
   const loadRepositories = () => dispatch(actions.loadRepositories());
@@ -235,7 +236,7 @@ const RepositoriesConfigurationTile = () => {
         <NxTable.Cell className="iq-repositories-configuration-table-repository">
           {repositoryData.repositoryType === 'hosted' ? (
             <NxOverflowTooltip>
-              {owner?.instanceId ? (
+              {showHostedRepoLink && owner?.instanceId ? (
                 <NxTextLink
                   className="nx-truncate-ellipsis"
                   data-testid="repositories_configuration-hosted-link"
@@ -454,6 +455,10 @@ const RepositoriesConfigurationTile = () => {
       </NxTile.Content>
     </NxTile>
   );
+};
+
+RepositoriesConfigurationTile.propTypes = {
+  showHostedRepoLink: PropTypes.bool,
 };
 
 export default RepositoriesConfigurationTile;

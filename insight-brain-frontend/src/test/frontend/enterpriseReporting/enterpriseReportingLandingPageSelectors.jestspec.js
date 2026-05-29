@@ -8,6 +8,7 @@ import {
   selectEnterpriseDashboards,
   selectDataInsightsDashboards,
   selectPartnerDashboards,
+  selectRapidResponseDashboards,
 } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 
 const successMetricsDashboard = {
@@ -32,6 +33,12 @@ const partnerDashboard = {
   dashboardId: 'herodevs_eol',
   category: 'partner',
   title: 'HeroDevs EOL',
+};
+
+const rapidResponseDashboard = {
+  dashboardId: 'mythos_report',
+  category: 'rapidResponse',
+  title: 'Mythos Readiness',
 };
 
 const makeDashboardsData = (dashboards) => ({
@@ -121,5 +128,30 @@ describe('selectPartnerDashboards', () => {
     const state = makeState('1.204.0-SNAPSHOT', [successMetricsDashboard, partnerDashboard]);
     const partner = selectPartnerDashboards(state);
     expect(partner.map((d) => d.dashboardId)).toContain('herodevs_eol');
+  });
+});
+
+describe('selectRapidResponseDashboards', () => {
+  it('returns dashboards with rapidResponse category', () => {
+    const state = makeState('1.204.0-SNAPSHOT', [successMetricsDashboard, rapidResponseDashboard]);
+    const rapid = selectRapidResponseDashboards(state);
+    expect(rapid.map((d) => d.dashboardId)).toContain('mythos_report');
+  });
+
+  it('does not include enterprise or dataInsight dashboards', () => {
+    const state = makeState('1.204.0-SNAPSHOT', [
+      successMetricsDashboard,
+      dataInsightDashboard,
+      rapidResponseDashboard,
+    ]);
+    const rapid = selectRapidResponseDashboards(state);
+    expect(rapid.map((d) => d.dashboardId)).not.toContain('success-metrics');
+    expect(rapid.map((d) => d.dashboardId)).not.toContain('rolling-recap');
+  });
+
+  it('returns empty array when no rapidResponse dashboards exist', () => {
+    const state = makeState('1.204.0-SNAPSHOT', [successMetricsDashboard, dataInsightDashboard]);
+    const rapid = selectRapidResponseDashboards(state);
+    expect(rapid).toEqual([]);
   });
 });

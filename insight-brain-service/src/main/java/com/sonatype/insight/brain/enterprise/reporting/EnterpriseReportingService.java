@@ -146,6 +146,8 @@ public class EnterpriseReportingService
 
   private static final String CATEGORY_PARTNER = "partner";
 
+  private static final String CATEGORY_RAPID_RESPONSE = "rapidresponse";
+
   private final ReadWriteLock iconReadWriteLock = new ReentrantReadWriteLock();
 
   private final Lock iconReadLock = iconReadWriteLock.readLock();
@@ -464,6 +466,7 @@ public class EnterpriseReportingService
 
       case CATEGORY_ENTERPRISE:
       case CATEGORY_DATA_INSIGHT:
+      case CATEGORY_RAPID_RESPONSE:
         return licensedSolutions.contains(Solution.LIFECYCLE);
 
       case CATEGORY_PARTNER:

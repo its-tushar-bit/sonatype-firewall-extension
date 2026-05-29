@@ -805,6 +805,30 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
+  public void testFilterByLicenseAndFeatureFlags_RapidResponseCategory_AllowedWithLifecycleLicense() {
+    when(mockSolutionResolver.getLicensedSolutions())
+        .thenReturn(Set.of(Solution.LIFECYCLE));
+    DashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
+
+    List<DashboardMetadataDTO> result =
+        enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(rapidDashboard));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).dashboardId).isEqualTo("mythos_report");
+  }
+
+  @Test
+  public void testFilterByLicenseAndFeatureFlags_RapidResponseCategory_DeniedWithoutLifecycleLicense() {
+    when(mockSolutionResolver.getLicensedSolutions()).thenReturn(Collections.emptySet());
+    DashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
+
+    List<DashboardMetadataDTO> result =
+        enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(rapidDashboard));
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
   public void testFilterByLicenseAndFeatureFlags_UnknownCategory_DeniesAccess() {
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE));

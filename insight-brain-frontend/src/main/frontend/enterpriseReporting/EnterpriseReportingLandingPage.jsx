@@ -34,6 +34,7 @@ import {
   selectEnterpriseDashboards,
   selectDataInsightsDashboards,
   selectPartnerDashboards,
+  selectRapidResponseDashboards,
 } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
@@ -48,6 +49,7 @@ export default function EnterpriseReportingLandingPage() {
   const activeEnterpriseDashboards = useSelector(selectEnterpriseDashboards);
   const activeDataInsightsDashboards = useSelector(selectDataInsightsDashboards);
   const activePartnerDashboards = useSelector(selectPartnerDashboards);
+  const activeRapidResponseDashboards = useSelector(selectRapidResponseDashboards);
   const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
     selectEnterpriseReportingSupportInfo
   );
@@ -134,8 +136,22 @@ export default function EnterpriseReportingLandingPage() {
         </NxTooltip>
       </NxH2>
       <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
-        <NxCard.Container className="iq-enterprise-reporting-card__container">
+        <NxCard.Container
+          className="iq-enterprise-reporting-card__container"
+          id="enterprise-reporting-dashboards--rapid-response"
+        >
           <React2ShellReportCard />
+          {activeRapidResponseDashboards.map((dashboard, idx) => (
+            <EnterpriseReportCard
+              dashboard={
+                dashboard.groupedDashboards
+                  ? { ...dashboard, features: dashboard.features.map((f) => boldFeatureText(f)) }
+                  : dashboard
+              }
+              key={idx}
+              iqVersion={iqVersion}
+            />
+          ))}
         </NxCard.Container>
       </NxLoadWrapper>
       <NxH2>

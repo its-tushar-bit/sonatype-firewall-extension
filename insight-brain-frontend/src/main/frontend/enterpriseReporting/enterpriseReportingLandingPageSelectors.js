@@ -49,3 +49,10 @@ export const selectPartnerDashboards = createSelector(selectVisibleDashboards, (
   }
   return filter(propEq('category', 'partner'), dashboards);
 });
+
+export const selectRapidResponseDashboards = createSelector(selectVisibleDashboards, (dashboards) => {
+  if (isNilOrEmpty(dashboards)) {
+    return [];
+  }
+  return filter(propEq('category', 'rapidResponse'), dashboards);
+});

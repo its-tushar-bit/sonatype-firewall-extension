@@ -75,7 +75,7 @@ pipeline {
     // IMPORTANT: Keep in sync with EnterpriseReportingService.CATEGORY_* constants
     choice(
         name: 'category',
-        choices: ['enterprise', 'dataInsight', 'firewall'],
+        choices: ['enterprise', 'dataInsight', 'firewall', 'partner', 'rapidResponse'],
         description: 'Select the category for the dashboard (Provided by UI/UX Design team). Required field - cannot be cleared.'
     )
 

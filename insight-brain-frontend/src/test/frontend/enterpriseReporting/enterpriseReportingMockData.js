@@ -122,6 +122,23 @@ export const mockData = {
       spotlightText: '',
       title: 'Component End-of-Life',
     },
+    {
+      accessButtonText: 'View Mythos Readiness',
+      category: 'rapidResponse',
+      dashboardId: 'mythos_report',
+      dashboardPath: 'dashboards/mythos::mythos_readiness',
+      description: 'Cross-reference your open source component inventory with Mythos vulnerability data in a single exportable view.',
+      features: ['App component version & Golden fix version in one table', 'Filter by app/stage/component name & version', 'Sortable and downloadable table data'],
+      groupId: '',
+      previewImage: 'mythosReportIcon.svg',
+      previewImageIcon: 'faCodeCompare',
+      priorityOrder: 99,
+      sinceIQVersion: '204',
+      spotlight: true,
+      spotlightColor: 'teal',
+      spotlightText: '',
+      title: 'Mythos Readiness',
+    },
   ],
   dashboardGroupMetadata: [
     {

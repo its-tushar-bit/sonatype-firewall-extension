@@ -132,6 +132,20 @@ describe('EnterpriseReportingLandingPage', () => {
     expect(insightsDashboards.length).toBe(3);
   });
 
+  it('renders rapidResponse dashboards alongside React2Shell in Rapid Response Reports section', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('heading', { name: 'Rapid Response Reports' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Rapid Response Dashboards' })).not.toBeInTheDocument();
+    const rapidResponseGroup = screen.getByRole('heading', { name: 'Rapid Response Reports' }).nextElementSibling;
+    const rapidDashboards = within(rapidResponseGroup).getAllByRole('enterprise-reporting-dashboard-card');
+    expect(rapidDashboards.length).toBe(1);
+    expect(within(rapidResponseGroup).getByRole('heading', { name: 'Mythos Readiness' })).toBeInTheDocument();
+    expect(within(rapidResponseGroup).getByRole('heading', { name: 'React2Shell Impact' })).toBeInTheDocument();
+  });
+
   it('shows error when there are API errors', async () => {
     axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(401, 'Unauthorized');
 

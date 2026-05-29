@@ -2,7 +2,7 @@
 
 This document describes the progressive deployment pipeline for MTIQ Docker images. Each stage is a standalone Jenkins job that triggers the next downstream job on success.
 
-> **Current state (May 2026):** Staging and prod-internal jobs are now **active**. Regional production jobs remain in bypass mode. See [Bypass Mode & Readiness](#bypass-mode--readiness) for details.
+> All pipeline stages are **active** as of May 2026.
 
 ---
 
@@ -66,8 +66,9 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 - **ECR_TAG is null:** The job errors immediately. This means `Jenkinsfile.main`'s ECR push likely failed — check the main build logs.
 - **TFC workspace lookup fails:** Workspace name may be wrong or TFC credentials expired. Check the TFC credential in Jenkins (`sca-cloud-terraform-cloud-jenkins-credential`).
 - **TFC apply times out (10 min):** The Terraform plan is running too long. Check the TFC UI link printed in the console log.
-- **TFC plan has >4 resource destructions:** The auto-approval safety guard discards the run. This means the plan would destroy more infrastructure than a normal ECS task definition replacement. **Do not override** — inspect the plan in the TFC UI to understand what's being destroyed.
-- **TFC plan shows null resource-destructions:** The TFC API response is malformed. The job refuses to auto-approve. Check TFC API status.
+- **TFC plan exceeds thresholds:** The job pauses at a Jenkins `input` step. Review the plan via the TFC UI link in the console, then approve or abort.
+- **TFC plan shows null resource metrics:** The TFC API response is malformed. The job refuses to auto-approve. Check TFC API status.
+- **Operator rejects plan:** The job is aborted at the manual gate. Investigate the unexpected changes before re-running.
 
 ### 2. test-shared-dev
 
@@ -151,7 +152,6 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Timeout** | 15 minutes |
 | **What it does** | Promotes the image from staging ECR to prod ECR using `docker buildx imagetools create`. Applies additional tag `prod-internal-latest`. Verifies the promotion. |
 | **Downstream** | `deploy-to-prod-internal` (automatic) |
-| **Bypass** | Uses `ecr.PROD_ECR_ACCOUNT` — requires prod infrastructure |
 
 **Failure modes:**
 - **AWS role assumption fails:** Check IAM role trust relationships and the Jenkins credential for the prod ECR account (`mtiq-prod-external-id`).
@@ -187,11 +187,16 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Downstream** | `deploy-to-prod-us-1`, `deploy-to-prod-us-2`, `deploy-to-prod-eu-1` (parallel, non-blocking) |
 | **Status** | Active |
 
-**Safety gate:** The job **refuses to deploy** any image that does not have a `prod-internal-verified-*` tag. This ensures only images that have been successfully deployed and validated on prod-internal can reach production.
+**Safety gate:** The job performs two validations:
+1. The image must exist in **staging ECR** (account `460469849438`) — this is the account the prod-mirror cell pulls from.
+2. The image must have a `prod-internal-verified-*` tag in **prod ECR** (account `348313797720`) — this tag is applied automatically by `deploy-to-prod-internal` after a successful deployment to the prod-internal cell.
+
+Both checks must pass. The verified tag proves the image has been deployed and validated on prod-internal before it can reach production.
 
 **Failure modes:**
-- **Image not found in prod ECR:** The image was never promoted from staging. Run `push-to-prod` first.
-- **Image missing prod-internal-verified tag:** The image was promoted but never successfully deployed to prod-internal, or the tagging step failed. Check `deploy-to-prod-internal` build history.
+- **Image not found in staging ECR:** The image has not been promoted to staging. Run `push-to-staging` to promote from dev, then `deploy-to-staging` to validate it.
+- **Image not found in prod ECR:** The image exists in staging but was never promoted to prod. Run `push-to-prod` to promote from staging ECR to prod ECR.
+- **Image missing prod-internal-verified tag:** The image exists in prod ECR but has not been successfully deployed to prod-internal. The `prod-internal-verified-*` tag is applied automatically by `deploy-to-prod-internal` after a successful deployment. Run `deploy-to-prod-internal` with this image tag — once it succeeds, the verified tag will be applied and `deploy-to-prod-mirror` can proceed.
 - **Prod-mirror TFC deployment fails:** Check console log for TFC UI link.
 - **Production tagging fails:** Deployment succeeded but tagging failed. The image is live on mirror but not tagged. Manually apply `production-mirror-latest` and the timestamped tag via AWS CLI.
 - **Regional job triggers fail:** Non-fatal to this job but regional deployments won't start. Re-trigger manually from this job or trigger regional jobs individually.
@@ -207,7 +212,6 @@ All jobs are under the Jenkins folder path: **`insight/MTIQ/sca-cloud/`**
 | **Timeout** | 96 hours (allows time for approval), 30-minute timeout on deploy stage |
 | **What it does** | Validates image has `prod-internal-verified-*` tag, waits for manual approval, then deploys to the region's TFC cell workspace(s). |
 | **Downstream** | None |
-| **Bypass** | `PROD_INFRASTRUCTURE_READY = false` (CLM-39795) |
 
 **Approval gate:** Each regional job has an independent Jenkins `input` step. An operator must approve each region individually. This allows staggered rollouts (e.g., approve us-1 first, observe, then approve us-2 and eu-1).
 
@@ -250,36 +254,81 @@ Re-run `deploy-to-prod-mirror` with a previous known-good verified tag. This wil
 
 ---
 
-## TFC Auto-Approval Safety Guard
+## TFC Threshold-Based Approval
 
-Terraform Cloud plans are auto-approved if they include **at most 4 resource destructions** (the normal case for ECS task definition replacement). Plans with more than 4 destructions are **discarded** and the pipeline fails.
+Terraform Cloud plans are evaluated against configurable thresholds for resource additions, changes, and destructions. The default thresholds are **4 of each type** (the normal case for ECS task definition replacement).
 
-If this happens:
-1. Open the TFC UI link from the console log.
-2. Review the plan to understand what resources would be destroyed.
-3. If the destructions are expected (e.g., workspace restructuring), apply the plan manually through TFC.
-4. If the destructions are unexpected, investigate before proceeding.
+### Behavior
+
+| Condition | Action |
+|-----------|--------|
+| All metrics ≤ thresholds | Auto-approve and apply |
+| Any metric > threshold (gate disabled) | **Fail the build** with details and TFC UI link |
+| Any metric > threshold (gate enabled) | Pause for manual approval via Jenkins `input` step |
+
+By default, `gateEnabled` is `false` — plans exceeding thresholds fail the build. This prevents unexpected infrastructure changes from being applied. The operator can review the TFC plan and re-run the job (or adjust thresholds) if the changes are expected.
+
+To enable the interactive approval gate, pass `gateEnabled: true` in the thresholds map. When enabled, the job pauses and displays a message with all metrics and a TFC UI link. An operator clicks "Approve Apply" to proceed or aborts to reject.
+
+### Thresholds
+
+By default, all deployment jobs use thresholds of 4 additions, 4 changes, and 4 destructions. Individual Jenkinsfiles can override these by passing a thresholds map to `deployCells()`:
+
+```groovy
+// Override thresholds (e.g., DR region with more resources)
+tfc.deployCells('env', workspaces, globalWorkspace, imageTag, [maxDestructions: 8, maxAdditions: 8, maxChanges: 8])
+
+// Enable interactive approval gate
+tfc.deployCells('env', workspaces, globalWorkspace, imageTag, [gateEnabled: true])
+```
+
+### When the build fails due to exceeded thresholds
+
+1. Open the TFC UI link from the failure message.
+2. Review the plan to understand what resources are being added/changed/destroyed.
+3. If the changes are expected (e.g., DR workspace with more resources), increase the thresholds in the Jenkinsfile and re-run.
+4. If the changes are unexpected, investigate before proceeding.
 
 ---
 
-## Bypass Mode & Readiness
+## Jenkins Job Parameters
 
-Staging and prod-internal jobs are now active. Regional production jobs remain in bypass mode until their infrastructure is ready.
+Parameters are configured in the Jenkins job UI. The regional jobs share `Jenkinsfile.deploy-to-prod-region` and are differentiated by their parameter defaults.
 
-| Job | Status | Bypass flag | Tracking ticket |
-|-----|--------|-------------|-----------------|
-| `push-to-staging` | Active | — | CLM-39451 |
-| `deploy-to-staging` | Active | — | CLM-39452 |
-| `test-shared-dev` | Active | — | CLM-39450 |
-| `test-staging` | Active | — | CLM-39471 |
-| `push-to-prod` | Active (uses prod ECR account) | — | CLM-39795 |
-| `deploy-to-prod-internal` | Active | — | CLM-39453 |
-| `deploy-to-prod-mirror` | Active | — | CLM-39795 |
-| `deploy-to-prod-us-1` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
-| `deploy-to-prod-us-2` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
-| `deploy-to-prod-eu-1` | Bypass | `PROD_INFRASTRUCTURE_READY = false` | CLM-39795 |
+### deploy-to-prod-mirror
 
-**To enable a stage:** Set the corresponding flag to `true` in the Jenkinsfile and update any placeholder values (ECR account IDs, credentials, TFC workspace names). Each Jenkinsfile documents exactly what needs to change in its header comment.
+| Parameter | Value |
+|-----------|-------|
+| `IMAGE_TAG` | _(provided at runtime by operator)_ |
+
+Workspace configuration is in the Jenkinsfile itself (`PROD_MIRROR_CELL_WORKSPACES`, `PROD_MIRROR_GLOBAL_WORKSPACE`).
+
+### deploy-to-prod-us-1
+
+| Parameter | Value |
+|-----------|-------|
+| `IMAGE_TAG` | _(passed from deploy-to-prod-mirror)_ |
+| `REGION` | `us-1` |
+| `CELL_WORKSPACES` | `sca_aws_prod_cell-us-1` |
+| `GLOBAL_WORKSPACE` | `sca_aws_prod_global` |
+
+### deploy-to-prod-us-2
+
+| Parameter | Value |
+|-----------|-------|
+| `IMAGE_TAG` | _(passed from deploy-to-prod-mirror)_ |
+| `REGION` | `us-2` |
+| `CELL_WORKSPACES` | `sca_aws_prod_cell-us-2` |
+| `GLOBAL_WORKSPACE` | `sca_aws_prod_global` |
+
+### deploy-to-prod-eu-1
+
+| Parameter | Value |
+|-----------|-------|
+| `IMAGE_TAG` | _(passed from deploy-to-prod-mirror)_ |
+| `REGION` | `eu-1` |
+| `CELL_WORKSPACES` | `sca_aws_prod_cell-eu-1` |
+| `GLOBAL_WORKSPACE` | `sca_aws_prod_global` |
 
 ---
 
@@ -313,7 +362,8 @@ Staging and prod-internal jobs are now active. Regional production jobs remain i
 
 ### deploy-to-prod-mirror rejects the image
 **Symptom:** "does not have a prod-internal-verified-* tag" error.
-**Fix:** The image hasn't passed prod-internal validation. Check the `deploy-to-prod-internal` build history for that tag. If deployment succeeded but tagging failed, follow the manual remediation instructions in the `deploy-to-prod-internal` failure output.
+**Cause:** The image has not been successfully deployed to prod-internal. The `prod-internal-verified-*` tag is applied automatically by `deploy-to-prod-internal` after a successful deployment — it is the proof that the image has been validated in a production-like environment.
+**Fix:** Run `deploy-to-prod-internal` with the image tag. Once it deploys successfully, the verified tag is applied to the image in prod ECR and `deploy-to-prod-mirror` will accept it. If `deploy-to-prod-internal` previously succeeded but tagging failed, follow the manual remediation instructions in its failure output.
 
 ### Regional job approval expired
 **Symptom:** Regional job shows "aborted" after 96 hours.

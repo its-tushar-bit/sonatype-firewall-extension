@@ -21,35 +21,18 @@
  *   - deploy-to-prod-us-1
  *   - deploy-to-prod-us-2
  *   - deploy-to-prod-eu-1
- *
- * ============================================================================
- * TEMPORARY BYPASS - PRODUCTION INFRASTRUCTURE NOT YET READY
- * ============================================================================
- *
- * The production AWS infrastructure (ECR, IAM roles, TFC workspaces, control plane)
- * is not yet ready. Until it's available, this job runs in bypass mode and returns SUCCESS.
- *
- * Once production infrastructure is available:
- * 1. Set PROD_INFRASTRUCTURE_READY = true below
- * 2. Remove this comment block
- *
- * Tracked in: CLM-39795
- * ============================================================================
  */
-
-// TODO: Change to true when prod infrastructure is ready
-def PROD_INFRASTRUCTURE_READY = false
 
 pipeline {
   agent { label 'zion-small' }
 
   parameters {
     string(name: 'IMAGE_TAG',
-           description: 'The prod ECR tag to deploy (must be a prod-internal-verified-* tag)'),
+           description: 'The prod ECR tag to deploy (must be a prod-internal-verified-* tag)')
     string(name: 'REGION',
-           description: 'The region identifier (e.g., us-1, us-2, eu-1)'),
+           description: 'The region identifier (e.g., us-1, us-2, eu-1)')
     string(name: 'CELL_WORKSPACES',
-           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-us-1)'),
+           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-us-1)')
     string(name: 'GLOBAL_WORKSPACE',
            defaultValue: 'sca_aws_prod_global',
            description: 'The global TFC workspace name')
@@ -85,25 +68,9 @@ pipeline {
       }
     }
 
-    stage('Checkout') {
-      steps {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/main']],
-          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
-        ])
-      }
-    }
-
     stage('Validate Image') {
       steps {
         script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would validate image ${params.IMAGE_TAG} exists in prod ECR"
-            echo "BYPASS: Would verify image has prod-internal-verified-* tag"
-            return
-          }
-
           def ecr = load 'jenkins/ecr-helpers.groovy'
 
           // Validate image exists in prod ECR
@@ -128,14 +95,19 @@ pipeline {
 
               def tags = readJSON text: imageDetail
               if (!tags) {
-                error "ECR returned no tags for image ${params.IMAGE_TAG} in ${ecr.ECR_REPOSITORY}. " +
-                      "Has the image been promoted from staging?"
+                error "FAILED: Image ${params.IMAGE_TAG} was not found in prod ECR (account ${ecr.PROD_ECR_ACCOUNT.id}).\n" +
+                      "The image must exist in prod ECR before it can be deployed to production.\n" +
+                      "To fix: run push-to-prod to promote the image from staging ECR to prod ECR."
               }
               def hasVerifiedTag = tags.any { it.startsWith('prod-internal-verified-') }
 
               if (!hasVerifiedTag) {
-                error "Image ${params.IMAGE_TAG} does not have a prod-internal-verified-* tag. " +
-                      "Only images that have passed prod-internal validation can be released to production."
+                error "FAILED: Image ${params.IMAGE_TAG} exists in prod ECR but does not have a prod-internal-verified-* tag.\n" +
+                      "For an image to be deployed to production, it must have a prod-internal-verified-* tag in\n" +
+                      "prod ECR. This tag is applied automatically when the image is successfully deployed to\n" +
+                      "prod-internal by the deploy-to-prod-internal job.\n" +
+                      "To fix: run deploy-to-prod-internal with this image tag. Once it deploys successfully,\n" +
+                      "the verified tag will be applied and this job can proceed."
               }
               echo "Verified: Image has prod-internal-verified tag"
             }
@@ -146,26 +118,14 @@ pipeline {
 
     stage('Approval') {
       steps {
-        script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would wait for approval to deploy to ${params.REGION}"
-            return
-          }
-
-          input message: "Approve deployment to production ${params.REGION}?",
-                ok: 'Deploy'
-        }
+        input message: "Approve deployment to production ${params.REGION}?",
+              ok: 'Deploy'
       }
     }
 
     stage('Deploy to Production Region') {
       steps {
         script {
-          if (!PROD_INFRASTRUCTURE_READY) {
-            echo "BYPASS: Would deploy to production ${params.REGION} with tag: ${params.IMAGE_TAG}"
-            return
-          }
-
           // Apply 30-minute timeout on the actual deployment
           timeout(time: 30, unit: 'MINUTES') {
             def tfc = load 'jenkins/tfc-helpers.groovy'
@@ -173,7 +133,7 @@ pipeline {
             // Parse comma-separated workspaces into a list
             def workspaces = params.CELL_WORKSPACES.split(',').collect { it.trim() }
 
-            tfc.deployCells("production-${params.REGION}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG)
+            tfc.deployCells("production-${params.REGION}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
           }
         }
       }
@@ -184,19 +144,15 @@ pipeline {
   post {
     success {
       script {
-        def status = PROD_INFRASTRUCTURE_READY ? "Deployed" : "Acknowledged (bypass mode)"
-        echo "deploy-to-prod-region (${params.REGION}): ${status} ${params.IMAGE_TAG}"
-
-        // TODO: Enable when real production is ready
-        // notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
-        //            message: "Production ${params.REGION} deployment SUCCESS: ${params.IMAGE_TAG}")
+        echo "deploy-to-prod-region (${params.REGION}): Deployed ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production ${params.REGION} deployment SUCCESS: ${params.IMAGE_TAG}")
       }
     }
     failure {
       script {
         echo "deploy-to-prod-region (${params.REGION}): FAILED for ${params.IMAGE_TAG}"
 
-        // Provide rollback instructions
         echo "============================================"
         echo "ROLLBACK INSTRUCTIONS"
         echo "============================================"
@@ -205,9 +161,8 @@ pipeline {
         echo "3. Manually update the TFC workspace variable and apply"
         echo "============================================"
 
-        // TODO: Enable when real production is ready
-        // notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
-        //            message: "Production ${params.REGION} deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Production ${params.REGION} deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
       }
     }
     cleanup {

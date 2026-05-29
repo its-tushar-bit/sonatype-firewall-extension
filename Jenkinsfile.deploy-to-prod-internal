@@ -80,7 +80,7 @@ pipeline {
       steps {
         script {
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployCells('prod-internal', PROD_INTERNAL_CELL_WORKSPACES, PROD_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG)
+          tfc.deployCells('prod-internal', PROD_INTERNAL_CELL_WORKSPACES, PROD_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
         }
       }
     }
@@ -115,6 +115,8 @@ pipeline {
     success {
       script {
         echo "deploy-to-prod-internal: Deployed ${params.IMAGE_TAG}"
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Prod-internal deployment SUCCESS: ${params.IMAGE_TAG}")
       }
     }
     failure {

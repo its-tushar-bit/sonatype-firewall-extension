@@ -62,7 +62,7 @@ pipeline {
       steps {
         script {
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployCells('staging', STAGING_CELL_WORKSPACES, STAGING_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG)
+          tfc.deployCells('staging', STAGING_CELL_WORKSPACES, STAGING_GLOBAL_WORKSPACE, env.RESOLVED_IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
         }
       }
     }
@@ -81,12 +81,14 @@ pipeline {
   }
 
   post {
-    always {
+    failure {
       script {
         def tag = env.RESOLVED_IMAGE_TAG ?: params.IMAGE_TAG
-        // Notify mtiq-notices room for staging deployment status
-        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices', message: "Staging deployment for tag: ${tag}")
+        notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
+                   message: "Staging deployment FAILED for tag: ${tag}")
       }
+    }
+    cleanup {
       deleteDir()
     }
   }

@@ -14,10 +14,12 @@
  * Cell workspaces and global workspace names are defined in the calling Jenkinsfile,
  * keeping environment-specific configuration close to the job that uses it.
  *
- * ── Auto-approval safety guard ──────────────────────────────────────────────────────────────────
- * tfcDeploy() polls the Terraform run and auto-approves plans that include at most 4 resource
- * destruction (the normal case for ECS task-definition replacement). Plans with more than 4
- * destruction are discarded and the pipeline fails to prevent unintended infrastructure teardown.
+ * ── Threshold-based approval ──────────────────────────────────────────────────────────────────
+ * tfcDeploy() polls the Terraform run and auto-approves plans within configurable thresholds
+ * for additions, changes, and destructions. Plans exceeding thresholds fail the build by default.
+ * Set gateEnabled: true in the thresholds map to instead pause for manual operator approval via
+ * Jenkins input step. Callers can override the default thresholds (max 4 of each type) by
+ * passing a thresholds map to deployCells().
  */
 import groovy.transform.Field
 
@@ -27,6 +29,13 @@ import groovy.transform.Field
 @Field final String TFC_IMAGE_VARIABLE = 'ecs_container_image'
 @Field final String TFC_ECR_OUTPUT = 'global_mtiq_ecr_repository_url'
 
+@Field final Map DEFAULT_THRESHOLDS = [
+  maxDestructions: 4,
+  maxAdditions: 4,
+  maxChanges: 4,
+  gateEnabled: false,
+]
+
 /**
  * Deploy to cell workspaces via Terraform Cloud.
  *
@@ -34,8 +43,9 @@ import groovy.transform.Field
  * @param cellWorkspaces TFC workspace names to deploy to
  * @param globalWorkspace TFC global workspace to read ECR URL from
  * @param ecrTag         The ECR image tag to deploy
+ * @param thresholds     Optional threshold overrides (e.g., [maxDestructions: 5])
  */
-void deployCells(String envName, List<String> cellWorkspaces, String globalWorkspace, String ecrTag) {
+void deployCells(String envName, List<String> cellWorkspaces, String globalWorkspace, String ecrTag, Map thresholds = [:]) {
   if (!ecrTag) {
     error "deployCells(${envName}): ecrTag parameter is required"
   }
@@ -55,12 +65,12 @@ void deployCells(String envName, List<String> cellWorkspaces, String globalWorks
     echo "Deploying image to ${envName}: ${fullImageUri}"
 
     for (String workspace : cellWorkspaces) {
-      tfcDeploy(workspace, fullImageUri)
+      tfcDeploy(workspace, fullImageUri, thresholds)
     }
   }
 }
 
-void tfcDeploy(String workspaceName, String imageUri) {
+void tfcDeploy(String workspaceName, String imageUri, Map thresholds = [:]) {
   if (!workspaceName) {
     error 'tfcDeploy: workspaceName parameter is required'
   }
@@ -168,7 +178,7 @@ void tfcDeploy(String workspaceName, String imageUri) {
       error "Terraform apply failed (${status}): ${uiLink}"
     }
 
-    // Auto-approve safe plans (<=4 destructions for task def replacement)
+    // Apply threshold-based approval logic
     if (status in ['planned', 'cost_estimated', 'policy_checked']) {
       response = httpRequest(url: "${TFC_BASE_URL}/api/v2/runs/${runId}/plan", httpMode: 'GET', customHeaders: customHeaders, validResponseCodes: '200:299')
       json = readJSON text: response.content
@@ -176,34 +186,67 @@ void tfcDeploy(String workspaceName, String imageUri) {
         error "TFC returned no data for plan — refusing to auto-approve: ${uiLink}"
       }
 
-      // Null check: refuse auto-approve if resource-destructions is missing
+      // Null checks: refuse auto-approve if any metric is missing
       final Integer destructionsRaw = json.data.attributes.'resource-destructions'
+      final Integer additionsRaw = json.data.attributes.'resource-additions'
+      final Integer changesRaw = json.data.attributes.'resource-changes'
       if (destructionsRaw == null) {
         error "Could not read resource-destructions from TFC plan response — refusing to auto-approve: ${uiLink}"
       }
+      if (additionsRaw == null) {
+        error "Could not read resource-additions from TFC plan response — refusing to auto-approve: ${uiLink}"
+      }
+      if (changesRaw == null) {
+        error "Could not read resource-changes from TFC plan response — refusing to auto-approve: ${uiLink}"
+      }
       final int destructions = destructionsRaw
+      final int additions = additionsRaw
+      final int changes = changesRaw
 
-      // Safety guard: refuse to auto-approve plans with more than 4 destructions (normal for ECS task MTIQ Server and Batch replacement)
-      if (destructions > 4) {
-        httpRequest(
-          url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/discard",
+      // Merge caller thresholds with defaults
+      def effectiveThresholds = DEFAULT_THRESHOLDS + thresholds
+
+      // Check if all metrics are within thresholds
+      boolean withinThresholds = destructions <= effectiveThresholds.maxDestructions &&
+                                  additions <= effectiveThresholds.maxAdditions &&
+                                  changes <= effectiveThresholds.maxChanges
+
+      if (withinThresholds) {
+        echo "Plan looks safe, confirming apply"
+        def applyResponse = httpRequest(
+          url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/apply",
           httpMode: 'POST',
           customHeaders: customHeaders,
-          requestBody: groovy.json.JsonOutput.toJson([comment: "Discarded: plan includes ${destructions} resource destruction(s)"]),
+          requestBody: groovy.json.JsonOutput.toJson([comment: "Auto-approved by Jenkins: MTIQ ${imageUri}"]),
           validResponseCodes: '200:299',
         )
-        error "Terraform plan includes ${destructions} resource destruction(s) (expected at most 4 for task def replacement), discarded: ${uiLink}"
+        echo "Apply request accepted (HTTP ${applyResponse.status})"
+      } else if (effectiveThresholds.gateEnabled) {
+        // Plan exceeds thresholds — require manual approval (opt-in)
+        echo "Plan summary: ${additions} additions, ${changes} changes, ${destructions} destructions"
+        input message: "Terraform plan for ${workspaceName} exceeds expected thresholds.\n" +
+                       "  Additions: ${additions} (expected ≤ ${effectiveThresholds.maxAdditions})\n" +
+                       "  Changes: ${changes} (expected ≤ ${effectiveThresholds.maxChanges})\n" +
+                       "  Destructions: ${destructions} (expected ≤ ${effectiveThresholds.maxDestructions})\n" +
+                       "Review the plan: ${uiLink}",
+              ok: 'Approve Apply'
+        echo "Manual approval granted, confirming apply"
+        def applyResponse = httpRequest(
+          url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/apply",
+          httpMode: 'POST',
+          customHeaders: customHeaders,
+          requestBody: groovy.json.JsonOutput.toJson([comment: "Manually approved via Jenkins: MTIQ ${imageUri}"]),
+          validResponseCodes: '200:299',
+        )
+        echo "Apply request accepted (HTTP ${applyResponse.status})"
+      } else {
+        // Plan exceeds thresholds — fail the build (gate not enabled)
+        error "Terraform plan for ${workspaceName} exceeds expected thresholds. " +
+              "Additions: ${additions} (expected ≤ ${effectiveThresholds.maxAdditions}), " +
+              "Changes: ${changes} (expected ≤ ${effectiveThresholds.maxChanges}), " +
+              "Destructions: ${destructions} (expected ≤ ${effectiveThresholds.maxDestructions}). " +
+              "Review the plan: ${uiLink}"
       }
-
-      echo "Plan looks safe, confirming apply"
-      def applyResponse = httpRequest(
-        url: "${TFC_BASE_URL}/api/v2/runs/${runId}/actions/apply",
-        httpMode: 'POST',
-        customHeaders: customHeaders,
-        requestBody: groovy.json.JsonOutput.toJson([comment: "Auto-approved by Jenkins: MTIQ ${imageUri}"]),
-        validResponseCodes: '200:299',
-      )
-      echo "Apply request accepted (HTTP ${applyResponse.status})"
     }
   }
   error "Terraform apply timed out after 10 minutes: ${uiLink}"

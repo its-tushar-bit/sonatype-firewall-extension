@@ -68,7 +68,7 @@ pipeline {
       steps {
         script {
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployCells('dev', DEV_CELL_WORKSPACES, DEV_GLOBAL_WORKSPACE, params.ECR_TAG)
+          tfc.deployCells('dev', DEV_CELL_WORKSPACES, DEV_GLOBAL_WORKSPACE, params.ECR_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
         }
       }
     }

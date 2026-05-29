@@ -24,6 +24,7 @@ import {
   getComponentDependencies,
 } from 'GuideRoot/api/componentsBackend';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
+import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import { ComponentDetailSkeleton } from './ComponentDetailSkeleton';
 import type { ComponentDetails } from '@guide/ui-core/types';
 
@@ -58,6 +59,7 @@ export function ComponentDetailPage() {
     ])
       .then(([component, vulnRes, versionsRes, depsRes]) => {
         if (!cancelled) {
+          clearErrorRetries();
           if (!component) {
             setState(null);
           } else {
@@ -83,7 +85,7 @@ export function ComponentDetailPage() {
   if (loading) return <ComponentDetailSkeleton />;
 
   if (error) {
-    return <ErrorPage retryHref="/components" />;
+    return <ErrorPage onRetry={reloadPage} />;
   }
 
   if (!state) {

@@ -29,6 +29,7 @@ import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
+import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
 
 export function VulnerabilitiesPage() {
@@ -36,7 +37,6 @@ export function VulnerabilitiesPage() {
   const [response, setResponse] = useState<VulnerabilitySearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -57,7 +57,7 @@ export function VulnerabilitiesPage() {
 
     searchVulnerabilities({ query, filters, options })
       .then((data) => {
-        if (!cancelled) setResponse(data);
+        if (!cancelled) { setResponse(data); clearErrorRetries(); }
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -74,7 +74,7 @@ export function VulnerabilitiesPage() {
   if (isPending && response === null) return <FilteredPageSkeleton variant="vulnerabilities" />;
 
   if (error) {
-    return <ErrorPage retryHref="/vulnerabilities" showGoBack={false} />;
+    return <ErrorPage showGoBack={false} onRetry={reloadPage} />;
   }
 
   // Use defaults while pending or if no response

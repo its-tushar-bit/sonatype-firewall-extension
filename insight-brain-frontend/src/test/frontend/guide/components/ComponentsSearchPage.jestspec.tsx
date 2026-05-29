@@ -15,6 +15,12 @@ jest.mock('GuideRoot/api/componentsBackend', () => ({
   searchComponents: jest.fn(),
 }));
 
+jest.mock('GuideRoot/utils/navigation', () => ({
+  reloadPage: jest.fn(),
+  clearErrorRetries: jest.fn(),
+  getErrorRetryCount: jest.fn().mockReturnValue(0),
+}));
+
 jest.mock('@guide/ui-core', () => {
   const actual = jest.requireActual('@guide/ui-core');
   return {
@@ -32,6 +38,7 @@ jest.mock('@guide/ui-core', () => {
 });
 
 import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import { reloadPage } from 'GuideRoot/utils/navigation';
 
 const mockSearchComponents = searchComponents as jest.MockedFunction<typeof searchComponents>;
 
@@ -142,9 +149,25 @@ describe('ComponentsSearchPage', () => {
     });
 
     expect(screen.getByText(/please try again/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/components');
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
     // Go back button is hidden when showGoBack=false
     expect(screen.queryByRole('button', { name: /go back/i })).not.toBeInTheDocument();
+  });
+
+  it('calls reloadPage when Retry is clicked', async () => {
+    const user = userEvent.setup();
+    const mockReloadPage = reloadPage as jest.Mock;
+    mockSearchComponents.mockRejectedValue(new Error('Network error'));
+
+    render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /we hit a snag/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(mockReloadPage).toHaveBeenCalledTimes(1);
   });
 
   it('passes query param from URL to searchComponents', async () => {

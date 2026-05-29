@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '../test-utils';
 import { VulnerabilitiesPage } from 'GuideRoot/vulnerabilities/VulnerabilitiesPage';
 import * as vulnerabilitiesBackend from 'GuideRoot/api/vulnerabilitiesBackend';
+import { reloadPage } from 'GuideRoot/utils/navigation';
 
 // Mock ResizeObserver (used by @guide/ui-core and @radix-ui components but not available in jsdom)
 class MockResizeObserver {
@@ -21,6 +23,11 @@ window.scrollTo = jest.fn();
 
 // Mock the vulnerabilities backend
 jest.mock('GuideRoot/api/vulnerabilitiesBackend');
+jest.mock('GuideRoot/utils/navigation', () => ({
+  reloadPage: jest.fn(),
+  clearErrorRetries: jest.fn(),
+  getErrorRetryCount: jest.fn().mockReturnValue(0),
+}));
 
 const mockSearchVulnerabilities = vulnerabilitiesBackend.searchVulnerabilities as jest.MockedFunction<
   typeof vulnerabilitiesBackend.searchVulnerabilities
@@ -146,9 +153,25 @@ describe('VulnerabilitiesPage', () => {
       });
 
       expect(screen.getByText(/please try again/i)).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/vulnerabilities');
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
       // Go back button is hidden when showGoBack=false
       expect(screen.queryByRole('button', { name: /go back/i })).not.toBeInTheDocument();
+    });
+
+    it('calls reloadPage when Retry is clicked', async () => {
+      const user = userEvent.setup();
+      const mockReloadPage = reloadPage as jest.Mock;
+      mockSearchVulnerabilities.mockRejectedValue(new Error('Network error'));
+
+      render(<VulnerabilitiesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /we hit a snag/i })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /retry/i }));
+
+      expect(mockReloadPage).toHaveBeenCalledTimes(1);
     });
   });
 

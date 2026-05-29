@@ -5,21 +5,38 @@
  */
 import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
+import { useLocation } from 'react-router';
 import { ErrorPage } from './ErrorPage';
+import { reloadPage } from 'GuideRoot/utils/navigation';
 
 interface Props {
   children: ReactNode;
 }
 
-interface State {
-  hasError: boolean;
+interface CoreProps extends Props {
+  locationKey: string;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+interface State {
+  hasError: boolean;
+  capturedLocationKey?: string;
+}
+
+class ErrorBoundaryCore extends Component<CoreProps, State> {
   state: State = { hasError: false };
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromError(): Partial<State> {
     return { hasError: true };
+  }
+
+  static getDerivedStateFromProps(props: CoreProps, state: State): Partial<State> | null {
+    if (state.hasError && state.capturedLocationKey === undefined) {
+      return { capturedLocationKey: props.locationKey };
+    }
+    if (state.hasError && state.capturedLocationKey !== props.locationKey) {
+      return { hasError: false, capturedLocationKey: undefined };
+    }
+    return null;
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -29,9 +46,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // Retry navigates to '/' (safe route) to break potential crash-loops from URL-induced errors.
-      return <ErrorPage />;
+      return <ErrorPage onRetry={reloadPage} />;
     }
     return this.props.children;
   }
+}
+
+export function ErrorBoundary({ children }: Props) {
+  const { pathname, key } = useLocation();
+  // Combine pathname + key so the boundary resets on any navigation, even same-route
+  // navigations where React Router may theoretically reuse the same key.
+  return <ErrorBoundaryCore locationKey={`${pathname}::${key}`}>{children}</ErrorBoundaryCore>;
 }

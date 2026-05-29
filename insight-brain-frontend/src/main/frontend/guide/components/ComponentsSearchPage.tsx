@@ -30,6 +30,7 @@ import { searchComponents } from 'GuideRoot/api/componentsBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
+import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import type { ComponentSearchResponse, ComponentsSearchOptions } from '@guide/ui-core/types';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 
@@ -62,14 +63,13 @@ export function ComponentsSearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterPending, setFilterPending] = useState(false);
   const [toolbarPending, setToolbarPending] = useState(false);
-
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
 
     searchComponents(buildParams(searchParams))
-      .then((res) => { if (!cancelled) setData(res); })
+      .then((res) => { if (!cancelled) { setData(res); clearErrorRetries(); } })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
 
@@ -79,7 +79,7 @@ export function ComponentsSearchPage() {
   if (loading && data === null) return <FilteredPageSkeleton variant="components" />;
 
   if (error) {
-    return <ErrorPage retryHref="/components" showGoBack={false} />;
+    return <ErrorPage showGoBack={false} onRetry={reloadPage} />;
   }
 
   const isPending = loading || filterPending || toolbarPending;

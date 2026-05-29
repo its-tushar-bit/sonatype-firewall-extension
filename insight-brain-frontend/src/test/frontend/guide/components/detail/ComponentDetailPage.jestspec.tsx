@@ -11,6 +11,12 @@ import { ComponentDetailPage } from 'GuideRoot/components/detail/ComponentDetail
 import * as backend from 'GuideRoot/api/componentsBackend';
 import { mockComponentDetail } from 'GuideRoot/api/mocks/mockComponentDetailData';
 
+jest.mock('GuideRoot/utils/navigation', () => ({
+  reloadPage: jest.fn(),
+  clearErrorRetries: jest.fn(),
+  getErrorRetryCount: jest.fn().mockReturnValue(0),
+}));
+
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   getComponentDetail: jest.fn(),
   getComponentVulnerabilities: jest.fn(),
@@ -96,7 +102,9 @@ describe('ComponentDetailPage', () => {
     });
 
     expect(screen.getByText(/please try again/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /retry/i })).toHaveAttribute('href', '/components');
+    // Retry reloads the page — not a link
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /retry/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument();
   });
 });

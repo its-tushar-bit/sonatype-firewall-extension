@@ -166,7 +166,7 @@ public class ApiGitHubAppService
     return listGitHubAppsAuthorized(owner);
   }
 
-  @Authorize(permission = Permission.WRITE)
+  @Authorize(permission = Permission.READ)
   List<ApiGitHubAppListDTO> listGitHubAppsAuthorized(@AuthzContext(Key.OWNER) final Owner owner) {
     List<GitHubApp> apps = gitHubAppDAO.getAllByOwnerId(owner.getId());
     return apps.stream().map(this::toListDTO).toList();

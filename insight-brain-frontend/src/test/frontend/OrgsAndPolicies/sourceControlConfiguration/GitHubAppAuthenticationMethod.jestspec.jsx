@@ -54,12 +54,23 @@ describe('GitHubAppAuthenticationMethod', () => {
     onChangeToken: jest.fn(),
   };
 
-  const renderComponent = (props = {}) => {
-    return render(<GitHubAppAuthenticationMethod {...defaultProps} {...props} />);
+  const defaultPreloadedState = {
+    orgsAndPolicies: {
+      sourceControlConfiguration: {
+        hasEditPermission: true,
+      },
+    },
+  };
+
+  const renderComponent = (props = {}, preloadedState) => {
+    return render(<GitHubAppAuthenticationMethod {...defaultProps} {...props} />, {
+      preloadedState: preloadedState || defaultPreloadedState,
+    });
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
   });
 
   describe('Rendering', () => {
@@ -335,6 +346,39 @@ describe('GitHubAppAuthenticationMethod', () => {
         renderComponent({ sourceControl: configuredWithCount });
 
         expect(screen.getByRole('button', { name: /manage github apps/i })).toBeInTheDocument();
+      });
+
+      it('saves form state to sessionStorage when Manage GitHub Apps is clicked', async () => {
+        const user = userEvent.setup();
+        const sourceControlWithOwner = {
+          ...configuredWithCount,
+          ownerId: 'org-123',
+        };
+        renderComponent({ sourceControl: sourceControlWithOwner });
+
+        const manageButton = screen.getByRole('button', { name: /manage github apps/i });
+        await user.click(manageButton);
+
+        const savedState = JSON.parse(sessionStorage.getItem('scmFormState_organization_org-123'));
+        expect(savedState).not.toBeNull();
+        expect(savedState.token).toBeUndefined();
+        expect(savedState.githubApps).toBeUndefined();
+      });
+
+      it('saves form state with application ownerType when isApplication is true', async () => {
+        const user = userEvent.setup();
+        const sourceControlWithOwner = {
+          ...configuredWithCount,
+          ownerId: 'app-456',
+        };
+        renderComponent({ sourceControl: sourceControlWithOwner, isApplication: true });
+
+        const manageButton = screen.getByRole('button', { name: /manage github apps/i });
+        await user.click(manageButton);
+
+        const savedState = JSON.parse(sessionStorage.getItem('scmFormState_application_app-456'));
+        expect(savedState).not.toBeNull();
+        expect(savedState.token).toBeUndefined();
       });
 
       it('disables buttons when fields are disabled', () => {

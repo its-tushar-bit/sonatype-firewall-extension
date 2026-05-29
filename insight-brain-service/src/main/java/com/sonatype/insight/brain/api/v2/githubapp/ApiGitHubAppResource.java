@@ -72,7 +72,7 @@ public class ApiGitHubAppResource
       description = "Returns all GitHub Apps directly registered at this owner level. " +
           "Does not include inherited apps from parent organizations. " +
           "\n\n" +
-          "**Permissions Required:** Configure System Configuration and Users",
+          "**Permissions Required:** View IQ Elements",
       tags = {"GitHub App"})
   @ApiResponse(responseCode = "200", description = "List of GitHub Apps")
   public List<ApiGitHubAppListDTO> listGitHubApps(

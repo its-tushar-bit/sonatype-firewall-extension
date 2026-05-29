@@ -9,3 +9,4 @@ export const selectGitHubApps = (state) => selectSlice(state).githubApps;
 export const selectLoading = (state) => selectSlice(state).loading;
 export const selectError = (state) => selectSlice(state).error;
 export const selectDeleteModal = (state) => selectSlice(state).deleteModal;
+export const selectHasEditPermission = (state) => selectSlice(state).hasEditPermission;

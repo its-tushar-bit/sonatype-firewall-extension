@@ -10,6 +10,20 @@ import {
   getGitHubAppsListUrl,
   getGitHubAppDeleteUrl,
 } from '../../util/CLMLocation';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+
+export const checkEditPermission = createAsyncThunk(
+  'manageGitHubApps/checkEditPermission',
+  (_, { rejectWithValue, getState }) => {
+    const state = getState();
+    const ownerInfo = selectOwnerInfo(state);
+    const selectedOwner = selectSelectedOwner(state);
+    if (!selectedOwner?.id) return rejectWithValue('No owner selected');
+    return checkPermissions(['WRITE'], ownerInfo.ownerType, selectedOwner.id).catch(rejectWithValue);
+  }
+);
 
 export const fetchGitHubApps = createAsyncThunk(
   'manageGitHubApps/fetchGitHubApps',
@@ -41,6 +55,7 @@ export const initialState = Object.freeze({
   githubApps: [],
   loading: false,
   error: null,
+  hasEditPermission: false,
   deleteModal: {
     isOpen: false,
     app: null,
@@ -67,6 +82,8 @@ const manageGitHubAppsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(checkEditPermission.fulfilled, (state) => { state.hasEditPermission = true; })
+      .addCase(checkEditPermission.rejected, (state) => { state.hasEditPermission = false; })
       .addCase(fetchGitHubApps.pending, (state) => {
         state.loading = true;
         state.error = null;

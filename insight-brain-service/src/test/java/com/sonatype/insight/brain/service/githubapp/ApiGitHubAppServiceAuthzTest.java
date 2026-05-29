@@ -220,8 +220,8 @@ public class ApiGitHubAppServiceAuthzTest
   }
 
   @Test
-  public void testListGitHubApps_Authorized() {
-    grantWritePermission(org.getId());
+  public void testListGitHubApps_AuthorizedWithReadPermission() {
+    grantReadPermission(org.getId());
     service.listGitHubApps(org.getId());
   }
 

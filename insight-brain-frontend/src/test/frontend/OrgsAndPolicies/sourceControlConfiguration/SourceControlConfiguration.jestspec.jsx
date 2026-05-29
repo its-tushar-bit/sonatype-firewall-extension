@@ -101,6 +101,7 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getOrganizationUrl(ROOT_ORGANIZATION_ID)).reply(200, rootOrganizationResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultRootOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+      axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
     });
 
     describe('initial source control configuration render', () => {
@@ -177,7 +178,8 @@ describe('sourceControlConfiguration', () => {
         expect(resetButton).toBeVisible();
         expect(submitButton).toBeVisible();
         fireEvent.click(submitButton);
-        expect(axiosMock.history.put.length).toBe(0);
+        const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+        expect(configPuts.length).toBe(0);
       });
 
       it('renders error message and retry button when loading source control configuration fails', async () => {
@@ -354,9 +356,10 @@ describe('sourceControlConfiguration', () => {
         fireEvent.change(tokenInput, { target: { value: 'admin123' } });
         const submitButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(submitButton);
-        expect(axiosMock.history.put.length).toBe(1);
-        expect(axiosMock.history.put[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
-        expect(JSON.parse(axiosMock.history.put[0].data)).toEqual(submitData);
+        const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+        expect(configPuts.length).toBe(1);
+        expect(configPuts[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
+        expect(JSON.parse(configPuts[0].data)).toEqual(submitData);
       });
 
       it('shows validation error and prevent from submitting if field is not valid', async () => {
@@ -367,7 +370,8 @@ describe('sourceControlConfiguration', () => {
         fireEvent.change(tokenInput, { target: { value: '' } });
         const submitButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(submitButton);
-        expect(axiosMock.history.put.length).toBe(0);
+        const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+        expect(configPuts.length).toBe(0);
         const alerts = await screen.findAllByRole('alert');
         expect(alerts.length).toBe(2);
         const inputValidationMsg = screen.getByText('Must be non-empty');
@@ -421,8 +425,9 @@ describe('sourceControlConfiguration', () => {
         fireEvent.change(userNameInput, { target: { value: 'some Other Name' } });
         const submitButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(submitButton);
-        expect(axiosMock.history.put.length).toBe(1);
-        expect(axiosMock.history.put[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
+        const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+        expect(configPuts.length).toBe(1);
+        expect(configPuts[0].url).toBe(getSourceControlUrl(ownerType, ownerId));
         expect(await screen.findByRole('alert')).toBeVisible();
         expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
         expect(screen.getByText('An error occurred saving data. Saving Error')).toBeVisible();
@@ -802,12 +807,16 @@ describe('sourceControlConfiguration', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-        await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
-        expect(JSON.parse(axiosMock.history.put[0].data)).toMatchObject({
+        await waitFor(() => {
+          const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+          expect(configPuts.length).toBe(1);
+        });
+        const configPuts = axiosMock.history.put.filter((r) => !r.url.includes('/rest/user/permissions'));
+        expect(JSON.parse(configPuts[0].data)).toMatchObject({
           provider: 'github',
           authenticationType: AUTHENTICATION_TYPES.GITHUB_APP,
         });
-        expect(JSON.parse(axiosMock.history.put[0].data)).not.toHaveProperty('githubAppId');
+        expect(JSON.parse(configPuts[0].data)).not.toHaveProperty('githubAppId');
       });
 
       it('surfaces the GitHub App selected by githubAppId from a multi-install response and submits that id', async () => {
@@ -1089,6 +1098,7 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getOrganizationUrl(ORGANIZATION_ID)).reply(200, organizationResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+      axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
     });
 
     describe('initial source control configuration render', () => {
@@ -2061,6 +2071,7 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_ID)).reply(200, applicationsResponse);
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultAppConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
+      axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
     });
 
     describe('initial source control configuration render', () => {

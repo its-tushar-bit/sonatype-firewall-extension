@@ -5,11 +5,13 @@
  */
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NxButton, NxFieldset, NxFormGroup, NxRadio, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
+import { actions as sourceControlActions } from './sourceControlConfigurationSlice';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { AUTHENTICATION_TYPES, hasConfiguredGitHubApp } from './utils';
+import { selectHasEditPermission } from './sourceControlConfigurationSelectors';
+import { AUTHENTICATION_TYPES, hasConfiguredGitHubApp, getScmFormStateStorageKey, saveFormStateWithFallback } from './utils';
 import './_gitHubAppAuthenticationMethod.scss';
 
 const GitHubAppAuthenticationMethod = ({
@@ -21,6 +23,7 @@ const GitHubAppAuthenticationMethod = ({
   isApplication,
 }) => {
   const dispatch = useDispatch();
+  const hasEditPermission = useSelector(selectHasEditPermission);
   const hasLocalGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApps?.value);
   const hasParentGithubApp = hasConfiguredGitHubApp(sourceControl?.githubApps?.parentValue);
   const githubAppCount = sourceControl?.githubApps?.localCount ?? 0;
@@ -44,10 +47,19 @@ const GitHubAppAuthenticationMethod = ({
     return null;
   });
   const handleOpenModal = () => {
-    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'manage', ownerId: sourceControl?.ownerId }));
+    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'sourceControl', ownerId: sourceControl?.ownerId }));
     dispatch(actions.openModal());
   };
-  const handleManageGitHubApps = () => dispatch(stateGo('^.manage-github-apps'));
+  const handleManageGitHubApps = () => {
+    const ownerType = isApplication ? 'application' : 'organization';
+    const storageKey = getScmFormStateStorageKey(ownerType, sourceControl?.ownerId);
+    const sourceControlToSave = { ...sourceControl };
+    delete sourceControlToSave.token;
+    delete sourceControlToSave.githubApps;
+    saveFormStateWithFallback(storageKey, sourceControlToSave);
+    dispatch(sourceControlActions.clearDirty());
+    dispatch(stateGo('^.manage-github-apps'));
+  };
   // Only show inheritance options when setIsInherited is provided (Org/App level)
   const supportsInheritance = Boolean(setIsInherited);
   // Check authenticationType.isInherited instead of githubApp.isInherited
@@ -178,7 +190,7 @@ const GitHubAppAuthenticationMethod = ({
               {githubAppCount} GitHub App{githubAppCount !== 1 ? 's' : ''} configured
             </span>
             <div className="iq-github-app-auth-status__buttons">
-              {shouldDisableAddButton ? (
+              {hasEditPermission && (shouldDisableAddButton ? (
                 <NxTooltip title="IQ applications can only have one GitHub App associated">
                   <span>
                     <NxButton id="github-app-add-button" variant="tertiary" type="button" disabled>
@@ -196,7 +208,7 @@ const GitHubAppAuthenticationMethod = ({
                 >
                   Add GitHub App
                 </NxButton>
-              )}
+              ))}
               <NxButton
                 id="manage-github-apps-button"
                 variant="tertiary"

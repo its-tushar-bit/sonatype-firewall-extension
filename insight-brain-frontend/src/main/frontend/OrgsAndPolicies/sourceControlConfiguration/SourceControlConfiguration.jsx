@@ -91,10 +91,11 @@ const SourceControlConfiguration = () => {
     doLoad();
   }, [doLoad]);
 
-  // Reset the ref when user opens the GitHub App registration modal to start a new setup
+  // Reset when user opens the GitHub App registration modal to start a new setup
   useEffect(() => {
     if (isGitHubAppRegistrationModalOpen) {
       githubAppReturnHandled.current = false;
+      sessionStorage.removeItem('githubAppReturnConsumed');
     }
   }, [isGitHubAppRegistrationModalOpen]);
 
@@ -126,6 +127,18 @@ const SourceControlConfiguration = () => {
     }
 
     dispatch(actions.showGitHubAppSuccessModal());
+    // Mark this githubAppId as consumed so subsequent loads ignore it.
+    // UI Router may keep the param in its internal state across navigations,
+    // so the load thunk checks this flag to avoid retriggering.
+    const hash = window.location.hash || '';
+    const hashQueryStart = hash.indexOf('?');
+    if (hashQueryStart !== -1) {
+      const hashParams = new URLSearchParams(hash.substring(hashQueryStart + 1));
+      const consumedId = hashParams.get('githubAppId');
+      if (consumedId) {
+        sessionStorage.setItem('githubAppReturnConsumed', consumedId);
+      }
+    }
   }, [isLoading, showGitHubAppSuccessModal, hasPendingGitHubAppReturn, dispatch]);
 
   const handleCloseGitHubAppSuccessModal = useCallback(() => {

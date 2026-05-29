@@ -58,6 +58,8 @@ import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { prop } from 'ramda';
 const REDUCER_NAME = 'sourceControl';
@@ -84,6 +86,7 @@ export const initialState = {
   showGitHubAppSuccessModal: false,
   hasPendingGitHubAppReturn: false,
   isReplaceGitHubAppModalOpen: false,
+  hasEditPermission: false,
 };
 
 const setProvider = (state, { payload }) => {
@@ -305,6 +308,17 @@ const setLoading = (state, { payload }) => {
   state.formLoading = payload;
 };
 
+const checkEditPermission = createAsyncThunk(
+  `${REDUCER_NAME}/checkEditPermission`,
+  (_, { rejectWithValue, getState }) => {
+    const state = getState();
+    const ownerInfo = selectOwnerInfo(state);
+    const selectedOwner = selectSelectedOwner(state);
+    if (!selectedOwner?.id) return rejectWithValue('No owner selected');
+    return checkPermissions(['WRITE'], ownerInfo.ownerType, selectedOwner.id).catch(rejectWithValue);
+  }
+);
+
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (options = {}, { rejectWithValue, dispatch }) => {
   const promises = [
     dispatch(rootActions.loadSelectedOwner()),
@@ -312,6 +326,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (options = {}, { rejectWit
   ];
   return Promise.all(promises)
     .then(() => {
+      dispatch(actions.checkEditPermission());
       return dispatch(actions.loadSCMRootConfig(options));
     })
     .catch(rejectWithValue);
@@ -366,7 +381,11 @@ const loadSCMRootConfig = createAsyncThunk(
     const isApp = selectIsApplication(state);
     const isRootOrg = selectIsRootOrganization(state);
     const routerParams = selectRouterCurrentParams(state);
-    const githubAppId = ignoreGitHubAppReturn ? null : getGitHubAppReturnParam(routerParams);
+    const githubAppIdRaw = ignoreGitHubAppReturn ? null : getGitHubAppReturnParam(routerParams);
+    // Check if this githubAppId was already consumed (modal shown) in this session.
+    // UI Router may re-add the param to the URL from its internal state, so we can't rely on URL cleanup alone.
+    const alreadyConsumed = githubAppIdRaw && sessionStorage.getItem('githubAppReturnConsumed') === githubAppIdRaw;
+    const githubAppId = alreadyConsumed ? null : githubAppIdRaw;
     const hasGitHubAppReturnParam = Boolean(githubAppId);
     const ownerType = isApp ? 'application' : 'organization';
     const promises = [
@@ -417,6 +436,7 @@ const loadSCMRootConfigPending = (state) => {
   state.formLoading = true;
   state.loadError = null;
   state.hasPendingGitHubAppReturn = false;
+  state.showGitHubAppSuccessModal = false;
 };
 
 // Clone nested githubApp state so sourceControl and serverSourceControl can diverge
@@ -733,9 +753,11 @@ const sourceControl = createSlice({
     showConfirmUpdateModal,
     closeConfirmUpdateModal,
     setLoading,
+    clearDirty: (state) => { state.isDirty = false; },
     saveMaskTimerDone: propSet('submitMaskState', null),
     showGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = true;
+      state.hasPendingGitHubAppReturn = false;
     },
     closeGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = false;
@@ -785,6 +807,8 @@ const sourceControl = createSlice({
     [validate.pending]: validatePending,
     [validate.fulfilled]: validateFulfilled,
     [validate.rejected]: validateFailed,
+    [checkEditPermission.fulfilled]: (state) => { state.hasEditPermission = true; },
+    [checkEditPermission.rejected]: (state) => { state.hasEditPermission = false; },
     [UI_ROUTER_ON_FINISH]: (state) => {
       // Only reset form-specific state, preserve data and modal state
       // This avoids unnecessary object creation and preserves references
@@ -798,6 +822,8 @@ const sourceControl = createSlice({
       state.isConfirmationModalOpen = initialState.isConfirmationModalOpen;
       state.isDirty = initialState.isDirty;
       state.isRepoUrlDirty = initialState.isRepoUrlDirty;
+      state.hasEditPermission = initialState.hasEditPermission;
+      state.hasPendingGitHubAppReturn = initialState.hasPendingGitHubAppReturn;
       // Preserved: showGitHubAppSuccessModal, sourceControl, serverSourceControl, sourceControlMetrics
     },
   },
@@ -811,4 +837,5 @@ export const actions = {
   save,
   reset,
   validate,
+  checkEditPermission,
 };

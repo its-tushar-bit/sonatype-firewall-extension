@@ -156,3 +156,5 @@ export const selectHasPendingGitHubAppReturn = createSelector(
 );
 
 export const selectSourceControl = createSelector(selectSourceControlConfigurationSlice, prop('sourceControl'));
+
+export const selectHasEditPermission = createSelector(selectSourceControlConfigurationSlice, prop('hasEditPermission'));

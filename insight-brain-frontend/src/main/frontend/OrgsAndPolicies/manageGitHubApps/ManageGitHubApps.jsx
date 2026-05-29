@@ -3,22 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { has } from 'ramda';
 import {
   NxTable, NxButton, NxFontAwesomeIcon, NxP, NxH1,
-  NxPageMain, NxPageTitle, NxTile, NxTag, NxTooltip,
+  NxPageMain, NxPageTitle, NxTextLink, NxTile, NxTag, NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faTrash, faPlus } from '@fortawesome/pro-solid-svg-icons';
-import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
 import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsModalOpen as selectIsRegistrationModalOpen } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSelectors';
 import GitHubAppRegistrationModal from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppRegistrationModal';
-import { selectGitHubApps, selectLoading, selectError } from './manageGitHubAppsSelectors';
-import { fetchGitHubApps, openDeleteModal, resetState } from './manageGitHubAppsSlice';
+import { selectGitHubApps, selectLoading, selectError, selectHasEditPermission } from './manageGitHubAppsSelectors';
+import { fetchGitHubApps, checkEditPermission, openDeleteModal, resetState } from './manageGitHubAppsSlice';
 import ManageGitHubAppsDeleteModal from './ManageGitHubAppsDeleteModal';
 
 export default function ManageGitHubApps() {
@@ -28,13 +27,24 @@ export default function ManageGitHubApps() {
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
   const isRegistrationModalOpen = useSelector(selectIsRegistrationModalOpen);
+  const hasEditPermission = useSelector(selectHasEditPermission);
+
+  const wasModalOpenRef = useRef(false);
 
   const isApplication = owner && has('publicId', owner);
   const shouldDisableAddButton = isApplication && githubApps.length >= 1;
 
   useEffect(() => {
+    if (wasModalOpenRef.current && !isRegistrationModalOpen) {
+      sessionStorage.removeItem('githubAppReturnTo');
+    }
+    wasModalOpenRef.current = isRegistrationModalOpen;
+  }, [isRegistrationModalOpen]);
+
+  useEffect(() => {
     if (owner?.id) {
       dispatch(fetchGitHubApps(owner.id));
+      dispatch(checkEditPermission());
     }
 
     try {
@@ -55,6 +65,7 @@ export default function ManageGitHubApps() {
 
   const handleAddGitHubApp = () => {
     sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'manage', ownerId: owner.id }));
+    sessionStorage.removeItem('githubAppReturnConsumed');
     dispatch(gitHubAppActions.openModal());
   };
 
@@ -85,6 +96,7 @@ export default function ManageGitHubApps() {
       </NxPageTitle>
 
       <NxTile>
+        {hasEditPermission && (
         <NxTile.Header>
           <NxTile.HeaderActions>
             {shouldDisableAddButton ? (
@@ -104,6 +116,7 @@ export default function ManageGitHubApps() {
             )}
           </NxTile.HeaderActions>
         </NxTile.Header>
+        )}
         {loading && <NxP>Loading...</NxP>}
         {error && <NxP className="nx-text--error">{error?.message || (typeof error === 'string' ? error : JSON.stringify(error))}</NxP>}
         {!loading && githubApps.length === 0 && (
@@ -132,23 +145,20 @@ export default function ManageGitHubApps() {
                     <NxTable.Cell>{formatDate(app.lastUpdatedAt)}</NxTable.Cell>
                     <NxTable.Cell>
                       {app.installationUrl && (
-                        <a
-                          href={app.installationUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="nx-text-link"
-                          aria-label={`Go to GitHub for ${app.slug}`}
-                        >
-                          <NxFontAwesomeIcon icon={faExternalLink} /> Go to GitHub
-                        </a>
+                        <NxTextLink external href={app.installationUrl}>
+                          Go to GitHub
+                        </NxTextLink>
                       )}
+                      {hasEditPermission && (
                       <NxButton
                         variant="icon-only"
+                        title="Delete"
                         onClick={() => handleDelete(app)}
                         aria-label={`Delete GitHub App ${app.slug}`}
                       >
                         <NxFontAwesomeIcon icon={faTrash} />
                       </NxButton>
+                      )}
                     </NxTable.Cell>
                   </NxTable.Row>
                 );

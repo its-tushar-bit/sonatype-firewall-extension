@@ -59,9 +59,10 @@ const initiateGitHubAppRegistration = createAsyncThunk(
       const sourceControlState = state?.orgsAndPolicies?.sourceControlConfiguration;
       if (sourceControlState?.sourceControl) {
         const storageKey = getScmFormStateStorageKey(owner.type, owner.id);
-        // Save entire sourceControl object (except token for security)
+        // Save entire sourceControl object (except token and githubApps for security/freshness)
         const sourceControlToSave = { ...sourceControlState.sourceControl };
-        delete sourceControlToSave.token; // Remove token for security
+        delete sourceControlToSave.token;
+        delete sourceControlToSave.githubApps;
         saveFormStateWithFallback(storageKey, sourceControlToSave);
       }
       const response = await axios.post(getGitHubAppManifestUrl(owner.id, orgName));

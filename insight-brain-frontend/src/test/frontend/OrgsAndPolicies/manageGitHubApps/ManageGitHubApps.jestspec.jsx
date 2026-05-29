@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import ManageGitHubApps from 'MainRoot/OrgsAndPolicies/manageGitHubApps/ManageGitHubApps';
+import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
 
 describe('ManageGitHubApps', () => {
   let axiosMock;
@@ -20,6 +21,7 @@ describe('ManageGitHubApps', () => {
       githubApps: [],
       loading: false,
       error: null,
+      hasEditPermission: true,
       deleteModal: { isOpen: false, app: null, isDeleting: false },
     },
   };
@@ -32,6 +34,7 @@ describe('ManageGitHubApps', () => {
       githubApps: [],
       loading: false,
       error: null,
+      hasEditPermission: true,
       deleteModal: { isOpen: false, app: null, isDeleting: false },
     },
   };
@@ -67,10 +70,12 @@ describe('ManageGitHubApps', () => {
 
   beforeEach(() => {
     axiosMock.onGet(new RegExp('/api/v2/githubApp')).reply(200, mockApps);
+    axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
   });
 
   afterEach(() => {
     axiosMock.reset();
+    sessionStorage.clear();
   });
 
   it('renders table with apps from API', async () => {
@@ -151,5 +156,68 @@ describe('ManageGitHubApps', () => {
 
     const addButton = screen.getByRole('button', { name: /add github app/i });
     expect(addButton).not.toBeDisabled();
+  });
+
+  it('does not show success toast when modal is cancelled without completing registration', async () => {
+    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'manage', ownerId }));
+
+    const stateWithModalOpen = {
+      ...defaultState,
+      gitHubAppConfiguration: {
+        setupError: null,
+        registrationInProgress: false,
+        isModalOpen: true,
+        formState: { accountType: 'organization', organizationName: { value: '', trimmedValue: '', isPristine: true } },
+      },
+    };
+
+    const { store } = render(<ManageGitHubApps />, { preloadedState: stateWithModalOpen });
+
+    act(() => store.dispatch(gitHubAppActions.closeModal()));
+
+    await waitFor(() => expect(sessionStorage.getItem('githubAppReturnTo')).toBeNull());
+    expect(screen.queryByText(/github app added successfully/i)).not.toBeInTheDocument();
+  });
+
+  it('clears sessionStorage when registration modal closes without redirect', async () => {
+    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'manage', ownerId }));
+
+    const stateWithModalOpen = {
+      ...defaultState,
+      gitHubAppConfiguration: {
+        setupError: null,
+        registrationInProgress: false,
+        isModalOpen: true,
+        formState: { accountType: 'organization', organizationName: { value: '', trimmedValue: '', isPristine: true } },
+      },
+    };
+
+    const { store } = render(<ManageGitHubApps />, { preloadedState: stateWithModalOpen });
+
+    act(() => store.dispatch(gitHubAppActions.closeModal()));
+
+    await waitFor(() => expect(sessionStorage.getItem('githubAppReturnTo')).toBeNull());
+  });
+
+  it('hides Add and Delete buttons when hasEditPermission is false', async () => {
+    axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, []);
+
+    const noEditPermissionState = {
+      ...defaultState,
+      manageGitHubApps: {
+        ...defaultState.manageGitHubApps,
+        githubApps: mockApps,
+        hasEditPermission: false,
+      },
+    };
+
+    render(<ManageGitHubApps />, { preloadedState: noEditPermissionState });
+
+    await waitFor(() => {
+      expect(screen.getByText('sonatype-iq-app1')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /add github app/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
   });
 });

@@ -8,7 +8,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectDashboardFilter, selectCurrentTab, selectWaiversResults } from '../../dashboardSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { WAIVERS_RESULTS_TYPE, WAIVER_REQUESTS_RESULTS_TYPE } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import {
   loadWaiverResults,
@@ -44,7 +43,6 @@ export default function DashboardWaivers() {
     appliedFilter: { maxDaysOld },
   } = useSelector(selectDashboardFilter);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
-  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
   const waivers = useSelector(selectWaiversResults);
 
   const handleTabClick = (index) => {
@@ -72,7 +70,6 @@ export default function DashboardWaivers() {
     maxDaysOld,
     needsAcknowledgement,
     reload: loadWaivers,
-    isExpiringWaiversEnabled,
   };
 
   useEffect(() => {
@@ -83,11 +80,9 @@ export default function DashboardWaivers() {
       dispatch(setRepositoryFilter(''));
       dispatch(firewallApplyFilter());
       loadWaivers();
-      if (isExpiringWaiversEnabled) {
-        dispatch(loadFirewallDashboardWaivePermission());
-      }
+      dispatch(loadFirewallDashboardWaivePermission());
     }
-  }, [isStandaloneFirewall, isExpiringWaiversEnabled]);
+  }, [isStandaloneFirewall]);
 
   return (
     <NxTile id="dashboard-waivers" className="iq-dashboard-waivers">

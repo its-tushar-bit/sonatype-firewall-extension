@@ -11,7 +11,6 @@ import FirewallComponentDetailsPage from './firewallComponentDetailsPage/Firewal
 import EnterpriseReportingPage from './enterpriseReporting/EnterpriseReportingPage';
 import FirewallEnterpriseReportingDashboardPage from './enterpriseReporting/dashboard/FirewallEnterpriseReportingDashboardPage';
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
-import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
   ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
@@ -1119,7 +1118,6 @@ ownerTypesForFirewall.forEach((ownerType) => {
     data: {
       title: `${ownerType.name} Waiver Expiration Notifications`,
       isDirty: ['orgsAndPolicies', 'waiverExpirationNotification', 'isDirty'],
-      featureEnabled: selectIsWaiverExpirationNotificationEnabled,
     },
   });
 });

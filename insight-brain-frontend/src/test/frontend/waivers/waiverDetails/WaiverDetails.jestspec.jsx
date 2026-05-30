@@ -17,7 +17,6 @@ import { getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation'
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import WaiverDetails from 'MainRoot/waivers/waiverDetails/WaiverDetails';
 import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('When the WaiverDetailsPage', function () {
   let axiosMock,
@@ -417,7 +416,6 @@ describe('When the WaiverDetailsPage', function () {
 
     it('renders renewal comment before creation comment (latest first)', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
         ...waiverDetails,
         lastRenewedBy: 'admin',
@@ -439,7 +437,6 @@ describe('When the WaiverDetailsPage', function () {
 
     it('renders renewal reason with dash when absent', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
       renderComponent();
 
@@ -451,7 +448,6 @@ describe('When the WaiverDetailsPage', function () {
 
     it('shows dash when renewal comment is empty', async function () {
       jest.spyOn(routeSelectors, 'selectIsStandaloneFirewall').mockReturnValue(true);
-      jest.spyOn(productFeaturesSelectors, 'selectIsFirewallWaiverDashboardAndRenewEnabled').mockReturnValue(true);
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, {
         ...waiverDetails,
         lastRenewedAt: '2024-01-15T10:00:00.000Z',

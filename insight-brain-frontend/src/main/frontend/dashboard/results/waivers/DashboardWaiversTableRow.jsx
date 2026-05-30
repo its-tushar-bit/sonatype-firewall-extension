@@ -19,7 +19,7 @@ import { stateGo as stateGoAction } from 'MainRoot/reduxUiRouter/routerActions';
 import { setFirewallWaiverToDelete } from 'MainRoot/firewall/waivers/firewallDashboardWaiverActions';
 import { selectFirewallDashboardHasWaivePermission } from 'MainRoot/firewall/waivers/firewallDashboardWaiverSelectors';
 
-export default function DashboardWaiversTableRow({ stateGo, waiver, page, isExpiringWaiversEnabled }) {
+export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   const dispatch = useDispatch();
   const {
     id: waiverId,
@@ -108,7 +108,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page, isExpi
               <NxOverflowTooltip>
                 <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
               </NxOverflowTooltip>
-              {isExpiringWaiversEnabled && getExpiryStatusDescriptor(daysRemaining) && (
+              {getExpiryStatusDescriptor(daysRemaining) && (
                 <span className={`iq-waiver-expiry-status iq-waiver-expiry-status--${getExpiryStatusDescriptor(daysRemaining).modifier}`}>
                   {getExpiryStatusDescriptor(daysRemaining).text}
                 </span>
@@ -145,7 +145,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page, isExpi
           <span>{'—'}</span>
         )}
       </NxTable.Cell>
-      {isExpiringWaiversEnabled && isStandaloneFirewall && hasWaivePermission ? (
+      {isStandaloneFirewall && hasWaivePermission ? (
         <NxTable.Cell className="iq-waiver-actions-cell" onClick={(e) => e.stopPropagation()}>
           <div className="iq-waiver-actions-cell__buttons">
             <NxButton variant="icon-only" title="Renew waiver" onClick={handleRenew} className="iq-waiver-renew-btn">
@@ -184,5 +184,4 @@ DashboardWaiversTableRow.propTypes = {
   stateGo: PropTypes.func.isRequired,
   waiver: waiverPropTypes,
   page: PropTypes.number,
-  isExpiringWaiversEnabled: PropTypes.bool,
 };

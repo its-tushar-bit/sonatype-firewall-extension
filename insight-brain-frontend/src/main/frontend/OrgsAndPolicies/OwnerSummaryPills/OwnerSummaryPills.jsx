@@ -23,7 +23,6 @@ import {
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
   selectIsCpeMatchingSupported,
-  selectIsWaiverExpirationNotificationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -49,7 +48,6 @@ export default function OwnerSummaryPills() {
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
-  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
   const hasSbomManagerLicenseOnly = useSelector(selectIsSbomManagerOnlyLicense);
@@ -104,7 +102,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'Waiver Expiration Notifications',
         target: 'owner-pill-waiver-expiration-notification',
-        isDisplayed: isFirewall && !isSbomManager && isWaiverExpirationNotificationEnabled,
+        isDisplayed: isFirewall && !isSbomManager,
       },
       {
         label: 'Source control',
@@ -153,7 +151,6 @@ export default function OwnerSummaryPills() {
     isSbomManager,
     isSourceControlForSourceTileSupported,
     isSbomContinuousMonitoringUiEnabled,
-    isWaiverExpirationNotificationEnabled,
   ]);
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

@@ -121,7 +121,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(70);
+    assertThat(featureConfigNode.size()).isEqualTo(68);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -194,8 +194,6 @@ public class FeaturePropertiesInfoTest
               "userManagementPages": true,
               "userActivityTracking": false,
               "epssDataEnabled": false,
-              "firewallWaiverDashboardAndRenew": false,
-              "waiverExpirationNotification": false,
               "waiverRequestWorkflowEnabled": true,
               "consumptionReportingEnabled": false
             }"""));
@@ -212,7 +210,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(70);
+    assertThat(featureConfigNode.size()).isEqualTo(68);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -285,8 +283,6 @@ public class FeaturePropertiesInfoTest
               "userManagementPages": true,
               "userActivityTracking": false,
               "epssDataEnabled": false,
-              "firewallWaiverDashboardAndRenew": false,
-              "waiverExpirationNotification": false,
               "waiverRequestWorkflowEnabled": true,
               "consumptionReportingEnabled": false
             }"""));
@@ -309,7 +305,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(60)
+        .hasSize(58)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

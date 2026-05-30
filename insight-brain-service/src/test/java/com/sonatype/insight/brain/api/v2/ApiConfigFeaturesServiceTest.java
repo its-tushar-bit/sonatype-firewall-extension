@@ -1510,8 +1510,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("exitOnFatalError", true);
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
     expectedFeatureConfigMap.put("guideUiEnabled", false);
-    expectedFeatureConfigMap.put("firewallWaiverDashboardAndRenew", false);
-    expectedFeatureConfigMap.put("waiverExpirationNotification", false);
     expectedFeatureConfigMap.put("consumptionReportingEnabled", false);
 
     return expectedFeatureConfigMap;

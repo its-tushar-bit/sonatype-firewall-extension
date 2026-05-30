@@ -23,7 +23,6 @@ import {
   selectIsSbomContinuousMonitoringUiEnabled,
   selectIsSbomPoliciesSupported,
   selectIsCpeMatchingSupported,
-  selectIsWaiverExpirationNotificationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
@@ -57,7 +56,7 @@ import AutoWaiversTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutoWaiversTi
 import PublicDataSourcesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PublicDataSourcesTile';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
-function DefaultTiles(isFirewall, isWaiverExpirationNotificationEnabled) {
+function DefaultTiles(isFirewall) {
   return (
     <>
       <ApplicationCategoriesTile />
@@ -68,7 +67,7 @@ function DefaultTiles(isFirewall, isWaiverExpirationNotificationEnabled) {
       <LabelsTile />
       <LicenseThreatGroupSummaryTile />
       <RetentionTile />
-      {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}
+      {isFirewall && <WaiverExpirationNotificationTile />}
       <SourceControlTile />
       <InnerSourceRepositoryTile />
       <AutoWaiversTile />
@@ -114,8 +113,6 @@ export default function OwnerSummary() {
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
   const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
   const hasSbomManagerLicenseOnly = useSelector(selectIsSbomManagerOnlyLicense);
-  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
-
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
 
   useEffect(() => {
@@ -161,7 +158,7 @@ export default function OwnerSummary() {
         >
           {isSbomManager
             ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported)
-            : DefaultTiles(isFirewall, isWaiverExpirationNotificationEnabled)}
+            : DefaultTiles(isFirewall)}
           {renderPublicDataSourcesTile(isPublicDataEnabled, hasSbomManagerLicenseOnly)}
         </div>
         <DeleteOwnerModal />

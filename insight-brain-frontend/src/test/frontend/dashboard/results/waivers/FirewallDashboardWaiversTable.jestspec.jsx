@@ -70,16 +70,10 @@ describe('FirewallDashboardWaiversTable', () => {
     expect(screen.getByText('Upgrade')).toBeInTheDocument();
   });
 
-  it('renders Actions column header when isExpiringWaiversEnabled is true', () => {
-    renderComponent({ isExpiringWaiversEnabled: true });
+  it('renders Actions column header', () => {
+    renderComponent();
 
     expect(screen.getByText('Actions')).toBeInTheDocument();
-  });
-
-  it('does not render Actions column header when isExpiringWaiversEnabled is false', () => {
-    renderComponent({ isExpiringWaiversEnabled: false });
-
-    expect(screen.queryByText('Actions')).not.toBeInTheDocument();
   });
 
   it('renders waiver data rows', () => {
@@ -164,16 +158,10 @@ describe('FirewallDashboardWaiversTable', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders expiration filter toggle button when isExpiringWaiversEnabled is true', () => {
-    const { container } = renderComponent({ isExpiringWaiversEnabled: true });
+  it('renders expiration filter toggle button', () => {
+    const { container } = renderComponent();
 
     expect(container.querySelector('.nx-dropdown__toggle')).toBeInTheDocument();
-  });
-
-  it('does not render expiration filter toggle button when isExpiringWaiversEnabled is false', () => {
-    const { container } = renderComponent({ isExpiringWaiversEnabled: false });
-
-    expect(container.querySelector('.nx-dropdown__toggle')).not.toBeInTheDocument();
   });
 
   it('shows all expiration options when dropdown is open', async () => {
@@ -209,23 +197,16 @@ describe('FirewallDashboardWaiversTable', () => {
     setPageSpy.mockRestore();
   });
 
-  it('renders component filter input when isExpiringWaiversEnabled is true', () => {
-    renderComponent({ isExpiringWaiversEnabled: true });
+  it('renders component filter input', () => {
+    renderComponent();
 
     expect(screen.getByPlaceholderText('component name')).toBeInTheDocument();
   });
 
-  it('renders repository filter input when isExpiringWaiversEnabled is true', () => {
-    renderComponent({ isExpiringWaiversEnabled: true });
+  it('renders repository filter input', () => {
+    renderComponent();
 
     expect(screen.getByPlaceholderText('repository')).toBeInTheDocument();
-  });
-
-  it('does not render filter inputs when isExpiringWaiversEnabled is false', () => {
-    renderComponent({ isExpiringWaiversEnabled: false });
-
-    expect(screen.queryByPlaceholderText('component name')).not.toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('repository')).not.toBeInTheDocument();
   });
 
   it('updates component name filter and resets page when typing in component filter input', async () => {

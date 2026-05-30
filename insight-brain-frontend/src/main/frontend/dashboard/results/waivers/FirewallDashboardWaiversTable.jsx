@@ -37,7 +37,6 @@ export default function FirewallDashboardWaiversTable(props) {
     maxDaysOld,
     needsAcknowledgement,
     reload,
-    isExpiringWaiversEnabled,
   } = props;
   const dispatch = useDispatch();
   const dashboardFilter = useSelector(selectDashboardFilter);
@@ -78,7 +77,7 @@ export default function FirewallDashboardWaiversTable(props) {
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
     emptyMessage = 'No data available for the applied filters and permissions.';
-  const colSpan = isExpiringWaiversEnabled ? 8 : 7;
+  const colSpan = 8;
 
   const getColumnDirection = (index, sortInverted = false) => {
     if (!results || !results.length || error) {
@@ -116,7 +115,7 @@ export default function FirewallDashboardWaiversTable(props) {
       return (
         <>
           {displayedResults.map((waiver) => (
-            <DashboardWaiversTableRow {...{ stateGo, waiver, page, isExpiringWaiversEnabled }} key={waiver.id} />
+            <DashboardWaiversTableRow {...{ stateGo, waiver, page }} key={waiver.id} />
           ))}
         </>
       );
@@ -163,14 +162,9 @@ export default function FirewallDashboardWaiversTable(props) {
               Components
             </NxTable.Cell>
             <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
-            {isExpiringWaiversEnabled ? (
-              <NxTable.Cell className="iq-waiver-actions-header">Actions</NxTable.Cell>
-            ) : (
-              <NxTable.Cell chevron />
-            )}
+            <NxTable.Cell className="iq-waiver-actions-header">Actions</NxTable.Cell>
           </NxTable.Row>
-          {isExpiringWaiversEnabled && (
-            <NxTable.Row isFilterHeader>
+          <NxTable.Row isFilterHeader>
               <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell className="iq-waiver-expiration-filter-cell">
@@ -197,7 +191,6 @@ export default function FirewallDashboardWaiversTable(props) {
               <NxTable.Cell />
               <NxTable.Cell />
             </NxTable.Row>
-          )}
         </NxTable.Head>
         <NxTable.Body
           className="iq-dashboard-waivers-entries"
@@ -234,7 +227,6 @@ FirewallDashboardWaiversTable.propTypes = {
   dispatchPreviousPage: PropTypes.func.isRequired,
   maxDaysOld: PropTypes.number,
   needsAcknowledgement: PropTypes.bool.isRequired,
-  isExpiringWaiversEnabled: PropTypes.bool,
   waivers: PropTypes.shape({
     results: PropTypes.arrayOf(waiverPropTypes),
     hasNextPage: PropTypes.bool,

@@ -118,9 +118,6 @@ public class WaiverExpirationDetectionServiceTest
         notificationConfigService,
         notificationConfigDAO));
 
-    // Stub the feature flag check so tests run without a live database
-    lenient().when(service.isWaiverExpirationNotificationEnabled()).thenReturn(true);
-
     // Email section: no notification days configured by default — keeps tests focused on webhooks
     lenient().when(notificationConfigDAO.findAllNotificationDays()).thenReturn(Collections.emptyList());
 

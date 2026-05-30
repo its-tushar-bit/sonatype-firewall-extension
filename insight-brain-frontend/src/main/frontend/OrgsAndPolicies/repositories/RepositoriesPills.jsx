@@ -7,11 +7,9 @@ import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import NavPills from 'MainRoot/navPills/NavPills';
 import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsWaiverExpirationNotificationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function RepositoriesPills() {
   const isFirewall = useSelector(selectIsFirewall);
-  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
 
   const navList = useMemo(() => [
     {
@@ -32,14 +30,14 @@ export default function RepositoriesPills() {
     {
       label: 'Waiver Expiration Notifications',
       target: 'owner-pill-waiver-expiration-notification',
-      isDisplayed: isFirewall && isWaiverExpirationNotificationEnabled,
+      isDisplayed: isFirewall,
     },
     {
       label: 'Access',
       target: 'access-tile-pill-access',
       isDisplayed: true,
     },
-  ], [isFirewall, isWaiverExpirationNotificationEnabled]);
+  ], [isFirewall]);
 
   return <NavPills list={navList} root="#repositories-summary-sections" />;
 }

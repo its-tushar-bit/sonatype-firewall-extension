@@ -42,7 +42,6 @@ import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectWaiverDetailsHasWaivePermission } from './waiverDetailsSelectors';
-import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const CONTAINER_IMAGE_WAIVER_INFO =
   "Details of all the specific policies waived aren't displayed on this page. " +
@@ -73,7 +72,6 @@ export default function WaiverDetails() {
   const forContainerImageWaiver = waiver?.forContainerImage;
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const hasWaivePermission = useSelector(selectWaiverDetailsHasWaivePermission);
-  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
   const routerParams = useSelector(selectRouterCurrentParams);
 
   const scopeIcon = isApplication ? <NxFontAwesomeIcon icon={faTerminal} /> : <NxFontAwesomeIcon icon={faSitemap} />;
@@ -159,7 +157,7 @@ export default function WaiverDetails() {
           <NxH2 id="iq-waiver-details-header">Waiver Detail View</NxH2>
         </NxTile.HeaderTitle>
         <NxTile.HeaderActions className="iq-waiver-details__delete-waiver">
-          {isExpiringWaiversEnabled && isStandaloneFirewall && !forContainerImageWaiver && hasWaivePermission && (
+          {isStandaloneFirewall && !forContainerImageWaiver && hasWaivePermission && (
             <NxButton variant="tertiary" onClick={handleRenewWaiverButtonClick}>
               Renew Waiver
             </NxButton>
@@ -260,7 +258,7 @@ export default function WaiverDetails() {
               <NxReadOnly.Data>{creatorName}</NxReadOnly.Data>
             </NxReadOnly.Item>
             {/* Last Renewed / Renewed By / Renewal Reason — Firewall only */}
-            {isExpiringWaiversEnabled && isStandaloneFirewall && (
+            {isStandaloneFirewall && (
               <>
                 <NxReadOnly.Item className="iq-waiver-details__last-renewed-date">
                   <NxReadOnly.Label>Last Renewed</NxReadOnly.Label>
@@ -281,11 +279,11 @@ export default function WaiverDetails() {
           </NxReadOnly>
 
           {/* Comments */}
-          {(comment || (isExpiringWaiversEnabled && isStandaloneFirewall && waiver?.lastRenewedAt)) && (
+          {(comment || (isStandaloneFirewall && waiver?.lastRenewedAt)) && (
             <NxReadOnly className="iq-waiver-details__comments">
               <NxReadOnly.Label>Comments</NxReadOnly.Label>
               <NxReadOnly.Data>
-                {isExpiringWaiversEnabled && isStandaloneFirewall ? (
+                {isStandaloneFirewall ? (
                   <NxBlockquote>
                     {waiver?.lastRenewedAt && (
                       <div className="iq-waiver-comment-entry">

@@ -149,8 +149,6 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
         SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
         SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getId(),
-        SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.getId(),
-        SystemConfigurationPropertyFeature.WAIVER_EXPIRATION_NOTIFICATION.getId(),
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
       })).toArray(String[]::new);
 

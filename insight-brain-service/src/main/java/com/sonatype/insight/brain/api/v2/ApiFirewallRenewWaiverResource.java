@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v2.dto.firewall.RenewWaiversResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiFirewallRenewWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -78,10 +77,7 @@ public class ApiFirewallRenewWaiverResource
             description = "Bad Request. Waiver IDs list is null or empty."),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden. Either FIREWALL license is not active or user lacks WAIVE_POLICY_VIOLATIONS permission."),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Not Found. FIREWALL_WAIVER_DASHBOARD_AND_RENEW feature is disabled.")
+            description = "Forbidden. Either FIREWALL license is not active or user lacks WAIVE_POLICY_VIOLATIONS permission.")
       })
   public Response renewWaivers(
       @RequestBody(
@@ -93,10 +89,6 @@ public class ApiFirewallRenewWaiverResource
               "- **reasonId** (optional): ID of a pre-defined waiver reason",
           required = true) final RenewWaiversRequestDTO request)
   {
-    if (!SystemConfigurationPropertyFeature.FIREWALL_WAIVER_DASHBOARD_AND_RENEW.isEnabled()) {
-      return Response.status(Response.Status.NOT_FOUND).build();
-    }
-
     if (request == null) {
       throw new BadRequestException("Request cannot be null");
     }

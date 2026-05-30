@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -292,14 +291,6 @@ public class WaiverExpirationDetectionService
   }
 
   /**
-   * Returns whether the WAIVER_EXPIRATION_NOTIFICATION feature flag is enabled.
-   * Extracted as a protected method so tests can override without a live database.
-   */
-  protected boolean isWaiverExpirationNotificationEnabled() {
-    return SystemConfigurationPropertyFeature.WAIVER_EXPIRATION_NOTIFICATION.isEnabled();
-  }
-
-  /**
    * Config-driven email notification flow — runs independently of webhooks.
    *
    * <p>
@@ -315,10 +306,6 @@ public class WaiverExpirationDetectionService
    * </ol>
    */
   private void sendConfigDrivenEmailNotifications() {
-    if (!isWaiverExpirationNotificationEnabled()) {
-      log.debug("WAIVER_EXPIRATION_NOTIFICATION feature is disabled — skipping email notifications");
-      return;
-    }
     // Step 1 — collect all distinct threshold days across all config rows
     Set<Integer> allThresholdDays;
     try {

@@ -18,7 +18,6 @@ import jakarta.ws.rs.core.MediaType;
 import com.codahale.metrics.annotation.Timed;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverExpirationNotificationConfigDTO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.service.ApiWaiverExpirationNotificationConfigService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -35,7 +34,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @Named
 @Timed
-@HasFeature(SystemConfigurationPropertyFeature.WAIVER_EXPIRATION_NOTIFICATION)
 @Path(PublicApiPaths.WAIVER_EXPIRATION_NOTIFICATION_CONFIG_PATH_V2)
 @Tag(name = "Waiver Expiration Notification Config",
     description = "Configure when and to whom notifications are sent before waivers expire.")

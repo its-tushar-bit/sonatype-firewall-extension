@@ -27,10 +27,7 @@ import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOw
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
 import { selectIsFirewall, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
-import {
-  selectIsHostedRepositoryEvaluationEnabled,
-  selectIsWaiverExpirationNotificationEnabled,
-} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function RepositoryManagerSummaryView() {
   const dispatch = useDispatch();
@@ -42,7 +39,6 @@ export default function RepositoryManagerSummaryView() {
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
   const isFirewall = useSelector(selectIsFirewall);
   const isSbomManager = useSelector(selectIsSbomManager);
-  const isWaiverExpirationNotificationEnabled = useSelector(selectIsWaiverExpirationNotificationEnabled);
   const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
@@ -84,7 +80,7 @@ export default function RepositoryManagerSummaryView() {
               />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
-              {isFirewall && isWaiverExpirationNotificationEnabled && <WaiverExpirationNotificationTile />}
+              {isFirewall && <WaiverExpirationNotificationTile />}
               <AccessTile />
             </div>
           </div>

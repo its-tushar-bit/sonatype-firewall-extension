@@ -29,7 +29,6 @@ import { actions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/autoW
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsStandaloneFirewall, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectHasPermissionToAddWaivers } from 'MainRoot/firewall/firewallSelectors';
-import { selectIsFirewallWaiverDashboardAndRenewEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 const DisplayAutoWaiver = ({ waiver }) => {
@@ -109,7 +108,6 @@ const DisplayWaiverInTableRow = ({
   const dispatch = useDispatch();
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const hasWaivePermissionFromSlice = useSelector(selectHasPermissionToAddWaivers);
-  const isExpiringWaiversEnabled = useSelector(selectIsFirewallWaiverDashboardAndRenewEnabled);
   const routerParams = useSelector(selectRouterCurrentParams);
   const [localWaivePermission, setLocalWaivePermission] = useState(false);
 
@@ -130,7 +128,7 @@ const DisplayWaiverInTableRow = ({
   const classPrefix = 'iq-waivers-table__';
   const forContainerImageComponent = waiver?.forContainerImageComponent;
   const showDeleteWaiverButton = deleteWaiver && !forContainerImageComponent;
-  const showRenewButton = isExpiringWaiversEnabled && isStandaloneFirewall && !forContainerImageComponent && hasWaivePermission;
+  const showRenewButton = isStandaloneFirewall && !forContainerImageComponent && hasWaivePermission;
   const getExpirationDate = (waiver) => {
     if (waiver.expiryTime) {
       return waiver.expireWhenRemediationAvailable && !isSimilarWaiver

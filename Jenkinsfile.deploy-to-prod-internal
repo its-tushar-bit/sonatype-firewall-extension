@@ -51,15 +51,6 @@ pipeline {
       }
     }
 
-    stage('Checkout') {
-      steps {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/main']],
-          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
-        ])
-      }
-    }
 
     stage('Validate Image in Prod ECR') {
       steps {

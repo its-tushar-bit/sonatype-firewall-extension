@@ -49,21 +49,6 @@ pipeline {
       }
     }
 
-    stage('Checkout') {
-      steps {
-        // The jenkins helpers from the current workspace are stashed because the checkout
-        // may target a commit that doesn't have the latest helper scripts. This ensures
-        // we always use the most up-to-date helpers regardless of the target commit.
-        stash name: 'jenkins-helpers', includes: 'jenkins/**'
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/main']],
-          userRemoteConfigs: [[url: 'git@github.com:sonatype/insight-brain.git', credentialsId: sonatypeZionCredentialsId()]]
-        ])
-        unstash 'jenkins-helpers'
-      }
-    }
-
     stage('Deploy to Cells') {
       steps {
         script {

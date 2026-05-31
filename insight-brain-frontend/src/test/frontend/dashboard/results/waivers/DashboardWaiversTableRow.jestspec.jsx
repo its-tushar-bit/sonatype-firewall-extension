@@ -202,9 +202,21 @@ describe('DashboardWaiversTableRow', function () {
   });
 
   describe('expiry status descriptor', () => {
+    const firewallRouterState = {
+      router: {
+        currentState: { name: 'firewall.dashboard.overview.waivers' },
+        currentParams: {},
+        prevState: null,
+        prevParams: null,
+      },
+    };
+
     it('shows "Expires in X days" in grey when expiry is more than 7 days away', () => {
       const futureExpiry = moment().add(60, 'days').endOf('day').valueOf();
-      renderComponent({ expiryTime: futureExpiry });
+      render(
+        <DashboardWaiversTableRow {...minimalProps} waiver={{ ...minimalProps.waiver, expiryTime: futureExpiry }} />,
+        { preloadedState: firewallRouterState }
+      );
 
       const status = screen.getByText(/Expires in \d+ days/);
       expect(status).toBeVisible();
@@ -213,7 +225,10 @@ describe('DashboardWaiversTableRow', function () {
 
     it('shows "Expires in X days" in red when expiry is within 7 days', () => {
       const futureExpiry = moment().add(3, 'days').endOf('day').valueOf();
-      renderComponent({ expiryTime: futureExpiry });
+      render(
+        <DashboardWaiversTableRow {...minimalProps} waiver={{ ...minimalProps.waiver, expiryTime: futureExpiry }} />,
+        { preloadedState: firewallRouterState }
+      );
 
       const status = screen.getByText(/Expires in \d+ days?/);
       expect(status).toBeVisible();
@@ -222,7 +237,10 @@ describe('DashboardWaiversTableRow', function () {
 
     it('shows "Expired" in red when expiry is in the past', () => {
       const pastExpiry = moment().subtract(2, 'days').valueOf();
-      renderComponent({ expiryTime: pastExpiry });
+      render(
+        <DashboardWaiversTableRow {...minimalProps} waiver={{ ...minimalProps.waiver, expiryTime: pastExpiry }} />,
+        { preloadedState: firewallRouterState }
+      );
 
       const status = screen.getByText('Expired');
       expect(status).toBeVisible();

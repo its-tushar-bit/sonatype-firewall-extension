@@ -262,6 +262,32 @@ public class PolicyWaiverServiceAuthzTest
   }
 
   /**
+   * Scoped user with READ on a repository only (no RM permission, no explicit filter) sees RM-scoped waivers.
+   * NEXUS-52341: when the user has repo-level READ but not RM-level READ, waivers at the parent RM should still
+   * be visible in the unfiltered dashboard view.
+   */
+  @Test
+  public void testGetDashboardPolicyWaivers_ScopedUserWithRepoPermissionSeesParentRMWaivers() {
+    RepositoryManager rm = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(rm);
+    Policy policy = tempEntity.newPolicy(org);
+
+    // Waiver is at RM scope (e.g. applied at Repository Manager level)
+    tempEntity.newWaiver(policy.getId(), rm.getId());
+
+    // Grant READ only on the child repository — not on the RM
+    grantReadPermission(repo.getId());
+
+    // No explicit filter — this is the "show all" default dashboard view
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Scoped user should see the RM waiver because they have READ on a child repo
+    assertThat(result.dashboardResults).extracting(dto -> dto.ownerId)
+        .contains(rm.getId());
+  }
+
+  /**
    * User with partial Repository Manager permissions sees only authorized RM waivers. This verifies the
    *
    * @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER) annotation correctly filters

@@ -737,7 +737,9 @@ public class TestDAOFactory
   @Override
   public RepositoryComponentDAO createRepositoryComponentDAO() {
     QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = createQuarantinedComponentAccessDAO();
-    return new RepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO);
+    TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
+    return new RepositoryComponentDAO(dataStoreProvider.getOperationalDataStore(), quarantinedComponentAccessDAO,
+        temporaryTableHelper);
   }
 
   @Override

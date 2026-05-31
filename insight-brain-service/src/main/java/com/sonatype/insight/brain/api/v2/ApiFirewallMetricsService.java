@@ -67,13 +67,16 @@ public class ApiFirewallMetricsService
 
   private final RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO;
 
+  private final FirewallPermissionGate firewallPermissionGate;
+
   @Inject
   public ApiFirewallMetricsService(
       final FirewallMetricsDAO firewallMetricsDAO,
       final ProductLicense productLicense,
       final SecurityVulnerabilityCategoryConditionType securityVulnerabilityCategoryConditionType,
       final RoiConfigurationDAO roiConfigurationDAO,
-      final RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO)
+      final RoiConfigurationDefaultValuesDAO roiConfigurationDefaultValuesDAO,
+      final FirewallPermissionGate firewallPermissionGate)
   {
     this.firewallMetricsDAO = firewallMetricsDAO;
     this.productLicense = productLicense;
@@ -81,6 +84,7 @@ public class ApiFirewallMetricsService
         + SecurityVulnerabilityCategory.MALICIOUS_CODE.getName();
     this.roiConfigurationDAO = roiConfigurationDAO;
     this.roiConfigurationDefaultValuesDAO = roiConfigurationDefaultValuesDAO;
+    this.firewallPermissionGate = firewallPermissionGate;
   }
 
   @Authorize(permission = Permission.READ)
@@ -89,7 +93,7 @@ public class ApiFirewallMetricsService
 
   Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getFirewallMetrics() {
     checkProductLicense();
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    firewallPermissionGate.resolvePermittedRepositoryIds(); // gate check - metrics values remain global
     Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> resultMap = firewallMetricsDAO.getMetricsValueByName();
     for (FirewallMetricsName firewallMetricsName : FirewallMetricsName.values()) {
       resultMap.putIfAbsent(firewallMetricsName, new ApiFirewallMetricsResultDTO(0, null));

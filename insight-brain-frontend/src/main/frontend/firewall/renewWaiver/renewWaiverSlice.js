@@ -7,7 +7,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
 import { Messages } from 'MainRoot/util/CommonServices';
-import { getPolicyWaiverReasonsUrl, getWaiverDetailsUrl, renewWaiverUrl } from 'MainRoot/util/CLMLocation';
+import { getPolicyWaiverReasonsUrl, getFirewallWaiverDetailsUrl, renewWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import moment from 'moment';
@@ -42,7 +42,7 @@ const loadWaiverForRenewal = createAsyncThunk(
   (_, { getState, rejectWithValue }) => {
     const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(getState());
     const ownerType = normalizeFirewallOwnerType(ownerTypeRaw);
-    return axios.get(getWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data')).catch(rejectWithValue);
+    return axios.get(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data')).catch(rejectWithValue);
   }
 );
 

@@ -26,6 +26,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -56,7 +57,6 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -595,13 +595,15 @@ public class PolicyWaiverService
   }
 
   private List<RepositoryManager> getRepositoryManagers(Set<String> repositoryIds, BooleanSupplier isOwnerFilterEmpty) {
-    if (isOwnerFilterEmpty.getAsBoolean()) {
-      return getRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
-    }
     if (CollectionUtils.isNotEmpty(repositoryIds)) {
       // We need all parent repository managers for the repositories the user has read permission for,
       // regardless of the permissions on repository managers.
       return repositoryManagerDAO.getByRepositoryIds(repositoryIds);
+    }
+    // isOwnerFilterEmpty is defined as organizationIds, applicationIds, tagIds, AND repositoryIds all being empty.
+    // Since repositoryIds is empty here (checked above), the two branches are mutually exclusive.
+    if (isOwnerFilterEmpty.getAsBoolean()) {
+      return getRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
     }
     return Collections.emptyList();
   }
@@ -619,4 +621,5 @@ public class PolicyWaiverService
     return repos -> reposAreNotEmptyOrIsOnlyRepoContainer.test(repos) ||
         filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
   }
+
 }

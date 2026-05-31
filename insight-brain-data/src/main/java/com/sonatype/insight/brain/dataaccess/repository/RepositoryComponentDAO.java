@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
@@ -61,13 +62,17 @@ public class RepositoryComponentDAO
 {
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
+  private final TemporaryTableHelper temporaryTableHelper;
+
   @Inject
   public RepositoryComponentDAO(
       final OperationalDataStore operationalDataStore,
-      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
+      final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO,
+      final TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore);
     this.quarantinedComponentAccessDAO = quarantinedComponentAccessDAO;
+    this.temporaryTableHelper = temporaryTableHelper;
   }
 
   @Override
@@ -425,6 +430,15 @@ public class RepositoryComponentDAO
       // extracting policy name from concatenated string
       String policyNamePart = "SUBSTRING(threat_level_and_policy_name, 3)";
 
+      List<String> policyIds = getPolicyIdsFromFilter(filter);
+      List<Object> params = new ArrayList<>();
+
+      boolean useTemporaryTable = false;
+      if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        useTemporaryTable =
+            temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, new ArrayList<>(filter.permittedRepositoryIds));
+      }
+
       String select1 = "SELECT" +
           " " + highestThreatLevelPolicyNamePart + " AS threat_level_and_policy_name," +
           " true AS quarantined," + // data is already filtered to quarantined components in the where clause
@@ -438,6 +452,7 @@ public class RepositoryComponentDAO
           " component.match_state_id," +
           " component.quarantine_time" +
           " FROM " + getDatabaseSchema() + ".repository_component component" +
+          (useTemporaryTable ? " JOIN temporary_ids ti ON component.repository_id = ti.id" : "") +
           " INNER JOIN " + getDatabaseSchema() + ".repository" +
           " ON repository.repository_id = component.repository_id" +
           " INNER JOIN " + getDatabaseSchema() + ".repository_policy_violation violation" +
@@ -448,10 +463,14 @@ public class RepositoryComponentDAO
           " AND violation.active = true" +
           " AND violation.waived = false";
 
-      List<String> policyIds = getPolicyIdsFromFilter(filter);
-      List<Object> params = new ArrayList<>();
-
       select1 += addJooqFilterParameters(filter, policyIds, params);
+
+      if (!useTemporaryTable && filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        List<String> permittedList = new ArrayList<>(filter.permittedRepositoryIds);
+        String placeholders = permittedList.stream().map(id -> "?").collect(Collectors.joining(", "));
+        select1 += " AND component.repository_id IN (" + placeholders + ")";
+        params.addAll(permittedList);
+      }
 
       select1 += " GROUP BY component.quarantine_time, component.component_id_format," +
           " component.component_id_coordinates_json, component.pathname," +
@@ -615,6 +634,12 @@ public class RepositoryComponentDAO
     validateFirewallRepositoryComponentFilter(filter);
 
     try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = false;
+      if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        useTemporaryTable =
+            temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, new ArrayList<>(filter.permittedRepositoryIds));
+      }
+
       var query = tx.dsl()
           .selectDistinct(REPOSITORY_COMPONENT.fields())
           .from(REPOSITORY_COMPONENT);
@@ -671,6 +696,16 @@ public class RepositoryComponentDAO
         String quarantineTimeStr = filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME);
         Date quarantineTime = Timestamp.valueOf(quarantineTimeStr.replace("T", " "));
         conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
+      }
+
+      if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        if (useTemporaryTable) {
+          query = query.join(DSL.table("temporary_ids").as("ti"))
+              .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
+        }
+        else {
+          conditions.add(REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
+        }
       }
 
       var selectConditionStep = query.where(conditions);
@@ -753,6 +788,12 @@ public class RepositoryComponentDAO
     validateFirewallRepositoryComponentFilter(filter);
 
     try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = false;
+      if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        useTemporaryTable =
+            temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, new ArrayList<>(filter.permittedRepositoryIds));
+      }
+
       var query = tx.dsl()
           .select(DSL.countDistinct(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID))
           .from(REPOSITORY_COMPONENT);
@@ -800,6 +841,16 @@ public class RepositoryComponentDAO
         String quarantineTimeStr = filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME);
         Date quarantineTime = Timestamp.valueOf(quarantineTimeStr.replace("T", " "));
         conditions.add(REPOSITORY_COMPONENT.QUARANTINE_TIME.ge(quarantineTime));
+      }
+
+      if (filter.permittedRepositoryIds != null && !filter.permittedRepositoryIds.isEmpty()) {
+        if (useTemporaryTable) {
+          query = query.join(DSL.table("temporary_ids").as("ti"))
+              .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(DSL.field(DSL.name("ti", "id"), String.class)));
+        }
+        else {
+          conditions.add(REPOSITORY_COMPONENT.REPOSITORY_ID.in(filter.permittedRepositoryIds));
+        }
       }
 
       return query.where(conditions).fetchOne(0, Long.class);

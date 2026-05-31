@@ -94,6 +94,7 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.RolePermissio
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Organization.ORGANIZATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OrganizationAncestor.ORGANIZATION_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryAncestor.REPOSITORY_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryContainerAncestor.REPOSITORY_CONTAINER_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryManagerAncestor.REPOSITORY_MANAGER_ANCESTOR;
@@ -366,6 +367,59 @@ public class OwnerDAO
                 OWNER_ANCESTOR.OWNER_ID, OWNER_ANCESTOR.ANCESTOR_ID, permission, username, groupNames);
         }
       }
+    }
+  }
+
+  /**
+   * Returns the IDs of all proxy repositories the user has READ permission on, in a single query.
+   * Joins REPOSITORY (filtered by repository_type='proxy') with REPOSITORY_ANCESTOR and the
+   * user-contexts CTE — avoids a separate pre-fetch of all proxy repo IDs.
+   */
+  public Set<String> getPermittedProxyRepositoryIds(
+      final Permission permission,
+      final String username,
+      final Set<String> groupNames)
+  {
+    Set<String> effectiveGroupNames = groupNames != null ? groupNames : Collections.emptySet();
+
+    var userCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.USER.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.eq(username)
+            .or(DSL.lower(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toLowerCase()))
+            .or(DSL.upper(MEMBERSHIP_MAPPING.MEMBER_NAME).eq(username.toUpperCase())));
+    var groupCondition = MEMBERSHIP_MAPPING.MEMBER_TYPE.eq(MemberType.GROUP.name())
+        .and(MEMBERSHIP_MAPPING.MEMBER_NAME.in(effectiveGroupNames));
+
+    try (TransactionContext tx = createTransactionContext()) {
+      CommonTableExpression<Record1<String>> cte = DSL.name("user_contexts")
+          .fields("context_id")
+          .as(tx.dsl()
+              .selectDistinct(MEMBERSHIP_MAPPING.CONTEXT_ID)
+              .from(MEMBERSHIP_MAPPING)
+              .join(ROLE_PERMISSION)
+              .on(ROLE_PERMISSION.ROLE_ID.eq(MEMBERSHIP_MAPPING.ROLE_ID))
+              .where(ROLE_PERMISSION.PERMISSION.eq(permission.name()))
+              .and(userCondition.or(groupCondition)));
+
+      Field<String> cteCtxId = cte.field("context_id", String.class);
+
+      return tx.dsl()
+          .with(cte)
+          .selectDistinct(REPOSITORY_ANCESTOR.REPOSITORY_ID)
+          .from(REPOSITORY_ANCESTOR)
+          .join(REPOSITORY)
+          .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_ANCESTOR.REPOSITORY_ID))
+          .where(REPOSITORY.REPOSITORY_TYPE.eq("proxy"))
+          .and(
+              (permission.isGlobal()
+                  ? DSL.exists(DSL.selectOne().from(cte))
+                  : DSL.noCondition())
+                      .or(DSL.exists(
+                          DSL.selectOne()
+                              .from(cte)
+                              .where(cteCtxId.eq(MembershipMapping.GLOBAL_CONTEXT_ID))))
+                      .or(REPOSITORY_ANCESTOR.ANCESTOR_ID.in(
+                          DSL.select(cteCtxId).from(cte))))
+          .fetchSet(REPOSITORY_ANCESTOR.REPOSITORY_ID);
     }
   }
 

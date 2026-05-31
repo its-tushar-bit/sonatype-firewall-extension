@@ -1833,6 +1833,178 @@ public class PolicyViolationDAO
   }
 
   /**
+   * Returns container images in quarantine filtered by repository IDs, with database-level pagination.
+   * This is a repository-scoped variant of {@link #getContainerImagesInQuarantine(int, int)}.
+   *
+   * @param repositoryIds the set of repository IDs to filter by
+   * @param page 1-based page number
+   * @param pageSize number of rows per page
+   * @return list of container images in quarantine for the specified repositories
+   */
+  public List<ContainerImageInQuarantineData> getContainerImagesInQuarantineByRepositoryIds(
+      Set<String> repositoryIds,
+      int page,
+      int pageSize)
+  {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<String> repoIdList = new ArrayList<>(repositoryIds);
+    int offset = (page - 1) * pageSize;
+
+    try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable = temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, repoIdList);
+
+      String sQuery;
+      Object[] bindings;
+      if (useTemporaryTable) {
+        sQuery = String.format("""
+            WITH AggregatedPolicyViolation AS (
+                SELECT pv.application_id,
+                       MAX(pv.open_time) AS max_open_time,
+                       MAX(pv.threat_level) AS max_threat_level,
+                       COUNT(pv.application_id) AS policy_violation_count
+                FROM %1$s.policy_violation pv
+                WHERE pv.stage_type_id = ?1
+                  AND pv.action_type_id = ?2
+                  AND pv.waive_time IS NULL
+                  AND pv.fix_time IS NULL
+                GROUP BY pv.application_id
+            )
+            SELECT max_threat_level AS threat_level,
+                   max_open_time AS open_time,
+                   a.public_id AS application_public_id,
+                   a.application_id,
+                   a.name AS application_name,
+                   r.public_id AS repository_public_id,
+                   r.repository_id,
+                   apv.policy_violation_count,
+                   pe.scan_id
+            FROM AggregatedPolicyViolation apv
+                     JOIN %1$s.application a ON apv.application_id = a.application_id
+                     JOIN %1$s.organization o ON a.organization_id = o.organization_id
+                     JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+                     JOIN temporary_ids ti ON r.repository_id = ti.id
+                     JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                              AND apv.max_open_time = pe.time
+            WHERE r.format = 'docker'
+              AND r.quarantine_enabled = true
+            ORDER BY apv.max_open_time DESC, a.application_id ASC
+            OFFSET ?3 LIMIT ?4
+            """, getDatabaseSchema());
+        bindings = new Object[]{ProxyStageType.ID, Action.ID_FAIL, offset, pageSize};
+      }
+      else {
+        sQuery = String.format("""
+            WITH AggregatedPolicyViolation AS (
+                SELECT pv.application_id,
+                       MAX(pv.open_time) AS max_open_time,
+                       MAX(pv.threat_level) AS max_threat_level,
+                       COUNT(pv.application_id) AS policy_violation_count
+                FROM %1$s.policy_violation pv
+                WHERE pv.stage_type_id = ?1
+                  AND pv.action_type_id = ?2
+                  AND pv.waive_time IS NULL
+                  AND pv.fix_time IS NULL
+                GROUP BY pv.application_id
+            )
+            SELECT max_threat_level AS threat_level,
+                   max_open_time AS open_time,
+                   a.public_id AS application_public_id,
+                   a.application_id,
+                   a.name AS application_name,
+                   r.public_id AS repository_public_id,
+                   r.repository_id,
+                   apv.policy_violation_count,
+                   pe.scan_id
+            FROM AggregatedPolicyViolation apv
+                     JOIN %1$s.application a ON apv.application_id = a.application_id
+                     JOIN %1$s.organization o ON a.organization_id = o.organization_id
+                     JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+                     JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                              AND apv.max_open_time = pe.time
+            WHERE r.format = 'docker'
+              AND r.quarantine_enabled = true
+              AND r.repository_id IN %2$s
+            ORDER BY apv.max_open_time DESC, a.application_id ASC
+            OFFSET ? LIMIT ?
+            """, getDatabaseSchema(), buildPositionalParameters(repoIdList, 3));
+        bindings = new Object[repoIdList.size() + 4];
+        bindings[0] = ProxyStageType.ID;
+        bindings[1] = Action.ID_FAIL;
+        System.arraycopy(repoIdList.toArray(), 0, bindings, 2, repoIdList.size());
+        bindings[repoIdList.size() + 2] = offset;
+        bindings[repoIdList.size() + 3] = pageSize;
+      }
+
+      return tx.dsl()
+          .resultQuery(convertPositionalParams(sQuery), bindings)
+          .fetchStream()
+          .map(record -> {
+            Object[] array = record.intoArray();
+            return new ContainerImageInQuarantineData(
+                ((Number) array[0]).intValue(), // threatLevel
+                toDateFromTimestampOrLocalDateTime(array[1]), // openTime
+                (String) array[2], // applicationPublicId
+                (String) array[3], // applicationId
+                (String) array[4], // applicationName
+                (String) array[5], // repositoryPublicId
+                (String) array[6], // repositoryId
+                ((Number) array[7]).longValue(), // policyViolationCount
+                (String) array[8] // scanId
+            );
+          })
+          .toList();
+    }
+  }
+
+  /**
+   * Returns the count of container images in quarantine filtered by repository IDs.
+   * This is a repository-scoped variant of {@link #getContainerImagesQuarantinedCount()}.
+   *
+   * @param repositoryIds the set of repository IDs to filter by
+   * @return count of container images in quarantine for the specified repositories
+   */
+  public long getContainerImagesQuarantinedCountByRepositoryIds(Set<String> repositoryIds) {
+    if (repositoryIds == null || repositoryIds.isEmpty()) {
+      return 0L;
+    }
+
+    List<Long> counts = getListWithSqlInClause(new ArrayList<>(repositoryIds), chunk -> {
+      String sQuery = String.format("""
+          SELECT COUNT(DISTINCT pv.application_id) AS total_failed_proxy_violations
+          FROM %1$s.policy_violation pv
+                   JOIN %1$s.application a ON pv.application_id = a.application_id
+                   JOIN %1$s.organization o ON a.organization_id = o.organization_id
+                   JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+          WHERE r.format = 'docker'
+            AND r.quarantine_enabled = true
+            AND r.repository_id IN %2$s
+            AND pv.stage_type_id = ?%3$d
+            AND pv.action_type_id = ?%4$d
+            AND pv.waive_time IS NULL
+            AND pv.fix_time IS NULL
+          """, getDatabaseSchema(), buildPositionalParameters(chunk, 1), chunk.size() + 1, chunk.size() + 2);
+      String finalQuery = convertPositionalParams(sQuery);
+      Object[] chunkBindings = Arrays.copyOf(chunk.toArray(), chunk.size() + 2);
+      chunkBindings[chunk.size()] = ProxyStageType.ID;
+      chunkBindings[chunk.size() + 1] = Action.ID_FAIL;
+      try (TransactionContext tx = createTransactionContext()) {
+        Long result = tx.dsl()
+            .resultQuery(finalQuery, chunkBindings)
+            .fetchOne(0, Long.class);
+        return Collections.singletonList(result != null ? result : 0L);
+      }
+    }, getDataStore());
+
+    // Summing DISTINCT counts across chunks is correct only because each container-image application
+    // belongs to exactly one shadow org, which links to exactly one repository. If an application_id
+    // could span multiple repositories, it would be counted once per chunk and the sum would overcount.
+    return counts.stream().mapToLong(Long::longValue).sum();
+  }
+
+  /**
    * Converts a timestamp value (either java.sql.Timestamp or LocalDateTime) to a Date. Native SQL queries may return
    * different types depending on the database and driver.
    */

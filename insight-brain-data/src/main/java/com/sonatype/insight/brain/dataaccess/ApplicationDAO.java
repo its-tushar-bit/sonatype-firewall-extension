@@ -363,12 +363,14 @@ public class ApplicationDAO
   }
 
   public List<Application> getByOrganizationIds(Set<String> organizationIds) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .selectFrom(APPLICATION)
-          .where(APPLICATION.ORGANIZATION_ID.in(organizationIds))
-          .fetch(this::toEntity);
-    }
+    return getListWithSqlInClause(new ArrayList<>(organizationIds), ids -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .selectFrom(APPLICATION)
+            .where(APPLICATION.ORGANIZATION_ID.in(ids))
+            .fetch(this::toEntity);
+      }
+    }, getDataStore());
   }
 
   public List<Application> getByOrganizationId(String organizationId) {

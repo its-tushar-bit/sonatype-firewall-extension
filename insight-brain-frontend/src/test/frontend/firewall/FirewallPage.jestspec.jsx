@@ -126,10 +126,10 @@ describe('FirewallPage', () => {
       expect(
         screen.getByText(/Some data or settings may not be visible. Contact your administrator to request /i)
       ).toBeInTheDocument();
-      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+      expect(screen.getByRole('tablist')).toBeInTheDocument();
     });
 
-    it('hides firewall content when LimitedFirewallAccessAlert is shown', () => {
+    it('shows firewall content alongside LimitedFirewallAccessAlert', () => {
       jest.spyOn(firewallSelectors, 'selectShowLimitedFirewallAccessAlert').mockReturnValue(true);
 
       render(<FirewallPage {...props} />);
@@ -139,8 +139,8 @@ describe('FirewallPage', () => {
         screen.getByText('You have limited access to Repository Firewall based on your current permissions.')
       ).toBeInTheDocument();
 
-      // Firewall content should not be shown
-      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+      // Firewall content should also be shown alongside the alert
+      expect(screen.getByRole('tablist')).toBeInTheDocument();
     });
 
     it('does not show LimitedFirewallAccessAlert when showLimitedFirewallAccessAlert is false', () => {
@@ -151,7 +151,7 @@ describe('FirewallPage', () => {
       expect(
         screen.queryByText('You have limited access to Repository Firewall based on your current permissions.')
       ).not.toBeInTheDocument();
-      expect(screen.queryByRole('tablist')).toBeInTheDocument();
+      expect(screen.getByRole('tablist')).toBeInTheDocument();
     });
   });
 });

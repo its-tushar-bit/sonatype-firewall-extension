@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
+import com.sonatype.insight.brain.api.v2.FirewallPermissionGate;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -65,7 +66,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -122,6 +122,8 @@ public class ApiPolicyViolationServiceV2
 
   private final IdUtils idUtils;
 
+  private final FirewallPermissionGate firewallPermissionGate;
+
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
@@ -133,7 +135,8 @@ public class ApiPolicyViolationServiceV2
       final ReportService reportService,
       final StageTypeService stageTypeService,
       final ComponentLoaderFactory componentLoaderFactory,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      final FirewallPermissionGate firewallPermissionGate)
   {
     this.applicationService = applicationService;
     this.applicationComponentDAO = applicationComponentDAO;
@@ -145,6 +148,7 @@ public class ApiPolicyViolationServiceV2
     this.stageTypeService = stageTypeService;
     this.componentLoaderFactory = componentLoaderFactory;
     this.idUtils = idUtils;
+    this.firewallPermissionGate = firewallPermissionGate;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(
@@ -398,7 +402,13 @@ public class ApiPolicyViolationServiceV2
       final int page,
       final int pageSize)
   {
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
+    if (permittedRepositoryIds != null) {
+      long total = policyViolationDAO.getContainerImagesQuarantinedCountByRepositoryIds(permittedRepositoryIds);
+      List<ContainerImageInQuarantineData> pageRows =
+          policyViolationDAO.getContainerImagesInQuarantineByRepositoryIds(permittedRepositoryIds, page, pageSize);
+      return new ApiPageResult<>(total, page, pageSize, pageRows);
+    }
     long total = policyViolationDAO.getContainerImagesQuarantinedCount();
     List<ContainerImageInQuarantineData> containerImagesInQuarantine =
         policyViolationDAO.getContainerImagesInQuarantine(page, pageSize);

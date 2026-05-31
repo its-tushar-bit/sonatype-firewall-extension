@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.CallFlowAnalysisConfigDAO;
@@ -24,6 +25,8 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -707,6 +710,49 @@ public class OwnerDAOTest
         app3,
         application,
         organization);
+  }
+
+  @Test
+  public void getPermittedProxyRepositoryIds_userWithRepoPermission_returnsRepo() {
+    Repository repo = tempEntity.newRepository();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(repo.getId(), role.getId(), "alice");
+
+    Set<String> result = ownerDAO.getPermittedProxyRepositoryIds(Permission.READ, "alice", Set.of());
+
+    assertThat(result).containsExactly(repo.getId());
+  }
+
+  @Test
+  public void getPermittedProxyRepositoryIds_userWithNoPermission_returnsEmpty() {
+    tempEntity.newRepository();
+
+    Set<String> result = ownerDAO.getPermittedProxyRepositoryIds(Permission.READ, "nobody", Set.of());
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void getPermittedProxyRepositoryIds_groupMemberWithRepoPermission_returnsRepo() {
+    Repository repo = tempEntity.newRepository();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newGroupMembershipMapping(repo.getId(), role.getId(), "dev-group");
+
+    Set<String> result = ownerDAO.getPermittedProxyRepositoryIds(Permission.READ, "anyuser", Set.of("dev-group"));
+
+    assertThat(result).containsExactly(repo.getId());
+  }
+
+  @Test
+  public void getPermittedProxyRepositoryIds_multipleReposPartialPermission_returnsOnlyPermitted() {
+    Repository permitted = tempEntity.newRepository();
+    tempEntity.newRepository(); // no permission assigned
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(permitted.getId(), role.getId(), "bob");
+
+    Set<String> result = ownerDAO.getPermittedProxyRepositoryIds(Permission.READ, "bob", Set.of());
+
+    assertThat(result).containsExactly(permitted.getId());
   }
 
   private void assertOwnersEqualInAnyOrder(final List<Owner> actual, final Owner... expected) {

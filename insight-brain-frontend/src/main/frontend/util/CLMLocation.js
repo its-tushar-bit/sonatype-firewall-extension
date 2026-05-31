@@ -741,6 +741,10 @@ export function getWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
   return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
 }
 
+export function getFirewallWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
+  return uriTemplate`/api/v2/firewall/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
+}
+
 export function getPolicyWaiverReasonsUrl() {
   return uriTemplate`/api/v2/policyWaiverReasons`;
 }

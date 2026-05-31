@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import FirewallRenewWaiverPage from 'MainRoot/firewall/renewWaiver/FirewallRenewWaiverPage';
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
-import { getWaiverDetailsUrl, renewWaiverUrl, getPolicyWaiverReasonsUrl } from 'MainRoot/util/CLMLocation';
+import { getFirewallWaiverDetailsUrl, renewWaiverUrl, getPolicyWaiverReasonsUrl } from 'MainRoot/util/CLMLocation';
 
 jest.mock('MainRoot/ComponentDisplay/ReactComponentDisplay', () => {
   return function MockComponentDisplay({ component }) {
@@ -70,7 +70,7 @@ describe('FirewallRenewWaiverPage', () => {
   });
 
   beforeEach(() => {
-    axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, mockWaiver);
+    axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, mockWaiver);
     axiosMock.onGet(getPolicyWaiverReasonsUrl()).reply(200, mockReasons);
     axiosMock.onPost(renewWaiverUrl()).reply(200, {});
 
@@ -196,7 +196,7 @@ describe('FirewallRenewWaiverPage', () => {
 
     it('should default to never when waiver has no expiry', async () => {
       const neverWaiver = { ...mockWaiver, expiryTime: null };
-      axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, neverWaiver);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, neverWaiver);
 
       const neverState = {
         ...defaultPreloadedState,
@@ -235,7 +235,7 @@ describe('FirewallRenewWaiverPage', () => {
 
     it('should show no-op notice when waiver never expires and Never is selected', async () => {
       const noOpWaiver = { ...mockWaiver, expiryTime: null };
-      axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, noOpWaiver);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, noOpWaiver);
 
       const noOpState = {
         ...defaultPreloadedState,
@@ -258,7 +258,7 @@ describe('FirewallRenewWaiverPage', () => {
 
     it('should disable Renew button for no-op renewal (never + no expiry)', async () => {
       const noOpWaiver = { ...mockWaiver, expiryTime: null };
-      axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, noOpWaiver);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, noOpWaiver);
 
       const noOpState = {
         ...defaultPreloadedState,
@@ -307,7 +307,7 @@ describe('FirewallRenewWaiverPage', () => {
   describe('expired waiver', () => {
     it('should show EXPIRED tag when waiver is expired', async () => {
       const expiredWaiver = { ...mockWaiver, expiryTime: '2020-01-01T00:00:00.000Z' };
-      axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, expiredWaiver);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, expiredWaiver);
 
       const expiredState = {
         ...defaultPreloadedState,
@@ -323,7 +323,7 @@ describe('FirewallRenewWaiverPage', () => {
 
     it('should show "Days added from today" hint for expired waiver', async () => {
       const expiredWaiver = { ...mockWaiver, expiryTime: '2020-01-01T00:00:00.000Z' };
-      axiosMock.onGet(getWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, expiredWaiver);
+      axiosMock.onGet(getFirewallWaiverDetailsUrl(OWNER_TYPE, OWNER_ID, WAIVER_ID)).reply(200, expiredWaiver);
 
       const expiredState = {
         ...defaultPreloadedState,

@@ -108,7 +108,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
               <NxOverflowTooltip>
                 <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
               </NxOverflowTooltip>
-              {getExpiryStatusDescriptor(daysRemaining) && (
+              {isStandaloneFirewall && getExpiryStatusDescriptor(daysRemaining) && (
                 <span className={`iq-waiver-expiry-status iq-waiver-expiry-status--${getExpiryStatusDescriptor(daysRemaining).modifier}`}>
                   {getExpiryStatusDescriptor(daysRemaining).text}
                 </span>

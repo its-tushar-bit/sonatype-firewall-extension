@@ -11,7 +11,9 @@ import java.util.List;
 
 import jakarta.inject.Inject;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -79,6 +81,16 @@ public class ApiFirewallServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetReleaseQuarantineConfig_Unauthenticated() {
     apiFirewallService.getReleaseQuarantineConfig();
+  }
+
+  @Test
+  public void testGetReleaseQuarantineConfig_ScopedUser() {
+    Repository proxyRepo = tempEntity.newRepository(repositoryManager, "scopedRepo", RepositoryType.proxy, "docker");
+    grantPermission(proxyRepo.getId(), Permission.READ);
+
+    List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.getReleaseQuarantineConfig();
+
+    assertThat(dtos).isNotNull().isNotEmpty();
   }
 
   @Test

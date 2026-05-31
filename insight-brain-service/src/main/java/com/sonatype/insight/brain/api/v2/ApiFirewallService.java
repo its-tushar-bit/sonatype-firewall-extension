@@ -141,6 +141,8 @@ public class ApiFirewallService
 
   private final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService;
 
+  private final FirewallPermissionGate firewallPermissionGate;
+
   @Inject
   public ApiFirewallService(
       final ProductLicense productLicense,
@@ -155,7 +157,8 @@ public class ApiFirewallService
       final ApiComponentDetailsAdapter apiComponentDetailsAdapter,
       final OwnerDAO ownerDAO,
       final OrganizationService organizationService,
-      final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService)
+      final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
+      final FirewallPermissionGate firewallPermissionGate)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -170,6 +173,7 @@ public class ApiFirewallService
     this.ownerDAO = ownerDAO;
     this.organizationService = organizationService;
     this.mainRepositoryService = mainRepositoryService;
+    this.firewallPermissionGate = firewallPermissionGate;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
@@ -195,7 +199,7 @@ public class ApiFirewallService
 
   ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
     checkProductLicense();
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    firewallPermissionGate.resolvePermittedRepositoryIds(); // gate check - counts remain global
 
     ApiFirewallQuarantineSummaryDTO summary = new ApiFirewallQuarantineSummaryDTO();
     summary.repositoryCount = repositoryDAO.getCountByRepositoryType(RepositoryType.proxy);
@@ -209,7 +213,7 @@ public class ApiFirewallService
 
   List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig() {
     checkProductLicense();
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    firewallPermissionGate.resolvePermittedRepositoryIds();
 
     return getReleaseQuarantineConfig_NoChecks();
   }
@@ -343,7 +347,7 @@ public class ApiFirewallService
 
   ApiFirewallReleaseQuarantineSummaryDTO getReleaseQuarantineSummary() {
     checkProductLicense();
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    firewallPermissionGate.resolvePermittedRepositoryIds(); // gate check - counts remain global
 
     final Date startOfCurMonth =
         Date.from((LocalDate.now().withDayOfMonth(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -363,7 +367,8 @@ public class ApiFirewallService
   }
 
   ApiPageResult<ApiFirewallComponentDTO> getComponents(FirewallRepositoryComponentFilter filter) {
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
+    filter.permittedRepositoryIds = permittedRepositoryIds;
 
     if (null == filter.sortableField) {
       filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
@@ -415,7 +420,8 @@ public class ApiFirewallService
   ApiPageResult<ApiFirewallQuarantinedComponentDto> getQuarantinedComponents(
       FirewallRepositoryComponentFilter firewallFilter)
   {
-    checkReadPermission(RepositoryContainer.SINGLETON);
+    Set<String> permittedRepositoryIds = firewallPermissionGate.resolvePermittedRepositoryIds();
+    firewallFilter.permittedRepositoryIds = permittedRepositoryIds;
 
     this.validateGetQuarantinedComponentsFilter(firewallFilter);
 

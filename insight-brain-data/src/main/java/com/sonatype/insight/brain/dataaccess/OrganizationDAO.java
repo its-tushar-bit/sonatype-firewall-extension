@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -265,6 +266,21 @@ public class OrganizationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getByRelatedRepositoryId(tx, relatedRepositoryId);
     }
+  }
+
+  public Set<String> getOrganizationIdsByRelatedRepositoryIds(Set<String> relatedRepositoryIds) {
+    if (relatedRepositoryIds == null || relatedRepositoryIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return new HashSet<>(getListWithSqlInClause(relatedRepositoryIds, ids -> {
+      try (TransactionContext tx = createTransactionContext()) {
+        return tx.dsl()
+            .select(ORGANIZATION.ORGANIZATION_ID)
+            .from(ORGANIZATION)
+            .where(ORGANIZATION.RELATED_REPOSITORY_ID.in(ids))
+            .fetch(r -> r.get(ORGANIZATION.ORGANIZATION_ID));
+      }
+    }));
   }
 
   @Override

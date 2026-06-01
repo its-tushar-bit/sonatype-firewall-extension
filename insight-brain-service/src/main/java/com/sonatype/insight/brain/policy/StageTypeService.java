@@ -18,6 +18,7 @@ import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
@@ -52,7 +53,11 @@ public class StageTypeService
 
   private final ProductLicense productLicense;
 
-  private final Map<String, Predicate<StageType>> contextFilterMap = new HashMap<>();
+  // Filters whose decision does not depend on the HOSTED_REPOSITORY_EVALUATION feature flag are
+  // cached here. The flag-dependent ALL_CONTEXT and LIFECYCLE_CONTEXT filters are built per
+  // request inside getLicensedStageTypes(...) so the flag is read at most once per call rather
+  // than once per stream element (the predicate's test() method).
+  private final Map<String, Predicate<StageType>> flagIndependentFilterMap = new HashMap<>();
 
   @Inject
   public StageTypeService(final ProductLicense productLicense) {
@@ -60,16 +65,14 @@ public class StageTypeService
     // HOSTED is excluded from every classic context until hosted-repository synchronous
     // enforcement (CLM-39870) ships its own dedicated context. The HOSTED stage exists in the
     // registry (StageTypes.getAll()) and may be added to a license set explicitly, but it never
-    // appears in CI/Maven/Dashboard/Lifecycle/All enumerations alongside the classic stages.
-    contextFilterMap.put(ALL_CONTEXT, new ClassicStagesFilter());
-    contextFilterMap.put(CI_CONTEXT, new BuildFilter());
-    contextFilterMap.put(CLI_CONTEXT, new BuildFilter());
-    contextFilterMap.put(QA_CONTEXT, new RMFilter());
-    contextFilterMap.put(RM_CONTEXT, new RMFilter());
-    contextFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
-    contextFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
-    contextFilterMap.put(SBOM_CONTEXT, new SbomFilter());
-    contextFilterMap.put(LIFECYCLE_CONTEXT, new LifecycleFilter());
+    // appears in CI/Maven/Dashboard enumerations alongside the classic stages.
+    flagIndependentFilterMap.put(CI_CONTEXT, new BuildFilter());
+    flagIndependentFilterMap.put(CLI_CONTEXT, new BuildFilter());
+    flagIndependentFilterMap.put(QA_CONTEXT, new RMFilter());
+    flagIndependentFilterMap.put(RM_CONTEXT, new RMFilter());
+    flagIndependentFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
+    flagIndependentFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
+    flagIndependentFilterMap.put(SBOM_CONTEXT, new SbomFilter());
   }
 
   /**
@@ -92,13 +95,31 @@ public class StageTypeService
    * @since 1.13
    */
   public Collection<StageType> getLicensedStageTypes(final String context) {
-    Predicate<StageType> filter = contextFilterMap.get(context);
+    Predicate<StageType> filter = resolveFilter(context);
     if (filter == null) {
       throw new IllegalArgumentException("Invalid context " + context);
     }
     Collection<StageType> allowed = orderStages(productLicense.getStageTypes());
     allowed = allowed.stream().filter(filter).collect(Collectors.toList());
     return Collections.unmodifiableCollection(allowed);
+  }
+
+  /**
+   * Returns the filter for the given context. For ALL_CONTEXT and LIFECYCLE_CONTEXT the filter
+   * depends on {@code HOSTED_REPOSITORY_EVALUATION} — its value is read here once per call so
+   * the predicate's {@code test(...)} method does not open a database transaction per stream
+   * element. Other contexts return cached, flag-independent filter instances.
+   */
+  private Predicate<StageType> resolveFilter(final String context) {
+    if (ALL_CONTEXT.equals(context)) {
+      return new ClassicStagesFilter(
+          SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled());
+    }
+    if (LIFECYCLE_CONTEXT.equals(context)) {
+      return new LifecycleFilter(
+          SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled());
+    }
+    return flagIndependentFilterMap.get(context);
   }
 
   public Set<String> getValidSuccessMetricsStageTypeIds() {
@@ -126,14 +147,33 @@ public class StageTypeService
   }
 
   /**
-   * Keeps everything except {@link HostedStageType}; used for {@link #ALL_CONTEXT}.
+   * Keeps everything; used for {@link #ALL_CONTEXT}.
+   *
+   * <p>
+   * HOSTED is gated on {@code HOSTED_REPOSITORY_EVALUATION} so customers who have not
+   * opted into hosted-repository synchronous enforcement (CLM-39870) see the unchanged
+   * pre-feature stage list, while customers who enable the flag see HOSTED alongside the
+   * classic stages — matching PMQ-HRE-001's "Option 1 / keep distinct stage" assumption.
+   *
+   * <p>
+   * The flag value is captured at construction time by the caller of {@link #resolveFilter}
+   * so {@link #test} is a pure boolean comparison with no I/O.
    */
   private static class ClassicStagesFilter
       implements Predicate<StageType>
   {
+    private final boolean hostedEnforcementEnabled;
+
+    ClassicStagesFilter(final boolean hostedEnforcementEnabled) {
+      this.hostedEnforcementEnabled = hostedEnforcementEnabled;
+    }
+
     @Override
     public boolean test(StageType input) {
-      return !HostedStageType.ID.equals(input.getId());
+      if (HostedStageType.ID.equals(input.getId())) {
+        return hostedEnforcementEnabled;
+      }
+      return true;
     }
   }
 
@@ -185,12 +225,34 @@ public class StageTypeService
     }
   }
 
+  /**
+   * Keeps everything except {@link ComplianceStageType}; used for {@link #LIFECYCLE_CONTEXT}.
+   *
+   * <p>
+   * HOSTED is gated on {@code HOSTED_REPOSITORY_EVALUATION} so the policy-editor
+   * Actions matrix shows the Hosted column only for customers who have enabled
+   * synchronous hosted-repository enforcement (CLM-39870). With the flag off, the
+   * matrix matches its pre-feature shape and customers see no surprise column.
+   *
+   * <p>
+   * The flag value is captured at construction time by the caller of {@link #resolveFilter}
+   * so {@link #test} is a pure boolean comparison with no I/O.
+   */
   private static class LifecycleFilter
       implements Predicate<StageType>
   {
+    private final boolean hostedEnforcementEnabled;
+
+    LifecycleFilter(final boolean hostedEnforcementEnabled) {
+      this.hostedEnforcementEnabled = hostedEnforcementEnabled;
+    }
+
     @Override
     public boolean test(StageType input) {
-      return !ComplianceStageType.ID.equals(input.getId()) && !HostedStageType.ID.equals(input.getId());
+      if (HostedStageType.ID.equals(input.getId())) {
+        return hostedEnforcementEnabled;
+      }
+      return !ComplianceStageType.ID.equals(input.getId());
     }
   }
 }

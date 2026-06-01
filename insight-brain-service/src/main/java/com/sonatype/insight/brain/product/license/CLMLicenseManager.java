@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -773,14 +774,29 @@ public class CLMLicenseManager
     Set<StageType> stageTypes = new LinkedHashSet<>();
     // The classic stage set used by Lifecycle/Risk/Foundation product tiers. Excludes:
     // - COMPLIANCE: SBOM-Manager-only stage, added explicitly when that product is present
-    // - HOSTED: synchronous hosted-repository enforcement (CLM-39870), gated separately
-    // once the feature flips on; keep it out of the broad "everything" set so
-    // tests + UI behave identically to pre-CLM-39870 builds while the flag is off.
+    // - HOSTED: synchronous hosted-repository enforcement (CLM-39870), gated on the
+    // feature flag so customers who have not opted into the feature see the unchanged
+    // pre-CLM-39870 stage set, while customers who enable the flag get HOSTED
+    // alongside the classic stages (matches PMQ-HRE-001 default assumption).
+    //
+    // Caveat — flag-toggle lag: this method bakes the flag value into the cached license stage
+    // set. {@link com.sonatype.insight.brain.policy.StageTypeService} re-checks the flag live
+    // per request, but it filters against this already-baked set. Result:
+    // - Flag OFF at boot, then admin enables → HOSTED is not in the cache, so
+    // getLicensedStageTypes() will not surface it until the next license cache refresh
+    // (scheduled job or license reinstall).
+    // - Flag ON at boot, then admin disables → StageTypeService correctly hides HOSTED
+    // immediately, regardless of cache contents.
+    // Documented so future readers don't chase a phantom bug. If the OFF→ON lag becomes a
+    // real customer-facing issue, the right fix is to invalidate the license cache on flag
+    // change (similar to loadProductLicenseOnAllOtherClusterNodes).
+    boolean hostedEnforcementEnabled =
+        SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled();
     Collection<StageType> allClassicStageTypes =
         StageTypes.getAll()
             .stream()
             .filter(stageType -> !StageTypes.COMPLIANCE.equals(stageType))
-            .filter(stageType -> !StageTypes.HOSTED.equals(stageType))
+            .filter(stageType -> hostedEnforcementEnabled || !StageTypes.HOSTED.equals(stageType))
             .collect(Collectors.toSet());
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
         || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS))

@@ -112,6 +112,64 @@ pipeline {
       }
     }
 
+    stage('Update Jira Fix Versions') {
+      steps {
+        script {
+          try {
+            // Extract the build number from the immutable ECR tag.
+            // IMAGE_TAG may be a prod-internal-verified-* tag, so we look through all
+            // image tags to find the immutable one: {yyyyMMddHHmm}-main-{buildNumber}-{commitId}
+            def ecr = load 'jenkins/ecr-helpers.groovy'
+
+            def allTags
+            withAwsRole(credentialsId: ecr.PROD_ECR_ACCOUNT.credentialId, role: ecr.PROD_ECR_ACCOUNT.role,
+                        roleAccount: ecr.PROD_ECR_ACCOUNT.id, region: ecr.ECR_REGION) {
+              withEnv(["REPOSITORY_ARG=${ecr.ECR_REPOSITORY}", "IMAGE_TAG_ARG=${params.IMAGE_TAG}", "REGION_ARG=${ecr.ECR_REGION}"]) {
+                def imageDetail = sh(script: '''
+                  aws ecr describe-images \
+                    --repository-name "$REPOSITORY_ARG" \
+                    --image-ids "imageTag=$IMAGE_TAG_ARG" \
+                    --region "$REGION_ARG" \
+                    --query 'imageDetails[0].imageTags' \
+                    --output json
+                ''', returnStdout: true).trim()
+                allTags = readJSON text: imageDetail
+              }
+            }
+
+            // Find the immutable tag matching: {date}-main-{buildNumber}-{commitId}
+            def immutableTag = allTags.find { it ==~ /\d{12}-main-\d+-[a-f0-9]+/ }
+            if (!immutableTag) {
+              echo "WARNING: Could not find immutable tag (format: yyyyMMddHHmm-main-buildNumber-commitId) among image tags: ${allTags}"
+              echo "WARNING: Skipping Jira Fix Version update. Please create the version manually."
+              return
+            }
+
+            // Extract build number: "202604161432-main-142-a1b2c3d4" → "142"
+            def buildNumber = immutableTag.split('-')[2]
+            def saasVersion = "saas-${buildNumber}"
+
+            echo "Creating Jira Fix Version: ${saasVersion} (from immutable tag: ${immutableTag})"
+            releaseJiraVersion('saas', buildNumber, false)
+
+            List<String> issues = []
+            issues.addAll(getIssuesByFixVersion('CLM', 'saas-next'))
+            issues.addAll(getIssuesByFixVersion('INT', 'saas-next'))
+            issues.addAll(getIssuesByFixVersion('NEXUS', 'saas-next'))
+
+            replaceFixVersionForIssues(issues, 'saas-next', [saasVersion])
+
+            echo "Moved saas-next tickets to ${saasVersion}"
+          } catch (Exception e) {
+            echo "WARNING: Jira Fix Version update failed (non-fatal): ${e.message}"
+            echo "WARNING: The deployment succeeded but Jira versions were not updated."
+            echo "WARNING: Please create the saas Fix Version manually and move saas-next tickets."
+            currentBuild.result = 'UNSTABLE'
+          }
+        }
+      }
+    }
+
     stage('Tag as Production') {
       steps {
         script {

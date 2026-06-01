@@ -43,7 +43,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantManaged;

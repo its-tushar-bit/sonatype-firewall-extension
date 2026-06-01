@@ -114,6 +114,10 @@ public class DropwizardConfigConfiguration
 
     DropwizardConfigLoader.applyDropwizardSystemPropertyOverrides(configMap);
 
+    for (String key : List.of("database", "mainDatabase", "locksDatabase")) {
+      resolveDbUrlPrecedence(configMap, key);
+    }
+
     InsightConfig config = configSourceReader.convertValueStrict(configMap, configClass);
     DropwizardConfigCompat.warnOnDeprecatedFields(config, "config.yml");
 
@@ -471,4 +475,18 @@ public class DropwizardConfigConfiguration
         .orElse(null);
   }
 
+  @SuppressWarnings("unchecked")
+  private void resolveDbUrlPrecedence(Map<String, Object> configMap, String key) {
+    Object value = configMap.get(key);
+    if (value instanceof Map) {
+      Map<String, Object> dbMap = (Map<String, Object>) value;
+      Object url = dbMap.get("url");
+      if (url instanceof String && !((String) url).isBlank()) {
+        dbMap.remove("hostname");
+        dbMap.remove("port");
+        dbMap.remove("name");
+        dbMap.remove("parameters");
+      }
+    }
+  }
 }

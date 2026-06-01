@@ -12,8 +12,6 @@ import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
-import static java.util.stream.Collectors.joining;
-
 public class PostgresDatabaseConfigProvider
     implements DatabaseConfigProvider
 {
@@ -25,28 +23,10 @@ public class PostgresDatabaseConfigProvider
 
   @Override
   public DatabaseConfig getDatabaseConfig(final DatabaseName databaseName) {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig = insightConfig.getDatabase();
-    String url = "jdbc:postgresql://" + dbConfig.getHostname();
-    if (dbConfig.getPort() != null) {
-      url += ":" + dbConfig.getPort();
-    }
-    url += "/" + dbConfig.getName();
-    if (dbConfig.getParameters() != null && !dbConfig.getParameters().isEmpty()) {
-      url += "?" + dbConfig.getParameters()
-          .entrySet()
-          .stream()
-          .filter(entry -> !"user".equals(entry.getKey()) && !"password".equals(entry.getKey()))
-          .map(entry -> entry.getKey() + '=' + entry.getValue())
-          .collect(joining("&"));
-    }
-
-    DatabaseConfig databaseConfig = new DatabaseConfig();
+    DatabaseConfig databaseConfig = new DatabaseConfig(insightConfig.getDatabase());
     databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
-    databaseConfig.setUrl(url);
-    databaseConfig.setUsername(dbConfig.getUsername());
-    databaseConfig.setPassword(dbConfig.getPassword());
     // postgres defaults to max_connections=100, this is a best effort to not hit that limit by default
-    databaseConfig.setMaxConnections(Objects.requireNonNullElse(dbConfig.getMaxConnections(), 45));
+    databaseConfig.setMaxConnections(Objects.requireNonNullElse(databaseConfig.getMaxConnections(), 45));
     if (!DatabaseName.ods.equals(databaseName)) {
       databaseConfig.setMaxIdleConnections(3);
     }

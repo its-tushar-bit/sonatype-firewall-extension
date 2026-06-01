@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;

@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import java.util.Arrays;

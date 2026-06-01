@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import java.io.File;

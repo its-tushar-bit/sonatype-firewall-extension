@@ -13,17 +13,11 @@ import com.sonatype.insight.db.DatabaseConfig;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Path;
 
 public class MultiTenantInsightConfig
     extends InsightConfig
 {
-  /**
-   * Custom configs for the two MTIQ data sources. Note these are com.sonatype.insight.db.DatabaseConfig objects and not
-   * com.sonatype.insight.service.DatabaseConfig. The latter does not have enough configuration attributes for
-   * properties such as maxConnections.
-   */
   @Valid
   @JsonProperty
   private DatabaseConfig mainDatabase;
@@ -90,21 +84,12 @@ public class MultiTenantInsightConfig
   }
 
   @Override
-  public com.sonatype.insight.brain.service.DatabaseConfig getDatabase() {
-    // getDatabase() is called by Telemetry so we still need to provide a sensible response here
-    com.sonatype.insight.brain.service.DatabaseConfig databaseConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
-    String jdbcUrl = getMainDatabase().getUrl().replace("jdbc:", ""); // drop 'jdbc:' to make it a valid URI
-    URI uri = URI.create(jdbcUrl);
-    databaseConfig.setName("mtiq");
-    databaseConfig.setHostname(uri.getHost());
-    databaseConfig.setPort(uri.getPort());
-    databaseConfig.setType("postgres");
-    return databaseConfig;
+  public DatabaseConfig getDatabase() {
+    return getMainDatabase();
   }
 
   @Override
-  public void setDatabase(final com.sonatype.insight.brain.service.DatabaseConfig database) {
+  public void setDatabase(final DatabaseConfig database) {
     throw new RuntimeException("Cannot use 'database' config object in MTIQ. Use 'mainDatabase' instead.");
   }
 

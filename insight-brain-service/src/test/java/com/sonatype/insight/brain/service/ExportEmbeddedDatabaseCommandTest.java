@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Rule;
@@ -160,7 +161,7 @@ public class ExportEmbeddedDatabaseCommandTest
       }
 
       Map<String, Map<String, List<TableRow>>> actualTablesBySchema = new HashMap<>();
-      com.sonatype.insight.db.DatabaseConfig pgDatabaseConfig =
+      DatabaseConfig pgDatabaseConfig =
           postgresDatabaseFixture.getDatabaseConfig(DatabaseName.ods.name());
       try (Connection connection = DriverManager.getConnection(pgDatabaseConfig.getUrl(),
           pgDatabaseConfig.getUsername(),

@@ -195,6 +195,81 @@ public class DropwizardConfigBootstrapTest
   }
 
   @Test
+  public void shouldGiveUrlPrecedenceOverFieldsWhenBothPresent() throws Exception {
+    File config = tempFolder.newFile("config-url-precedence.yml");
+    String template = new String(
+        new ClassPathResource("config-dev.yml").getInputStream().readAllBytes(),
+        StandardCharsets.UTF_8);
+    Files.writeString(config.toPath(),
+        template + """
+
+            database:
+              type: postgresql
+              url: jdbc:postgresql://urlhost:5432/urldb
+              hostname: fieldhost
+              port: 9999
+              name: fielddb
+              username: postgres
+              password: postgres
+            licenseFile: /tmp/sonatype.lic
+            """);
+
+    SpringApplication application = new SpringApplication(TestDropwizardBootstrapApplication.class);
+    application.setDefaultProperties(Map.of(
+        "spring.main.web-application-type", "none",
+        "spring.main.lazy-initialization", "false",
+        "spring.main.allow-bean-definition-overriding", "true"));
+
+    DropwizardConfigBootstrap.configure(application, config.getAbsolutePath(), InsightConfig.class, false);
+
+    try (ConfigurableApplicationContext context = application.run()) {
+      InsightConfig insightConfig = context.getBean(InsightConfig.class);
+
+      assertThat(insightConfig.getDatabase().getUrl()).isEqualTo("jdbc:postgresql://urlhost:5432/urldb");
+      assertThat(insightConfig.getDatabase().getHostname()).isEqualTo("urlhost");
+      assertThat(insightConfig.getDatabase().getPort()).isEqualTo(5432);
+      assertThat(insightConfig.getDatabase().getName()).isEqualTo("urldb");
+    }
+  }
+
+  @Test
+  public void shouldPreserveFieldsWhenUrlIsBlank() throws Exception {
+    File config = tempFolder.newFile("config-blank-url.yml");
+    String template = new String(
+        new ClassPathResource("config-dev.yml").getInputStream().readAllBytes(),
+        StandardCharsets.UTF_8);
+    Files.writeString(config.toPath(),
+        template + """
+
+            database:
+              type: postgresql
+              url: ""
+              hostname: fieldhost
+              port: 9999
+              name: fielddb
+              username: postgres
+              password: postgres
+            licenseFile: /tmp/sonatype.lic
+            """);
+
+    SpringApplication application = new SpringApplication(TestDropwizardBootstrapApplication.class);
+    application.setDefaultProperties(Map.of(
+        "spring.main.web-application-type", "none",
+        "spring.main.lazy-initialization", "false",
+        "spring.main.allow-bean-definition-overriding", "true"));
+
+    DropwizardConfigBootstrap.configure(application, config.getAbsolutePath(), InsightConfig.class, false);
+
+    try (ConfigurableApplicationContext context = application.run()) {
+      InsightConfig insightConfig = context.getBean(InsightConfig.class);
+
+      assertThat(insightConfig.getDatabase().getHostname()).isEqualTo("fieldhost");
+      assertThat(insightConfig.getDatabase().getPort()).isEqualTo(9999);
+      assertThat(insightConfig.getDatabase().getName()).isEqualTo("fielddb");
+    }
+  }
+
+  @Test
   public void shouldRegisterQuartzConcurrencyListenerOnceForExplicitConfigLaunch() throws Exception {
     File config = tempFolder.newFile("explicit-config.yml");
     Files.writeString(config.toPath(), "hdsUrl: https://example.com/hds\n");

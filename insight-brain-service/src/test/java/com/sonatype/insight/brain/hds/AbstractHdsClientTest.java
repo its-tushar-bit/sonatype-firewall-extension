@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.search.SearchIndexFixture;
 import com.sonatype.insight.brain.search.SearchIndexRule;
 import com.sonatype.insight.brain.search.SearchIndexType;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import jakarta.inject.Inject;

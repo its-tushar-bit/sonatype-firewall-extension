@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.spring.config.DropwizardServerConfig;
 import com.sonatype.insight.brain.spring.config.DropwizardWebConfig;
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.migration.JiraConfigurationMigrator;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;

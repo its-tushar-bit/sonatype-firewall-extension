@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import com.sonatype.insight.brain.tenancy.TenantReference;

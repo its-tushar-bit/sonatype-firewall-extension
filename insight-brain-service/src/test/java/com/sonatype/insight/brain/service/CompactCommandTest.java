@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -55,7 +56,7 @@ public class CompactCommandTest
   @Test
   public void testRun_Compact_NotH2Database() {
     InsightConfig insightConfig = new InsightConfig();
-    insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
+    insightConfig.setDatabase(new DatabaseConfig());
 
     assertThatThrownBy(() -> new CompactCommand(insightConfig).run(insightConfig)).isInstanceOf(
         BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");

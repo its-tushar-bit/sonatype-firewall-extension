@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import com.sonatype.insight.brain.service.DatabaseConfig;
+import com.sonatype.insight.db.DatabaseConfig;
 
 import org.junit.Test;
 

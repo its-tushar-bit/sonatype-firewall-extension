@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.db;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -47,8 +46,7 @@ public class PostgresDatabaseConfigProviderTest
 
   @Test
   public void testGetDatabaseConfig_NoPortOrParameters() {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setName("test-db");
@@ -67,8 +65,7 @@ public class PostgresDatabaseConfigProviderTest
 
   @Test
   public void testGetDatabaseConfig_CustomPort() {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setPort(6543);
@@ -93,8 +90,7 @@ public class PostgresDatabaseConfigProviderTest
     dbParams.put("password", "parampass");
     dbParams.put("key1", "value1");
     dbParams.put("key2", "value2");
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setName("test-db");
@@ -114,8 +110,7 @@ public class PostgresDatabaseConfigProviderTest
 
   @Test
   public void testGetDatabaseConfig_CustomOdsMaxIdle() {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setName("test-db");
@@ -136,8 +131,7 @@ public class PostgresDatabaseConfigProviderTest
 
   @Test
   public void testGetDatabaseConfig_CustomMaxConnections() {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setPort(5432);
@@ -156,8 +150,7 @@ public class PostgresDatabaseConfigProviderTest
 
   @Test
   public void testGetDatabaseConfig_DefaultMaxConnections() {
-    com.sonatype.insight.brain.service.DatabaseConfig dbConfig =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
+    DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setType("postgresql");
     dbConfig.setHostname("localhost");
     dbConfig.setPort(5432);
@@ -172,4 +165,22 @@ public class PostgresDatabaseConfigProviderTest
       assertThat(databaseConfig.getMaxConnections()).isEqualTo(45);
     });
   }
+
+  @Test
+  public void testGetDatabaseConfig_copyDoesNotMutateOriginal() {
+    DatabaseConfig dbConfig = new DatabaseConfig();
+    dbConfig.setHostname("localhost");
+    dbConfig.setName("test-db");
+    dbConfig.setUsername("testuser");
+    dbConfig.setPassword("testpass");
+    insightConfig.setDatabase(dbConfig);
+
+    postgresDatabaseConfigProvider.getDatabaseConfig(DatabaseName.dm);
+
+    assertThat(dbConfig.getDriverClassName()).isNull();
+    assertThat(dbConfig.getMaxIdleConnections()).isNull();
+    assertThat(dbConfig.getMaxConnections()).isNull();
+    assertThat(dbConfig.getApplicationName()).isNull();
+  }
+
 }

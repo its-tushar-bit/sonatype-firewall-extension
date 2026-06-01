@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  bundleIndexUrl,
   getBaseUrl,
   toURIParams,
   uriTemplate,
@@ -82,6 +83,32 @@ describe('urlUtil', function () {
           `;
 
       expect(result).toBe('http://test-host:8888/api/myApi/FOOPARAM/asdfaasdfdfhefgd/?baz=BAZPARAM');
+    });
+  });
+
+  describe('bundleIndexUrl', function () {
+    beforeEach(function () {
+      _setBaseUrlForTesting('https://iq.example/iq');
+    });
+
+    afterEach(function () {
+      setBaseUrl();
+    });
+
+    it('builds classic and nexus-one bundle URLs with optional hash routes', function () {
+      expect(bundleIndexUrl('classic')).toBe('https://iq.example/iq/assets/index.html');
+      expect(bundleIndexUrl('nexus-one', '/hello1')).toBe(
+        'https://iq.example/iq/assets/nexus-one/index.html#/hello1'
+      );
+      expect(bundleIndexUrl('classic', '/dashboard')).toBe(
+        'https://iq.example/iq/assets/index.html#/dashboard'
+      );
+    });
+
+    it('normalizes hash fragments', function () {
+      expect(bundleIndexUrl('nexus-one', '#/reports')).toBe(
+        'https://iq.example/iq/assets/nexus-one/index.html#/reports'
+      );
     });
   });
 });

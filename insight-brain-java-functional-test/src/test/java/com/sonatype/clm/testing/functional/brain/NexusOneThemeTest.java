@@ -20,9 +20,14 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.WebElementCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.LoginModal;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.NexusOnePage;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.HttpCommandExecutor;
@@ -57,11 +62,34 @@ public class NexusOneThemeTest
   /** Midpoint brightness — above is "light", below is "dark". */
   private static final float MIDPOINT = 0.5f;
 
+  @Before
+  public void enableNexusOneUiForTest() {
+    SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.setEnabled(true);
+    ensureLoggedInOnClassicShell();
+  }
+
   @After
   public void resetThemeState() {
     // Clear emulated media features and localStorage so other tests aren't affected
     executeJavaScript("localStorage.removeItem('displayTheme')");
     emulateColorScheme(null);
+    hardreset();
+  }
+
+  private static void ensureLoggedInOnClassicShell() {
+    hardreset();
+    refreshOrOpen(IndexPage.url());
+    LoginModal loginModal = new LoginModal();
+    if (loginModal.getElement().is(visible)) {
+      loginAsAdmin();
+      return;
+    }
+    if (MainHeader.loginButton().is(visible)) {
+      MainHeader.loginButton().click();
+      loginAsAdmin();
+      return;
+    }
+    MainHeader.userMenu().dropdownToggle().shouldBe(visible);
   }
 
   @Test
@@ -115,7 +143,7 @@ public class NexusOneThemeTest
   }
 
   private NexusOnePage openNexusOnePage() {
-    refreshOrOpen(NexusOnePage.url());
+    refreshOrOpen(NexusOnePage.url("/hello1"));
     NexusOnePage page = new NexusOnePage();
     page.shouldBe(visible);
     return page;

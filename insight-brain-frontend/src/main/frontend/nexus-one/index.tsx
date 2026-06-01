@@ -10,9 +10,14 @@ import { actions as displayThemeActions } from 'MainRoot/configuration/displayTh
 import store from 'MainRoot/reduxConfig/store';
 import router from 'MainRoot/router/routerInstance';
 import App from './App';
+import { ensureNexusOneShellAccess } from './ensureNexusOneShellAccess';
 import './routes';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!(await ensureNexusOneShellAccess())) {
+    return;
+  }
+
   attachAxiosInterceptors();
   store.dispatch(displayThemeActions.initialize());
   router.start();

@@ -32,6 +32,16 @@ public class SystemConfigurationPropertyFeatureTest
 
     assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled(emptyMap)).isFalse();
     assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled(emptyMap)).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(emptyMap)).isFalse();
+  }
+
+  @Test
+  public void testPreviewNexusOneUi_PropertyPresent_FeatureEnabled() {
+    Map<String, SystemConfigurationProperty> map = new HashMap<>();
+    String propertyName = SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getPropertyName();
+    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
+
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(map)).isTrue();
   }
 
   @Test

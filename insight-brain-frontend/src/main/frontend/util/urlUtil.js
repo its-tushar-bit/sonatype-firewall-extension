@@ -57,6 +57,37 @@ export function setBaseUrl() {
 export let BASE_URL;
 setBaseUrl();
 
+const BUNDLE_ASSETS_PATH = {
+  classic: '/assets/index.html',
+  'nexus-one': '/assets/nexus-one/index.html',
+};
+
+function normalizeHashPath(path) {
+  const trimmed = (path ?? '').trim();
+  if (!trimmed || trimmed === '#') {
+    return '/';
+  }
+  const withoutHash = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+  return withoutHash.startsWith('/') ? withoutHash : `/${withoutHash}`;
+}
+
+/**
+ * Absolute URL for the classic or Nexus One HTML bundle, with an optional in-hash route.
+ * Uses {@link BASE_URL} / {@link getBaseUrl} so paths stay correct behind IQ context roots and proxies.
+ *
+ * @param {'classic' | 'nexus-one'} bundle
+ * @param {string} [hashPath]
+ * @returns {string}
+ */
+export function bundleIndexUrl(bundle, hashPath) {
+  const root = BASE_URL || getBaseUrl(window.location?.href ?? '');
+  const url = new URL(`${root}${BUNDLE_ASSETS_PATH[bundle]}`);
+  if (hashPath != null && hashPath !== '') {
+    url.hash = normalizeHashPath(hashPath);
+  }
+  return url.toString();
+}
+
 /**
  * This function is meant to be used in a tagged template literal, e.g. like this:
  * uriTemplate`/api/v2/vulnerabilities/${refId}`

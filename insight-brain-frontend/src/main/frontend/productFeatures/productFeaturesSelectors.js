@@ -360,6 +360,12 @@ export const selectIsConsumptionReportingEnabled = createSelector(
   propOr(false, 'consumption-reporting')
 );
 
+/** CLM-39548: master gate for the Nexus One UI bundle (default OFF). */
+export const selectIsPreviewNexusOneUiEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'preview-nexus-one-ui')
+);
+
 export const selectIsUsageDashboardEnabled = createSelector(
   selectIsConsumptionReportingEnabled,
   selectHasLifecycleLicense,

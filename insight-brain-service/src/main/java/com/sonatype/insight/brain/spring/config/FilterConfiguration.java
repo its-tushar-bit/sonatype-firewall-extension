@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.filter.ThrowableHandler;
 import com.sonatype.insight.brain.firewall.FirewallRedirectFilter;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
+import com.sonatype.insight.brain.landing.NexusOneIndexAccessFilter;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -79,6 +80,8 @@ public class FilterConfiguration
 
   private final IndexCacheControlFilter indexCacheControlFilter;
 
+  private final NexusOneIndexAccessFilter nexusOneIndexAccessFilter;
+
   private final AuthenticationLoggingFilter authenticationLoggingFilter;
 
   private final CspHeaderFilter cspHeaderFilter;
@@ -98,6 +101,7 @@ public class FilterConfiguration
       FrameOptionsHeaderFilter frameOptionsHeaderFilter,
       McpLicenseFilter mcpLicenseFilter,
       IndexCacheControlFilter indexCacheControlFilter,
+      NexusOneIndexAccessFilter nexusOneIndexAccessFilter,
       AuthenticationLoggingFilter authenticationLoggingFilter,
       CspHeaderFilter cspHeaderFilter,
       CspFrameHeaderFilter cspFrameHeaderFilter,
@@ -112,6 +116,7 @@ public class FilterConfiguration
     this.frameOptionsHeaderFilter = frameOptionsHeaderFilter;
     this.mcpLicenseFilter = mcpLicenseFilter;
     this.indexCacheControlFilter = indexCacheControlFilter;
+    this.nexusOneIndexAccessFilter = nexusOneIndexAccessFilter;
     this.authenticationLoggingFilter = authenticationLoggingFilter;
     this.cspHeaderFilter = cspHeaderFilter;
     this.cspFrameHeaderFilter = cspFrameHeaderFilter;
@@ -216,6 +221,12 @@ public class FilterConfiguration
   public FilterRegistrationBean<IndexCacheControlFilter> indexCacheControlFilterRegistration() {
     return registerFilter(indexCacheControlFilter, FilterOrder.INDEX_CACHE_CONTROL,
         IndexCacheControlFilter.URL_PATTERN);
+  }
+
+  @Bean
+  public FilterRegistrationBean<NexusOneIndexAccessFilter> nexusOneIndexAccessFilterRegistration() {
+    return registerFilter(nexusOneIndexAccessFilter, FilterOrder.NEXUS_ONE_INDEX_ACCESS,
+        NexusOneIndexAccessFilter.URL_PATTERN);
   }
 
   @Bean

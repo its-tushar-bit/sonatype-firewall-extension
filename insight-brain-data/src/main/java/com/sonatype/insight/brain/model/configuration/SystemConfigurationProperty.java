@@ -47,6 +47,12 @@ public class SystemConfigurationProperty
 
   public static final String BUILT_FROM_SOURCE = "BUILT_FROM_SOURCE";
 
+  /**
+   * CLM-39548 / P1-F1: gates the Nexus One UI bundle at {@code /assets/nexus-one/index.html}.
+   * Default OFF (row absent). See {@link SystemConfigurationPropertyFeature#PREVIEW_NEXUS_ONE_UI}.
+   */
+  public static final String PREVIEW_NEXUS_ONE_UI = "PREVIEW_NEXUS_ONE_UI";
+
   public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
 
   public static final String WEBHOOK_CONFIGURATION = "WEBHOOK_CONFIGURATION";

@@ -59,6 +59,7 @@ public enum SystemConfigurationPropertyFeature
   VULNERABILITY_SOURCE(SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, "true",
       true),
   BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
+  PREVIEW_NEXUS_ONE_UI(SystemConfigurationProperty.PREVIEW_NEXUS_ONE_UI, false),
   CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
   WEBHOOK_CONFIGURATION(SystemConfigurationProperty.WEBHOOK_CONFIGURATION, true),
   PRODUCT_LICENSE_CONFIGURATION(SystemConfigurationProperty.PRODUCT_LICENSE_CONFIGURATION, true),

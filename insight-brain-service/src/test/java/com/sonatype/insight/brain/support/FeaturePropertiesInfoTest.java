@@ -121,7 +121,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(68);
+    assertThat(featureConfigNode.size()).isEqualTo(69);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -133,6 +133,7 @@ public class FeaturePropertiesInfoTest
               "AUTOMATIC_SCM_CONFIGURATION": true,
               "autoWaivers": true,
               "BUILT_FROM_SOURCE": false,
+              "PREVIEW_NEXUS_ONE_UI": false,
               "cleanUpSbomContinuousMonitoringReport": true,
               "codeInsights": true,
               "componentChangeDetectionApi": false,
@@ -210,7 +211,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(68);
+    assertThat(featureConfigNode.size()).isEqualTo(69);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -222,6 +223,7 @@ public class FeaturePropertiesInfoTest
               "AUTOMATIC_SCM_CONFIGURATION": true,
               "autoWaivers": true,
               "BUILT_FROM_SOURCE": false,
+              "PREVIEW_NEXUS_ONE_UI": false,
               "cleanUpSbomContinuousMonitoringReport": true,
               "codeInsights": true,
               "componentChangeDetectionApi": false,
@@ -305,7 +307,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(58)
+        .hasSize(59)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

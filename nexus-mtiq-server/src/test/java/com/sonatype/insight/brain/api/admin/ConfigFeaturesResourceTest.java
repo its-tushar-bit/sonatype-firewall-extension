@@ -149,6 +149,7 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
         SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
         SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getId(),
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getId(),
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
       })).toArray(String[]::new);
 

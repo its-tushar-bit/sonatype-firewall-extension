@@ -20,7 +20,10 @@ public class NexusOnePage
   public static final String ROOT = ".radix-themes";
 
   public static String url() {
-    return url("/hello1");
+    return UriBuilder.fromUri(BaseUrl.rootUriBuilder().build())
+        .path("assets/nexus-one/index.html")
+        .build()
+        .toString();
   }
 
   public static String url(String hashRoute) {

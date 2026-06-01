@@ -63,6 +63,8 @@ public final class FilterOrder
   // Cache and logging filters (60-79)
   public static final int INDEX_CACHE_CONTROL = 60;
 
+  public static final int NEXUS_ONE_INDEX_ACCESS = 61;
+
   public static final int AUTHENTICATION_LOGGING = 70;
 
   // CSP and security policy filters (80-99)

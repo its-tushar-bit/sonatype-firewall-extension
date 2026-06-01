@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -67,6 +69,10 @@ public class MembershipMappingService
 
   private final RepositoryContainerDAO repositoryContainerDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   private final RoleDAO roleDAO;
 
   private final RolePermissionDAO rolePermissionDAO;
@@ -86,6 +92,8 @@ public class MembershipMappingService
       final ApplicationDAO appDAO,
       final OrganizationDAO orgDAO,
       final RepositoryContainerDAO repositoryContainerDAO,
+      final RepositoryDAO repositoryDAO,
+      final RepositoryManagerDAO repositoryManagerDAO,
       final RoleDAO roleDAO,
       final RolePermissionDAO rolePermissionDAO,
       final MembershipMappingDAO membershipMappingDAO,
@@ -97,6 +105,8 @@ public class MembershipMappingService
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
     this.repositoryContainerDAO = repositoryContainerDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
     this.roleDAO = roleDAO;
     this.rolePermissionDAO = rolePermissionDAO;
     this.membershipMappingDAO = membershipMappingDAO;
@@ -329,6 +339,8 @@ public class MembershipMappingService
       MemberType memberType,
       String memberName)
   {
+    // validateContextId is not called here: if the membership mapping does not exist, a 404 is returned regardless of
+    // owner existence.
     MembershipMapping membershipMapping = membershipMappingDAO
         .getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
 
@@ -602,6 +614,12 @@ public class MembershipMappingService
     }
     else if (OwnerType.ORGANIZATION.equals(ownerType)) {
       orgDAO.getByIdNotNull(internalOwnerId);
+    }
+    else if (OwnerType.REPOSITORY.equals(ownerType)) {
+      repositoryDAO.getByIdNotNull(internalOwnerId);
+    }
+    else if (OwnerType.REPOSITORY_MANAGER.equals(ownerType)) {
+      repositoryManagerDAO.getByIdNotNull(internalOwnerId);
     }
   }
 

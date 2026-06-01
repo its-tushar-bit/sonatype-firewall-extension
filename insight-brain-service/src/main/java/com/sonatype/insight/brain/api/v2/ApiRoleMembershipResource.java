@@ -61,8 +61,9 @@ public class ApiRoleMembershipResource
 
   private final IdUtils idUtils;
 
-  public static final String APPLICATION_OR_ORGANIZATION = "{ownerType: application|organization}/{internalOwnerId}" +
-      "/role/{roleId}/{memberType: (?i:user|group)}/{memberName}";
+  public static final String APPLICATION_OR_ORGANIZATION =
+      "{ownerType: application|organization|repository_manager|repository}/{internalOwnerId}" +
+          "/role/{roleId}/{memberType: (?i:user|group)}/{memberName}";
 
   public static final String NON_GLOBAL_OWNER_TYPES =
       "{ownerType: application|organization|repository_manager|repository}/{internalOwnerId}";
@@ -84,8 +85,8 @@ public class ApiRoleMembershipResource
   @PUT
   @Path(APPLICATION_OR_ORGANIZATION)
   @Audited(AuditEvent.GRANT_ROLE_MEMBERSHIP)
-  @Operation(description = "Use this method to grant a role to a user or user group for the specified application or " +
-      "organization." +
+  @Operation(description = "Use this method to grant a role to a user or user group for the specified application, " +
+      "organization, repository manager, or repository." +
       "\n" +
       "\n" +
       "Permissions required: Edit access control")
@@ -142,7 +143,7 @@ public class ApiRoleMembershipResource
   }
 
   @GET
-  @Path("{ownerType: application|organization}/{internalOwnerId}")
+  @Path("{ownerType: application|organization|repository_manager|repository}/{internalOwnerId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Use this method to retrieve the users, user groups and the corresponding role Ids." +
       "\n" +
@@ -151,9 +152,9 @@ public class ApiRoleMembershipResource
       "non-global context")
   @ApiResponse(
       responseCode = "200",
-      description = "The response contains the assigned role Ids, users and user groups for the application or " +
-          "organization requested. It also includes members who inherit a role based on the " +
-          "organization hierarchy.",
+      description = "The response contains the assigned role Ids, users and user groups for the application, " +
+          "organization, repository manager, or repository requested. It also includes members who inherit a role " +
+          "based on the organization hierarchy.",
       useReturnTypeSchema = true)
 
   public ApiRoleMemberMappingListDTO getRoleMembershipsApplicationOrOrganization(
@@ -190,8 +191,8 @@ public class ApiRoleMembershipResource
   @DELETE
   @Path(APPLICATION_OR_ORGANIZATION)
   @Audited(AuditEvent.REVOKE_ROLE_MEMBERSHIP)
-  @Operation(description = "Use this method to revoke a role from a user or user group, on a specific application or " +
-      "organization." +
+  @Operation(description = "Use this method to revoke a role from a user or user group, on a specific application, " +
+      "organization, repository manager, or repository." +
       "\n" +
       "\n" +
       "Permissions required: Edit access control")

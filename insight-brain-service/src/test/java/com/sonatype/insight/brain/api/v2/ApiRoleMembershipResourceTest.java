@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -144,6 +146,125 @@ public class ApiRoleMembershipResourceTest
   }
 
   @Test
+  public void testGrantRoleMembershipApplicationOrOrganization_Repository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "test-repo");
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository", repository.getId(), DEVELOPER_ROLE_ID, "user", username)
+            .put();
+    assertResponseStatus(204, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(repository.getId(), DEVELOPER_ROLE_ID, username, USER);
+    assertThat(membershipMapping).isNotNull();
+  }
+
+  @Test
+  public void testGrantRoleMembershipApplicationOrOrganization_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository_manager", repositoryManager.getId(), DEVELOPER_ROLE_ID, "user", username)
+            .put();
+    assertResponseStatus(204, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(repositoryManager.getId(), DEVELOPER_ROLE_ID, username,
+            USER);
+    assertThat(membershipMapping).isNotNull();
+  }
+
+  @Test
+  public void testGrantRoleMembershipApplicationOrOrganization_NonExistentRepository_Returns404() throws Exception {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository", "non-existent-repo-id", DEVELOPER_ROLE_ID, "user", username)
+            .put();
+
+    assertResponseStatus(404, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType("non-existent-repo-id", DEVELOPER_ROLE_ID, username,
+            USER);
+    assertThat(membershipMapping).isNull();
+  }
+
+  @Test
+  public void testGrantRoleMembershipApplicationOrOrganization_NonExistentRepositoryManager_Returns404() throws Exception {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository_manager", "non-existent-manager-id", DEVELOPER_ROLE_ID, "user", username)
+            .put();
+
+    assertResponseStatus(404, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType("non-existent-manager-id", DEVELOPER_ROLE_ID, username,
+            USER);
+    assertThat(membershipMapping).isNull();
+  }
+
+  @Test
+  public void testRevokeRoleMembershipApplicationOrOrganization_NonExistentRepository_Returns404() throws Exception {
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository", "non-existent-repo-id", DEVELOPER_ROLE_ID, "user", "a-user")
+            .delete();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testRevokeRoleMembershipApplicationOrOrganization_NonExistentRepositoryManager_Returns404() throws Exception {
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository_manager", "non-existent-manager-id", DEVELOPER_ROLE_ID, "user", "a-user")
+            .delete();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testRevokeRoleMembershipApplicationOrOrganization_Repository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "test-repo");
+    MembershipMapping membershipMapping =
+        tempEntity.newMembershipMapping(repository.getId(), DEVELOPER_ROLE_ID, "a-user", USER);
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository", repository.getId(), DEVELOPER_ROLE_ID, "user", "a-user")
+            .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(dao.getById(membershipMapping.getId())).isNull();
+  }
+
+  @Test
+  public void testRevokeRoleMembershipApplicationOrOrganization_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    MembershipMapping membershipMapping =
+        tempEntity.newMembershipMapping(repositoryManager.getId(), DEVELOPER_ROLE_ID, "a-user", USER);
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("repository_manager", repositoryManager.getId(), DEVELOPER_ROLE_ID, "user", "a-user")
+            .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(dao.getById(membershipMapping.getId())).isNull();
+  }
+
+  @Test
   public void testRevokeRoleMembershipGlobalOrRepositoryContainer_Global() throws Exception {
     MembershipMapping membershipMapping =
         tempEntity.newMembershipMapping("global", SYSTEM_ADMIN_ROLE_ID, "groupname", GROUP);
@@ -215,6 +336,42 @@ public class ApiRoleMembershipResourceTest
     assertThat(apiRoleMemberMappingDTO.members).hasSize(1);
     apiMemberDTO = apiRoleMemberMappingDTO.members.get(0);
     assertApiMemberDTO(apiMemberDTO, org.getId(), OwnerType.ORGANIZATION, USER, "user-two");
+  }
+
+  @Test
+  public void testGetRoleMembershipsApplicationOrOrganization_Repository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "test-repo");
+    tempEntity.newMembershipMapping(repository.getId(), DEVELOPER_ROLE_ID, "a-user", USER);
+
+    HttpResponse response = restRequest().path("repository", repository.getId()).get();
+    assertResponseStatus(200, response);
+
+    List<ApiRoleMemberMappingDTO> memberMappings = response.getBody(ApiRoleMemberMappingListDTO.class).memberMappings;
+    assertThat(memberMappings).hasSize(1);
+
+    ApiRoleMemberMappingDTO roleMappingDto = memberMappings.get(0);
+    assertThat(roleMappingDto.roleId).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(roleMappingDto.members).hasSize(1);
+    assertApiMemberDTO(roleMappingDto.members.get(0), repository.getId(), OwnerType.REPOSITORY, USER, "a-user");
+  }
+
+  @Test
+  public void testGetRoleMembershipsApplicationOrOrganization_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    tempEntity.newMembershipMapping(repositoryManager.getId(), DEVELOPER_ROLE_ID, "a-user", USER);
+
+    HttpResponse response = restRequest().path("repository_manager", repositoryManager.getId()).get();
+    assertResponseStatus(200, response);
+
+    List<ApiRoleMemberMappingDTO> memberMappings = response.getBody(ApiRoleMemberMappingListDTO.class).memberMappings;
+    assertThat(memberMappings).hasSize(1);
+
+    ApiRoleMemberMappingDTO roleMappingDto = memberMappings.get(0);
+    assertThat(roleMappingDto.roleId).isEqualTo(DEVELOPER_ROLE_ID);
+    assertThat(roleMappingDto.members).hasSize(1);
+    assertApiMemberDTO(roleMappingDto.members.get(0), repositoryManager.getId(), OwnerType.REPOSITORY_MANAGER, USER,
+        "a-user");
   }
 
   @Test

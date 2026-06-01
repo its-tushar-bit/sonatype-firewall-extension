@@ -84,6 +84,8 @@ import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/propriet
 import SourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlConfiguration';
 import WaiversConfiguration from 'MainRoot/waivers/WaiverConfigurationPage';
 import UserTokensConfiguration from 'MainRoot/configuration/userTokensConfiguration/UserTokensConfiguration';
+import OidcConfigurationPage from 'MainRoot/configuration/oidc/OidcConfigurationPage';
+import { selectIsDirty as oidcSelectIsDirty } from 'MainRoot/configuration/oidc/oidcConfigurationSelectors';
 
 const vulnerabilitiesRouteCommonProps = {
   component: VulnerabilitySearch,
@@ -653,6 +655,16 @@ router.stateRegistry.register({
   data: {
     title: 'SAML',
     isDirty: ['samlConfiguration', 'isDirty'],
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.oidc',
+  url: '/oidc',
+  component: OidcConfigurationPage,
+  data: {
+    title: 'OIDC',
+    isDirty: oidcSelectIsDirty,
   },
 });
 

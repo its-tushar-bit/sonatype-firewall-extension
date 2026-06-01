@@ -67,6 +67,8 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -132,6 +134,8 @@ public class PolicyEvaluateService
 
   private final TelemetrySender telemetrySender;
 
+  private final MeterRegistry meterRegistry;
+
   @Inject
   public PolicyEvaluateService(
       ScanPolicyEvaluator scanPolicyEvaluator,
@@ -153,7 +157,8 @@ public class PolicyEvaluateService
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationDAO policyViolationDAO,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-      TelemetrySender telemetrySender)
+      TelemetrySender telemetrySender,
+      @Nullable MeterRegistry meterRegistry)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -166,6 +171,7 @@ public class PolicyEvaluateService
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.productLicense = productLicense;
     this.scanPersistenceService = scanPersistenceService;
+    this.meterRegistry = meterRegistry;
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
     this.sbomMetadataUtils = sbomMetadataUtils;
@@ -179,7 +185,8 @@ public class PolicyEvaluateService
   }
 
   private ExecutorService buildExecutorService() {
-    return new PolicyEvaluationThreadPoolExecutor("policy_evaluation", PolicyEvaluateService.class.getName());
+    return new PolicyEvaluationVirtualThreadExecutor(meterRegistry, "policy_evaluation",
+        PolicyEvaluateService.class.getName());
   }
 
   // Visible for testing

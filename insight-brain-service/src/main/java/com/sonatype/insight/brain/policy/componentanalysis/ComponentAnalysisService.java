@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -76,6 +78,8 @@ public class ComponentAnalysisService
 
   private final TelemetrySender telemetrySender;
 
+  private final MeterRegistry meterRegistry;
+
   @Inject
   public ComponentAnalysisService(
       final PolicyEvaluationUtil policyEvaluationUtil,
@@ -85,8 +89,10 @@ public class ComponentAnalysisService
       final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       final ErrorResponseGenerator errorResponseGenerator,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      @Nullable final MeterRegistry meterRegistry)
   {
+    this.meterRegistry = meterRegistry;
     this.executor = buildExecutorService();
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.applicationDAO = applicationDAO;
@@ -99,7 +105,8 @@ public class ComponentAnalysisService
   }
 
   private ExecutorService buildExecutorService() {
-    return new PolicyEvaluationThreadPoolExecutor("component_analysis", ComponentAnalysisService.class.getName());
+    return new PolicyEvaluationVirtualThreadExecutor(meterRegistry, "component_analysis",
+        ComponentAnalysisService.class.getName());
   }
 
   @VisibleForTesting

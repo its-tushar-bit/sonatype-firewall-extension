@@ -34,6 +34,14 @@ describe('EnterpriseReportCard', () => {
 
   renderComponent = (props) => render(<EnterpriseReportCard key={1} {...initialState} {...props} />);
 
+  it('renders the card with no intermediate div wrapper', () => {
+    const { container } = renderComponent();
+
+    // NxCard is a direct child of container — no wrapping div
+    const card = container.firstElementChild;
+    expect(card).toHaveAttribute('role', 'enterprise-reporting-dashboard-card');
+  });
+
   it('renders the card', async () => {
     const { dashboard } = initialState;
     renderComponent();

@@ -54,83 +54,81 @@ export default function EnterpriseReportCard(props) {
   };
 
   return (
-    <div>
-      <NxCard
-        id={`enterprise-reporting-dashboard-${dashboard.dashboardId || dashboard.groupId}`}
-        className={cardClassNames}
-        role="enterprise-reporting-dashboard-card"
-      >
-        {dashboard.spotlight || dashboard.spotlightText ? (
-          <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
-            {spotlightText}
-          </NxSmallTag>
-        ) : (
-          ''
-        )}
-        <NxCard.Header className="iq-enterprise-reporting-card__header">
-          <hgroup>
-            <NxH3>{dashboard.title}</NxH3>
-          </hgroup>
-        </NxCard.Header>
+    <NxCard
+      id={`enterprise-reporting-dashboard-${dashboard.dashboardId || dashboard.groupId}`}
+      className={cardClassNames}
+      role="enterprise-reporting-dashboard-card"
+    >
+      {dashboard.spotlight || dashboard.spotlightText ? (
+        <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
+          {spotlightText}
+        </NxSmallTag>
+      ) : (
+        ''
+      )}
+      <NxCard.Header className="iq-enterprise-reporting-card__header">
+        <hgroup>
+          <NxH3>{dashboard.title}</NxH3>
+        </hgroup>
+      </NxCard.Header>
 
-        <NxCard.Content>
-          <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
-            <NxFontAwesomeIcon icon={icon} />
-          </NxCard.CallOut>
-          <NxCard.Text>{dashboard.description}</NxCard.Text>
-          <NxList bulleted className="iq-enterprise-reporting-card__features">
-            {dashboard.features.map((f, idx) => (
-              <NxList.Item key={idx}>
-                <NxFontAwesomeIcon className={isEnterprise && 'enterprise'} icon={fas.faCheck} />
-                <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
-              </NxList.Item>
-            ))}
-          </NxList>
-        </NxCard.Content>
-        <NxCard.Footer className="iq-enterprise-reporting-card__footer">
-          <NxTooltip
-            title={buttonDisabled && `Upgrade to IQ version ${getUpgradeVersion(dashboard)} to access this insight`}
-          >
-            <span>
-              {isGroupCard ? (
-                <NxStatefulSegmentedButton
-                  buttonContent={dashboard.groupedDashboards[0]?.accessButtonText}
-                  variant="tertiary"
-                  onClick={() => onButtonClick(dashboard.groupedDashboards[0]?.dashboardId)}
-                  disabled={buttonDisabled}
-                  className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.groupedDashboards[0].dashboardId}`}
-                >
-                  {tail(dashboard.groupedDashboards).map((dash) => (
-                    <button
-                      key={dash.dashboardId}
-                      className={`nx-dropdown-button dashboard-id-btn-${dash.dashboardId}`}
-                      onClick={() => onButtonClick(dash.dashboardId)}
-                    >
-                      {dash.accessButtonText}
-                    </button>
-                  ))}
-                </NxStatefulSegmentedButton>
-              ) : (
-                <NxButton
-                  variant="tertiary"
-                  className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
-                  disabled={buttonDisabled}
-                  onClick={() => {
-                    dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
-                  }}
-                  data-analytics-id={
-                    dashboard.dashboardId ? `lc-reporting-${dashboard.dashboardId}-view-cta` : undefined
-                  }
-                >
-                  {/* dashboardId must stay stable — Gainsight tracks lc-reporting-${dashboardId}-view-cta */}
-                  {dashboard.accessButtonText}
-                </NxButton>
-              )}
-            </span>
-          </NxTooltip>
-        </NxCard.Footer>
-      </NxCard>
-    </div>
+      <NxCard.Content>
+        <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
+          <NxFontAwesomeIcon icon={icon} />
+        </NxCard.CallOut>
+        <NxCard.Text>{dashboard.description}</NxCard.Text>
+        <NxList bulleted className="iq-enterprise-reporting-card__features">
+          {dashboard.features.map((f, idx) => (
+            <NxList.Item key={idx}>
+              <NxFontAwesomeIcon className={isEnterprise && 'enterprise'} icon={fas.faCheck} />
+              <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
+            </NxList.Item>
+          ))}
+        </NxList>
+      </NxCard.Content>
+      <NxCard.Footer className="iq-enterprise-reporting-card__footer">
+        <NxTooltip
+          title={buttonDisabled && `Upgrade to IQ version ${getUpgradeVersion(dashboard)} to access this insight`}
+        >
+          <span>
+            {isGroupCard ? (
+              <NxStatefulSegmentedButton
+                buttonContent={dashboard.groupedDashboards[0]?.accessButtonText}
+                variant="tertiary"
+                onClick={() => onButtonClick(dashboard.groupedDashboards[0]?.dashboardId)}
+                disabled={buttonDisabled}
+                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.groupedDashboards[0].dashboardId}`}
+              >
+                {tail(dashboard.groupedDashboards).map((dash) => (
+                  <button
+                    key={dash.dashboardId}
+                    className={`nx-dropdown-button dashboard-id-btn-${dash.dashboardId}`}
+                    onClick={() => onButtonClick(dash.dashboardId)}
+                  >
+                    {dash.accessButtonText}
+                  </button>
+                ))}
+              </NxStatefulSegmentedButton>
+            ) : (
+              <NxButton
+                variant="tertiary"
+                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
+                disabled={buttonDisabled}
+                onClick={() => {
+                  dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
+                }}
+                data-analytics-id={
+                  dashboard.dashboardId ? `lc-reporting-${dashboard.dashboardId}-view-cta` : undefined
+                }
+              >
+                {/* dashboardId must stay stable — Gainsight tracks lc-reporting-${dashboardId}-view-cta */}
+                {dashboard.accessButtonText}
+              </NxButton>
+            )}
+          </span>
+        </NxTooltip>
+      </NxCard.Footer>
+    </NxCard>
   );
 }
 

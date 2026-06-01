@@ -57,6 +57,11 @@ public class RealmCachingDisabledTest
     }
 
     @Bean
+    UserTokenHashService userTokenHashService() {
+      return new UserTokenHashService();
+    }
+
+    @Bean
     LdapService ldapService() {
       return mock(LdapService.class);
     }
@@ -118,6 +123,7 @@ public class RealmCachingDisabledTest
 
     @Bean
     UserTokenRealm userTokenRealm(
+        UserTokenHashService userTokenHashService,
         PasswordService passwordService,
         LdapService ldapService,
         UserTokenService userTokenService,
@@ -127,8 +133,8 @@ public class RealmCachingDisabledTest
         UserDAO userDAO,
         SsoUserService ssoUserService)
     {
-      return new UserTokenRealm(passwordService, ldapService, userTokenService, crowdClientFactory, ldapServerDAO,
-          userTokenDAO, userDAO, ssoUserService);
+      return new UserTokenRealm(userTokenHashService, passwordService, ldapService, userTokenService,
+          crowdClientFactory, ldapServerDAO, userTokenDAO, userDAO, ssoUserService);
     }
 
     @Bean

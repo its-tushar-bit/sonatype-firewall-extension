@@ -59,7 +59,7 @@ public class UserTokenService
 
   private final SsoUserService ssoUserService;
 
-  private final PasswordService passwordService;
+  private final UserTokenHashService userTokenHashService;
 
   private final LdapService ldapService;
 
@@ -74,7 +74,7 @@ public class UserTokenService
       UserTokenDAO userTokenDAO,
       SsoUserService ssoUserService,
       LdapServerDAO ldapServerDAO,
-      PasswordService passwordService,
+      UserTokenHashService userTokenHashService,
       LdapService ldapService,
       CurrentUser currentUser,
       Configuration configuration)
@@ -82,7 +82,7 @@ public class UserTokenService
     this.userTokenDAO = userTokenDAO;
     this.ssoUserService = ssoUserService;
     this.ldapServerDAO = ldapServerDAO;
-    this.passwordService = passwordService;
+    this.userTokenHashService = userTokenHashService;
     this.ldapService = ldapService;
     this.currentUser = currentUser;
     this.configuration = configuration;
@@ -124,7 +124,7 @@ public class UserTokenService
       while (userTokenDAO.getByUserCode(tx, userCode) != null);
 
       String passCode = RandomStringUtils.secure().nextAlphanumeric(44);
-      String hashed = passwordService.hashPassword(passCode);
+      String hashed = userTokenHashService.hashPassCode(passCode.toCharArray());
 
       UserToken userToken = new UserToken();
       userToken.setUsername(username);

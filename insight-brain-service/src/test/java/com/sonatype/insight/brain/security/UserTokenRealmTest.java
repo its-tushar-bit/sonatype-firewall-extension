@@ -53,6 +53,9 @@ public class UserTokenRealmTest
   private PasswordService passwordService;
 
   @Inject
+  private UserTokenHashService userTokenHashService;
+
+  @Inject
   private UserTokenDAO userTokenDAO;
 
   @Inject
@@ -488,5 +491,107 @@ public class UserTokenRealmTest
     tempEntity.newUser(username);
     // Token created with current time, so it won't be expired (within 30 day default expiration)
     return tempEntity.newUserToken(username, "TestUserCode", hashedPassword, InternalRealm.ID);
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_NewSha256Format() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = userTokenHashService.hashPassCode(userTokenPassword.toCharArray());
+    User user = tempEntity.newUser(username);
+    UserToken userToken =
+        tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
+
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    assertThat(principal).isEqualTo(new UserPrincipal(username, user.calculateDisplayName(), UserTokenRealm.ID));
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_NewSha256Format_WrongPassword() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = userTokenHashService.hashPassCode(userTokenPassword.toCharArray());
+    tempEntity.newUser(username);
+    UserToken userToken =
+        tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
+
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+    assertThatExceptionOfType(IncorrectCredentialsException.class)
+        .isThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken));
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_LegacyFormat_OpportunisticallyRehashed() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    // Store with legacy (PasswordService) hash
+    String legacyHash = passwordService.encryptPassword(userTokenPassword);
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", legacyHash, InternalRealm.ID);
+
+    // First authentication should succeed and trigger opportunistic rehash
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+    assertThat(authenticationInfo).isNotNull();
+
+    // Verify the stored hash was updated to the new SHA-256 format
+    UserToken updatedToken = userTokenDAO.getByUserCode("TestUserCode");
+    assertThat(updatedToken.getPassCode()).startsWith(UserTokenHashService.SHA256_PREFIX);
+
+    // Verify the token still works with the new hash
+    UsernamePasswordToken secondAttempt =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    AuthenticationInfo secondAuth = realm.getAuthenticationInfo(secondAttempt);
+    assertThat(secondAuth).isNotNull();
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_LegacyFormat_WrongPassword_NotRehashed() {
+    String username = "JohnDoe";
+    String userTokenPassword = "TestPassword";
+    String legacyHash = passwordService.encryptPassword(userTokenPassword);
+    tempEntity.newUser(username);
+    UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", legacyHash, InternalRealm.ID);
+
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+    assertThatExceptionOfType(IncorrectCredentialsException.class)
+        .isThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken));
+
+    // Verify the hash was NOT updated (wrong password should not trigger rehash)
+    UserToken storedToken = userTokenDAO.getByUserCode("TestUserCode");
+    assertThat(storedToken.getPassCode()).isEqualTo(legacyHash);
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_SamlRealm_LegacyFormat_OpportunisticallyRehashed() {
+    enableSsoWithSaml();
+
+    String userTokenPassword = "TestPassword";
+    String legacyHash = passwordService.encryptPassword(userTokenPassword);
+    SamlUser samlUser = tempEntity.newSamlUser();
+    UserToken userToken =
+        tempEntity.newUserToken(samlUser.getUsername(), "TestUserCode", legacyHash, SamlRealm.ID);
+
+    // Authenticate with the legacy-hashed token
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+    assertThat(authenticationInfo).isNotNull();
+
+    // Verify the stored hash was updated to the new SHA-256 format
+    UserToken updatedToken = userTokenDAO.getByUserCode("TestUserCode");
+    assertThat(updatedToken.getPassCode()).startsWith(UserTokenHashService.SHA256_PREFIX);
+
+    // Verify the token still works with the new hash
+    UsernamePasswordToken secondAttempt =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+    AuthenticationInfo secondAuth = realm.getAuthenticationInfo(secondAttempt);
+    assertThat(secondAuth).isNotNull();
   }
 }

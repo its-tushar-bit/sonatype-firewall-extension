@@ -61,6 +61,23 @@ public class UserTokenDAO
     super.update(tx, userToken);
   }
 
+  /**
+   * Updates the passcode hash and last access time for a user token, bypassing the normal update guard.
+   * Used for opportunistic rehashing of legacy token hashes to the more efficient SHA-256 format.
+   */
+  public void updatePassCodeAndLastAccessTime(UserToken userToken) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      tx.dsl()
+          .update(USER_TOKEN)
+          .set(USER_TOKEN.PASS_CODE, userToken.getPassCode())
+          .set(USER_TOKEN.LAST_ACCESS_TIME, userToken.getLastAccessTime())
+          .where(USER_TOKEN.USER_TOKEN_ID.eq(userToken.getId()))
+          .execute();
+      tx.commit();
+    }
+  }
+
   @Override
   public void delete(TransactionContext tx, UserToken userToken) {
     if (userToken == null) {

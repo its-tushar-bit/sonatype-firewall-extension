@@ -67,8 +67,11 @@ public class UserTokenRealm
 
   private final SsoUserService ssoUserService;
 
+  private final UserTokenHashService userTokenHashService;
+
   @Inject
   public UserTokenRealm(
+      UserTokenHashService userTokenHashService,
       PasswordService passwordService,
       LdapService ldapService,
       UserTokenService userTokenService,
@@ -82,13 +85,15 @@ public class UserTokenRealm
     this.userTokenDAO = userTokenDAO;
     this.userDAO = userDAO;
     this.ssoUserService = ssoUserService;
+    this.userTokenHashService = userTokenHashService;
     setName("UserTokenRealm");
 
     this.ldapService = ldapService;
     this.userTokenService = userTokenService;
 
-    // Create and set a password matcher. It will be used by shiro to match hashed passwords.
-    PasswordMatcher passwordMatcher = new PasswordMatcher();
+    // Use a PasswordMatcher subclass that handles the new SHA-256 format directly
+    // and delegates to Shiro's built-in PasswordMatcher for legacy Argon2id/Shiro1 hashes.
+    PasswordMatcher passwordMatcher = new UserTokenCredentialsMatcher(userTokenHashService);
     passwordMatcher.setPasswordService(passwordService);
     setCredentialsMatcher(passwordMatcher);
     this.crowdClientFactory = crowdClientFactory;
@@ -99,13 +104,33 @@ public class UserTokenRealm
       final AuthenticationToken token,
       final AuthenticationInfo info) throws AuthenticationException
   {
+    // Delegates to UserTokenCredentialsMatcher which handles both new SHA-256 and legacy formats
     super.assertCredentialsMatch(token, info);
+
+    // Post-verification: opportunistic rehash and last access time update
+    UsernamePasswordToken upToken = (UsernamePasswordToken) token;
     SimpleAuthenticationInfoWithUserToken simpleAuthenticationInfoWithUserToken =
         (SimpleAuthenticationInfoWithUserToken) info;
     UserToken userToken = simpleAuthenticationInfoWithUserToken.getUserToken();
+    String storedHash = userToken.getPassCode();
+
+    // Opportunistically rehash legacy tokens to the efficient SHA-256 format
+    boolean rehashed = false;
+    if (!userTokenHashService.supports(storedHash)) {
+      char[] passCode = upToken.getPassword();
+      userToken.setPassCode(userTokenHashService.hashPassCode(passCode));
+      rehashed = true;
+    }
+
     userToken.setLastAccessTime(new Date());
     try {
-      userTokenDAO.update(userToken);
+      if (!rehashed) {
+        userTokenDAO.update(userToken);
+      }
+      else {
+        // passCode changed so the normal update() guard would reject it.
+        userTokenDAO.updatePassCodeAndLastAccessTime(userToken);
+      }
     }
     catch (org.jooq.exception.DataAccessException e) {
       throw new AuthenticationException("User token '%s' no longer exists.".formatted(userToken.getUserCode()), e);

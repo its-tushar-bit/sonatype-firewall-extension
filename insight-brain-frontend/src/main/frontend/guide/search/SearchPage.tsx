@@ -32,7 +32,6 @@ import {
   vulnerabilitySortOptions,
   VULNERABILITY_FILTER_ORDER,
   buildSearchFilters,
-  buildComponentFilters,
   buildVulnerabilityFilters,
   getOffsetFromParams,
   getLimitFromParams,
@@ -50,7 +49,6 @@ import type {
   ComponentSearchResponse,
   VulnerabilitySearchResponse,
   GlobalSearchOptions,
-  ComponentsSearchOptions,
   VulnerabilitiesSearchOptions,
   Component,
   Vulnerability,
@@ -122,15 +120,9 @@ export function SearchPage() {
 
     let combinedPromise: Promise<{ tab: TabResponse; all: SearchResponse }>;
     if (activeTab === 'components') {
-      const filters = buildComponentFilters(paramsRecord);
-      const options: ComponentsSearchOptions = { offset, limit };
-      if (sortField) options.sortField = sortField;
-      if (sortOrder) options.sortOrder = sortOrder;
-      const tabPromise = searchComponents({
-        query,
-        filters: Object.keys(filters).length ? filters : undefined,
-        options,
-      });
+      const params = new URLSearchParams(searchParams.toString());
+      if (!params.has('limit')) params.set('limit', String(LIMIT));
+      const tabPromise = searchComponents(params);
       const allPromise = searchAll({ query, options: { offset: 0, limit: 1 } });
       combinedPromise = Promise.all([tabPromise, allPromise])
         .then(([tab, all]) => ({ tab, all }));

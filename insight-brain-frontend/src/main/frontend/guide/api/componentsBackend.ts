@@ -16,6 +16,7 @@ import {
 } from './mocks/mockComponentDetailData';
 import { getCVSSSeverity } from '@guide/ui-core';
 import { parsePackageIdentifier } from '@guide/ui-core/utils';
+import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 import type {
   Component,
   ComponentSearchResponse,
@@ -30,13 +31,6 @@ import type {
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>> */
 type Aggregations = Record<string, Record<string, number>>;
-
-/** Combined params for component search */
-export interface ComponentsSearchParams {
-  query?: string;
-  filters?: ComponentsFilters;
-  options?: ComponentsSearchOptions;
-}
 
 /**
  * Sorts components by field and order.
@@ -241,50 +235,19 @@ function computeAggregations(components: Component[]): Aggregations {
 }
 
 /**
- * Mock handler that implements realistic filter/sort/pagination.
- */
-function mockSearchHandler(params: ComponentsSearchParams): ComponentSearchResponse {
-  const { query, filters, options } = params;
-  const { offset = 0, limit = 25, sortField, sortOrder } = options ?? {};
-
-  // Filter
-  const filtered = filterComponents(mockComponents, query, filters);
-
-  // Sort
-  const sorted = sortComponents(filtered, sortField, sortOrder);
-
-  // Paginate
-  const paginated = sorted.slice(offset, offset + limit);
-
-  // Compute aggregations from filtered set
-  const aggregations = computeAggregations(filtered);
-
-  return {
-    hits: paginated,
-    total: filtered.length,
-    offset,
-    limit,
-    aggregations,
-  };
-}
-
-/**
- * Searches for components matching the given parameters.
+ * Calls GET /api/v2/guide/components/search with the supplied URL search params
+ * forwarded verbatim. URL parameter keys are aligned with backend `@QueryParam`
+ * names by design (see `@guide/ui-core`'s FILTER MAPPING REFERENCE), so no
+ * remapping is needed.
  *
- * When USE_MOCKS is true, returns mock data with realistic
- * filtering, sorting, and pagination.
- *
- * @param params - Search parameters including query, filters, and options
- * @returns Search response with hits and aggregations
+ * The caller (page) is responsible for setting any frontend-owned defaults
+ * (e.g. `limit`) before invoking.
  */
 export async function searchComponents(
-  params: ComponentsSearchParams = {}
+  searchParams: ReadonlySearchParams
 ): Promise<ComponentSearchResponse> {
   return apiFetch<ComponentSearchResponse>(
-    `${API_PREFIX}/components/search`,
-    {
-      mockHandler: () => mockSearchHandler(params),
-    }
+    `${API_PREFIX}/components/search?${searchParams.toString()}`
   );
 }
 

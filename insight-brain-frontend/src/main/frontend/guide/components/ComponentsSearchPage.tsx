@@ -18,11 +18,6 @@ import {
 import {
   componentSortOptions,
   componentFilterDefinitions,
-  getStringParam,
-  getOffsetFromParams,
-  getLimitFromParams,
-  getSortFromParams,
-  buildComponentFilters,
   getComponentDetailUrl,
   COMPONENT_FILTER_ORDER,
 } from '@guide/ui-core/utils';
@@ -31,30 +26,9 @@ import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
-import type { ComponentSearchResponse, ComponentsSearchOptions } from '@guide/ui-core/types';
-import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
+import type { ComponentSearchResponse } from '@guide/ui-core/types';
 
 const LIMIT = 25;
-
-function buildParams(searchParams: ReadonlySearchParams) {
-  const params = toParamsRecord(searchParams);
-
-  const query = getStringParam(params, 'query', '') || undefined;
-  const filters = buildComponentFilters(params);
-  const offset = getOffsetFromParams(params);
-  const limit = getLimitFromParams(params, LIMIT);
-  const { sortField, sortOrder } = getSortFromParams(params);
-
-  const options: ComponentsSearchOptions = { offset, limit };
-  if (sortField) options.sortField = sortField;
-  if (sortOrder) options.sortOrder = sortOrder;
-
-  return {
-    query,
-    filters: Object.keys(filters).length ? filters : undefined,
-    options,
-  };
-}
 
 export function ComponentsSearchPage() {
   const searchParams = useAdapterSearchParams();
@@ -68,7 +42,10 @@ export function ComponentsSearchPage() {
     setLoading(true);
     setError(null);
 
-    searchComponents(buildParams(searchParams))
+    const params = new URLSearchParams(searchParams.toString());
+    if (!params.has('limit')) params.set('limit', String(LIMIT));
+
+    searchComponents(params)
       .then((res) => { if (!cancelled) { setData(res); clearErrorRetries(); } })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });

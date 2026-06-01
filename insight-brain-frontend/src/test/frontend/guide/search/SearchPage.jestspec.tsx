@@ -158,8 +158,8 @@ describe('SearchPage', () => {
     await waitFor(() => {
       expect(mockSearchComponents).toHaveBeenCalled();
     });
-    const callArgs = mockSearchComponents.mock.calls[0]?.[0];
-    expect(callArgs?.query).toBe('axios');
+    const callArg = mockSearchComponents.mock.calls[0]?.[0] as URLSearchParams;
+    expect(callArg.get('query')).toBe('axios');
   });
 
   it('renders the generic empty state when results are empty and not pending', async () => {

@@ -179,9 +179,9 @@ describe('ComponentsSearchPage', () => {
 
     await screen.findByText('Results: 3');
 
-    expect(mockSearchComponents).toHaveBeenCalledWith(
-      expect.objectContaining({ query: 'lodash' })
-    );
+    expect(mockSearchComponents).toHaveBeenCalledTimes(1);
+    const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+    expect(callArg.get('query')).toBe('lodash');
   });
 
   it('renders empty state when search returns no results', async () => {
@@ -202,10 +202,34 @@ describe('ComponentsSearchPage', () => {
 
     await screen.findByText('Results: 30');
 
-    expect(mockSearchComponents).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: expect.objectContaining({ offset: 25 }),
-      })
-    );
+    expect(mockSearchComponents).toHaveBeenCalledTimes(1);
+    const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+    expect(callArg.get('offset')).toBe('25');
+  });
+
+  it('injects default limit=25 when URL omits ?limit=', async () => {
+    mockSearchComponents.mockResolvedValue(makeMockResponse(0, 0));
+
+    render(<ComponentsSearchPage />, {
+      routerOptions: { initialEntries: ['/components'] },
+    });
+
+    await screen.findByText('no results');
+
+    const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+    expect(callArg.get('limit')).toBe('25');
+  });
+
+  it('honors a URL-supplied limit instead of overriding it', async () => {
+    mockSearchComponents.mockResolvedValue(makeMockResponse(0, 0));
+
+    render(<ComponentsSearchPage />, {
+      routerOptions: { initialEntries: ['/components?limit=10'] },
+    });
+
+    await screen.findByText('no results');
+
+    const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+    expect(callArg.get('limit')).toBe('10');
   });
 });

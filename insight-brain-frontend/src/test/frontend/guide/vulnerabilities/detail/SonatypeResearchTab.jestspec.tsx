@@ -6,7 +6,7 @@
 
 import { screen } from '@testing-library/react';
 import { render } from '../../test-utils';
-import { VulnerabilityContextProvider } from 'GuideRoot/vulnerabilities/VulnerabilityContext';
+import { VulnerabilityProvider } from '@guide/ui-core';
 import { SonatypeResearchTab } from 'GuideRoot/vulnerabilities/detail/SonatypeResearchTab';
 import type { Vulnerability } from '@guide/ui-core/types';
 
@@ -60,39 +60,26 @@ const mockVulnerabilityWithoutResearch: Vulnerability = {
   vulnerableMethods: [],
 };
 
+const renderTab = (vulnerability: Vulnerability = mockVulnerabilityWithResearch) =>
+  render(
+    <VulnerabilityProvider vulnerability={vulnerability}>
+      <SonatypeResearchTab />
+    </VulnerabilityProvider>,
+    { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228/sonatype-research'] } }
+  );
+
 describe('SonatypeResearchTab', () => {
   it('renders Sonatype research content when available', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={mockVulnerabilityWithResearch}>
-        <SonatypeResearchTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228/sonatype-research'] } }
-    );
+    renderTab();
 
     expect(screen.getByText('Sonatype Research Data')).toBeInTheDocument();
   });
 
   it('shows placeholder text when research content is not available', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={mockVulnerabilityWithoutResearch}>
-        <SonatypeResearchTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2022-22965/sonatype-research'] } }
-    );
+    renderTab(mockVulnerabilityWithoutResearch);
 
     expect(screen.getByText('Sonatype Research Data')).toBeInTheDocument();
     expect(screen.getByText(/Explanation data is not yet available for this vulnerability/)).toBeInTheDocument();
-  });
-
-  it('shows not available message when vulnerability context is null', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={null}>
-        <SonatypeResearchTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228/sonatype-research'] } }
-    );
-
-    expect(screen.getByText(/Vulnerability data not available/i)).toBeInTheDocument();
   });
 
   it('handles empty string research content as not available', () => {
@@ -103,12 +90,7 @@ describe('SonatypeResearchTab', () => {
       recommendation: '',
     };
 
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithEmptyResearch}>
-        <SonatypeResearchTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228/sonatype-research'] } }
-    );
+    renderTab(vulnWithEmptyResearch);
 
     expect(screen.getByText('Sonatype Research Data')).toBeInTheDocument();
     expect(screen.getByText(/Explanation data is not yet available for this vulnerability/)).toBeInTheDocument();

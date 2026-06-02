@@ -6,7 +6,7 @@
 
 import { screen } from '@testing-library/react';
 import { render } from '../../test-utils';
-import { VulnerabilityContextProvider } from 'GuideRoot/vulnerabilities/VulnerabilityContext';
+import { VulnerabilityProvider } from '@guide/ui-core';
 import { SecurityDetailsTab } from 'GuideRoot/vulnerabilities/detail/SecurityDetailsTab';
 import type { Vulnerability } from '@guide/ui-core/types';
 
@@ -38,14 +38,17 @@ const mockVulnerability: Vulnerability = {
   ],
 };
 
+const renderTab = (vulnerability: Vulnerability = mockVulnerability) =>
+  render(
+    <VulnerabilityProvider vulnerability={vulnerability}>
+      <SecurityDetailsTab />
+    </VulnerabilityProvider>,
+    { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
+  );
+
 describe('SecurityDetailsTab', () => {
   it('renders vulnerability security details', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={mockVulnerability}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab();
 
     // Check title
     expect(screen.getByText(/CVE-2021-44228 Security Details/i)).toBeInTheDocument();
@@ -91,36 +94,21 @@ describe('SecurityDetailsTab', () => {
 
   it('shows N/A for missing CWEs', () => {
     const vulnWithoutCwes = { ...mockVulnerability, cwes: [] };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithoutCwes}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithoutCwes);
 
     expect(screen.getByText('N/A')).toBeInTheDocument();
   });
 
   it('shows not available for missing EPSS', () => {
     const vulnWithoutEpss = { ...mockVulnerability, epss: null };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithoutEpss}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithoutEpss);
 
     expect(screen.getByText('Not available')).toBeInTheDocument();
   });
 
   it('shows malware status correctly', () => {
     const malwareVuln = { ...mockVulnerability, isMalware: true };
-    render(
-      <VulnerabilityContextProvider vulnerability={malwareVuln}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(malwareVuln);
 
     expect(screen.getByText('Malware')).toBeInTheDocument();
     expect(screen.getByText('Yes')).toBeInTheDocument();
@@ -128,46 +116,20 @@ describe('SecurityDetailsTab', () => {
 
   it('shows not in KEV catalog when kev is false', () => {
     const nonKevVuln = { ...mockVulnerability, kev: false };
-    render(
-      <VulnerabilityContextProvider vulnerability={nonKevVuln}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(nonKevVuln);
 
     expect(screen.getByText(/Not in KEV Catalog/)).toBeInTheDocument();
   });
 
   it('shows 0% for zero EPSS score', () => {
     const zeroEpssVuln = { ...mockVulnerability, epss: 0 };
-    render(
-      <VulnerabilityContextProvider vulnerability={zeroEpssVuln}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(zeroEpssVuln);
 
     expect(screen.getByText('0%')).toBeInTheDocument();
   });
 
-  it('shows data not available when vulnerability context is null', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={null}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
-
-    expect(screen.getByText(/Vulnerability data not available/i)).toBeInTheDocument();
-  });
-
   it('shows source when available', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={mockVulnerability}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab();
 
     expect(screen.getByText('Source')).toBeInTheDocument();
     expect(screen.getByText('NVD')).toBeInTheDocument();
@@ -175,12 +137,7 @@ describe('SecurityDetailsTab', () => {
 
   it('does not show source when not available', () => {
     const vulnWithoutSource = { ...mockVulnerability, source: undefined };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithoutSource}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithoutSource);
 
     expect(screen.queryByText('Source')).not.toBeInTheDocument();
   });
@@ -193,23 +150,13 @@ describe('SecurityDetailsTab', () => {
         { link: 'ftp://example.com/advisory', type: 'ADVISORY' },
       ],
     };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithUnsafeRefs}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithUnsafeRefs);
 
     expect(screen.queryByText('References')).not.toBeInTheDocument();
   });
 
   it('shows vulnerable methods section when vulnerableMethods is non-empty', () => {
-    render(
-      <VulnerabilityContextProvider vulnerability={mockVulnerability}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab();
 
     expect(screen.getByText('Vulnerable Methods')).toBeInTheDocument();
     expect(screen.getByText('org.apache.logging.log4j.core.lookup.JndiLookup.lookup(String)')).toBeInTheDocument();
@@ -217,24 +164,14 @@ describe('SecurityDetailsTab', () => {
 
   it('hides vulnerable methods section when vulnerableMethods is empty', () => {
     const vulnWithoutMethods = { ...mockVulnerability, vulnerableMethods: [] };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithoutMethods}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithoutMethods);
 
     expect(screen.queryByText('Vulnerable Methods')).not.toBeInTheDocument();
   });
 
   it('hides vulnerable methods section when vulnerableMethods is absent', () => {
     const vulnWithoutMethods = { ...mockVulnerability, vulnerableMethods: undefined };
-    render(
-      <VulnerabilityContextProvider vulnerability={vulnWithoutMethods}>
-        <SecurityDetailsTab />
-      </VulnerabilityContextProvider>,
-      { routerOptions: { initialEntries: ['/vulnerability/CVE-2021-44228'] } }
-    );
+    renderTab(vulnWithoutMethods);
 
     expect(screen.queryByText('Vulnerable Methods')).not.toBeInTheDocument();
   });

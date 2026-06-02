@@ -4,31 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Box, Card, Text } from '@radix-ui/themes';
+import { Box, Text } from '@radix-ui/themes';
 import { tokens } from '@guide/ui-core/utils';
-import { SonatypeResearchCard, MarkdownContent, BodyText } from '@guide/ui-core';
-import { useVulnerabilityContext } from 'GuideRoot/vulnerabilities/VulnerabilityContext';
+import { SonatypeResearchCard, MarkdownContent, BodyText, useVulnerability } from '@guide/ui-core';
 
 const PLACEHOLDER_EXPLANATION = 'Explanation data is not yet available for this vulnerability.';
 const PLACEHOLDER_DETECTION = 'Detection guidance is not yet available for this vulnerability.';
 const PLACEHOLDER_RECOMMENDATION = 'Remediation guidance is not yet available for this vulnerability.';
 
 export function SonatypeResearchTab() {
-  const vulnerability = useVulnerabilityContext();
-
-  if (!vulnerability) {
-    return (
-      <Box mt={tokens.space.section}>
-        <Card size={tokens.card.small}>
-          <Box p={tokens.space.item}>
-            <Text size={tokens.sizes.body.sm} color="gray">
-              Vulnerability data not available.
-            </Text>
-          </Box>
-        </Card>
-      </Box>
-    );
-  }
+  const vulnerability = useVulnerability();
 
   const explanationContent =
     vulnerability.explanation && vulnerability.explanation.length > 0

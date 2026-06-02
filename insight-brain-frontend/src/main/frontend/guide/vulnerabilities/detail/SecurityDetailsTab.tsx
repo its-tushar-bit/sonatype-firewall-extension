@@ -5,7 +5,7 @@
  */
 
 import { Card, Box, Text, Flex, Badge, Link, DataList } from '@radix-ui/themes';
-import { BodyText, LinedDataList, CVSSBadge, ItemTitle } from '@guide/ui-core';
+import { LinedDataList, CVSSBadge, ItemTitle, useVulnerability } from '@guide/ui-core';
 import {
   tokens,
   formatDisplayDate,
@@ -15,8 +15,7 @@ import {
   formatReferenceLabel,
 } from '@guide/ui-core/utils';
 import { ExternalLink, AlertTriangle } from 'lucide-react';
-import { useVulnerabilityContext } from 'GuideRoot/vulnerabilities/VulnerabilityContext';
-import { formatEpssScore } from 'GuideRoot/utils/formatters';
+import { formatEpssScore } from '@guide/ui-core/utils';
 
 const CWE_PATTERN = /^CWE-(\d+)$/;
 const SAFE_URL_PATTERN = /^https?:\/\//i;
@@ -32,19 +31,7 @@ function getCweLink(cwe: string): string {
 }
 
 export function SecurityDetailsTab() {
-  const vulnerability = useVulnerabilityContext();
-
-  if (!vulnerability) {
-    return (
-      <Box mt={tokens.space.section}>
-        <Card size={tokens.card.small}>
-          <Box p={tokens.space.item}>
-            <BodyText>Vulnerability data not available.</BodyText>
-          </Box>
-        </Card>
-      </Box>
-    );
-  }
+  const vulnerability = useVulnerability();
 
   return (
     <Box mt={tokens.space.section}>

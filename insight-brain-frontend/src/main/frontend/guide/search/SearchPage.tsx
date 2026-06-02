@@ -32,7 +32,6 @@ import {
   vulnerabilitySortOptions,
   VULNERABILITY_FILTER_ORDER,
   buildSearchFilters,
-  buildVulnerabilityFilters,
   getOffsetFromParams,
   getLimitFromParams,
   getSortFromParams,
@@ -49,7 +48,6 @@ import type {
   ComponentSearchResponse,
   VulnerabilitySearchResponse,
   GlobalSearchOptions,
-  VulnerabilitiesSearchOptions,
   Component,
   Vulnerability,
 } from '@guide/ui-core/types';
@@ -127,15 +125,9 @@ export function SearchPage() {
       combinedPromise = Promise.all([tabPromise, allPromise])
         .then(([tab, all]) => ({ tab, all }));
     } else if (activeTab === 'vulnerabilities') {
-      const filters = buildVulnerabilityFilters(paramsRecord);
-      const options: VulnerabilitiesSearchOptions = { offset, limit };
-      if (sortField) options.sortField = sortField;
-      if (sortOrder) options.sortOrder = sortOrder;
-      const tabPromise = searchVulnerabilities({
-        query,
-        filters: Object.keys(filters).length ? filters : undefined,
-        options,
-      });
+      const params = new URLSearchParams(searchParams.toString());
+      if (!params.has('limit')) params.set('limit', String(LIMIT));
+      const tabPromise = searchVulnerabilities(params);
       const allPromise = searchAll({ query, options: { offset: 0, limit: 1 } });
       combinedPromise = Promise.all([tabPromise, allPromise])
         .then(([tab, all]) => ({ tab, all }));

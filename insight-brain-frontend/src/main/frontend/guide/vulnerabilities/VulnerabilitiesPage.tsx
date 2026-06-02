@@ -18,11 +18,6 @@ import {
 import {
   vulnerabilitySortOptions,
   vulnerabilityFilterDefinitions,
-  buildVulnerabilityFilters,
-  getOffsetFromParams,
-  getLimitFromParams,
-  getSortFromParams,
-  getStringParam,
   VULNERABILITY_FILTER_ORDER,
 } from '@guide/ui-core/utils';
 import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
@@ -30,7 +25,9 @@ import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
-import type { VulnerabilitySearchResponse, VulnerabilitiesSearchOptions } from '@guide/ui-core/types';
+import type { VulnerabilitySearchResponse } from '@guide/ui-core/types';
+
+const LIMIT = 25;
 
 export function VulnerabilitiesPage() {
   const searchParams = useAdapterSearchParams();
@@ -40,22 +37,13 @@ export function VulnerabilitiesPage() {
   useEffect(() => {
     let cancelled = false;
 
-    // Convert to Record once for all utility functions (they expect Record<string, string | string[]>)
-    const paramsRecord = toParamsRecord(searchParams);
-
-    const query = getStringParam(paramsRecord, 'query');
-    const filters = buildVulnerabilityFilters(paramsRecord);
-    const sortParam = getSortFromParams(paramsRecord);
-    const options: VulnerabilitiesSearchOptions = {
-      offset: getOffsetFromParams(paramsRecord),
-      limit: getLimitFromParams(paramsRecord),
-      ...sortParam,
-    };
+    const params = new URLSearchParams(searchParams.toString());
+    if (!params.has('limit')) params.set('limit', String(LIMIT));
 
     setError(null);
     setIsPending(true);
 
-    searchVulnerabilities({ query, filters, options })
+    searchVulnerabilities(params)
       .then((data) => {
         if (!cancelled) { setResponse(data); clearErrorRetries(); }
       })

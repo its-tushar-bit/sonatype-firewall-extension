@@ -5,15 +5,14 @@
  */
 
 import { apiFetch, API_PREFIX } from './apiFetch';
-import { mockVulnerabilities } from './mocks/mockVulnerabilitiesData';
 import { getCVSSSeverity } from '@guide/ui-core';
 import type {
   Vulnerability,
   VulnerabilitySearchResponse,
   VulnerabilitiesFilters,
-  VulnerabilitiesSearchOptions,
   AffectedComponentVersion,
 } from '@guide/ui-core/types';
+import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 import { getMockVulnerabilityDetail } from './mocks/mockVulnerabilityDetailData';
 import { getMockAffectedComponents } from './mocks/mockAffectedComponentsData';
 
@@ -26,65 +25,6 @@ export interface ApiSearchResponse<T> {
   total: number;
   offset: number;
   limit: number;
-}
-
-/** Combined params for vulnerability search */
-export interface VulnerabilitiesSearchParams {
-  query?: string;
-  filters?: VulnerabilitiesFilters;
-  options?: VulnerabilitiesSearchOptions;
-}
-
-/**
- * Sorts vulnerabilities by field and order.
- */
-function sortVulnerabilities(
-  vulnerabilities: Vulnerability[],
-  sortField?: string,
-  sortOrder?: 'asc' | 'desc'
-): Vulnerability[] {
-  if (!sortField) return vulnerabilities;
-
-  const order = sortOrder === 'desc' ? -1 : 1;
-
-  return [...vulnerabilities].sort((a, b) => {
-    let aVal: number | string;
-    let bVal: number | string;
-
-    switch (sortField) {
-      case 'refid':
-        aVal = (a.vulnId ?? '').toLowerCase();
-        bVal = (b.vulnId ?? '').toLowerCase();
-        break;
-      case 'sonatypeCvssSeverity':
-        aVal = a.sonatypeCvssSeverity ?? a.cvssSeverity ?? 0;
-        bVal = b.sonatypeCvssSeverity ?? b.cvssSeverity ?? 0;
-        break;
-      case 'publishedDate':
-        aVal = a.publishedAt ?? '';
-        bVal = b.publishedAt ?? '';
-        break;
-      case 'epss':
-        aVal = a.epss ?? 0;
-        bVal = b.epss ?? 0;
-        break;
-      case 'kev':
-        aVal = a.kev ? 1 : 0;
-        bVal = b.kev ? 1 : 0;
-        break;
-      case 'isMalware':
-        aVal = a.isMalware ? 1 : 0;
-        bVal = b.isMalware ? 1 : 0;
-        break;
-      default:
-        return 0;
-    }
-
-    if (typeof aVal === 'string' && typeof bVal === 'string') {
-      return aVal.localeCompare(bVal) * order;
-    }
-    return ((aVal as number) - (bVal as number)) * order;
-  });
 }
 
 /**
@@ -254,48 +194,20 @@ export function computeVulnerabilityAggregations(vulnerabilities: Vulnerability[
 }
 
 /**
- * Mock handler that implements realistic filter/sort/pagination.
- */
-function mockSearchHandler(params: VulnerabilitiesSearchParams): VulnerabilitySearchResponse {
-  const { query, filters, options } = params;
-  const { offset = 0, limit = 25, sortField, sortOrder } = options ?? {};
-
-  // Filter
-  const filtered = filterVulnerabilities(mockVulnerabilities, query, filters);
-
-  // Sort
-  const sorted = sortVulnerabilities(filtered, sortField, sortOrder);
-
-  // Paginate
-  const paginated = sorted.slice(offset, offset + limit);
-
-  // Compute aggregations from filtered set
-  const aggregations = computeVulnerabilityAggregations(filtered);
-
-  return {
-    hits: paginated,
-    total: filtered.length,
-    offset,
-    limit,
-    aggregations,
-  };
-}
-
-/**
- * Searches for vulnerabilities matching the given parameters.
+ * Calls GET /api/v2/guide/vulnerabilities with the supplied URL search params
+ * forwarded verbatim. URL parameter keys are aligned with backend `@QueryParam`
+ * names by design (see `@guide/ui-core`'s FILTER MAPPING REFERENCE), so no
+ * remapping is needed.
  *
- * When USE_MOCKS is true, returns mock data with realistic
- * filtering, sorting, and pagination.
- *
- * @param params - Search parameters including query, filters, and options
- * @returns Search response with hits and aggregations
+ * The caller (page) is responsible for setting any frontend-owned defaults
+ * (e.g. `limit`) before invoking.
  */
 export async function searchVulnerabilities(
-  params: VulnerabilitiesSearchParams = {}
+  searchParams: ReadonlySearchParams
 ): Promise<VulnerabilitySearchResponse> {
-  return apiFetch<VulnerabilitySearchResponse>(`${API_PREFIX}/vulnerabilities/search`, {
-    mockHandler: () => mockSearchHandler(params),
-  });
+  return apiFetch<VulnerabilitySearchResponse>(
+    `${API_PREFIX}/vulnerabilities?${searchParams.toString()}`
+  );
 }
 
 /**

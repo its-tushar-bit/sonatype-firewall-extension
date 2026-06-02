@@ -4,176 +4,150 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import {
+  searchVulnerabilities,
+  getVulnerabilityDetails,
+  getVulnerabilityAffectedComponents,
+  filterVulnerabilities,
+  computeVulnerabilityAggregations,
+} from 'GuideRoot/api/vulnerabilitiesBackend';
 import { getCVSSSeverity } from '@guide/ui-core';
 
+jest.mock('GuideRoot/api/apiFetch', () => ({
+  ...jest.requireActual('GuideRoot/api/apiFetch'),
+  apiFetch: jest.fn(),
+}));
+
+import { apiFetch } from 'GuideRoot/api/apiFetch';
+
+const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
+
+beforeEach(() => {
+  // Default: delegate to mockHandler when present (preserves behaviour for endpoints
+  // that still use mock data — getVulnerabilityDetails, getVulnerabilityAffectedComponents, etc.).
+  mockApiFetch.mockImplementation(async <T>(_path: string, init?: { mockHandler?: () => unknown }): Promise<T> => {
+    if (init?.mockHandler) return init.mockHandler() as T;
+    throw new Error('No mock handler — real API not available in tests');
+  });
+});
+
 describe('vulnerabilitiesBackend', () => {
-  describe('searchVulnerabilities', () => {
-    it('returns full dataset when called with no filters', async () => {
-      const result = await searchVulnerabilities();
+  describe('searchVulnerabilities (wired)', () => {
+    it('calls the vulnerabilities search endpoint with searchParams.toString() appended', async () => {
+      const fakeResponse = {
+        hits: [],
+        total: 0,
+        offset: 0,
+        limit: 25,
+        aggregations: {},
+      };
+      mockApiFetch.mockResolvedValue(fakeResponse);
 
-      expect(result.hits).toHaveLength(25); // Default limit
-      expect(result.total).toBeGreaterThan(40); // 50+ mock vulnerabilities
-      expect(result.offset).toBe(0);
-      expect(result.limit).toBe(25);
-      expect(result.aggregations).toBeDefined();
-      expect(result.aggregations!.byEcosystem).toBeDefined();
+      const params = new URLSearchParams();
+      params.set('query', 'log4j');
+      params.set('limit', '25');
+      params.append('severities', 'critical');
+      params.append('severities', 'high');
+
+      const result = await searchVulnerabilities(params);
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      const [path, init] = mockApiFetch.mock.calls[0];
+      expect(path).toBe(`/api/v2/guide/vulnerabilities?${params.toString()}`);
+      expect(init).toBeUndefined();
+      expect(result).toBe(fakeResponse);
     });
 
-    it('affectedEcosystems filter reduces results and updates aggregation counts', async () => {
-      const result = await searchVulnerabilities({
-        filters: { affectedEcosystems: ['npm'] },
-      });
+    it('forwards repeated array params verbatim (preserves ordering)', async () => {
+      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} });
 
-      expect(result.total).toBeLessThan(50);
-      expect(result.hits.every((v) => v.affectedEcosystems.includes('npm'))).toBe(true);
+      const params = new URLSearchParams();
+      params.append('affectedEcosystems', 'maven');
+      params.append('affectedEcosystems', 'npm');
 
-      // Aggregations should reflect filtered set
-      expect(result.aggregations!.byEcosystem.npm).toBe(result.total);
+      await searchVulnerabilities(params);
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities?affectedEcosystems=maven&affectedEcosystems=npm');
     });
 
-    it('severities filter reduces results', async () => {
-      const criticalOnly = await searchVulnerabilities({
-        filters: { severities: ['critical'] },
-      });
+    it('forwards an empty searchParams as a bare query string', async () => {
+      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} });
 
-      // Use ui-core's getCVSSSeverity with Sonatype-adjusted severity for consistency
-      expect(
-        criticalOnly.hits.every((v) => getCVSSSeverity(v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0) === 'critical')
-      ).toBe(true);
-      expect(criticalOnly.aggregations!.bySeverity.critical).toBe(criticalOnly.total);
+      await searchVulnerabilities(new URLSearchParams());
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities?');
+    });
+  });
+
+  describe('filterVulnerabilities', () => {
+    it('returns all vulnerabilities when called with no filters', () => {
+      const mockVulns = [
+        { vulnId: 'CVE-1', affectedEcosystems: ['maven'], cvssSeverity: 9.8, sonatypeCvssSeverity: 9.8, isMalware: false, kev: false },
+        { vulnId: 'CVE-2', affectedEcosystems: ['npm'], cvssSeverity: 5.0, sonatypeCvssSeverity: 5.0, isMalware: false, kev: false },
+      ] as Parameters<typeof filterVulnerabilities>[0];
+
+      const result = filterVulnerabilities(mockVulns);
+      expect(result).toHaveLength(2);
     });
 
-    it('sort changes result ordering', async () => {
-      const ascResult = await searchVulnerabilities({
-        options: { sortField: 'sonatypeCvssSeverity', sortOrder: 'asc' },
-      });
+    it('filters by affectedEcosystems', () => {
+      const mockVulns = [
+        { vulnId: 'CVE-1', affectedEcosystems: ['maven'], cvssSeverity: 9.8, sonatypeCvssSeverity: 9.8, isMalware: false, kev: false },
+        { vulnId: 'CVE-2', affectedEcosystems: ['npm'], cvssSeverity: 5.0, sonatypeCvssSeverity: 5.0, isMalware: false, kev: false },
+      ] as Parameters<typeof filterVulnerabilities>[0];
 
-      const descResult = await searchVulnerabilities({
-        options: { sortField: 'sonatypeCvssSeverity', sortOrder: 'desc' },
-      });
-
-      // First result in asc should not equal first in desc
-      expect(ascResult.hits[0].vulnId).not.toBe(descResult.hits[0].vulnId);
+      const result = filterVulnerabilities(mockVulns, undefined, { affectedEcosystems: ['maven'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].vulnId).toBe('CVE-1');
     });
 
-    it('offset and limit return correct slice; total remains pre-pagination count', async () => {
-      const page1 = await searchVulnerabilities({
-        options: { offset: 0, limit: 10 },
-      });
+    it('filters by severities using sonatypeCvssSeverity', () => {
+      const mockVulns = [
+        { vulnId: 'CVE-1', affectedEcosystems: [], cvssSeverity: 9.8, sonatypeCvssSeverity: 9.8, isMalware: false, kev: false },
+        { vulnId: 'CVE-2', affectedEcosystems: [], cvssSeverity: 5.0, sonatypeCvssSeverity: 5.0, isMalware: false, kev: false },
+      ] as Parameters<typeof filterVulnerabilities>[0];
 
-      const page2 = await searchVulnerabilities({
-        options: { offset: 10, limit: 10 },
-      });
+      const result = filterVulnerabilities(mockVulns, undefined, { severities: ['critical'] });
+      expect(result.every((v) => getCVSSSeverity(v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0) === 'critical')).toBe(true);
+    });
+  });
 
-      expect(page1.hits).toHaveLength(10);
-      expect(page2.hits).toHaveLength(10);
+  describe('computeVulnerabilityAggregations', () => {
+    it('returns aggregation buckets for an empty list', () => {
+      const result = computeVulnerabilityAggregations([]);
+      expect(result.byEcosystem).toBeDefined();
+      expect(result.bySeverity).toBeDefined();
+      expect(result.byKev).toBeDefined();
+      expect(result.byMalware).toBeDefined();
+    });
+  });
 
-      // Total should be the same regardless of pagination
-      const totalVulns = page1.total;
-      expect(totalVulns).toBeGreaterThan(40); // 50+ mock vulnerabilities
-      expect(page2.total).toBe(totalVulns);
-
-      // Results should not overlap
-      const page1Ids = page1.hits.map((v) => v.vulnId);
-      const page2Ids = page2.hits.map((v) => v.vulnId);
-      const overlap = page1Ids.filter((id) => page2Ids.includes(id));
-      expect(overlap).toHaveLength(0);
+  describe('getVulnerabilityDetails', () => {
+    it('returns null for an empty vulnId', async () => {
+      const result = await getVulnerabilityDetails('');
+      expect(result).toBeNull();
     });
 
-    it('returns a Promise (latency is awaited)', async () => {
-      // Verify async behavior by checking the result is correct
-      // (latency is an implementation detail, not a contract)
-      const result = await searchVulnerabilities();
-      expect(result.hits).toBeDefined();
-      expect(result.total).toBeGreaterThan(0);
+    it('returns mock vulnerability detail for a known CVE', async () => {
+      const result = await getVulnerabilityDetails('CVE-2021-44228');
+      expect(result).not.toBeNull();
+      expect(result!.vulnId).toBe('CVE-2021-44228');
+    });
+  });
+
+  describe('getVulnerabilityAffectedComponents', () => {
+    it('returns null for an empty vulnId', async () => {
+      const result = await getVulnerabilityAffectedComponents('');
+      expect(result).toBeNull();
     });
 
-    it('query filter matches vulnerability ID or summary', async () => {
-      const result = await searchVulnerabilities({
-        query: 'Log4j',
-      });
-
-      expect(result.total).toBeGreaterThan(0);
-      expect(
-        result.hits.every(
-          (v) =>
-            v.vulnId.toLowerCase().includes('log4j') ||
-            v.summary.toLowerCase().includes('log4j')
-        )
-      ).toBe(true);
-    });
-
-    it('combined filters work together', async () => {
-      const result = await searchVulnerabilities({
-        query: 'CVE',
-        filters: { affectedEcosystems: ['maven'] },
-        options: { sortField: 'publishedDate', sortOrder: 'desc', limit: 5 },
-      });
-
-      expect(result.hits.every((v) => v.affectedEcosystems.includes('maven'))).toBe(true);
-      expect(result.hits).toHaveLength(Math.min(5, result.total));
-    });
-
-    it('aggregations reflect filtered results', async () => {
-      const allResults = await searchVulnerabilities();
-      const npmOnly = await searchVulnerabilities({
-        filters: { affectedEcosystems: ['npm'] },
-      });
-
-      // npm-only aggregation should only have npm ecosystem
-      expect(Object.keys(npmOnly.aggregations!.byEcosystem)).toContain('npm');
-
-      // Total aggregation counts should be larger
-      const allTotal = Object.values(allResults.aggregations!.byEcosystem).reduce(
-        (a, b) => a + b,
-        0
-      );
-      const npmTotal = npmOnly.aggregations!.byEcosystem.npm ?? 0;
-      expect(allTotal).toBeGreaterThan(npmTotal);
-    });
-
-    it('cwes filter reduces results', async () => {
-      const result = await searchVulnerabilities({
-        filters: { cwes: ['CWE-400'] },
-      });
-
-      expect(result.total).toBeGreaterThan(0);
-      expect(result.hits.every((v) => v.cwes?.includes('CWE-400'))).toBe(true);
-    });
-
-    it('exploitationKnown filter (kev) reduces results', async () => {
-      const result = await searchVulnerabilities({
-        filters: { exploitationKnown: true },
-      });
-
-      expect(result.total).toBeGreaterThan(0);
-      expect(result.hits.every((v) => v.kev === true)).toBe(true);
-    });
-
-    it('publishedWindow filter returns only vulnerabilities within the window', async () => {
-      // Mock data includes entries at 3d, 15d, 45d, 75d, 130d, 200d, 500d relative to now
-      const sevenDay = await searchVulnerabilities({ filters: { publishedWindow: '7d' } });
-      const thirtyDay = await searchVulnerabilities({ filters: { publishedWindow: '30d' } });
-      const sixtyDay = await searchVulnerabilities({ filters: { publishedWindow: '60d' } });
-      const ninetyDay = await searchVulnerabilities({ filters: { publishedWindow: '90d' } });
-      const sixMonths = await searchVulnerabilities({ filters: { publishedWindow: '6m' } });
-      const oneYear = await searchVulnerabilities({ filters: { publishedWindow: '1y' } });
-      const twoYears = await searchVulnerabilities({ filters: { publishedWindow: '2y' } });
-
-      // Each wider window returns strictly more results than the narrower one
-      expect(sevenDay.total).toBeLessThan(thirtyDay.total);
-      expect(thirtyDay.total).toBeLessThan(sixtyDay.total);
-      expect(sixtyDay.total).toBeLessThan(ninetyDay.total);
-      expect(ninetyDay.total).toBeLessThan(sixMonths.total);
-      expect(sixMonths.total).toBeLessThan(oneYear.total);
-      expect(oneYear.total).toBeLessThan(twoYears.total);
-
-      // Every returned vulnerability must actually be within the window
-      const sevenDayThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      expect(
-        sevenDay.hits.every((v) => v.publishedAt && new Date(v.publishedAt) >= sevenDayThreshold)
-      ).toBe(true);
+    it('returns paginated affected components for a known CVE', async () => {
+      const result = await getVulnerabilityAffectedComponents('CVE-2021-44228');
+      expect(result).not.toBeNull();
+      expect(result!.hits).toBeDefined();
+      expect(typeof result!.total).toBe('number');
     });
   });
 });

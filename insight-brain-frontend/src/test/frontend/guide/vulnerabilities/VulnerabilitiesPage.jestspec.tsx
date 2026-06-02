@@ -207,32 +207,34 @@ describe('VulnerabilitiesPage', () => {
     });
   });
 
-  describe('search parameters', () => {
-    it('calls searchVulnerabilities on initial load', async () => {
-      render(<VulnerabilitiesPage />);
-
-      await waitFor(() => {
-        expect(mockSearchVulnerabilities).toHaveBeenCalled();
-      });
-    });
-
-    it('calls searchVulnerabilities with query params from URL', async () => {
+  describe('calls searchVulnerabilities with correct URL params', () => {
+    it('calls searchVulnerabilities with default limit=25 when no limit in URL', async () => {
       render(<VulnerabilitiesPage />, {
-        routerOptions: {
-          initialEntries: ['/?query=log4j'],
-        },
+        routerOptions: { initialEntries: ['/'] },
       });
 
       await waitFor(() => {
         expect(mockSearchVulnerabilities).toHaveBeenCalled();
       });
 
-      // Should be called with the query parameter from URL
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.query).toBe('log4j');
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('limit')).toBe('25');
     });
 
-    it('calls searchVulnerabilities with filter params from URL', async () => {
+    it('passes query param from URL', async () => {
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/?query=log4j'] },
+      });
+
+      await waitFor(() => {
+        expect(mockSearchVulnerabilities).toHaveBeenCalled();
+      });
+
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('query')).toBe('log4j');
+    });
+
+    it('passes filter params from URL verbatim', async () => {
       render(<VulnerabilitiesPage />, {
         routerOptions: {
           initialEntries: ['/?severities=critical&severities=high&affectedEcosystems=maven'],
@@ -243,72 +245,39 @@ describe('VulnerabilitiesPage', () => {
         expect(mockSearchVulnerabilities).toHaveBeenCalled();
       });
 
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      // buildVulnerabilityFilters returns filters with these values
-      expect(callArgs.filters).toBeDefined();
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.getAll('severities')).toEqual(['critical', 'high']);
+      expect(callArgs.get('affectedEcosystems')).toBe('maven');
     });
 
-    it('calls searchVulnerabilities with exploitation filter', async () => {
+    it('passes pagination params from URL', async () => {
       render(<VulnerabilitiesPage />, {
-        routerOptions: {
-          initialEntries: ['/?exploitationKnown=true'],
-        },
+        routerOptions: { initialEntries: ['/?offset=25&limit=10'] },
       });
 
       await waitFor(() => {
         expect(mockSearchVulnerabilities).toHaveBeenCalled();
       });
 
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.filters).toBeDefined();
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('offset')).toBe('25');
+      expect(callArgs.get('limit')).toBe('10');
     });
 
-    it('calls searchVulnerabilities with malware filter', async () => {
+    it('passes sort params from URL', async () => {
       render(<VulnerabilitiesPage />, {
-        routerOptions: {
-          initialEntries: ['/?hasMalware=true'],
-        },
+        routerOptions: { initialEntries: ['/?sort=sonatypeCvssSeverity:desc'] },
       });
 
       await waitFor(() => {
         expect(mockSearchVulnerabilities).toHaveBeenCalled();
       });
 
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.filters).toBeDefined();
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('sort')).toBe('sonatypeCvssSeverity:desc');
     });
 
-    it('calls searchVulnerabilities with pagination params', async () => {
-      render(<VulnerabilitiesPage />, {
-        routerOptions: {
-          initialEntries: ['/?offset=25&limit=10'],
-        },
-      });
-
-      await waitFor(() => {
-        expect(mockSearchVulnerabilities).toHaveBeenCalled();
-      });
-
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.options).toBeDefined();
-    });
-
-    it('calls searchVulnerabilities with sort params', async () => {
-      render(<VulnerabilitiesPage />, {
-        routerOptions: {
-          initialEntries: ['/?sort=sonatypeCvssSeverity:desc'],
-        },
-      });
-
-      await waitFor(() => {
-        expect(mockSearchVulnerabilities).toHaveBeenCalled();
-      });
-
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.options).toBeDefined();
-    });
-
-    it('calls searchVulnerabilities with combined params', async () => {
+    it('passes combined params from URL', async () => {
       render(<VulnerabilitiesPage />, {
         routerOptions: {
           initialEntries: ['/?query=log4j&severities=critical&offset=0&limit=10&sort=publishedDate:desc'],
@@ -319,10 +288,12 @@ describe('VulnerabilitiesPage', () => {
         expect(mockSearchVulnerabilities).toHaveBeenCalled();
       });
 
-      const callArgs = mockSearchVulnerabilities.mock.calls[0][0];
-      expect(callArgs.query).toBe('log4j');
-      expect(callArgs.filters).toBeDefined();
-      expect(callArgs.options).toBeDefined();
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('query')).toBe('log4j');
+      expect(callArgs.getAll('severities')).toEqual(['critical']);
+      expect(callArgs.get('offset')).toBe('0');
+      expect(callArgs.get('limit')).toBe('10');
+      expect(callArgs.get('sort')).toBe('publishedDate:desc');
     });
   });
 });

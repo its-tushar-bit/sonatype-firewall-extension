@@ -8,14 +8,14 @@
 /**
  * Parameterized pipeline for regional production deployments.
  *
- * This job is shared by three regional production deployments (us-1, us-2, eu-1).
+ * This job is shared by the regional production deployments (us-1, us-2, eu-1).
  * Each regional Jenkins job passes in the appropriate parameters.
  *
  * Parameters:
- *   IMAGE_TAG - The prod ECR tag to deploy (must be a prod-internal-verified-* tag)
+ *   IMAGE_TAG - The prod ECR tag to deploy (must have a prod-internal-verified-* tag)
  *   REGION - The region identifier (e.g., 'us-1', 'us-2', 'eu-1')
  *   CELL_WORKSPACES - Comma-separated TFC workspace names for this region
- *   GLOBAL_WORKSPACE - The global TFC workspace name (defaults to 'sca_aws_prod_global')
+ *   GLOBAL_WORKSPACE - The global TFC workspace name (must be configured in the Jenkins job definition)
  *
  * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-{region}
  *   - deploy-to-prod-us-1
@@ -34,8 +34,7 @@ pipeline {
     string(name: 'CELL_WORKSPACES',
            description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-us-1)')
     string(name: 'GLOBAL_WORKSPACE',
-           defaultValue: 'sca_aws_prod_global',
-           description: 'The global TFC workspace name')
+           description: 'The global TFC workspace name (e.g., sca_aws_prod_global)')
   }
 
   options {
@@ -59,6 +58,9 @@ pipeline {
           }
           if (!params.CELL_WORKSPACES?.trim()) {
             error 'CELL_WORKSPACES parameter is required'
+          }
+          if (!params.GLOBAL_WORKSPACE?.trim()) {
+            error 'GLOBAL_WORKSPACE parameter is required'
           }
           echo "Production deployment for region: ${params.REGION}"
           echo "Image tag: ${params.IMAGE_TAG}"

@@ -31,23 +31,22 @@ import {
   vulnerabilityFilterDefinitions,
   vulnerabilitySortOptions,
   VULNERABILITY_FILTER_ORDER,
-  buildSearchFilters,
   getOffsetFromParams,
   getLimitFromParams,
-  getSortFromParams,
   getStringParam,
   getComponentDetailUrl,
   formatNumber,
   tokens,
 } from '@guide/ui-core/utils';
-import { searchAll, searchComponents, searchVulnerabilities } from 'GuideRoot/api/searchBackend';
+import { searchAll } from 'GuideRoot/api/searchBackend';
+import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import type {
   SearchResponse,
   ComponentSearchResponse,
   VulnerabilitySearchResponse,
-  GlobalSearchOptions,
   Component,
   Vulnerability,
 } from '@guide/ui-core/types';
@@ -78,13 +77,18 @@ function buildTabConfig(activeTab: ActiveTab) {
       };
     default:
       return {
-        // Override byEcosystem.fieldName to "formats" to match Guide SaaS — buildSearchFilters
-        // reads params.formats, but the upstream sharedFilterDefinitions uses "affectedEcosystems".
+        // Override fieldNames to match the GuideGlobalSearchResource @QueryParam keys —
+        // the upstream sharedFilterDefinitions uses "affectedEcosystems"/"lastUpdated"
+        // but the backend reads "formats"/"publishedWindow".
         filterConfigs: {
           ...globalSearchFilterDefinitions,
           byEcosystem: {
             ...globalSearchFilterDefinitions.byEcosystem,
             fieldName: 'formats',
+          },
+          byLastUpdated: {
+            ...globalSearchFilterDefinitions.byLastUpdated,
+            fieldName: 'publishedWindow',
           },
         },
         sortOptions: globalSearchSortOptions,
@@ -112,37 +116,32 @@ export function SearchPage() {
     setLoading(true);
     setError(null);
 
-    const { sortField, sortOrder } = getSortFromParams(paramsRecord);
-    const offset = getOffsetFromParams(paramsRecord);
-    const limit = getLimitFromParams(paramsRecord, LIMIT);
+    const allParams = new URLSearchParams();
+    if (query) allParams.set('query', query);
+    allParams.set('offset', '0');
+    allParams.set('limit', '1');
 
     let combinedPromise: Promise<{ tab: TabResponse; all: SearchResponse }>;
     if (activeTab === 'components') {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
       const tabPromise = searchComponents(params);
-      const allPromise = searchAll({ query, options: { offset: 0, limit: 1 } });
+      const allPromise = searchAll(allParams);
       combinedPromise = Promise.all([tabPromise, allPromise])
         .then(([tab, all]) => ({ tab, all }));
     } else if (activeTab === 'vulnerabilities') {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
       const tabPromise = searchVulnerabilities(params);
-      const allPromise = searchAll({ query, options: { offset: 0, limit: 1 } });
+      const allPromise = searchAll(allParams);
       combinedPromise = Promise.all([tabPromise, allPromise])
         .then(([tab, all]) => ({ tab, all }));
     } else {
-      const filters = buildSearchFilters(paramsRecord);
-      const options: GlobalSearchOptions = { offset, limit };
-      if (sortField) options.sortField = sortField;
-      if (sortOrder) options.sortOrder = sortOrder;
+      const params = new URLSearchParams(searchParams.toString());
+      if (!params.has('limit')) params.set('limit', String(LIMIT));
       // On the All tab, the tab response IS the global SearchResponse — no need
       // to issue a second searchAll call for cross-type totals.
-      combinedPromise = searchAll({
-        query,
-        filters: Object.keys(filters).length ? filters : undefined,
-        options,
-      }).then((tab) => ({ tab, all: tab }));
+      combinedPromise = searchAll(params).then((tab) => ({ tab, all: tab }));
     }
 
     combinedPromise
@@ -174,9 +173,12 @@ export function SearchPage() {
   const aggregations = tabData?.aggregations ?? {};
   const offset = getOffsetFromParams(paramsRecord);
 
+  // Backend `byType` uses plural keys (`components`, `vulnerabilities`); accept
+  // singular as a fallback so older mock data and any future contract drift don't
+  // silently zero the badges.
   const totalsSource = allData?.aggregations?.byType ?? {};
-  const totalComponents = totalsSource.component ?? 0;
-  const totalVulnerabilities = totalsSource.vulnerability ?? 0;
+  const totalComponents = totalsSource.components ?? totalsSource.component ?? 0;
+  const totalVulnerabilities = totalsSource.vulnerabilities ?? totalsSource.vulnerability ?? 0;
   const totalAll = allData?.total ?? (totalComponents + totalVulnerabilities);
 
   const tabConfig = buildTabConfig(activeTab);

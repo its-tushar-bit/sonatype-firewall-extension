@@ -29,7 +29,23 @@ function suggestionSearch(
   filters?: GlobalSearchFilters,
   options?: GlobalSearchOptions
 ) {
-  return searchAll({ query, filters, options });
+  // SearchWithSuggestions still uses the legacy { query, filters, options } shape
+  // (defined in @guide/ui-core). Convert to URLSearchParams so we can call the
+  // wired GET /api/v2/guide/global/search endpoint. Keys mirror the SearchPage
+  // filter overrides — byEcosystem -> formats, byLastUpdated -> publishedWindow.
+  const params = new URLSearchParams();
+  if (query) params.set('query', query);
+  if (filters?.formats) {
+    const values = Array.isArray(filters.formats) ? filters.formats : [filters.formats];
+    for (const v of values) params.append('formats', v);
+  }
+  if (filters?.lastUpdated) params.set('publishedWindow', filters.lastUpdated);
+  if (filters?.latestStable) params.set('latestStable', filters.latestStable);
+  if (options?.offset !== undefined) params.set('offset', String(options.offset));
+  if (options?.limit !== undefined) params.set('limit', String(options.limit));
+  if (options?.sortField) params.set('sortField', options.sortField);
+  if (options?.sortOrder) params.set('sortOrder', options.sortOrder);
+  return searchAll(params);
 }
 
 function getInitials(displayName?: string, username?: string): string {

@@ -21,7 +21,13 @@ global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
 jest.mock('GuideRoot/api/searchBackend', () => ({
   searchAll: jest.fn(),
+}));
+
+jest.mock('GuideRoot/api/componentsBackend', () => ({
   searchComponents: jest.fn(),
+}));
+
+jest.mock('GuideRoot/api/vulnerabilitiesBackend', () => ({
   searchVulnerabilities: jest.fn(),
 }));
 
@@ -54,7 +60,9 @@ jest.mock('@guide/ui-core', () => {
   };
 });
 
-import { searchAll, searchComponents, searchVulnerabilities } from 'GuideRoot/api/searchBackend';
+import { searchAll } from 'GuideRoot/api/searchBackend';
+import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
 
 const mockSearchAll = searchAll as jest.MockedFunction<typeof searchAll>;
 const mockSearchComponents = searchComponents as jest.MockedFunction<typeof searchComponents>;
@@ -66,7 +74,8 @@ function makeAllResponse(total: number, hitCount = 5): SearchResponse {
       format: 'npm', originId: `c-${i}`, name: `c-${i}`, version: '1', registryLink: '', licenses: [],
     })) as SearchResponse['hits'],
     total, offset: 0, limit: 25,
-    aggregations: { byType: { component: 3, vulnerability: 2 } },
+    // Backend returns byType with plural keys (`components`/`vulnerabilities`).
+    aggregations: { byType: { components: 3, vulnerabilities: 2 } },
   };
 }
 
@@ -224,5 +233,84 @@ describe('SearchPage', () => {
       expect(screen.getByText('cmp:3')).toBeInTheDocument();
     });
     expect(screen.getByText('vul:2')).toBeInTheDocument();
+  });
+
+  it('All tab: calls searchAll with default limit=25 and preserves user filters when no limit is in the URL', async () => {
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+
+    render(<SearchPage />, {
+      routerOptions: {
+        initialEntries: ['/search?query=lodash&formats=npm&publishedWindow=30d'],
+      },
+    });
+
+    await waitFor(() => {
+      expect(mockSearchAll).toHaveBeenCalled();
+    });
+    const callArg = mockSearchAll.mock.calls[0]?.[0] as URLSearchParams;
+    expect(callArg).toBeInstanceOf(URLSearchParams);
+    expect(callArg.get('query')).toBe('lodash');
+    expect(callArg.get('formats')).toBe('npm');
+    expect(callArg.get('publishedWindow')).toBe('30d');
+    expect(callArg.get('limit')).toBe('25');
+  });
+
+  it('Components tab: calls searchComponents with page URLSearchParams and searchAll with offset=0&limit=1 for cross-tab totals', async () => {
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+    mockSearchComponents.mockResolvedValue(makeComponentsResponse(7, 7));
+
+    render(<SearchPage />, {
+      routerOptions: { initialEntries: ['/search?tab=components&query=axios'] },
+    });
+
+    await waitFor(() => {
+      expect(mockSearchComponents).toHaveBeenCalled();
+      expect(mockSearchAll).toHaveBeenCalled();
+    });
+
+    const componentsArg = mockSearchComponents.mock.calls[0]?.[0] as URLSearchParams;
+    expect(componentsArg.get('query')).toBe('axios');
+    expect(componentsArg.get('tab')).toBe('components');
+
+    const allArg = mockSearchAll.mock.calls[0]?.[0] as URLSearchParams;
+    expect(allArg).toBeInstanceOf(URLSearchParams);
+    expect(allArg.get('offset')).toBe('0');
+    expect(allArg.get('limit')).toBe('1');
+    expect(allArg.get('query')).toBe('axios');
+  });
+
+  it('reads byType counts from the plural keys (components/vulnerabilities) returned by the backend', async () => {
+    mockSearchAll.mockResolvedValue({
+      hits: [], total: 0, offset: 0, limit: 1,
+      aggregations: { byType: { components: 150, vulnerabilities: 2 } },
+    } as SearchResponse);
+    mockSearchComponents.mockResolvedValue(makeComponentsResponse(150, 0));
+
+    render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=components&query=keycloak'] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('cmp:150')).toBeInTheDocument();
+      expect(screen.getByText('vul:2')).toBeInTheDocument();
+    });
+  });
+
+  it('Vulnerabilities tab: calls searchAll with offset=0&limit=1 for cross-tab totals', async () => {
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+    mockSearchVulnerabilities.mockResolvedValue(makeVulnerabilitiesResponse(3, 3));
+
+    render(<SearchPage />, {
+      routerOptions: { initialEntries: ['/search?tab=vulnerabilities&query=cve-2024'] },
+    });
+
+    await waitFor(() => {
+      expect(mockSearchVulnerabilities).toHaveBeenCalled();
+      expect(mockSearchAll).toHaveBeenCalled();
+    });
+
+    const allArg = mockSearchAll.mock.calls[0]?.[0] as URLSearchParams;
+    expect(allArg).toBeInstanceOf(URLSearchParams);
+    expect(allArg.get('offset')).toBe('0');
+    expect(allArg.get('limit')).toBe('1');
+    expect(allArg.get('query')).toBe('cve-2024');
   });
 });

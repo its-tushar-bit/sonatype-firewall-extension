@@ -16,7 +16,12 @@ describe('TopNavigation', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, headers: new Headers() });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers(),
+      json: async () => ({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} }),
+    });
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
   });
 
@@ -79,6 +84,31 @@ describe('TopNavigation', () => {
       const form = input.closest('form');
       expect(form).not.toBeNull();
       expect(form?.getAttribute('action')).toBe('/search');
+    });
+  });
+
+  it('forwards typed query to the global search endpoint as URLSearchParams', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
+
+    const input = await screen.findByPlaceholderText(/search components and vulnerabilities/i);
+    const user = userEvent.setup();
+    await user.type(input, 'lodash');
+
+    await waitFor(() => {
+      const searchCall = fetchMock.mock.calls.find(
+        ([url]) => typeof url === 'string' && url.startsWith('/api/v2/guide/global/search')
+      );
+      expect(searchCall).toBeDefined();
+      const url = searchCall![0] as string;
+      const params = new URLSearchParams(url.split('?')[1] ?? '');
+      expect(params.get('query')).toBe('lodash');
+      expect(url).not.toContain('[object Object]');
     });
   });
 

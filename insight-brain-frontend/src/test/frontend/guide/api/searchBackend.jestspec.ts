@@ -5,54 +5,76 @@
  */
 
 import { searchAll } from 'GuideRoot/api/searchBackend';
+import { ApiError } from 'GuideRoot/api/apiFetch';
+
+const realFetch = global.fetch;
+const mockFetch = jest.fn();
+
+beforeAll(() => {
+  global.fetch = mockFetch as unknown as typeof global.fetch;
+});
+
+afterAll(() => {
+  global.fetch = realFetch;
+});
+
+beforeEach(() => {
+  mockFetch.mockReset();
+});
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: status === 200 ? 'OK' : 'Error',
+    json: async () => body,
+  } as unknown as Response;
+}
 
 describe('searchBackend', () => {
   describe('searchAll', () => {
-    it('returns mixed component and vulnerability hits with default limit', async () => {
-      const result = await searchAll();
+    it('calls the global search endpoint with searchParams.toString() appended and returns the parsed JSON body', async () => {
+      const fakeResponse = {
+        hits: [{ format: 'npm', originId: 'lodash', name: 'lodash', version: '4.17.21' }],
+        total: 1,
+        offset: 0,
+        limit: 10,
+        aggregations: { byType: { component: 1, vulnerability: 0 } },
+      };
+      mockFetch.mockResolvedValue(jsonResponse(fakeResponse));
 
-      expect(result.hits.length).toBeGreaterThan(0);
-      expect(result.hits.length).toBeLessThanOrEqual(25);
-      expect(result.offset).toBe(0);
-      expect(result.limit).toBe(25);
-      expect(result.total).toBeGreaterThan(0);
-      expect(result.aggregations).toBeDefined();
+      const params = new URLSearchParams('query=lodash&limit=10&formats=npm&publishedWindow=30d');
+      const result = await searchAll(params);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe('/api/v2/guide/global/search?query=lodash&limit=10&formats=npm&publishedWindow=30d');
+      expect(result).toEqual(fakeResponse);
     });
 
-    it('filters hits by case-insensitive query against name / vulnId / summary', async () => {
-      const result = await searchAll({ query: 'left-pad' });
+    it('throws ApiError with the response status on a non-2xx response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: async () => { throw new Error('not json'); },
+      } as unknown as Response);
 
-      expect(result.hits.length).toBeGreaterThan(0);
-      expect(result.hits.every((h) => {
-        if ('name' in h) return (h.name ?? '').toLowerCase().includes('left-pad');
-        return (h.vulnId ?? '').toLowerCase().includes('left-pad') ||
-               (h.summary ?? '').toLowerCase().includes('left-pad');
-      })).toBe(true);
+      await expect(searchAll(new URLSearchParams('query=lodash'))).rejects.toMatchObject({
+        name: 'ApiError',
+        status: 503,
+      });
+      await expect(searchAll(new URLSearchParams('query=lodash'))).rejects.toBeInstanceOf(ApiError);
     });
 
-    it('respects offset and limit', async () => {
-      const page1 = await searchAll({ options: { offset: 0, limit: 5 } });
-      const page2 = await searchAll({ options: { offset: 5, limit: 5 } });
+    it('forwards repeated formats entries verbatim', async () => {
+      mockFetch.mockResolvedValue(jsonResponse({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} }));
 
-      expect(page1.hits).toHaveLength(5);
-      expect(page2.hits).toHaveLength(5);
-      expect(page1.total).toBe(page2.total);
-      const ident = (h: typeof page1.hits[number]) => 'name' in h ? `c:${h.originId}` : `v:${h.vulnId}`;
-      const overlap = page1.hits.map(ident).filter((id) => page2.hits.map(ident).includes(id));
-      expect(overlap).toHaveLength(0);
-    });
+      const params = new URLSearchParams([['formats', 'maven'], ['formats', 'npm']]);
+      await searchAll(params);
 
-    it('aggregates byType reflecting the filtered hits', async () => {
-      // Use a large limit so hits == filtered set; aggregations are computed over the
-      // entire filtered set (pre-pagination), so we need every match in the page to
-      // assert byType counts directly.
-      const result = await searchAll({ query: 'left-pad', options: { limit: 1000 } });
-
-      const components = result.hits.filter((h) => 'name' in h).length;
-      const vulns = result.hits.filter((h) => 'vulnId' in h && !('name' in h)).length;
-
-      expect(result.aggregations?.byType?.component ?? 0).toBe(components);
-      expect(result.aggregations?.byType?.vulnerability ?? 0).toBe(vulns);
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe('/api/v2/guide/global/search?formats=maven&formats=npm');
     });
   });
 });

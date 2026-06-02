@@ -9,13 +9,13 @@
  * Parameterized pipeline for regional production deployments.
  *
  * This job is shared by the regional production deployments (us-1, us-2, eu-1).
- * Each regional Jenkins job passes in the appropriate parameters.
+ * Each regional Jenkins job configures the default values for CELL_WORKSPACES and
+ * GLOBAL_WORKSPACE. Only IMAGE_TAG must be passed in at build time.
  *
  * Parameters:
- *   IMAGE_TAG - The prod ECR tag to deploy (must have a prod-internal-verified-* tag)
- *   REGION - The region identifier (e.g., 'us-1', 'us-2', 'eu-1')
- *   CELL_WORKSPACES - Comma-separated TFC workspace names for this region
- *   GLOBAL_WORKSPACE - The global TFC workspace name (must be configured in the Jenkins job definition)
+ *   IMAGE_TAG (required) - The prod ECR tag to deploy (must have a prod-internal-verified-* tag)
+ *   CELL_WORKSPACES - Comma-separated TFC workspace names; defaults from Jenkins job config
+ *   GLOBAL_WORKSPACE - The global TFC workspace name; defaults to sca_aws_prod_global
  *
  * Jenkins job path: insight/MTIQ/sca-cloud/deploy-to-prod-{region}
  *   - deploy-to-prod-us-1
@@ -29,12 +29,12 @@ pipeline {
   parameters {
     string(name: 'IMAGE_TAG',
            description: 'The prod ECR tag to deploy (must be a prod-internal-verified-* tag)')
-    string(name: 'REGION',
-           description: 'The region identifier (e.g., us-1, us-2, eu-1)')
     string(name: 'CELL_WORKSPACES',
-           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-us-1)')
+           defaultValue: params.CELL_WORKSPACES ?: '',
+           description: 'Comma-separated TFC workspace names for this region (e.g., sca_aws_prod_cell-prod-us-1). Defaults from Jenkins job config.')
     string(name: 'GLOBAL_WORKSPACE',
-           description: 'The global TFC workspace name (e.g., sca_aws_prod_global)')
+           defaultValue: params.GLOBAL_WORKSPACE ?: 'sca_aws_prod_global',
+           description: 'The global TFC workspace name. Defaults from Jenkins job config.')
   }
 
   options {
@@ -53,16 +53,12 @@ pipeline {
           if (!params.IMAGE_TAG?.trim()) {
             error 'IMAGE_TAG parameter is required'
           }
-          if (!params.REGION?.trim()) {
-            error 'REGION parameter is required'
-          }
           if (!params.CELL_WORKSPACES?.trim()) {
             error 'CELL_WORKSPACES parameter is required'
           }
           if (!params.GLOBAL_WORKSPACE?.trim()) {
             error 'GLOBAL_WORKSPACE parameter is required'
           }
-          echo "Production deployment for region: ${params.REGION}"
           echo "Image tag: ${params.IMAGE_TAG}"
           echo "Cell workspaces: ${params.CELL_WORKSPACES}"
           echo "Global workspace: ${params.GLOBAL_WORKSPACE}"
@@ -120,7 +116,7 @@ pipeline {
 
     stage('Approval') {
       steps {
-        input message: "Approve deployment to production ${params.REGION}?",
+        input message: "Approve deployment to production [${params.CELL_WORKSPACES}]?",
               ok: 'Deploy'
       }
     }
@@ -135,7 +131,7 @@ pipeline {
             // Parse comma-separated workspaces into a list
             def workspaces = params.CELL_WORKSPACES.split(',').collect { it.trim() }
 
-            tfc.deployCells("production-${params.REGION}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+            tfc.deployCells("production-${params.CELL_WORKSPACES}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
           }
         }
       }
@@ -146,25 +142,25 @@ pipeline {
   post {
     success {
       script {
-        echo "deploy-to-prod-region (${params.REGION}): Deployed ${params.IMAGE_TAG}"
+        echo "deploy-to-prod-region (${params.CELL_WORKSPACES}): Deployed ${params.IMAGE_TAG}"
         notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
-                   message: "Production ${params.REGION} deployment SUCCESS: ${params.IMAGE_TAG}")
+                   message: "Production [${params.CELL_WORKSPACES}] deployment SUCCESS: ${params.IMAGE_TAG}")
       }
     }
     failure {
       script {
-        echo "deploy-to-prod-region (${params.REGION}): FAILED for ${params.IMAGE_TAG}"
+        echo "deploy-to-prod-region (${params.CELL_WORKSPACES}): FAILED for ${params.IMAGE_TAG}"
 
         echo "============================================"
         echo "ROLLBACK INSTRUCTIONS"
         echo "============================================"
         echo "1. Identify the previous known-good image tag from prod ECR"
-        echo "2. Re-run this job with the previous tag for region ${params.REGION}, or"
+        echo "2. Re-run this job with the previous tag for [${params.CELL_WORKSPACES}], or"
         echo "3. Manually update the TFC workspace variable and apply"
         echo "============================================"
 
         notifyChat(currentBuild: currentBuild, env: env, room: 'mtiq-notices',
-                   message: "Production ${params.REGION} deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
+                   message: "Production [${params.CELL_WORKSPACES}] deployment FAILED: ${params.IMAGE_TAG}. Check logs for rollback instructions.")
       }
     }
     cleanup {

@@ -1451,6 +1451,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("AUTOMATIC_SCM_CONFIGURATION", true);
     expectedFeatureConfigMap.put("autoWaivers", true);
     expectedFeatureConfigMap.put("BUILT_FROM_SOURCE", false);
+    expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI", false);
     expectedFeatureConfigMap.put("cleanUpSbomContinuousMonitoringReport", true);
     expectedFeatureConfigMap.put("codeInsights", true);
     expectedFeatureConfigMap.put("componentChangeDetectionApi", false);

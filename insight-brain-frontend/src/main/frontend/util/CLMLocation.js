@@ -1895,6 +1895,10 @@ export function getGitHubAppManifestUrl(ownerId, organizationName) {
   return organizationName ? `${baseUrl}&organizationName=${encodeURIComponent(organizationName)}` : baseUrl;
 }
 
+export function getReachabilityEvidenceUrl(applicationPublicId, reportId, vulnerabilityId) {
+  return uriTemplate`/api/v2/applications/${applicationPublicId}/reports/${reportId}/vulnerabilities/${vulnerabilityId}/reachability-evidence`;
+}
+
 export function getGitHubAppsListUrl(ownerId) {
   return uriTemplate`/api/v2/githubApp?ownerId=${ownerId}`;
 }

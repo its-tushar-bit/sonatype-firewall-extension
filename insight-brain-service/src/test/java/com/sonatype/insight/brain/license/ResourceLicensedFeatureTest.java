@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityAnalysisDataR
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityCustomDataResource;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilityGroupResource;
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureResource;
+import com.sonatype.insight.brain.api.v2.reachability.ApiReachabilityEvidenceResource;
 import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsResource;
 import com.sonatype.insight.brain.api.v2.ApiApplicationCategoryResource;
 import com.sonatype.insight.brain.api.v2.ApiComponentDetailsResourceV2;
@@ -112,6 +113,7 @@ public class ResourceLicensedFeatureTest
     map.put(PolicyEvaluationSummaryResource.class, LicensedFeature.APPLICATION_REPORTS);
 
     map.put(ApiCallFlowAnalysisConfigResource.class, LicensedFeature.CALL_FLOW_ANALYSIS);
+    map.put(ApiReachabilityEvidenceResource.class, LicensedFeature.CALL_FLOW_ANALYSIS);
     map.put(ApiVulnerabilitySignatureResource.class, LicensedFeature.CALL_FLOW_ANALYSIS);
 
     map.put(ApiComponentDetailsResourceV2.class, LicensedFeature.COMPONENT_EVALUATION);

@@ -134,7 +134,8 @@ public class ApplicationReport
     // HDS, under some conditions, can also add thirdparty-bom.json and thirdparty-security.json to the report.zip
     THIRD_PARTY_BOM_JSON("thirdparty-bom.json", Set.of(ORIGINAL, CACHE, ADDITIONAL)),
     THIRD_PARTY_SECURITY_JSON("thirdparty-security.json", Set.of(ORIGINAL, CACHE, ADDITIONAL)),
-    THIRD_PARTY_LICENSE_JSON("thirdparty-license.json", Set.of(ADDITIONAL));
+    THIRD_PARTY_LICENSE_JSON("thirdparty-license.json", Set.of(ADDITIONAL)),
+    REACHABILITY_EVIDENCE_JSON("reachability-evidence.json", Set.of(CACHE));
 
     private static final Map<String, ReportFile> BY_NAME = new HashMap<>();
 

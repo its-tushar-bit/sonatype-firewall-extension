@@ -315,7 +315,7 @@ public class FileApplicationReportPersistenceService
         log.debug("Original report for application {} and scan {} written to temp file {} successfully",
             applicationId, scanId, tempPath);
 
-        Files.move(tempPath, finalPath);
+        Files.move(tempPath, finalPath, StandardCopyOption.REPLACE_EXISTING);
         log.debug("Original report for application {} and scan {} moved to permanent location: {}",
             applicationId, scanId, finalPath);
       }
@@ -469,7 +469,12 @@ public class FileApplicationReportPersistenceService
     ReportEntity entity = getLocalCopyReportEntity(applicationId, scanId, name);
 
     if (!entity.exists()) {
-      createLocalCopyFromOriginal(applicationId, scanId, name);
+      try {
+        createLocalCopyFromOriginal(applicationId, scanId, name);
+      }
+      catch (java.nio.file.FileAlreadyExistsException ignored) {
+        // concurrent request already created the file — safe to proceed
+      }
     }
 
     return entity;
@@ -499,7 +504,7 @@ public class FileApplicationReportPersistenceService
     try (var zipFile = openZipFile(applicationId, scanId)) {
       ZipEntry entry = zipFile.getEntry(name);
       if (entry != null) {
-        Files.copy(zipFile.getInputStream(entry), localCopyPath);
+        Files.copy(zipFile.getInputStream(entry), localCopyPath, StandardCopyOption.REPLACE_EXISTING);
       }
     }
   }

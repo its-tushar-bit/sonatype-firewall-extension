@@ -20,4 +20,6 @@ public class ApiHostedRepositoryComponentListDTO
   public boolean hasNextPage;
 
   public String repositoryPublicId;
+
+  public boolean hasQueuedScans;
 }

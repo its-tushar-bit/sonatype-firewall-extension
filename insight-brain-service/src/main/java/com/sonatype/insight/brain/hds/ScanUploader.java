@@ -73,7 +73,7 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  ScanReceipt upload(
+  public ScanReceipt upload(
       ScanEntity scanEntity,
       Application application,
       String stageTypeId,
@@ -155,7 +155,9 @@ public class ScanUploader
     AuditData.get().setScanId(receipt.getScanId());
 
     // HDS knows nothing about where CLM Server stores reports, add this info to the receipt.
-    if (StageTypes.COMPLIANCE.getId().equals(stageTypeId) && thirdPartyScanContext.getApplicationVersion() != null) {
+    if (StageTypes.COMPLIANCE.getId().equals(stageTypeId) && thirdPartyScanContext != null
+        && thirdPartyScanContext.getApplicationVersion() != null)
+    {
       updateReceiptForCompliance(applicationPublicId, receipt, thirdPartyScanContext);
     }
     else {

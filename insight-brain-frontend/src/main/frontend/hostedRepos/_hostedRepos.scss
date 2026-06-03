@@ -199,6 +199,12 @@
   }
 }
 
+#iq-hosted-repos-components-page {
+  .nx-alert {
+    max-width: 100%;
+  }
+}
+
 .iq-hosted-repos-components {
   &__back-link {
     display: inline-flex;

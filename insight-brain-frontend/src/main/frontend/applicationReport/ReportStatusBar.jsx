@@ -30,7 +30,12 @@ export default function ReportStatusBar(props) {
   const legacyPolicyViolationsCount =
     getReportProp('legacyViolationCount') || getReportProp('grandfatheredPolicyViolationCount');
   const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
-  const { totalApplicationRisk, isDeveloperDashboardEnabled, isContainerImagesEvaluation = false } = props;
+  const {
+    totalApplicationRisk,
+    isDeveloperDashboardEnabled,
+    isContainerImagesEvaluation = false,
+    isHostedRepoComponent = false,
+  } = props;
   const risk = !isNil(totalApplicationRisk) && totalApplicationRisk >= 0 ? totalApplicationRisk : 'N/A';
 
   const showSectionDefault = (propName) => propOr(true, propName, props);
@@ -90,7 +95,7 @@ export default function ReportStatusBar(props) {
               <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>
             </div>
           </div>
-          {!isContainerImagesEvaluation && showLegacyViolationsSection && (
+          {!isContainerImagesEvaluation && showLegacyViolationsSection && !isHostedRepoComponent && (
             <div className="iq-legacy-violations-indicator">
               <NxFontAwesomeIcon icon={faHistory} />
               <div className="iq-caption">
@@ -120,7 +125,7 @@ export default function ReportStatusBar(props) {
                 </div>
                 <div className="iq-application-risk-score--desc">
                   <div className="iq-application-risk-score--desc-title">
-                    {isContainerImagesEvaluation ? 'CONTAINER' : 'APP'} RISK SCORE
+                    {isContainerImagesEvaluation ? 'CONTAINER' : isHostedRepoComponent ? 'REPOSITORY COMPONENT' : 'APP'} RISK SCORE
                   </div>
                   <button className="nx-text-link" onClick={toggleShowApplicationRiskScoreModal}>
                     Learn more
@@ -163,4 +168,5 @@ ReportStatusBar.propTypes = {
   totalApplicationRisk: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   isDeveloperDashboardEnabled: PropTypes.bool,
   isContainerImagesEvaluation: PropTypes.bool,
+  isHostedRepoComponent: PropTypes.bool,
 };

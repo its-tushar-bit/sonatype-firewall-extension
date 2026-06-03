@@ -153,6 +153,18 @@ public class RepositoryComponentDAO
         .fetch(this::toEntity);
   }
 
+  public RepositoryComponent getByScanId(String scanId) {
+    if (scanId == null) {
+      return null;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.SCAN_ID.eq(scanId))
+          .fetchOne());
+    }
+  }
+
   public RepositoryComponent getByRepositoryIdAndPathname(String repositoryId, String pathname) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryIdAndPathname(tx, repositoryId, pathname);
@@ -1077,6 +1089,48 @@ public class RepositoryComponentDAO
     tx.dsl()
         .update(REPOSITORY_COMPONENT)
         .set(REPOSITORY_COMPONENT.COMPONENT_ID, componentId)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  public void stampScanId(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final String scanId)
+  {
+    tx.dsl()
+        .update(REPOSITORY_COMPONENT)
+        .set(REPOSITORY_COMPONENT.SCAN_ID, scanId)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  public void stampComponentCount(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final int componentCount)
+  {
+    tx.dsl()
+        .update(REPOSITORY_COMPONENT)
+        .set(REPOSITORY_COMPONENT.COMPONENT_COUNT, componentCount)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  public void stampLastEvaluationStage(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final String stage)
+  {
+    tx.dsl()
+        .update(REPOSITORY_COMPONENT)
+        .set(REPOSITORY_COMPONENT.LAST_EVALUATION_STAGE, stage)
         .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();

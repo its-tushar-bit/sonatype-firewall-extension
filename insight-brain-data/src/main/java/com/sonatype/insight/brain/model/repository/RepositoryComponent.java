@@ -74,8 +74,14 @@ public class RepositoryComponent
   @Column(name = "component_id")
   private String componentId;
 
+  @Column(name = "scan_id")
+  private String scanId;
+
   @Column(name = "last_evaluation_stage")
   private String lastEvaluationStage;
+
+  @Column(name = "component_count")
+  private Integer componentCount;
 
   public RepositoryComponent() {
   }
@@ -221,12 +227,28 @@ public class RepositoryComponent
     this.componentId = componentId;
   }
 
+  public String getScanId() {
+    return scanId;
+  }
+
+  public void setScanId(final String scanId) {
+    this.scanId = scanId;
+  }
+
   public String getLastEvaluationStage() {
     return lastEvaluationStage;
   }
 
   public void setLastEvaluationStage(final String lastEvaluationStage) {
     this.lastEvaluationStage = lastEvaluationStage;
+  }
+
+  public Integer getComponentCount() {
+    return componentCount;
+  }
+
+  public void setComponentCount(final Integer componentCount) {
+    this.componentCount = componentCount;
   }
 
   public String getDisplayName() {

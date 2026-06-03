@@ -102,11 +102,15 @@ export default function ReportPage() {
     ? 'N/A'
     : applicationReport.metadata.totalRisk;
 
+  const { origin } = routerCurrentParams;
+  const isHostedRepoComponent = origin === 'hostedRepoComponents';
+
   const reportStatusBarProps = {
     ...selectedReport,
     totalApplicationRisk,
     isDeveloperDashboardEnabled,
     isContainerImagesEvaluation,
+    isHostedRepoComponent,
   };
 
   useEffect(() => {
@@ -201,7 +205,16 @@ function BackButton() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const repositoryId = pathOr('', ['application', 'organization', 'relatedRepositoryId'], metadataDetails);
 
-  const { publicId, scanId, origin } = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, origin, repositoryManagerId, repositoryId: hostedRepositoryId, repositoryPublicId } = useSelector(selectRouterCurrentParams);
+
+  if (origin === 'hostedRepoComponents') {
+    const backHref = uiRouterState.href('hostedRepoComponents', {
+      repositoryManagerId,
+      repositoryId: hostedRepositoryId,
+      repositoryPublicId,
+    });
+    return <MenuBarBackButton href={backHref} text="Back to Repository Components" />;
+  }
 
   if (isPrioritiesPageContainer) {
     const prioritiesPageHref = uiRouterState.href(prioritiesPageName, {

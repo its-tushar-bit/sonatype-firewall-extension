@@ -20,7 +20,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ReportDataStore
 {
   @FunctionalInterface
-  interface DownloadReportPostAction
+  public interface DownloadReportPostAction
   {
     void apply(String scanId, ApplicationReport tempApplicationReport, String appId) throws IOException;
   }
@@ -68,6 +68,15 @@ public class ReportDataStore
 
   public BaseReportEntity getVulnerabilitySignatureJson(final String applicationId, final String scanId) {
     return applicationReportPersistenceService.getVulnerabilitySignaturesEntity(applicationId, scanId);
+  }
+
+  public void saveReportFile(
+      final String appId,
+      final String scanId,
+      final String name,
+      final java.io.InputStream content) throws java.io.IOException
+  {
+    applicationReportPersistenceService.saveReportFile(appId, scanId, name, content);
   }
 
   public void deleteReportPdf(final String appId, final String scanId) throws IOException {

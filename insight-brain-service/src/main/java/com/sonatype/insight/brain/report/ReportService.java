@@ -23,8 +23,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.io.ByteArrayInputStream;
+import java.nio.file.FileAlreadyExistsException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Provider;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -51,7 +54,18 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.repository.hosted.HostedReportFileBuilder;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -96,6 +110,7 @@ import com.sonatype.insight.brain.utils.JacksonNodeUtils;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import jakarta.ws.rs.InternalServerErrorException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -185,6 +200,16 @@ public class ReportService
 
   private final ScanPersistenceService scanPersistenceService;
 
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider;
+
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -213,7 +238,12 @@ public class ReportService
       final ScanUploadService scanUploadService,
       final AutomatedPullRequestCreationService automatedPullRequestCreationService,
       final CpeMatchingConfigurationService cpeMatchingConfigurationService,
-      final ScanPersistenceService scanPersistenceService)
+      final ScanPersistenceService scanPersistenceService,
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      final RepositoryDAO repositoryDAO,
+      final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
+      final ApplicationReportPersistenceService applicationReportPersistenceService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -242,6 +272,11 @@ public class ReportService
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
     this.scanPersistenceService = scanPersistenceService;
+    this.repositoryComponentDAO = repositoryComponentDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
   }
 
   @Trace
@@ -342,6 +377,55 @@ public class ReportService
     }
   }
 
+  public boolean isHostedRepositoryComponent(final String scanId) {
+    return repositoryComponentDAO.getByScanId(scanId) != null;
+  }
+
+  public boolean isHostedScan(final String scanId, final String appId) {
+    if (isHostedRepositoryComponent(scanId)) {
+      return true;
+    }
+    PolicyEvaluation pe = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    return pe != null && ScanTriggerType.REPOSITORY_MANAGER == pe.getScanTriggerType();
+  }
+
+  public void reevaluateHostedComponent(final String appId, final String scanId) {
+    RepositoryComponent component = repositoryComponentDAO.getByScanId(scanId);
+    if (component == null) {
+      throw new NotFoundException("No hosted component found for scanId: " + scanId);
+    }
+    Repository repository = repositoryDAO.getById(component.getRepositoryId());
+    if (repository == null) {
+      throw new NotFoundException("Repository not found for component scanId: " + scanId);
+    }
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
+    String stageTypeId = lastEval != null ? lastEval.getStageTypeId() : ComplianceStageType.ID;
+    String format = component.getComponentIdentifier() != null
+        ? component.getComponentIdentifier().getFormat()
+        : repository.getFormat();
+    RepositoryComponentEvaluationDataRequestList request =
+        new RepositoryComponentEvaluationDataRequestList("INITIAL_SCAN");
+    if (component.getPathname() == null || component.getHash() == null) {
+      throw new NotFoundException("Component for scanId " + scanId + " is missing pathname or hash");
+    }
+    request.components.add(
+        new RepositoryComponentEvaluationDataRequest(format, component.getPathname(), component.getHash()));
+    // skipAutoWaivers is not forwarded — RepositoryPolicyEvaluator.evaluate does not support it.
+    // Callers passing skipAutoWaivers=true via ReportResource will have it silently ignored for hosted scans.
+    log.debug("reevaluateHostedComponent: skipAutoWaivers not supported for hosted scans, appId={} scanId={}", appId,
+        scanId);
+    repositoryPolicyEvaluatorProvider.get().evaluate(repository, request, false, null, stageTypeId);
+    try {
+      saveOverlayFiles(appId, scanId);
+    }
+    catch (RuntimeException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      throw new InternalServerErrorException("Failed to save overlay files for scanId=" + scanId, e);
+    }
+  }
+
   @Authorize(permission = Permission.READ)
   public ReportEntry processBrowseReport(
       final @AuthzContext(Key.APPLICATION_ID) String appId,
@@ -350,7 +434,17 @@ public class ReportService
   {
     final String name = toEntryName(path);
     auditBrowseReport(scanId, name);
-    final ApplicationReport applicationReport = getReport(appId, scanId);
+    ApplicationReport applicationReport = getReport(appId, scanId);
+    try {
+      if (!applicationReport.exists() && isHostedScan(scanId, appId)) {
+        applicationReport = reportDataStore.downloadReport(
+            applicationDAO.getByIdNotNull(appId), scanId, (sid, r, aid) -> {
+            });
+      }
+    }
+    catch (Exception e) {
+      log.debug("Could not download report for appId={} scanId={}: {}", appId, scanId, e.getMessage());
+    }
     ReportEntry reportEntry = null;
     try {
       if (SECURITY_JSON.getName().equals(name)) {
@@ -426,15 +520,68 @@ public class ReportService
     }
 
     if (exists) {
+      // Consumer pre-generates overlay files — if policythreats.json is still missing
+      // (e.g. consumer failed partway), regenerate it from DB without re-downloading the zip.
       return applicationReport;
     }
 
-    if (policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId) != null) {
+    PolicyEvaluation lastEval = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    if (lastEval != null) {
+      // Report zip missing — consumer failed before downloading it. Download now as recovery.
+      if (isHostedScan(scanId, app.getId())) {
+        try {
+          reportDataStore.downloadReport(app, scanId, (sid, r, aid) -> {
+          });
+        }
+        catch (FileAlreadyExistsException ignored) {
+          // concurrent recovery request already downloaded it
+        }
+        catch (Exception e) {
+          log.debug("HDS report unavailable for recovery scanId={}: {}", scanId, e.getMessage());
+        }
+        try {
+          saveOverlayFiles(app.getId(), scanId);
+        }
+        catch (Exception e) {
+          log.warn("Recovery: failed to save overlay files for scanId={}: {}", scanId, e.getMessage());
+        }
+        applicationReport = reportDataStore.getApplicationReport(app, scanId);
+        try {
+          if (applicationReport.exists()) {
+            return applicationReport;
+          }
+        }
+        catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
       throw new NotFoundException("The report for application ID " + app.getId() + " and scan ID " + scanId
           + " does not exist. Usually this means the report was deemed obsolete"
           + " according to the data retention policies and hence purged to the trash.");
     }
     throw new NotFoundException("Could not find a report with ID " + scanId);
+  }
+
+  private void saveOverlayFiles(final String appId, final String scanId) throws Exception {
+    RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+    List<RepositoryPolicyViolation> violations = comp != null && comp.getPathname() != null
+        ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+            comp.getRepositoryId(), comp.getPathname())
+        : List.of();
+    for (String fileName : List.of("policythreats.json", "summary.json")) {
+      byte[] content = HostedReportFileBuilder.build(fileName, comp, violations);
+      applicationReportPersistenceService.saveReportFile(appId, scanId, fileName,
+          new ByteArrayInputStream(content));
+    }
+    // Patch bom.json displayName — required by PDF generator (ApiReportDataServiceV2:289 NPE)
+    Application application = applicationDAO.getByIdNotNull(appId);
+    ApplicationReport report = reportDataStore.getApplicationReport(application, scanId);
+    ReportEntry bomEntry = report != null ? report.getEntry("bom.json") : null;
+    if (bomEntry != null) {
+      byte[] patched = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf, comp);
+      applicationReportPersistenceService.saveReportFile(appId, scanId, "bom.json",
+          new ByteArrayInputStream(patched));
+    }
   }
 
   @Authorize(permission = Permission.READ)
@@ -459,7 +606,21 @@ public class ReportService
         DATA_JSON.getName(),
         TEMPLATE_PROPERTIES.getName(),
         SUMMARY_JSON.getName()));
-    final ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
+    ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
+    if (data.path("policyComponentCount").isMissingNode() && isHostedScan(scanId, application.getId())) {
+      try {
+        saveOverlayFiles(application.getId(), scanId);
+      }
+      catch (Exception e) {
+        log.warn("Recovery: failed to save overlay files for scanId={}: {}", scanId, e.getMessage());
+      }
+      applicationReport = getReport(application, scanId);
+      entries = applicationReport.getEntries(List.of(
+          DATA_JSON.getName(),
+          TEMPLATE_PROPERTIES.getName(),
+          SUMMARY_JSON.getName()));
+      data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
+    }
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
       throw new BadRequestException(
@@ -468,6 +629,9 @@ public class ReportService
     }
     PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
         scanId);
+    if (evaluation == null) {
+      return metadata;
+    }
 
     metadata.setReportTime(evaluation.getTime());
     metadata.setReportTitle(StageTypes.getById(evaluation.getStageTypeId()).getName() + " Report");
@@ -479,7 +643,19 @@ public class ReportService
     metadata.setForMonitoring(evaluation.isForMonitoring());
     metadata.setBranchName(evaluation.getBranchName());
 
-    if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
+    if (ScanTriggerType.REPOSITORY_MANAGER == evaluation.getScanTriggerType()) {
+      RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+      if (comp != null) {
+        List<RepositoryPolicyViolation> violations =
+            repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(comp.getRepositoryId(), comp.getPathname());
+        int totalRisk = violations.stream()
+            .filter(v -> !v.isWaived())
+            .mapToInt(RepositoryPolicyViolation::getThreatLevel)
+            .sum();
+        metadata.setTotalRisk(totalRisk);
+      }
+    }
+    else if (productLicense.hasFeature(LicensedFeature.DEVELOPER_DASHBOARD)) {
       final ApplicationRiskScoreDTO applicationRiskScoreDTO = applicationRiskService.getRiskForApp(application,
           Collections.singleton(StageTypes.getById(evaluation.getStageTypeId())));
       metadata.setTotalRisk(finalExtractTotalRiskOrDefault(applicationRiskScoreDTO));

@@ -34,4 +34,12 @@ public class ApiHostedRepositoryComponentDTO
   public int maxThreatLevel;
 
   public ComponentIdentifier componentIdentifier;
+
+  public String scanId;
+
+  public String applicationPublicId;
+
+  public String stageTypeId;
+
+  public Integer componentCount;
 }

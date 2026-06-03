@@ -636,6 +636,8 @@ CREATE TABLE repository_component (
   auto_unquarantined boolean,
   component_id varchar(255),
   last_evaluation_stage varchar(50),
+  scan_id varchar(50),
+  component_count integer,
   CONSTRAINT repository_component_pk PRIMARY KEY (repository_component_id),
   CONSTRAINT repository_component_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
   CONSTRAINT repository_component_uk UNIQUE (repository_id, pathname)
@@ -645,6 +647,7 @@ CREATE INDEX repository_component_repository_unquarantine_idx ON repository_comp
 CREATE INDEX repository_component_quarantine_idx ON repository_component(repository_id, quarantine_time);
 CREATE INDEX repository_component_release_quarantine_idx ON repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
 CREATE INDEX repository_component_component_coordinates_idx ON repository_component (component_id_format, component_id_coordinates_json);
+CREATE INDEX repository_component_scan_id_idx ON repository_component(scan_id);
 CREATE INDEX repository_component_last_evaluation_time_idx ON repository_component(last_evaluation_time);
 
 CREATE TABLE repository_policy_violation (

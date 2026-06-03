@@ -29,6 +29,20 @@ export function goToRepositoryComponentDetails(
   };
 }
 
-export function goToComponentReport(repositoryId) {
-  return stateGo('firewall.repository-report', { repositoryId });
+export function goToComponentReport(applicationPublicId, scanId, repositoryManagerId, repositoryId, repositoryPublicId) {
+  return stateGo('applicationReport.policy', {
+    publicId: applicationPublicId,
+    scanId,
+    origin: 'hostedRepoComponents',
+    repositoryManagerId,
+    repositoryId,
+    repositoryPublicId,
+  });
+}
+
+export function goToComponentPriorities(applicationPublicId, scanId) {
+  return stateGo('prioritiesPageFromReports', {
+    publicAppId: applicationPublicId,
+    scanId,
+  });
 }

@@ -62,6 +62,18 @@ export default function ComponentDetailsBackButton(props) {
     return <MenuBarBackButton href={href} text="Back to Priorities" />;
   }
 
+  if (prevParams?.origin === 'hostedRepoComponents') {
+    const href = uiRouterState.href('applicationReport.policy', {
+      publicId: currentParams.publicId,
+      scanId: currentParams.scanId,
+      origin: 'hostedRepoComponents',
+      repositoryManagerId: prevParams.repositoryManagerId,
+      repositoryId: prevParams.repositoryId,
+      repositoryPublicId: prevParams.repositoryPublicId,
+    });
+    return <MenuBarBackButton href={href} text="Back to Repository Component Report" />;
+  }
+
   return <MenuBarBackButton stateName="applicationReport.policy" />;
 }
 

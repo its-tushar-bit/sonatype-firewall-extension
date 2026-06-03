@@ -15,3 +15,4 @@ export const selectCurrentPage = createSelector(selectRepositoryComponentsSlice,
 export const selectFilter = createSelector(selectRepositoryComponentsSlice, prop('filter'));
 export const selectLoading = createSelector(selectRepositoryComponentsSlice, prop('loading'));
 export const selectError = createSelector(selectRepositoryComponentsSlice, prop('error'));
+export const selectHasQueuedScans = createSelector(selectRepositoryComponentsSlice, prop('hasQueuedScans'));

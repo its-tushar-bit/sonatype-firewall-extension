@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiHostedRepositoryComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiHostedRepositoryComponentListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiQueueStatsDTO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -91,11 +92,10 @@ public class ApiRepositoryComponentsService
             .filter(v -> v.getPathname() != null)
             .collect(Collectors.groupingBy(RepositoryPolicyViolation::getPathname));
 
-    List<ApiHostedRepositoryComponentDTO> dtos = paged.stream()
-        .map(c -> toComponentDTO(c, violationsByPathname.getOrDefault(c.getPathname(), List.of())))
-        .collect(Collectors.toList());
-
     String repositoryPublicId = repository != null ? repository.getPublicId() : null;
+    List<ApiHostedRepositoryComponentDTO> dtos = paged.stream()
+        .map(c -> toComponentDTO(c, violationsByPathname.getOrDefault(c.getPathname(), List.of()), repositoryPublicId))
+        .collect(Collectors.toList());
     ApiHostedRepositoryComponentListDTO result = new ApiHostedRepositoryComponentListDTO();
     result.components = dtos;
     result.totalCount = total;
@@ -103,6 +103,8 @@ public class ApiRepositoryComponentsService
     result.pageSize = effectivePageSize;
     result.repositoryPublicId = repositoryPublicId;
     result.hasNextPage = offset + paged.size() < total;
+    result.hasQueuedScans = repositoryComponentDAO.getRepositoryIdsWithQueuedScans(List.of(repositoryId))
+        .contains(repositoryId);
     return result;
   }
 
@@ -111,12 +113,12 @@ public class ApiRepositoryComponentsService
       String repositoryId,
       String componentId)
   {
-    validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
+    Repository repo = validateRepositoryBelongsToManager(repositoryManagerId, repositoryId);
     RepositoryComponent c = findComponent(repositoryId, componentId);
     List<RepositoryPolicyViolation> violations = c.getPathname() != null
         ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repositoryId, c.getPathname())
         : List.of();
-    return toComponentDTO(c, violations);
+    return toComponentDTO(c, violations, repo != null ? repo.getPublicId() : null);
   }
 
   public ApiComponentViolationListDTO getViolations(
@@ -189,7 +191,8 @@ public class ApiRepositoryComponentsService
 
   private ApiHostedRepositoryComponentDTO toComponentDTO(
       RepositoryComponent c,
-      List<RepositoryPolicyViolation> violations)
+      List<RepositoryPolicyViolation> violations,
+      String repositoryPublicId)
   {
     int maxThreat = violations.stream().mapToInt(RepositoryPolicyViolation::getThreatLevel).max().orElse(0);
     int critical =
@@ -213,6 +216,12 @@ public class ApiRepositoryComponentsService
     dto.moderateViolationCount = moderate;
     dto.maxThreatLevel = maxThreat;
     dto.componentIdentifier = c.getComponentIdentifier();
+    dto.scanId = c.getScanId();
+    dto.applicationPublicId = c.getScanId() != null
+        ? ApplicationForHostedRepositoryComponentService.generatePublicId(repositoryPublicId, c.getPathname())
+        : null;
+    dto.stageTypeId = c.getLastEvaluationStage();
+    dto.componentCount = c.getComponentCount();
     return dto;
   }
 }

@@ -80,7 +80,7 @@ export function isLegacyViolation(policy) {
 function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
   function makeEntriesForComponent(component) {
     const key = toKey(component),
-      bomComponent = bomDataByKey[key],
+      bomComponent = bomDataByKey[key] || component,
       makeEntryForViolation = (violation) => {
         const { waived, waivedWithAutoWaiver } = violation,
           legacyViolationStatus = isLegacyViolation(violation);

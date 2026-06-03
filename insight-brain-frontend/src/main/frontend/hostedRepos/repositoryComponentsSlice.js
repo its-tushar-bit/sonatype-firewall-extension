@@ -17,6 +17,7 @@ const initialState = {
   pageSize: DEFAULT_PAGE_SIZE,
   hasNextPage: false,
   repositoryPublicId: null,
+  hasQueuedScans: false,
   filter: '',
   loading: false,
   error: null,
@@ -65,6 +66,7 @@ const repositoryComponentsSlice = createSlice({
         state.pageSize = payload.pageSize;
         state.hasNextPage = payload.hasNextPage;
         state.repositoryPublicId = payload.repositoryPublicId || null;
+        state.hasQueuedScans = payload.hasQueuedScans || false;
       })
       .addCase(loadComponents.rejected, (state, { payload }) => {
         state.loading = false;

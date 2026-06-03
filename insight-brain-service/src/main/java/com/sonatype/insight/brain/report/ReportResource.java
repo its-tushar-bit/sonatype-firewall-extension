@@ -360,14 +360,19 @@ public class ReportResource
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     Organization organization = organizationDAO.getById(application.getOrganizationId());
 
+    String clientUserAgent = HdsClient.getClientUserAgent(request);
+    if (reportService.isHostedScan(scanId, application.getId())) {
+      checkEvaluateComponentPermission(application);
+
+      reportService.reevaluateHostedComponent(application.getId(), scanId);
+      return Response.ok().build();
+    }
     if (organization.getRelatedRepositoryId() == null) {
       checkEvaluateApplicationPermission(application);
     }
     else {
       checkEvaluateComponentPermission(application);
     }
-
-    String clientUserAgent = HdsClient.getClientUserAgent(request);
     PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
     Stage stage = new Stage(policyEvaluation.getStageTypeId());
     scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluation.getScanTriggerType(),

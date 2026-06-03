@@ -325,22 +325,20 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   public void testSaveOriginalReport_alreadyExists() throws Exception {
     helper.saveEmptyMockReport();
     try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
-      assertThatThrownBy(() -> service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream))
-          .isInstanceOf(IOException.class);
+      service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
     }
+    assertThat(helper.readFromOriginalFiles("bom.json")).isNotNull();
   }
 
   @Test
-  public void testSaveOriginalReport_cleansUpOnFailure() throws IOException {
+  public void testSaveOriginalReport_overwritesExistingZip() throws Exception {
     var service = mockForSaveOriginalReport_cleansUpOnFailure();
 
     try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
-      assertThatThrownBy(() -> service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream))
-          .isInstanceOf(IOException.class);
+      service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
     }
 
-    assertThat(helper.readFromOriginalFiles("bom.json")).isNull();
-    assertThat(helper.readFromOriginalFiles("index.html")).isNull();
+    assertThat(helper.readFromOriginalFiles("bom.json")).isNotNull();
   }
 
   @Test

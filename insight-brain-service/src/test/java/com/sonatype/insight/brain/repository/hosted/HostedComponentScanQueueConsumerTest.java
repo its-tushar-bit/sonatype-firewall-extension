@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -72,6 +73,9 @@ public class HostedComponentScanQueueConsumerTest
     consumer.disableForTesting = true;
     setHdsUrl(hdsMockServer.getHttpUrl());
     hdsMockServer.reset();
+    // Note: GET /rest/application/analysis/{scanId} is handled by the HDS mock built-in
+    // handler (returns 400 BadRequest). ReportDownloader only retries on NotFoundException
+    // and BadGatewayException — a 400 fails fast so jobs complete within the test window.
   }
 
   @After
@@ -470,6 +474,62 @@ public class HostedComponentScanQueueConsumerTest
   }
 
   @Test
+  public void executeJob_withNullApplication_usesRepositoryUploadPathAndDoesNotStampScanId() throws Exception {
+    // Unparsable scan content → componentInfo == null → application == null → uploadForRepository branch
+    HostedComponentScanQueue job = insertPendingJob("repo-null-app");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-null-app");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    // HDS was called (uploadForRepository path hit the same endpoint)
+    assertThat(hdsMockServer.getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)).isNotNull();
+
+    // scan_id must NOT be stamped — stampScanId is only called when application != null
+    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), "scan-content");
+    if (rc != null) {
+      assertThat(rc.getScanId()).isNull();
+    }
+  }
+
+  @Test
+  public void executeJob_withValidApplication_stampsScandIdOnRepositoryComponent() throws Exception {
+    // Create a non-root org with a linked repository so resolveOrganizationId returns non-null
+    Organization org = tempEntity.newOrganizationWithRepositoryManager("test-org-scanid");
+
+    // Valid scan XML → application created → upload branch → stampScanId called
+    HostedComponentScanQueue job = insertPendingJobWithScanXmlForOrg(
+        org, "comp-scanid",
+        "pkg:maven/com.example/lib@1.0.0", null,
+        "com/example/lib/1.0/lib-1.0.jar", "scanid_hash_001", "maven2");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-id-stamped");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    mockPolicyEvaluatorHdsResponse("scanid_hash_001");
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
+    assertThat(rc).isNotNull();
+    assertThat(rc.getScanId()).isEqualTo("scan-id-stamped");
+  }
+
+  @Test
   public void executeJob_usesPolicyEvaluationStageFromJob() throws Exception {
     HostedComponentScanQueue job = insertPendingJobWithScanXml(
         "repo-stage", "comp-stage",
@@ -537,6 +597,43 @@ public class HostedComponentScanQueueConsumerTest
         HostedComponentScanQueueDAO.Status.PENDING.name(),
         HostedComponentScanQueue.DEFAULT_PRIORITY,
         repo.getId());
+    queueDAO.insert(job);
+    return job;
+  }
+
+  /**
+   * Inserts a job using the repository already linked to the given org, so resolveOrganizationId returns non-null.
+   */
+  private HostedComponentScanQueue insertPendingJobWithScanXmlForOrg(
+      final Organization org,
+      final String componentId,
+      final String purl,
+      final String policyEvaluationStage,
+      final String pathname,
+      final String sha1,
+      final String format) throws Exception
+  {
+    String repoId = org.getRelatedRepositoryId();
+    tempEntity.newRepositoryComponent(repoId);
+
+    String scanXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<scan version=\"2.24\">\n" +
+        "<repository id=\"" + repoId + "\" name=\"" + repoId + "\" format=\"" + format + "\"/>\n" +
+        "<dir path=\"" + pathname + "\" sha1=\"" + sha1 + "\" sha512=\"ignored\">\n</dir>\n" +
+        "</scan>";
+
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(repoId);
+    try (OutputStream out = scanEntity.getOutputStream()) {
+      out.write(scanXml.getBytes(StandardCharsets.UTF_8));
+    }
+
+    HostedComponentScanQueue job = new HostedComponentScanQueue(
+        componentId, scanEntity.getName(),
+        HostedComponentScanQueueDAO.Status.PENDING.name(),
+        HostedComponentScanQueue.DEFAULT_PRIORITY,
+        repoId);
+    job.setPurl(purl);
+    job.setPolicyEvaluationStage(policyEvaluationStage);
     queueDAO.insert(job);
     return job;
   }

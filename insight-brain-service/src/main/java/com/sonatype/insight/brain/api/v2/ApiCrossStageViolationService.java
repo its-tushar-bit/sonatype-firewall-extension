@@ -27,16 +27,22 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -47,6 +53,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class ApiCrossStageViolationService
 {
   private final PolicyViolationDAO policyViolationDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final RepositoryDAO repositoryDAO;
+
+  private final ApplicationDAO applicationDAO;
 
   private final ApplicationService applicationService;
 
@@ -65,6 +77,9 @@ public class ApiCrossStageViolationService
   @Inject
   public ApiCrossStageViolationService(
       PolicyViolationDAO policyViolationDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      RepositoryDAO repositoryDAO,
+      ApplicationDAO applicationDAO,
       ApplicationService applicationService,
       OrganizationDAO organizationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
@@ -72,6 +87,9 @@ public class ApiCrossStageViolationService
       OwnerDAO ownerDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.repositoryDAO = repositoryDAO;
+    this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -103,6 +121,11 @@ public class ApiCrossStageViolationService
     PolicyViolation constituentViolation = policyViolationDAO.getById(constituentId);
 
     if (constituentViolation == null) {
+      RepositoryPolicyViolation repoViolation =
+          repositoryPolicyViolationDAO.getByIdWithConstraintFacts(constituentId);
+      if (repoViolation != null) {
+        return createDtoFromRepositoryViolation(repoViolation);
+      }
       throwNotFound(constituentId);
     }
 
@@ -307,6 +330,51 @@ public class ApiCrossStageViolationService
     stageData.actionTypeId = policyViolation.getActionTypeId();
 
     return stageData;
+  }
+
+  private ApiCrossStageViolationDTOV2 createDtoFromRepositoryViolation(
+      final RepositoryPolicyViolation violation)
+  {
+    Repository repository = repositoryDAO.getById(violation.getRepositoryId());
+    String repoPublicId = repository != null ? repository.getPublicId() : null;
+    String appPublicId = ApplicationForHostedRepositoryComponentService
+        .generatePublicId(repoPublicId, violation.getPathname());
+    Application app = applicationDAO.getByPublicId(appPublicId);
+    if (app == null) {
+      throwNotFound(violation.getId());
+    }
+    Organization org = organizationDAO.getById(app.getOrganizationId());
+    Policy policy = policyDAO.getById(violation.getPolicyId());
+    Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
+
+    ApiCrossStageViolationDTOV2 dto = new ApiCrossStageViolationDTOV2();
+    dto.policyViolationId = violation.getId();
+    dto.applicationPublicId = app.getPublicId();
+    dto.applicationName = app.getName();
+    dto.organizationName = org != null ? org.getName() : null;
+    dto.threatLevel = violation.getThreatLevel();
+    dto.policyId = violation.getPolicyId();
+    dto.policyName = violation.getPolicyName();
+    dto.hash = violation.getHash();
+    dto.policyThreatCategory = violation.getThreatCategory() != null
+        ? violation.getThreatCategory().getName()
+        : null;
+    dto.displayName = ComponentDisplayNameUtil.fromIdentifier(violation.getComponentIdentifier());
+    dto.componentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(violation.getComponentIdentifier());
+    dto.constraintViolations = PolicyViolationAdapter.convert(violation);
+    dto.stageData = Collections.emptyMap();
+    dto.openTime = violation.getOpenTime();
+    dto.policyOwner = new ApiCrossStageViolationDTOV2.PolicyOwner();
+    if (policyOwner != null) {
+      dto.policyOwner.ownerId = policyOwner.getId();
+      dto.policyOwner.ownerName = policyOwner.getName();
+      dto.policyOwner.ownerType = policyOwner.getType().toString();
+      if (policyOwner instanceof Application) {
+        dto.policyOwner.ownerPublicId = policyOwner.getPublicId();
+      }
+    }
+    return dto;
   }
 
   private void throwNotFound(String violationId) {

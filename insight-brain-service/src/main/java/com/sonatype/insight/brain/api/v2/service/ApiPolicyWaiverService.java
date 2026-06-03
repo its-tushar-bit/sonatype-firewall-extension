@@ -70,6 +70,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -414,10 +416,18 @@ public class ApiPolicyWaiverService
       final String waiverReasonId,
       final boolean expireWhenRemediationAvailable)
   {
+    // For repository policy violations, save the waiver under the repository (violation's owner), not the
+    // synthetic application. The policy evaluator loads waivers by repository ID — saving under the synthetic
+    // app ID would make the waiver invisible during re-evaluation.
+    String effectiveOwnerId = (abstractPolicyViolation instanceof RepositoryPolicyViolation
+        && OwnerType.APPLICATION.equals(ownerType))
+            ? abstractPolicyViolation.getOwnerId()
+            : ownerId;
     PolicyWaiver policyWaiver =
-        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, waiverReasonId,
+        savePolicyWaiver(effectiveOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
+            waiverReasonId,
             expireWhenRemediationAvailable);
-    auditAndSendTelemetry(ownerType, ownerId, policyWaiver, abstractPolicyViolation);
+    auditAndSendTelemetry(ownerType, effectiveOwnerId, policyWaiver, abstractPolicyViolation);
   }
 
   void auditAndSendTelemetry(
@@ -649,6 +659,31 @@ public class ApiPolicyWaiverService
     for (Owner owner : ownerDAO.walkHierarchy(policyViolation.getOwnerId())) {
       if (owner.getId().equals(ownerId)) {
         return true;
+      }
+    }
+    // For repository policy violations, also check the synthetic application hierarchy.
+    // The synthetic app is created per-component by ApplicationForHostedRepositoryComponentService
+    // and is not in the repository owner hierarchy, but is a valid waiver target.
+    if (policyViolation instanceof RepositoryPolicyViolation) {
+      Repository repository = repositoryDAO.getById(policyViolation.getOwnerId());
+      if (repository != null) {
+        String pathname = ((RepositoryPolicyViolation) policyViolation).getPathname();
+        String appPublicId = ApplicationForHostedRepositoryComponentService
+            .generatePublicId(repository.getPublicId(), pathname);
+        Application syntheticApp = applicationDAO.getByPublicId(appPublicId);
+        if (syntheticApp != null) {
+          // Walk the synthetic app's full hierarchy (app → org → parent orgs), stopping before
+          // ROOT_ORGANIZATION_ID to prevent a cross-tenant owner ID that happens to be in a
+          // shared root from matching a different tenant's synthetic app.
+          for (Owner owner : ownerDAO.walkHierarchy(syntheticApp.getId())) {
+            if (Organization.ROOT_ORGANIZATION_ID.equals(owner.getId())) {
+              break;
+            }
+            if (owner.getId().equals(ownerId)) {
+              return true;
+            }
+          }
+        }
       }
     }
     return false;
@@ -914,9 +949,15 @@ public class ApiPolicyWaiverService
 
     for (AbstractPolicyViolation abstractPolicyViolation : abstractPolicyViolations) {
       try {
+        // For repository policy violations coming from a synthetic-app owner, save under the repository
+        // ID so the policy evaluator can find the waiver during re-evaluation (it loads by repository ID).
+        String effectiveOwnerId = (abstractPolicyViolation instanceof RepositoryPolicyViolation
+            && OwnerType.APPLICATION.equals(owner.getType()))
+                ? abstractPolicyViolation.getOwnerId()
+                : owner.getId();
         PolicyWaiver policyWaiver = savePolicyWaiverInternal(
             tx,
-            owner.getId(),
+            effectiveOwnerId,
             abstractPolicyViolation,
             waiverDTO.comment,
             waiverDTO.matcherStrategy,

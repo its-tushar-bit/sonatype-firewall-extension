@@ -139,7 +139,7 @@ function HostedRepositoriesListPage() {
   }
 
   return (
-    <div className="iq-hosted-repos-list-page">
+    <div id="iq-hosted-repos-list-page" className="iq-hosted-repos-list-page">
       {breadcrumbs.length > 0 && <NxBreadcrumb crumbs={breadcrumbs} />}
 
       <header className="iq-hosted-repos-list-page__header">

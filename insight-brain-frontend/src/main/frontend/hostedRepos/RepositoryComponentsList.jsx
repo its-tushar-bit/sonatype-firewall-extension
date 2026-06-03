@@ -18,10 +18,11 @@ import {
   NxPagination,
   NxSmallThreatCounter,
   NxBreadcrumb,
+  NxInfoAlert,
 } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { goToComponentReport } from './hostedReposActions';
+import { goToComponentReport, goToComponentPriorities } from './hostedReposActions';
 import {
   selectComponents,
   selectTotalCount,
@@ -30,6 +31,7 @@ import {
   selectFilter,
   selectLoading,
   selectError,
+  selectHasQueuedScans,
 } from './repositoryComponentsSelectors';
 import { loadComponents, setFilter, reset } from './repositoryComponentsSlice';
 
@@ -44,12 +46,14 @@ export default function RepositoryComponentsList() {
   const filter = useSelector(selectFilter);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
+  const hasQueuedScans = useSelector(selectHasQueuedScans);
 
   const { repositoryId, repositoryManagerId, repositoryPublicId } = params;
   const [inputValue, setInputValue] = useState('');
   const debounceTimer = useRef(null);
 
   const doLoad = () => {
+    if (!repositoryManagerId || !repositoryId) return;
     dispatch(loadComponents({ repositoryManagerId, repositoryId, page: 1, filter }));
   };
 
@@ -94,6 +98,11 @@ export default function RepositoryComponentsList() {
       <NxPageTitle>
         <NxH1>{repositoryPublicId || repositoryId}</NxH1>
       </NxPageTitle>
+      {hasQueuedScans && (
+        <NxInfoAlert>
+          This repository is currently being evaluated. Report and Priorities results may be incomplete until the queue is cleared.
+        </NxInfoAlert>
+      )}
       <NxFilterInput
         placeholder="Search by repository component name"
         value={inputValue}
@@ -124,7 +133,7 @@ export default function RepositoryComponentsList() {
                         </NxOverflowTooltip>
                       </NxTable.Cell>
                       <NxTable.Cell className="iq-hosted-repos-components__col--count">
-                        {component.violationCount ?? 0}
+                        {component.componentCount ?? 0}
                       </NxTable.Cell>
                       <NxTable.Cell className="iq-hosted-repos-components__col--report">
                         {component.violationCount > 0 && (
@@ -135,18 +144,42 @@ export default function RepositoryComponentsList() {
                               moderateCount={component.moderateViolationCount || null}
                             />
                             <div className="iq-hosted-repos-components__report-meta">
+                              {component.stageTypeId && (
+                                <span className="iq-hosted-repos-components__report-stage">
+                                  {component.stageTypeId.charAt(0).toUpperCase() + component.stageTypeId.slice(1).toLowerCase()}
+                                </span>
+                              )}
                               <span className="iq-hosted-repos-components__report-links">
                                 <button
                                   className="nx-text-link iq-hosted-repos-components__report-link"
+                                  disabled={!component.applicationPublicId || !component.scanId || hasQueuedScans}
+                                  title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(goToComponentReport(repositoryId));
+                                    dispatch(goToComponentReport(
+                                      component.applicationPublicId,
+                                      component.scanId,
+                                      repositoryManagerId,
+                                      repositoryId,
+                                      repositoryPublicId
+                                    ));
                                   }}
                                 >
                                   Report
                                 </button>
                                 {' | '}
-                                <button className="nx-text-link iq-hosted-repos-components__report-link">
+                                <button
+                                  className="nx-text-link iq-hosted-repos-components__report-link"
+                                  disabled={!component.applicationPublicId || !component.scanId || hasQueuedScans}
+                                  title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(goToComponentPriorities(
+                                      component.applicationPublicId,
+                                      component.scanId
+                                    ));
+                                  }}
+                                >
                                   Priorities
                                 </button>
                               </span>

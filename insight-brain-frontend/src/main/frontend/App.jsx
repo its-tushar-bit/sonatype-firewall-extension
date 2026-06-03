@@ -26,6 +26,7 @@ import NavigationContainer from './navigationContainer/NavigationContainer';
 import MainHeader from './mainHeader/MainHeader.jsx';
 import Footer from './react/Footer/Footer.jsx';
 import ModalContainer from './modalContainer/ModalContainer';
+import { ClassicToggleButton } from './nosc/shell/ClassicToggleButton';
 
 function PageLayout() {
   const currentState = useSelector(selectRouterState);
@@ -50,19 +51,14 @@ function PageLayout() {
       </div>
       <ToastContainer />
       {!embeddable && <NavigationContainer clmServerVersion={CLM_SERVER_VERSION} />}
+      <ClassicToggleButton />
       <MainHeader />
       <div id="iq-content" className="nx-page-content nx-page-content--full-width">
-        {/* Portal target for sidebar components (OwnerDetailSidebar, OwnerSideNav, SidebarNavList).
-            This pattern originated when portals were needed to render React content
-            into a specific DOM location for CSS grid layout. Now that the app is fully React, the sidebar
-            could instead be rendered directly here via context or route config, but the portal approach
-            still works and the CSS grid relies on the :empty/:not(:empty) state of this element. */}
         <div id="iq-sidebar-container"></div>
         <div
           id="iq-footer-container"
           className={classnames('nx-global-footer-2-container', { 'nx-viewport-sized': viewportSized })}
         >
-          {/* Empty page-main ensures the background behind the login modal renders correctly */}
           {showLoginModal && <div className="nx-page-main" />}
           <UIView />
           {error && (

@@ -71,7 +71,7 @@ public class NexusOneThemeTest
   @After
   public void resetThemeState() {
     // Clear emulated media features and localStorage so other tests aren't affected
-    executeJavaScript("localStorage.removeItem('displayTheme')");
+    executeJavaScript("localStorage.removeItem('nosc.themeMode')");
     emulateColorScheme(null);
     hardreset();
   }
@@ -126,7 +126,7 @@ public class NexusOneThemeTest
     var page = openNexusOnePage();
     assertLightAppearance(page);
 
-    setDisplayThemeViaLocalStorage("dark");
+    setThemeModeViaLocalStorage("dark");
 
     assertDarkAppearance(page);
   }
@@ -137,13 +137,13 @@ public class NexusOneThemeTest
     var page = openNexusOnePage();
     assertDarkAppearance(page);
 
-    setDisplayThemeViaLocalStorage("light");
+    setThemeModeViaLocalStorage("light");
 
     assertLightAppearance(page);
   }
 
   private NexusOnePage openNexusOnePage() {
-    refreshOrOpen(NexusOnePage.url("/hello1"));
+    refreshOrOpen(NexusOnePage.url("/home"));
     NexusOnePage page = new NexusOnePage();
     page.shouldBe(visible);
     return page;
@@ -248,17 +248,14 @@ public class NexusOneThemeTest
   }
 
   /**
-   * Sets the display theme preference in localStorage and dispatches a proper {@code StorageEvent}
-   * to trigger the cross-tab listener in the app's preference store.
+   * Sets the Nexus One theme mode in localStorage and dispatches the same-tab
+   * event that {@code useNoscTheme} listens for.
    */
-  private void setDisplayThemeViaLocalStorage(String theme) {
+  private void setThemeModeViaLocalStorage(String mode) {
     executeJavaScript(
-        "var oldValue = localStorage.getItem('displayTheme');" +
-            "localStorage.setItem('displayTheme', '" + theme + "');" +
-            "window.dispatchEvent(new StorageEvent('storage', {" +
-            "  key: 'displayTheme'," +
-            "  newValue: '" + theme + "'," +
-            "  oldValue: oldValue" +
+        "localStorage.setItem('nosc.themeMode', '" + mode + "');" +
+            "window.dispatchEvent(new CustomEvent('nosc.themeMode.change', {" +
+            "  detail: { themeMode: '" + mode + "' }" +
             "}))");
   }
 }

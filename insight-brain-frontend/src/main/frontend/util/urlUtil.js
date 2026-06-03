@@ -88,6 +88,12 @@ export function bundleIndexUrl(bundle, hashPath) {
   return url.toString();
 }
 
+/** True when the current page loaded the Nexus One HTML bundle. */
+export function isNexusOneBundle() {
+  const path = typeof window !== 'undefined' ? window.location.pathname : '';
+  return path.includes('/assets/nexus-one/');
+}
+
 /**
  * This function is meant to be used in a tagged template literal, e.g. like this:
  * uriTemplate`/api/v2/vulnerabilities/${refId}`

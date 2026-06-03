@@ -19,7 +19,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 /**
- * Verifies that the Nexus One SPA loads and renders its hello-world routes.
+ * Verifies that the Nexus One SPA loads and renders shell routes after Epic 2.
  */
 public class NexusOnePageLoadTest
     extends AbstractFunctionalTest
@@ -48,17 +48,17 @@ public class NexusOnePageLoadTest
 
   @Test
   public void testNexusOneSpaLoads() {
-    refreshOrOpen(NexusOnePage.url("/hello1"));
+    refreshOrOpen(NexusOnePage.url("/home"));
     NexusOnePage page = new NexusOnePage();
     page.shouldBe(visible);
-    page.heading().shouldHave(text("Hello World 1"));
+    page.heading().shouldHave(text("Nexus One"));
   }
 
   @Test
   public void testNexusOneRoutesWork() {
-    refreshOrOpen(NexusOnePage.url("/hello2"));
+    refreshOrOpen(NexusOnePage.url("/coming-soon/reports"));
     NexusOnePage page = new NexusOnePage();
     page.shouldBe(visible);
-    page.heading().shouldHave(text("Hello World 2"));
+    page.heading().shouldHave(text("Coming Soon"));
   }
 }

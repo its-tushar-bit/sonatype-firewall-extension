@@ -65,4 +65,4 @@ const initialize = (): AppThunk => (dispatch) => {
 
 export default displayThemeSlice.reducer;
 
-export const actions = { initialize, setDisplayTheme };
+export const actions = { initialize, setDisplayTheme, setDisplayThemeState: setDisplayThemeStateAction };

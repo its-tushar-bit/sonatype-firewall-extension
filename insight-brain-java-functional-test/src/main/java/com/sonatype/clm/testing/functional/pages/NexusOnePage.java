@@ -17,7 +17,7 @@ import jakarta.ws.rs.core.UriBuilder;
 public class NexusOnePage
     extends BasicElement<NexusOnePage>
 {
-  public static final String ROOT = ".radix-themes";
+  public static final String ROOT = "#nexus-one-root [data-testid='nexus-one-page-surface']";
 
   public static String url() {
     return UriBuilder.fromUri(BaseUrl.rootUriBuilder().build())

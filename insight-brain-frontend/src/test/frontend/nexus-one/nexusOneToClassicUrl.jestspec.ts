@@ -6,7 +6,7 @@
 import { nexusOneToClassicUrl } from 'MainRoot/nexus-one/nexusOneToClassicUrl';
 
 describe('nexusOneToClassicUrl', () => {
-  it('returns null until Epic 2 route table is populated', () => {
-    expect(nexusOneToClassicUrl('/hello1')).toBeNull();
+  it('maps Nexus One dashboard to Classic dashboard root', () => {
+    expect(nexusOneToClassicUrl('/dashboard')).toBe('/dashboard/violations');
   });
 });

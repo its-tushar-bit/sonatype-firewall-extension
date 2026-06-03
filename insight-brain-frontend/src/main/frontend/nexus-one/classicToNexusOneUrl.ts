@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { toNexusOneEquivalent } from 'MainRoot/nosc/routing/classicPreviewMap';
 
 /**
- * Maps a classic in-hash path (e.g. {@code /dashboard}) to the equivalent Nexus One
- * in-hash path. Phase 1 returns {@code null} for all routes — Epic 2+ registers mappings.
+ * Maps a classic in-hash path (e.g. {@code /dashboard/violations}) to the equivalent
+ * Nexus One in-hash path in the nexus-one bundle.
  */
 export function classicToNexusOneUrl(classicHashPath: string): string | null {
-  // Epic 2+ registers per-route mappings; Phase 1 returns null for all paths.
-  return null;
+  return toNexusOneEquivalent(classicHashPath);
 }

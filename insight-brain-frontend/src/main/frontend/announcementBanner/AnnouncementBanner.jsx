@@ -7,12 +7,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import classnames from 'classnames';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import {
-  faCircleExclamation,
-  faExclamationTriangle,
-  faInfoCircle,
-  faTimes,
-} from '@fortawesome/free-solid-svg-icons';
+import { faCircleExclamation, faExclamationTriangle, faInfoCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 import {
   parseInstantMillis,

@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxH2, NxTile, NxList, NxLoadWrapper, NxInfoAlert, NxH3 } from '@sonatype/react-shared-components';
+import { NxH2, NxTile, NxList, NxLoadWrapper, NxH3 } from '@sonatype/react-shared-components';
 
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';

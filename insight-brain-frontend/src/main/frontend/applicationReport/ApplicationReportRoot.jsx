@@ -32,7 +32,6 @@ export default function ApplicationReportRoot() {
   // The proper fix would be to restructure how report parameters flow so that setReportParameters
   // doesn't need to wipe selectedReport, or to avoid the parent re-render propagation entirely
   // (e.g. by memoizing the subtree or removing the useSelector from PageLayout).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (params.publicId && params.scanId) {
       dispatch(

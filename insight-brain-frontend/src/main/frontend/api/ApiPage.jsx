@@ -18,7 +18,7 @@ import {
   NxTabs,
   NxTile,
 } from '@sonatype/react-shared-components';
-import { useDispatch, useSelector, useStore } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectApiPageSlice } from 'MainRoot/api/apiPageSelectors';
 import { actions } from 'MainRoot/api/apiPageSlice';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
@@ -27,7 +27,6 @@ import { selectCurrentUser } from 'MainRoot/user/userSessionSelectors';
 
 export default function ApiPage() {
   const dispatch = useDispatch();
-  const store = useStore();
   const { loading, loadError, publicOpenApi, experimentalOpenApi } = useSelector(selectApiPageSlice);
   const currentUser = useSelector(selectCurrentUser);
   const loadOpenApi = (endpoint) => dispatch(actions.loadOpenApi(endpoint));

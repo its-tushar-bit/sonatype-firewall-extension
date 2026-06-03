@@ -113,7 +113,7 @@ export const loadAllFilteredViolations = (repositoryId, componentsRequestBody = 
 
 export const submitFirewallBulkWaiver = (params) => {
   return async (dispatch) => {
-    const { repositoryId, selectedViolations, waiverConfiguration } = params;
+    const { selectedViolations, waiverConfiguration } = params;
 
     dispatch(actions.setSubmitting(true));
 
@@ -160,10 +160,11 @@ export const submitFirewallBulkWaiver = (params) => {
       return response.data;
     } catch (error) {
       let errorMessage = error.response?.data || error.message || 'Failed to submit bulk waiver';
-      if(errorMessage.includes('already exists')) {
-          errorMessage = 'Waiver already exists for few of the selected violations. Please re-evaluate the report and try again.';
+      if (errorMessage.includes('already exists')) {
+        errorMessage =
+          'Waiver already exists for few of the selected violations. Please re-evaluate the report and try again.';
       }
-    dispatch(actions.setSubmitError(errorMessage));
+      dispatch(actions.setSubmitError(errorMessage));
       throw error;
     }
   };

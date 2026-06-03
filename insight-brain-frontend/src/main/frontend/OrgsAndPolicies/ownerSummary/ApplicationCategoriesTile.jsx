@@ -42,7 +42,10 @@ import { actions as createEditApplicationCategoriesActions } from 'MainRoot/Orgs
 import { curryN, isEmpty } from 'ramda';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectHasEditIqPermission } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
-import { selectIsOrgsAndAppsEnabled, selectHasCustomAppCategories } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsOrgsAndAppsEnabled,
+  selectHasCustomAppCategories,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { faLock } from '@fortawesome/pro-regular-svg-icons';
 
 export default function ApplicationCategoriesTile() {
@@ -251,7 +254,15 @@ export default function ApplicationCategoriesTile() {
               <NxTile.HeaderSubtitle>{subtitleText}</NxTile.HeaderSubtitle>
             </NxTile.Headings>
             <NxTile.HeaderActions>
-              <NxTooltip title={!hasCustomAppCategories ? 'Enterprise Feature' : (isEditDisabled ? 'No application categories defined.' : '')}>
+              <NxTooltip
+                title={
+                  !hasCustomAppCategories
+                    ? 'Enterprise Feature'
+                    : isEditDisabled
+                    ? 'No application categories defined.'
+                    : ''
+                }
+              >
                 <NxButton
                   variant="tertiary"
                   onClick={headerButtonAction}

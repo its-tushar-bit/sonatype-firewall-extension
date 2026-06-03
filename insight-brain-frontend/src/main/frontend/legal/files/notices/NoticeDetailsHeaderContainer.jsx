@@ -9,7 +9,6 @@ import { pick } from 'ramda';
 import NoticeDetailsHeader from './NoticeDetailsHeader';
 import { loadComponentAndNoticeDetails } from './componentNoticeDetailsActions';
 import { setShowNoticesModal } from '../advancedLegalFileActions';
-import { loadComponentByComponentIdentifier } from '../../advancedLegalActions';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {

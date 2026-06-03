@@ -10,10 +10,7 @@ export const selectFirewallRequestWaiverSlice = prop('firewallRequestWaiver');
 
 export const selectFirewallRequestWaiverLoading = createSelector(selectFirewallRequestWaiverSlice, prop('loading'));
 
-export const selectFirewallRequestWaiverLoadError = createSelector(
-  selectFirewallRequestWaiverSlice,
-  prop('loadError')
-);
+export const selectFirewallRequestWaiverLoadError = createSelector(selectFirewallRequestWaiverSlice, prop('loadError'));
 
 export const selectFirewallRequestWaiverSubmitError = createSelector(
   selectFirewallRequestWaiverSlice,
@@ -25,10 +22,7 @@ export const selectFirewallRequestWaiverSubmitMaskState = createSelector(
   prop('submitMaskState')
 );
 
-export const selectFirewallRequestWaiverIsDirty = createSelector(
-  selectFirewallRequestWaiverSlice,
-  prop('isDirty')
-);
+export const selectFirewallRequestWaiverIsDirty = createSelector(selectFirewallRequestWaiverSlice, prop('isDirty'));
 
 export const selectFirewallRequestWaiverComponentMatcherStrategy = createSelector(
   selectFirewallRequestWaiverSlice,
@@ -55,10 +49,7 @@ export const selectFirewallRequestWaiverReasonId = createSelector(
   prop('waiverReasonId')
 );
 
-export const selectFirewallRequestWaiverComments = createSelector(
-  selectFirewallRequestWaiverSlice,
-  prop('comments')
-);
+export const selectFirewallRequestWaiverComments = createSelector(selectFirewallRequestWaiverSlice, prop('comments'));
 
 export const selectFirewallRequestWaiverNoteToReviewer = createSelector(
   selectFirewallRequestWaiverSlice,

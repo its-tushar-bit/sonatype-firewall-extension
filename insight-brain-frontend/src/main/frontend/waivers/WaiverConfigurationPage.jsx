@@ -197,9 +197,7 @@ export default function WaiverConfigurationPage() {
 
         <NxTile className={!hasBulkWaivers ? 'iq-banner-flush-top' : ''}>
           {!hasBulkWaivers && (
-            <EnterpriseFullWidthBanner
-              description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
-            />
+            <EnterpriseFullWidthBanner description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work." />
           )}
           <NxTile.Header>
             <NxTile.HeaderTitle>

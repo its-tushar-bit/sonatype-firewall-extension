@@ -40,8 +40,7 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
       searchResultItem.componentLicenseThreatGroupName &&
       searchResultItem.componentLicenseThreatLevel !== undefined &&
       groupIdentifier !== 'COMPONENT_LICENSE_THREAT_GROUP_NAME',
-    policyViolation =
-      searchResultItem.policyViolationPolicyName && groupIdentifier !== 'POLICY_VIOLATION_POLICY_NAME',
+    policyViolation = searchResultItem.policyViolationPolicyName && groupIdentifier !== 'POLICY_VIOLATION_POLICY_NAME',
     report = searchResultItem.policyEvaluationStage,
     securityIssue = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
     vulnerabilityDescription = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',

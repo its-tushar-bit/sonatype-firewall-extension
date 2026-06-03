@@ -17,7 +17,7 @@ import {
 import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
 import DashboardMask from '../dashboardMask/DashboardMask';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { equals, prop } from 'ramda';
+import { equals } from 'ramda';
 
 import { Messages } from 'MainRoot/util/CommonServices';
 import DashboardWaiversTableRow from './DashboardWaiversTableRow';

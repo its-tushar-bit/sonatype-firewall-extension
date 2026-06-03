@@ -91,7 +91,8 @@ export function loadComponentByComponentIdentifier(componentIdentifier, paramete
     if (parameters?.identificationSource) {
       url += `&identificationSource=${encodeURIComponent(parameters.identificationSource)}`;
     }
-    return axios.get(url)
+    return axios
+      .get(url)
       .then(({ data }) => {
         const componentIdentifierFromData = JSON.stringify(data.component.componentIdentifier);
         if (parameters?.repositoryId) {

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState, Fragment } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { pick, pathOr } from 'ramda';
@@ -79,7 +80,6 @@ export default function ReportPage() {
   // is a harmless no-op since setReportParameters + loadReportIfNeeded are idempotent for
   // the same publicId/scanId. Deps restricted to [publicId, scanId] to avoid the race
   // condition described in ApplicationReportRoot.jsx.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (publicId && scanId) {
       dispatch(
@@ -205,7 +205,14 @@ function BackButton() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const repositoryId = pathOr('', ['application', 'organization', 'relatedRepositoryId'], metadataDetails);
 
-  const { publicId, scanId, origin, repositoryManagerId, repositoryId: hostedRepositoryId, repositoryPublicId } = useSelector(selectRouterCurrentParams);
+  const {
+    publicId,
+    scanId,
+    origin,
+    repositoryManagerId,
+    repositoryId: hostedRepositoryId,
+    repositoryPublicId,
+  } = useSelector(selectRouterCurrentParams);
 
   if (origin === 'hostedRepoComponents') {
     const backHref = uiRouterState.href('hostedRepoComponents', {

@@ -7,8 +7,15 @@ import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { has } from 'ramda';
 import {
-  NxTable, NxButton, NxFontAwesomeIcon, NxP, NxH1,
-  NxPageMain, NxPageTitle, NxTextLink, NxTile, NxTag, NxTooltip,
+  NxTable,
+  NxButton,
+  NxFontAwesomeIcon,
+  NxP,
+  NxH1,
+  NxPageTitle,
+  NxTextLink,
+  NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faTrash, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import { actions as gitHubAppActions } from 'MainRoot/configuration/githubApp/gitHubAppConfigurationSlice';
@@ -69,7 +76,6 @@ export default function ManageGitHubApps() {
     dispatch(gitHubAppActions.openModal());
   };
 
-
   const handleDelete = (app) => {
     dispatch(openDeleteModal(app));
   };
@@ -90,38 +96,38 @@ export default function ManageGitHubApps() {
     <div id="manage-github-applications">
       <NxPageTitle>
         <NxH1>Manage GitHub Applications</NxH1>
-        <NxPageTitle.Description>
-          Configures the integration with GitHub Apps for {owner?.name}
-        </NxPageTitle.Description>
+        <NxPageTitle.Description>Configures the integration with GitHub Apps for {owner?.name}</NxPageTitle.Description>
       </NxPageTitle>
 
       <NxTile>
         {hasEditPermission && (
-        <NxTile.Header>
-          <NxTile.HeaderActions>
-            {shouldDisableAddButton ? (
-              <NxTooltip title="IQ applications can only have one GitHub App associated">
-                <span>
-                  <NxButton variant="primary" disabled>
-                    <NxFontAwesomeIcon icon={faPlus} />
-                    <span>Add GitHub App</span>
-                  </NxButton>
-                </span>
-              </NxTooltip>
-            ) : (
-              <NxButton variant="primary" onClick={handleAddGitHubApp}>
-                <NxFontAwesomeIcon icon={faPlus} />
-                <span>Add GitHub App</span>
-              </NxButton>
-            )}
-          </NxTile.HeaderActions>
-        </NxTile.Header>
+          <NxTile.Header>
+            <NxTile.HeaderActions>
+              {shouldDisableAddButton ? (
+                <NxTooltip title="IQ applications can only have one GitHub App associated">
+                  <span>
+                    <NxButton variant="primary" disabled>
+                      <NxFontAwesomeIcon icon={faPlus} />
+                      <span>Add GitHub App</span>
+                    </NxButton>
+                  </span>
+                </NxTooltip>
+              ) : (
+                <NxButton variant="primary" onClick={handleAddGitHubApp}>
+                  <NxFontAwesomeIcon icon={faPlus} />
+                  <span>Add GitHub App</span>
+                </NxButton>
+              )}
+            </NxTile.HeaderActions>
+          </NxTile.Header>
         )}
         {loading && <NxP>Loading...</NxP>}
-        {error && <NxP className="nx-text--error">{error?.message || (typeof error === 'string' ? error : JSON.stringify(error))}</NxP>}
-        {!loading && githubApps.length === 0 && (
-          <NxP>There are no GitHub Apps configured for this organization.</NxP>
+        {error && (
+          <NxP className="nx-text--error">
+            {error?.message || (typeof error === 'string' ? error : JSON.stringify(error))}
+          </NxP>
         )}
+        {!loading && githubApps.length === 0 && <NxP>There are no GitHub Apps configured for this organization.</NxP>}
         {!loading && githubApps.length > 0 && (
           <NxTable>
             <NxTable.Head>
@@ -150,14 +156,14 @@ export default function ManageGitHubApps() {
                         </NxTextLink>
                       )}
                       {hasEditPermission && (
-                      <NxButton
-                        variant="icon-only"
-                        title="Delete"
-                        onClick={() => handleDelete(app)}
-                        aria-label={`Delete GitHub App ${app.slug}`}
-                      >
-                        <NxFontAwesomeIcon icon={faTrash} />
-                      </NxButton>
+                        <NxButton
+                          variant="icon-only"
+                          title="Delete"
+                          onClick={() => handleDelete(app)}
+                          aria-label={`Delete GitHub App ${app.slug}`}
+                        >
+                          <NxFontAwesomeIcon icon={faTrash} />
+                        </NxButton>
                       )}
                     </NxTable.Cell>
                   </NxTable.Row>

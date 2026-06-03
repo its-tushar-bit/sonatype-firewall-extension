@@ -42,7 +42,6 @@ import {
   selectSubmitting,
   selectSubmitSuccess,
   selectSubmitError,
-  selectOriginalAggregateState,
 } from '../firewallBulkWaiverSelectors';
 import { actions as firewallBulkWaiverActions } from '../firewallBulkWaiverSlice';
 import { loadAllFilteredViolations, submitFirewallBulkWaiver } from '../firewallBulkWaiverActions';
@@ -74,14 +73,14 @@ export default function FirewallBulkWaiveConfirmationPage() {
   const submitSuccess = useSelector(selectSubmitSuccess);
   const submitError = useSelector(selectSubmitError);
 
-  const originalAggregateState = useSelector(selectOriginalAggregateState);
   const currentAggregate = useSelector(selectAggregate);
   const componentsRequestBody = useSelector(selectComponentsRequestBody);
 
-  const selectedAllFilteredViolations = useMemo(() =>
-    selectAllMode && allFilteredViolations.length > 0
-      ? allFilteredViolations.filter((violation) => checkboxState?.[violation.policyViolationId] !== false)
-      : [],
+  const selectedAllFilteredViolations = useMemo(
+    () =>
+      selectAllMode && allFilteredViolations.length > 0
+        ? allFilteredViolations.filter((violation) => checkboxState?.[violation.policyViolationId] !== false)
+        : [],
     [selectAllMode, allFilteredViolations, checkboxState]
   );
   const selectedAllFilteredViolationIds = selectedAllFilteredViolations
@@ -89,13 +88,12 @@ export default function FirewallBulkWaiveConfirmationPage() {
     .join('|');
   const selectedViolationIds = (selectedViolations || []).map((violation) => violation.policyViolationId).join('|');
 
-  const violationsForCounts = selectAllMode && selectedAllFilteredViolations.length > 0
-    ? selectedAllFilteredViolations
-    : selectedViolations;
+  const violationsForCounts =
+    selectAllMode && selectedAllFilteredViolations.length > 0 ? selectedAllFilteredViolations : selectedViolations;
 
   const componentCount =
     selectAllMode && violationsForCounts.length <= 5
-      ? 0 
+      ? 0
       : new Set(violationsForCounts.map((violation) => violation.componentDisplayText)).size;
 
   const getPolicyThreatLevelCounts = () => {
@@ -414,7 +412,14 @@ export default function FirewallBulkWaiveConfirmationPage() {
             <NxButton variant="secondary" onClick={handleBack} disabled={submitting}>
               Back
             </NxButton>
-            <NxButton variant="primary" onClick={handleSubmit} disabled={submitting || (selectAllMode && source !== 'component-details' && (loadingAllViolations || !!allViolationsError))}>
+            <NxButton
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={
+                submitting ||
+                (selectAllMode && source !== 'component-details' && (loadingAllViolations || !!allViolationsError))
+              }
+            >
               {submitting ? 'Submitting...' : 'Submit'}
             </NxButton>
           </NxButtonBar>

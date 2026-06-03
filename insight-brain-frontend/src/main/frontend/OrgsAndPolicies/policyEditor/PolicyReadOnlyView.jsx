@@ -8,16 +8,14 @@ import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   NxReadOnly,
-  NxTile,
   NxH2,
   NxList,
   NxTable,
-  NxDivider,
   NxFontAwesomeIcon,
   NxThreatIndicator,
   categoryByPolicyThreatLevel,
 } from '@sonatype/react-shared-components';
-import { faExclamationCircle, faExclamationTriangle, faCheckCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import { capitalize } from 'MainRoot/util/jsUtil';
 import { isNil } from 'ramda';
 import { conditionString } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
@@ -84,11 +82,6 @@ export default function PolicyReadOnlyView({
   };
 
   const renderInheritanceSection = () => {
-    const hasInheritanceData =
-      policy.inherited ||
-      policy.policyActionsOverrideAllowed !== undefined ||
-      policy.policyNotificationsOverrideAllowed !== undefined;
-
     return (
       <div className="iq-policy-readonly-view__section">
         <NxH2>Inheritance</NxH2>

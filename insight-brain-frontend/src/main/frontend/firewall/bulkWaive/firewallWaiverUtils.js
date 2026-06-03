@@ -195,4 +195,3 @@ export const normalizeFirewallOwnerType = (ownerType) => {
   if (lower === 'all_repositories') return 'repository_container';
   return lower;
 };
-

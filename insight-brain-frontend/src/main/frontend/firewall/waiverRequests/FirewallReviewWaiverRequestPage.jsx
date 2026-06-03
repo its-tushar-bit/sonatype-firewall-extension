@@ -74,8 +74,9 @@ function getComponentDisplayName(waiverRequest) {
   if (waiverRequest.componentIdentifier) {
     const { coordinates } = waiverRequest.componentIdentifier;
     if (coordinates) {
-      const parts = [coordinates.groupId, coordinates.artifactId || coordinates.packageId, coordinates.version]
-        .filter(Boolean);
+      const parts = [coordinates.groupId, coordinates.artifactId || coordinates.packageId, coordinates.version].filter(
+        Boolean
+      );
       if (parts.length > 0) return parts.join(':');
     }
   }
@@ -126,7 +127,9 @@ export default function FirewallReviewWaiverRequestPage() {
       // Build available scopes from the waiver request's current scope
       const currentScope = {
         id: waiverRequest.scopeOwnerId,
-        label: `${formatScopeOwnerType(waiverRequest.scopeOwnerType)} - ${waiverRequest.scopeOwnerName || waiverRequest.scopeOwnerId}`,
+        label: `${formatScopeOwnerType(waiverRequest.scopeOwnerType)} - ${
+          waiverRequest.scopeOwnerName || waiverRequest.scopeOwnerId
+        }`,
       };
       setAvailableScopes([currentScope]);
 
@@ -151,31 +154,30 @@ export default function FirewallReviewWaiverRequestPage() {
     dispatch(stateGo(backState));
   };
 
-  const getExpirationValue = () => {
-    if (isCustomExpiryTimeSelected(expiryTime)) return customExpiryTime.value;
-    if (isNeverExpiryTimeSelected(expiryTime) || isExpireWhenRemediationAvailableSelected(expiryTime)) return null;
-    return parseInt(expiryTime, 10);
-  };
-
   const handleApprove = () => {
-    const expiration = getExpirationValue();
     let computedExpiryTime = null;
     if (isCustomExpiryTimeSelected(expiryTime) && customExpiryTime.value) {
       computedExpiryTime = getISODateFromDateInput(customExpiryTime.value);
-    } else if (!isNeverExpiryTimeSelected(expiryTime) && !isExpireWhenRemediationAvailableSelected(expiryTime) && expiryTime) {
+    } else if (
+      !isNeverExpiryTimeSelected(expiryTime) &&
+      !isExpireWhenRemediationAvailableSelected(expiryTime) &&
+      expiryTime
+    ) {
       computedExpiryTime = getExpiryTime(parseInt(expiryTime, 10));
     }
 
-    dispatch(actions.approveWaiverRequest({
-      ownerType,
-      ownerId,
-      policyWaiverRequestId: waiverRequestId,
-      matcherStrategy,
-      expiryTime: computedExpiryTime,
-      waiverReasonId: waiverReasonId || null,
-      comment: comment || null,
-      expireWhenRemediationAvailable: isExpireWhenRemediationAvailableSelected(expiryTime),
-    })).then((result) => {
+    dispatch(
+      actions.approveWaiverRequest({
+        ownerType,
+        ownerId,
+        policyWaiverRequestId: waiverRequestId,
+        matcherStrategy,
+        expiryTime: computedExpiryTime,
+        waiverReasonId: waiverReasonId || null,
+        comment: comment || null,
+        expireWhenRemediationAvailable: isExpireWhenRemediationAvailableSelected(expiryTime),
+      })
+    ).then((result) => {
       if (!result.error) {
         dispatch(stateGo(backState));
       }
@@ -183,7 +185,9 @@ export default function FirewallReviewWaiverRequestPage() {
   };
 
   const handleReject = () => {
-    dispatch(actions.rejectWaiverRequest({ ownerType, ownerId, policyWaiverRequestId: waiverRequestId, rejectionReason })).then((result) => {
+    dispatch(
+      actions.rejectWaiverRequest({ ownerType, ownerId, policyWaiverRequestId: waiverRequestId, rejectionReason })
+    ).then((result) => {
       if (!result.error) {
         setIsRejectionModalOpen(false);
         dispatch(stateGo(backState));
@@ -191,7 +195,8 @@ export default function FirewallReviewWaiverRequestPage() {
     });
   };
 
-  const retryHandler = () => dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId: waiverRequestId }));
+  const retryHandler = () =>
+    dispatch(actions.loadWaiverRequestForReview({ ownerType, ownerId, policyWaiverRequestId: waiverRequestId }));
 
   const customExpiryTimeSelected = isCustomExpiryTimeSelected(expiryTime);
   const daysDiffMessage = getExpirationDaysMessage(expiryTime, customExpiryTime);
@@ -252,7 +257,8 @@ export default function FirewallReviewWaiverRequestPage() {
 
                     <NxReadOnly.Label>Note to Reviewer</NxReadOnly.Label>
                     <NxReadOnly.Data className="nx-sub-label">
-                      This note will only be visible on the waiver request. It will not be visible on the waiver if it is approved.
+                      This note will only be visible on the waiver request. It will not be visible on the waiver if it
+                      is approved.
                     </NxReadOnly.Data>
                     <NxReadOnly.Data>
                       <NxBlockquote>{waiverRequest.noteToReviewer || '—'}</NxBlockquote>
@@ -315,68 +321,68 @@ export default function FirewallReviewWaiverRequestPage() {
 
                   {/* Components — editable radio buttons (not applicable for container image waiver requests) */}
                   {!isContainerImageWaiverRequest && (
-                  <NxFieldset className="iq-request-waiver-form__components" label="Components" isRequired>
-                    <NxRadio
-                      name="fw-review-components"
-                      value={waiverMatcherStrategy.EXACT_COMPONENT}
-                      isChecked={matcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
-                      onChange={setMatcherStrategy}
-                      disabled={!isEditable}
-                    >
-                      {getComponentDisplayName(waiverRequest)}
-                    </NxRadio>
-                    <NxRadio
-                      name="fw-review-components"
-                      value={waiverMatcherStrategy.ALL_VERSIONS}
-                      isChecked={matcherStrategy === waiverMatcherStrategy.ALL_VERSIONS}
-                      onChange={setMatcherStrategy}
-                      disabled={!isEditable}
-                    >
-                      All Versions
-                    </NxRadio>
-                    <NxRadio
-                      name="fw-review-components"
-                      value={waiverMatcherStrategy.ALL_COMPONENTS}
-                      isChecked={matcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
-                      onChange={setMatcherStrategy}
-                      disabled={!isEditable}
-                    >
-                      All Components
-                    </NxRadio>
-                  </NxFieldset>
+                    <NxFieldset className="iq-request-waiver-form__components" label="Components" isRequired>
+                      <NxRadio
+                        name="fw-review-components"
+                        value={waiverMatcherStrategy.EXACT_COMPONENT}
+                        isChecked={matcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
+                        onChange={setMatcherStrategy}
+                        disabled={!isEditable}
+                      >
+                        {getComponentDisplayName(waiverRequest)}
+                      </NxRadio>
+                      <NxRadio
+                        name="fw-review-components"
+                        value={waiverMatcherStrategy.ALL_VERSIONS}
+                        isChecked={matcherStrategy === waiverMatcherStrategy.ALL_VERSIONS}
+                        onChange={setMatcherStrategy}
+                        disabled={!isEditable}
+                      >
+                        All Versions
+                      </NxRadio>
+                      <NxRadio
+                        name="fw-review-components"
+                        value={waiverMatcherStrategy.ALL_COMPONENTS}
+                        isChecked={matcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
+                        onChange={setMatcherStrategy}
+                        disabled={!isEditable}
+                      >
+                        All Components
+                      </NxRadio>
+                    </NxFieldset>
                   )}
                   {/* Waiver Expiration */}
                   <NxFieldset className="iq-request-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
                     <div className="iq-fw-review-waiver-page__expiry-block">
-
-                    <NxFormSelect
-                      id="fw-review-expiration-select"
-                      onChange={(e) => setExpiryTime(e)}
-                      value={expiryTime}
-                      disabled={!isEditable}
-                      aria-label="select waiver expiration"
-                    >
-                      {waiverExpirations.map(({ name, value }, index) => (
-                        <option key={index} value={value}>
-                          {name}
-                        </option>
-                      ))}
-                    </NxFormSelect>
-                    {customExpiryTimeSelected && (
-                      <NxDateInput
-                        className="iq-request-waiver-form__date-input"
-                        {...customExpiryTime}
-                        onChange={(val) => setCustomExpiryTime(nxDateInputStateHelpers.userInput(customDateValidator, val))}
-                        validatable={true}
+                      <NxFormSelect
+                        id="fw-review-expiration-select"
+                        onChange={(e) => setExpiryTime(e)}
+                        value={expiryTime}
                         disabled={!isEditable}
-                        aria-label="set custom expiration date"
-                      />
-                    )}
-                    {daysDiffMessage && (
-                      <div className="iq-fw-review-waiver-page__expiry-days-message">{daysDiffMessage}</div>
-                    )}
-                                        </div>
-
+                        aria-label="select waiver expiration"
+                      >
+                        {waiverExpirations.map(({ name, value }, index) => (
+                          <option key={index} value={value}>
+                            {name}
+                          </option>
+                        ))}
+                      </NxFormSelect>
+                      {customExpiryTimeSelected && (
+                        <NxDateInput
+                          className="iq-request-waiver-form__date-input"
+                          {...customExpiryTime}
+                          onChange={(val) =>
+                            setCustomExpiryTime(nxDateInputStateHelpers.userInput(customDateValidator, val))
+                          }
+                          validatable={true}
+                          disabled={!isEditable}
+                          aria-label="set custom expiration date"
+                        />
+                      )}
+                      {daysDiffMessage && (
+                        <div className="iq-fw-review-waiver-page__expiry-days-message">{daysDiffMessage}</div>
+                      )}
+                    </div>
                   </NxFieldset>
 
                   {/* Reason */}
@@ -411,9 +417,7 @@ export default function FirewallReviewWaiverRequestPage() {
 
                 {/* ── Actions ──────────────────────────────────────── */}
                 <>
-                  {submitError && (
-                    <NxErrorAlert>{submitError}</NxErrorAlert>
-                  )}
+                  {submitError && <NxErrorAlert>{submitError}</NxErrorAlert>}
                   <NxButtonBar>
                     {hasWaivePermission && (
                       <NxButton
@@ -425,12 +429,7 @@ export default function FirewallReviewWaiverRequestPage() {
                         Reject Waiver Request
                       </NxButton>
                     )}
-                    <NxButton
-                      type="button"
-                      variant="tertiary"
-                      onClick={handleBack}
-                      disabled={isSubmitting}
-                    >
+                    <NxButton type="button" variant="tertiary" onClick={handleBack} disabled={isSubmitting}>
                       Cancel
                     </NxButton>
                     {hasWaivePermission && (
@@ -465,9 +464,7 @@ export default function FirewallReviewWaiverRequestPage() {
                           className="iq-fw-review-waiver-page__rejection-reason"
                         />
                       </NxFormGroup>
-                      {submitError && (
-                        <NxErrorAlert>{submitError}</NxErrorAlert>
-                      )}
+                      {submitError && <NxErrorAlert>{submitError}</NxErrorAlert>}
                     </NxModal.Content>
                     <footer className="nx-footer">
                       <div className="nx-btn-bar">

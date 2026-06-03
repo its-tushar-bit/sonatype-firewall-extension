@@ -5,7 +5,12 @@
  */
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsApplication, selectIsOrganization, selectIsSbomManager, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectIsApplication,
+  selectIsOrganization,
+  selectIsSbomManager,
+  selectIsFirewall,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsArtifactoryRepositorySupported,
   selectIsDataRetentionEnabled,

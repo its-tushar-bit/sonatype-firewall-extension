@@ -27,7 +27,7 @@ export default function MetadataAccordion() {
   const metadataProperties = SBOM_METADATA_PROPERTIES[sbomMetadata.specification.toLowerCase()];
   const content = map(
     (property) =>
-      property == 'originalFile' && sbomMetadata[property] == null ? null : (
+      property === 'originalFile' && sbomMetadata[property] == null ? null : (
         <div key={property} className="sbom-manager-bill-of-materials-summary-metadata-accordion__property-list-item">
           <dt>{camelCaseToTitleCase(property)}</dt>
           <dd>{formatMetadataValue(sbomMetadata[property])}</dd>

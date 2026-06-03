@@ -66,9 +66,7 @@ export default function ContainerImageWaiversTable() {
               <span className="nx-threat-number">{waiver.threatLevel}</span>
             </NxTableCell>
             <NxTableCell>{moment(waiver.createTime).format('YYYY-MM-DD')}</NxTableCell>
-            <NxTableCell>
-              {waiver.expiryTime ? moment(waiver.expiryTime).format('YYYY-MM-DD') : 'Never'}
-            </NxTableCell>
+            <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).format('YYYY-MM-DD') : 'Never'}</NxTableCell>
             <NxTableCell>
               <NxOverflowTooltip>
                 <div className="nx-truncate-ellipsis">{waiver.policyName}</div>

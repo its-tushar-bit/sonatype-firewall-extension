@@ -15,7 +15,10 @@ export const selectIsLoading = createSelector(selectLicenseThreatGroupSlice, pro
 export const selectLicenseThreatGroupLoadError = createSelector(selectLicenseThreatGroupSlice, prop('loadError'));
 export const selectLicenseThreatGroupSubmitError = createSelector(selectLicenseThreatGroupSlice, prop('submitError'));
 const selectLicenseThreatGroupIsDirtyInternal = createSelector(selectLicenseThreatGroupSlice, prop('isDirty'));
-export const selectLicenseThreatGroupIsDirty = createTierGatedDirtySelector(selectLicenseThreatGroupIsDirtyInternal, selectHasCustomLicenseThreatGroups);
+export const selectLicenseThreatGroupIsDirty = createTierGatedDirtySelector(
+  selectLicenseThreatGroupIsDirtyInternal,
+  selectHasCustomLicenseThreatGroups
+);
 export const selectSubmitMaskState = createSelector(selectLicenseThreatGroupSlice, prop('submitMaskState'));
 export const selectDeleteMaskState = createSelector(selectLicenseThreatGroupSlice, prop('deleteMaskState'));
 export const selectDeleteError = createSelector(selectLicenseThreatGroupSlice, prop('deleteError'));

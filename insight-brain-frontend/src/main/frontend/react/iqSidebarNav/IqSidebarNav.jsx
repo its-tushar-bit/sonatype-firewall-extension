@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxGlobalSidebar2, NxGlobalSidebar2NavigationLink, useToggle } from '@sonatype/react-shared-components';

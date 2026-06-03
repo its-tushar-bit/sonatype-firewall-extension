@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -115,9 +116,15 @@ const DisplayWaiverInTableRow = ({
     if (isStandaloneFirewall && !hasWaivePermissionFromSlice && waiver?.scopeOwnerId) {
       let cancelled = false;
       checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository', waiver.scopeOwnerId)
-        .then(() => { if (!cancelled) setLocalWaivePermission(true); })
-        .catch(() => { if (!cancelled) setLocalWaivePermission(false); });
-      return () => { cancelled = true; };
+        .then(() => {
+          if (!cancelled) setLocalWaivePermission(true);
+        })
+        .catch(() => {
+          if (!cancelled) setLocalWaivePermission(false);
+        });
+      return () => {
+        cancelled = true;
+      };
     }
   }, [isStandaloneFirewall, hasWaivePermissionFromSlice, waiver?.scopeOwnerId]);
 
@@ -210,15 +217,19 @@ const DisplayWaiverInTableRow = ({
                 variant="icon-only"
                 title="Renew Waiver"
                 className="list-waivers-row__renew-btn"
-                onClick={() => dispatch(stateGo('firewall.renewWaiver', {
-                  ownerType: waiver.scopeOwnerType,
-                  ownerId: waiver.scopeOwnerId,
-                  waiverId: waiver.policyWaiverId,
-                  type: routerParams.type,
-                  sidebarReference: routerParams.sidebarReference,
-                  sidebarId: routerParams.sidebarId,
-                  page: routerParams.page,
-                }))}
+                onClick={() =>
+                  dispatch(
+                    stateGo('firewall.renewWaiver', {
+                      ownerType: waiver.scopeOwnerType,
+                      ownerId: waiver.scopeOwnerId,
+                      waiverId: waiver.policyWaiverId,
+                      type: routerParams.type,
+                      sidebarReference: routerParams.sidebarReference,
+                      sidebarId: routerParams.sidebarId,
+                      page: routerParams.page,
+                    })
+                  )
+                }
               >
                 <NxFontAwesomeIcon icon={faRenewSolid} />
               </NxButton>

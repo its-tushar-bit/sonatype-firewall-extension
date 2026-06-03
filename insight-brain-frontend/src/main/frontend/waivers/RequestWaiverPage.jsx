@@ -366,9 +366,7 @@ const RequestWaiversPage = () => {
 
       <NxTile className={!hasWaiverRequestWorkflow ? 'iq-hide-form-footer iq-banner-flush-top' : ''}>
         {!hasWaiverRequestWorkflow && (
-          <EnterpriseFullWidthBanner
-            description="Enable your team to request waivers for policy violations with structured workflows and approval processes."
-          />
+          <EnterpriseFullWidthBanner description="Enable your team to request waivers for policy violations with structured workflows and approval processes." />
         )}
         <NxTile.Content>
           <LoadWrapper

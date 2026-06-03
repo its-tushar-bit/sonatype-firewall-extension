@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { remove } from 'ramda';
@@ -49,7 +50,7 @@ export default function ConstraintsEditor({ hidePopover = false, previewMode = f
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isSbomManager = useSelector(selectIsSbomManager);
   const hasCustomPolicies = useSelector(selectHasCustomPolicies);
-  const readOnly = previewMode ? false : (isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies);
+  const readOnly = previewMode ? false : isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies;
 
   const setConstraint = (constraints) => dispatch(policyActions.setConstraint(constraints));
   const setCondition = (constraints) => dispatch(policyActions.setCondition(constraints));

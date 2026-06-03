@@ -170,7 +170,7 @@ export default function SAMLConfigurationForm({
           </NxTooltip>
 
           <div className="nx-form-group">
-            <label for="saml-identity-provider-metadata-xml" className="nx-label">
+            <label htmlFor="saml-identity-provider-metadata-xml" className="nx-label">
               <span className="nx-label__text">Identity Provider Metadata XML</span>
               <div className="nx-sub-label">
                 Your identity provider metadata XML must contain a signing key to use validation. Validation set to

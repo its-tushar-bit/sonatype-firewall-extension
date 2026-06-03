@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxToggle, NxButton, NxWarningAlert } from '@sonatype/react-shared-components';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +19,7 @@ import {
   resetForm,
 } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 
-export default function SuccessMetricsConfiguration(props) {
+export default function SuccessMetricsConfiguration() {
   const dispatch = useDispatch();
 
   const { loading, isDirty, loadError, updateError, submitMaskState } = useSelector(

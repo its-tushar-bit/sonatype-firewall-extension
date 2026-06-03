@@ -48,8 +48,9 @@ function getComponentDisplayName(request) {
   if (request.componentIdentifier) {
     const { coordinates } = request.componentIdentifier;
     if (coordinates) {
-      const parts = [coordinates.groupId, coordinates.artifactId || coordinates.packageId, coordinates.version]
-        .filter(Boolean);
+      const parts = [coordinates.groupId, coordinates.artifactId || coordinates.packageId, coordinates.version].filter(
+        Boolean
+      );
       if (parts.length > 0) {
         return parts.join(':');
       }
@@ -83,9 +84,8 @@ export default function FirewallRequestedWaiversTableRow({ request, repositoryFo
       ? 'repository_container'
       : scopeOwnerType;
 
-  const origin = repositoryFormat === 'docker'
-    ? 'firewall.waivers.containers.requested'
-    : 'firewall.waivers.components.requested';
+  const origin =
+    repositoryFormat === 'docker' ? 'firewall.waivers.containers.requested' : 'firewall.waivers.components.requested';
 
   const handleClick = () => {
     dispatch(

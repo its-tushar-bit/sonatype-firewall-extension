@@ -34,7 +34,6 @@ import {
   selectRepositoryInformation,
   selectRepositoryResultsSummaryPageSlice,
   selectShowMaskSuccessDialog,
-  selectShowWaiverAddedBanner,
 } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import ReportStatusBar from 'MainRoot/applicationReport/ReportStatusBar';
 import RepositoryResultsComponentsTable from './repositoryResultsComponentsTable/RepositoryResultsComponentsTable';
@@ -52,7 +51,6 @@ export default function RepositoryResultsSummaryPage() {
   const errorFound = errorSummaryTile || errorRepositoryInformation;
   const showReEvaluateMaskSuccess = useSelector(selectReEvaluateMaskSuccess);
   const showMaskSuccessDialog = useSelector(selectShowMaskSuccessDialog);
-  const showWaiverAddedBanner = useSelector(selectShowWaiverAddedBanner);
   const ownersMap = useSelector(selectOwnersMap);
   const prevParams = useSelector(selectRouterPrevParams);
   const prevStateIsFirewall = useSelector(selectPrevStateIsFirewallDashboard);

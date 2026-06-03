@@ -425,7 +425,9 @@ export function getParentRetentionPoliciesUrl(orgId) {
 }
 
 export function getWaiverExpirationNotificationConfigUrl(ownerType, ownerId) {
-  return uriTemplate`/api/v2/waiverExpirationNotificationConfig/${encodeURIComponent(ownerType)}/${encodeURIComponent(ownerId)}`;
+  return uriTemplate`/api/v2/waiverExpirationNotificationConfig/${encodeURIComponent(ownerType)}/${encodeURIComponent(
+    ownerId
+  )}`;
 }
 
 export function getReevaluateComponentUrl(repositoryId, hash) {
@@ -997,7 +999,6 @@ export function getListPolicyWaiverRequestsUrl(ownerType, ownerId, repositoryFor
   const base = uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}`;
   return repositoryFormat ? `${base}?repositoryFormat=${encodeURIComponent(repositoryFormat)}` : base;
 }
-
 
 export function getCreatePolicyWaiverRequestUrl(ownerType, ownerId, policyViolationId) {
   return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/policyViolation/${policyViolationId}`;

@@ -5,7 +5,6 @@
  */
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
@@ -22,8 +21,6 @@ export default function SbomManagerViolationDetailsTile() {
     'iq-threat-level',
     `iq-threat-level--${threatLevelCategory}`
   );
-
-  const uiRouterState = useRouterState();
 
   return (
     <section id="sbom-manager-violation-details-tile" className={sectionClasses}>

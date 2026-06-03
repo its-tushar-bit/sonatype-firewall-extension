@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,7 +12,12 @@ import { actions } from 'MainRoot/configuration/githubApp/gitHubAppConfiguration
 import { actions as sourceControlActions } from './sourceControlConfigurationSlice';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectHasEditPermission } from './sourceControlConfigurationSelectors';
-import { AUTHENTICATION_TYPES, hasConfiguredGitHubApp, getScmFormStateStorageKey, saveFormStateWithFallback } from './utils';
+import {
+  AUTHENTICATION_TYPES,
+  hasConfiguredGitHubApp,
+  getScmFormStateStorageKey,
+  saveFormStateWithFallback,
+} from './utils';
 import './_gitHubAppAuthenticationMethod.scss';
 
 const GitHubAppAuthenticationMethod = ({
@@ -47,7 +53,10 @@ const GitHubAppAuthenticationMethod = ({
     return null;
   });
   const handleOpenModal = () => {
-    sessionStorage.setItem('githubAppReturnTo', JSON.stringify({ returnTo: 'sourceControl', ownerId: sourceControl?.ownerId }));
+    sessionStorage.setItem(
+      'githubAppReturnTo',
+      JSON.stringify({ returnTo: 'sourceControl', ownerId: sourceControl?.ownerId })
+    );
     dispatch(actions.openModal());
   };
   const handleManageGitHubApps = () => {
@@ -122,8 +131,6 @@ const GitHubAppAuthenticationMethod = ({
     }
   };
 
-  //TODO: Determine if GitHub App is already configured via separate API
-  const isConfigured = hasLocalGithubApp;
   const shouldDisableAddButton = isApplication && githubAppCount >= 1;
 
   return (
@@ -190,25 +197,26 @@ const GitHubAppAuthenticationMethod = ({
               {githubAppCount} GitHub App{githubAppCount !== 1 ? 's' : ''} configured
             </span>
             <div className="iq-github-app-auth-status__buttons">
-              {hasEditPermission && (shouldDisableAddButton ? (
-                <NxTooltip title="IQ applications can only have one GitHub App associated">
-                  <span>
-                    <NxButton id="github-app-add-button" variant="tertiary" type="button" disabled>
-                      Add GitHub App
-                    </NxButton>
-                  </span>
-                </NxTooltip>
-              ) : (
-                <NxButton
-                  id="github-app-add-button"
-                  variant="tertiary"
-                  type="button"
-                  onClick={handleOpenModal}
-                  disabled={areFieldsDisabled}
-                >
-                  Add GitHub App
-                </NxButton>
-              ))}
+              {hasEditPermission &&
+                (shouldDisableAddButton ? (
+                  <NxTooltip title="IQ applications can only have one GitHub App associated">
+                    <span>
+                      <NxButton id="github-app-add-button" variant="tertiary" type="button" disabled>
+                        Add GitHub App
+                      </NxButton>
+                    </span>
+                  </NxTooltip>
+                ) : (
+                  <NxButton
+                    id="github-app-add-button"
+                    variant="tertiary"
+                    type="button"
+                    onClick={handleOpenModal}
+                    disabled={areFieldsDisabled}
+                  >
+                    Add GitHub App
+                  </NxButton>
+                ))}
               <NxButton
                 id="manage-github-apps-button"
                 variant="tertiary"

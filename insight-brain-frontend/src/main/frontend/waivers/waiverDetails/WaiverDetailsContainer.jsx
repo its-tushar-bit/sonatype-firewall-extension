@@ -20,9 +20,7 @@ export default function WaiverDetailsContainer() {
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
 
-  const waiversBackButtonStateName = isStandaloneFirewall
-    ? FIREWALL_WAIVERS
-    : 'dashboard.overview.waivers';
+  const waiversBackButtonStateName = isStandaloneFirewall ? FIREWALL_WAIVERS : 'dashboard.overview.waivers';
 
   const showAutoWaiverDetails =
     (currentRouteName === 'waiver.details' || currentRouteName === FIREWALL_WAIVER_DETAILS) &&

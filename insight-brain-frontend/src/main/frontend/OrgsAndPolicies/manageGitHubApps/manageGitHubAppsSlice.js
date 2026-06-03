@@ -6,10 +6,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
-import {
-  getGitHubAppsListUrl,
-  getGitHubAppDeleteUrl,
-} from '../../util/CLMLocation';
+import { getGitHubAppsListUrl, getGitHubAppDeleteUrl } from '../../util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { selectOwnerInfo } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -50,7 +47,6 @@ export const deleteGitHubApp = createAsyncThunk(
   }
 );
 
-
 export const initialState = Object.freeze({
   githubApps: [],
   loading: false,
@@ -82,8 +78,12 @@ const manageGitHubAppsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(checkEditPermission.fulfilled, (state) => { state.hasEditPermission = true; })
-      .addCase(checkEditPermission.rejected, (state) => { state.hasEditPermission = false; })
+      .addCase(checkEditPermission.fulfilled, (state) => {
+        state.hasEditPermission = true;
+      })
+      .addCase(checkEditPermission.rejected, (state) => {
+        state.hasEditPermission = false;
+      })
       .addCase(fetchGitHubApps.pending, (state) => {
         state.loading = true;
         state.error = null;

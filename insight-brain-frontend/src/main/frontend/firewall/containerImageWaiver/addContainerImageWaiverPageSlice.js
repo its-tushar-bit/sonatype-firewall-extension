@@ -138,19 +138,16 @@ const requestSave = createAsyncThunk(
   }
 );
 
-const loadPermissions = createAsyncThunk(
-  `${REDUCER_NAME}/loadPermissions`,
-  (_, { rejectWithValue }) => {
-    return checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository_container', 'REPOSITORY_CONTAINER_ID')
-      .then(() => ({ hasWaivePermission: true, hasCreateWaiverRequestPermission: true }))
-      .catch((err) => {
-        if (err === authErrorMessage) {
-          return { hasWaivePermission: false, hasCreateWaiverRequestPermission: true };
-        }
-        return rejectWithValue(err);
-      });
-  }
-);
+const loadPermissions = createAsyncThunk(`${REDUCER_NAME}/loadPermissions`, (_, { rejectWithValue }) => {
+  return checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository_container', 'REPOSITORY_CONTAINER_ID')
+    .then(() => ({ hasWaivePermission: true, hasCreateWaiverRequestPermission: true }))
+    .catch((err) => {
+      if (err === authErrorMessage) {
+        return { hasWaivePermission: false, hasCreateWaiverRequestPermission: true };
+      }
+      return rejectWithValue(err);
+    });
+});
 
 const getExpiration = (state) => {
   const { expiryTime, customExpiryTime } = state;

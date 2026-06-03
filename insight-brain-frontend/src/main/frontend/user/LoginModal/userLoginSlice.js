@@ -51,7 +51,9 @@ export const initialState = Object.freeze({
  */
 const submitUserLogin = createAsyncThunk(`${REDUCER_NAME}/submitUserLogin`, (userCredentials, { rejectWithValue }) => {
   const { loginUsername, loginPassword } = userCredentials;
-  const encodedCredentials = btoa(String.fromCharCode(...new TextEncoder().encode(loginUsername + ':' + loginPassword)));
+  const encodedCredentials = btoa(
+    String.fromCharCode(...new TextEncoder().encode(loginUsername + ':' + loginPassword))
+  );
   const headers = {
     Authorization: `Basic ${encodedCredentials}`,
   };

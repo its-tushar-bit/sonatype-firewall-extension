@@ -40,7 +40,6 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
-import { loadReportAllData, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectIsContainerImagesEvaluationEnabledAndProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export default function PolicyViolationDetailsPopover() {

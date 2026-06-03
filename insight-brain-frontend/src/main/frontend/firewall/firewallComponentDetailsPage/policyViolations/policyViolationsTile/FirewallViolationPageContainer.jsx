@@ -3,10 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import FirewallViolationPage from './FirewallViolationPage';
-import { loadFirewallPolicyVulnerabilityDetails, setFilterIdsSimilarWaivers } from 'MainRoot/violation/violationActions';
+import {
+  loadFirewallPolicyVulnerabilityDetails,
+  setFilterIdsSimilarWaivers,
+} from 'MainRoot/violation/violationActions';
 import { loadFirewallViolationDetails } from 'MainRoot/firewall/firewallActions';
 import { selectSelectedPolicyViolation } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import {
@@ -37,11 +41,12 @@ export default function FirewallViolationPageContainer({ selectPolicyId, isFromP
   const isSbomManager = useSelector(selectIsSbomManager);
   const violationState = useSelector(selectViolationState);
 
-  const policyViolations = firewallComponentDetailsPage.policyViolations?.length > 0
-    ? firewallComponentDetailsPage.policyViolations
-    : selectedPolicyViolation
-    ? [selectedPolicyViolation]
-    : [];
+  const policyViolations =
+    firewallComponentDetailsPage.policyViolations?.length > 0
+      ? firewallComponentDetailsPage.policyViolations
+      : selectedPolicyViolation
+      ? [selectedPolicyViolation]
+      : [];
   const policyDetail = selectPolicyId
     ? policyViolations.find((item) => item.policyViolationId === selectPolicyId) || selectedPolicyViolation
     : selectedPolicyViolation;
@@ -71,7 +76,9 @@ export default function FirewallViolationPageContainer({ selectPolicyId, isFromP
       componentHash={componentDetails.hash || selectedPolicyViolation?.componentHash || selectedPolicyViolation?.hash}
       tabId={currentParams.tabId || firewallRouteParams.tabId || 'violations'}
       repositoryId={firewallRouteParams.repositoryId || selectedPolicyViolation?.repositoryId}
-      matchState={firewallRouteParams.matchState || selectedPolicyViolation?.matchState || selectedPolicyViolation?.matchStateId}
+      matchState={
+        firewallRouteParams.matchState || selectedPolicyViolation?.matchState || selectedPolicyViolation?.matchStateId
+      }
       pathname={firewallRouteParams.pathname || selectedPolicyViolation?.pathname}
       componentDisplayName={
         firewallRouteParams.componentDisplayName ||

@@ -34,7 +34,6 @@ import BulkWaiveTitle from './BulkWaiveTitle';
 import { selectHasBulkWaivers } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 
-
 export default function WaiverConfirmationPage() {
   const dispatch = useDispatch();
   const selectedViolations = useSelector(selectBulkWaiverSelectedViolations);
@@ -165,9 +164,7 @@ export default function WaiverConfirmationPage() {
       <BulkWaiveTitle />
       <NxTile className={!hasBulkWaivers ? 'iq-banner-flush-top' : ''}>
         {!hasBulkWaivers && (
-          <EnterpriseFullWidthBanner
-            description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
-          />
+          <EnterpriseFullWidthBanner description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work." />
         )}
         <NxForm
           onSubmit={hasBulkWaivers ? onSubmit : undefined}
@@ -178,7 +175,6 @@ export default function WaiverConfirmationPage() {
           additionalFooterBtns={additionalFooterBtns}
           className={!hasBulkWaivers ? 'iq-enterprise-mode-footer' : ''}
         >
-
           <NxTile.Header>
             <NxTile.HeaderTitle>
               <NxH2>Confirmation</NxH2>

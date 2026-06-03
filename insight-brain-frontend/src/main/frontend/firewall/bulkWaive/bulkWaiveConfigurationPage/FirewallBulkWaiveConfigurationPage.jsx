@@ -42,9 +42,7 @@ import {
   selectHasMixedViolations,
   selectFirewallLoadingWaiverReasons,
   selectFirewallWaiverReasonsError,
-  selectFirewallBulkWaiverSelectedViolations,
   selectFirewallSelectedWaiverScope,
-  selectFirewallSelectAllMode,
   selectBulkWaiveSource,
   selectSourceContext,
   selectOriginalAggregateState,
@@ -62,9 +60,7 @@ export default function FirewallBulkWaiveConfigurationPage() {
   const selectedCount = useSelector(selectFirewallSelectedCount);
   const loadingWaiverReasons = useSelector(selectFirewallLoadingWaiverReasons);
   const waiverReasonsError = useSelector(selectFirewallWaiverReasonsError);
-  const selectedViolations = useSelector(selectFirewallBulkWaiverSelectedViolations);
   const selectedWaiverScope = useSelector(selectFirewallSelectedWaiverScope);
-  const selectAllMode = useSelector(selectFirewallSelectAllMode);
   const source = useSelector(selectBulkWaiveSource);
   const sourceContext = useSelector(selectSourceContext);
   const originalAggregateState = useSelector(selectOriginalAggregateState);
@@ -136,7 +132,7 @@ export default function FirewallBulkWaiveConfigurationPage() {
     const newValue = typeof time === 'string' ? time : time?.value || '';
     setCustomExpiryTime({
       value: newValue,
-      isPristine: false, 
+      isPristine: false,
     });
   };
 

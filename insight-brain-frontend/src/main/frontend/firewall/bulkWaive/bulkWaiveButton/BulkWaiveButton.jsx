@@ -64,7 +64,13 @@ export default function BulkWaiveButton({
   }
 
   return (
-    <NxButton variant="tertiary" id="fw-bulk-waive" disabled={isButtonDisabled} className={className} onClick={handleClick}>
+    <NxButton
+      variant="tertiary"
+      id="fw-bulk-waive"
+      disabled={isButtonDisabled}
+      className={className}
+      onClick={handleClick}
+    >
       <span>Bulk Waive</span>
     </NxButton>
   );

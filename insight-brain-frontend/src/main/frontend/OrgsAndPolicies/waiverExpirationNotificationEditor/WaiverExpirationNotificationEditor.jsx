@@ -24,7 +24,6 @@ import {
   NxErrorAlert,
   NxP,
   NxTable,
-  NxDivider,
   NxList,
 } from '@sonatype/react-shared-components';
 import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -154,7 +153,6 @@ export default function WaiverExpirationNotificationEditor() {
     setDraftRoleId('');
   }
 
-
   return (
     <div className="iq-waiver-expiration-notification-editor">
       <NxPageTitle>
@@ -204,8 +202,8 @@ export default function WaiverExpirationNotificationEditor() {
                 </header>
                 <div className="nx-modal-content">
                   <NxWarningAlert>
-                    Clicking delete will permanently remove this custom configuration. This owner
-                    will then inherit the notification settings from its parent.
+                    Clicking delete will permanently remove this custom configuration. This owner will then inherit the
+                    notification settings from its parent.
                   </NxWarningAlert>
                 </div>
                 <footer className="nx-footer">
@@ -213,11 +211,7 @@ export default function WaiverExpirationNotificationEditor() {
                     <NxButton type="button" onClick={() => setIsDeleteModalOpen(false)}>
                       Cancel
                     </NxButton>
-                    <NxButton
-                      variant="primary"
-                      type="button"
-                      onClick={() => dispatch(actions.deleteConfig())}
-                    >
+                    <NxButton variant="primary" type="button" onClick={() => dispatch(actions.deleteConfig())}>
                       Delete
                     </NxButton>
                   </div>
@@ -256,53 +250,69 @@ export default function WaiverExpirationNotificationEditor() {
               {showCustomForm && (
                 <>
                   <NxTile.Subsection>
-                    <NxH2 className="iq-waiver-expiration-notification-editor__subsection-heading">Expiration reminders</NxH2>
-                    <NxP className="iq-waiver-expiration-notification-editor__subsection-description">Choose when reminder notifications should be sent before the waiver expires.</NxP>
+                    <NxH2 className="iq-waiver-expiration-notification-editor__subsection-heading">
+                      Expiration reminders
+                    </NxH2>
+                    <NxP className="iq-waiver-expiration-notification-editor__subsection-description">
+                      Choose when reminder notifications should be sent before the waiver expires.
+                    </NxP>
 
-                    {notificationDays.length > 0 && <NxList>
-                      {notificationDays.map((day, index) => {
-                        const dayError = validateDay(day);
-                        return (
-                          <NxList.Item
-                            key={index}
-                            className={[
-                              'iq-waiver-expiration-notification-editor__reminder-list-item',
-                              index === 0 ? 'iq-waiver-expiration-notification-editor__reminder-list-item--first' : '',
-                              index === notificationDays.length - 1 ? 'iq-waiver-expiration-notification-editor__reminder-list-item--last' : '',
-                            ].filter(Boolean).join(' ')}
-                          >
-                            <div className="iq-waiver-expiration-notification-editor__reminder-row">
-                              <span className="iq-waiver-expiration-notification-editor__reminder-label">Send reminder</span>
-                              <div className="iq-waiver-expiration-notification-editor__day-input-wrapper">
-                                <NxTextInput
-                                  value={String(day)}
-                                  onChange={(val) => handleDayChange(index, val)}
-                                  type="number"
-                                  id={`notification-day-${index}`}
-                                />
+                    {notificationDays.length > 0 && (
+                      <NxList>
+                        {notificationDays.map((day, index) => {
+                          const dayError = validateDay(day);
+                          return (
+                            <NxList.Item
+                              key={index}
+                              className={[
+                                'iq-waiver-expiration-notification-editor__reminder-list-item',
+                                index === 0
+                                  ? 'iq-waiver-expiration-notification-editor__reminder-list-item--first'
+                                  : '',
+                                index === notificationDays.length - 1
+                                  ? 'iq-waiver-expiration-notification-editor__reminder-list-item--last'
+                                  : '',
+                              ]
+                                .filter(Boolean)
+                                .join(' ')}
+                            >
+                              <div className="iq-waiver-expiration-notification-editor__reminder-row">
+                                <span className="iq-waiver-expiration-notification-editor__reminder-label">
+                                  Send reminder
+                                </span>
+                                <div className="iq-waiver-expiration-notification-editor__day-input-wrapper">
+                                  <NxTextInput
+                                    value={String(day)}
+                                    onChange={(val) => handleDayChange(index, val)}
+                                    type="number"
+                                    id={`notification-day-${index}`}
+                                  />
+                                </div>
+                                <span className="iq-waiver-expiration-notification-editor__reminder-label">
+                                  days before expiration
+                                </span>
+                                <NxButton
+                                  variant="icon-only"
+                                  title="Remove"
+                                  type="button"
+                                  onClick={() => handleDayRemove(index)}
+                                >
+                                  <NxFontAwesomeIcon icon={faTrashAlt} />
+                                </NxButton>
                               </div>
-                              <span className="iq-waiver-expiration-notification-editor__reminder-label">days before expiration</span>
-                              <NxButton
-                                variant="icon-only"
-                                title="Remove"
-                                type="button"
-                                onClick={() => handleDayRemove(index)}
-                              >
-                                <NxFontAwesomeIcon icon={faTrashAlt} />
-                              </NxButton>
-                            </div>
-                            {dayError && (
-                              <div className="iq-waiver-expiration-notification-editor__day-error">
-                                {dayError}
-                              </div>
-                            )}
-                          </NxList.Item>
-                        );
-                      })}
-                    </NxList>}
+                              {dayError && (
+                                <div className="iq-waiver-expiration-notification-editor__day-error">{dayError}</div>
+                              )}
+                            </NxList.Item>
+                          );
+                        })}
+                      </NxList>
+                    )}
 
                     <div className="iq-waiver-expiration-notification-editor__button-section">
-                      {notificationDays.length > 0 && <hr className="iq-waiver-expiration-notification-editor__divider" />}
+                      {notificationDays.length > 0 && (
+                        <hr className="iq-waiver-expiration-notification-editor__divider" />
+                      )}
                       {notificationDays.length < MAX_NOTIFICATION_DAYS && (
                         <NxButton
                           variant="tertiary"
@@ -318,8 +328,12 @@ export default function WaiverExpirationNotificationEditor() {
                   </NxTile.Subsection>
 
                   <NxTile.Subsection>
-                    <NxH2 className="iq-waiver-expiration-notification-editor__subsection-heading">Notification recipients</NxH2>
-                    <NxP className="iq-waiver-expiration-notification-editor__subsection-description">Who should receive waiver expiration reminders?</NxP>
+                    <NxH2 className="iq-waiver-expiration-notification-editor__subsection-heading">
+                      Notification recipients
+                    </NxH2>
+                    <NxP className="iq-waiver-expiration-notification-editor__subsection-description">
+                      Who should receive waiver expiration reminders?
+                    </NxP>
 
                     <NxTable>
                       <NxTable.Head>
@@ -329,7 +343,11 @@ export default function WaiverExpirationNotificationEditor() {
                         </NxTable.Row>
                       </NxTable.Head>
                       <NxTable.Body
-                        emptyMessage={hasRecipients ? undefined : 'Add people or groups who should receive waiver expiration reminders.'}
+                        emptyMessage={
+                          hasRecipients
+                            ? undefined
+                            : 'Add people or groups who should receive waiver expiration reminders.'
+                        }
                       >
                         {directEmails.map((email, index) => (
                           <NxTable.Row key={`email-${index}`}>

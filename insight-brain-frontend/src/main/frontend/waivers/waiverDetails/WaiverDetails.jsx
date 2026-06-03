@@ -87,7 +87,9 @@ export default function WaiverDetails() {
 
   const handleRenewWaiverButtonClick = () => {
     const { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page } = routerParams;
-    dispatch(stateGo('firewall.renewWaiver', { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page }));
+    dispatch(
+      stateGo('firewall.renewWaiver', { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page })
+    );
   };
 
   const onVulnerabilityDetailsClick = () => {

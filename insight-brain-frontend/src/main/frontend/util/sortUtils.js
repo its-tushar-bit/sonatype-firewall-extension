@@ -103,7 +103,9 @@ const caseInsensitiveComparatorWithNull = (a, b) => {
   return defaultComparator(String(a).toLowerCase(), String(b).toLowerCase());
 };
 
-export const sortItemsByFieldsCaseInsensitiveWithNull = sortItemsByFieldsWithComparator(caseInsensitiveComparatorWithNull);
+export const sortItemsByFieldsCaseInsensitiveWithNull = sortItemsByFieldsWithComparator(
+  caseInsensitiveComparatorWithNull
+);
 
 export const extractSortFieldName = (orderedField) => {
   if (orderedField && orderedField.indexOf('-') === 0) {
@@ -151,9 +153,7 @@ export const sortWaiversByComponent = (sortFields, results = []) => {
       : groupWaiversByComponentName.exactAndAllversion.push(waiverWithComponentName);
   });
 
-  const sortFieldsWithComponent = sortFields.map((f) =>
-    f.replace(/^(-?)displayName$/, '$1component')
-  );
+  const sortFieldsWithComponent = sortFields.map((f) => f.replace(/^(-?)displayName$/, '$1component'));
   Object.entries(groupWaiversByComponentName).forEach(([key, val]) => {
     groupWaiversByComponentName[key] = sortItemsByFieldsCaseInsensitiveWithNull(sortFieldsWithComponent, val);
   });
@@ -169,7 +169,16 @@ export const sortWaiversByComponent = (sortFields, results = []) => {
   return resultsSortedByGroup;
 };
 
-const STRING_SORT_FIELDS = ['policyName', '-policyName', 'scope', '-scope', 'displayName', '-displayName', 'component', '-component'];
+const STRING_SORT_FIELDS = [
+  'policyName',
+  '-policyName',
+  'scope',
+  '-scope',
+  'displayName',
+  '-displayName',
+  'component',
+  '-component',
+];
 
 export const sortWaiversByFields = (sortFields, results) => {
   const sortFieldsWithExpiryTime = [...(sortFields || []), 'expiryTime'];

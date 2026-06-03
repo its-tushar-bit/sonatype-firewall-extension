@@ -37,8 +37,8 @@ export default function ManageGitHubAppsDeleteModal() {
           Are you sure you want to remove {app.slug} from Lifecycle? This action cannot be undone.
         </NxWarningAlert>
         <NxP>
-          This removes the GitHub App configuration from Lifecycle. To fully remove the integration,
-          you may also need to delete or uninstall the GitHub App in GitHub.
+          This removes the GitHub App configuration from Lifecycle. To fully remove the integration, you may also need
+          to delete or uninstall the GitHub App in GitHub.
         </NxP>
       </NxModal.Content>
       <NxFooter>

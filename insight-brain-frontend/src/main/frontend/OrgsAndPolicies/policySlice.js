@@ -965,9 +965,7 @@ const toggleCategoryIsApplied = (state, { payload: index }) => {
 // category. Mock clicks are visual-only and never mark the policy dirty.
 const togglePreviewCategoryIsApplied = (state, { payload: id }) => {
   const ids = state.previewAppliedCategoryIds || [];
-  state.previewAppliedCategoryIds = ids.includes(id)
-    ? ids.filter((existing) => existing !== id)
-    : [...ids, id];
+  state.previewAppliedCategoryIds = ids.includes(id) ? ids.filter((existing) => existing !== id) : [...ids, id];
 };
 
 const togglePolicyActionsOverrideAllowed = (state) => {

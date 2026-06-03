@@ -134,7 +134,9 @@ export const verifyFiltersAreValid = (componentsRequestBody) => {
   const evaluationTimeFilterIsValid = !evaluationTimeFilter ? true : verifyFilterIsValid(evaluationTimeFilter);
   const quarantineTimeFilterIsValid = !quarantineTimeFilter ? true : verifyFilterIsValid(quarantineTimeFilter);
 
-  return policyNameFilterIsValid && componentNameFilterIsValid && evaluationTimeFilterIsValid && quarantineTimeFilterIsValid;
+  return (
+    policyNameFilterIsValid && componentNameFilterIsValid && evaluationTimeFilterIsValid && quarantineTimeFilterIsValid
+  );
 };
 
 const verifyFilterIsValid = (filter) => {

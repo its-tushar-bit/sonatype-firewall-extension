@@ -53,24 +53,24 @@ function FirewallNavigationBarRow({ dashboards, title, activeDashboard }) {
       <NxH3 className="fw-enterprise-reporting-dashboard__type">{title}:</NxH3>
       <ul className="fw-enterprise-reporting-dashboard__link-list">
         {dashboards.map((dashboard) => (
-            <li
-              className={`fw-enterprise-reporting-dashboard__link-item item--${dashboard.dashboardId}`}
-              key={dashboard.dashboardId}
-            >
-              {dashboard.dashboardId === activeDashboard ? (
-                <span>{dashboard.title}</span>
-              ) : (
-                <NxTextLink
-                  className="fw-enterprise-reporting-dashboard__text-link"
-                  href={uiRouterState.href('firewall.enterpriseReportingDashboard', {
-                    id: dashboard.dashboardId,
-                  })}
-                >
-                  {dashboard.title}
-                </NxTextLink>
-              )}
-            </li>
-          ))}
+          <li
+            className={`fw-enterprise-reporting-dashboard__link-item item--${dashboard.dashboardId}`}
+            key={dashboard.dashboardId}
+          >
+            {dashboard.dashboardId === activeDashboard ? (
+              <span>{dashboard.title}</span>
+            ) : (
+              <NxTextLink
+                className="fw-enterprise-reporting-dashboard__text-link"
+                href={uiRouterState.href('firewall.enterpriseReportingDashboard', {
+                  id: dashboard.dashboardId,
+                })}
+              >
+                {dashboard.title}
+              </NxTextLink>
+            )}
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -146,7 +146,11 @@ export default function FirewallEnterpriseReportingDashboardPage() {
       <NxPageMain id="fw-enterprise-reporting-dashboard-page" className="nx-viewport-sized">
         {firewallDashboards?.length > 0 && (
           <nav className="fw-enterprise-reporting-dashboard__navigation-bar">
-            <FirewallNavigationBarRow activeDashboard={id} dashboards={firewallDashboards} title="Firewall Dashboards" />
+            <FirewallNavigationBarRow
+              activeDashboard={id}
+              dashboards={firewallDashboards}
+              title="Firewall Dashboards"
+            />
           </nav>
         )}
 
@@ -169,7 +173,11 @@ export default function FirewallEnterpriseReportingDashboardPage() {
         </NxPageTitle>
 
         {!baseUrl || !selectedDashboard ? (
-          <NxLoadWrapper loading={loading} retryHandler={() => dispatch(actions.loadDashboardDetail())} error={loadError}>
+          <NxLoadWrapper
+            loading={loading}
+            retryHandler={() => dispatch(actions.loadDashboardDetail())}
+            error={loadError}
+          >
             <div>Preparing dashboard...</div>
           </NxLoadWrapper>
         ) : (

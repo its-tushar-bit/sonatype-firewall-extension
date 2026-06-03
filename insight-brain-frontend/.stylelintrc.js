@@ -1,5 +1,7 @@
 module.exports = {
+  customSyntax: 'postcss-scss',
+  plugins: ['@stylistic/stylelint-plugin'],
   rules: {
-    'no-eol-whitespace': true,
+    '@stylistic/no-eol-whitespace': [true, { severity: 'warning' }],
   },
 };

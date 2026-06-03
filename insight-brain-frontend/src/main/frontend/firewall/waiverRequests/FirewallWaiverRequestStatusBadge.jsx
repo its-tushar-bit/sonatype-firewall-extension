@@ -11,24 +11,22 @@ import '@radix-ui/themes/styles.css';
 const STATUS_CONFIG = {
   REQUESTED: {
     label: 'Requested',
-    color: "blue"
+    color: 'blue',
   },
   APPROVED: {
     label: 'Approved',
-    color: "green"
+    color: 'green',
   },
   REJECTED: {
     label: 'Rejected',
-    color: "tomato"
+    color: 'tomato',
   },
 };
 
 export default function FirewallWaiverRequestStatusBadge({ status }) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.REQUESTED;
 
-  const [isDarkMode, setIsDarkMode] = useState(
-    () => document.documentElement.classList.contains('nx-html--dark-mode')
-  );
+  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('nx-html--dark-mode'));
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -39,10 +37,8 @@ export default function FirewallWaiverRequestStatusBadge({ status }) {
   }, []);
 
   return (
-    <Badge color={config.color} variant={isDarkMode ? "outline" : "soft"} style={{ borderRadius: '999px' }}>
-      <div className="iq-waiver-request-status-badge__content">
-        {config.label}
-      </div>
+    <Badge color={config.color} variant={isDarkMode ? 'outline' : 'soft'} style={{ borderRadius: '999px' }}>
+      <div className="iq-waiver-request-status-badge__content">{config.label}</div>
     </Badge>
   );
 }

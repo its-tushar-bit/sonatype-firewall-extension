@@ -9,7 +9,6 @@ import {
   NxPageMain,
   NxPageTitle,
   NxSmallThreatCounter,
-  NxStatefulSubmitMask,
   NxTile,
 } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
@@ -37,7 +36,7 @@ const ContainerRepositoryResultsPage = () => {
 
   const { repositoryId } = useSelector(selectRouterCurrentParams);
 
-  const { errorMessage, evaluationSummary, loading, repositoryInformation, submitMask } = useSelector(
+  const { errorMessage, evaluationSummary, loading, repositoryInformation } = useSelector(
     selectContainerRepositoryResults
   );
 

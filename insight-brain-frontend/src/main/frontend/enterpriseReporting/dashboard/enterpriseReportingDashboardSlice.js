@@ -6,9 +6,13 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import createSlice from 'MainRoot/reduxConfig/createSlice';
 import axios from 'axios';
-import { always, find, findIndex, prop, propEq } from 'ramda';
+import { always, find, findIndex, propEq } from 'ramda';
 
-import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
+import {
+  getEnterpriseReportingBaseUrl,
+  getEnterpriseReportingDashboardsUrl,
+  getIqVersion,
+} from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';

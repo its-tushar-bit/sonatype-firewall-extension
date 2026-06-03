@@ -88,7 +88,11 @@ export function useProductInfo(product) {
       };
     case LIFECYCLE:
       return {
-        ...(isPro ? PRODUCT_ICONS.LIFECYCLE_PRO : isEnterprise ? PRODUCT_ICONS.LIFECYCLE_ENTERPRISE : PRODUCT_ICONS.LIFECYCLE),
+        ...(isPro
+          ? PRODUCT_ICONS.LIFECYCLE_PRO
+          : isEnterprise
+          ? PRODUCT_ICONS.LIFECYCLE_ENTERPRISE
+          : PRODUCT_ICONS.LIFECYCLE),
         href: uiRouterState.href('dashboard.overview.violations'),
       };
     case SONATYPE_UNLICENSED:

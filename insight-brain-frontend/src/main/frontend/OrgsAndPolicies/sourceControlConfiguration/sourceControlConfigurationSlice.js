@@ -544,8 +544,11 @@ const applyGitHubAppVisibilityState = (state, githubAppVisibility) => {
 
     // When backend has local apps but authenticationType was never explicitly saved,
     // sync both sides to GITHUB_APP so the component's useEffect doesn't create a mismatch.
-    if (backendHasLocalGithubApp && !state.serverSourceControl.authenticationType?.value &&
-        !state.serverSourceControl.authenticationType?.isInherited) {
+    if (
+      backendHasLocalGithubApp &&
+      !state.serverSourceControl.authenticationType?.value &&
+      !state.serverSourceControl.authenticationType?.isInherited
+    ) {
       state.sourceControl.authenticationType = {
         ...state.sourceControl.authenticationType,
         value: AUTHENTICATION_TYPES.GITHUB_APP,
@@ -753,7 +756,9 @@ const sourceControl = createSlice({
     showConfirmUpdateModal,
     closeConfirmUpdateModal,
     setLoading,
-    clearDirty: (state) => { state.isDirty = false; },
+    clearDirty: (state) => {
+      state.isDirty = false;
+    },
     saveMaskTimerDone: propSet('submitMaskState', null),
     showGitHubAppSuccessModal: (state) => {
       state.showGitHubAppSuccessModal = true;
@@ -807,8 +812,12 @@ const sourceControl = createSlice({
     [validate.pending]: validatePending,
     [validate.fulfilled]: validateFulfilled,
     [validate.rejected]: validateFailed,
-    [checkEditPermission.fulfilled]: (state) => { state.hasEditPermission = true; },
-    [checkEditPermission.rejected]: (state) => { state.hasEditPermission = false; },
+    [checkEditPermission.fulfilled]: (state) => {
+      state.hasEditPermission = true;
+    },
+    [checkEditPermission.rejected]: (state) => {
+      state.hasEditPermission = false;
+    },
     [UI_ROUTER_ON_FINISH]: (state) => {
       // Only reset form-specific state, preserve data and modal state
       // This avoids unnecessary object creation and preserves references

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -26,7 +27,10 @@ import {
   selectHasEditIqPermission,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
-import { selectIsLegacyViolationSupported, selectHasCustomPolicies } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsLegacyViolationSupported,
+  selectHasCustomPolicies,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function EditPolicySummary({ previewMode = false }) {
@@ -40,7 +44,11 @@ export default function EditPolicySummary({ previewMode = false }) {
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isSbomManager = useSelector(selectIsSbomManager);
   const hasCustomPolicies = useSelector(selectHasCustomPolicies);
-  const readOnly = previewMode ? false : (isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies);
+  const readOnly = previewMode
+    ? false
+    : isRepositoriesRelated && !isInherited
+    ? false
+    : isInherited || !hasEditIqPermission || isSbomManager || !hasCustomPolicies;
   const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
   const legacyViolationAllowed = useSelector(selectCurrentLegacyViolationAllowed);
 

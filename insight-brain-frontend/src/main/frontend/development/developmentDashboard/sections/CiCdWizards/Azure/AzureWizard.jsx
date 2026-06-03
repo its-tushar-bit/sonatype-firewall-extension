@@ -111,7 +111,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>Ignore Sonatype's system errors</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Ignore Sonatype&apos;s system errors</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
           <NxDescriptionList.Description>
             Controls the pipeline outcome when the scan or evaluation fails to produce results for some (possibly
@@ -119,7 +119,7 @@ export default function AzureWizard({ iqOrganization, iqApplication }) {
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>
-          <NxDescriptionList.Term>Ignore Sonatype's Scanning errors</NxDescriptionList.Term>
+          <NxDescriptionList.Term>Ignore Sonatype&apos;s Scanning errors</NxDescriptionList.Term>
           <NxDescriptionList.Description></NxDescriptionList.Description>
           <NxDescriptionList.Description>
             Controls the pipeline outcome when there are scanning errors such as malformed files

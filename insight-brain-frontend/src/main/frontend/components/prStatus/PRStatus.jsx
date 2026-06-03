@@ -63,19 +63,14 @@ export default function PRStatus({
     case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_PENDING:
       return <NxLoadingSpinner>Creating PR…</NxLoadingSpinner>;
     case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST_CREATION_FAILED: {
-      const {
-        reason = '',
-        failureCategory,
-        isRetryable,
-      } = automatedRemediationStatus;
+      const { reason = '', failureCategory, isRetryable } = automatedRemediationStatus;
 
       const canRetry = isRetryable !== false;
 
       const reasonTooltip = reason ? `Failure to create PR. ${reason}` : 'Failed to create PR.';
 
       const disabledTooltip =
-        PR_FAILURE_TOOLTIP[failureCategory] ??
-        (reason ? reasonTooltip : PR_FAILURE_DISABLED_FALLBACK);
+        PR_FAILURE_TOOLTIP[failureCategory] ?? (reason ? reasonTooltip : PR_FAILURE_DISABLED_FALLBACK);
 
       const tooltipTitle = canRetry ? reasonTooltip : disabledTooltip;
 
@@ -90,9 +85,7 @@ export default function PRStatus({
           <button
             type="button"
             className={
-              canRetry
-                ? 'nx-text-link iq-pr-status__btn--failed'
-                : 'nx-text-link iq-pr-status__btn--failed disabled'
+              canRetry ? 'nx-text-link iq-pr-status__btn--failed' : 'nx-text-link iq-pr-status__btn--failed disabled'
             }
             onClick={canRetry ? onRetry : undefined}
             aria-disabled={!canRetry}

@@ -25,7 +25,14 @@ import { selectDashboardFilter } from 'MainRoot/dashboard/dashboardSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
 
-const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], ['policyName'], ['scope'], ['component']];
+const DEFAULT_SORT_FIELDS = [
+  ['-threatLevel'],
+  ['createTime'],
+  ['expiryTime'],
+  ['policyName'],
+  ['scope'],
+  ['component'],
+];
 
 export default function FirewallDashboardWaiversTable(props) {
   const {
@@ -34,7 +41,6 @@ export default function FirewallDashboardWaiversTable(props) {
     dispatchNexPage,
     dispatchPreviousPage,
     stateGo,
-    maxDaysOld,
     needsAcknowledgement,
     reload,
   } = props;
@@ -52,10 +58,11 @@ export default function FirewallDashboardWaiversTable(props) {
   const repositoryPublicId = dashboardFilter?.selected?.repositoryPublicId ?? '';
 
   const debouncedLoadWaiverResults = useMemo(
-    () => debounce(() => {
-      dispatch(firewallApplyFilter());
-      dispatch(setPage(WAIVERS_RESULTS_TYPE, 0));
-    }, 500),
+    () =>
+      debounce(() => {
+        dispatch(firewallApplyFilter());
+        dispatch(setPage(WAIVERS_RESULTS_TYPE, 0));
+      }, 500),
     [dispatch]
   );
 
@@ -124,84 +131,88 @@ export default function FirewallDashboardWaiversTable(props) {
   };
   return (
     <div className="nx-table-container">
-<div className="iq-waivers-table-scroll">
-      <NxTable className="nx-table--fixed-layout">
-        <NxTable.Head>
-          <NxTable.Row className="iq-dashboard-waivers-headers">
-            <NxTable.Cell
-              className="iq-size-controlled-cell"
-              onClick={() => doSort(0)}
-              sortDir={getColumnDirection(0)}
-              isSortable
-            >
-              Threat
-            </NxTable.Cell>
-            <NxTable.Cell
-              className="iq-waiver-date-header"
-              onClick={() => doSort(1)}
-              sortDir={getColumnDirection(1)}
-              isSortable
-            >
-              Date Created
-            </NxTable.Cell>
-            <NxTable.Cell
-              className="iq-waiver-date-header"
-              onClick={() => doSort(2)}
-              sortDir={getColumnDirection(2)}
-              isSortable
-            >
-              Expiration
-            </NxTable.Cell>
-            <NxTable.Cell className="iq-waiver-policy-header" onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
-              Policy
-            </NxTable.Cell>
-            <NxTable.Cell className="iq-waiver-scope-header" onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
-              Scope
-            </NxTable.Cell>
-            <NxTable.Cell className="iq-waiver-component-header" onClick={() => doSort(5)} sortDir={getColumnDirection(5)} isSortable>
-              Components
-            </NxTable.Cell>
-            <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
-            <NxTable.Cell className="iq-waiver-actions-header">Actions</NxTable.Cell>
-          </NxTable.Row>
-          <NxTable.Row isFilterHeader>
+      <div className="iq-waivers-table-scroll">
+        <NxTable className="nx-table--fixed-layout">
+          <NxTable.Head>
+            <NxTable.Row className="iq-dashboard-waivers-headers">
+              <NxTable.Cell
+                className="iq-size-controlled-cell"
+                onClick={() => doSort(0)}
+                sortDir={getColumnDirection(0)}
+                isSortable
+              >
+                Threat
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-date-header"
+                onClick={() => doSort(1)}
+                sortDir={getColumnDirection(1)}
+                isSortable
+              >
+                Date Created
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-date-header"
+                onClick={() => doSort(2)}
+                sortDir={getColumnDirection(2)}
+                isSortable
+              >
+                Expiration
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-policy-header"
+                onClick={() => doSort(3)}
+                sortDir={getColumnDirection(3)}
+                isSortable
+              >
+                Policy
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-scope-header"
+                onClick={() => doSort(4)}
+                sortDir={getColumnDirection(4)}
+                isSortable
+              >
+                Scope
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-component-header"
+                onClick={() => doSort(5)}
+                sortDir={getColumnDirection(5)}
+                isSortable
+              >
+                Components
+              </NxTable.Cell>
+              <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
+              <NxTable.Cell className="iq-waiver-actions-header">Actions</NxTable.Cell>
+            </NxTable.Row>
+            <NxTable.Row isFilterHeader>
               <NxTable.Cell />
               <NxTable.Cell />
               <NxTable.Cell className="iq-waiver-expiration-filter-cell">
-                <FirewallWaiverExpirationFilter
-                  selectedId={selectedExpirationDate}
-                  onChange={onExpirationChange}
-                />
+                <FirewallWaiverExpirationFilter selectedId={selectedExpirationDate} onChange={onExpirationChange} />
               </NxTable.Cell>
               <NxTable.Cell />
               <NxTable.Cell className="iq-waiver-scope-filter-cell">
-                <NxFilterInput
-                  placeholder="repository"
-                  value={repositoryPublicId}
-                  onChange={onRepositoryChange}
-                />
+                <NxFilterInput placeholder="repository" value={repositoryPublicId} onChange={onRepositoryChange} />
               </NxTable.Cell>
               <NxTable.Cell className="iq-waiver-component-filter-cell">
-                <NxFilterInput
-                  placeholder="component name"
-                  value={componentName}
-                  onChange={onComponentNameChange}
-                />
+                <NxFilterInput placeholder="component name" value={componentName} onChange={onComponentNameChange} />
               </NxTable.Cell>
               <NxTable.Cell />
               <NxTable.Cell />
             </NxTable.Row>
-        </NxTable.Head>
-        <NxTable.Body
-          className="iq-dashboard-waivers-entries"
-          isLoading={isLoading}
-          emptyMessage={emptyMessage}
-          error={Messages.getHttpErrorMessage(error)}
-          retryHandler={reload}
-        >
-          {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
-        </NxTable.Body>
-      </NxTable>
+          </NxTable.Head>
+          <NxTable.Body
+            className="iq-dashboard-waivers-entries"
+            isLoading={isLoading}
+            emptyMessage={emptyMessage}
+            error={Messages.getHttpErrorMessage(error)}
+            retryHandler={reload}
+          >
+            {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
+          </NxTable.Body>
+        </NxTable>
       </div>
 
       {!isLoading &&

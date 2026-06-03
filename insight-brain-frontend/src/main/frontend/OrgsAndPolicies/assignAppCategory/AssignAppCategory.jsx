@@ -29,7 +29,10 @@ import {
   selectAssignAppCategoriesSubmitMaskState,
   selectPreviewAppliedMockIds,
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
-import { selectHasCustomAppCategories, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectHasCustomAppCategories,
+  selectIsEnterprisePreviewMode,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';

@@ -15,10 +15,7 @@ import {
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
-import {
-  selectComponentDetailsViolationsSlice,
-  selectSelectedViolationId,
-} from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import {
@@ -55,7 +52,6 @@ function mapStateToProps(state, props) {
   const stageData = stages.dashboard;
   const selectPolicyId = props.selectPolicyId;
   const firewallPolicyViolations = firewallComponentDetailsPage.policyViolations;
-  const applicationPolicyViolations = selectComponentDetailsViolationsSlice(state);
   const componentApplicationDetails = selectComponentDetails(state);
   const { tabId } = selectRouterCurrentParams(state);
   const firewallComponentDetailsPageParams = selectFirewallComponentDetailsPageRouteParams(state);

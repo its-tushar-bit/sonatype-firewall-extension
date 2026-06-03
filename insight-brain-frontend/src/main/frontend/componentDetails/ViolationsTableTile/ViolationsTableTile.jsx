@@ -7,7 +7,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { NxLoadWrapper, NxButton } from '@sonatype/react-shared-components';
-import { selectHasBulkWaivers, selectHasAutoWaiverManagement } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import EnterpriseWaiverFeaturesModal from 'MainRoot/waivers/EnterpriseWaiverFeaturesModal';
 import { hideEnterpriseWaiverFeaturesModal } from 'MainRoot/waivers/waiverActions';
 
@@ -82,41 +81,43 @@ export default function ViolationsTableTile({
 
   return (
     <>
-    <EnterpriseWaiverFeaturesModal
-      isOpen={showEnterpriseWaiverModal || false}
-      onClose={() => dispatch(hideEnterpriseWaiverFeaturesModal())}
-    />
-    <section className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2" id="violations__tile__title">
-            {title}
-          </h2>
-        </div>
-        {(showViewAllComponents || showViewTransitiveViolations) && (
-          <div className="nx-tile__actions">
-            {!isFirewall && <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={ownerId} />}
-            {showViewTransitiveViolations && (
-              <ViewTransitiveViolationsButton
-                stateGo={stateGo}
-                ownerType={ownerType}
-                ownerId={ownerId}
-                scanId={scanId}
-                hash={hash}
-              />
-            )}
-            {showViewAllComponents && !loading && (
-              <ViewAllComponentWaiversButton toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover} />
-            )}
+      <EnterpriseWaiverFeaturesModal
+        isOpen={showEnterpriseWaiverModal || false}
+        onClose={() => dispatch(hideEnterpriseWaiverFeaturesModal())}
+      />
+      <section className="nx-tile">
+        <header className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2" id="violations__tile__title">
+              {title}
+            </h2>
           </div>
-        )}
-      </header>
-      <div className="nx-tile-content">
-        <NxLoadWrapper loading={loading} error={componentDetailsLoadError} retryHandler={loadComponentDetails}>
-          {() => <PolicyViolationsTable {...tableProps} />}
-        </NxLoadWrapper>
-      </div>
-    </section>
+          {(showViewAllComponents || showViewTransitiveViolations) && (
+            <div className="nx-tile__actions">
+              {!isFirewall && <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={ownerId} />}
+              {showViewTransitiveViolations && (
+                <ViewTransitiveViolationsButton
+                  stateGo={stateGo}
+                  ownerType={ownerType}
+                  ownerId={ownerId}
+                  scanId={scanId}
+                  hash={hash}
+                />
+              )}
+              {showViewAllComponents && !loading && (
+                <ViewAllComponentWaiversButton
+                  toggleComponentWaiversPopover={tableProps.toggleComponentWaiversPopover}
+                />
+              )}
+            </div>
+          )}
+        </header>
+        <div className="nx-tile-content">
+          <NxLoadWrapper loading={loading} error={componentDetailsLoadError} retryHandler={loadComponentDetails}>
+            {() => <PolicyViolationsTable {...tableProps} />}
+          </NxLoadWrapper>
+        </div>
+      </section>
     </>
   );
 }

@@ -30,24 +30,23 @@ export const selectRejectionReason = createSelector(selectReviewPage, prop('reje
 
 export const selectReviewPageHasWaivePermission = createSelector(selectReviewPage, prop('hasWaivePermission'));
 
-
 const isContainerRequest = (r) =>
   r.scopeOwnerType === 'all_repositories' || r.scopeOwnerId === 'REPOSITORY_CONTAINER_ID';
 
-export const selectComponentRequestedCount = createSelector(selectWaiverRequests, (requests) =>
-  requests.filter((r) => !isContainerRequest(r) && r.status === 'REQUESTED').length
+export const selectComponentRequestedCount = createSelector(
+  selectWaiverRequests,
+  (requests) => requests.filter((r) => !isContainerRequest(r) && r.status === 'REQUESTED').length
 );
 
-export const selectContainerRequestedCount = createSelector(selectWaiverRequests, (requests) =>
-  requests.filter((r) => isContainerRequest(r) && r.status === 'REQUESTED').length
+export const selectContainerRequestedCount = createSelector(
+  selectWaiverRequests,
+  (requests) => requests.filter((r) => isContainerRequest(r) && r.status === 'REQUESTED').length
 );
 
-export const selectContainerExistingCount = createSelector(
-  path(['containerImageWaivers', 'waivers']),
-  (waivers) => (waivers ? waivers.length : 0)
+export const selectContainerExistingCount = createSelector(path(['containerImageWaivers', 'waivers']), (waivers) =>
+  waivers ? waivers.length : 0
 );
 
-export const selectComponentExistingCount = createSelector(
-  path(['dashboard', 'waivers', 'results']),
-  (results) => (results ? results.filter((w) => w.ownerType !== 'all_repositories').length : 0)
+export const selectComponentExistingCount = createSelector(path(['dashboard', 'waivers', 'results']), (results) =>
+  results ? results.filter((w) => w.ownerType !== 'all_repositories').length : 0
 );

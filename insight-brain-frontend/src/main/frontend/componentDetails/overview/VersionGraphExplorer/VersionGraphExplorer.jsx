@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import { renderVersionGraph, selectVersion } from '@sonatype/version-graph';

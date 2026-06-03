@@ -52,7 +52,6 @@ const AutoWaiversConfiguration = () => {
   const { loading, loadError, productFeatures } = useSelector(selectProductFeaturesSlice);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
-  const hasAutoWaiverManagement = useSelector(selectHasAutoWaiverManagement);
   const isSbomManager = useSelector(selectIsSbomManager);
 
   const doLoad = () => {
@@ -118,14 +117,20 @@ function AutoWaiversConfigurationContents() {
       </NxPageTitle>
       <NxTile className={!hasAutoWaiverManagement ? 'iq-banner-flush-top' : ''}>
         {!hasAutoWaiverManagement && (
-          <EnterpriseFullWidthBanner
-            description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
-          />
+          <EnterpriseFullWidthBanner description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked." />
         )}
         <NxTile.Header>
           <NxH2>Configured Auto-Waivers</NxH2>
           <NxTile.HeaderActions>
-            <NxTooltip title={!hasAutoWaiverManagement ? 'Enterprise Feature' : waiverCreationDisabled ? 'Max. configurations reached' : ''}>
+            <NxTooltip
+              title={
+                !hasAutoWaiverManagement
+                  ? 'Enterprise Feature'
+                  : waiverCreationDisabled
+                  ? 'Max. configurations reached'
+                  : ''
+              }
+            >
               <NxButton
                 variant={'tertiary'}
                 className={classNames({ disabled: waiverCreationDisabled })}
@@ -299,11 +304,7 @@ function PreviewAutoWaiverRow() {
         <NxTextLink href={href}>View</NxTextLink>
       </NxTable.Cell>
       <NxTable.Cell hasIcon className="iq-auto-waiver-delete-cell">
-        <NxButton
-          variant={'icon-only'}
-          className="iq-auto-waiver-delete-button disabled"
-          disabled
-        >
+        <NxButton variant={'icon-only'} className="iq-auto-waiver-delete-button disabled" disabled>
           <NxFontAwesomeIcon icon={faTrash} />
         </NxButton>
       </NxTable.Cell>

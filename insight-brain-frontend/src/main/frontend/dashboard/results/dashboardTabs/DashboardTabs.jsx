@@ -6,7 +6,6 @@
 
 import { NxTab, NxTabList, NxTabs } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { toUpper, replace } from 'ramda';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 import React from 'react';
 import {

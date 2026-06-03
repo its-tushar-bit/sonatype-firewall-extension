@@ -65,18 +65,21 @@ export default function AutoWaiverDetails() {
   const isPreviewWaiver = routerCurrentParams?.autoWaiverId === 'preview-auto-waiver';
 
   // Mock data for preview waiver
-  const mockPreviewWaiver = useMemo(() => ({
-    createTime: Date.now(),
-    pathForward: true,
-    reachability: true,
-    threatLevel: 3,
-    scopesOperatorAny: true,
-    ownerId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
-    ownerName: 'Organization Name',
-    ownerType: 'organization',
-    publicId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
-    autoPolicyWaiverId: 'preview-auto-waiver',
-  }), [routerCurrentParams]);
+  const mockPreviewWaiver = useMemo(
+    () => ({
+      createTime: Date.now(),
+      pathForward: true,
+      reachability: true,
+      threatLevel: 3,
+      scopesOperatorAny: true,
+      ownerId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
+      ownerName: 'Organization Name',
+      ownerType: 'organization',
+      publicId: routerCurrentParams?.autoWaiverOwnerId || 'ROOT_ORGANIZATION_ID',
+      autoPolicyWaiverId: 'preview-auto-waiver',
+    }),
+    [routerCurrentParams]
+  );
 
   // Use mock data if preview waiver, otherwise use real details
   const waiverDetails = isPreviewWaiver ? mockPreviewWaiver : details;
@@ -197,7 +200,11 @@ export default function AutoWaiverDetails() {
             </NxTile.HeaderActions>
           )}
         </NxTile.Header>
-        <NxLoadWrapper loading={!isPreviewWaiver && isLoading} error={!isPreviewWaiver && loadError} retryHandler={loadAutoWaiverDetails}>
+        <NxLoadWrapper
+          loading={!isPreviewWaiver && isLoading}
+          error={!isPreviewWaiver && loadError}
+          retryHandler={loadAutoWaiverDetails}
+        >
           <div>
             {/* Policy */}
             <NxReadOnly className="iq-auto-waiver-details__policy">

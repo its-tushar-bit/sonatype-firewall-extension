@@ -233,8 +233,8 @@ export function loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference
   return function (dispatch, getState) {
     const state = getState();
     const routerComponentIdentifier = state.router.currentParams.componentIdentifier;
-    const componentIdentifier = componentIdentifierParam
-      ?? (routerComponentIdentifier ? JSON.parse(routerComponentIdentifier) : null);
+    const componentIdentifier =
+      componentIdentifierParam ?? (routerComponentIdentifier ? JSON.parse(routerComponentIdentifier) : null);
     if (!componentIdentifier) {
       return Promise.resolve();
     }

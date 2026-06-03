@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
@@ -24,7 +25,6 @@ export default function BulkWaiveTableRow({
   isComponentBulkWaive,
   checkboxId,
 }) {
-  
   return (
     <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="fw-bulk-waive__toggle-cell">

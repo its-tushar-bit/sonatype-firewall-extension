@@ -15,8 +15,6 @@ import {
   NxFontAwesomeIcon,
   NxTooltip,
   NxCard,
-  NxH4,
-  NxTag,
 } from '@sonatype/react-shared-components';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fas as fasPro } from '@fortawesome/pro-solid-svg-icons';

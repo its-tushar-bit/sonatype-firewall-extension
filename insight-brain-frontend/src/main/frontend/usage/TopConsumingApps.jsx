@@ -28,21 +28,17 @@ export default function TopConsumingApps({ topApps }) {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <div className="iq-usage-top-apps__subtitle">
-          {totalApps} applications evaluated this period
-        </div>
+        <div className="iq-usage-top-apps__subtitle">{totalApps} applications evaluated this period</div>
         <div className="iq-usage-top-apps__list">
           {visibleApps.map((app) => {
-            const percent = totalConsumed > 0
-              ? Math.round((app.consumed / totalConsumed) * 100)
-              : 0;
+            const percent = totalConsumed > 0 ? Math.round((app.consumed / totalConsumed) * 100) : 0;
             const displayName = app.name ?? app.publicId ?? 'Deleted application';
             return (
               <div key={app.appId} className="iq-usage-top-apps__row">
-                <span className="iq-usage-top-apps__name" title={displayName}>{displayName}</span>
-                <span className="iq-usage-top-apps__count">
-                  {app.consumed.toLocaleString()}
+                <span className="iq-usage-top-apps__name" title={displayName}>
+                  {displayName}
                 </span>
+                <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString()}</span>
                 <span className="iq-usage-top-apps__percent">{percent}%</span>
               </div>
             );

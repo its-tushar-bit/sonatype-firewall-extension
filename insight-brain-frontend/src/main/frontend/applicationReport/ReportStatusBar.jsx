@@ -125,7 +125,8 @@ export default function ReportStatusBar(props) {
                 </div>
                 <div className="iq-application-risk-score--desc">
                   <div className="iq-application-risk-score--desc-title">
-                    {isContainerImagesEvaluation ? 'CONTAINER' : isHostedRepoComponent ? 'REPOSITORY COMPONENT' : 'APP'} RISK SCORE
+                    {isContainerImagesEvaluation ? 'CONTAINER' : isHostedRepoComponent ? 'REPOSITORY COMPONENT' : 'APP'}{' '}
+                    RISK SCORE
                   </div>
                   <button className="nx-text-link" onClick={toggleShowApplicationRiskScoreModal}>
                     Learn more

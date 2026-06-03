@@ -20,7 +20,8 @@ import DependencyTreePage from 'MainRoot/DependencyTree/DependencyTreePage';
 // Abstract parent state
 router.stateRegistry.register({
   name: 'applicationReport',
-  url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId&origin&repositoryManagerId&repositoryId&repositoryPublicId',
+  url:
+    '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId&origin&repositoryManagerId&repositoryId&repositoryPublicId',
   abstract: true,
   component: ApplicationReportRoot,
   params: {

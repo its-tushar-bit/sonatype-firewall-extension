@@ -35,7 +35,6 @@ import {
 import { actions } from '../repositoryResultsSummaryPageSlice';
 import { goToRepositoryComponentDetailsPage } from 'MainRoot/firewall/firewallActions';
 import BulkWaiveButton from 'MainRoot/firewall/bulkWaive/bulkWaiveButton/BulkWaiveButton';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const dispatch = useDispatch();
@@ -119,16 +118,15 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
             </NxToggle>
           </NxTooltip>
           <div id="repository-report-action-buttons">
-
-          <BulkWaiveButton
-            repositoryId={repositoryId}
-            disabled={repositoryComponents?.length === 0}
-            violations={repositoryComponents}
-          />
-          <NxButton onClick={openFilterPopover} variant="tertiary" id="repository-filter-popover-button">
-            <NxFontAwesomeIcon icon={faFilter} />
-            <span>Filter</span>
-          </NxButton>
+            <BulkWaiveButton
+              repositoryId={repositoryId}
+              disabled={repositoryComponents?.length === 0}
+              violations={repositoryComponents}
+            />
+            <NxButton onClick={openFilterPopover} variant="tertiary" id="repository-filter-popover-button">
+              <NxFontAwesomeIcon icon={faFilter} />
+              <span>Filter</span>
+            </NxButton>
           </div>
         </NxButtonBar>
         <NxTableContainer id="iq-repository-summary-table">

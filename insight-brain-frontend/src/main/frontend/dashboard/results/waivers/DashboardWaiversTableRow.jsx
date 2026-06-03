@@ -8,10 +8,21 @@ import * as PropTypes from 'prop-types';
 import moment from 'moment';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
-import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import {
+  NxTable,
+  NxThreatIndicator,
+  NxOverflowTooltip,
+  NxSmallTag,
+  NxButton,
+  NxFontAwesomeIcon,
+} from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { faRenewSolid } from 'MainRoot/img/faRenewSolid';
-import { getWaiverDaysRemaining, isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
+import {
+  getWaiverDaysRemaining,
+  isWaiverAllVersionsOrExact,
+  shouldShowUpgradeIndicator,
+} from 'MainRoot/util/waiverUtils';
 import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -102,14 +113,20 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
       <NxTable.Cell>
         <div className="iq-waiver-expiry-cell">
           {waiver.isAutoWaiver === true ? (
-            <NxSmallTag color="green" style={{ margin: '0' }}>Auto</NxSmallTag>
+            <NxSmallTag color="green" style={{ margin: '0' }}>
+              Auto
+            </NxSmallTag>
           ) : (
             <div className="iq-waiver-expiry-content">
               <NxOverflowTooltip>
                 <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
               </NxOverflowTooltip>
               {isStandaloneFirewall && getExpiryStatusDescriptor(daysRemaining) && (
-                <span className={`iq-waiver-expiry-status iq-waiver-expiry-status--${getExpiryStatusDescriptor(daysRemaining).modifier}`}>
+                <span
+                  className={`iq-waiver-expiry-status iq-waiver-expiry-status--${
+                    getExpiryStatusDescriptor(daysRemaining).modifier
+                  }`}
+                >
                   {getExpiryStatusDescriptor(daysRemaining).text}
                 </span>
               )}

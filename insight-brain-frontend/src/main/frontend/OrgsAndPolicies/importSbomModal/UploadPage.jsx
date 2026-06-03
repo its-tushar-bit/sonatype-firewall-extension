@@ -19,7 +19,7 @@ import {
 
 import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice, selectUploadValidationErrors } from './importSbomModalSelectors';
-import { actions, IMPORT_STATE } from './importSbomModalSlice';
+import { actions } from './importSbomModalSlice';
 
 export default function UploadPage({ headerId, onCancel }) {
   const dispatch = useDispatch();

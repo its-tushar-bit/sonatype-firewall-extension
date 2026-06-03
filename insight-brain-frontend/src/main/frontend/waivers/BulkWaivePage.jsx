@@ -273,13 +273,9 @@ export default function BulkWaivePage() {
       <NxPageMain id="bulk-waive-page-container" className="nx-viewport-sized__container">
         <NxLoadWrapper error={loadError} loading={isLoading} retryHandler={retryHandler}>
           <BulkWaiveTitle />
-          <NxTile
-            className={`nx-viewport-sized__container${!hasBulkWaivers ? ' iq-banner-flush-top' : ''}`}
-          >
+          <NxTile className={`nx-viewport-sized__container${!hasBulkWaivers ? ' iq-banner-flush-top' : ''}`}>
             {!hasBulkWaivers && (
-              <EnterpriseFullWidthBanner
-                description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work."
-              />
+              <EnterpriseFullWidthBanner description="Efficiently manage multiple policy violations at once by creating waivers in bulk to save time and reduce repetitive work." />
             )}
             <NxTile.Header>
               <NxTile.HeaderTitle>

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
@@ -356,9 +357,9 @@ export default function ZscalerConfig(props) {
                 disabled={eulaState.disabled}
                 id="zscaler-eula-checkbox"
               >
-                By clicking "Save" below, I hereby acknowledge and agree that
+                By clicking &quot;Save&quot; below, I hereby acknowledge and agree that
                 <br />
-                access to and use of Sonatype's Zscaler integration is subject to
+                access to and use of Sonatype&apos;s Zscaler integration is subject to
                 <br />
                 and governed by these {licenseTermsLink}
               </NxCheckbox>

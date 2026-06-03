@@ -226,7 +226,15 @@ export default function OwnerDetailSidebar() {
           triggerContent="Application Categories"
           className={isCategory ? 'active' : ''}
         >
-          <NxTooltip title={!isApp && !hasCustomAppCategories ? 'Enterprise Feature' : (isApp && !areAnyCategoriesDefined ? 'No application categories defined.' : '')}>
+          <NxTooltip
+            title={
+              !isApp && !hasCustomAppCategories
+                ? 'Enterprise Feature'
+                : isApp && !areAnyCategoriesDefined
+                ? 'No application categories defined.'
+                : ''
+            }
+          >
             <NxCollapsibleItems.Child role="menuitem">
               <NxTextLink
                 className={isCategory && !categoryId ? 'selected' : ''}
@@ -235,7 +243,12 @@ export default function OwnerDetailSidebar() {
               >
                 <NxFontAwesomeIcon icon={isApp ? faPencilAlt : faPlus} />
                 <span>{isApp ? 'Assign App Categories' : 'New Category'}</span>
-                {!isApp && !hasCustomAppCategories && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+                {!isApp && !hasCustomAppCategories && (
+                  <>
+                    {' '}
+                    <NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" />
+                  </>
+                )}
               </NxTextLink>
             </NxCollapsibleItems.Child>
           </NxTooltip>
@@ -273,7 +286,12 @@ export default function OwnerDetailSidebar() {
                 <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
                   <NxFontAwesomeIcon icon={faPlus} />
                   <span>New Policy</span>
-                  {!hasCustomPolicies && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+                  {!hasCustomPolicies && (
+                    <>
+                      {' '}
+                      <NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" />
+                    </>
+                  )}
                 </NxTextLink>
               </NxCollapsibleItems.Child>
             </NxTooltip>
@@ -344,7 +362,12 @@ export default function OwnerDetailSidebar() {
               <NxTextLink className={isLabel && !labelId ? 'selected' : ''} href={`${linkMainHref}/label`}>
                 <NxFontAwesomeIcon icon={faPlus} />
                 <span>New Component Label</span>
-                {!hasCustomComponentLabels && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+                {!hasCustomComponentLabels && (
+                  <>
+                    {' '}
+                    <NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" />
+                  </>
+                )}
               </NxTextLink>
             </NxCollapsibleItems.Child>
           </NxTooltip>
@@ -381,7 +404,12 @@ export default function OwnerDetailSidebar() {
               >
                 <NxFontAwesomeIcon icon={faPlus} />
                 <span>New License Threat Group</span>
-                {!hasCustomLicenseThreatGroups && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+                {!hasCustomLicenseThreatGroups && (
+                  <>
+                    {' '}
+                    <NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" />
+                  </>
+                )}
               </NxTextLink>
             </NxCollapsibleItems.Child>
           </NxTooltip>
@@ -462,7 +490,12 @@ export default function OwnerDetailSidebar() {
               href={`${linkMainHref}/autowaivers`}
             >
               <span>Auto-Waivers</span>
-              {!hasAutoWaiverManagement && <>{' '}<NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" /></>}
+              {!hasAutoWaiverManagement && (
+                <>
+                  {' '}
+                  <NxFontAwesomeIcon icon={faLock} className="iq-sidebar-crown" />
+                </>
+              )}
             </NxTextLink>
           </NxCollapsibleItems.Child>
         </NxTooltip>

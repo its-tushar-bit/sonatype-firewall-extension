@@ -25,10 +25,7 @@ import './EnterprisePopover.scss';
  */
 export default function EnterprisePopover({ content, highlightText, linkText, onLinkClick, featureId, children }) {
   const dispatch = useDispatch();
-  const selectDismissed = useMemo(
-    () => (featureId ? selectIsPopoverDismissed(featureId) : () => false),
-    [featureId]
-  );
+  const selectDismissed = useMemo(() => (featureId ? selectIsPopoverDismissed(featureId) : () => false), [featureId]);
   const dismissed = useSelector(selectDismissed);
   const [showPopover, setShowPopover] = useState(false);
   const triggerRef = useRef(null);

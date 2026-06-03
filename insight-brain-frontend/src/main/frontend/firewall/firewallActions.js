@@ -835,7 +835,13 @@ export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, ge
       const convertData = convertToWaiverViolationFormat(data);
       return checkPermissionToAddWaivers(repositoryId)
         .then(() => {
-          dispatch(loadViolationDetailFulfilled({ ...convertData, hasWaivePermission: true, hasCreateWaiverRequestPermission: true }));
+          dispatch(
+            loadViolationDetailFulfilled({
+              ...convertData,
+              hasWaivePermission: true,
+              hasCreateWaiverRequestPermission: true,
+            })
+          );
         })
         .catch((err) => {
           if (err === authErrorMessage) {

@@ -6,7 +6,6 @@
 
 import { setToArray } from '../../util/jsUtil';
 
-
 export function createDashboardDataRequestPayload(filter, pageSize, sortFields, page) {
   var params = {};
   if (sortFields && sortFields.length) {

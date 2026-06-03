@@ -34,7 +34,10 @@ export default function SbomManagerLegalTab() {
   );
 
   const loadLicenses = useCallback(
-    () => dispatch(sbomActions.loadComponentLicenses({ applicationPublicId, componentIdentifier, internalAppId, sbomVersion })),
+    () =>
+      dispatch(
+        sbomActions.loadComponentLicenses({ applicationPublicId, componentIdentifier, internalAppId, sbomVersion })
+      ),
     [dispatch, applicationPublicId, componentIdentifier, internalAppId, sbomVersion]
   );
 

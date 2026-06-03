@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Box, Flex, IconButton, ScrollArea, Tooltip } from '@radix-ui/themes';
@@ -384,12 +385,8 @@ export default function LeftNav() {
   const isLegalEnabled = useSelector(selectIsAdvancedLegalPackSupported);
   const isApiPageEnabled = useSelector(selectIsApiPageSupported);
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
-  const isIntegratedEnterpriseReportingSupported = useSelector(
-    selectIsIntegratedEnterpriseReportingSupported,
-  );
-  const isHostedRepositoryEvaluationEnabled = useSelector(
-    selectIsHostedRepositoryEvaluationEnabled,
-  );
+  const isIntegratedEnterpriseReportingSupported = useSelector(selectIsIntegratedEnterpriseReportingSupported);
+  const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const isProductsLoading = useSelector(selectLoadingProducts);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);

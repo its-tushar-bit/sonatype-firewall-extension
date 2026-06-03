@@ -45,7 +45,10 @@ import { backendToRscColorMap, rscToBackendColorMap } from '../utility/util';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import ApplicationCategoryReadOnlyView from './ApplicationCategoryReadOnlyView';
 import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
-import { selectHasCustomAppCategories, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectHasCustomAppCategories,
+  selectIsEnterprisePreviewMode,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import './_CreateEditApplicationCategory.scss';
 
@@ -107,8 +110,7 @@ export default function CreateEditApplicationCategory() {
     dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
     if (newMode) {
       doLoad(); // Reload for clean Custom view
-    }
-    else {
+    } else {
       doLoad(); // Reload to discard Custom edits
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -236,7 +238,7 @@ export default function CreateEditApplicationCategory() {
                   isRequired
                 />
 
-                {(isEditMode && isEnterprisePreviewMode || !isEditMode) && (
+                {((isEditMode && isEnterprisePreviewMode) || !isEditMode) && (
                   <NxInfoAlert>
                     This is an Enterprise feature. Changes can&apos;t be saved.
                     {isEditMode && (

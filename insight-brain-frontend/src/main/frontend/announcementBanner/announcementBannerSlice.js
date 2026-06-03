@@ -62,8 +62,7 @@ const dismiss = (state, { payload: windowId }) => {
   state.dismissedWindowId = windowId;
   try {
     sessionStorage.setItem(DISMISS_STORAGE_KEY, windowId);
-  }
-  catch {
+  } catch {
     // sessionStorage unavailable; in-memory state still works.
   }
 };
@@ -75,8 +74,7 @@ const hydrateDismissed = (state) => {
     if (stored) {
       state.dismissedWindowId = stored;
     }
-  }
-  catch {
+  } catch {
     // sessionStorage unavailable
   }
 };
@@ -87,8 +85,7 @@ const clearDismissal = (state) => {
   state.suppressedByLogout = false;
   try {
     sessionStorage.removeItem(DISMISS_STORAGE_KEY);
-  }
-  catch {
+  } catch {
     // sessionStorage unavailable
   }
 };
@@ -98,8 +95,7 @@ const clearDismissalKeepSuppression = (state) => {
   state.dismissedWindowId = null;
   try {
     sessionStorage.removeItem(DISMISS_STORAGE_KEY);
-  }
-  catch {
+  } catch {
     // sessionStorage unavailable
   }
 };

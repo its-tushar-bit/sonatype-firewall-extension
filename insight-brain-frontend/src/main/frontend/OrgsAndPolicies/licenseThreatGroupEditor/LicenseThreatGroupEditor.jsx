@@ -36,7 +36,6 @@ import {
   selectDeleteMaskState,
   selectDeleteError,
   selectAvailableLicenses,
-
   selectLicenseThreatGroupId,
 } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import LtgTransferList from './LtgTransferList';
@@ -44,7 +43,10 @@ import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import LicenseThreatGroupReadOnlyView from './LicenseThreatGroupReadOnlyView';
 import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
-import { selectHasCustomLicenseThreatGroups, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectHasCustomLicenseThreatGroups,
+  selectIsEnterprisePreviewMode,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import './_LicenseThreatGroupEditor.scss';
 
@@ -92,8 +94,7 @@ export default function LicenseThreatGroupEditor() {
     dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
     if (newMode) {
       doLoad(); // Reload for clean Custom view
-    }
-    else {
+    } else {
       doLoad(); // Reload to discard Custom edits
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

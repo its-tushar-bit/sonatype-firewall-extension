@@ -120,8 +120,8 @@ export default function BambooWizard({ iqOrganization, iqApplication }) {
           <NxDescriptionList.Term>plugin-key</NxDescriptionList.Term>
           <NxDescriptionList.Description>com.sonatype.clm.ci.bamboo:clm-scan-task</NxDescriptionList.Description>
           <NxDescriptionList.Description>
-            The plugin identifier within Bamboo: The plugin's module used in the task. You can find the Sonatype plugin
-            information in the Add-ons/apps administration section in Bamboo.
+            The plugin identifier within Bamboo: The plugin&apos;s module used in the task. You can find the Sonatype
+            plugin information in the Add-ons/apps administration section in Bamboo.
           </NxDescriptionList.Description>
         </NxDescriptionList.Item>
         <NxDescriptionList.Item>

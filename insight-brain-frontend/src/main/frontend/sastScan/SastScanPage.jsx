@@ -68,7 +68,7 @@ export default function SastScanPage() {
   function getFormattedCommitHash() {
     const commitHash = sastScan?.sastScmScanContext?.commitHash;
 
-    return !!commitHash ? (
+    return commitHash ? (
       <>
         <b>Commit:</b> {commitHash}
       </>
@@ -80,7 +80,7 @@ export default function SastScanPage() {
   function getFormattedBranchName() {
     const branchName = sastScan?.sastScmScanContext?.branchName;
     // Using <div> will break the line.
-    return !!branchName ? (
+    return branchName ? (
       <div>
         <b>Branch:</b> {branchName}
       </div>

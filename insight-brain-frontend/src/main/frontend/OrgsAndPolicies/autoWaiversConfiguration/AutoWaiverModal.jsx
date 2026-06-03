@@ -109,9 +109,7 @@ export default function AutoWaiverModal() {
             </NxModal.Header>
             <NxModal.Content>
               {!hasAutoWaiverManagement && (
-                <EnterpriseFullWidthBanner
-                  description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked."
-                />
+                <EnterpriseFullWidthBanner description="Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked." />
               )}
               <NxP>Automatically waive policy violations when the following conditions are met:</NxP>
 

@@ -35,7 +35,11 @@ import {
   selectRenewWaiverReturnParams,
 } from './renewWaiverSelectors';
 import { actions } from './renewWaiverSlice';
-import { selectRouterCurrentParams, selectRouterPrevState, selectRouterPrevParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectRouterPrevState,
+  selectRouterPrevParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -73,9 +77,10 @@ export default function FirewallRenewWaiverPage() {
   const { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page } = routerParams;
 
   const returnStateName = prevState?.name || 'firewall.waiver.details';
-  const returnParams = returnStateName === 'firewall.waiver.details'
-    ? { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page }
-    : prevParams;
+  const returnParams =
+    returnStateName === 'firewall.waiver.details'
+      ? { ownerType, ownerId, waiverId, type, sidebarReference, sidebarId, page }
+      : prevParams;
 
   const backHref = uiRouterState.href(returnStateName, returnParams);
 
@@ -132,17 +137,12 @@ export default function FirewallRenewWaiverPage() {
     dispatch(stateGo(returnStateName, returnParams));
   }, [dispatch, returnStateName, returnParams]);
 
-
   const getDetails = () => dispatch(actions.loadWaiverForRenewal());
 
   const { expiration, policyName, component, creatorName } = formatWaiverDetails(waiver);
 
   const isApplication = waiver?.scopeOwnerType === 'application';
-  const scopeIcon = isApplication ? (
-    <NxFontAwesomeIcon icon={faTerminal} />
-  ) : (
-    <NxFontAwesomeIcon icon={faSitemap} />
-  );
+  const scopeIcon = isApplication ? <NxFontAwesomeIcon icon={faTerminal} /> : <NxFontAwesomeIcon icon={faSitemap} />;
 
   const customExpiryTimeSelected = isCustomExpiryTimeSelected(newExpiryTime);
   const isNeverSelected = !newExpiryTime || newExpiryTime === 'never';
@@ -150,8 +150,8 @@ export default function FirewallRenewWaiverPage() {
   const isNoOpRenewal = isNeverSelected && waiverAlreadyNeverExpires;
   const isExpired = isWaiverExpired(waiver?.expiryTime);
 
-  const isSubmitDisabled = isNoOpRenewal ||
-    (customExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime?.value));
+  const isSubmitDisabled =
+    isNoOpRenewal || (customExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime?.value));
 
   const getRenewalMessage = () => {
     if (!newExpiryTime || newExpiryTime === 'never') {
@@ -231,9 +231,7 @@ export default function FirewallRenewWaiverPage() {
               <NxReadOnly.Label>Current Expiry</NxReadOnly.Label>
               <NxReadOnly.Data>
                 {expiration}
-                {isExpired && (
-                  <span className="iq-renew-waiver__expired-tag">EXPIRED</span>
-                )}
+                {isExpired && <span className="iq-renew-waiver__expired-tag">EXPIRED</span>}
               </NxReadOnly.Data>
             </NxReadOnly>
 
@@ -246,10 +244,7 @@ export default function FirewallRenewWaiverPage() {
                     onChange={handleExpiryChange}
                   >
                     {waiverExpirations.map(({ name, value }, index) => (
-                      <option
-                        key={index}
-                        value={value}
-                      >
+                      <option key={index} value={value}>
                         {name}
                       </option>
                     ))}
@@ -276,7 +271,11 @@ export default function FirewallRenewWaiverPage() {
                   )}
                   {!isNoOpRenewal && !customExpiryTimeSelected && !isNeverSelected && (
                     <div className="iq-renew-waiver__expiry-base-hint">
-                      {isExpired ? 'Days added from today (waiver is expired)' : waiverAlreadyNeverExpires ? 'Days added from today' : 'Days added from current expiry date'}
+                      {isExpired
+                        ? 'Days added from today (waiver is expired)'
+                        : waiverAlreadyNeverExpires
+                        ? 'Days added from today'
+                        : 'Days added from current expiry date'}
                     </div>
                   )}
                   {!isNoOpRenewal && renewalMessage && (
@@ -316,9 +315,7 @@ export default function FirewallRenewWaiverPage() {
               <div className="nx-read-only__data">{creatorName}</div>
             </div>
 
-            {submitError && (
-              <div className="iq-renew-waiver__submit-error">{submitError}</div>
-            )}
+            {submitError && <div className="iq-renew-waiver__submit-error">{submitError}</div>}
           </div>
 
           <footer className="iq-renew-waiver__footer">

@@ -33,12 +33,25 @@ import {
 } from 'MainRoot/util/waiverUtils';
 
 import { loadFirewallViolationDetails } from 'MainRoot/firewall/firewallActions';
-import { loadAddWaiverData as loadAddWaiverDataAction, returnToAddOrRequestWaiverOriginPage } from 'MainRoot/waivers/waiverActions';
+import {
+  loadAddWaiverData as loadAddWaiverDataAction,
+  returnToAddOrRequestWaiverOriginPage,
+} from 'MainRoot/waivers/waiverActions';
 import { actions as waiverSliceActions } from 'MainRoot/waivers/waiverSlice';
 
 import { selectViolationSlice } from 'MainRoot/violation/violationSelectors';
-import { selectWaiverReasons, selectAddWaiverData, selectAddWaiverDataLoading, selectAddWaiverDataError } from 'MainRoot/waivers/requestWaiverSelectors';
-import { selectViolationId, selectRepositoryId, selectPreviousRouteName, selectRouterPrevParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectWaiverReasons,
+  selectAddWaiverData,
+  selectAddWaiverDataLoading,
+  selectAddWaiverDataError,
+} from 'MainRoot/waivers/requestWaiverSelectors';
+import {
+  selectViolationId,
+  selectRepositoryId,
+  selectPreviousRouteName,
+  selectRouterPrevParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectFirewallComponentDetailsPageRouteParams,
   selectFirewallViolationDetails,
@@ -51,8 +64,6 @@ import { find, propEq } from 'ramda';
 
 import { actions } from './firewallRequestWaiverSlice';
 import {
-  selectFirewallRequestWaiverLoading,
-  selectFirewallRequestWaiverLoadError,
   selectFirewallRequestWaiverSubmitError,
   selectFirewallRequestWaiverSubmitMaskState,
   selectFirewallRequestWaiverComponentMatcherStrategy,
@@ -81,8 +92,11 @@ export default function FirewallRequestWaiverPage() {
   const { loadApplicableWaiversError } = useSelector(selectViolationSlice);
 
   // Add-waiver data (scopes, initial matcher strategy)
-  const { availableWaiverScopes, selectedWaiverScope: initialSelectedWaiverScope, componentMatcherStrategy: initialComponentMatcherStrategy } =
-    useSelector(selectAddWaiverData);
+  const {
+    availableWaiverScopes,
+    selectedWaiverScope: initialSelectedWaiverScope,
+    componentMatcherStrategy: initialComponentMatcherStrategy,
+  } = useSelector(selectAddWaiverData);
   const addWaiverDataLoading = useSelector(selectAddWaiverDataLoading);
   const addWaiverDataError = useSelector(selectAddWaiverDataError);
 
@@ -226,9 +240,7 @@ export default function FirewallRequestWaiverPage() {
 
   // Loading / error
   const loading = violationLoading || addWaiverDataLoading;
-  const error = violationId
-    ? violationDetailsError || loadApplicableWaiversError
-    : 'No Violation ID provided.';
+  const error = violationId ? violationDetailsError || loadApplicableWaiversError : 'No Violation ID provided.';
 
   return (
     <main id="firewall-request-waiver-page" className="nx-page-main">
@@ -239,166 +251,162 @@ export default function FirewallRequestWaiverPage() {
 
       <LoadWrapper loading={loading} error={error || addWaiverDataError} retryHandler={load}>
         {() => (
-              <NxStatefulForm
-                className="iq-firewall-request-waiver-form"
-                onCancel={cancelAction}
-                submitError={submitError}
-                showValidationErrors={!!submitError}
-                onSubmit={onSubmit}
-                submitMaskState={submitMaskState}
-              >
-                <header className="nx-tile-header">
-                  <div className="nx-tile-header__title">
-                    <h2 className="nx-h2">Waiver Configuration</h2>
-                  </div>
+          <NxStatefulForm
+            className="iq-firewall-request-waiver-form"
+            onCancel={cancelAction}
+            submitError={submitError}
+            showValidationErrors={!!submitError}
+            onSubmit={onSubmit}
+            submitMaskState={submitMaskState}
+          >
+            <header className="nx-tile-header">
+              <div className="nx-tile-header__title">
+                <h2 className="nx-h2">Waiver Configuration</h2>
+              </div>
+            </header>
+
+            <div className="nx-tile-content">
+              {/* Component */}
+              <div className="nx-read-only iq-firewall-request-waiver-form__component">
+                <header className="nx-read-only__label">
+                  <ArtifactNameDisplay artifactName={replaceUnknownByDisplayName(artifactName)} />
                 </header>
+                <div className="nx-read-only__data">{componentName}</div>
+              </div>
 
-                <div className="nx-tile-content">
-                  {/* Component */}
-                  <div className="nx-read-only iq-firewall-request-waiver-form__component">
-                    <header className="nx-read-only__label">
-                      <ArtifactNameDisplay artifactName={replaceUnknownByDisplayName(artifactName)} />
-                    </header>
-                    <div className="nx-read-only__data">{componentName}</div>
+              {/* Repository */}
+              <div className="nx-read-only iq-firewall-request-waiver-form__repository">
+                <header className="nx-read-only__label">Repository</header>
+                <div className="nx-read-only__data">{repositoryId}</div>
+              </div>
+
+              {/* Policy */}
+              <div className="nx-read-only iq-firewall-request-waiver-form__policy">
+                <header className="nx-read-only__label">Policy</header>
+                <div className="nx-read-only__data">
+                  <ViolationExclamation threatLevelCategory={threatLevelCategory} />
+                  <span className={policyClassnames}>{policyName}</span>
+                </div>
+              </div>
+
+              {/* Constraint */}
+              <div className="nx-read-only iq-firewall-request-waiver-form__constraint">
+                <header className="nx-read-only__label">Constraint Name</header>
+                <div className="nx-read-only__data">{constraintName}</div>
+              </div>
+
+              {/* Conditions */}
+              <div className="nx-read-only iq-firewall-request-waiver-form__conditions">
+                <header className="nx-read-only__label">Conditions</header>
+                {reasons.map((reason, index) => (
+                  <div className="nx-read-only__data" key={index}>
+                    <span>{reason}</span>
                   </div>
+                ))}
+              </div>
 
-                  {/* Repository */}
-                  <div className="nx-read-only iq-firewall-request-waiver-form__repository">
-                    <header className="nx-read-only__label">Repository</header>
-                    <div className="nx-read-only__data">{repositoryId}</div>
-                  </div>
+              {/* Scope */}
+              <NxFieldset className="iq-firewall-request-waiver-form__scope" label="Scope" isRequired>
+                <IqScopeDropdown
+                  id="fw-rw-scope"
+                  onChangeHandler={handleScopeChange}
+                  availableScopes={availableWaiverScopes}
+                  getOptionText={extractScopeOptionText}
+                  currentValue={selectedWaiverScope?.id}
+                />
+              </NxFieldset>
 
-                  {/* Policy */}
-                  <div className="nx-read-only iq-firewall-request-waiver-form__policy">
-                    <header className="nx-read-only__label">Policy</header>
-                    <div className="nx-read-only__data">
-                      <ViolationExclamation threatLevelCategory={threatLevelCategory} />
-                      <span className={policyClassnames}>{policyName}</span>
-                    </div>
-                  </div>
+              {/* Components matcher */}
+              <NxFieldset className="iq-firewall-request-waiver-form__components" label="Components" isRequired>
+                <NxRadio
+                  id="fw-rw-current-component"
+                  name="fw-rw-components"
+                  value={waiverMatcherStrategy.EXACT_COMPONENT}
+                  isChecked={componentMatcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
+                  onChange={setComponentMatcherStrategy}
+                >
+                  {componentName}
+                </NxRadio>
+                {getAllVersionsRadioButton()}
+                <NxRadio
+                  id="fw-rw-all-components"
+                  name="fw-rw-components"
+                  value={waiverMatcherStrategy.ALL_COMPONENTS}
+                  isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
+                  onChange={setComponentMatcherStrategy}
+                >
+                  All Components
+                </NxRadio>
+              </NxFieldset>
 
-                  {/* Constraint */}
-                  <div className="nx-read-only iq-firewall-request-waiver-form__constraint">
-                    <header className="nx-read-only__label">Constraint Name</header>
-                    <div className="nx-read-only__data">{constraintName}</div>
-                  </div>
-
-                  {/* Conditions */}
-                  <div className="nx-read-only iq-firewall-request-waiver-form__conditions">
-                    <header className="nx-read-only__label">Conditions</header>
-                    {reasons.map((reason, index) => (
-                      <div className="nx-read-only__data" key={index}>
-                        <span>{reason}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Scope */}
-                  <NxFieldset className="iq-firewall-request-waiver-form__scope" label="Scope" isRequired>
-                    <IqScopeDropdown
-                      id="fw-rw-scope"
-                      onChangeHandler={handleScopeChange}
-                      availableScopes={availableWaiverScopes}
-                      getOptionText={extractScopeOptionText}
-                      currentValue={selectedWaiverScope?.id}
-                    />
-                  </NxFieldset>
-
-                  {/* Components matcher */}
-                  <NxFieldset className="iq-firewall-request-waiver-form__components" label="Components" isRequired>
-                    <NxRadio
-                      id="fw-rw-current-component"
-                      name="fw-rw-components"
-                      value={waiverMatcherStrategy.EXACT_COMPONENT}
-                      isChecked={componentMatcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
-                      onChange={setComponentMatcherStrategy}
+              {/* Expiry time */}
+              <NxFieldset className="iq-firewall-request-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
+                <div className="nx-form-row iq-firewall-request-waiver-form__expiryTime-block">
+                  <div className="iq-firewall-request-waiver-form__select-block">
+                    <NxFormSelect
+                      id="fw-rw-expiration-select"
+                      onChange={setExpiryTime}
+                      defaultValue={expiryTime}
+                      aria-label="select waiver expiration"
                     >
-                      {componentName}
-                    </NxRadio>
-                    {getAllVersionsRadioButton()}
-                    <NxRadio
-                      id="fw-rw-all-components"
-                      name="fw-rw-components"
-                      value={waiverMatcherStrategy.ALL_COMPONENTS}
-                      isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
-                      onChange={setComponentMatcherStrategy}
-                    >
-                      All Components
-                    </NxRadio>
-                  </NxFieldset>
-
-                  {/* Expiry time */}
-                  <NxFieldset
-                    className="iq-firewall-request-waiver-form__expiryTime"
-                    label="Waiver Expiration"
-                    isRequired
-                  >
-                    <div className="nx-form-row iq-firewall-request-waiver-form__expiryTime-block">
-                      <div className="iq-firewall-request-waiver-form__select-block">
-                        <NxFormSelect
-                          id="fw-rw-expiration-select"
-                          onChange={setExpiryTime}
-                          defaultValue={expiryTime}
-                          aria-label="select waiver expiration"
-                        >
-                          {waiverExpirations.map(({ name, value }, index) => (
-                            <option key={index} value={value}>
-                              {name}
-                            </option>
-                          ))}
-                        </NxFormSelect>
-                        <div className="iq-firewall-request-waiver-form__expiration-days-diff visual-testing-ignore">
-                          {daysDiffMessage}
-                        </div>
-                        {customExpiryTimeSelected && (
-                          <NxDateInput
-                            className="iq-firewall-request-waiver-form__date-input"
-                            {...customExpiryTime}
-                            onChange={setCustomExpiryTime}
-                            validatable
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </NxFieldset>
-
-                  {/* Reason */}
-                  <NxFieldset className="iq-firewall-request-waiver-form__reason" label="Reason">
-                    <NxFormSelect id="fw-rw-reason-select" onChange={setWaiverReasonId}>
-                      {waiverReasonsToRender.map(({ id, reasonText }) => (
-                        <option key={id} value={id} selected={waiverReasonId && id === waiverReasonId}>
-                          {reasonText}
+                      {waiverExpirations.map(({ name, value }, index) => (
+                        <option key={index} value={value}>
+                          {name}
                         </option>
                       ))}
                     </NxFormSelect>
-                  </NxFieldset>
-
-                  {/* Comments */}
-                  <NxFieldset className="iq-firewall-request-waiver-form__comments" label="Comments">
-                    <NxTextInput
-                      type="textarea"
-                      inputAttributes={{ maxLength: 1000 }}
-                      {...comments}
-                      onChange={setComments}
-                    />
-                  </NxFieldset>
-
-                  {/* Note to Reviewer */}
-                  <NxFieldset
-                    className="iq-firewall-request-waiver-form__note-to-reviewer"
-                    label="Note to Reviewer"
-                    sublabel="This note will only be visible on the waiver request. It will not be visible on the waiver if it is approved."
-                  >
-                    <NxTextInput
-                      type="textarea"
-                      inputAttributes={{ maxLength: 1000 }}
-                      {...noteToReviewer}
-                      onChange={setNoteToReviewer}
-                    />
-                  </NxFieldset>
+                    <div className="iq-firewall-request-waiver-form__expiration-days-diff visual-testing-ignore">
+                      {daysDiffMessage}
+                    </div>
+                    {customExpiryTimeSelected && (
+                      <NxDateInput
+                        className="iq-firewall-request-waiver-form__date-input"
+                        {...customExpiryTime}
+                        onChange={setCustomExpiryTime}
+                        validatable
+                      />
+                    )}
+                  </div>
                 </div>
-              </NxStatefulForm>
-            )}
+              </NxFieldset>
+
+              {/* Reason */}
+              <NxFieldset className="iq-firewall-request-waiver-form__reason" label="Reason">
+                <NxFormSelect id="fw-rw-reason-select" onChange={setWaiverReasonId}>
+                  {waiverReasonsToRender.map(({ id, reasonText }) => (
+                    <option key={id} value={id} selected={waiverReasonId && id === waiverReasonId}>
+                      {reasonText}
+                    </option>
+                  ))}
+                </NxFormSelect>
+              </NxFieldset>
+
+              {/* Comments */}
+              <NxFieldset className="iq-firewall-request-waiver-form__comments" label="Comments">
+                <NxTextInput
+                  type="textarea"
+                  inputAttributes={{ maxLength: 1000 }}
+                  {...comments}
+                  onChange={setComments}
+                />
+              </NxFieldset>
+
+              {/* Note to Reviewer */}
+              <NxFieldset
+                className="iq-firewall-request-waiver-form__note-to-reviewer"
+                label="Note to Reviewer"
+                sublabel="This note will only be visible on the waiver request. It will not be visible on the waiver if it is approved."
+              >
+                <NxTextInput
+                  type="textarea"
+                  inputAttributes={{ maxLength: 1000 }}
+                  {...noteToReviewer}
+                  onChange={setNoteToReviewer}
+                />
+              </NxFieldset>
+            </div>
+          </NxStatefulForm>
+        )}
       </LoadWrapper>
     </main>
   );

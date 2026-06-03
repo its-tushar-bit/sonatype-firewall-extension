@@ -37,14 +37,16 @@ import {
   selectLabelsIsDirty,
   selectLabelsDeleteError,
   selectLabelsDeleteMaskState,
-
   selectLabelsIsEditMode,
 } from '../labelsSelectors';
 import { backendToRscColorMap, rscToBackendColorMap } from '../utility/util';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import ComponentLabelsReadOnlyView from './ComponentLabelsReadOnlyView';
 import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
-import { selectHasCustomComponentLabels, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectHasCustomComponentLabels,
+  selectIsEnterprisePreviewMode,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import './_createComponentLabel.scss';
 
@@ -90,8 +92,7 @@ export default function CreateComponentLabel() {
     dispatch(productFeaturesActions.setEnterprisePreviewMode(newMode));
     if (newMode) {
       doLoad(); // Reload for clean Custom view
-    }
-    else {
+    } else {
       doLoad(); // Reload to discard Custom edits
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -201,7 +202,7 @@ export default function CreateComponentLabel() {
                   isRequired
                 />
 
-                {(isEditMode && isEnterprisePreviewMode || !isEditMode) && (
+                {((isEditMode && isEnterprisePreviewMode) || !isEditMode) && (
                   <NxInfoAlert>
                     This is an Enterprise feature. Changes can&apos;t be saved.
                     {isEditMode && (

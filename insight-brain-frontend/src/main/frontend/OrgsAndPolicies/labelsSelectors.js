@@ -18,7 +18,10 @@ export const selectLabelsLoading = createSelector(selectLabelsSlice, prop('loadi
 export const selectLabelsLoadError = createSelector(selectLabelsSlice, prop('loadError'));
 export const selectLabelsSubmitError = createSelector(selectLabelsSlice, prop('submitError'));
 const selectLabelsIsDirtyInternal = createSelector(selectLabelsSlice, prop('isDirty'));
-export const selectLabelsIsDirty = createTierGatedDirtySelector(selectLabelsIsDirtyInternal, selectHasCustomComponentLabels);
+export const selectLabelsIsDirty = createTierGatedDirtySelector(
+  selectLabelsIsDirtyInternal,
+  selectHasCustomComponentLabels
+);
 export const selectLabelsSubmitMaskState = createSelector(selectLabelsSlice, prop('submitMaskState'));
 export const selectLabelsIsEditMode = createSelector(
   selectRouterCurrentParams,

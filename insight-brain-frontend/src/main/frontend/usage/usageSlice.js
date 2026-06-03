@@ -60,17 +60,14 @@ const loadHistoryBreakdown = createAsyncThunk(
   }
 );
 
-const loadSourceBreakdown = createAsyncThunk(
-  `${REDUCER_NAME}/loadSourceBreakdown`,
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await fetchConsumptionBySource();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+const loadSourceBreakdown = createAsyncThunk(`${REDUCER_NAME}/loadSourceBreakdown`, async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetchConsumptionBySource();
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error);
   }
-);
+});
 
 const loadTopApps = createAsyncThunk(`${REDUCER_NAME}/loadTopApps`, async (_, { rejectWithValue }) => {
   try {
@@ -94,14 +91,13 @@ const loadAllUsageData = createAsyncThunk(
   `${REDUCER_NAME}/loadAllUsageData`,
   async (aggregation = 'daily', { rejectWithValue }) => {
     try {
-      const [summaryRes, breakdownRes, sourceRes, topAppsRes, dailyRes] =
-        await Promise.allSettled([
-          fetchConsumptionSummary(),
-          fetchConsumptionHistoryBreakdown(aggregation),
-          fetchConsumptionBySource(),
-          fetchTopConsumingApps(),
-          fetchDailyHistory(),
-        ]);
+      const [summaryRes, breakdownRes, sourceRes, topAppsRes, dailyRes] = await Promise.allSettled([
+        fetchConsumptionSummary(),
+        fetchConsumptionHistoryBreakdown(aggregation),
+        fetchConsumptionBySource(),
+        fetchTopConsumingApps(),
+        fetchDailyHistory(),
+      ]);
 
       if (summaryRes.status === 'rejected') {
         return rejectWithValue(summaryRes.reason);

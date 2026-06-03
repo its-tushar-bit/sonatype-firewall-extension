@@ -6,8 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
-import { NxLoadWrapper, NxPageTitle, NxH1, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faCubes } from '@fortawesome/pro-solid-svg-icons';
+import { NxLoadWrapper, NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import {

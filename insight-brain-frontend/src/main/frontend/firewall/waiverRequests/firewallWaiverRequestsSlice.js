@@ -36,20 +36,14 @@ export const initialState = Object.freeze({
 
 // Thunks
 
-const loadWaiverRequests = createAsyncThunk(
-  `${REDUCER_NAME}/loadWaiverRequests`,
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        getListPolicyWaiverRequestsUrl(ROOT_ORG_OWNER_TYPE, ROOT_ORG_OWNER_ID)
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+const loadWaiverRequests = createAsyncThunk(`${REDUCER_NAME}/loadWaiverRequests`, async (_, { rejectWithValue }) => {
+  try {
+    const response = await axios.get(getListPolicyWaiverRequestsUrl(ROOT_ORG_OWNER_TYPE, ROOT_ORG_OWNER_ID));
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error);
   }
-);
-
+});
 
 const loadWaiverRequestForReview = createAsyncThunk(
   `${REDUCER_NAME}/loadWaiverRequestForReview`,
@@ -57,7 +51,9 @@ const loadWaiverRequestForReview = createAsyncThunk(
     try {
       const [response, hasWaivePermission] = await Promise.all([
         axios.get(getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId)),
-        checkPermissions(['WAIVE_POLICY_VIOLATIONS'], ownerType, ownerId).then(() => true).catch(() => false),
+        checkPermissions(['WAIVE_POLICY_VIOLATIONS'], ownerType, ownerId)
+          .then(() => true)
+          .catch(() => false),
       ]);
       return { waiverRequest: response.data, hasWaivePermission };
     } catch (error) {
@@ -68,7 +64,19 @@ const loadWaiverRequestForReview = createAsyncThunk(
 
 const approveWaiverRequest = createAsyncThunk(
   `${REDUCER_NAME}/approveWaiverRequest`,
-  async ({ ownerType, ownerId, policyWaiverRequestId, matcherStrategy, expiryTime, waiverReasonId, comment, expireWhenRemediationAvailable }, { rejectWithValue }) => {
+  async (
+    {
+      ownerType,
+      ownerId,
+      policyWaiverRequestId,
+      matcherStrategy,
+      expiryTime,
+      waiverReasonId,
+      comment,
+      expireWhenRemediationAvailable,
+    },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await axios.post(getReviewPolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId), {
         status: 'APPROVED',

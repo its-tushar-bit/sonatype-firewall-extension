@@ -42,7 +42,10 @@ const loadWaiverForRenewal = createAsyncThunk(
   (_, { getState, rejectWithValue }) => {
     const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(getState());
     const ownerType = normalizeFirewallOwnerType(ownerTypeRaw);
-    return axios.get(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data')).catch(rejectWithValue);
+    return axios
+      .get(getFirewallWaiverDetailsUrl(ownerType, ownerId, waiverId))
+      .then(prop('data'))
+      .catch(rejectWithValue);
   }
 );
 
@@ -52,7 +55,9 @@ const submitRenewal = createAsyncThunk(
   async (waiverId, { getState, rejectWithValue }) => {
     const state = getState();
     const slice = state[REDUCER_NAME];
-    const { ownerType: ownerTypeRaw, ownerId, type, sidebarReference, sidebarId, page } = selectRouterCurrentParams(state);
+    const { ownerType: ownerTypeRaw, ownerId, type, sidebarReference, sidebarId, page } = selectRouterCurrentParams(
+      state
+    );
 
     let newExpiryTime = null;
     if (isCustomExpiryTimeSelected(slice.newExpiryTime)) {
@@ -60,9 +65,10 @@ const submitRenewal = createAsyncThunk(
         newExpiryTime = moment(slice.customExpiryTime.value, 'YYYY-MM-DD').endOf('day').toISOString();
       }
     } else if (!isNeverExpiryTimeSelected(slice.newExpiryTime) && slice.newExpiryTime) {
-      const baseDate = slice.waiver?.expiryTime && !isWaiverExpired(slice.waiver.expiryTime)
-        ? moment(slice.waiver.expiryTime)
-        : moment();
+      const baseDate =
+        slice.waiver?.expiryTime && !isWaiverExpired(slice.waiver.expiryTime)
+          ? moment(slice.waiver.expiryTime)
+          : moment();
       newExpiryTime = baseDate.add(parseInt(slice.newExpiryTime, 10), 'days').endOf('day').toISOString();
     }
 
@@ -81,9 +87,10 @@ const submitRenewal = createAsyncThunk(
       }
       const { prevState, prevParams } = state.router;
       const returnStateName = prevState?.name || 'firewall.waiver.details';
-      const returnParams = returnStateName === 'firewall.waiver.details'
-        ? { ownerType: ownerTypeRaw, ownerId, waiverId, type, sidebarReference, sidebarId, page }
-        : prevParams;
+      const returnParams =
+        returnStateName === 'firewall.waiver.details'
+          ? { ownerType: ownerTypeRaw, ownerId, waiverId, type, sidebarReference, sidebarId, page }
+          : prevParams;
       return { returnStateName, returnParams };
     } catch (error) {
       return rejectWithValue(error);

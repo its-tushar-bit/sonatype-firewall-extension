@@ -34,7 +34,12 @@ export default function AddOrRequestWaiverButton({
   const requestWaiverContent = (
     <>
       Request Waiver
-      {isRequestWaiverGated && <>{' '}<NxFontAwesomeIcon icon={faLock} /></>}
+      {isRequestWaiverGated && (
+        <>
+          {' '}
+          <NxFontAwesomeIcon icon={faLock} />
+        </>
+      )}
     </>
   );
 

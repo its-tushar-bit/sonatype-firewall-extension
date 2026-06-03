@@ -12,7 +12,6 @@ import {
   NxFontAwesomeIcon,
   NxLoadWrapper,
   NxOverflowTooltip,
-  NxP,
 } from '@sonatype/react-shared-components';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';

@@ -68,7 +68,7 @@ export default function AdvancedSearch(props) {
         <NxPageTitle>
           <NxH1 id="advanced-search-page-title">Advanced Search</NxH1>
           <NxPageTitle.Description>
-            Use Advanced Search to find components, applications, and vulnerabilities across your organization's
+            Use Advanced Search to find components, applications, and vulnerabilities across your organization&apos;s
             evaluated assets. To explore the broader open source ecosystem, visit{' '}
             <NxTextLink href="https://links.sonatype.com/products/sonatype-guide" external>
               Sonatype Guide

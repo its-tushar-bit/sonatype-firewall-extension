@@ -226,7 +226,9 @@ export default function ComponentDetailsPage() {
       setTimeout(() => {
         if (isMounted.current) setIsPurlCopied(false);
       }, 2000);
-    } catch (err) {}
+    } catch (err) {
+      /* ignore clipboard errors */
+    }
   };
 
   const closeVulnerabilityDetailsModal = () => setIsPopoverOpen(false);

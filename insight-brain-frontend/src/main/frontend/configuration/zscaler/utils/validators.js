@@ -43,4 +43,4 @@ function validateZscalerApiKey(val) {
   return null;
 }
 
-export { validateZScalerHostName, validateZscalerApiKey};
+export { validateZScalerHostName, validateZscalerApiKey };

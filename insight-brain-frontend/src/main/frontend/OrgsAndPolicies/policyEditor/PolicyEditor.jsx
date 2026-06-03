@@ -45,7 +45,6 @@ import {
   NxFormGroup,
   NxTextInput,
   nxTextInputStateHelpers,
-  NxButtonBar,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import EditPolicySummary from './editPolicySummary/EditPolicySummary';
@@ -61,11 +60,11 @@ import {
   selectIsSbomManager,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import {
-  selectHasFirewallLicense,
-  selectHasLifecycleLicense,
-} from 'MainRoot/productFeatures/productLicenseSelectors';
-import { selectHasCustomPolicies, selectIsEnterprisePreviewMode } from 'MainRoot/productFeatures/productFeaturesSelectors';
+  selectHasCustomPolicies,
+  selectIsEnterprisePreviewMode,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { faLock, faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
@@ -116,8 +115,7 @@ export default function PolicyEditor() {
     if (newMode) {
       // Switching to Custom — reload from server so Custom starts clean
       loadPolicyEditor();
-    }
-    else {
+    } else {
       // Switching back to Lifecycle Pro — reload from server to discard Custom edits + scroll to top
       loadPolicyEditor();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -364,8 +362,8 @@ export default function PolicyEditor() {
             </header>
             <div className="nx-modal-content">
               <NxErrorAlert>
-                You are about to permanently delete the policy "{dirtyPolicy?.name.value}". This action cannot be
-                undone.
+                You are about to permanently delete the policy &quot;{dirtyPolicy?.name.value}&quot;. This action cannot
+                be undone.
               </NxErrorAlert>
               <p className="list-item-title">Deleting this policy will:</p>
               <NxList bulleted>

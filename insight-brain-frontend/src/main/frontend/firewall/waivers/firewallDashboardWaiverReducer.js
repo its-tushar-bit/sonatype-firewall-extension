@@ -48,11 +48,17 @@ const reducerActionMap = {
   [UI_ROUTER_ON_FINISH]: always(initState),
   [FIREWALL_DASHBOARD_LOAD_WAIVE_PERMISSION_FULFILLED]: loadWaivePermissionFulfilled,
   [FIREWALL_DASHBOARD_SET_WAIVER_TO_DELETE]: setWaiverToDelete,
-  [FIREWALL_DASHBOARD_HIDE_DELETE_WAIVER_MODAL]: (payload, state) => ({ ...initState, hasWaivePermission: state.hasWaivePermission }),
+  [FIREWALL_DASHBOARD_HIDE_DELETE_WAIVER_MODAL]: (payload, state) => ({
+    ...initState,
+    hasWaivePermission: state.hasWaivePermission,
+  }),
   [FIREWALL_DASHBOARD_DELETE_WAIVER_REQUESTED]: deleteWaiverRequested,
   [FIREWALL_DASHBOARD_DELETE_WAIVER_FAILED]: deleteWaiverFailed,
   [FIREWALL_DASHBOARD_DELETE_WAIVER_FULFILLED]: propSetConst('deleteWaiverSaving', true),
-  [FIREWALL_DASHBOARD_DELETE_MASK_TIMER_DONE]: (payload, state) => ({ ...initState, hasWaivePermission: state.hasWaivePermission }),
+  [FIREWALL_DASHBOARD_DELETE_MASK_TIMER_DONE]: (payload, state) => ({
+    ...initState,
+    hasWaivePermission: state.hasWaivePermission,
+  }),
 };
 
 const firewallDashboardWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);

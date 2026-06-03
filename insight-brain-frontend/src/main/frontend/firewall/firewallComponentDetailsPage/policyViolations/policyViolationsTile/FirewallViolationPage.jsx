@@ -122,7 +122,9 @@ export default function FirewallViolationPage({
               )}
               <NxTab id="firewall-violation-applicable-waivers-tab">
                 <div className="iq-waiver-indicator-tab">
-                  {activeWaivers.length > 0 && <span className="iq-waiver-indicator__counter">{activeWaivers.length}</span>}
+                  {activeWaivers.length > 0 && (
+                    <span className="iq-waiver-indicator__counter">{activeWaivers.length}</span>
+                  )}
                   <span> Applicable Waivers </span>
                 </div>
               </NxTab>

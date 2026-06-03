@@ -11,10 +11,7 @@ import {
   NxFilterInput,
   NxPagination,
   NxTable,
-  NxTableBody,
-  NxTableCell,
   NxTableContainer,
-  NxTableHead,
   NxTableRow,
   NxTile,
   NxH2,
@@ -99,9 +96,7 @@ export default function FirewallBulkWaivePage() {
     }
     if (componentDetailsConstraintNameFilter) {
       const constraintFilter = String(componentDetailsConstraintNameFilter).toLowerCase();
-      result = result.filter((v) =>
-        v.constraints?.[0]?.constraintName?.toLowerCase().includes(constraintFilter)
-      );
+      result = result.filter((v) => v.constraints?.[0]?.constraintName?.toLowerCase().includes(constraintFilter));
     }
     return result;
   }, [componentViolations, componentDetailsPolicyNameFilter, componentDetailsConstraintNameFilter]);
@@ -377,10 +372,12 @@ export default function FirewallBulkWaivePage() {
 
     if (!violations?.length) return;
 
-    const allCurrentPageSelected = violations.length > 0 && violations.every((violation) => {
-      const { policyViolationId } = violation;
-      return selectAllMode ? checkboxState[policyViolationId] !== false : checkboxState[policyViolationId] === true;
-    });
+    const allCurrentPageSelected =
+      violations.length > 0 &&
+      violations.every((violation) => {
+        const { policyViolationId } = violation;
+        return selectAllMode ? checkboxState[policyViolationId] !== false : checkboxState[policyViolationId] === true;
+      });
 
     if (allCurrentPageSelected) {
       const newState = { ...checkboxState };
@@ -532,7 +529,9 @@ export default function FirewallBulkWaivePage() {
 
   const deselectedCount = Object.values(checkboxState).filter((value) => value === false).length;
 
-  const selectedCount = selectAllMode ? effectiveTotalCount - deselectedCount : buildSelectedCount(checkboxState, false);
+  const selectedCount = selectAllMode
+    ? effectiveTotalCount - deselectedCount
+    : buildSelectedCount(checkboxState, false);
 
   const isAllSelected =
     selectAllMode || (violations?.length > 0 && violations.every((v) => checkboxState[v.policyViolationId]));
@@ -547,9 +546,7 @@ export default function FirewallBulkWaivePage() {
       ? filteredTotalCount
       : totalComponentCount;
   const shouldShowSelectAllFilteredAction =
-    source !== 'component-details' &&
-    totalVisibleCount != null &&
-    (selectAllMode || totalVisibleCount > showingCount);
+    source !== 'component-details' && totalVisibleCount != null && (selectAllMode || totalVisibleCount > showingCount);
 
   return (
     <>

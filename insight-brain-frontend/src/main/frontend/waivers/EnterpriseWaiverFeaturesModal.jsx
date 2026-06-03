@@ -24,16 +24,16 @@ export default function EnterpriseWaiverFeaturesModal({ isOpen, onClose }) {
           <li className="iq-enterprise-waiver-features-modal__list-item">
             <NxTextLink href="https://help.sonatype.com/en/bulk-waivers.html" external>
               Bulk Waivers:
-            </NxTextLink>
-            {' '}Waive multiple policy violations for a component or an application at once—reducing manual effort and
-            speed up remediation workflows.
+            </NxTextLink>{' '}
+            Waive multiple policy violations for a component or an application at once—reducing manual effort and speed
+            up remediation workflows.
           </li>
           <li className="iq-enterprise-waiver-features-modal__list-item">
             <NxTextLink href="https://help.sonatype.com/en/automated-waivers.html" external>
               Auto-Waivers:
-            </NxTextLink>
-            {' '}Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked
-            while maintaining control over risk and policy enforcement.
+            </NxTextLink>{' '}
+            Automatically apply waivers to low-risk, non-reachable or known issues so teams can stay unblocked while
+            maintaining control over risk and policy enforcement.
           </li>
         </ul>
 

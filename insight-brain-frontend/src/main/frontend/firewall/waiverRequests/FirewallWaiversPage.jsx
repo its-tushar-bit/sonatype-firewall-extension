@@ -5,14 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    NxH1,
-    NxTab,
-    NxTabList,
-    NxTabPanel,
-    NxTabs,
-    NxPageMain, NxP
-} from '@sonatype/react-shared-components';
+import { NxH1, NxTab, NxTabList, NxTabPanel, NxTabs, NxPageMain, NxP } from '@sonatype/react-shared-components';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterState as selectRouterCurrentState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -66,9 +59,17 @@ export default function FirewallWaiversPage() {
 
   const onSubTabSelect = (index) => {
     if (isContainersTab) {
-      dispatch(stateGo(index === REQUESTED_SUB_TAB ? 'firewall.waivers.containers.requested' : 'firewall.waivers.containers.approved'));
+      dispatch(
+        stateGo(
+          index === REQUESTED_SUB_TAB ? 'firewall.waivers.containers.requested' : 'firewall.waivers.containers.approved'
+        )
+      );
     } else {
-      dispatch(stateGo(index === REQUESTED_SUB_TAB ? 'firewall.waivers.components.requested' : 'firewall.waivers.components.approved'));
+      dispatch(
+        stateGo(
+          index === REQUESTED_SUB_TAB ? 'firewall.waivers.components.requested' : 'firewall.waivers.components.approved'
+        )
+      );
     }
   };
 
@@ -87,7 +88,9 @@ export default function FirewallWaiversPage() {
             <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
               <NxTabList>
                 <NxTab id="firewall-waivers-components-approved-tab">Existing Waivers ({componentExistingCount})</NxTab>
-                <NxTab id="firewall-waivers-components-requested-tab">Requested Waivers ({componentRequestedCount})</NxTab>
+                <NxTab id="firewall-waivers-components-requested-tab">
+                  Requested Waivers ({componentRequestedCount})
+                </NxTab>
               </NxTabList>
               <NxTabPanel id="firewall-waivers-components-approved-panel">
                 <DashboardWaivers repositoryFormat="component" />
@@ -102,7 +105,9 @@ export default function FirewallWaiversPage() {
             <NxTabs activeTab={activeSubTab} onTabSelect={onSubTabSelect}>
               <NxTabList>
                 <NxTab id="firewall-waivers-containers-approved-tab">Existing Waivers ({containerExistingCount})</NxTab>
-                <NxTab id="firewall-waivers-containers-requested-tab">Requested Waivers ({containerRequestedCount})</NxTab>
+                <NxTab id="firewall-waivers-containers-requested-tab">
+                  Requested Waivers ({containerRequestedCount})
+                </NxTab>
               </NxTabList>
               <NxTabPanel id="firewall-waivers-containers-approved-panel">
                 <ContainerImageWaiversTable />

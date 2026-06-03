@@ -13,7 +13,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectOwnerById } from './ownerSideNavSelectors';
 import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const Organization = memo(({ organizationId, displayParentNameInTooltip = false, ...otherProps }) => {
+const Organization = memo(function Organization({ organizationId, displayParentNameInTooltip = false, ...otherProps }) {
   const uiRouterState = useRouterState();
   const organization = useSelector((state) => selectOwnerById(state, organizationId));
   const parentOrganization = useSelector((state) => selectOwnerById(state, organization?.parentOrganizationId));

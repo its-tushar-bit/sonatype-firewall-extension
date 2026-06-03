@@ -46,8 +46,7 @@ function colorFor(token) {
 }
 
 function buildEntries(breakdown) {
-  const raw = Object.entries(breakdown || {})
-    .filter(([, count]) => typeof count === 'number' && count > 0);
+  const raw = Object.entries(breakdown || {}).filter(([, count]) => typeof count === 'number' && count > 0);
 
   const total = raw.reduce((acc, [, count]) => acc + count, 0);
   if (total === 0) return { entries: [], total: 0 };
@@ -160,10 +159,7 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
                   style={{ backgroundColor: entry.color }}
                   aria-hidden="true"
                 />
-                <span
-                  className="iq-usage-source-chart__label"
-                  title={entry.label}
-                >
+                <span className="iq-usage-source-chart__label" title={entry.label}>
                   {entry.label}
                 </span>
                 <span className="iq-usage-source-chart__bar-track" aria-hidden="true">
@@ -175,12 +171,8 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
                     }}
                   />
                 </span>
-                <span className="iq-usage-source-chart__count">
-                  {entry.count.toLocaleString()}
-                </span>
-                <span className="iq-usage-source-chart__percent">
-                  {formatPercent(entry.percent)}
-                </span>
+                <span className="iq-usage-source-chart__count">{entry.count.toLocaleString()}</span>
+                <span className="iq-usage-source-chart__percent">{formatPercent(entry.percent)}</span>
               </li>
             ))}
             {overflowCount > 0 && (

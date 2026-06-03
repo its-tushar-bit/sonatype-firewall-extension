@@ -16,7 +16,7 @@ import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 
 const TABS = [QUARANTINE];
 
-const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router, stateGo, ...props }, ref) {
+const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ stateGo, ...props }, ref) {
   const firewallTabsRefs = {
     quarantine: {
       panel: useRef(),
@@ -24,12 +24,16 @@ const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router
     },
   };
 
-  useImperativeHandle(ref, () => ({
-    scrollToPanel: (tab) => {
-      const panelRef = firewallTabsRefs?.[tab]?.panel?.current?.firstChild;
-      panelRef?.scrollIntoView({ behavior: 'smooth' });
-    },
-  }), []);
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToPanel: (tab) => {
+        const panelRef = firewallTabsRefs?.[tab]?.panel?.current?.firstChild;
+        panelRef?.scrollIntoView({ behavior: 'smooth' });
+      },
+    }),
+    []
+  );
 
   const renderTab = (tab) => (
     <NxTab key={tab} id={`firewall-container-${tab}-tab`}>

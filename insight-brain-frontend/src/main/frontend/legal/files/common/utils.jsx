@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 
 import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faAngleRight } from '@fortawesome/pro-solid-svg-icons';

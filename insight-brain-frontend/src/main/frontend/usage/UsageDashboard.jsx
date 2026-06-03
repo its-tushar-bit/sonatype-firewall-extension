@@ -89,7 +89,6 @@ export default function UsageDashboard({ isAuthorized }) {
     if (isAuthorized) {
       dispatch(actions.loadAllUsageData(chartAggregation));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, isAuthorized]);
 
   // Retry handler for load errors — closes over the current aggregation value at click time.

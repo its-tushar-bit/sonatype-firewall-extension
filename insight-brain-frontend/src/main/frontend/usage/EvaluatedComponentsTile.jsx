@@ -6,15 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxH3, NxTile } from '@sonatype/react-shared-components';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
 
 function formatNumber(num) {
@@ -73,9 +65,7 @@ export default function EvaluatedComponentsTile({ dailyHistory }) {
           </div>
           <div className="iq-usage-insights-widget">
             <span className="iq-usage-insights-widget__label">Peak Day</span>
-            <span className="iq-usage-insights-widget__value">
-              {peakDay ? formatNumber(peakDay.count) : '0'}
-            </span>
+            <span className="iq-usage-insights-widget__value">{peakDay ? formatNumber(peakDay.count) : '0'}</span>
             {peakDay && peakDay.date && (
               <span className="iq-usage-insights-widget__date">{formatPeakDate(peakDay.date)}</span>
             )}

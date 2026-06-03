@@ -13,7 +13,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectOwnerById } from './ownerSideNavSelectors';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const Application = memo(({ applicationPublicId, isFilteredResult, ...otherProps }) => {
+const Application = memo(function Application({ applicationPublicId, isFilteredResult, ...otherProps }) {
   const uiRouterState = useRouterState();
   const application = useSelector((state) => selectOwnerById(state, applicationPublicId));
   const parentOrg = useSelector((state) => selectOwnerById(state, application?.organizationId));

@@ -119,11 +119,7 @@ export default function FirewallRequestedWaiversTable({ repositoryFormat }) {
           >
             Policy
           </NxTableCell>
-          <NxTableCell
-            isSortable
-            sortDir={sortField === 'scope' ? sortDir : null}
-            onClick={() => handleSort('scope')}
-          >
+          <NxTableCell isSortable sortDir={sortField === 'scope' ? sortDir : null} onClick={() => handleSort('scope')}>
             Scope
           </NxTableCell>
           <NxTableCell>Components</NxTableCell>
@@ -144,7 +140,11 @@ export default function FirewallRequestedWaiversTable({ repositoryFormat }) {
         retryHandler={() => dispatch(actions.loadWaiverRequests())}
       >
         {sortedRequests.map((request) => (
-          <FirewallRequestedWaiversTableRow key={request.policyWaiverRequestId} request={request} repositoryFormat={repositoryFormat} />
+          <FirewallRequestedWaiversTableRow
+            key={request.policyWaiverRequestId}
+            request={request}
+            repositoryFormat={repositoryFormat}
+          />
         ))}
       </NxTableBody>
     </NxTable>

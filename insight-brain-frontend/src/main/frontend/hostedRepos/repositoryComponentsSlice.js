@@ -29,10 +29,9 @@ export const loadComponents = createAsyncThunk(
     try {
       const params = { page, pageSize: DEFAULT_PAGE_SIZE };
       if (filter) params.filter = filter;
-      const { data } = await axios.get(
-        `/api/v2/repositories/${repositoryManagerId}/${repositoryId}/components`,
-        { params }
-      );
+      const { data } = await axios.get(`/api/v2/repositories/${repositoryManagerId}/${repositoryId}/components`, {
+        params,
+      });
       return { ...data, page };
     } catch (err) {
       return rejectWithValue(err);

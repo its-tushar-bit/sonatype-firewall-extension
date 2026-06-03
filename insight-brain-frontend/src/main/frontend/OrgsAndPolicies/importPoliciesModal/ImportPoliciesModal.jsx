@@ -42,12 +42,12 @@ export default function ImportPoliciesModal() {
     return (
       <NxModal id="import-policy-modal" onCancel={closeModal}>
         <NxModal.Header>
-          <NxH2>Import Policies <TierTag>Enterprise Feature</TierTag></NxH2>
+          <NxH2>
+            Import Policies <TierTag>Enterprise Feature</TierTag>
+          </NxH2>
         </NxModal.Header>
         <NxModal.Content className="iq-import-policy-modal--pro-tier">
-          <EnterpriseFullWidthBanner
-            description="Import policy configurations to reduce setup time and apply consistent rules across your organization."
-          />
+          <EnterpriseFullWidthBanner description="Import policy configurations to reduce setup time and apply consistent rules across your organization." />
           <NxWarningAlert>
             <strong>Note:</strong> Importing policies is <strong>destructive</strong>, all existing policies, waivers,
             and license threat groups belonging to this organization and any of its descendants will be{' '}
@@ -59,7 +59,9 @@ export default function ImportPoliciesModal() {
         </NxModal.Content>
         <footer className="nx-footer">
           <div className="nx-btn-bar">
-            <NxButton variant="tertiary" onClick={closeModal}>Close</NxButton>
+            <NxButton variant="tertiary" onClick={closeModal}>
+              Close
+            </NxButton>
           </div>
         </footer>
       </NxModal>

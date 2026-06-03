@@ -107,19 +107,19 @@ export default function ConsumptionWarningBanner() {
   const messageContent = isAlert ? (
     hasExceeded ? (
       <>
-        <strong>Usage Limit Exceeded.</strong> You've exceeded your monthly limit by {formatNumberWithCommas(overage)}{' '}
-        components. {formatNumberWithCommas(consumed)} components consumed of {formatNumberWithCommas(limit)} limit.{' '}
-        Resets {formatDate(resetDate)}.
+        <strong>Usage Limit Exceeded.</strong> You&apos;ve exceeded your monthly limit by{' '}
+        {formatNumberWithCommas(overage)} components. {formatNumberWithCommas(consumed)} components consumed of{' '}
+        {formatNumberWithCommas(limit)} limit. Resets {formatDate(resetDate)}.
       </>
     ) : (
       <>
-        <strong>Usage Limit Reached.</strong> You've reached your monthly limit. {formatNumberWithCommas(consumed)} of{' '}
-        {formatNumberWithCommas(limit)} components consumed. Resets {formatDate(resetDate)}.
+        <strong>Usage Limit Reached.</strong> You&apos;ve reached your monthly limit. {formatNumberWithCommas(consumed)}{' '}
+        of {formatNumberWithCommas(limit)} components consumed. Resets {formatDate(resetDate)}.
       </>
     )
   ) : (
     <>
-      <strong>Usage Warning.</strong> You've used {Math.round(percentUsed)}% of your monthly limit.{' '}
+      <strong>Usage Warning.</strong> You&apos;ve used {Math.round(percentUsed)}% of your monthly limit.{' '}
       {formatNumberWithCommas(consumed)} of {formatNumberWithCommas(limit)} components consumed. Resets{' '}
       {formatDate(resetDate)}.
     </>
@@ -132,9 +132,7 @@ export default function ConsumptionWarningBanner() {
         View Dashboard
       </NxTextLink>
       {' | '}
-      <NxTextLink href="mailto:sales@sonatype.com?subject=Consumption%20Limit%20Inquiry">
-        Contact Sales
-      </NxTextLink>
+      <NxTextLink href="mailto:sales@sonatype.com?subject=Consumption%20Limit%20Inquiry">Contact Sales</NxTextLink>
     </AlertComponent>
   );
 }

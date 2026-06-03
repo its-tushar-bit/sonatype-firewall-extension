@@ -6,13 +6,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import {
-  NxLoadWrapper,
-  NxFilterInput,
-  NxFormSelect,
-  NxTable,
-  NxBreadcrumb,
-} from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxFilterInput, NxFormSelect, NxTable, NxBreadcrumb } from '@sonatype/react-shared-components';
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { selectRepositoryManagerId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -29,7 +23,6 @@ import {
   selectTotalCount,
   selectSearchText,
 } from './hostedReposListSelectors';
-
 
 function HostedRepositoriesListPage() {
   const dispatch = useDispatch();
@@ -77,17 +70,20 @@ function HostedRepositoriesListPage() {
     doLoad();
   }, [doLoad]);
 
-  const handleSearchChange = useCallback((value) => {
-    setInputText(value);
+  const handleSearchChange = useCallback(
+    (value) => {
+      setInputText(value);
 
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
 
-    debounceTimer.current = setTimeout(() => {
-      dispatch(actions.setSearchText(value));
-    }, 300);
-  }, [dispatch]);
+      debounceTimer.current = setTimeout(() => {
+        dispatch(actions.setSearchText(value));
+      }, 300);
+    },
+    [dispatch]
+  );
 
   useEffect(() => {
     return () => {
@@ -106,7 +102,9 @@ function HostedRepositoriesListPage() {
   };
 
   const handleRepoClick = (repo) => {
-    dispatch(stateGo('hostedRepoComponents', { repositoryManagerId, repositoryId: repo.id, repositoryPublicId: repo.publicId }));
+    dispatch(
+      stateGo('hostedRepoComponents', { repositoryManagerId, repositoryId: repo.id, repositoryPublicId: repo.publicId })
+    );
   };
 
   const getSortDirection = (columnKey) => {
@@ -128,10 +126,7 @@ function HostedRepositoriesListPage() {
   };
 
   const breadcrumbs = repositoryManager?.instanceId
-    ? [
-        { name: 'Repository Managers', href: uiRouterState.href('hostedRepos') },
-        { name: repositoryManager.instanceId },
-      ]
+    ? [{ name: 'Repository Managers', href: uiRouterState.href('hostedRepos') }, { name: repositoryManager.instanceId }]
     : [];
 
   if (!isFeatureEnabled) {

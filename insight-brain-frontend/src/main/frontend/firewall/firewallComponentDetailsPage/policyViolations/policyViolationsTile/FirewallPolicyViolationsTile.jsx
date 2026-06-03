@@ -27,8 +27,15 @@ export default function FirewallPolicyViolationsTile({ title, violations }) {
   const { isLoadingPolicyViolations, policyViolationsError } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
   const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
-  const { pathname, repositoryId, componentDisplayName, componentIdentifier, componentHash, matchState, tabId } =
-    routeParams;
+  const {
+    pathname,
+    repositoryId,
+    componentDisplayName,
+    componentIdentifier,
+    componentHash,
+    matchState,
+    tabId,
+  } = routeParams;
   const componentName = useSelector(selectComponentName);
   const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
   const waivers = useSelector(selectWaivers);

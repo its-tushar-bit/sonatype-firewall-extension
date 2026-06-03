@@ -29,7 +29,13 @@ export function goToRepositoryComponentDetails(
   };
 }
 
-export function goToComponentReport(applicationPublicId, scanId, repositoryManagerId, repositoryId, repositoryPublicId) {
+export function goToComponentReport(
+  applicationPublicId,
+  scanId,
+  repositoryManagerId,
+  repositoryId,
+  repositoryPublicId
+) {
   return stateGo('applicationReport.policy', {
     publicId: applicationPublicId,
     scanId,

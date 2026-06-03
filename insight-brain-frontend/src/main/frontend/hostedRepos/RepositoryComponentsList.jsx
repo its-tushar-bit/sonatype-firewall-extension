@@ -100,7 +100,8 @@ export default function RepositoryComponentsList() {
       </NxPageTitle>
       {hasQueuedScans && (
         <NxInfoAlert>
-          This repository is currently being evaluated. Report and Priorities results may be incomplete until the queue is cleared.
+          This repository is currently being evaluated. Report and Priorities results may be incomplete until the queue
+          is cleared.
         </NxInfoAlert>
       )}
       <NxFilterInput
@@ -110,23 +111,32 @@ export default function RepositoryComponentsList() {
         id="iq-hosted-repos-components-filter"
         className="iq-hosted-repos-components__filter"
       />
-      <NxLoadWrapper loading={loading && components.length === 0} error={components.length === 0 ? error : null} retryHandler={doLoad}>
+      <NxLoadWrapper
+        loading={loading && components.length === 0}
+        error={components.length === 0 ? error : null}
+        retryHandler={doLoad}
+      >
         <NxTile>
           <NxTile.Content>
             <NxTableContainer>
               <NxTable>
                 <NxTable.Head>
                   <NxTable.Row>
-                    <NxTable.Cell className="iq-hosted-repos-components__col--name">REPOSITORY COMPONENT NAME</NxTable.Cell>
+                    <NxTable.Cell className="iq-hosted-repos-components__col--name">
+                      REPOSITORY COMPONENT NAME
+                    </NxTable.Cell>
                     <NxTable.Cell className="iq-hosted-repos-components__col--count">COMPONENTS</NxTable.Cell>
                     <NxTable.Cell className="iq-hosted-repos-components__col--report">REPORT</NxTable.Cell>
                   </NxTable.Row>
                 </NxTable.Head>
-                <NxTable.Body isLoading={loading} error={components.length === 0 ? error : null} retryHandler={doLoad} emptyMessage="No components found">
+                <NxTable.Body
+                  isLoading={loading}
+                  error={components.length === 0 ? error : null}
+                  retryHandler={doLoad}
+                  emptyMessage="No components found"
+                >
                   {components.map((component) => (
-                    <NxTable.Row
-                      key={component.id}
-                    >
+                    <NxTable.Row key={component.id}>
                       <NxTable.Cell className="iq-hosted-repos-components__col--name">
                         <NxOverflowTooltip>
                           <div className="nx-truncate-ellipsis">{component.displayName}</div>
@@ -146,7 +156,8 @@ export default function RepositoryComponentsList() {
                             <div className="iq-hosted-repos-components__report-meta">
                               {component.stageTypeId && (
                                 <span className="iq-hosted-repos-components__report-stage">
-                                  {component.stageTypeId.charAt(0).toUpperCase() + component.stageTypeId.slice(1).toLowerCase()}
+                                  {component.stageTypeId.charAt(0).toUpperCase() +
+                                    component.stageTypeId.slice(1).toLowerCase()}
                                 </span>
                               )}
                               <span className="iq-hosted-repos-components__report-links">
@@ -156,13 +167,15 @@ export default function RepositoryComponentsList() {
                                   title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(goToComponentReport(
-                                      component.applicationPublicId,
-                                      component.scanId,
-                                      repositoryManagerId,
-                                      repositoryId,
-                                      repositoryPublicId
-                                    ));
+                                    dispatch(
+                                      goToComponentReport(
+                                        component.applicationPublicId,
+                                        component.scanId,
+                                        repositoryManagerId,
+                                        repositoryId,
+                                        repositoryPublicId
+                                      )
+                                    );
                                   }}
                                 >
                                   Report
@@ -174,10 +187,7 @@ export default function RepositoryComponentsList() {
                                   title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(goToComponentPriorities(
-                                      component.applicationPublicId,
-                                      component.scanId
-                                    ));
+                                    dispatch(goToComponentPriorities(component.applicationPublicId, component.scanId));
                                   }}
                                 >
                                   Priorities

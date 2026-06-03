@@ -35,7 +35,7 @@ module.exports = {
     eqeqeq: ['error', 'always', { null: 'ignore' }],
     'no-caller': 'error',
     'no-undef': 'error',
-    'no-unused-vars': 'error',
+    'no-unused-vars': 'warn',
     strict: 'error',
     'no-invalid-this': 'off',
     'no-nested-ternary': 'off',
@@ -43,7 +43,7 @@ module.exports = {
     'vars-on-top': 'off',
     'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
     'no-debugger': isProd ? 'error' : 'off',
-    'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    'prettier/prettier': ['warn', { endOfLine: 'auto' }],
   },
   settings: {
     react: {

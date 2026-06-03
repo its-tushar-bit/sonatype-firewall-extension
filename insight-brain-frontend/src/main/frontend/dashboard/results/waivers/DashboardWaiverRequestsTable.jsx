@@ -26,7 +26,6 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectHasWaiverRequestWorkflow } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { EnterpriseFullWidthBanner } from 'MainRoot/shared/enterpriseTier';
 import { extractSortFieldName } from 'MainRoot/util/sortUtils';
-import { waiverRequestStatus } from 'MainRoot/util/waiverUtils';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 const DEFAULT_SORT_FIELDS = [

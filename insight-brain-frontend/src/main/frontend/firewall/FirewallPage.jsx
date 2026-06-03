@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
@@ -16,7 +17,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import FirewallMetrics from './FirewallMetrics';
 import FirewallWelcomeModal from './FirewallWelcomeModal';
 import FirewallTabs from 'MainRoot/firewall/FirewallTabs';
-import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS } from 'MainRoot/constants/states';
+import { COMPONENTS, CONTAINERS, QUARANTINE } from 'MainRoot/constants/states';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';

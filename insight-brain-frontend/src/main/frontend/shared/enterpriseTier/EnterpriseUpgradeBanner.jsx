@@ -17,7 +17,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     policy: {
       title: (
         <>
-          You're exploring <strong>Enterprise custom policy management</strong>.
+          You&apos;re exploring <strong>Enterprise custom policy management</strong>.
         </>
       ),
       description:
@@ -26,7 +26,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'application category': {
       title: (
         <>
-          You're exploring <strong>Enterprise application categories</strong>.
+          You&apos;re exploring <strong>Enterprise application categories</strong>.
         </>
       ),
       description:
@@ -35,7 +35,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'component label': {
       title: (
         <>
-          You're exploring <strong>Enterprise custom component labels</strong>.
+          You&apos;re exploring <strong>Enterprise custom component labels</strong>.
         </>
       ),
       description:
@@ -44,7 +44,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'license threat group': {
       title: (
         <>
-          You're exploring <strong>Enterprise custom license threat groups</strong>.
+          You&apos;re exploring <strong>Enterprise custom license threat groups</strong>.
         </>
       ),
       description:
@@ -53,7 +53,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'auto-waiver': {
       title: (
         <>
-          You're exploring <strong>Enterprise auto-waivers</strong>.
+          You&apos;re exploring <strong>Enterprise auto-waivers</strong>.
         </>
       ),
       description:
@@ -62,7 +62,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'waiver-request': {
       title: (
         <>
-          You're exploring <strong>Enterprise waiver requests</strong>.
+          You&apos;re exploring <strong>Enterprise waiver requests</strong>.
         </>
       ),
       description:
@@ -71,7 +71,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
     'bulk-waiver': {
       title: (
         <>
-          You're exploring <strong>Enterprise bulk waivers</strong>.
+          You&apos;re exploring <strong>Enterprise bulk waivers</strong>.
         </>
       ),
       description:
@@ -112,11 +112,7 @@ export default function EnterpriseUpgradeBanner({ featureName = 'policy', hideTi
               </>
             ) : (
               <>
-                <NxTextLink
-                  href={ENTERPRISE_DEMO_URL}
-                  external
-                  aria-label="Request Demo (opens in new window)"
-                >
+                <NxTextLink href={ENTERPRISE_DEMO_URL} external aria-label="Request Demo (opens in new window)">
                   Request Demo
                 </NxTextLink>
               </>

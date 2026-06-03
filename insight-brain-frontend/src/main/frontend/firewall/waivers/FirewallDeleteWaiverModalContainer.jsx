@@ -6,10 +6,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import React from 'react';
 import FirewallDeleteWaiverModal from './FirewallDeleteWaiverModal';
-import {
-  deleteFirewallWaiver,
-  hideFirewallDeleteWaiverModal,
-} from './firewallDashboardWaiverActions';
+import { deleteFirewallWaiver, hideFirewallDeleteWaiverModal } from './firewallDashboardWaiverActions';
 import {
   selectFirewallWaiverToDelete,
   selectFirewallDeleteWaiverSaving,

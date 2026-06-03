@@ -9,17 +9,8 @@ import { prop } from 'ramda';
 
 export const selectHostedReposSlice = prop('hostedRepos');
 
-export const selectRepositoryManagers = createSelector(
-  selectHostedReposSlice,
-  prop('repositoryManagers')
-);
+export const selectRepositoryManagers = createSelector(selectHostedReposSlice, prop('repositoryManagers'));
 
-export const selectLoading = createSelector(
-  selectHostedReposSlice,
-  prop('loading')
-);
+export const selectLoading = createSelector(selectHostedReposSlice, prop('loading'));
 
-export const selectError = createSelector(
-  selectHostedReposSlice,
-  prop('error')
-);
+export const selectError = createSelector(selectHostedReposSlice, prop('error'));

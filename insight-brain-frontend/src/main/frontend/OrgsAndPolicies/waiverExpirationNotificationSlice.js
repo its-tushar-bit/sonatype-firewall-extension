@@ -44,17 +44,14 @@ const goToEditor = createAsyncThunk(`${REDUCER_NAME}/goToEditor`, (_, { getState
   dispatch(stateGo(to, params));
 });
 
-const loadRoles = createAsyncThunk(
-  `${REDUCER_NAME}/loadRoles`,
-  (_, { getState, rejectWithValue }) => {
-    const state = getState();
-    const { ownerType, ownerId } = selectOwnerProperties(state);
-    return axios
-      .get(getRoleMappingForCurrentOwnerUrl(ownerType, ownerId))
-      .then((response) => response.data.membersByRole || [])
-      .catch((err) => rejectWithValue(err));
-  }
-);
+const loadRoles = createAsyncThunk(`${REDUCER_NAME}/loadRoles`, (_, { getState, rejectWithValue }) => {
+  const state = getState();
+  const { ownerType, ownerId } = selectOwnerProperties(state);
+  return axios
+    .get(getRoleMappingForCurrentOwnerUrl(ownerType, ownerId))
+    .then((response) => response.data.membersByRole || [])
+    .catch((err) => rejectWithValue(err));
+});
 
 const loadConfig = createAsyncThunk(
   `${REDUCER_NAME}/loadConfig`,
@@ -92,49 +89,42 @@ const loadConfigFailed = (state, { payload }) => {
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const deleteConfig = createAsyncThunk(
-  `${REDUCER_NAME}/deleteConfig`,
-  (_, { getState, rejectWithValue, dispatch }) => {
-    const state = getState();
-    const { ownerType, ownerId } = selectOwnerProperties(state);
-    const router = selectRouterSlice(state);
-    const { params } = deriveEditRoute(router, 'edit-waiver-expiration-notification');
-    return axios
-      .put(getWaiverExpirationNotificationConfigUrl(ownerType, ownerId), { inheritConfig: true })
-      .then(() => dispatch(stateGo(`management.view.${ownerType}`, params)))
-      .catch((error) => rejectWithValue(error));
-  }
-);
+const deleteConfig = createAsyncThunk(`${REDUCER_NAME}/deleteConfig`, (_, { getState, rejectWithValue, dispatch }) => {
+  const state = getState();
+  const { ownerType, ownerId } = selectOwnerProperties(state);
+  const router = selectRouterSlice(state);
+  const { params } = deriveEditRoute(router, 'edit-waiver-expiration-notification');
+  return axios
+    .put(getWaiverExpirationNotificationConfigUrl(ownerType, ownerId), { inheritConfig: true })
+    .then(() => dispatch(stateGo(`management.view.${ownerType}`, params)))
+    .catch((error) => rejectWithValue(error));
+});
 
-const saveConfig = createAsyncThunk(
-  `${REDUCER_NAME}/saveConfig`,
-  (_, { getState, rejectWithValue, dispatch }) => {
-    const state = getState();
-    const { ownerType, ownerId } = selectOwnerProperties(state);
-    const { inheritConfig, notificationDays, directEmails, roleIds } =
-      selectWaiverExpirationNotificationSlice(state);
+const saveConfig = createAsyncThunk(`${REDUCER_NAME}/saveConfig`, (_, { getState, rejectWithValue, dispatch }) => {
+  const state = getState();
+  const { ownerType, ownerId } = selectOwnerProperties(state);
+  const { inheritConfig, notificationDays, directEmails, roleIds } = selectWaiverExpirationNotificationSlice(state);
 
-    const hasEmails = directEmails && directEmails.length > 0;
-    const hasRoles = roleIds && roleIds.length > 0;
-    const derivedRecipientType =
-      hasEmails && hasRoles ? RECIPIENT_TYPE_BOTH : hasRoles ? RECIPIENT_TYPE_ROLE : RECIPIENT_TYPE_DIRECT;
+  const hasEmails = directEmails && directEmails.length > 0;
+  const hasRoles = roleIds && roleIds.length > 0;
+  const derivedRecipientType =
+    hasEmails && hasRoles ? RECIPIENT_TYPE_BOTH : hasRoles ? RECIPIENT_TYPE_ROLE : RECIPIENT_TYPE_DIRECT;
 
-    const payload = {
-      inheritConfig,
-      notificationDays,
-      recipientType: derivedRecipientType,
-      directEmails,
-      roleIds,
-    };
+  const payload = {
+    inheritConfig,
+    notificationDays,
+    recipientType: derivedRecipientType,
+    directEmails,
+    roleIds,
+  };
 
-    return axios
-      .put(getWaiverExpirationNotificationConfigUrl(ownerType, ownerId), payload)
-      .then(() => {
-        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => dispatch(actions.loadConfig()));
-      })
-      .catch((error) => rejectWithValue(error));
-  }
-);
+  return axios
+    .put(getWaiverExpirationNotificationConfigUrl(ownerType, ownerId), payload)
+    .then(() => {
+      startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => dispatch(actions.loadConfig()));
+    })
+    .catch((error) => rejectWithValue(error));
+});
 
 const saveConfigRequested = (state) => {
   state.submitMaskState = false;

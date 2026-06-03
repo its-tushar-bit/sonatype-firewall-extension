@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+/* eslint-disable react/prop-types */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
@@ -122,11 +123,8 @@ export default function AddWaiverPage(props) {
     };
   };
 
-
-
   return (
     <main id="add-waiver-page" className="nx-page-main">
-
       <AddAndRequestWaiversBackButton {...backButtonProps} />
       <div className="nx-page-title">
         <h1 className="nx-h1">Add Waiver</h1>

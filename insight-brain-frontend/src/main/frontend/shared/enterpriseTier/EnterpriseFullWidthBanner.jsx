@@ -10,7 +10,6 @@ import TierTag from 'MainRoot/react/shared/TierTag';
 import './EnterpriseFullWidthBanner.scss';
 
 const ENTERPRISE_DEMO_URL = 'https://www.sonatype.com/products/request-demo';
-const UPGRADE_URL = 'https://www.sonatype.com/contact-us';
 
 /**
  * Full-width enterprise feature banner for forms and editors.
@@ -49,11 +48,7 @@ export default function EnterpriseFullWidthBanner({ title, featureName, descript
         <div className="iq-enterprise-full-width-banner__message">
           <div>
             {description}{' '}
-            <NxTextLink
-              href={ENTERPRISE_DEMO_URL}
-              external
-              aria-label="Request Demo (opens in new window)"
-            >
+            <NxTextLink href={ENTERPRISE_DEMO_URL} external aria-label="Request Demo (opens in new window)">
               Request Demo
             </NxTextLink>
           </div>

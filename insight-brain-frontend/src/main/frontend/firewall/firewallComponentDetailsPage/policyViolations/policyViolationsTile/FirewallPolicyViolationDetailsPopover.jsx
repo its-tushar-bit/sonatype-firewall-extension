@@ -61,7 +61,9 @@ export default function FirewallPolicyViolationDetailsPopover() {
 
   // Try to find the violation in component details violations first, then fall back to bulk waive violations, or use selectedPolicyViolation directly
   const policyDetail = selectedPolicyViolation
-    ? componentDetailsPolicyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId) ||
+    ? componentDetailsPolicyViolations?.find(
+        (item) => item.policyViolationId === selectedPolicyViolation.policyViolationId
+      ) ||
       bulkWaivePolicyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId) ||
       selectedPolicyViolation
     : null;
@@ -69,8 +71,10 @@ export default function FirewallPolicyViolationDetailsPopover() {
     ...redirectionProps,
     repositoryId: redirectionProps?.repositoryId || selectedPolicyViolation?.repositoryId,
     componentIdentifier: redirectionProps?.componentIdentifier || selectedPolicyViolation?.componentIdentifier,
-    componentHash: redirectionProps?.componentHash || selectedPolicyViolation?.componentHash || selectedPolicyViolation?.hash,
-    matchState: redirectionProps?.matchState || selectedPolicyViolation?.matchState || selectedPolicyViolation?.matchStateId,
+    componentHash:
+      redirectionProps?.componentHash || selectedPolicyViolation?.componentHash || selectedPolicyViolation?.hash,
+    matchState:
+      redirectionProps?.matchState || selectedPolicyViolation?.matchState || selectedPolicyViolation?.matchStateId,
     tabId: redirectionProps?.tabId || 'violations',
     pathname: redirectionProps?.pathname || selectedPolicyViolation?.pathname,
     componentDisplayName:
@@ -125,7 +129,10 @@ export default function FirewallPolicyViolationDetailsPopover() {
       </NxDrawer.Header>
       <NxDrawer.Content tabIndex={0}>
         {isViolationsDetailPopoverOpen && (
-          <FirewallViolationPageContainer selectPolicyId={selectedPolicyViolation?.policyViolationId} isFromPolicyViolations />
+          <FirewallViolationPageContainer
+            selectPolicyId={selectedPolicyViolation?.policyViolationId}
+            isFromPolicyViolations
+          />
         )}
       </NxDrawer.Content>
       <NxFooter>

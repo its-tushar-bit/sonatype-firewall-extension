@@ -185,8 +185,14 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SET_REASON]: setWaiverReason,
   [WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME]: setCustomExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
-  [WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({ ...state, showEnterpriseWaiverFeaturesModal: true }),
-  [WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({ ...state, showEnterpriseWaiverFeaturesModal: false }),
+  [WAIVERS_SHOW_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({
+    ...state,
+    showEnterpriseWaiverFeaturesModal: true,
+  }),
+  [WAIVERS_HIDE_ENTERPRISE_WAIVER_FEATURES_MODAL]: (payload, state) => ({
+    ...state,
+    showEnterpriseWaiverFeaturesModal: false,
+  }),
   [WAIVERS_RESET_ADD_WAIVER_DATA]: always(initState),
   [UI_ROUTER_ON_FINISH]: always(initState),
 };

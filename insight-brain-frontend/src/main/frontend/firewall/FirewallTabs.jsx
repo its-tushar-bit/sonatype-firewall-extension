@@ -29,12 +29,16 @@ const FirewallTabs = forwardRef(function FirewallTabs({ router, stateGo, ...prop
     },
   };
 
-  useImperativeHandle(ref, () => ({
-    scrollToPanel: (tab) => {
-      const panelRef = firewallTabsRefs?.[tab]?.panel?.current?.firstChild;
-      panelRef?.scrollIntoView({ behavior: 'smooth' });
-    },
-  }), []);
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToPanel: (tab) => {
+        const panelRef = firewallTabsRefs?.[tab]?.panel?.current?.firstChild;
+        panelRef?.scrollIntoView({ behavior: 'smooth' });
+      },
+    }),
+    []
+  );
 
   const renderTab = (tab) => (
     <NxTab key={tab} id={`firewall-${tab}-tab`}>

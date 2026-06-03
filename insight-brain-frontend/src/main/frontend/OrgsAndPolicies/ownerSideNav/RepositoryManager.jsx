@@ -13,7 +13,7 @@ import { selectOwnerById } from './ownerSideNavSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectPrefixRoute } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const RepositoryManager = memo(({ repositoryManagerId, ...otherProps }) => {
+const RepositoryManager = memo(function RepositoryManager({ repositoryManagerId, ...otherProps }) {
   const uiRouterState = useRouterState();
   const repositoryManager = useSelector((state) => selectOwnerById(state, repositoryManagerId));
   const prefixRoute = useSelector(selectPrefixRoute);

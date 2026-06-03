@@ -9,8 +9,7 @@ import { NxFieldset, NxStatefulForm, NxModal, NxToggle, NxAlert, NxTextLink } fr
 import * as PropTypes from 'prop-types';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from './firewallConfigurationModalReducer';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
-import { faGavel } from '@fortawesome/pro-solid-svg-icons';
-import { faCircleInfo, faInfo } from '@fortawesome/pro-light-svg-icons';
+
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 export default function FirewallConfigurationModal(props) {

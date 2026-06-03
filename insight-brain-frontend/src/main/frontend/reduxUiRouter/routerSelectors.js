@@ -282,11 +282,11 @@ export const selectPrevStateIsRepositoryManagerView = createSelector(selectRoute
 export const selectPrevStateIsRepositorySection = createSelector(selectRouterPrevState, (prevState) =>
   Boolean(
     prevState.name?.includes('repository_container') ||
-    prevState.name?.includes('repository_manager') ||
-    prevState.name?.includes('management.view.repository') || // covers repo summary/detail child pages
-    prevState.name?.includes('firewall.repository-report') || // non-docker repo results page
-    prevState.name?.includes('firewall.containerRepositoryResults') || // docker repo results page
-    prevState.name?.includes('hostedRepoComponents') // hosted repo components page
+      prevState.name?.includes('repository_manager') ||
+      prevState.name?.includes('management.view.repository') || // covers repo summary/detail child pages
+      prevState.name?.includes('firewall.repository-report') || // non-docker repo results page
+      prevState.name?.includes('firewall.containerRepositoryResults') || // docker repo results page
+      prevState.name?.includes('hostedRepoComponents') // hosted repo components page
   )
 );
 

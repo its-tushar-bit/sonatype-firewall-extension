@@ -23,14 +23,8 @@ export const selectLoadingDailyHistory = createSelector(selectUsageSlice, prop('
 export const selectLoadingAll = createSelector(selectUsageSlice, prop('loadingAll'));
 
 export const selectLoadErrorSummary = createSelector(selectUsageSlice, prop('loadErrorSummary'));
-export const selectLoadErrorHistoryBreakdown = createSelector(
-  selectUsageSlice,
-  prop('loadErrorHistoryBreakdown')
-);
-export const selectLoadErrorSourceBreakdown = createSelector(
-  selectUsageSlice,
-  prop('loadErrorSourceBreakdown')
-);
+export const selectLoadErrorHistoryBreakdown = createSelector(selectUsageSlice, prop('loadErrorHistoryBreakdown'));
+export const selectLoadErrorSourceBreakdown = createSelector(selectUsageSlice, prop('loadErrorSourceBreakdown'));
 export const selectLoadErrorTopApps = createSelector(selectUsageSlice, prop('loadErrorTopApps'));
 export const selectLoadErrorDailyHistory = createSelector(selectUsageSlice, prop('loadErrorDailyHistory'));
 export const selectLoadErrorAll = createSelector(selectUsageSlice, prop('loadErrorAll'));

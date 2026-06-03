@@ -12,7 +12,10 @@ export default function ComponentCopyrightDetails() {
   return (
     <main className="nx-page-main nx-viewport-sized__container">
       <CopyrightDetailsHeaderContainer />
-      <div id="component-copyright-details-content" className="nx-viewport-sized__container nx-viewport-sized__container--adjacent">
+      <div
+        id="component-copyright-details-content"
+        className="nx-viewport-sized__container nx-viewport-sized__container--adjacent"
+      >
         <CopyrightListContainer />
         <UIView />
       </div>

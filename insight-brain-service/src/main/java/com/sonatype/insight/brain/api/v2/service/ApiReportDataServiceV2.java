@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +39,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportConstraintViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
@@ -156,7 +158,18 @@ public class ApiReportDataServiceV2
       String scanId,
       boolean includeViolationTimes) throws IOException
   {
-    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes);
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, null, null);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsData(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      String scanId,
+      boolean includeViolationTimes,
+      Integer page,
+      Integer pageSize) throws IOException
+  {
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, page, pageSize);
   }
 
   public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
@@ -164,6 +177,26 @@ public class ApiReportDataServiceV2
       String scanId,
       boolean includeViolationTimes) throws IOException
   {
+    return getPolicyViolationsDataNoAuth(applicationPublicId, scanId, includeViolationTimes, null, null);
+  }
+
+  public ApiReportPolicyDataDTOV2 getPolicyViolationsDataNoAuth(
+      String applicationPublicId,
+      String scanId,
+      boolean includeViolationTimes,
+      Integer page,
+      Integer pageSize) throws IOException
+  {
+    if ((page == null) != (pageSize == null)) {
+      throw new BadRequestException("Both 'page' and 'pageSize' must be provided together.");
+    }
+    if (page != null && page < 1) {
+      throw new BadRequestException("'page' must be greater than 0.");
+    }
+    if (pageSize != null && pageSize <= 0) {
+      throw new BadRequestException("'pageSize' must be greater than 0.");
+    }
+
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
@@ -194,7 +227,24 @@ public class ApiReportDataServiceV2
     data.application = getApplicationMetadata(metadata.getApplication());
     data.initiator = metadata.getInitiator();
     data.counts = getReportCounts(countsEntry.buf);
-    data.components = getComponents(bomEntry.buf, policyThreats);
+
+    List<ApiReportComponentPolicyViolationsDTOV2> allComponents = getComponents(bomEntry.buf, policyThreats);
+
+    if (page != null) {
+      allComponents.sort(Comparator.comparing(c -> c.hash, Comparator.nullsLast(Comparator.naturalOrder())));
+      int total = allComponents.size();
+      data.total = (long) total;
+      data.pageCount = PaginationResponseBuilder.calculateLastPage(pageSize, total);
+      data.page = page;
+      data.pageSize = pageSize;
+      data.components = allComponents.stream()
+          .skip((long) (page - 1) * pageSize)
+          .limit(pageSize)
+          .toList();
+    }
+    else {
+      data.components = allComponents;
+    }
 
     if (includeViolationTimes) {
       includeViolationTimes(data);

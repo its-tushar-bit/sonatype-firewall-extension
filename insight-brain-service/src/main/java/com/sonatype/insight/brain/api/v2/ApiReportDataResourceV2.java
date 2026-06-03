@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2;
 import java.net.URI;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -175,8 +177,13 @@ public class ApiReportDataResourceV2
             responseCode = "200",
             description = "The response fields contain the policy violation data for the reportId (scanId) " +
                 "specified in the method call. The fields corresponding to 'violations' include the " +
-                "violation details for each policy, for the component.",
-            useReturnTypeSchema = true)
+                "violation details for each policy, for the component. " +
+                "When 'page' and 'pageSize' are provided, the response includes 'page', 'pageSize', " +
+                "'pageCount', and 'total' fields to support pagination.",
+            useReturnTypeSchema = true),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid pagination parameters.")
       })
   public ApiReportPolicyDataDTOV2 getPolicyViolations(
       @Parameter(description = "Enter the applicationPublicId created at the time of creating the " +
@@ -184,10 +191,15 @@ public class ApiReportDataResourceV2
       @Parameter(description = "Enter the reportId (scanId) created at the time of evaluating the " +
           "application.", required = true) @PathParam("scanId") String scanId,
       @Parameter(description = "Set to true to include policy violation times (open, legacy, waived, fixed) in the" +
-          " response if set.") @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes) throws Exception
+          " response if set.") @QueryParam("includeViolationTimes") @DefaultValue("false") boolean includeViolationTimes,
+      @Parameter(description = "Page number (1-indexed). Must be provided together with 'pageSize'. " +
+          "When omitted, all components are returned.") @QueryParam("page") @Min(1) Integer page,
+      @Parameter(description = "Number of components per page (1-500). Must be provided together with 'page'. " +
+          "When omitted, all components are returned.") @QueryParam("pageSize") @Min(1) @Max(500) Integer pageSize) throws Exception
   {
     AuditData.get().setReportId(scanId);
-    return reportDataService.getPolicyViolationsData(applicationPublicId, scanId, includeViolationTimes);
+    return reportDataService.getPolicyViolationsData(applicationPublicId, scanId, includeViolationTimes, page,
+        pageSize);
   }
 
   @GET

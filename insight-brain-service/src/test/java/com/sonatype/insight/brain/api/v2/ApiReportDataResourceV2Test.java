@@ -843,6 +843,87 @@ public class ApiReportDataResourceV2Test
     assertThat(withFlag.getBodyText()).isEqualTo(withoutFlag.getBodyText());
   }
 
+  // ==================== Pagination Validation Tests ====================
+
+  @Test
+  public void testGetPolicyViolations_pageZero_returns400() throws Exception {
+    final String appPublicId = "PaginationValidation_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("page", 0)
+        .query("pageSize", 10)
+        .get();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testGetPolicyViolations_pageSizeZero_returns400() throws Exception {
+    final String appPublicId = "PaginationValidation_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("page", 1)
+        .query("pageSize", 0)
+        .get();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testGetPolicyViolations_pageSizeTooLarge_returns400() throws Exception {
+    final String appPublicId = "PaginationValidation_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("page", 1)
+        .query("pageSize", 501)
+        .get();
+
+    assertResponseStatus(400, response);
+  }
+
+  @Test
+  public void testGetPolicyViolations_paginationFieldsInResponse() throws Exception {
+    final String appPublicId = "PaginationValidation_AppId";
+    final String scanId = "ScanId";
+    createReport(appPublicId, scanId, "report");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.POLICY_DATA_PATH)
+        .parameter(appPublicId, scanId)
+        .query("page", 1)
+        .query("pageSize", 1)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiReportPolicyDataDTOV2 dto = response.getBody(ApiReportPolicyDataDTOV2.class);
+    assertThat(dto.page).isEqualTo(1);
+    assertThat(dto.pageSize).isEqualTo(1);
+    assertThat(dto.total).isEqualTo(2L);
+    assertThat(dto.pageCount).isEqualTo(2L);
+    assertThat(dto.components).hasSize(1);
+    assertThat(dto.components.get(0).hash).isEqualTo("1249e25aebb15358bedd");
+  }
+
   // ==================== Metadata Endpoint Tests ====================
 
   @Test

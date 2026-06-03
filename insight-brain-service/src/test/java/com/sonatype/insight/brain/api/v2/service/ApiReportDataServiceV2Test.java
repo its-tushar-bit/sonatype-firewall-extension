@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -598,6 +599,117 @@ public class ApiReportDataServiceV2Test
   }
 
   @Test
+  public void testGetPolicyViolationsData_PaginationFirstPage() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 1, 2);
+
+    assertThat(data.components).hasSize(2);
+    assertThat(data.page).isEqualTo(1);
+    assertThat(data.pageSize).isEqualTo(2);
+    assertThat(data.pageCount).isEqualTo(2L);
+    assertThat(data.total).isEqualTo(3L);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_PaginationSecondPage() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 2, 2);
+
+    assertThat(data.components).hasSize(1);
+    assertThat(data.page).isEqualTo(2);
+    assertThat(data.pageSize).isEqualTo(2);
+    assertThat(data.pageCount).isEqualTo(2L);
+    assertThat(data.total).isEqualTo(3L);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_PaginationBeyondLastPage() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 5, 2);
+
+    assertThat(data.components).isEmpty();
+    assertThat(data.page).isEqualTo(5);
+    assertThat(data.pageCount).isEqualTo(2L);
+    assertThat(data.total).isEqualTo(3L);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_NoPaginationParamsReturnsAll() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
+
+    assertThat(data.components).hasSize(3);
+    assertThat(data.page).isNull();
+    assertThat(data.pageSize).isNull();
+    assertThat(data.pageCount).isNull();
+    assertThat(data.total).isNull();
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetPolicyViolationsData_OnlyPageProvided() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 1, null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetPolicyViolationsData_OnlyPageSizeProvided() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, null, 10);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testGetPolicyViolationsData_PageZero() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 0, 10);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_PaginationWithViolationTimes() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, true, 1, 2);
+
+    assertThat(data.components).hasSize(2);
+    assertThat(data.page).isEqualTo(1);
+    assertThat(data.pageCount).isEqualTo(2L);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_PaginationMaxPageSize() throws Exception {
+    makeReport("report-1");
+    populatePolicyThreats("report-1", "policythreats.json");
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 1, 500);
+
+    assertThat(data.components).hasSize(3);
+    assertThat(data.page).isEqualTo(1);
+    assertThat(data.pageSize).isEqualTo(500);
+    assertThat(data.pageCount).isEqualTo(1L);
+    assertThat(data.total).isEqualTo(3L);
+  }
+
+  @Test
+  public void testGetPolicyViolationsData_PaginationEmptyBom() throws Exception {
+    makeReport("report-1");
+    applicationReportPersistenceService.saveReportFile(
+        app.getId(), scanId, BOM_JSON.getName(), new ByteArrayInputStream("{\"aaData\":[]}".getBytes()));
+
+    ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false, 1, 10);
+
+    assertThat(data.components).isEmpty();
+    assertThat(data.total).isEqualTo(0L);
+    assertThat(data.pageCount).isEqualTo(0L);
+    assertThat(data.page).isEqualTo(1);
+    assertThat(data.pageSize).isEqualTo(10);
+  }
+
+  @Test
   public void testGetPolicyViolationsData_NoViolations() throws Exception {
     makeReport("report-1");
     populatePolicyThreats("report-1", "policythreats-empty.json");
@@ -613,10 +725,18 @@ public class ApiReportDataServiceV2Test
     populatePolicyThreats("report-1", "policythreats-noallviolations.json");
     ApiReportPolicyDataDTOV2 data = reportDataService.getPolicyViolationsData(app.getPublicId(), scanId, false);
     assertThat(data.components).hasSize(3);
-    assertThat(data.components.get(0).violations).extracting(v -> v.policyId, v -> v.waived)
+    ApiReportComponentPolicyViolationsDTOV2 withViolations = data.components.stream()
+        .filter(c -> "5398a935d7fbeccac7b1".equals(c.hash))
+        .findFirst()
+        .orElseThrow();
+    ApiReportComponentPolicyViolationsDTOV2 withoutViolations = data.components.stream()
+        .filter(c -> "02a8e0aa38a2e21cb39e".equals(c.hash))
+        .findFirst()
+        .orElseThrow();
+    assertThat(withViolations.violations).extracting(v -> v.policyId, v -> v.waived)
         .containsExactlyInAnyOrder(new Tuple("644a8c0052eb42b2829d6f9fcaba7ea3", false),
             new Tuple("6430b4c764314ac6aee439ad1c045ad1", true), new Tuple("6430b4c764314ac6aee439ad1c045ad1", true));
-    assertThat(data.components.get(1).violations).isEmpty();
+    assertThat(withoutViolations.violations).isEmpty();
   }
 
   @Test(expected = NotFoundException.class)

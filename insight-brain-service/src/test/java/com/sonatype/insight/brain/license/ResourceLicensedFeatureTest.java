@@ -224,7 +224,9 @@ public class ResourceLicensedFeatureTest
           "getPolicyViolations",
           String.class,
           String.class,
-          boolean.class), LicensedFeature.POLICY_VIOLATIONS);
+          boolean.class,
+          Integer.class,
+          Integer.class), LicensedFeature.POLICY_VIOLATIONS);
       map.put(ApiReportDataResourceV2.class.getDeclaredMethod(
           "getDependencyTree",
           String.class,

@@ -41,4 +41,16 @@ public class ApiReportPolicyDataDTOV2
 
   // components in app, in no particular order
   public List<ApiReportComponentPolicyViolationsDTOV2> components = new ArrayList<>();
+
+  @JsonInclude(Include.NON_NULL)
+  public Integer page;
+
+  @JsonInclude(Include.NON_NULL)
+  public Integer pageSize;
+
+  @JsonInclude(Include.NON_NULL)
+  public Long pageCount;
+
+  @JsonInclude(Include.NON_NULL)
+  public Long total;
 }

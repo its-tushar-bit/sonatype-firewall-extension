@@ -24,7 +24,7 @@ const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
 
 beforeEach(() => {
   // Default: delegate to mockHandler when present (preserves behaviour for endpoints
-  // that still use mock data — getVulnerabilityDetails, getVulnerabilityAffectedComponents, etc.).
+  // in other backends that still use mock data — see componentsBackend, searchBackend).
   mockApiFetch.mockImplementation(async <T>(_path: string, init?: { mockHandler?: () => unknown }): Promise<T> => {
     if (init?.mockHandler) return init.mockHandler() as T;
     throw new Error('No mock handler — real API not available in tests');
@@ -124,30 +124,82 @@ describe('vulnerabilitiesBackend', () => {
     });
   });
 
-  describe('getVulnerabilityDetails', () => {
-    it('returns null for an empty vulnId', async () => {
+  describe('getVulnerabilityDetails (wired)', () => {
+    it('returns null without calling apiFetch when vulnId is empty', async () => {
       const result = await getVulnerabilityDetails('');
+      expect(mockApiFetch).not.toHaveBeenCalled();
       expect(result).toBeNull();
     });
 
-    it('returns mock vulnerability detail for a known CVE', async () => {
+    it('calls the correct endpoint and returns the response', async () => {
+      const fakeVuln = { vulnId: 'CVE-2021-44228', cvssSeverity: 10 };
+      mockApiFetch.mockResolvedValue(fakeVuln);
+
       const result = await getVulnerabilityDetails('CVE-2021-44228');
-      expect(result).not.toBeNull();
-      expect(result!.vulnId).toBe('CVE-2021-44228');
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      const [path, init] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities/CVE-2021-44228');
+      expect(init).toBeUndefined();
+      expect(result).toBe(fakeVuln);
+    });
+
+    it('URL-encodes special characters in the vulnId', async () => {
+      mockApiFetch.mockResolvedValue(null);
+
+      await getVulnerabilityDetails('CVE 2021 44228');
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities/CVE%202021%2044228');
     });
   });
 
-  describe('getVulnerabilityAffectedComponents', () => {
-    it('returns null for an empty vulnId', async () => {
+  describe('getVulnerabilityAffectedComponents (wired)', () => {
+    it('returns null without calling apiFetch when vulnId is empty', async () => {
       const result = await getVulnerabilityAffectedComponents('');
+      expect(mockApiFetch).not.toHaveBeenCalled();
       expect(result).toBeNull();
     });
 
-    it('returns paginated affected components for a known CVE', async () => {
+    it('calls the endpoint with no query string when params are omitted', async () => {
+      const fakeResponse = { hits: [], total: 0, offset: 0, limit: 50 };
+      mockApiFetch.mockResolvedValue(fakeResponse);
+
       const result = await getVulnerabilityAffectedComponents('CVE-2021-44228');
-      expect(result).not.toBeNull();
-      expect(result!.hits).toBeDefined();
-      expect(typeof result!.total).toBe('number');
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      const [path, init] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities/CVE-2021-44228/components');
+      expect(init).toBeUndefined();
+      expect(result).toBe(fakeResponse);
+    });
+
+    it('serializes all params into the query string', async () => {
+      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 25, limit: 50 });
+
+      await getVulnerabilityAffectedComponents('CVE-2021-44228', {
+        query: 'log4j',
+        offset: 25,
+        limit: 50,
+        sortField: 'packageName',
+        sortOrder: 'asc',
+      });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe(
+        '/api/v2/guide/vulnerabilities/CVE-2021-44228/components?query=log4j&offset=25&limit=50&sortField=packageName&sortOrder=asc'
+      );
+    });
+
+    it('omits undefined params from the query string', async () => {
+      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 0, limit: 25 });
+
+      await getVulnerabilityAffectedComponents('CVE-2021-44228', { limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe(
+        '/api/v2/guide/vulnerabilities/CVE-2021-44228/components?limit=25'
+      );
     });
   });
 });

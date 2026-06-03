@@ -13,8 +13,6 @@ import type {
   AffectedComponentVersion,
 } from '@guide/ui-core/types';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
-import { getMockVulnerabilityDetail } from './mocks/mockVulnerabilityDetailData';
-import { getMockAffectedComponents } from './mocks/mockAffectedComponentsData';
 
 /** Aggregations type matching ui-core's Record<string, Record<string, number>> */
 type Aggregations = Record<string, Record<string, number>>;
@@ -218,78 +216,7 @@ export async function searchVulnerabilities(
  */
 export async function getVulnerabilityDetails(vulnId: string): Promise<Vulnerability | null> {
   if (!vulnId.trim()) return null;
-
-  return apiFetch<Vulnerability | null>(`${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}`, {
-    mockHandler: () => getMockVulnerabilityDetail(vulnId) ?? null,
-  });
-}
-
-/**
- * Mock handler for affected components with realistic filter/sort/pagination.
- */
-function mockAffectedComponentsHandler(
-  vulnId: string,
-  params?: {
-    query?: string;
-    offset?: number;
-    limit?: number;
-    sortField?: string;
-    sortOrder?: 'asc' | 'desc';
-  }
-): ApiSearchResponse<AffectedComponentVersion> {
-  const allComponents = getMockAffectedComponents(vulnId);
-  if (allComponents.length === 0) {
-    return { hits: [], total: 0, offset: params?.offset ?? 0, limit: params?.limit ?? 50 };
-  }
-
-  const query = params?.query?.toLowerCase()?.trim();
-  const offset = params?.offset ?? 0;
-  const limit = params?.limit ?? 50;
-  const sortField = params?.sortField ?? 'packageName';
-  const sortOrder = params?.sortOrder ?? 'asc';
-
-  // Filter by query
-  let filtered = allComponents;
-  if (query) {
-    filtered = allComponents.filter((c) => {
-      const pkgName = c.packageName.toLowerCase();
-      const namespace = c.namespace?.toLowerCase() ?? '';
-      return pkgName.includes(query) || namespace.includes(query);
-    });
-  }
-
-  // Sort
-  filtered = [...filtered].sort((a, b) => {
-    let aVal: string;
-    let bVal: string;
-    switch (sortField) {
-      case 'version':
-        aVal = a.version ?? '';
-        bVal = b.version ?? '';
-        break;
-      case 'ecosystem':
-        aVal = a.ecosystem ?? '';
-        bVal = b.ecosystem ?? '';
-        break;
-      case 'packageName':
-      default:
-        // Sort by package name (including namespace as secondary key)
-        aVal = `${a.namespace ?? ''}:${a.packageName}`;
-        bVal = `${b.namespace ?? ''}:${b.packageName}`;
-    }
-    const cmp = aVal.localeCompare(bVal);
-    return sortOrder === 'desc' ? -cmp : cmp;
-  });
-
-  // Paginate
-  const paginated = filtered.slice(offset, offset + limit);
-
-  return {
-    hits: paginated,
-    total: filtered.length,
-    offset,
-    limit,
-  };
+  return apiFetch<Vulnerability | null>(`${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}`);
 }
 
 /** Accepted sortField values for affected-components queries. Single source of truth shared with ComponentsImpactedTab. */
@@ -325,9 +252,6 @@ export async function getVulnerabilityAffectedComponents(
 
   const separator = queryString.toString() ? '?' : '';
   return apiFetch<ApiSearchResponse<AffectedComponentVersion> | null>(
-    `${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}/affected-components${separator}${queryString.toString()}`,
-    {
-      mockHandler: () => mockAffectedComponentsHandler(vulnId, params),
-    }
+    `${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}/components${separator}${queryString.toString()}`
   );
 }

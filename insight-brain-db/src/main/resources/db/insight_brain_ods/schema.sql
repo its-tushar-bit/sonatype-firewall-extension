@@ -2434,3 +2434,19 @@ CREATE TABLE relay_configuration (
   registered_at timestamp,
   CONSTRAINT relay_configuration_pk PRIMARY KEY (relay_configuration_id)
 );
+
+CREATE TABLE relay_event_log (
+  relay_event_log_id varchar(50) NOT NULL,
+  event_id varchar(255) NOT NULL,
+  application_public_id varchar(200),
+  pull_request_number int,
+  commit_hash varchar(255),
+  event_type varchar(64),
+  processed_at timestamp NOT NULL,
+  mode varchar(16),
+  CONSTRAINT relay_event_log_pk PRIMARY KEY (relay_event_log_id),
+  CONSTRAINT relay_event_log_event_id_uk UNIQUE (event_id)
+);
+CREATE INDEX relay_event_log_secondary_idx
+  ON relay_event_log(application_public_id, pull_request_number, commit_hash, mode, event_type);
+CREATE INDEX relay_event_log_processed_at_idx ON relay_event_log(processed_at);

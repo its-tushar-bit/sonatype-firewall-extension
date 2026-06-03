@@ -103,6 +103,8 @@ public class RelayPollingService
 
   private final RelayEventMapper relayEventMapper;
 
+  private final RelayEventDeduplicator relayEventDeduplicator;
+
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final PullRequestPollingScheduler pullRequestPollingScheduler;
@@ -144,6 +146,7 @@ public class RelayPollingService
       GitHubAppDAO gitHubAppDAO,
       GitHubAppRelayLinker gitHubAppRelayLinker,
       RelayEventMapper relayEventMapper,
+      RelayEventDeduplicator relayEventDeduplicator,
       SourceControlEventPublisher sourceControlEventPublisher,
       PullRequestPollingScheduler pullRequestPollingScheduler,
       PasswordHandler passwordHandler,
@@ -151,9 +154,8 @@ public class RelayPollingService
       ScmNodeProcessor scmNodeProcessor)
   {
     this(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker, relayEventMapper,
-        sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler, shutdownHandler,
-        scmNodeProcessor,
-        DEFAULT_POLL_INITIAL_DELAY_SECONDS, DEFAULT_POLL_INTERVAL_SECONDS,
+        relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler,
+        shutdownHandler, scmNodeProcessor, DEFAULT_POLL_INITIAL_DELAY_SECONDS, DEFAULT_POLL_INTERVAL_SECONDS,
         DEFAULT_MAX_EVENTS_PER_CYCLE, DEFAULT_FAILURE_THRESHOLD, DEFAULT_MAX_DRAIN_ITERATIONS);
   }
 
@@ -164,6 +166,7 @@ public class RelayPollingService
       GitHubAppDAO gitHubAppDAO,
       GitHubAppRelayLinker gitHubAppRelayLinker,
       RelayEventMapper relayEventMapper,
+      RelayEventDeduplicator relayEventDeduplicator,
       SourceControlEventPublisher sourceControlEventPublisher,
       PullRequestPollingScheduler pullRequestPollingScheduler,
       PasswordHandler passwordHandler,
@@ -183,6 +186,7 @@ public class RelayPollingService
     this.gitHubAppDAO = gitHubAppDAO;
     this.gitHubAppRelayLinker = gitHubAppRelayLinker;
     this.relayEventMapper = relayEventMapper;
+    this.relayEventDeduplicator = relayEventDeduplicator;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.pullRequestPollingScheduler = pullRequestPollingScheduler;
     this.passwordHandler = passwordHandler;
@@ -424,6 +428,11 @@ public class RelayPollingService
       recordFailure();
       return;
     }
+    // Mode is derived once per cycle from the local configuration row: PAT mode iff
+    // webhook_url is populated, GitHub App mode iff blank. Threading it through to the
+    // dedup writes/reads is what discriminates rows from a prior-mode registration after
+    // a customer migrates (CLM-39685 follow-up).
+    String mode = RelayMode.fromConfiguration(configuration);
 
     // Per-cycle caches: when several events share a repository URL (common for active repos)
     // the DAO lookups inside RelayEventMapper happen once per unique URL, not per event.
@@ -459,7 +468,7 @@ public class RelayPollingService
       }
       List<String> handlesToAck = new ArrayList<>(events.size());
       int published = processEvents(events, handlesToAck, applicationsByRepoUrl, sourceControlsByRepoUrl,
-          authenticationType);
+          authenticationType, mode);
       totalPublished += published;
       totalDrained += events.size();
       if (!ackInBatches(apiKey, handlesToAck)) {
@@ -518,30 +527,105 @@ public class RelayPollingService
       List<String> handlesToAck,
       Map<String, List<Application>> applicationsByRepoUrl,
       Map<String, List<SourceControl>> sourceControlsByRepoUrl,
-      String authenticationType)
+      String authenticationType,
+      String mode)
   {
     int published = 0;
     for (RelayEvent event : events) {
+      if (event == null) {
+        continue;
+      }
+      if (event.getReceiptHandle() != null) {
+        // Ack regardless of dedup/mapper/publisher outcome — acking the receipt handle
+        // prevents the relay from redelivering the same payload after the SQS visibility
+        // timeout. For duplicates, unmappable events, and downstream processing failures
+        // we'd rather drop the event than redeliver it indefinitely; idempotent retry on
+        // the IQ side is not feasible without per-event durability we don't have.
+        // Documented as intentional in the class-level Javadoc.
+        handlesToAck.add(event.getReceiptHandle());
+      }
+      String eventId = event.getEventId();
+      if (relayEventDeduplicator.isPrimaryDuplicate(eventId)) {
+        log.debug("Skipping duplicate relay eventId={}", eventId);
+        continue;
+      }
       try {
         List<SourceControlEvent> mapped =
             relayEventMapper.map(event, applicationsByRepoUrl, sourceControlsByRepoUrl, authenticationType);
+        // Capture the secondary key from the first app whose check actually passed (preferred),
+        // OR — if every app is a secondary-dup — from the first dup'd app as a fallback so
+        // the relay_event_log row reflects the (app, pr, commit) we deduped on. Without the
+        // dup fallback, all-secondary-dup events recorded a half-row (null app/pr/commit)
+        // that operators reading the table could not distinguish from a mapper failure.
+        // Recording the dup'd tuple does not affect dedup correctness: the row whose
+        // existence we just confirmed via isSecondaryDuplicate already carries that tuple,
+        // and the secondary index is non-unique so a duplicate-tuple row is harmless.
+        String firstAppPublicId = null;
+        Integer firstPrNumber = null;
+        String firstCommitHash = null;
+        String firstDupAppPublicId = null;
+        Integer firstDupPrNumber = null;
+        String firstDupCommitHash = null;
         for (SourceControlEvent sourceControlEvent : mapped) {
+          String appPublicId = relayEventDeduplicator.resolveApplicationPublicId(
+              sourceControlEvent.getApplicationId());
+          if (relayEventDeduplicator.isSecondaryDuplicate(appPublicId,
+              sourceControlEvent.getPullRequestNumber(), sourceControlEvent.getCommitHash(), mode,
+              event.getEventType()))
+          {
+            if (firstDupAppPublicId == null) {
+              firstDupAppPublicId = appPublicId;
+              firstDupPrNumber = sourceControlEvent.getPullRequestNumber();
+              firstDupCommitHash = sourceControlEvent.getCommitHash();
+            }
+            log.debug("Skipping secondary-duplicate relay eventId={} app={} pr={} commit={} type={}",
+                eventId, appPublicId, sourceControlEvent.getPullRequestNumber(),
+                sourceControlEvent.getCommitHash(), event.getEventType());
+            continue;
+          }
           sourceControlEventPublisher.publishEventBypassingFeatureGate(sourceControlEvent);
+          if (firstAppPublicId == null) {
+            // Capture the secondary key AFTER successful publish so a publish failure on
+            // the first non-dup app doesn't leave us with a captured-but-not-actually-
+            // recorded tuple (the outer catch would still record null fields anyway, but
+            // capturing only after success keeps the intent clean).
+            firstAppPublicId = appPublicId;
+            firstPrNumber = sourceControlEvent.getPullRequestNumber();
+            firstCommitHash = sourceControlEvent.getCommitHash();
+          }
           published++;
+        }
+        // Prefer the non-dup tuple; fall back to the dup tuple if every app was a dup;
+        // null only when mapped.isEmpty() (no app bound to the repository URL).
+        //
+        // recordProcessed is wrapped in its own try so a dedup-log DB failure here is
+        // logged accurately as a dedup-write failure (NOT misclassified as a
+        // processing failure) and does NOT fall through to the outer catch block's
+        // null-secondary-key fallback (which would overwrite a successful publish).
+        String recordApp = firstAppPublicId != null ? firstAppPublicId : firstDupAppPublicId;
+        Integer recordPr = firstAppPublicId != null ? firstPrNumber : firstDupPrNumber;
+        String recordCommit = firstAppPublicId != null ? firstCommitHash : firstDupCommitHash;
+        try {
+          relayEventDeduplicator.recordProcessed(eventId, recordApp, recordPr, recordCommit,
+              event.getEventType(), mode);
+        }
+        catch (RuntimeException recordError) {
+          log.warn("Failed to record relay eventId={} in dedup log after successful processing: {}",
+              eventId, recordError.getMessage());
         }
       }
       catch (RuntimeException e) {
-        log.error("Failed to process relay eventId={}: {}", event != null ? event.getEventId() : null, e.getMessage(),
-            e);
-      }
-      // Ack regardless of mapper/publisher outcome — acking the receipt handle prevents
-      // the relay from redelivering the same payload after the SQS visibility timeout.
-      // For unmappable events (no matching application) and processing failures we'd
-      // rather drop the event than redeliver it indefinitely; idempotent retry on the IQ
-      // side is not feasible without per-event durability we don't have. Documented as
-      // intentional in the class-level Javadoc.
-      if (event != null && event.getReceiptHandle() != null) {
-        handlesToAck.add(event.getReceiptHandle());
+        log.error("Failed to process relay eventId={}: {}", eventId, e.getMessage(), e);
+        // Receipt handle is already in handlesToAck (added before the try). Record the
+        // event id in the dedup log even on failure so that a redelivery via the legacy
+        // path (with a different UUID) is still recognized by primary dedup.
+        try {
+          relayEventDeduplicator.recordProcessed(eventId, null, null, null, event.getEventType(), mode);
+        }
+        catch (RuntimeException recordError) {
+          log.warn("Failed to record relay eventId={} in dedup log after processing error: {}",
+              eventId, recordError.getMessage());
+        }
       }
     }
     return published;

@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
@@ -67,6 +68,9 @@ public class RelayPollingServiceTest
   private RelayEventMapper relayEventMapper;
 
   @Mock
+  private RelayEventDeduplicator relayEventDeduplicator;
+
+  @Mock
   private SourceControlEventPublisher sourceControlEventPublisher;
 
   @Mock
@@ -91,12 +95,15 @@ public class RelayPollingServiceTest
         .thenReturn(java.util.Collections.emptyList());
     // Default: 3 failures triggers fallback (matches the production constant).
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler, shutdownHandler,
-        scmNodeProcessor, 0, 60, 50, 3, 1);
+        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
+        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 50, 3, 1);
     service.disableSchedulingForTesting = true;
 
     lenient().when(passwordHandler.decryptPassword(anyString())).thenAnswer(inv -> "plain-" + inv.getArgument(0));
     lenient().when(pullRequestPollingScheduler.setSuppressed(anyBoolean())).thenReturn(true);
+    // Defaults: nothing is duplicate, recordProcessed reports new.
+    lenient().when(relayEventDeduplicator.recordProcessed(anyString(), any(), any(), any(), any(), any()))
+        .thenReturn(true);
   }
 
   @Test
@@ -286,8 +293,7 @@ public class RelayPollingServiceTest
 
   @Test
   public void pollOnce_githubAppMode_forwardsGithubAppAuthenticationTypeToMapper() {
-    // primeRegistration leaves webhookUrl blank → GitHub App mode.
-    primeRegistration();
+    primeRegistration(RelayMode.MODE_GITHUB_APP);
     RelayEvent event = inboundEvent("e-1", "rh-1");
     when(relayClient.pollEvents("plain-encrypted-key", 50))
         .thenReturn(new RelayEventsResponse(List.of(event)));
@@ -301,12 +307,7 @@ public class RelayPollingServiceTest
 
   @Test
   public void pollOnce_patMode_forwardsPatAuthenticationTypeToMapper() {
-    when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
-    RelayConfiguration cfg = new RelayConfiguration();
-    cfg.setApiKey("encrypted-key");
-    cfg.setCustomerId("cust-1");
-    cfg.setWebhookUrl("https://relay.example.com/webhook/abc/github");
-    when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+    primeRegistration(RelayMode.MODE_PAT);
     RelayEvent event = inboundEvent("e-1", "rh-1");
     when(relayClient.pollEvents("plain-encrypted-key", 50))
         .thenReturn(new RelayEventsResponse(List.of(event)));
@@ -332,8 +333,8 @@ public class RelayPollingServiceTest
   @Test
   public void pollOnce_respectsConfiguredMaxEvents() {
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler, shutdownHandler,
-        scmNodeProcessor, 0, 60, 7, 3, 1);
+        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
+        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 7, 3, 1);
     service.disableSchedulingForTesting = true;
     primeRegistration();
     when(relayClient.pollEvents("plain-encrypted-key", 7)).thenReturn(new RelayEventsResponse(Collections.emptyList()));
@@ -452,6 +453,134 @@ public class RelayPollingServiceTest
   }
 
   @Test
+  public void pollOnce_primaryDuplicate_isSkippedButHandleIsAcked() {
+    primeRegistration();
+    RelayEvent event = inboundEvent("e-dup", "rh-dup");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    when(relayEventDeduplicator.isPrimaryDuplicate("e-dup")).thenReturn(true);
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    verify(relayEventMapper, never()).map(any(), any(), any(), any());
+    verify(sourceControlEventPublisher, never()).publishEventBypassingFeatureGate(any());
+    verify(relayEventDeduplicator, never()).recordProcessed(anyString(), any(), any(), any(), any(), any());
+    ArgumentCaptor<List<String>> handles = ArgumentCaptor.forClass(List.class);
+    verify(relayClient).ack(eq("plain-encrypted-key"), handles.capture());
+    assertThat(handles.getValue()).containsExactly("rh-dup");
+  }
+
+  @Test
+  public void pollOnce_processingFailure_recordsEventIdSoRedeliveryIsDeduped() {
+    primeRegistration();
+    RelayEvent event = inboundEvent("e-fail", "rh-fail");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    when(relayEventMapper.map(eq(event), any(), any(), any())).thenThrow(new RuntimeException("mapper boom"));
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    // Even though processing failed, the event id is recorded so a redelivery (which the
+    // ack already prevented at the relay) is also covered if it arrives via another path.
+    verify(relayEventDeduplicator).recordProcessed(eq("e-fail"), isNull(), isNull(), isNull(),
+        eq(event.getEventType()), eq(RelayMode.MODE_PAT));
+    verify(relayClient).ack(eq("plain-encrypted-key"), eq(List.of("rh-fail")));
+  }
+
+  @Test
+  public void pollOnce_secondaryDuplicate_isSkippedButHandleIsAcked() {
+    primeRegistration();
+    RelayEvent event = inboundEvent("e-1", "rh-1");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    SourceControlEvent mapped = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setPullRequestNumber(7)
+        .setCommitHash("sha-1")
+        .forDiscoveredPullRequest();
+    when(relayEventMapper.map(eq(event), any(), any(), any())).thenReturn(List.of(mapped));
+    when(relayEventDeduplicator.resolveApplicationPublicId("app-1")).thenReturn("app-public-1");
+    when(relayEventDeduplicator.isSecondaryDuplicate("app-public-1", 7, "sha-1", RelayMode.MODE_PAT,
+        "pull_request_opened"))
+            .thenReturn(true);
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    verify(sourceControlEventPublisher, never()).publishEventBypassingFeatureGate(any());
+    // All mapped events were secondary dups: recordProcessed records the dup'd tuple so the
+    // relay_event_log row reflects what was deduped (operator clarity — distinguishes a
+    // deliberate dedup from a mapper failure / null-row write). Recording a duplicate tuple
+    // does NOT poison future dedup: the row whose existence isSecondaryDuplicate just
+    // confirmed already carries that tuple, and the secondary index is non-unique.
+    verify(relayEventDeduplicator).recordProcessed(eq("e-1"), eq("app-public-1"), eq(7), eq("sha-1"),
+        anyString(), eq(RelayMode.MODE_PAT));
+    verify(relayClient).ack(eq("plain-encrypted-key"), eq(List.of("rh-1")));
+  }
+
+  @Test
+  public void pollOnce_firstAppIsSecondaryDup_recordsKeyOfFirstNonDuplicateApp() {
+    primeRegistration();
+    RelayEvent event = inboundEvent("e-1", "rh-1");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    // Two apps mapped from the same repo URL: first is a secondary duplicate, second is fresh.
+    SourceControlEvent dupMapped = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setPullRequestNumber(7)
+        .setCommitHash("sha-1")
+        .forDiscoveredPullRequest();
+    SourceControlEvent freshMapped = new SourceControlEvent()
+        .setApplicationId("app-2")
+        .setPullRequestNumber(7)
+        .setCommitHash("sha-1")
+        .forDiscoveredPullRequest();
+    when(relayEventMapper.map(eq(event), any(), any(), any())).thenReturn(List.of(dupMapped, freshMapped));
+    when(relayEventDeduplicator.resolveApplicationPublicId("app-1")).thenReturn("app-public-1");
+    when(relayEventDeduplicator.resolveApplicationPublicId("app-2")).thenReturn("app-public-2");
+    when(relayEventDeduplicator.isSecondaryDuplicate("app-public-1", 7, "sha-1", RelayMode.MODE_PAT,
+        "pull_request_opened"))
+            .thenReturn(true);
+    when(relayEventDeduplicator.isSecondaryDuplicate("app-public-2", 7, "sha-1", RelayMode.MODE_PAT,
+        "pull_request_opened"))
+            .thenReturn(false);
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    verify(sourceControlEventPublisher).publishEventBypassingFeatureGate(freshMapped);
+    // The recorded secondary key must be the FIRST app that passed the dup check (app-public-2),
+    // not the first mapped app (app-public-1) which was already a duplicate.
+    verify(relayEventDeduplicator).recordProcessed(eq("e-1"), eq("app-public-2"), eq(7), eq("sha-1"),
+        anyString(), eq(RelayMode.MODE_PAT));
+  }
+
+  @Test
+  public void pollOnce_mixedDuplicateAndNew_publishesOnlyTheNewOnes() {
+    primeRegistration();
+    RelayEvent dup = inboundEvent("e-dup", "rh-dup");
+    RelayEvent fresh = inboundEvent("e-fresh", "rh-fresh");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(dup, fresh)));
+    when(relayEventDeduplicator.isPrimaryDuplicate("e-dup")).thenReturn(true);
+    when(relayEventDeduplicator.isPrimaryDuplicate("e-fresh")).thenReturn(false);
+    SourceControlEvent mapped = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setPullRequestNumber(9)
+        .setCommitHash("sha-fresh")
+        .forDiscoveredPullRequest();
+    when(relayEventMapper.map(eq(fresh), any(), any(), any())).thenReturn(List.of(mapped));
+    when(relayEventDeduplicator.resolveApplicationPublicId("app-1")).thenReturn("app-public-1");
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    verify(sourceControlEventPublisher).publishEventBypassingFeatureGate(mapped);
+    verify(relayEventDeduplicator).recordProcessed(eq("e-fresh"), eq("app-public-1"), eq(9), eq("sha-fresh"),
+        anyString(), eq(RelayMode.MODE_PAT));
+    ArgumentCaptor<List<String>> handles = ArgumentCaptor.forClass(List.class);
+    verify(relayClient).ack(eq("plain-encrypted-key"), handles.capture());
+    assertThat(handles.getValue()).containsExactly("rh-dup", "rh-fresh");
+  }
+
+  @Test
   public void register_skipsWhenScmNodeShouldNotRun() {
     when(scmNodeProcessor.shouldRun()).thenReturn(false);
 
@@ -478,8 +607,8 @@ public class RelayPollingServiceTest
   public void pollOnce_drainsMultiplePagesUntilQueueEmpty() {
     // Allow up to 3 drain iterations.
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler, shutdownHandler,
-        scmNodeProcessor, 0, 60, 2, 3, 3);
+        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
+        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 2, 3, 3);
     service.disableSchedulingForTesting = true;
     primeRegistration();
 
@@ -631,11 +760,56 @@ public class RelayPollingServiceTest
     return app;
   }
 
+  @Test
+  public void pollOnce_crossModeEvent_isNotOverMatchedAsSecondaryDuplicate() {
+    // Migration scenario: customer was on PAT, has switched to GitHub App. The relay_event_log
+    // still holds a (app, pr, commit) row from the prior PAT mode. A fresh event arrives via
+    // the GitHub App registration; the secondary check must use mode="github-app" so the new
+    // event is published instead of being silently dropped as a secondary duplicate.
+    primeRegistration(RelayMode.MODE_GITHUB_APP);
+    RelayEvent event = inboundEvent("e-cross", "rh-cross");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    SourceControlEvent mapped = new SourceControlEvent()
+        .setApplicationId("app-1")
+        .setPullRequestNumber(7)
+        .setCommitHash("sha-1")
+        .forDiscoveredPullRequest();
+    when(relayEventMapper.map(eq(event), any(), any(), any())).thenReturn(List.of(mapped));
+    when(relayEventDeduplicator.resolveApplicationPublicId("app-1")).thenReturn("app-public-1");
+    // Old PAT-mode row would have matched; new GitHub App-mode lookup is NOT a duplicate.
+    when(relayEventDeduplicator.isSecondaryDuplicate("app-public-1", 7, "sha-1", RelayMode.MODE_GITHUB_APP,
+        "pull_request_opened"))
+            .thenReturn(false);
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    // The poller must look up the dup state under the CURRENT mode (github-app), not under PAT.
+    verify(relayEventDeduplicator).isSecondaryDuplicate("app-public-1", 7, "sha-1", RelayMode.MODE_GITHUB_APP,
+        "pull_request_opened");
+    verify(relayEventDeduplicator, never()).isSecondaryDuplicate("app-public-1", 7, "sha-1", RelayMode.MODE_PAT,
+        "pull_request_opened");
+    // Event publishes despite the prior-mode row still being in the dedup window.
+    verify(sourceControlEventPublisher).publishEventBypassingFeatureGate(mapped);
+    // And recordProcessed writes the new row under the current mode so the same migration
+    // scenario does not repeat for this PR.
+    verify(relayEventDeduplicator).recordProcessed(eq("e-cross"), eq("app-public-1"), eq(7), eq("sha-1"),
+        anyString(), eq(RelayMode.MODE_GITHUB_APP));
+  }
+
   private void primeRegistration() {
+    primeRegistration(RelayMode.MODE_PAT);
+  }
+
+  private void primeRegistration(String mode) {
     when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
     RelayConfiguration cfg = new RelayConfiguration();
     cfg.setApiKey("encrypted-key");
     cfg.setCustomerId("cust-1");
+    // Mode is derived from webhookUrl: populated → PAT, blank → GitHub App.
+    if (RelayMode.MODE_PAT.equals(mode)) {
+      cfg.setWebhookUrl("https://relay.example.com/webhook/abc/github");
+    }
     when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
   }
 

@@ -15,14 +15,13 @@ advanced-search {
 
 .nx-container--advanced-search-help-container {
   margin-bottom: var(--nx-spacing-8x);
-}
 
-.iq-adv-search-help__toggle {
-  cursor: pointer;
-}
-
-.nx-icon--advanced-search-bulb {
-  color: var(--nx-color-text);
+  // RSC's NxCollapsibleItems is designed for sidebar filter use and caps
+  // its width at 400px. The Advanced Search help is a full-width panel,
+  // so override that cap (scoped to this container only).
+  .nx-collapsible-items {
+    max-width: none;
+  }
 }
 
 .iq-adv-search-help__explanation {
@@ -82,9 +81,6 @@ advanced-search {
   }
   .iq-adv-search__query-builder-content-empty-description {
     font-size: var(--nx-font-size-s);
-  }
-  .iq-adv-search__query-builder-content-empty-ready {
-    font-size: var(--nx-font-size-xs);
   }
 }
 
@@ -177,10 +173,18 @@ advanced-search {
 
   .iq-adv-search__field {
     grid-area: field;
+
+    .nx-dropdown-menu {
+      min-width: max-content;
+    }
   }
 
   .iq-adv-search__match {
     grid-area: match;
+
+    .nx-dropdown-menu {
+      min-width: max-content;
+    }
   }
 
   .iq-adv-search__value {

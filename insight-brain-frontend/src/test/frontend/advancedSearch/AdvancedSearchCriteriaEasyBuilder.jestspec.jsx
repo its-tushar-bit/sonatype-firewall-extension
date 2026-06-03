@@ -61,14 +61,20 @@ describe('AdvancedSearchCriteriaEasyBuilder', () => {
     renderComponent({}, initialState);
 
     expect(screen.getByRole('heading', { name: 'Build Query Rules' })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Add Search Item/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add Rule/i })).toBeVisible();
   });
 
   it('shows empty state when no search items', () => {
     renderComponent({}, initialState);
 
     expect(screen.getByRole('status')).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'No search results' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Start Building Your Query' })).toBeVisible();
+    expect(
+      screen.getByText(
+        'Add rules to search by specific criteria like application name, component version, or vulnerability ID.'
+      )
+    ).toBeVisible();
+    expect(screen.queryByText(/Ready to search/i)).not.toBeInTheDocument();
   });
 
   it('renders search items when provided', () => {

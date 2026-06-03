@@ -15,7 +15,6 @@ import {
   ADVANCED_SEARCH_QUERY_FULFILLED,
   ADVANCED_SEARCH_QUERY_FAILED,
   ADVANCED_SEARCH_RESET_QUERY,
-  ADVANCED_SEARCH_TOGGLE_HELP,
   ADVANCED_SEARCH_RESET_SEARCH_AFTERS,
   ADVANCED_SEARCH_ADD_SEARCH_ITEM,
   ADVANCED_SEARCH_SET_EASY_QUERY_VALUE,
@@ -31,7 +30,6 @@ const initialState = {
     loading: true,
     loadError: null,
     waitingSearchResponse: false,
-    showHelp: false,
   },
   configurationState: {
     isEnabled: true,
@@ -270,16 +268,6 @@ function queryFailed(payload, state) {
   };
 }
 
-function toggleHelp(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      showHelp: !state.viewState.showHelp,
-    },
-  };
-}
-
 const reducerActionMap = {
   [ADVANCED_SEARCH_LOAD_REQUESTED]: loadRequested,
   [ADVANCED_SEARCH_LOAD_FULFILLED]: loadFulfilled,
@@ -291,7 +279,6 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,
   [ADVANCED_SEARCH_RESET_QUERY]: resetQuery,
   [ADVANCED_SEARCH_RESET_SEARCH_AFTERS]: resetSearchAfters,
-  [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp,
   [ADVANCED_SEARCH_ADD_SEARCH_ITEM]: addSearchItem,
   [ADVANCED_SEARCH_REMOVE_SEARCH_ITEM]: removeSearchItem,
   [ADVANCED_SEARCH_SET_EASY_QUERY_FIELD]: setEasyQueryField,

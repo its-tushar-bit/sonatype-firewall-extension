@@ -102,7 +102,7 @@ export default function AdvancedSearchCriteriaEasyBuilder(props) {
           <NxTile.HeaderActions>
             <NxButton onClick={addSearchItem} variant="primary" type="button">
               <NxFontAwesomeIcon icon={faPlus} />
-              <span>Add Search Item</span>
+              <span>Add Rule</span>
             </NxButton>
           </NxTile.HeaderActions>
         </NxTile.Header>
@@ -112,11 +112,11 @@ export default function AdvancedSearchCriteriaEasyBuilder(props) {
             {searchItems.length === 0 && (
               <div className="iq-adv-search__query-builder-content-empty" role="status">
                 <NxFontAwesomeIcon className="iq-adv-search__query-builder-content-empty-icon" icon={faSearch} />
-                <NxH3 className="iq-adv-search__query-builder-content-empty-title">No search results</NxH3>
+                <NxH3 className="iq-adv-search__query-builder-content-empty-title">Start Building Your Query</NxH3>
                 <div className="iq-adv-search__query-builder-content-empty-description">
-                  Start by entering search terms or using the query builder
+                  Add rules to search by specific criteria like application name, component version, or vulnerability
+                  ID.
                 </div>
-                <div className="iq-adv-search__query-builder-content-empty-ready">Ready to search...</div>
               </div>
             )}
             {searchItems.map((searchItem, index) => (
@@ -126,7 +126,6 @@ export default function AdvancedSearchCriteriaEasyBuilder(props) {
                 setField={setField}
                 setValue={setValue}
                 removeSearchItem={removeSearchItem}
-                searchItems={searchItems}
                 key={`search-item-${index}`}
               />
             ))}
@@ -143,7 +142,6 @@ SearchRow.propTypes = {
   setField: PropTypes.func.isRequired,
   setValue: PropTypes.func.isRequired,
   removeSearchItem: PropTypes.func.isRequired,
-  searchItems: PropTypes.array.isRequired,
 };
 
 AdvancedSearchCriteriaEasyBuilder.propTypes = {

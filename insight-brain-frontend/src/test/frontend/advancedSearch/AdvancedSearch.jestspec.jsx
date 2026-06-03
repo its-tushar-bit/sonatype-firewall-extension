@@ -49,31 +49,39 @@ describe('AdvancedSearch', function () {
     renderComponent = (preloadedState = initialState) => render(<AdvancedSearchContainer />, { preloadedState });
   });
 
-  describe('help', function () {
-    it('has a "Craft your search terms…" toggle', function () {
+  describe('page title', function () {
+    it('renders a Sonatype Guide link in the page description', function () {
       renderComponent();
 
-      // Ideally this would have a role, but it does not
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const guideLink = screen.getByRole('link', { name: /Sonatype Guide/i });
+      expect(guideLink).toBeInTheDocument();
+      expect(guideLink).toHaveAttribute('href', 'https://links.sonatype.com/products/sonatype-guide');
+      expect(guideLink).toHaveAttribute('target', '_blank');
+      expect(guideLink).toHaveAttribute('rel', expect.stringMatching(/noreferrer/));
+    });
+  });
+
+  describe('help', function () {
+    it('has a "Search query examples" toggle', function () {
+      renderComponent();
+
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       expect(toggle).toBeInTheDocument();
     });
 
     it('does not display the help initially', function () {
       renderComponent();
 
-      const vulnHelp = screen.queryByText('Find a specific vulnerability');
-
-      expect(vulnHelp).not.toBeInTheDocument();
+      expect(screen.queryByText('Find a specific vulnerability')).not.toBeInTheDocument();
     });
 
     it('displays the help when the toggle is toggled', async function () {
       renderComponent();
 
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       await user.click(toggle);
 
-      const vulnHelp = screen.getByText('Find a specific vulnerability');
-      expect(vulnHelp).toBeInTheDocument();
+      expect(screen.getByText('Find a specific vulnerability')).toBeVisible();
 
       await user.click(toggle);
       expect(screen.queryByText('Find a specific vulnerability')).not.toBeInTheDocument();
@@ -82,11 +90,10 @@ describe('AdvancedSearch', function () {
     it('displays additional help when not in SBOM Manager', async function () {
       renderComponent();
 
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       await user.click(toggle);
 
-      const vulnHelp = screen.getByText('Search by application name focused on security vulnerabilities');
-      expect(vulnHelp).toBeInTheDocument();
+      expect(screen.getByText('Search by application name focused on security vulnerabilities')).toBeInTheDocument();
     });
 
     it('does not display additional help when in SBOM Manager', async function () {
@@ -99,24 +106,24 @@ describe('AdvancedSearch', function () {
       };
       renderComponent(sbomManagerState);
 
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       await user.click(toggle);
 
-      const vulnHelp = screen.queryByText('Search by application name focused on security vulnerabilities');
-      expect(vulnHelp).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Search by application name focused on security vulnerabilities')
+      ).not.toBeInTheDocument();
     });
 
     it('displays a help doc link when not in SBOM Manager', async function () {
       renderComponent();
 
-      let helpLink = screen.queryByRole('link', { name: 'documentation' });
-      expect(helpLink).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'documentation' })).not.toBeInTheDocument();
 
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       await user.click(toggle);
 
-      helpLink = screen.getByRole('link', { name: 'Advanced Search' });
-      expect(helpLink).toBeInTheDocument();
+      const helpLink = screen.getByRole('link', { name: 'documentation' });
+      expect(helpLink).toBeVisible();
       expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/nxiq/doc/advanced-search');
     });
 
@@ -130,13 +137,12 @@ describe('AdvancedSearch', function () {
       };
       renderComponent(sbomManagerState);
 
-      let helpLink = screen.queryByRole('link', { name: 'documentation' });
-      expect(helpLink).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'documentation' })).not.toBeInTheDocument();
 
-      const toggle = screen.getByText('Craft your search terms for the best results.');
+      const toggle = screen.getByRole('button', { name: 'Search query examples' });
       await user.click(toggle);
 
-      helpLink = screen.queryByRole('link', { name: 'documentation' });
+      const helpLink = screen.getByRole('link', { name: 'documentation' });
       expect(helpLink).toBeInTheDocument();
       expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/sbom/docs/search');
     });

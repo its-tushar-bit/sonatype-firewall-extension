@@ -121,6 +121,7 @@ export default function AdvancedSearchForm(props) {
                   onChange={queryInputOnChangeHandler}
                   value={currentQuery}
                   ref={inputFieldRef}
+                  placeholder={'Enter CVE ID or use the "Use query builder" or "Add search terms" buttons below.'}
                 />
               </label>
               <section role="region" aria-label="Advanced Search Builder">
@@ -209,7 +210,7 @@ export default function AdvancedSearchForm(props) {
           )}
         </form>
       </NxTile>
-      <AdvancedSearchHelp {...props} />
+      <AdvancedSearchHelp />
       <NxTile className="iq-adv-search__results-control-tile">
         <div className="nx-tile-content">
           <NxH2 id="advanced-search-result-count">Results: {totalNumberOfHits}</NxH2>

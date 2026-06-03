@@ -100,11 +100,3 @@ export function searchFormSubmit(pageIncrement) {
       });
   };
 }
-
-export const ADVANCED_SEARCH_TOGGLE_HELP = 'ADVANCED_SEARCH_TOGGLE_HELP';
-
-export function toggleHelp() {
-  return function (dispatch) {
-    dispatch(noPayloadActionCreator(ADVANCED_SEARCH_TOGGLE_HELP)());
-  };
-}

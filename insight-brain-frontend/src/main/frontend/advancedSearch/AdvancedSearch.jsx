@@ -68,13 +68,12 @@ export default function AdvancedSearch(props) {
         <NxPageTitle>
           <NxH1 id="advanced-search-page-title">Advanced Search</NxH1>
           <NxPageTitle.Description>
-            Use the Query Builder to construct searches using supported fields and operators, or use Add Search Terms to
-            insert pre-formatted search queries. For advanced use cases, you can also enter supported query syntax
-            manually. For more details, see the{' '}
-            <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/advanced-search" external>
-              Advanced Search
-            </NxTextLink>{' '}
-            documentation.
+            Use Advanced Search to find components, applications, and vulnerabilities across your organization's
+            evaluated assets. To explore the broader open source ecosystem, visit{' '}
+            <NxTextLink href="https://links.sonatype.com/products/sonatype-guide" external>
+              Sonatype Guide
+            </NxTextLink>
+            .
           </NxPageTitle.Description>
 
           <NxButtonBar>

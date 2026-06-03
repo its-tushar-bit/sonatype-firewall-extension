@@ -4,15 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { faCaretDown, faCaretRight, faLightbulb } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
-import * as PropTypes from 'prop-types';
+import { NxCollapsibleItems, NxTextLink, useToggle } from '@sonatype/react-shared-components';
 
-export default function AdvancedSearchHelp(props) {
-  const { showHelp, toggleHelp } = props;
+export default function AdvancedSearchHelp() {
+  const [isOpen, toggleIsOpen] = useToggle(false);
   const isSbomManager = useSelector(selectIsSbomManager);
   const prodUrl = 'https://links.sonatype.com/products';
   const searchDocUrl = prodUrl + (isSbomManager ? '/sbom/docs/search' : '/nxiq/doc/advanced-search');
@@ -25,14 +23,8 @@ export default function AdvancedSearchHelp(props) {
         'Search by vulnerability (starts with a specific value. * here means any number of any characters)'
       )}
       {helpRow('applicationName:nexus*', 'Search by application name')}
-      {helpRow(
-        'policyViolationPolicyName:"License-Copyleft"',
-        'Find components violating a specific policy'
-      )}
-      {helpRow(
-        'componentLicenseThreatLevel:[8 TO 10]',
-        'Find components with high-threat licenses'
-      )}
+      {helpRow('policyViolationPolicyName:"License-Copyleft"', 'Find components violating a specific policy')}
+      {helpRow('componentLicenseThreatLevel:[8 TO 10]', 'Find components with high-threat licenses')}
       {helpRow(
         'policyViolationThreatCategory:license AND policyViolationWaiverStatus:"Active"',
         'Find license policy violations with active waivers'
@@ -93,17 +85,11 @@ export default function AdvancedSearchHelp(props) {
   );
 
   return (
-    <Fragment>
-      <div className="nx-container--advanced-search-help-container">
-        <NxFontAwesomeIcon className="nx-icon--advanced-search-bulb" icon={faLightbulb} />
-        <span id="advanced-search-help-container-toggle" className="iq-adv-search-help__toggle" onClick={toggleHelp}>
-          <strong>Craft your search terms for the best results.</strong>
-          {!showHelp && <NxFontAwesomeIcon icon={faCaretRight} />}
-          {showHelp && <NxFontAwesomeIcon icon={faCaretDown} />}
-        </span>
-        {showHelp && helpDiv}
-      </div>
-    </Fragment>
+    <div className="nx-container--advanced-search-help-container">
+      <NxCollapsibleItems isOpen={isOpen} onToggleCollapse={toggleIsOpen} triggerContent="Search query examples">
+        <NxCollapsibleItems.Child>{helpDiv}</NxCollapsibleItems.Child>
+      </NxCollapsibleItems>
+    </div>
   );
 
   function helpRow(example, explanation) {
@@ -115,8 +101,3 @@ export default function AdvancedSearchHelp(props) {
     );
   }
 }
-
-AdvancedSearchHelp.propTypes = {
-  toggleHelp: PropTypes.func.isRequired,
-  showHelp: PropTypes.bool.isRequired,
-};

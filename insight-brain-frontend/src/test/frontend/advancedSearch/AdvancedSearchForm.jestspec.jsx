@@ -22,11 +22,16 @@ describe('AdvancedSearchForm', () => {
       totalNumberOfHits: 0,
       isShowingAllComponentResults: false,
       isToggleComponentResultsEnabled: false,
-      toggleHelp: () => {},
-      showHelp: false,
     };
     user = userEvent.setup();
     renderComponent = (additionalProps = {}) => render(<AdvancedSearchForm {...minimalProps} {...additionalProps} />);
+  });
+
+  it('renders the search input with the spec placeholder', () => {
+    renderComponent();
+    expect(
+      screen.getByPlaceholderText('Enter CVE ID or use the "Use query builder" or "Add search terms" buttons below.')
+    ).toBeVisible();
   });
 
   it('hides component results toggles if isToggleComponentResultsEnabled is false', () => {
@@ -55,7 +60,7 @@ describe('AdvancedSearchForm', () => {
     // Check that the AdvancedSearchCriteriaEasyBuilder component is rendered
     expect(screen.getByRole('region', { name: 'Advanced Search Builder' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Build Query Rules' })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Add Search Item/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Add Rule/i })).toBeVisible();
   });
 
   it('closes query builder when clicking iq-adv-search__query-builder-button again', async () => {

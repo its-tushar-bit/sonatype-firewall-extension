@@ -1572,6 +1572,13 @@
   dependencies:
     "@sinclair/typebox" "^0.27.8"
 
+"@jest/schemas@^29.6.3":
+  version "29.6.3"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@jest/schemas/-/schemas-29.6.3.tgz#430b5ce8a4e0044a7e3819663305a7b3091c8e03"
+  integrity sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==
+  dependencies:
+    "@sinclair/typebox" "^0.27.8"
+
 "@jest/source-map@^29.6.0":
   version "29.6.0"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@jest/source-map/-/source-map-29.6.0.tgz"
@@ -4363,6 +4370,11 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
+axe-core@4.10.2:
+  version "4.10.2"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/axe-core/-/axe-core-4.10.2.tgz#85228e3e1d8b8532a27659b332e39b7fa0e022df"
+  integrity sha512-RE3mdQ7P3FRSe7eqCWoeQ/Z9QXrtniSjp1wUjt5nRC3WIpz5rSCve6o3fsZ2aCpJtrZjSZgjwXAoTO5k4tEI0w==
+
 axios-mock-adapter@^1.20.0:
   version "1.20.0"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/axios-mock-adapter/-/axios-mock-adapter-1.20.0.tgz"
@@ -4613,6 +4625,14 @@ ccount@^2.0.0:
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/ccount/-/ccount-2.0.1.tgz#17a3bf82302e0870d6da43a01311a8bc02a3ecf5"
   integrity sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==
 
+chalk@4.1.2, chalk@^4.1.2:
+  version "4.1.2"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/chalk/-/chalk-4.1.2.tgz"
+  integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
+  dependencies:
+    ansi-styles "^4.1.0"
+    supports-color "^7.1.0"
+
 chalk@^2.0.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/chalk/-/chalk-2.4.2.tgz"
@@ -4626,14 +4646,6 @@ chalk@^4.0.0:
   version "4.1.0"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/chalk/-/chalk-4.1.0.tgz"
   integrity sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==
-  dependencies:
-    ansi-styles "^4.1.0"
-    supports-color "^7.1.0"
-
-chalk@^4.1.2:
-  version "4.1.2"
-  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/chalk/-/chalk-4.1.2.tgz"
-  integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
@@ -5510,6 +5522,11 @@ diff-sequences@^29.4.3:
   version "29.4.3"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/diff-sequences/-/diff-sequences-29.4.3.tgz"
   integrity sha512-ofrBgwpPhCD85kMKtE9RYFFq6OC1A89oW2vvgWZNCwxrUpRUILopY7lsYyMDSjc8g6U6aiO0Qubg6r4Wgt5ZnA==
+
+diff-sequences@^29.6.3:
+  version "29.6.3"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/diff-sequences/-/diff-sequences-29.6.3.tgz#4deaf894d11407c51efc8418012f9e70b84ea921"
+  integrity sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==
 
 doctrine@^2.1.0:
   version "2.1.0"
@@ -6931,6 +6948,16 @@ iterator.prototype@^1.1.5:
     has-symbols "^1.1.0"
     set-function-name "^2.0.2"
 
+jest-axe@^10.0.0:
+  version "10.0.0"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-axe/-/jest-axe-10.0.0.tgz#6320f3ed94cfc5a9b8b74b71090210013d2f52a8"
+  integrity sha512-9QR0M7//o5UVRnEUUm68IsGapHrcKGakYy9dKWWMX79LmeUKguDI6DREyljC5I13j78OUmtKLF5My6ccffLFBg==
+  dependencies:
+    axe-core "4.10.2"
+    chalk "4.1.2"
+    jest-matcher-utils "29.2.2"
+    lodash.merge "4.6.2"
+
 jest-changed-files@^29.5.0:
   version "29.5.0"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-changed-files/-/jest-changed-files-29.5.0.tgz"
@@ -7021,6 +7048,16 @@ jest-diff@30.3.0:
     chalk "^4.1.2"
     pretty-format "30.3.0"
 
+jest-diff@^29.2.1:
+  version "29.7.0"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-diff/-/jest-diff-29.7.0.tgz#017934a66ebb7ecf6f205e84699be10afd70458a"
+  integrity sha512-LMIgiIrhigmPrs03JHpxUh2yISK3vLFPkAodPeo0+BuF7wA2FoQbkEg1u8gBYBThncu7e1oEDUfIXVuTqLRUjw==
+  dependencies:
+    chalk "^4.0.0"
+    diff-sequences "^29.6.3"
+    jest-get-type "^29.6.3"
+    pretty-format "^29.7.0"
+
 jest-diff@^29.6.1:
   version "29.6.1"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-diff/-/jest-diff-29.6.1.tgz"
@@ -7075,6 +7112,11 @@ jest-environment-node@^29.6.1:
     jest-mock "^29.6.1"
     jest-util "^29.6.1"
 
+jest-get-type@^29.2.0, jest-get-type@^29.6.3:
+  version "29.6.3"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-get-type/-/jest-get-type-29.6.3.tgz#36f499fdcea197c1045a127319c0481723908fd1"
+  integrity sha512-zrteXnqYxfQh7l5FHyL38jL39di8H8rHoecLH3JNxH3BwOrBsNeabdap5e0I23lD4HHI8W5VFBZqG4Eaq5LNcw==
+
 jest-get-type@^29.4.3:
   version "29.4.3"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-get-type/-/jest-get-type-29.4.3.tgz"
@@ -7116,6 +7158,16 @@ jest-leak-detector@^29.6.1:
   dependencies:
     jest-get-type "^29.4.3"
     pretty-format "^29.6.1"
+
+jest-matcher-utils@29.2.2:
+  version "29.2.2"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/jest-matcher-utils/-/jest-matcher-utils-29.2.2.tgz#9202f8e8d3a54733266784ce7763e9a08688269c"
+  integrity sha512-4DkJ1sDPT+UX2MR7Y3od6KtvRi9Im1ZGLGgdLFLm4lPexbTaCgJW5NN3IOXlQHF7NSHY/VHhflQ+WoKtD/vyCw==
+  dependencies:
+    chalk "^4.0.0"
+    jest-diff "^29.2.1"
+    jest-get-type "^29.2.0"
+    pretty-format "^29.2.1"
 
 jest-matcher-utils@30.3.0:
   version "30.3.0"
@@ -7640,7 +7692,7 @@ lodash.isplainobject@^4.0.6:
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz"
   integrity sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==
 
-lodash.merge@^4.6.2:
+lodash.merge@4.6.2, lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/lodash.merge/-/lodash.merge-4.6.2.tgz"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
@@ -8561,6 +8613,15 @@ pretty-format@^27.0.2:
     ansi-regex "^5.0.1"
     ansi-styles "^5.0.0"
     react-is "^17.0.1"
+
+pretty-format@^29.2.1, pretty-format@^29.7.0:
+  version "29.7.0"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/pretty-format/-/pretty-format-29.7.0.tgz#ca42c758310f365bfa71a0bda0a807160b776812"
+  integrity sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==
+  dependencies:
+    "@jest/schemas" "^29.6.3"
+    ansi-styles "^5.0.0"
+    react-is "^18.0.0"
 
 pretty-format@^29.6.1:
   version "29.6.1"

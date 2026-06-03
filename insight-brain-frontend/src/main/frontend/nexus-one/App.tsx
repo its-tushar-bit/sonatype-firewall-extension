@@ -10,9 +10,15 @@ import { UIRouterContext, UIView } from '@uirouter/react';
 import store from 'MainRoot/reduxConfig/store';
 import { selectDisplayTheme } from 'MainRoot/configuration/displayTheme/displayThemeSelectors';
 import router from 'MainRoot/router/routerInstance';
+import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 
 import '@radix-ui/themes/styles.css';
+// Shared IQ theme (gray/slate scales, layout tokens). Brand blue/tomato also appear here
+// until @sonatype/nexus-one-components (CLM-40381) replaces local CSS.
 import 'MainRoot/nosc/theme/theme-variables.css';
+// Nexus One brand/accent overrides — load last so edits in this file take effect.
+// Master: apps/ux-standards/system/src/tokens/nexus-one-tokens.css
+import 'MainRoot/nosc/theme/nexus-one-tokens.css';
 import './nexus-one.css';
 
 const DARK_MODE_QUERY = '(prefers-color-scheme: dark)';
@@ -56,7 +62,7 @@ function useRadixAppearance(): RadixAppearance {
 function ThemedApp() {
   const appearance = useRadixAppearance();
   return (
-    <Theme appearance={appearance} accentColor="blue" grayColor="slate" radius="medium" scaling="100%">
+    <Theme appearance={appearance} accentColor={BRAND_ACCENT} grayColor="slate" radius="medium" scaling="100%">
       <UIView />
     </Theme>
   );

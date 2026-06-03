@@ -5,6 +5,7 @@
  */
 
 import { apiFetch, API_PREFIX } from './apiFetch';
+import { makeKeylessTtlCache } from './ttlCache';
 import { getCVSSSeverity } from '@guide/ui-core';
 import type {
   Vulnerability,
@@ -206,6 +207,42 @@ export async function searchVulnerabilities(
   return apiFetch<VulnerabilitySearchResponse>(
     `${API_PREFIX}/vulnerabilities?${searchParams.toString()}`
   );
+}
+
+const BROWSE_AGGREGATIONS_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Fetches aggregations from a vulnerability browse request (no query, no filters).
+ * Uses limit=1 to minimize the response payload while still returning aggregations.
+ * Because this is an unfiltered match-all query, every bucket has count >= 1,
+ * so the default minDocCount=1 returns the same buckets as minDocCount=0.
+ *
+ * Memoized in module scope for 10 minutes via {@link makeKeylessTtlCache}, so
+ * navigation between filtered states does not refetch the facet universe.
+ * Failed fetches resolve to null and are evicted so the next call retries.
+ */
+const browseAggregationsCache = makeKeylessTtlCache<Aggregations | null>(
+  async () => {
+    try {
+      const response = await apiFetch<VulnerabilitySearchResponse>(
+        `${API_PREFIX}/vulnerabilities?limit=1`
+      );
+      return (response.aggregations as Aggregations | undefined) ?? null;
+    } catch {
+      return null;
+    }
+  },
+  BROWSE_AGGREGATIONS_TTL_MS,
+  (result) => result === null
+);
+
+export function fetchVulnerabilityBrowseAggregations(): Promise<Aggregations | null> {
+  return browseAggregationsCache.fetch();
+}
+
+/** @internal Resets the in-memory browse-aggregations cache. Test-only. */
+export function _resetBrowseAggregationsCacheForTests(): void {
+  browseAggregationsCache.reset();
 }
 
 /**

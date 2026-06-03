@@ -6,10 +6,12 @@
 
 import {
   searchVulnerabilities,
+  fetchVulnerabilityBrowseAggregations,
   getVulnerabilityDetails,
   getVulnerabilityAffectedComponents,
   filterVulnerabilities,
   computeVulnerabilityAggregations,
+  _resetBrowseAggregationsCacheForTests,
 } from 'GuideRoot/api/vulnerabilitiesBackend';
 import { getCVSSSeverity } from '@guide/ui-core';
 
@@ -78,6 +80,85 @@ describe('vulnerabilitiesBackend', () => {
 
       const [path] = mockApiFetch.mock.calls[0];
       expect(path).toBe('/api/v2/guide/vulnerabilities?');
+    });
+  });
+
+  describe('fetchVulnerabilityBrowseAggregations (memoized)', () => {
+    const browseResponse = {
+      hits: [],
+      total: 0,
+      offset: 0,
+      limit: 1,
+      aggregations: { byEcosystem: { maven: 1, npm: 1 } },
+    };
+
+    beforeEach(() => {
+      _resetBrowseAggregationsCacheForTests();
+    });
+
+    it('issues exactly one fetch when called twice within the TTL', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+
+      const a = await fetchVulnerabilityBrowseAggregations();
+      const b = await fetchVulnerabilityBrowseAggregations();
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      expect(a).toEqual({ byEcosystem: { maven: 1, npm: 1 } });
+      expect(b).toEqual({ byEcosystem: { maven: 1, npm: 1 } });
+    });
+
+    it('hits the browse endpoint with limit=1 and no filters', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+
+      await fetchVulnerabilityBrowseAggregations();
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/vulnerabilities?limit=1');
+    });
+
+    it('returns the same in-flight promise to concurrent callers', () => {
+      mockApiFetch.mockReturnValue(new Promise(() => {})); // never resolves
+
+      const first = fetchVulnerabilityBrowseAggregations();
+      const second = fetchVulnerabilityBrowseAggregations();
+
+      expect(first).toBe(second);
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetches once the 10-minute TTL has expired', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+      const realNow = Date.now;
+      let now = 1_000_000;
+      Date.now = () => now;
+      try {
+        await fetchVulnerabilityBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(1);
+
+        // Within TTL — still served from cache.
+        now += 9 * 60 * 1000;
+        await fetchVulnerabilityBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(1);
+
+        // Past TTL — refetch.
+        now += 2 * 60 * 1000;
+        await fetchVulnerabilityBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        Date.now = realNow;
+      }
+    });
+
+    it('returns null on error and retries on the next call (does not poison the cache)', async () => {
+      mockApiFetch.mockRejectedValueOnce(new Error('boom'));
+      mockApiFetch.mockResolvedValueOnce(browseResponse);
+
+      const first = await fetchVulnerabilityBrowseAggregations();
+      expect(first).toBeNull();
+
+      const second = await fetchVulnerabilityBrowseAggregations();
+      expect(second).toEqual({ byEcosystem: { maven: 1, npm: 1 } });
+      expect(mockApiFetch).toHaveBeenCalledTimes(2);
     });
   });
 

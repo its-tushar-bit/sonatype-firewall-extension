@@ -13,7 +13,10 @@ import type { ComponentSearchResponse } from '@guide/ui-core/types';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   searchComponents: jest.fn(),
+  fetchComponentBrowseAggregations: jest.fn().mockResolvedValue(null),
 }));
+
+type FacetAggregations = Record<string, Record<string, number>>;
 
 jest.mock('GuideRoot/utils/navigation', () => ({
   reloadPage: jest.fn(),
@@ -26,8 +29,18 @@ jest.mock('@guide/ui-core', () => {
   return {
     ...actual,
     PageLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    FilteredPageLayout: ({ children, header }: { children: React.ReactNode; header: React.ReactNode }) => (
-      <>{header}{children}</>
+    FilteredPageLayout: ({ children, header, aggregations }: { children: React.ReactNode; header: React.ReactNode; aggregations?: FacetAggregations }) => (
+      <>
+        {header}
+        <ul aria-label="facet-aggregations">
+          {Object.entries(aggregations ?? {}).flatMap(([groupKey, buckets]) =>
+            Object.entries(buckets ?? {}).map(([bucketKey, count]) => (
+              <li key={`${groupKey}.${bucketKey}`}>{`${groupKey}.${bucketKey}=${count}`}</li>
+            ))
+          )}
+        </ul>
+        {children}
+      </>
     ),
     ComponentsHeader: ({ total }: { total: number }) => <p>Results: {total}</p>,
     ComponentsResultsList: ({ isPending, components }: { isPending: boolean; components: unknown[] }) =>
@@ -37,10 +50,13 @@ jest.mock('@guide/ui-core', () => {
   };
 });
 
-import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import { searchComponents, fetchComponentBrowseAggregations } from 'GuideRoot/api/componentsBackend';
 import { reloadPage } from 'GuideRoot/utils/navigation';
 
 const mockSearchComponents = searchComponents as jest.MockedFunction<typeof searchComponents>;
+const mockFetchComponentBrowseAggregations = fetchComponentBrowseAggregations as jest.MockedFunction<
+  typeof fetchComponentBrowseAggregations
+>;
 
 function makeMockResponse(total: number, hitCount = 25): ComponentSearchResponse {
   return {
@@ -231,5 +247,65 @@ describe('ComponentsSearchPage', () => {
 
     const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
     expect(callArg.get('limit')).toBe('10');
+  });
+
+  describe('zero-count facets from browse aggregations', () => {
+    it('renders facet buckets present in browse cache but missing from search response with count 0', async () => {
+      // Search response only knows about npm; user is filtering down to it.
+      mockSearchComponents.mockResolvedValue({
+        ...makeMockResponse(2, 2),
+        aggregations: {
+          byFormat: { npm: 2 },
+          byCategory: {},
+          bySeverity: { none: 2 },
+          byLicense: {},
+        },
+      });
+      // Browse cache has the full facet universe (e.g. user has visited the page before).
+      mockFetchComponentBrowseAggregations.mockResolvedValue({
+        byFormat: { npm: 100, maven: 50, pypi: 7 },
+        byCategory: { Security: 12 },
+        bySeverity: { critical: 3, none: 100 },
+        byLicense: { 'MIT': 80 },
+      });
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?formats=npm'] },
+      });
+
+      await screen.findByText('Results: 2');
+
+      // Search-response counts win for facets that overlap.
+      expect(screen.getByText('byFormat.npm=2')).toBeInTheDocument();
+      // Facets only in browse cache get zero-filled into the sidebar.
+      expect(screen.getByText('byFormat.maven=0')).toBeInTheDocument();
+      expect(screen.getByText('byFormat.pypi=0')).toBeInTheDocument();
+      expect(screen.getByText('byCategory.Security=0')).toBeInTheDocument();
+      expect(screen.getByText('byLicense.MIT=0')).toBeInTheDocument();
+    });
+
+    it('falls back to search-only aggregations when the browse fetch fails', async () => {
+      mockSearchComponents.mockResolvedValue({
+        ...makeMockResponse(2, 2),
+        aggregations: {
+          byFormat: { npm: 2 },
+          byCategory: {},
+          bySeverity: { none: 2 },
+          byLicense: {},
+        },
+      });
+      mockFetchComponentBrowseAggregations.mockResolvedValue(null);
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?formats=npm'] },
+      });
+
+      await screen.findByText('Results: 2');
+
+      expect(screen.getByText('byFormat.npm=2')).toBeInTheDocument();
+      // No browse cache, so no zero-filled buckets appear in the sidebar.
+      expect(screen.queryByText('byFormat.maven=0')).not.toBeInTheDocument();
+      expect(screen.queryByText('byFormat.pypi=0')).not.toBeInTheDocument();
+    });
   });
 });

@@ -21,23 +21,39 @@ global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
 jest.mock('GuideRoot/api/searchBackend', () => ({
   searchAll: jest.fn(),
+  fetchGlobalSearchTotals: jest.fn(),
 }));
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
   searchComponents: jest.fn(),
+  fetchComponentBrowseAggregations: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('GuideRoot/api/vulnerabilitiesBackend', () => ({
   searchVulnerabilities: jest.fn(),
+  fetchVulnerabilityBrowseAggregations: jest.fn().mockResolvedValue(null),
 }));
+
+type FacetAggregations = Record<string, Record<string, number>>;
 
 jest.mock('@guide/ui-core', () => {
   const actual = jest.requireActual('@guide/ui-core');
   return {
     ...actual,
     PageLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    FilteredPageLayout: ({ children, header, subheader }: { children: React.ReactNode; header: React.ReactNode; subheader?: React.ReactNode }) => (
-      <>{header}{subheader}{children}</>
+    FilteredPageLayout: ({ children, header, subheader, aggregations }: { children: React.ReactNode; header: React.ReactNode; subheader?: React.ReactNode; aggregations?: FacetAggregations }) => (
+      <>
+        {header}
+        {subheader}
+        <ul aria-label="facet-aggregations">
+          {Object.entries(aggregations ?? {}).flatMap(([groupKey, buckets]) =>
+            Object.entries(buckets ?? {}).map(([bucketKey, count]) => (
+              <li key={`${groupKey}.${bucketKey}`}>{`${groupKey}.${bucketKey}=${count}`}</li>
+            ))
+          )}
+        </ul>
+        {children}
+      </>
     ),
     SearchTabs: ({ activeTab, totalAll, totalComponents, totalVulnerabilities }: {
       activeTab: string; totalAll?: number; totalComponents?: number; totalVulnerabilities?: number;
@@ -60,13 +76,19 @@ jest.mock('@guide/ui-core', () => {
   };
 });
 
-import { searchAll } from 'GuideRoot/api/searchBackend';
-import { searchComponents } from 'GuideRoot/api/componentsBackend';
-import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import { searchAll, fetchGlobalSearchTotals } from 'GuideRoot/api/searchBackend';
+import { searchComponents, fetchComponentBrowseAggregations } from 'GuideRoot/api/componentsBackend';
+import { searchVulnerabilities, fetchVulnerabilityBrowseAggregations } from 'GuideRoot/api/vulnerabilitiesBackend';
 
 const mockSearchAll = searchAll as jest.MockedFunction<typeof searchAll>;
+const mockFetchGlobalSearchTotals = fetchGlobalSearchTotals as jest.MockedFunction<typeof fetchGlobalSearchTotals>;
 const mockSearchComponents = searchComponents as jest.MockedFunction<typeof searchComponents>;
 const mockSearchVulnerabilities = searchVulnerabilities as jest.MockedFunction<typeof searchVulnerabilities>;
+const mockFetchComponentBrowseAggregations = fetchComponentBrowseAggregations as jest.MockedFunction<
+  typeof fetchComponentBrowseAggregations
+>;
+const mockFetchVulnerabilityBrowseAggregations =
+  fetchVulnerabilityBrowseAggregations as jest.MockedFunction<typeof fetchVulnerabilityBrowseAggregations>;
 
 function makeAllResponse(total: number, hitCount = 5): SearchResponse {
   return {
@@ -138,7 +160,7 @@ describe('SearchPage', () => {
   });
 
   it('switches to ComponentsResultsList when ?tab=components', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
     mockSearchComponents.mockResolvedValue(makeComponentsResponse(7, 7));
 
     render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=components&query=foo'] } });
@@ -149,7 +171,7 @@ describe('SearchPage', () => {
   });
 
   it('switches to VulnerabilitiesResultsList when ?tab=vulnerabilities', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
     mockSearchVulnerabilities.mockResolvedValue(makeVulnerabilitiesResponse(3, 3));
 
     render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=vulnerabilities'] } });
@@ -159,7 +181,7 @@ describe('SearchPage', () => {
   });
 
   it('propagates query into the active-tab fetcher', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(0, 0));
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(0, 0));
     mockSearchComponents.mockResolvedValue(makeComponentsResponse(0, 0));
 
     render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=components&query=axios'] } });
@@ -172,7 +194,7 @@ describe('SearchPage', () => {
   });
 
   it('renders the generic empty state when results are empty and not pending', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(0, 0));
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(0, 0));
     mockSearchVulnerabilities.mockResolvedValue(makeVulnerabilitiesResponse(0, 0));
 
     render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=vulnerabilities'] } });
@@ -218,17 +240,20 @@ describe('SearchPage', () => {
     expect(screen.getByText('all-results: 5')).toBeInTheDocument();
   });
 
-  it('always issues a parallel searchAll for tab totals regardless of active tab', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+  it('Components tab: issues a parallel fetchGlobalSearchTotals for cross-tab badge counts', async () => {
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
     mockSearchComponents.mockResolvedValue(makeComponentsResponse(7, 7));
 
     render(<SearchPage />, { routerOptions: { initialEntries: ['/search?tab=components'] } });
 
     await screen.findByText('components-results: 7');
     await waitFor(() => {
-      expect(mockSearchAll).toHaveBeenCalled();
+      expect(mockFetchGlobalSearchTotals).toHaveBeenCalled();
       expect(mockSearchComponents).toHaveBeenCalled();
     });
+    // searchAll is reserved for the All tab — components/vulnerabilities tabs
+    // should go through the memoized fetchGlobalSearchTotals helper instead.
+    expect(mockSearchAll).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(screen.getByText('cmp:3')).toBeInTheDocument();
     });
@@ -255,8 +280,8 @@ describe('SearchPage', () => {
     expect(callArg.get('limit')).toBe('25');
   });
 
-  it('Components tab: calls searchComponents with page URLSearchParams and searchAll with offset=0&limit=1 for cross-tab totals', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+  it('Components tab: calls searchComponents with page URLSearchParams and fetchGlobalSearchTotals with the query for cross-tab totals', async () => {
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
     mockSearchComponents.mockResolvedValue(makeComponentsResponse(7, 7));
 
     render(<SearchPage />, {
@@ -265,22 +290,18 @@ describe('SearchPage', () => {
 
     await waitFor(() => {
       expect(mockSearchComponents).toHaveBeenCalled();
-      expect(mockSearchAll).toHaveBeenCalled();
+      expect(mockFetchGlobalSearchTotals).toHaveBeenCalled();
     });
 
     const componentsArg = mockSearchComponents.mock.calls[0]?.[0] as URLSearchParams;
     expect(componentsArg.get('query')).toBe('axios');
     expect(componentsArg.get('tab')).toBe('components');
 
-    const allArg = mockSearchAll.mock.calls[0]?.[0] as URLSearchParams;
-    expect(allArg).toBeInstanceOf(URLSearchParams);
-    expect(allArg.get('offset')).toBe('0');
-    expect(allArg.get('limit')).toBe('1');
-    expect(allArg.get('query')).toBe('axios');
+    expect(mockFetchGlobalSearchTotals).toHaveBeenCalledWith('axios');
   });
 
   it('reads byType counts from the plural keys (components/vulnerabilities) returned by the backend', async () => {
-    mockSearchAll.mockResolvedValue({
+    mockFetchGlobalSearchTotals.mockResolvedValue({
       hits: [], total: 0, offset: 0, limit: 1,
       aggregations: { byType: { components: 150, vulnerabilities: 2 } },
     } as SearchResponse);
@@ -294,8 +315,8 @@ describe('SearchPage', () => {
     });
   });
 
-  it('Vulnerabilities tab: calls searchAll with offset=0&limit=1 for cross-tab totals', async () => {
-    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+  it('Vulnerabilities tab: calls fetchGlobalSearchTotals with the query for cross-tab totals', async () => {
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
     mockSearchVulnerabilities.mockResolvedValue(makeVulnerabilitiesResponse(3, 3));
 
     render(<SearchPage />, {
@@ -304,13 +325,110 @@ describe('SearchPage', () => {
 
     await waitFor(() => {
       expect(mockSearchVulnerabilities).toHaveBeenCalled();
-      expect(mockSearchAll).toHaveBeenCalled();
+      expect(mockFetchGlobalSearchTotals).toHaveBeenCalled();
     });
 
-    const allArg = mockSearchAll.mock.calls[0]?.[0] as URLSearchParams;
-    expect(allArg).toBeInstanceOf(URLSearchParams);
-    expect(allArg.get('offset')).toBe('0');
-    expect(allArg.get('limit')).toBe('1');
-    expect(allArg.get('query')).toBe('cve-2024');
+    expect(mockFetchGlobalSearchTotals).toHaveBeenCalledWith('cve-2024');
+  });
+
+  it('Components tab: filter changes do not retrigger fetchGlobalSearchTotals (cached by query)', async () => {
+    // The point of routing cross-tab totals through the memoized helper is so
+    // filter changes — which leave the query untouched — don't repeatedly
+    // refetch the same totals payload. With a real cache in place, this is
+    // verified at the searchBackend layer; here we just assert the page passes
+    // the bare query (no filters) to the helper, which is what enables caching.
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+    mockSearchComponents.mockResolvedValue(makeComponentsResponse(2, 2));
+
+    render(<SearchPage />, {
+      routerOptions: { initialEntries: ['/search?tab=components&query=axios&formats=npm&severities=critical'] },
+    });
+
+    await screen.findByText('components-results: 2');
+
+    // Helper receives only the query — filters are deliberately excluded so the
+    // module-scope cache in searchBackend can dedupe across filter changes.
+    expect(mockFetchGlobalSearchTotals).toHaveBeenCalledWith('axios');
+    const totalsCalls = mockFetchGlobalSearchTotals.mock.calls;
+    expect(totalsCalls.every(([arg]) => arg === 'axios')).toBe(true);
+  });
+
+  describe('zero-count facets from browse aggregations', () => {
+    it('Components tab: zero-fills facet buckets that exist in browse cache but not in the search response', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchComponents.mockResolvedValue({
+        ...makeComponentsResponse(2, 2),
+        aggregations: { byFormat: { npm: 2 }, byCategory: {}, bySeverity: {}, byLicense: {} },
+      });
+      mockFetchComponentBrowseAggregations.mockResolvedValue({
+        byFormat: { npm: 100, maven: 50, pypi: 7 },
+        byCategory: { Security: 12 },
+        bySeverity: {},
+        byLicense: { 'MIT': 80 },
+      });
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=components&query=foo&formats=npm'] },
+      });
+
+      await screen.findByText('byFormat.npm=2');
+      // Zero-filled from browse cache.
+      expect(screen.getByText('byFormat.maven=0')).toBeInTheDocument();
+      expect(screen.getByText('byFormat.pypi=0')).toBeInTheDocument();
+      expect(screen.getByText('byCategory.Security=0')).toBeInTheDocument();
+      expect(screen.getByText('byLicense.MIT=0')).toBeInTheDocument();
+    });
+
+    it('Vulnerabilities tab: zero-fills facet buckets that exist in browse cache but not in the search response', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchVulnerabilities.mockResolvedValue({
+        ...makeVulnerabilitiesResponse(1, 1),
+        aggregations: { byEcosystem: { maven: 1 }, bySeverity: { critical: 1 } },
+      });
+      mockFetchVulnerabilityBrowseAggregations.mockResolvedValue({
+        byEcosystem: { maven: 100, npm: 50, pypi: 7 },
+        bySeverity: { critical: 10, high: 25, medium: 30, low: 35 },
+      });
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=vulnerabilities&query=foo&severities=critical'] },
+      });
+
+      await screen.findByText('byEcosystem.maven=1');
+      expect(screen.getByText('byEcosystem.npm=0')).toBeInTheDocument();
+      expect(screen.getByText('byEcosystem.pypi=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.high=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.medium=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.low=0')).toBeInTheDocument();
+    });
+
+    it('All tab: never fetches browse aggregations (per-type facet universe is intentionally out of scope)', async () => {
+      mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?query=foo'] },
+      });
+
+      await screen.findByText('all-results: 5');
+
+      expect(mockFetchComponentBrowseAggregations).not.toHaveBeenCalled();
+      expect(mockFetchVulnerabilityBrowseAggregations).not.toHaveBeenCalled();
+    });
+
+    it('Components tab: degrades gracefully to search-only aggregations when browse fetch fails', async () => {
+      mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+      mockSearchComponents.mockResolvedValue({
+        ...makeComponentsResponse(2, 2),
+        aggregations: { byFormat: { npm: 2 } },
+      });
+      mockFetchComponentBrowseAggregations.mockResolvedValue(null);
+
+      render(<SearchPage />, {
+        routerOptions: { initialEntries: ['/search?tab=components&query=foo&formats=npm'] },
+      });
+
+      await screen.findByText('byFormat.npm=2');
+      expect(screen.queryByText('byFormat.maven=0')).not.toBeInTheDocument();
+    });
   });
 });

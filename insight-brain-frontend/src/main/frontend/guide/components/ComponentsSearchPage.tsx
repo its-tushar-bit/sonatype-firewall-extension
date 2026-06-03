@@ -19,9 +19,14 @@ import {
   componentSortOptions,
   componentFilterDefinitions,
   getComponentDetailUrl,
+  mergeAggregations,
   COMPONENT_FILTER_ORDER,
+  type Aggregations,
 } from '@guide/ui-core/utils';
-import { searchComponents } from 'GuideRoot/api/componentsBackend';
+import {
+  searchComponents,
+  fetchComponentBrowseAggregations,
+} from 'GuideRoot/api/componentsBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
@@ -33,6 +38,7 @@ const LIMIT = 25;
 export function ComponentsSearchPage() {
   const searchParams = useAdapterSearchParams();
   const [data, setData] = useState<ComponentSearchResponse | null>(null);
+  const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterPending, setFilterPending] = useState(false);
@@ -45,8 +51,13 @@ export function ComponentsSearchPage() {
     const params = new URLSearchParams(searchParams.toString());
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
-    searchComponents(params)
-      .then((res) => { if (!cancelled) { setData(res); clearErrorRetries(); } })
+    Promise.all([
+      searchComponents(params),
+      fetchComponentBrowseAggregations(),
+    ])
+      .then(([res, browse]) => {
+        if (!cancelled) { setData(res); setBrowseAggregations(browse); clearErrorRetries(); }
+      })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
 
@@ -62,7 +73,8 @@ export function ComponentsSearchPage() {
   const isPending = loading || filterPending || toolbarPending;
   const components = data?.hits ?? [];
   const total = data?.total ?? 0;
-  const aggregations = data?.aggregations ?? {};
+  const aggregations =
+    mergeAggregations(browseAggregations, data?.aggregations as Aggregations | undefined) ?? {};
   const rawOffset = parseInt(searchParams.get('offset') ?? '0', 10);
   const offset = Number.isNaN(rawOffset) ? 0 : rawOffset;
   const hasQuery = !!searchParams.get('query');

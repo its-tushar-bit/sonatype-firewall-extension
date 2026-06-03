@@ -36,11 +36,19 @@ import {
   getStringParam,
   getComponentDetailUrl,
   formatNumber,
+  mergeAggregations,
   tokens,
+  type Aggregations,
 } from '@guide/ui-core/utils';
-import { searchAll } from 'GuideRoot/api/searchBackend';
-import { searchComponents } from 'GuideRoot/api/componentsBackend';
-import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import { searchAll, fetchGlobalSearchTotals } from 'GuideRoot/api/searchBackend';
+import {
+  searchComponents,
+  fetchComponentBrowseAggregations,
+} from 'GuideRoot/api/componentsBackend';
+import {
+  searchVulnerabilities,
+  fetchVulnerabilityBrowseAggregations,
+} from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import type {
@@ -101,6 +109,7 @@ export function SearchPage() {
   const searchParams = useAdapterSearchParams();
   const [tabData, setTabData] = useState<TabResponse | null>(null);
   const [allData, setAllData] = useState<SearchResponse | null>(null);
+  const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterPending, setFilterPending] = useState(false);
@@ -115,40 +124,44 @@ export function SearchPage() {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    // Clear stale browse aggregations so a tab switch (e.g. components ->
+    // vulnerabilities) doesn't briefly merge the previous tab's facet universe
+    // (byFormat/byCategory vs byEcosystem/bySeverity) into the new sidebar.
+    setBrowseAggregations(null);
 
-    const allParams = new URLSearchParams();
-    if (query) allParams.set('query', query);
-    allParams.set('offset', '0');
-    allParams.set('limit', '1');
-
-    let combinedPromise: Promise<{ tab: TabResponse; all: SearchResponse }>;
+    let combinedPromise: Promise<{ tab: TabResponse; all: SearchResponse; browse: Aggregations | null }>;
     if (activeTab === 'components') {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
-      const tabPromise = searchComponents(params);
-      const allPromise = searchAll(allParams);
-      combinedPromise = Promise.all([tabPromise, allPromise])
-        .then(([tab, all]) => ({ tab, all }));
+      combinedPromise = Promise.all([
+        searchComponents(params),
+        fetchGlobalSearchTotals(query),
+        fetchComponentBrowseAggregations(),
+      ]).then(([tab, all, browse]) => ({ tab, all, browse }));
     } else if (activeTab === 'vulnerabilities') {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
-      const tabPromise = searchVulnerabilities(params);
-      const allPromise = searchAll(allParams);
-      combinedPromise = Promise.all([tabPromise, allPromise])
-        .then(([tab, all]) => ({ tab, all }));
+      combinedPromise = Promise.all([
+        searchVulnerabilities(params),
+        fetchGlobalSearchTotals(query),
+        fetchVulnerabilityBrowseAggregations(),
+      ]).then(([tab, all, browse]) => ({ tab, all, browse }));
     } else {
       const params = new URLSearchParams(searchParams.toString());
       if (!params.has('limit')) params.set('limit', String(LIMIT));
       // On the All tab, the tab response IS the global SearchResponse — no need
-      // to issue a second searchAll call for cross-type totals.
-      combinedPromise = searchAll(params).then((tab) => ({ tab, all: tab }));
+      // to issue a second searchAll call for cross-type totals. No browse
+      // aggregations either: GuideGlobalSearchResource doesn't return the
+      // per-type facet universe and minDocCount isn't supported there.
+      combinedPromise = searchAll(params).then((tab) => ({ tab, all: tab, browse: null }));
     }
 
     combinedPromise
-      .then(({ tab, all }) => {
+      .then(({ tab, all, browse }) => {
         if (cancelled) return;
         setTabData(tab);
         setAllData(all);
+        setBrowseAggregations(browse);
       })
       .catch((e) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -170,7 +183,8 @@ export function SearchPage() {
 
   const isPending = loading || filterPending || toolbarPending;
   const total = tabData?.total ?? 0;
-  const aggregations = tabData?.aggregations ?? {};
+  const aggregations =
+    mergeAggregations(browseAggregations, tabData?.aggregations as Aggregations | undefined) ?? {};
   const offset = getOffsetFromParams(paramsRecord);
 
   // Backend `byType` uses plural keys (`components`, `vulnerabilities`); accept

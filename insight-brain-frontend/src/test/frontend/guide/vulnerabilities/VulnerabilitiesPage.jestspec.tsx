@@ -29,9 +29,45 @@ jest.mock('GuideRoot/utils/navigation', () => ({
   getErrorRetryCount: jest.fn().mockReturnValue(0),
 }));
 
+type FacetAggregations = Record<string, Record<string, number>>;
+
+// Mock FilteredPageLayout so we can assert on the aggregations prop the page hands
+// off to the sidebar. Other ui-core exports stay real so the page's data flow runs.
+jest.mock('@guide/ui-core', () => {
+  const actual = jest.requireActual('@guide/ui-core');
+  return {
+    ...actual,
+    FilteredPageLayout: ({
+      children,
+      header,
+      aggregations,
+    }: {
+      children: React.ReactNode;
+      header: React.ReactNode;
+      aggregations?: FacetAggregations;
+    }) => (
+      <>
+        {header}
+        <ul aria-label="facet-aggregations">
+          {Object.entries(aggregations ?? {}).flatMap(([groupKey, buckets]) =>
+            Object.entries(buckets ?? {}).map(([bucketKey, count]) => (
+              <li key={`${groupKey}.${bucketKey}`}>{`${groupKey}.${bucketKey}=${count}`}</li>
+            ))
+          )}
+        </ul>
+        {children}
+      </>
+    ),
+  };
+});
+
 const mockSearchVulnerabilities = vulnerabilitiesBackend.searchVulnerabilities as jest.MockedFunction<
   typeof vulnerabilitiesBackend.searchVulnerabilities
 >;
+const mockFetchVulnerabilityBrowseAggregations =
+  vulnerabilitiesBackend.fetchVulnerabilityBrowseAggregations as jest.MockedFunction<
+    typeof vulnerabilitiesBackend.fetchVulnerabilityBrowseAggregations
+  >;
 
 // Sample vulnerability data for tests
 const mockVulnerabilityHit = {
@@ -68,6 +104,8 @@ describe('VulnerabilitiesPage', () => {
     jest.clearAllMocks();
     // Default mock implementation returns successful response
     mockSearchVulnerabilities.mockResolvedValue(mockSearchResponse);
+    // Default: no browse cache, so the page degrades to search-only aggregations.
+    mockFetchVulnerabilityBrowseAggregations.mockResolvedValue(null);
   });
 
   describe('loading state', () => {
@@ -294,6 +332,71 @@ describe('VulnerabilitiesPage', () => {
       expect(callArgs.get('offset')).toBe('0');
       expect(callArgs.get('limit')).toBe('10');
       expect(callArgs.get('sort')).toBe('publishedDate:desc');
+    });
+  });
+
+  describe('zero-count facets from browse aggregations', () => {
+    it('renders facet buckets present in browse cache but missing from search response with count 0', async () => {
+      // User filtered down to severities=critical — search returns only the critical bucket.
+      mockSearchVulnerabilities.mockResolvedValue({
+        ...mockSearchResponse,
+        aggregations: {
+          byEcosystem: { maven: 1 },
+          bySeverity: { critical: 1 },
+          byKev: { true: 1 },
+          byMalware: { false: 1 },
+        },
+      });
+      mockFetchVulnerabilityBrowseAggregations.mockResolvedValue({
+        byEcosystem: { maven: 100, npm: 50, pypi: 7 },
+        bySeverity: { critical: 10, high: 25, medium: 30, low: 35 },
+        byKev: { true: 5, false: 95 },
+        byMalware: { true: 2, false: 98 },
+      });
+
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/?severities=critical'] },
+      });
+
+      await waitFor(() => {
+        expect(mockFetchVulnerabilityBrowseAggregations).toHaveBeenCalled();
+      });
+
+      // Search-response counts win where they overlap with the browse cache.
+      expect(await screen.findByText('byEcosystem.maven=1')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.critical=1')).toBeInTheDocument();
+      // Facets only present in the browse cache get zero-filled into the sidebar.
+      expect(screen.getByText('byEcosystem.npm=0')).toBeInTheDocument();
+      expect(screen.getByText('byEcosystem.pypi=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.high=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.medium=0')).toBeInTheDocument();
+      expect(screen.getByText('bySeverity.low=0')).toBeInTheDocument();
+    });
+
+    it('falls back to search-only aggregations when the browse fetch fails (graceful degradation)', async () => {
+      mockSearchVulnerabilities.mockResolvedValue({
+        ...mockSearchResponse,
+        aggregations: {
+          byEcosystem: { maven: 1 },
+          bySeverity: { critical: 1 },
+          byKev: { true: 1 },
+          byMalware: { false: 1 },
+        },
+      });
+      mockFetchVulnerabilityBrowseAggregations.mockResolvedValue(null);
+
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/?severities=critical'] },
+      });
+
+      await waitFor(() => {
+        expect(mockFetchVulnerabilityBrowseAggregations).toHaveBeenCalled();
+      });
+
+      expect(await screen.findByText('byEcosystem.maven=1')).toBeInTheDocument();
+      // Without a browse cache, no extra zero-filled buckets show up.
+      expect(screen.queryByText('byEcosystem.npm=0')).not.toBeInTheDocument();
+      expect(screen.queryByText('bySeverity.high=0')).not.toBeInTheDocument();
     });
   });
 });

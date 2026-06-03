@@ -6,10 +6,12 @@
 
 import {
   searchComponents,
+  fetchComponentBrowseAggregations,
   getComponentDetail,
   getComponentVulnerabilities,
   getComponentVersions,
   getComponentDependencies,
+  _resetBrowseAggregationsCacheForTests,
 } from 'GuideRoot/api/componentsBackend';
 jest.mock('GuideRoot/api/apiFetch', () => ({
   ...jest.requireActual('GuideRoot/api/apiFetch'),
@@ -76,6 +78,83 @@ describe('componentsBackend', () => {
 
       const [path] = mockApiFetch.mock.calls[0];
       expect(path).toBe('/api/v2/guide/components/search?');
+    });
+  });
+
+  describe('fetchComponentBrowseAggregations (memoized)', () => {
+    const browseResponse = {
+      hits: [],
+      total: 0,
+      offset: 0,
+      limit: 1,
+      aggregations: { byFormat: { maven: 1, npm: 1 } },
+    };
+
+    beforeEach(() => {
+      _resetBrowseAggregationsCacheForTests();
+    });
+
+    it('issues exactly one fetch when called twice within the TTL', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+
+      const a = await fetchComponentBrowseAggregations();
+      const b = await fetchComponentBrowseAggregations();
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      expect(a).toEqual({ byFormat: { maven: 1, npm: 1 } });
+      expect(b).toEqual({ byFormat: { maven: 1, npm: 1 } });
+    });
+
+    it('hits the browse endpoint with limit=1 and no filters', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+
+      await fetchComponentBrowseAggregations();
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/components/search?limit=1');
+    });
+
+    it('returns the same in-flight promise to concurrent callers', () => {
+      mockApiFetch.mockReturnValue(new Promise(() => {}));
+
+      const first = fetchComponentBrowseAggregations();
+      const second = fetchComponentBrowseAggregations();
+
+      expect(first).toBe(second);
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetches once the 10-minute TTL has expired', async () => {
+      mockApiFetch.mockResolvedValue(browseResponse);
+      const realNow = Date.now;
+      let now = 1_000_000;
+      Date.now = () => now;
+      try {
+        await fetchComponentBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(1);
+
+        now += 9 * 60 * 1000;
+        await fetchComponentBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(1);
+
+        now += 2 * 60 * 1000;
+        await fetchComponentBrowseAggregations();
+        expect(mockApiFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        Date.now = realNow;
+      }
+    });
+
+    it('returns null on error and retries on the next call (does not poison the cache)', async () => {
+      mockApiFetch.mockRejectedValueOnce(new Error('boom'));
+      mockApiFetch.mockResolvedValueOnce(browseResponse);
+
+      const first = await fetchComponentBrowseAggregations();
+      expect(first).toBeNull();
+
+      const second = await fetchComponentBrowseAggregations();
+      expect(second).toEqual({ byFormat: { maven: 1, npm: 1 } });
+      expect(mockApiFetch).toHaveBeenCalledTimes(2);
     });
   });
 

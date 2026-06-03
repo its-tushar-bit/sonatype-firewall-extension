@@ -18,9 +18,14 @@ import {
 import {
   vulnerabilitySortOptions,
   vulnerabilityFilterDefinitions,
+  mergeAggregations,
   VULNERABILITY_FILTER_ORDER,
+  type Aggregations,
 } from '@guide/ui-core/utils';
-import { searchVulnerabilities } from 'GuideRoot/api/vulnerabilitiesBackend';
+import {
+  searchVulnerabilities,
+  fetchVulnerabilityBrowseAggregations,
+} from 'GuideRoot/api/vulnerabilitiesBackend';
 import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
@@ -32,6 +37,7 @@ const LIMIT = 25;
 export function VulnerabilitiesPage() {
   const searchParams = useAdapterSearchParams();
   const [response, setResponse] = useState<VulnerabilitySearchResponse | null>(null);
+  const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   useEffect(() => {
@@ -43,9 +49,12 @@ export function VulnerabilitiesPage() {
     setError(null);
     setIsPending(true);
 
-    searchVulnerabilities(params)
-      .then((data) => {
-        if (!cancelled) { setResponse(data); clearErrorRetries(); }
+    Promise.all([
+      searchVulnerabilities(params),
+      fetchVulnerabilityBrowseAggregations(),
+    ])
+      .then(([data, browse]) => {
+        if (!cancelled) { setResponse(data); setBrowseAggregations(browse); clearErrorRetries(); }
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -68,7 +77,8 @@ export function VulnerabilitiesPage() {
   // Use defaults while pending or if no response
   const vulnerabilities = response?.hits ?? [];
   const total = response?.total ?? 0;
-  const aggregations = response?.aggregations ?? {};
+  const aggregations =
+    mergeAggregations(browseAggregations, response?.aggregations as Aggregations | undefined) ?? {};
   const offset = response?.offset ?? 0;
   const limit = response?.limit ?? 25;
 

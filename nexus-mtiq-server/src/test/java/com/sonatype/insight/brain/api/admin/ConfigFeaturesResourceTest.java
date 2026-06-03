@@ -151,6 +151,7 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getId(),
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getId(),
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
+        SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
       })).toArray(String[]::new);
 
   @Before

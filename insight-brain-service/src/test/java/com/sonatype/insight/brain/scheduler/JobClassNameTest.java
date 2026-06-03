@@ -149,6 +149,8 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask",
         "HostedDeploymentBlockCleanupTask");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.relay.RelayLinkRetrySweepTask", "RelayLinkRetrySweepTask");
   }
 
   @Inject

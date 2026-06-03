@@ -218,6 +218,9 @@ public class SimpleConfigurationMigratorTest
     insightConfig.setHdsUrl("http://hdsUrl/");
     expected.put(com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.HDS_URL,
         insightConfig.getHdsUrl());
+    insightConfig.setRelayUrl("http://relayUrl/");
+    expected.put(com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.RELAY_URL,
+        insightConfig.getRelayUrl());
 
     insightConfig.setCdnUrl("http://cdnUrl/");
     expected.put(com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.CDN_URL,

@@ -75,6 +75,9 @@ public class InsightConfig
   private String hdsUrl;
 
   @JsonProperty
+  private String relayUrl;
+
+  @JsonProperty
   private String cdnUrl;
 
   @NotNull
@@ -400,6 +403,10 @@ public class InsightConfig
     return hdsUrl;
   }
 
+  public String getRelayUrl() {
+    return relayUrl;
+  }
+
   public File getSonatypeWork() {
     return new File(sonatypeWork);
   }
@@ -453,6 +460,10 @@ public class InsightConfig
 
   public void setHdsUrl(final String hdsUrl) {
     this.hdsUrl = hdsUrl;
+  }
+
+  public void setRelayUrl(final String relayUrl) {
+    this.relayUrl = relayUrl;
   }
 
   @SuppressWarnings("unused")

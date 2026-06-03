@@ -13,6 +13,12 @@ import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResp
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.relay.RelayRegistrationService.RelayFeatureDisabledException;
+import com.sonatype.insight.brain.relay.dto.RelayRegisterAdminRequest;
+import com.sonatype.insight.brain.relay.dto.RelayRotateKeyResponse;
+import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
+import com.sonatype.insight.brain.relay.dto.RelayWebhookSecretResponse;
+import com.sonatype.insight.brain.relay.dto.RelayWebhookUrlResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.git.ScmUserMappingService;
@@ -39,6 +45,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @since 1.66
@@ -74,6 +82,18 @@ public class ApiSourceControlResource
 
   static final String USER_MAPPING_PER_ORGANIZATION_PATH = AUTOMATIC_ROLE_ASSIGNMENT_NAMESPACE + "/userMappings/"
       + ORGANIZATION_ID;
+
+  static final String RELAY_REGISTER_PATH = "/relay/register";
+
+  static final String RELAY_WEBHOOK_URL_PATH = "/relayWebhookUrl";
+
+  static final String RELAY_WEBHOOK_SECRET_PATH = "/relayWebhookSecret";
+
+  static final String GITHUB_APP_WEBHOOK_URL_PATH = "/githubAppWebhookUrl";
+
+  static final String RELAY_ROTATE_KEY_PATH = "/relay/rotate-key";
+
+  static final String RELAY_ROTATE_WEBHOOK_SECRET_PATH = "/relay/rotate-webhook-secret";
 
   private final ApiSourceControlService sourceControlService;
 
@@ -401,5 +421,161 @@ public class ApiSourceControlResource
           required = true) @PathParam("organizationId") String organizationId)
   {
     scmUserMappingService.deleteUserMappingByOrg(organizationId);
+  }
+
+  @POST
+  @Path(RELAY_REGISTER_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.REGISTER_SCM_RELAY)
+  @Operation(description = "Re-register this IQ Server with the SCM webhook relay. "
+      + "An optional JSON body with installationId and webhookSecret routes the call to "
+      + "the GitHub App registration path; an empty/missing body uses the PAT path."
+      + "\n\nPermissions required: System Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Registration succeeded."),
+        @ApiResponse(responseCode = "412",
+            description = "The relay integration feature flag is disabled or relayUrl is not configured."),
+        @ApiResponse(responseCode = "503", description = "The relay is unavailable.")
+      })
+  public Response registerWithRelay(RelayRegisterAdminRequest body) {
+    try {
+      sourceControlService.registerWithRelay(body);
+      return Response.ok().build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @GET
+  @Path(RELAY_WEBHOOK_URL_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Returns the SCM webhook URL the IQ Server is registered against, when the relay "
+      + "integration is enabled and registered. "
+      + "\n\nPermissions required: Manage Automatic SCM Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "The webhook URL.", useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404", description = "No relay registration exists."),
+        @ApiResponse(responseCode = "412", description = "The relay integration feature flag is disabled.")
+      })
+  public Response getRelayWebhookUrl() {
+    try {
+      RelayWebhookUrlResponse body = sourceControlService.getRelayWebhookUrl();
+      if (body == null) {
+        return Response.status(Status.NOT_FOUND).build();
+      }
+      return Response.ok(body).build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @POST
+  @Path(RELAY_ROTATE_KEY_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.ROTATE_RELAY_API_KEY)
+  @Operation(description = "Rotate the IQ→relay API key. The relay generates a fresh key and "
+      + "keeps the previous key valid for a 5-minute grace window so in-flight polls do not "
+      + "fail. The new plaintext is returned exactly once."
+      + "\n\nPermissions required: System Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "Rotation succeeded; response body contains the new api key and the "
+                + "ISO-8601 instant at which the previous key stops being accepted.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "412",
+            description = "The relay integration feature flag is disabled."),
+        @ApiResponse(responseCode = "503", description = "The relay is unavailable.")
+      })
+  public Response rotateRelayApiKey() {
+    try {
+      RelayRotateKeyResponse body = sourceControlService.rotateRelayApiKey();
+      return Response.ok(body).build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @POST
+  @Path(RELAY_ROTATE_WEBHOOK_SECRET_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.ROTATE_RELAY_WEBHOOK_SECRET)
+  @Operation(description = "Rotate the per-customer PAT webhook signing secret. The relay "
+      + "accepts both old and new signatures during a 5-minute grace window so the SCM "
+      + "provider's webhook configuration can be updated without dropping deliveries. The "
+      + "new plaintext is returned exactly once — paste it into the SCM provider's webhook "
+      + "secret field."
+      + "\n\nPermissions required: System Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "Rotation succeeded; response body contains the new webhook secret "
+                + "and the ISO-8601 instant at which the previous secret stops being accepted.",
+            useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "412",
+            description = "The relay integration feature flag is disabled."),
+        @ApiResponse(responseCode = "503", description = "The relay is unavailable.")
+      })
+  public Response rotateRelayWebhookSecret() {
+    try {
+      RelayRotateWebhookSecretResponse body = sourceControlService.rotateRelayWebhookSecret();
+      return Response.ok(body).build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @GET
+  @Path(RELAY_WEBHOOK_SECRET_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_RELAY_WEBHOOK_SECRET)
+  @Operation(description = "Returns the per-customer HMAC signing secret used to verify webhook "
+      + "deliveries from the SCM provider, when a PAT-mode relay registration exists. "
+      + "GitHub App registrations have no per-customer secret and return 404. "
+      + "\n\nPermissions required: Manage Automatic SCM Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "The webhook signing secret.", useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404", description = "No PAT-mode relay registration exists."),
+        @ApiResponse(responseCode = "412", description = "The relay integration feature flag is disabled.")
+      })
+  public Response getRelayWebhookSecret() {
+    try {
+      RelayWebhookSecretResponse body = sourceControlService.getRelayWebhookSecret();
+      if (body == null) {
+        return Response.status(Status.NOT_FOUND).build();
+      }
+      return Response.ok(body).build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @GET
+  @Path(GITHUB_APP_WEBHOOK_URL_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Returns the App-level webhook URL the customer must paste into the GitHub App "
+      + "configuration. Same value for every customer; available before any registration exists "
+      + "because the URL is needed when creating the App."
+      + "\n\nPermissions required: Manage Automatic SCM Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "The webhook URL.", useReturnTypeSchema = true),
+        @ApiResponse(responseCode = "404", description = "The relay base URL is not configured."),
+        @ApiResponse(responseCode = "412", description = "The relay integration feature flag is disabled.")
+      })
+  public Response getGitHubAppWebhookUrl() {
+    try {
+      RelayWebhookUrlResponse body = sourceControlService.getGitHubAppWebhookUrl();
+      if (body == null) {
+        return Response.status(Status.NOT_FOUND).build();
+      }
+      return Response.ok(body).build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
   }
 }

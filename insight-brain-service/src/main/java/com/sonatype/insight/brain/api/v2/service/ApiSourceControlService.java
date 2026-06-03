@@ -42,9 +42,19 @@ import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.model.relay.RelayConfiguration;
+import com.sonatype.insight.brain.relay.GitHubAppRelayLinker;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
+import com.sonatype.insight.brain.relay.dto.RelayRegisterAdminRequest;
+import com.sonatype.insight.brain.relay.dto.RelayRotateKeyResponse;
+import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
+import com.sonatype.insight.brain.relay.dto.RelayWebhookSecretResponse;
+import com.sonatype.insight.brain.relay.dto.RelayWebhookUrlResponse;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlDataService;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitClientFactory;
@@ -141,6 +151,12 @@ public class ApiSourceControlService
 
   private final GitHubAppDeletionService gitHubAppDeletionService;
 
+  private final RelayRegistrationService relayRegistrationService;
+
+  private final GitHubAppDAO gitHubAppDAO;
+
+  private final GitHubAppRelayLinker gitHubAppRelayLinker;
+
   @Inject
   public ApiSourceControlService(
       final PasswordHandler passwordHandler,
@@ -162,7 +178,10 @@ public class ApiSourceControlService
       final ScmRepoVisibilityService scmRepoVisibilityService,
       final ApiSourceControlAdapter apiSourceControlAdapter,
       final SourceControlDataService sourceControlDataService,
-      final GitHubAppDeletionService gitHubAppDeletionService)
+      final GitHubAppDeletionService gitHubAppDeletionService,
+      final RelayRegistrationService relayRegistrationService,
+      final GitHubAppDAO gitHubAppDAO,
+      final GitHubAppRelayLinker gitHubAppRelayLinker)
   {
     this.passwordHandler = passwordHandler;
     this.sourceControlDAO = sourceControlDAO;
@@ -184,6 +203,176 @@ public class ApiSourceControlService
     this.sourceControlDataService = sourceControlDataService;
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
     this.gitHubAppDeletionService = gitHubAppDeletionService;
+    this.relayRegistrationService = relayRegistrationService;
+    this.gitHubAppDAO = gitHubAppDAO;
+    this.gitHubAppRelayLinker = gitHubAppRelayLinker;
+  }
+
+  /**
+   * Admin-triggered (re-)registration with the SCM webhook relay. Throws
+   * {@link RelayRegistrationService.RelayFeatureDisabledException} when the feature gate is
+   * closed; the resource layer maps that to 412.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void registerWithRelay() {
+    registerWithRelay(null);
+  }
+
+  /**
+   * Admin-triggered (re-)registration with the SCM webhook relay. When {@code body} carries a
+   * non-blank {@code installationId} the call is routed to the GitHub App registration path;
+   * otherwise the PAT path is used.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void registerWithRelay(RelayRegisterAdminRequest body) {
+    if (body != null && isNotBlank(body.getInstallationId())) {
+      registerGitHubAppWithLinkStateUpdate(body.getInstallationId(), body.getWebhookSecret());
+      return;
+    }
+    relayRegistrationService.registerOnDemand();
+  }
+
+  /**
+   * Wraps {@link RelayRegistrationService#registerGitHubAppOnDemand} so that the matching
+   * {@code github_app} row's {@code relay_link_state} reflects the success or failure of the
+   * call. Mirrors the contract used by the post-install auto-registration in
+   * {@code ApiGitHubAppService} and the polling-cycle retry loop in {@code RelayPollingService};
+   * the four-state machine is owned by {@link GitHubAppRelayLinker}.
+   *
+   * <p>
+   * Exceptions are rethrown so the REST layer can surface a 5xx to the admin who triggered
+   * the manual call — they are explicitly asking for the result, unlike the post-install
+   * hook where we don't want a relay outage to fail the surrounding GitHub OAuth callback.
+   */
+  private void registerGitHubAppWithLinkStateUpdate(final String installationId, final String webhookSecret) {
+    GitHubApp app = parseInstallationId(installationId)
+        .map(gitHubAppDAO::getActiveByInstallationId)
+        .orElse(null);
+    try {
+      relayRegistrationService.registerGitHubAppOnDemand(installationId, webhookSecret);
+      if (app != null) {
+        gitHubAppRelayLinker.markSuccess(app);
+      }
+    }
+    catch (RuntimeException e) {
+      if (app != null) {
+        gitHubAppRelayLinker.markFailure(app);
+      }
+      throw e;
+    }
+  }
+
+  private static java.util.Optional<Long> parseInstallationId(final String installationId) {
+    if (isBlank(installationId)) {
+      return java.util.Optional.empty();
+    }
+    try {
+      return java.util.Optional.of(Long.parseLong(installationId.trim()));
+    }
+    catch (NumberFormatException e) {
+      return java.util.Optional.empty();
+    }
+  }
+
+  /**
+   * Admin-triggered rotation of the IQ→relay api key. Returns the new plaintext exactly once
+   * (so the resource layer can surface it to the admin) along with the ISO-8601 grace-window
+   * expiry. Throws {@link RelayRegistrationService.RelayFeatureDisabledException} when the
+   * feature gate is closed; the resource layer maps that to 412.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public RelayRotateKeyResponse rotateRelayApiKey() {
+    return relayRegistrationService.rotateApiKeyOnDemand();
+  }
+
+  /**
+   * Admin-triggered rotation of the per-customer PAT webhook signing secret. Returns the new
+   * plaintext exactly once for pasting into the SCM provider's webhook secret field, plus the
+   * ISO-8601 grace-window expiry. Throws
+   * {@link RelayRegistrationService.RelayFeatureDisabledException} when the feature gate is
+   * closed; the resource layer maps that to 412.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public RelayRotateWebhookSecretResponse rotateRelayWebhookSecret() {
+    return relayRegistrationService.rotateWebhookSecretOnDemand();
+  }
+
+  /**
+   * Returns the webhook URL the SCM provider should be pointed at, or {@code null} if no
+   * registration exists. The resource layer maps {@code null} to 404 and a closed feature gate
+   * to 412.
+   */
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
+  public RelayWebhookUrlResponse getRelayWebhookUrl() {
+    if (!relayRegistrationService.isFeatureGateOpen()) {
+      throw new RelayRegistrationService.RelayFeatureDisabledException(
+          "The SCM webhook relay integration is disabled.");
+    }
+    // Single read avoids a TOCTOU window where the row could be deleted between the
+    // existence check and the fetch (e.g., DeleteTenantsJob running concurrently).
+    // A null webhookUrl (e.g. after a GitHub-App-only registration) is treated the same
+    // as no row, so the resource layer maps it to 404.
+    RelayConfiguration cfg = relayRegistrationService.getConfiguration();
+    if (cfg == null || cfg.getWebhookUrl() == null) {
+      return null;
+    }
+    return new RelayWebhookUrlResponse(cfg.getWebhookUrl());
+  }
+
+  /**
+   * Returns the per-customer HMAC signing secret used to verify webhook deliveries from the
+   * SCM provider, or {@code null} if no PAT-mode registration exists. The resource layer maps
+   * {@code null} to 404 and a closed feature gate to 412. App-mode registrations have no
+   * per-customer secret (they verify against the App-level HMAC), so we report
+   * {@code null} (404) for those — keeping the surface symmetric with
+   * {@link #getRelayWebhookUrl()} which is also PAT-only.
+   */
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
+  public RelayWebhookSecretResponse getRelayWebhookSecret() {
+    if (!relayRegistrationService.isFeatureGateOpen()) {
+      throw new RelayRegistrationService.RelayFeatureDisabledException(
+          "The SCM webhook relay integration is disabled.");
+    }
+    // Single read avoids a TOCTOU window with concurrent deregistration. Treat a null
+    // webhookUrl (App-mode registration) the same as no row: there is no per-customer
+    // secret to reveal in that case.
+    RelayConfiguration cfg = relayRegistrationService.getConfiguration();
+    if (cfg == null || cfg.getWebhookUrl() == null) {
+      return null;
+    }
+    String encrypted = cfg.getWebhookSigningSecret();
+    if (encrypted == null) {
+      return null;
+    }
+    // Encryption-key rotation can leave the stored ciphertext undecryptable until the admin
+    // re-registers (see RelayConfiguration). Surface that as 404 (mapped from null) instead
+    // of a 500 so the operator sees an actionable response and the runbook recovery applies.
+    try {
+      return new RelayWebhookSecretResponse(passwordHandler.decryptPassword(encrypted));
+    }
+    catch (RuntimeException e) {
+      log.warn("Stored relay webhook signing secret could not be decrypted: {}", e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * Returns the App-level webhook URL the customer must paste into the GitHub App
+   * configuration, or {@code null} if the relay base URL is not configured. The resource layer
+   * maps {@code null} to 404 and a closed feature gate to 412. Independent of registration
+   * state: the URL is needed before the App exists.
+   */
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
+  public RelayWebhookUrlResponse getGitHubAppWebhookUrl() {
+    if (!relayRegistrationService.isFeatureGateOpen()) {
+      throw new RelayRegistrationService.RelayFeatureDisabledException(
+          "The SCM webhook relay integration is disabled.");
+    }
+    String url = relayRegistrationService.getGitHubAppWebhookUrl();
+    if (url == null) {
+      return null;
+    }
+    return new RelayWebhookUrlResponse(url);
   }
 
   @Authorize(permission = Permission.READ)

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.relay.RelayClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
@@ -70,6 +71,9 @@ public class MultiTenantConfigurationTest
   AsyncEventBus asyncEventBus;
 
   @Mock
+  RelayClient relayClient;
+
+  @Mock
   TaskScheduler taskScheduler;
 
   @Mock
@@ -108,7 +112,7 @@ public class MultiTenantConfigurationTest
 
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
-        asyncEventBus, taskScheduler, defaultBranchMonitor, pullRequestMonitor,
+        asyncEventBus, relayClient, taskScheduler, defaultBranchMonitor, pullRequestMonitor,
         releaseGraphCacheProvider, policyMonitorScheduler, hostedRepositoryMonitorScheduler,
         automaticQuarantineReleaseScheduler,
         waivedComponentUpgradeScheduler, historicalPolicyViolationTelemetryTask, tenantUtil);

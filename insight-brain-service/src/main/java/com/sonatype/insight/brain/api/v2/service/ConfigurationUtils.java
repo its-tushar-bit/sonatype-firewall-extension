@@ -285,6 +285,18 @@ public class ConfigurationUtils
     return "https://clm.sonatype.com/";
   }
 
+  public static String relayUrl(InsightConfig insightConfig, String relayUrl) {
+    if (relayUrl != null) {
+      return relayUrl;
+    }
+    if (insightConfig.getRelayUrl() != null) {
+      return insightConfig.getRelayUrl();
+    }
+    // RelayClient appends paths like "api/register" to this base, so /scm-relay/ must
+    // be included — the relay shares clm.sonatype.com with HDS but lives at that subpath.
+    return "https://clm.sonatype.com/scm-relay/";
+  }
+
   @SuppressWarnings("unchecked")
   public static <T> T getParameter(Object[] parameters, Class<T> clazz) {
     if (parameters == null) {

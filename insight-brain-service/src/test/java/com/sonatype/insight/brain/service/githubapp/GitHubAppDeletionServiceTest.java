@@ -34,6 +34,10 @@ import org.mockito.MockitoAnnotations;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -71,6 +75,9 @@ public class GitHubAppDeletionServiceTest
   @Mock
   private GitHubAppSelectionCache mockSelectionCache;
 
+  @Mock
+  private com.sonatype.insight.brain.relay.RelayRegistrationService relayRegistrationService;
+
   @Inject
   private GitHubAppDeletionService deletionService;
 
@@ -92,6 +99,7 @@ public class GitHubAppDeletionServiceTest
         insightProxy,
         mockCache,
         mockSelectionCache,
+        () -> relayRegistrationService,
         wireMockBaseUrl);
   }
 
@@ -219,7 +227,10 @@ public class GitHubAppDeletionServiceTest
     gitHubApp.setInstallationId(installationId);
     gitHubApp.setLastUpdatedAt(new Date());
     gitHubApp.setActive(isActive);
-    return tempEntity.newGitHubApp(gitHubApp);
+    // preserveActiveFlag=true so the deactivated test fixture is persisted with the requested
+    // value; the default newGitHubApp(GitHubApp) overrides setActive(true) which would silently
+    // break tests that rely on inactive rows.
+    return tempEntity.newGitHubApp(gitHubApp, true);
   }
 
   private String generateTestRsaPrivateKey() {
@@ -352,5 +363,131 @@ public class GitHubAppDeletionServiceTest
     assertThat(gitHubAppDAO.getById(app1.getId()).isActive()).isTrue();
     assertThat(gitHubAppDAO.getById(app2.getId()).isActive()).isTrue();
     assertThat(gitHubAppDAO.getById(uninstalledApp.getId()).isActive()).isFalse();
+  }
+
+  @Test
+  public void testDelete_LastGitHubApp_DeregistersRelay() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId());
+    // App-mode relay registration: webhookUrl blank.
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setWebhookUrl(null);
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+
+    deletionService.delete(gitHubApp);
+
+    verify(relayRegistrationService).deregisterIfRegistered();
+  }
+
+  @Test
+  public void testDelete_LastGitHubApp_RelayInPatMode_DoesNotDeregister() {
+    // After cross-flip App → PAT, deleting an orphaned github_app row must NOT fire
+    // the customer-wide relay deregister (that would tear down the active PAT customer).
+    // The PAT customer is only deregistered via explicit POST /relay/deregister.
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId());
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setWebhookUrl("https://relay.example.com/webhook/abc/github");
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+
+    deletionService.delete(gitHubApp);
+
+    verify(relayRegistrationService, never()).deregisterIfRegistered();
+  }
+
+  @Test
+  public void testDelete_OneOfMultipleGitHubApps_DoesNotDeregisterRelay() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp1 = createGitHubApp(app.getId());
+    createGitHubApp(app.getId(), 99999L, true);
+
+    deletionService.delete(gitHubApp1);
+
+    verify(relayRegistrationService, never()).deregisterIfRegistered();
+  }
+
+  @Test
+  public void testDelete_LastActiveGitHubApp_InactiveRowsDoNotBlockDeregister() {
+    // Regression: getAllByOwnerId returns deactivated rows too. The last-App-removed
+    // transition must hinge on no ACTIVE App remaining — a stale deactivated row should
+    // NOT keep the relay-side customer alive after the last active App is gone, otherwise
+    // the customer record becomes orphaned with no IQ-side route.
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp activeApp = createGitHubApp(app.getId(), TEST_VALID_INSTALLATION_ID, true);
+    createGitHubApp(app.getId(), 88888L, false); // inactive sibling
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setWebhookUrl(null); // App mode
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+
+    deletionService.delete(activeApp);
+
+    verify(relayRegistrationService).deregisterIfRegistered();
+  }
+
+  @Test
+  public void testDelete_GitHubApp_RemovesInstallationFromRelayIndex() {
+    // Per-installation cleanup: relay's installation-index entry must be removed when an App
+    // is deleted, even if it's not the last App on the tenant. Without this the relay keeps
+    // routing webhooks for the deleted installation into the customer's queue.
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId());
+
+    deletionService.delete(gitHubApp);
+
+    verify(relayRegistrationService).deleteRelayInstallation(TEST_VALID_INSTALLATION_ID);
+  }
+
+  @Test
+  public void testDelete_GitHubAppNoInstallationId_SkipsRelayInstallationDelete() {
+    // App rows in IQ that never reached the install-setup step have a null installationId.
+    // The relay never learned about them, so there's nothing to remove on the relay side.
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubAppWithoutInstallationId(app.getId());
+
+    deletionService.delete(gitHubApp);
+
+    verify(relayRegistrationService, never()).deleteRelayInstallation(any());
+  }
+
+  @Test
+  public void testDelete_RelayInstallationDeleteFailure_DoesNotPropagate() {
+    // Best-effort: if the relay rejects the per-installation delete (e.g. transient 5xx),
+    // the local row deletion still completes. Subsequent deregisters can re-converge.
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId());
+    doThrow(new RuntimeException("relay 503")).when(relayRegistrationService)
+        .deleteRelayInstallation(any());
+
+    deletionService.delete(gitHubApp);
+
+    // Local deletion still happened.
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
+  }
+
+  @Test
+  public void testDeleteByOwnerId_DeregistersRelay() {
+    Application app = tempEntity.newApplicationWithParent();
+    createGitHubApp(app.getId());
+
+    deletionService.delete(app.getId());
+
+    verify(relayRegistrationService).deregisterIfRegistered();
+  }
+
+  @Test
+  public void testDelete_RelayDeregisterFailure_DoesNotPropagate() {
+    Application app = tempEntity.newApplicationWithParent();
+    GitHubApp gitHubApp = createGitHubApp(app.getId());
+    doThrow(new IllegalStateException("relay unreachable"))
+        .when(relayRegistrationService)
+        .deregisterIfRegistered();
+
+    // Should not propagate — local deletion succeeded, relay deregister is best-effort.
+    deletionService.delete(gitHubApp);
+
+    assertThat(gitHubAppDAO.getByOwnerId(app.getId())).isEmpty();
   }
 }

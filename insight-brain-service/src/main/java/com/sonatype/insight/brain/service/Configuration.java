@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.relay.RelayClient;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -93,6 +94,8 @@ public class Configuration
 
   private final AsyncEventBus asyncEventBus;
 
+  private final RelayClient relayClient;
+
   private final TaskScheduler taskScheduler;
 
   private final DefaultBranchMonitor defaultBranchMonitor;
@@ -124,6 +127,7 @@ public class Configuration
       ApiConfigurationService configurationService,
       ObjectProvider<HdsClient> hdsClients,
       @Lazy AsyncEventBus asyncEventBus,
+      @Lazy RelayClient relayClient,
       TaskScheduler taskScheduler,
       @Lazy DefaultBranchMonitor defaultBranchMonitor,
       @Lazy PullRequestMonitor pullRequestMonitor,
@@ -143,6 +147,7 @@ public class Configuration
     this.configurationService = configurationService;
     this.hdsClients = hdsClients;
     this.asyncEventBus = asyncEventBus;
+    this.relayClient = relayClient;
     this.taskScheduler = taskScheduler;
     this.defaultBranchMonitor = defaultBranchMonitor;
     this.pullRequestMonitor = pullRequestMonitor;
@@ -167,6 +172,7 @@ public class Configuration
         SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL,
         SystemConfigurationProperty.HDS_URL,
+        SystemConfigurationProperty.RELAY_URL,
         SystemConfigurationProperty.CDN_URL,
         SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES,
         SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
@@ -278,6 +284,7 @@ public class Configuration
     boolean isWaivedComponentUpgradeMonitoringEnabled = getWaivedComponentUpgradeMonitoringEnabled();
     updateValueByPropertyNames(propertyNamesCopy);
     hdsUrlAndTimeoutsServerConfigurationChanged(propertyNamesCopy);
+    relayUrlServerConfigurationChanged(propertyNamesCopy);
     eventBusMaxThreadPoolSizeSetMaxPoolSize(propertyNamesCopy);
     releaseGraphCacheSizeInitializeCache(propertyNamesCopy);
     firewallQuarantineHdsPoolSizeRestartWarning(propertyNamesCopy);
@@ -300,6 +307,14 @@ public class Configuration
             prop.equals(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
             prop.equals(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS),
         prop -> hdsClients.orderedStream().forEach(HdsClient::serverConfigurationChanged));
+  }
+
+  private void relayUrlServerConfigurationChanged(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.RELAY_URL) ||
+            prop.equals(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
+            prop.equals(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS),
+        prop -> relayClient.serverConfigurationChanged());
   }
 
   private void eventBusMaxThreadPoolSizeSetMaxPoolSize(Set<String> propertyNamesCopy) {
@@ -398,6 +413,7 @@ public class Configuration
   public void proxyServerConfigurationChanged() {
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     hdsClients.orderedStream().forEach(HdsClient::serverConfigurationChanged);
+    relayClient.serverConfigurationChanged();
   }
 
   @Override
@@ -471,6 +487,10 @@ public class Configuration
 
   public String getHdsUrl() {
     return configCache.get(SystemConfigurationProperty.HDS_URL);
+  }
+
+  public String getRelayUrl() {
+    return configCache.get(SystemConfigurationProperty.RELAY_URL);
   }
 
   public String getCdnUrl() {

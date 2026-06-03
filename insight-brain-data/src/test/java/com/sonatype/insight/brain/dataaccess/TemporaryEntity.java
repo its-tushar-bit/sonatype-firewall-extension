@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.relay.RelayConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -555,6 +556,8 @@ public class TemporaryEntity
   private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
   private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  private RelayConfigurationDAO relayConfigurationDAO;
 
   private WebhookDAO webhookDAO;
 
@@ -1075,6 +1078,7 @@ public class TemporaryEntity
       mailConfigurationDAO.delete();
 
       proxyServerConfigurationDAO.delete();
+      relayConfigurationDAO.delete();
 
       restoreInitialSystemConfigurationProperties();
 
@@ -6773,6 +6777,7 @@ public class TemporaryEntity
     proprietaryConfigDAO = daoFactory.createProprietaryConfigDAO();
     proprietaryComponentNamePatternDAO = daoFactory.createProprietaryComponentNamePatternDAO();
     proxyServerConfigurationDAO = daoFactory.createProxyServerConfigurationDAO();
+    relayConfigurationDAO = daoFactory.createRelayConfigurationDAO();
     webhookDAO = daoFactory.createWebhookDAO();
     systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
     automaticApplicationsConfigurationDAO = daoFactory.createAutomaticApplicationsConfigurationDAO();

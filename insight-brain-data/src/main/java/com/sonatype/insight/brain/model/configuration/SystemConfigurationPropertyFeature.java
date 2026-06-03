@@ -553,7 +553,14 @@ public enum SystemConfigurationPropertyFeature
 
   HOSTED_REPOSITORY_EVALUATION(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION, false),
 
-  CONSUMPTION_REPORTING(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED, false);
+  CONSUMPTION_REPORTING(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED, false),
+
+  /**
+   * Gates the SCM webhook relay integration. Disabled by default. The {@code relayUrl}
+   * config property defaults to the production CLM gateway (mirroring {@code hdsUrl}),
+   * so flipping this flag on with no admin override targets the production relay.
+   */
+  SCM_RELAY_INTEGRATION(SystemConfigurationProperty.SCM_RELAY_INTEGRATION, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

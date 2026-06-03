@@ -50,6 +50,7 @@ public class SimpleConfigurationMigrator
   static {
     Map<String, Function<InsightConfig, Object>> nameToGetter = new LinkedHashMap<>();
     nameToGetter.put(HDS_URL, InsightConfig::getHdsUrl);
+    nameToGetter.put(RELAY_URL, InsightConfig::getRelayUrl);
     nameToGetter.put(CDN_URL, InsightConfig::getCdnUrl);
     nameToGetter.put(SUPPORT_READ_LIMIT_BYTES,
         config -> config.getSupportConfig() == null ? null : config.getSupportConfig().getReadLimitBytes());

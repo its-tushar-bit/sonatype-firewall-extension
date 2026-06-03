@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.relay.RelayConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
@@ -213,6 +214,8 @@ public interface DAOFactory
   ProprietaryConfigDAO createProprietaryConfigDAO();
 
   ProxyServerConfigurationDAO createProxyServerConfigurationDAO();
+
+  RelayConfigurationDAO createRelayConfigurationDAO();
 
   RepositoryClientConfigurationDAO createRepositoryClientConfigurationDAO();
 

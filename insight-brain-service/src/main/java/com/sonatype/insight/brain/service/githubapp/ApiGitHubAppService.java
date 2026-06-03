@@ -28,6 +28,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiGitHubAppDTO;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStateDAO;
 import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.GitHubManifestService;
+import com.sonatype.insight.brain.model.githubapp.RelayLinkState;
+import com.sonatype.insight.brain.relay.GitHubAppRelayLinker;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.model.githubapp.GitHubAppInstallationState;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -103,6 +106,10 @@ public class ApiGitHubAppService
 
   private final GitHubAppSelectionCache selectionCache;
 
+  private final RelayRegistrationService relayRegistrationService;
+
+  private final GitHubAppRelayLinker gitHubAppRelayLinker;
+
   private final String githubApiBaseUrl;
 
   private final String githubOAuthTokenUrl;
@@ -122,11 +129,14 @@ public class ApiGitHubAppService
       final GitHubAppAuthStrategyCache authStrategyCache,
       final GitHubAppSelectionCache selectionCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
+      final RelayRegistrationService relayRegistrationService,
+      final GitHubAppRelayLinker gitHubAppRelayLinker,
       final BaseUrl baseUrl)
   {
     this(gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
         passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, selectionCache,
-        gitHubAppDeletionService, DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
+        gitHubAppDeletionService, relayRegistrationService, gitHubAppRelayLinker,
+        DEFAULT_GITHUB_API_BASE_URL, DEFAULT_GITHUB_OAUTH_TOKEN_URL, baseUrl);
   }
 
   ApiGitHubAppService(
@@ -141,6 +151,8 @@ public class ApiGitHubAppService
       final GitHubAppAuthStrategyCache authStrategyCache,
       final GitHubAppSelectionCache selectionCache,
       final GitHubAppDeletionService gitHubAppDeletionService,
+      final RelayRegistrationService relayRegistrationService,
+      final GitHubAppRelayLinker gitHubAppRelayLinker,
       final String githubApiBaseUrl,
       final String githubOAuthTokenUrl,
       final BaseUrl baseUrl)
@@ -156,6 +168,8 @@ public class ApiGitHubAppService
     this.authStrategyCache = authStrategyCache;
     this.selectionCache = selectionCache;
     this.gitHubAppDeletionService = gitHubAppDeletionService;
+    this.relayRegistrationService = relayRegistrationService;
+    this.gitHubAppRelayLinker = gitHubAppRelayLinker;
     this.githubApiBaseUrl = githubApiBaseUrl;
     this.githubOAuthTokenUrl = githubOAuthTokenUrl;
     this.baseUrl = baseUrl;
@@ -196,7 +210,9 @@ public class ApiGitHubAppService
         app.getInstallationId(),
         app.isActive(),
         app.getLastUpdatedAt() != null ? app.getLastUpdatedAt().toInstant().toString() : null,
-        installationUrl);
+        installationUrl,
+        app.getRelayLinkState(),
+        app.getRelayLinkAttempts());
   }
 
   private String buildInstallationUrl(final GitHubApp app) {
@@ -279,6 +295,20 @@ public class ApiGitHubAppService
 
     final Map<String, String> permissions = createDefaultPermissions();
 
+    // When the relay integration is enabled and a relay base URL is configured, set
+    // hook_attributes so GitHub provisions the App with the relay's App-level webhook URL
+    // at creation time. GitHub generates the webhook secret and returns it in the
+    // manifest-conversion response (captured by createGitHubAppFromManifestResponse).
+    final String relayWebhookUrl = relayRegistrationService.isFeatureGateOpen()
+        ? relayRegistrationService.getGitHubAppWebhookUrl()
+        : null;
+    final Manifest.HookAttributes hookAttributes = relayWebhookUrl != null
+        ? new Manifest.HookAttributes(relayWebhookUrl, true)
+        : null;
+    final List<String> defaultEvents = relayWebhookUrl != null
+        ? List.of("pull_request", "push")
+        : null;
+
     log.debug("Generated manifest for app '{}' with redirect URL including state token", appName);
 
     return new ApiGitHubAppManifestDTO(
@@ -293,7 +323,9 @@ public class ApiGitHubAppService
             MANIFEST_DESCRIPTION,
             false,
             permissions,
-            true));
+            true,
+            hookAttributes,
+            defaultEvents));
   }
 
   /**
@@ -379,6 +411,45 @@ public class ApiGitHubAppService
     log.info("OAuth validation successful for installation {} and owner {}", installationId, owner.getId());
 
     configureInstallation(gitHubApp, owner.getId(), installationId, accountName);
+
+    // If the manifest was created with hook_attributes (relay was enabled at App-creation
+    // time), the App's webhook secret is on the entity. Hand it to the relay alongside the
+    // installation_id so the relay can route deliveries to this customer and verify the
+    // GitHub-signed webhook payloads. Failures are logged and swallowed — the App still works
+    // for SCM auth, and the customer can recover via the manual relay-register endpoint and
+    // the webhook-URL display in the SCM configuration UI.
+    autoRegisterRelayForInstallation(gitHubApp, installationId);
+  }
+
+  private void autoRegisterRelayForInstallation(final GitHubApp gitHubApp, final Long installationId) {
+    final String encryptedSecret = gitHubApp.getWebhookSecret();
+    if (StringUtils.isBlank(encryptedSecret)) {
+      log.debug("GitHub App {} has no webhook secret; skipping relay auto-registration",
+          gitHubApp.getId());
+      return;
+    }
+    if (!relayRegistrationService.isFeatureGateOpen()) {
+      log.debug("Relay integration disabled; skipping auto-registration for GitHub App {}",
+          gitHubApp.getId());
+      return;
+    }
+    // Delegate to the linker so the four-state machine (UNREGISTERED -> OK / ERROR / FAILED)
+    // is owned in one place. Failures are recorded on the row's relay_link_state and the
+    // polling-cycle pre-flight retries them automatically; the customer can also force a
+    // manual retry via POST /api/v2/sourceControl/relay/register. Install-time uses the
+    // cross-flip-allowing variant: the admin who just installed an App through the UI is
+    // explicitly opting into GitHub App mode, so an existing auto-registered PAT customer
+    // must yield to the new App registration. The polling retry path uses the guarded
+    // tryRegister, so this opt-in is gated to the install moment only.
+    boolean ok = gitHubAppRelayLinker.tryRegisterFromInstall(gitHubApp);
+    if (ok) {
+      log.info("Auto-registered GitHub App installation {} with the relay (state={})",
+          installationId, RelayLinkState.OK);
+    }
+    else {
+      log.info("Auto-registration with the relay failed for installation {}; state={}, attempts={}",
+          installationId, gitHubApp.getRelayLinkState(), gitHubApp.getRelayLinkAttempts());
+    }
   }
 
   /**
@@ -480,6 +551,12 @@ public class ApiGitHubAppService
   {
     final String encryptedClientSecret = passwordHandler.encryptPassword(response.getClientSecret());
     final String encryptedPrivateKey = processAndEncryptPrivateKey(response.getPem());
+    // GitHub returns webhook_secret only when hook_attributes was set on the manifest. Persist
+    // encrypted; the relay needs the plaintext during installation-setup auto-registration
+    // (see handleInstallationSetupCallbackAuthorized).
+    final String encryptedWebhookSecret = StringUtils.isNotBlank(response.getWebhookSecret())
+        ? passwordHandler.encryptPassword(response.getWebhookSecret())
+        : null;
 
     final GitHubApp gitHubApp = new GitHubApp();
     gitHubApp.setId(UUID.randomUUID().toString());
@@ -488,6 +565,7 @@ public class ApiGitHubAppService
     gitHubApp.setClientId(response.getClientId());
     gitHubApp.setClientSecret(encryptedClientSecret);
     gitHubApp.setPrivateKey(encryptedPrivateKey);
+    gitHubApp.setWebhookSecret(encryptedWebhookSecret);
 
     gitHubApp.setOwnerId(registrationState.getOwnerId());
     gitHubApp.setGithubOrganizationName(registrationState.getGithubOrganizationName());

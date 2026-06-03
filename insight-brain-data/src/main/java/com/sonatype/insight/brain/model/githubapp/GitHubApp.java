@@ -52,6 +52,21 @@ public class GitHubApp
   @Column(name = "private_key")
   private String privateKey;
 
+  /**
+   * App-level webhook secret returned by GitHub during manifest conversion when the manifest
+   * sets {@code hook_attributes}. Encrypted at rest. Plaintext is forwarded to the relay during
+   * installation-setup auto-registration so the relay can verify webhook signatures from
+   * GitHub. Null for Apps registered before the relay integration was enabled or via flows
+   * that did not request a webhook (the customer must then configure the secret manually on
+   * the App and re-register with the relay).
+   *
+   * <p>
+   * Note: {@link DAOSecretRotator} rotates only the first {@code @RotatableSecret} per
+   * entity; this field is not rotatable for the same reason as the private key.
+   */
+  @Column(name = "webhook_secret")
+  private String webhookSecret;
+
   @Column(name = "installation_id")
   private Long installationId;
 
@@ -61,6 +76,23 @@ public class GitHubApp
 
   @Column(name = "is_active", nullable = false)
   private boolean isActive = false;
+
+  /**
+   * Health of the link from this GitHub App to the SCM webhook relay. See
+   * {@link RelayLinkState} for the state machine. Stored as a {@code varchar(16)} string
+   * with a {@code DEFAULT 'UNREGISTERED'} so rows that pre-date the relay integration
+   * (or are created with the relay feature gate off) start in a sane state.
+   */
+  @Column(name = "relay_link_state", nullable = false)
+  private String relayLinkState = RelayLinkState.UNREGISTERED;
+
+  /**
+   * Number of consecutive relay-registration attempts that have been made for this App.
+   * Reset to {@code 0} on a successful registration and on every {@code FAILED -> ERROR}
+   * sweep tick. See {@link RelayLinkState#MAX_ATTEMPTS} for the per-row cap.
+   */
+  @Column(name = "relay_link_attempts", nullable = false)
+  private int relayLinkAttempts = 0;
 
   public GitHubApp() {
     // Default constructor for JPA
@@ -148,11 +180,35 @@ public class GitHubApp
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
+  public String getWebhookSecret() {
+    return webhookSecret;
+  }
+
+  public void setWebhookSecret(String webhookSecret) {
+    this.webhookSecret = webhookSecret;
+  }
+
   public boolean isActive() {
     return isActive;
   }
 
   public void setActive(boolean active) {
     isActive = active;
+  }
+
+  public String getRelayLinkState() {
+    return relayLinkState;
+  }
+
+  public void setRelayLinkState(String relayLinkState) {
+    this.relayLinkState = relayLinkState;
+  }
+
+  public int getRelayLinkAttempts() {
+    return relayLinkAttempts;
+  }
+
+  public void setRelayLinkAttempts(int relayLinkAttempts) {
+    this.relayLinkAttempts = relayLinkAttempts;
   }
 }

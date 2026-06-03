@@ -18,7 +18,9 @@ import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppInstallationStat
 import com.sonatype.insight.brain.git.GitHubAppAuthStrategyCache;
 import com.sonatype.insight.brain.git.GitHubAppKeyUtils;
 import com.sonatype.insight.brain.model.githubapp.GitHubApp;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.service.InsightProxy;
+import jakarta.inject.Provider;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.nexus.scm.github.GitHubApiClient;
 import com.sonatype.nexus.scm.github.auth.GitHubAppJwtAuthStrategy;
@@ -56,6 +58,12 @@ public class GitHubAppDeletionService
 
   private final GitHubAppSelectionCache gitHubAppSelectionCache;
 
+  // Provider-wrapped to break the eager Guice instantiation graph: RelayRegistrationService
+  // depends on RelayClient which requires a populated relayUrl, and tests that exercise
+  // unrelated services (e.g. EnterpriseReportingServiceTest) would otherwise fail to provision
+  // when no relay config is supplied.
+  private final Provider<RelayRegistrationService> relayRegistrationServiceProvider;
+
   private final String githubApiBaseUrl;
 
   @Inject
@@ -65,10 +73,11 @@ public class GitHubAppDeletionService
       final PasswordHandler passwordHandler,
       final InsightProxy insightProxy,
       final GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache,
-      final GitHubAppSelectionCache gitHubAppSelectionCache)
+      final GitHubAppSelectionCache gitHubAppSelectionCache,
+      final Provider<RelayRegistrationService> relayRegistrationServiceProvider)
   {
     this(gitHubAppDAO, installationStateDAO, passwordHandler, insightProxy, gitHubAppAuthStrategyCache,
-        gitHubAppSelectionCache, DEFAULT_GITHUB_API_BASE_URL);
+        gitHubAppSelectionCache, relayRegistrationServiceProvider, DEFAULT_GITHUB_API_BASE_URL);
   }
 
   public GitHubAppDeletionService(
@@ -78,6 +87,7 @@ public class GitHubAppDeletionService
       final InsightProxy insightProxy,
       final GitHubAppAuthStrategyCache gitHubAppAuthStrategyCache,
       final GitHubAppSelectionCache gitHubAppSelectionCache,
+      final Provider<RelayRegistrationService> relayRegistrationServiceProvider,
       final String githubApiBaseUrl)
   {
     this.gitHubAppDAO = gitHubAppDAO;
@@ -86,6 +96,7 @@ public class GitHubAppDeletionService
     this.insightProxy = insightProxy;
     this.gitHubAppAuthStrategyCache = gitHubAppAuthStrategyCache;
     this.gitHubAppSelectionCache = gitHubAppSelectionCache;
+    this.relayRegistrationServiceProvider = relayRegistrationServiceProvider;
     this.githubApiBaseUrl = githubApiBaseUrl;
   }
 
@@ -99,10 +110,12 @@ public class GitHubAppDeletionService
     }
     for (GitHubApp gitHubApp : gitHubApps) {
       deleteGitHubAppInstallationViaApi(gitHubApp);
+      deleteRelayInstallationIfRegistered(gitHubApp);
       deleteGitHubAppInstallation(gitHubApp);
       gitHubAppAuthStrategyCache.invalidate(gitHubApp.getId());
     }
     gitHubAppSelectionCache.invalidateAll();
+    deregisterRelayIfNoAppsRemain(ownerId);
   }
 
   public void delete(final GitHubApp gitHubApp) {
@@ -111,10 +124,90 @@ public class GitHubAppDeletionService
       return;
     }
     log.info("Deleting GitHubApp and related data for owner {}", gitHubApp.getOwnerId());
+    String ownerId = gitHubApp.getOwnerId();
     deleteGitHubAppInstallationViaApi(gitHubApp);
+    deleteRelayInstallationIfRegistered(gitHubApp);
     deleteGitHubAppInstallation(gitHubApp);
     gitHubAppSelectionCache.invalidateAll();
     gitHubAppAuthStrategyCache.invalidate(gitHubApp.getId());
+    deregisterRelayIfNoAppsRemain(ownerId);
+  }
+
+  /**
+   * Removes the App's installation from the relay's installation index before the local row is
+   * deleted. The customer-wide deregister fires only on the last-App-removed transition (see
+   * {@link #deregisterRelayIfNoAppsRemain}); for non-last deletes the relay would otherwise
+   * keep routing webhooks for this installation into the customer's queue, where IQ drops
+   * them as unmatched and they pollute the dedup log. Best-effort: a relay-side failure is
+   * swallowed inside {@code RelayRegistrationService.deleteRelayInstallation} so the local
+   * deletion completes regardless.
+   */
+  private void deleteRelayInstallationIfRegistered(final GitHubApp gitHubApp) {
+    if (relayRegistrationServiceProvider == null || gitHubApp.getInstallationId() == null) {
+      return;
+    }
+    try {
+      relayRegistrationServiceProvider.get().deleteRelayInstallation(gitHubApp.getInstallationId());
+    }
+    catch (RuntimeException e) {
+      log.warn("Relay installation cleanup for installationId={} failed; the relay-side index "
+          + "may still route webhooks for this installation. Subsequent deregisters will recover.",
+          gitHubApp.getInstallationId(), e);
+    }
+  }
+
+  /**
+   * After removing one or more GitHub Apps, deregister the relay registration if it exists and
+   * no GitHub Apps remain for the owner. The relay's GitHub App mode routes by installation id;
+   * a registered relay with zero local Apps continues to forward webhooks for the (now
+   * defunct) installations into the customer's queue, where IQ's poller drains them and counts
+   * them as unmatched. Deregistering on the last-App-removed transition is symmetric to
+   * registration on the first-App install (auto-register via {@code GitHubAppRelayLinker}).
+   *
+   * <p>
+   * The deregister call is best-effort: a relay-side failure is logged and swallowed so the
+   * local deletion remains successful. The next manual {@code POST /sourceControl/relay/deregister}
+   * (or the next auto-register after a fresh App install) will re-converge the state.
+   */
+  private void deregisterRelayIfNoAppsRemain(final String ownerId) {
+    if (relayRegistrationServiceProvider == null) {
+      return;
+    }
+    try {
+      // IS_ACTIVE filter: getAllByOwnerId returns deactivated rows too (deactivateGitHubApps
+      // soft-disables them without deleting). The deregister-on-last-App-removed transition
+      // hinges on no ACTIVE App remaining; counting deactivated rows would silently keep the
+      // relay-side customer record alive after the last active App is gone, leaving an
+      // orphaned customer with no IQ-side route.
+      boolean anyActive = gitHubAppDAO.getAllByOwnerId(ownerId).stream().anyMatch(GitHubApp::isActive);
+      if (anyActive) {
+        return;
+      }
+      // Only fire the relay-side deregister when the relay is currently registered as a
+      // GitHub App customer. After a cross-mode flip (App → PAT) the github_app rows are
+      // orphaned: the relay is now routing PAT webhooks for this tenant, and tearing it
+      // down because the (already-orphan) App rows are now empty would silently break PAT.
+      // The relay's PAT customer is deregistered only via explicit POST /relay/deregister.
+      com.sonatype.insight.brain.relay.RelayRegistrationService relayService =
+          relayRegistrationServiceProvider.get();
+      com.sonatype.insight.brain.model.relay.RelayConfiguration cfg = relayService.getConfiguration();
+      if (cfg != null && org.apache.commons.lang3.StringUtils.isNotBlank(cfg.getWebhookUrl())) {
+        log.debug("Relay is in PAT mode; skipping last-App deregister for owner {}", ownerId);
+        return;
+      }
+      relayService.deregisterIfRegistered();
+    }
+    catch (com.sonatype.insight.brain.relay.RelayRegistrationService.RelayFeatureDisabledException e) {
+      // Feature gate is closed — there is nothing to deregister on the relay side. Logging
+      // a warning here would be misleading noise on every App delete in IQ instances that
+      // have never enabled the relay.
+      log.debug("Relay deregister skipped after GitHub App deletion for owner {}: feature gate closed", ownerId);
+    }
+    catch (RuntimeException e) {
+      log.warn("Relay deregister after GitHub App deletion for owner {} failed; the relay-side "
+          + "registration may still exist. Run POST /sourceControl/relay/deregister to re-converge.",
+          ownerId, e);
+    }
   }
 
   private void deleteGitHubAppInstallation(final GitHubApp gitHubApp) {

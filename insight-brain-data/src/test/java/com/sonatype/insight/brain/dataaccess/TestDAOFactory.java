@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.relay.RelayConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ScanHealthConfigDAO;
@@ -347,6 +348,11 @@ public class TestDAOFactory
   @Override
   public ProxyServerConfigurationDAO createProxyServerConfigurationDAO() {
     return new ProxyServerConfigurationDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public RelayConfigurationDAO createRelayConfigurationDAO() {
+    return new RelayConfigurationDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

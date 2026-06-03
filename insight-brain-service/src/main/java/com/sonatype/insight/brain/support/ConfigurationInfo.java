@@ -35,6 +35,7 @@ public class ConfigurationInfo
   String getConfigurationInfo() {
     final SortedMap<String, Object> entries = new TreeMap<>();
     entries.put(SystemConfigurationProperty.HDS_URL, configuration.getHdsUrl());
+    entries.put(SystemConfigurationProperty.RELAY_URL, configuration.getRelayUrl());
     entries.put(SystemConfigurationProperty.PURGE_SCAN_FILES, configuration.getPurgeScanFiles());
     entries.put(SystemConfigurationProperty.CSRF_PROTECTION, configuration.isAntiCsrfEnabled());
     entries.put(SystemConfigurationProperty.CDN_URL, configuration.getCdnUrl());

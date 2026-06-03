@@ -479,6 +479,7 @@ public class InsightConfigTest
             "policyMonitoringHour",
             "proxy",
             "pullRequestMonitoringIntervalInSeconds",
+            "relayUrl",
             "releaseGraphCacheSize",
             "reportTimeoutInSeconds",
             "reverseProxyAuthentication",

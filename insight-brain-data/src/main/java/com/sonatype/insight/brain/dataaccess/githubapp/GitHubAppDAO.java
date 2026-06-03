@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.githubapp;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -114,6 +116,24 @@ public class GitHubAppDAO
         .fetchOne());
   }
 
+  /**
+   * Look up an active GitHub App by its GitHub-side installation id. Returns {@code null}
+   * when no row matches. Used by the relay-link state machine in the admin re-register path
+   * to find the row that should record the success/failure transition.
+   */
+  public GitHubApp getActiveByInstallationId(final Long installationId) {
+    if (installationId == null) {
+      return null;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return toEntity(tx.dsl()
+          .selectFrom(GITHUB_APP)
+          .where(GITHUB_APP.INSTALLATION_ID.eq(installationId)
+              .and(GITHUB_APP.IS_ACTIVE.eq(true)))
+          .fetchOne());
+    }
+  }
+
   public List<GitHubApp> getNearestGitHubApps(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       var minDistance = tx.dsl()
@@ -210,6 +230,103 @@ public class GitHubAppDAO
         .where(GITHUB_APP.OWNER_ID.eq(ownerId)
             .and(GITHUB_APP.INSTALLATION_ID.isNotNull()))
         .execute();
+  }
+
+  /**
+   * Returns active GitHub Apps whose {@code relay_link_state} is in the supplied set. Used by
+   * {@code RelayPollingService} on each cycle to discover Apps that need a relay-registration
+   * retry (typically {@code UNREGISTERED} or {@code ERROR}). Apps in {@code OK} or {@code FAILED}
+   * are left alone — {@code FAILED} is the slow-sweep's responsibility.
+   *
+   * <p>
+   * Returns an empty list when {@code states} is null or empty.
+   */
+  public List<GitHubApp> getActiveByRelayLinkState(final Set<String> states) {
+    if (states == null || states.isEmpty()) {
+      return List.of();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(GITHUB_APP)
+          .where(GITHUB_APP.IS_ACTIVE.eq(true)
+              .and(GITHUB_APP.RELAY_LINK_STATE.in(states)))
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
+    }
+  }
+
+  /**
+   * Variant of {@link #getActiveByRelayLinkState(Set)} that further restricts to rows whose
+   * {@code last_updated_at} is older than {@code age}. Reserved for the slow-sweep job that
+   * promotes {@code FAILED} rows back to {@code ERROR} once the cooldown window has passed;
+   * keeping the method here means callers don't need to write their own jOOQ.
+   */
+  public List<GitHubApp> getActiveByRelayLinkStateOlderThan(final Set<String> states, final Duration age) {
+    if (states == null || states.isEmpty() || age == null) {
+      return List.of();
+    }
+    Date cutoff = new Date(System.currentTimeMillis() - age.toMillis());
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(GITHUB_APP)
+          .where(GITHUB_APP.IS_ACTIVE.eq(true)
+              .and(GITHUB_APP.RELAY_LINK_STATE.in(states))
+              .and(GITHUB_APP.LAST_UPDATED_AT.lt(cutoff)))
+          .fetch()
+          .stream()
+          .map(this::toEntity)
+          .collect(Collectors.toList());
+    }
+  }
+
+  /**
+   * Bulk-promote rows whose {@code relay_link_state} equals {@code fromState} to {@code toState},
+   * resetting {@code relay_link_attempts} to {@code 0}. Used by the hourly slow-sweep to flip
+   * {@code FAILED} rows back to {@code ERROR} so the polling-cycle retry loop picks them up
+   * again. Returns the number of rows updated.
+   */
+  public int updateRelayLinkStateBulk(final String fromState, final String toState) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      // IS_ACTIVE filter mirrors resetRelayLinkStateForAllActive: the hourly sweep should only
+      // re-queue rows whose tenant/customer is still active. Otherwise the polling-cycle
+      // pre-flight wastes cycles re-registering decommissioned apps and may disturb rows for
+      // tenants whose license has expired or who have been deleted.
+      int updated = tx.dsl()
+          .update(GITHUB_APP)
+          .set(GITHUB_APP.RELAY_LINK_STATE, toState)
+          .set(GITHUB_APP.RELAY_LINK_ATTEMPTS, 0)
+          .set(GITHUB_APP.LAST_UPDATED_AT, new Date())
+          .where(GITHUB_APP.RELAY_LINK_STATE.eq(fromState))
+          .and(GITHUB_APP.IS_ACTIVE.eq(true))
+          .execute();
+      tx.commit();
+      return updated;
+    }
+  }
+
+  /**
+   * Bulk-reset every active GitHub App's {@code relay_link_state} to {@code toState}
+   * (and {@code relay_link_attempts} to 0), regardless of current state. Used when the
+   * relay registration is dropped at the customer level (e.g. PAT cross-flip): the local
+   * App rows still exist but their relay-side mappings are gone, so the link state must
+   * reflect the new "not linked" reality. Returns the number of rows updated.
+   */
+  public int resetRelayLinkStateForAllActive(final String toState) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      int updated = tx.dsl()
+          .update(GITHUB_APP)
+          .set(GITHUB_APP.RELAY_LINK_STATE, toState)
+          .set(GITHUB_APP.RELAY_LINK_ATTEMPTS, 0)
+          .set(GITHUB_APP.LAST_UPDATED_AT, new Date())
+          .where(GITHUB_APP.IS_ACTIVE.eq(true))
+          .execute();
+      tx.commit();
+      return updated;
+    }
   }
 
   public List<GitHubApp> findInactive() {

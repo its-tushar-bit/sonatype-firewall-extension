@@ -19,6 +19,8 @@ import java.util.concurrent.Executors;
 import com.sonatype.insight.brain.api.v2.dto.githubapp.ApiGitHubAppManifestDTO;
 import com.sonatype.insight.brain.api.v2.dto.githubapp.Manifest;
 import com.sonatype.insight.brain.git.GitHubManifestService;
+import com.sonatype.insight.brain.relay.GitHubAppRelayLinker;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import jakarta.inject.Inject;
 
@@ -57,7 +59,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
@@ -116,6 +121,12 @@ public class ApiGitHubAppServiceTest
   @Inject
   private GitHubAppSelectionCache selectionCache;
 
+  @Inject
+  private RelayRegistrationService relayRegistrationService;
+
+  @Inject
+  private GitHubAppRelayLinker gitHubAppRelayLinker;
+
   private ApiGitHubAppService service;
 
   private Organization organization;
@@ -143,6 +154,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockServerUrl, // githubApiBaseUrl
         mockServerUrl, // githubOAuthTokenUrl
         baseUrl);
@@ -460,6 +473,82 @@ public class ApiGitHubAppServiceTest
   }
 
   @Test
+  public void testHandleInstallationSetupCallback_relayEnabled_invokesLinkerForAutoRegister() throws Exception {
+    // App must carry a webhook secret so autoRegisterRelayForInstallation does not short-circuit.
+    GitHubApp app = getFirstByOwnerId(organization.getId());
+    app.setWebhookSecret(passwordHandler.encryptPassword("hook-secret-" + System.nanoTime()));
+    updateGitHubApp(app);
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    createInstallationState("valid-state-relay-on", app.getId(), futureDate);
+
+    RelayRegistrationService relayMock = mock(RelayRegistrationService.class);
+    when(relayMock.isFeatureGateOpen()).thenReturn(true);
+    GitHubAppRelayLinker linkerMock = mock(GitHubAppRelayLinker.class);
+    when(linkerMock.tryRegisterFromInstall(any(GitHubApp.class))).thenReturn(true);
+
+    String mockServerUrl = githubMockServer.baseUrl();
+    ApiGitHubAppService testService = new ApiGitHubAppService(
+        gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, selectionCache,
+        gitHubAppDeletionService, relayMock, linkerMock, mockServerUrl, mockServerUrl, baseUrl);
+
+    testService.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-relay-on", OAUTH_CODE);
+
+    // The post-install hook delegates to the linker so the four-state machine
+    // (UNREGISTERED -> OK / ERROR / FAILED) is owned in one place. The linker's behavior
+    // is unit-tested in GitHubAppRelayLinkerTest.
+    verify(linkerMock).tryRegisterFromInstall(any(GitHubApp.class));
+  }
+
+  @Test
+  public void testHandleInstallationSetupCallback_relayGateClosed_doesNotInvokeLinker() throws Exception {
+    GitHubApp app = getFirstByOwnerId(organization.getId());
+    app.setWebhookSecret(passwordHandler.encryptPassword("hook-secret-" + System.nanoTime()));
+    updateGitHubApp(app);
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    createInstallationState("valid-state-relay-off", app.getId(), futureDate);
+
+    RelayRegistrationService relayMock = mock(RelayRegistrationService.class);
+    when(relayMock.isFeatureGateOpen()).thenReturn(false);
+    GitHubAppRelayLinker linkerMock = mock(GitHubAppRelayLinker.class);
+
+    String mockServerUrl = githubMockServer.baseUrl();
+    ApiGitHubAppService testService = new ApiGitHubAppService(
+        gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, selectionCache,
+        gitHubAppDeletionService, relayMock, linkerMock, mockServerUrl, mockServerUrl, baseUrl);
+
+    testService.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-relay-off", OAUTH_CODE);
+
+    // Gate closed -> auto-register short-circuits without touching the linker.
+    verify(linkerMock, never()).tryRegisterFromInstall(any(GitHubApp.class));
+  }
+
+  @Test
+  public void testHandleInstallationSetupCallback_noWebhookSecret_doesNotInvokeLinker() throws Exception {
+    // No secret on the App -> auto-register short-circuits before checking the gate.
+    GitHubApp app = getFirstByOwnerId(organization.getId());
+    app.setWebhookSecret(null);
+    updateGitHubApp(app);
+
+    Date futureDate = new Date(System.currentTimeMillis() + 900000);
+    createInstallationState("valid-state-no-secret", app.getId(), futureDate);
+
+    GitHubAppRelayLinker linkerMock = mock(GitHubAppRelayLinker.class);
+    String mockServerUrl = githubMockServer.baseUrl();
+    ApiGitHubAppService testService = new ApiGitHubAppService(
+        gitHubAppDAO, installationStateDAO, registrationStateDAO, sourceControlDAO, ownerDAO,
+        passwordHandler, insightProxy, gitHubManifestService, authStrategyCache, selectionCache,
+        gitHubAppDeletionService, relayRegistrationService, linkerMock, mockServerUrl, mockServerUrl, baseUrl);
+
+    testService.handleInstallationSetupCallback(INSTALLATION_ID, "valid-state-no-secret", OAUTH_CODE);
+
+    verify(linkerMock, never()).tryRegisterFromInstall(any(GitHubApp.class));
+  }
+
+  @Test
   public void testGenerateManifest_Success() {
     BaseUrl mockBaseUrl = mock(BaseUrl.class);
     when(mockBaseUrl.get()).thenReturn("https://iqserver.example.com");
@@ -476,6 +565,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -494,6 +585,11 @@ public class ApiGitHubAppServiceTest
     assertThat(manifest.default_permissions()).isNotEmpty();
     assertThat(manifest.request_oauth_on_install()).isTrue();
     assertThat(manifest.setup_on_update()).isTrue();
+    // Relay feature is off by default in this test — hook_attributes must remain null so the
+    // App is created without a webhook (today's behavior). The dedicated test below covers
+    // the relay-enabled branch.
+    assertThat(manifest.hook_attributes()).isNull();
+    assertThat(manifest.default_events()).isNull();
 
     try (TransactionContext tx = registrationStateDAO.createTransactionContext()) {
       tx.begin();
@@ -508,6 +604,72 @@ public class ApiGitHubAppServiceTest
     }
     GitHubAppInstallationState deleted = findStateToken("ManifestGenerationTestState");
     assertThat(deleted).isNull();
+  }
+
+  @Test
+  public void testGenerateManifest_relayEnabled_setsHookAttributes() {
+    BaseUrl mockBaseUrl = mock(BaseUrl.class);
+    when(mockBaseUrl.get()).thenReturn("https://iqserver.example.com");
+
+    RelayRegistrationService relayMock = mock(RelayRegistrationService.class);
+    when(relayMock.isFeatureGateOpen()).thenReturn(true);
+    when(relayMock.getGitHubAppWebhookUrl()).thenReturn("https://relay.example.com/webhook/github-app");
+
+    ApiGitHubAppService testService = new ApiGitHubAppService(
+        gitHubAppDAO,
+        installationStateDAO,
+        registrationStateDAO,
+        sourceControlDAO,
+        ownerDAO,
+        passwordHandler,
+        insightProxy,
+        gitHubManifestService,
+        authStrategyCache,
+        selectionCache,
+        gitHubAppDeletionService,
+        relayMock,
+        mock(GitHubAppRelayLinker.class),
+        mockBaseUrl);
+
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
+
+    Manifest manifest = result.manifest();
+    assertThat(manifest.hook_attributes()).isNotNull();
+    assertThat(manifest.hook_attributes().url()).isEqualTo("https://relay.example.com/webhook/github-app");
+    assertThat(manifest.hook_attributes().active()).isTrue();
+    assertThat(manifest.default_events()).containsExactlyInAnyOrder("pull_request", "push");
+  }
+
+  @Test
+  public void testGenerateManifest_relayFeatureOff_omitsHookAttributes() {
+    BaseUrl mockBaseUrl = mock(BaseUrl.class);
+    when(mockBaseUrl.get()).thenReturn("https://iqserver.example.com");
+
+    RelayRegistrationService relayMock = mock(RelayRegistrationService.class);
+    when(relayMock.isFeatureGateOpen()).thenReturn(false);
+
+    ApiGitHubAppService testService = new ApiGitHubAppService(
+        gitHubAppDAO,
+        installationStateDAO,
+        registrationStateDAO,
+        sourceControlDAO,
+        ownerDAO,
+        passwordHandler,
+        insightProxy,
+        gitHubManifestService,
+        authStrategyCache,
+        selectionCache,
+        gitHubAppDeletionService,
+        relayMock,
+        mock(GitHubAppRelayLinker.class),
+        mockBaseUrl);
+
+    ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
+
+    assertThat(result.manifest().hook_attributes()).isNull();
+    assertThat(result.manifest().default_events()).isNull();
+    // Should not even ask for the URL when the gate is closed.
+    verify(relayMock, never()).getGitHubAppWebhookUrl();
   }
 
   @Test
@@ -527,6 +689,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
@@ -551,6 +715,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     for (int i = 0; i < 10; i++) {
@@ -579,6 +745,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -606,6 +774,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -631,6 +801,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -656,6 +828,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -681,6 +855,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     // Simulate concurrent manifest generation
@@ -729,6 +905,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -771,6 +949,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
@@ -795,6 +975,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     assertThatThrownBy(() -> testService.generateManifest(organization.getId(), "test-org"))
@@ -819,6 +1001,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
@@ -851,6 +1035,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     long beforeGenerate = System.currentTimeMillis();
@@ -890,6 +1076,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -918,6 +1106,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -943,6 +1133,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
@@ -977,6 +1169,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     for (int i = 0; i < 10; i++) {
@@ -1002,6 +1196,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "test-org");
@@ -1027,6 +1223,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     ApiGitHubAppManifestDTO result1 = testService.generateManifest(organization.getId(), "test-org");
@@ -1059,6 +1257,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         baseUrl);
 
     for (int i = 0; i < 10; i++) {
@@ -1780,6 +1980,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), "my-github-org");
@@ -1811,6 +2013,8 @@ public class ApiGitHubAppServiceTest
         authStrategyCache,
         selectionCache,
         gitHubAppDeletionService,
+        relayRegistrationService,
+        gitHubAppRelayLinker,
         mockBaseUrl);
 
     ApiGitHubAppManifestDTO result = testService.generateManifest(organization.getId(), null);

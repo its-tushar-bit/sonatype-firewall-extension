@@ -157,8 +157,9 @@ pipeline {
             withSonatypeDockerRegistry() {
               withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
                        "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-                // No 'clean' - fresh workspace doesn't need it
-                mvn getMavenBuildConfig(), 'install'
+                // 'clean' is needed because feature-branch workspaces persist across force-pushes;
+                // without it stale resources from prior tips (e.g. renamed migration files) remain in target/.
+                mvn getMavenBuildConfig(), 'clean install'
 
                 // Stash immediately after build (eliminates separate stage overhead)
                 stashTestArtifacts()

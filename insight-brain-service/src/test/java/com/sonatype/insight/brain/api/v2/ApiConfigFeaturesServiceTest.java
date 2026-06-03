@@ -1512,6 +1512,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
     expectedFeatureConfigMap.put("guideUiEnabled", false);
     expectedFeatureConfigMap.put("consumptionReportingEnabled", false);
+    expectedFeatureConfigMap.put("scmRelayIntegration", false);
 
     return expectedFeatureConfigMap;
   }

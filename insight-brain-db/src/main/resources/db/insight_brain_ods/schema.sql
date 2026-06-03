@@ -799,6 +799,9 @@ CREATE TABLE IF NOT EXISTS github_app (
   github_organization_name VARCHAR(255) NOT NULL,
   last_updated_at TIMESTAMP NOT NULL,
   is_active BOOLEAN NOT NULL DEFAULT false,
+  webhook_secret VARCHAR(2000),
+  relay_link_state VARCHAR(16) NOT NULL DEFAULT 'UNREGISTERED',
+  relay_link_attempts INTEGER NOT NULL DEFAULT 0,
   CONSTRAINT github_app_pk PRIMARY KEY (github_app_id),
   CONSTRAINT github_app_app_id_uk UNIQUE (app_id),
   CONSTRAINT github_app_installation_id_uk UNIQUE (installation_id)
@@ -2421,3 +2424,13 @@ CREATE TABLE hosted_deployment_block_violation (
   CONSTRAINT hosted_deployment_block_violation_block_fk FOREIGN KEY (hosted_deployment_block_id) REFERENCES hosted_deployment_block(hosted_deployment_block_id) ON DELETE CASCADE
 );
 CREATE INDEX hosted_deployment_block_violation_block_idx ON hosted_deployment_block_violation(hosted_deployment_block_id);
+
+CREATE TABLE relay_configuration (
+  relay_configuration_id varchar(50) NOT NULL,
+  api_key varchar(2000),
+  webhook_url varchar(2000),
+  webhook_signing_secret varchar(2000),
+  customer_id varchar(255),
+  registered_at timestamp,
+  CONSTRAINT relay_configuration_pk PRIMARY KEY (relay_configuration_id)
+);

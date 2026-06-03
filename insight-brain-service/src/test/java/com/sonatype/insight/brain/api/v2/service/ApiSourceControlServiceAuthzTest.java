@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
+import com.sonatype.insight.brain.relay.dto.RelayRegisterAdminRequest;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import jakarta.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -251,5 +254,158 @@ public class ApiSourceControlServiceAuthzTest
     grantReadPermission(app.getId());
 
     assertThat(sourceControlService.getRateLimits(OwnerType.APPLICATION, app.getId())).isNotNull();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRegisterWithRelay_Unauthenticated() {
+    sourceControlService.registerWithRelay();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRegisterWithRelay_Unauthorized() {
+    login();
+    // Manage SCM config is NOT enough; CONFIGURE_SYSTEM is required for the admin re-register hook.
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    sourceControlService.registerWithRelay();
+  }
+
+  @Test
+  public void testRegisterWithRelay_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.registerWithRelay());
+  }
+
+  @Test
+  public void testRegisterWithRelay_NullBody_callsRegisterOnDemand() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    // Null body routes to the PAT path; gate is closed in tests so we expect feature-disabled.
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.registerWithRelay((RelayRegisterAdminRequest) null));
+  }
+
+  @Test
+  public void testRegisterWithRelay_EmptyBody_callsRegisterOnDemand() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.registerWithRelay(new RelayRegisterAdminRequest()));
+  }
+
+  @Test
+  public void testRegisterWithRelay_WithInstallationId_callsRegisterGitHubAppOnDemand() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    RelayRegisterAdminRequest body = new RelayRegisterAdminRequest();
+    body.setInstallationId("42");
+    body.setWebhookSecret("hmac");
+    // Routes to the GitHub App path; gate is closed in tests so we expect feature-disabled.
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.registerWithRelay(body));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRegisterWithRelay_BodyVariant_Unauthenticated() {
+    sourceControlService.registerWithRelay(new RelayRegisterAdminRequest());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRegisterWithRelay_BodyVariant_Unauthorized() {
+    login();
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    RelayRegisterAdminRequest body = new RelayRegisterAdminRequest();
+    body.setInstallationId("42");
+    sourceControlService.registerWithRelay(body);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRelayWebhookUrl_Unauthenticated() {
+    sourceControlService.getRelayWebhookUrl();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRelayWebhookUrl_Unauthorized() {
+    login();
+    sourceControlService.getRelayWebhookUrl();
+  }
+
+  @Test
+  public void testGetRelayWebhookUrl_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.getRelayWebhookUrl());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRelayWebhookSecret_Unauthenticated() {
+    sourceControlService.getRelayWebhookSecret();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRelayWebhookSecret_Unauthorized() {
+    login();
+    sourceControlService.getRelayWebhookSecret();
+  }
+
+  @Test
+  public void testGetRelayWebhookSecret_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.getRelayWebhookSecret());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetGitHubAppWebhookUrl_Unauthenticated() {
+    sourceControlService.getGitHubAppWebhookUrl();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetGitHubAppWebhookUrl_Unauthorized() {
+    login();
+    sourceControlService.getGitHubAppWebhookUrl();
+  }
+
+  @Test
+  public void testGetGitHubAppWebhookUrl_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.getGitHubAppWebhookUrl());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRotateRelayApiKey_Unauthenticated() {
+    sourceControlService.rotateRelayApiKey();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRotateRelayApiKey_Unauthorized() {
+    login();
+    // Manage SCM config is NOT enough; CONFIGURE_SYSTEM is required for the admin rotate hook.
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    sourceControlService.rotateRelayApiKey();
+  }
+
+  @Test
+  public void testRotateRelayApiKey_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.rotateRelayApiKey());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRotateRelayWebhookSecret_Unauthenticated() {
+    sourceControlService.rotateRelayWebhookSecret();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRotateRelayWebhookSecret_Unauthorized() {
+    login();
+    grantGlobalPermission(Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION);
+    sourceControlService.rotateRelayWebhookSecret();
+  }
+
+  @Test
+  public void testRotateRelayWebhookSecret_Authorized_throwsFeatureDisabledByDefault() {
+    grantGlobalPermission(Permission.CONFIGURE_SYSTEM);
+    assertThatExceptionOfType(RelayRegistrationService.RelayFeatureDisabledException.class)
+        .isThrownBy(() -> sourceControlService.rotateRelayWebhookSecret());
   }
 }

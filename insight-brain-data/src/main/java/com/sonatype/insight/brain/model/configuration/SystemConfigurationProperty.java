@@ -119,6 +119,10 @@ public class SystemConfigurationProperty
 
   public static final String HDS_URL = "hdsUrl";
 
+  public static final String RELAY_URL = "relayUrl";
+
+  public static final String SCM_RELAY_INTEGRATION = "scmRelayIntegration";
+
   public static final String CDN_URL = "cdnUrl";
 
   public static final String SUPPORT_READ_LIMIT_BYTES = "support.readLimitBytes";

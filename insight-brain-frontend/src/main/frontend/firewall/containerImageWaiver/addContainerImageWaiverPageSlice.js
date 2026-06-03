@@ -22,7 +22,12 @@ import {
   filter,
   pathOr,
 } from 'ramda';
-import { getActiveViolationsWithActionFailUrl, getAddContainerImagePolicyWaiverUrl } from 'MainRoot/util/CLMLocation';
+import {
+  getActiveViolationsWithActionFailUrl,
+  getAddContainerImagePolicyWaiverUrl,
+  getCreateContainerImageWaiverRequestUrl,
+} from 'MainRoot/util/CLMLocation';
+import { checkPermissions, authErrorMessage } from 'MainRoot/util/authorizationUtil';
 import { Messages } from 'MainRoot/util/CommonServices';
 import {
   nxDateInputStateHelpers,
@@ -52,7 +57,10 @@ export const initialState = Object.freeze({
   expiryTime: null,
   waiverReasonId: null,
   waiverComments: nxTextInputStateHelpers.initialState(''),
+  noteToReviewer: nxTextInputStateHelpers.initialState(''),
   customExpiryTime: nxDateInputStateHelpers.initialState(''),
+  hasWaivePermission: false,
+  hasCreateWaiverRequestPermission: true,
 });
 
 const isFormDirty = (state) => {
@@ -106,6 +114,44 @@ const save = createAsyncThunk(
   }
 );
 
+const requestSave = createAsyncThunk(
+  `${REDUCER_NAME}/requestSave`,
+  ({ publicId, scanId, origin }, { getState, rejectWithValue, dispatch }) => {
+    const state = getState().addContainerImageWaiverPage;
+    const expiration = getExpiration(state);
+    const serverData = {
+      expiryTime:
+        typeof expiration === 'string'
+          ? moment(expiration).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+          : getExpiryTime(expiration),
+      waiverReasonId: state.waiverReasonId,
+      comment: state.waiverComments.value,
+      noteToReviewer: state.noteToReviewer.value,
+    };
+
+    return axios
+      .post(getCreateContainerImageWaiverRequestUrl(publicId), serverData)
+      .then(() => {
+        startSubmitMaskSuccessTimer(dispatch, publicId, scanId, origin);
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const loadPermissions = createAsyncThunk(
+  `${REDUCER_NAME}/loadPermissions`,
+  (_, { rejectWithValue }) => {
+    return checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository_container', 'REPOSITORY_CONTAINER_ID')
+      .then(() => ({ hasWaivePermission: true, hasCreateWaiverRequestPermission: true }))
+      .catch((err) => {
+        if (err === authErrorMessage) {
+          return { hasWaivePermission: false, hasCreateWaiverRequestPermission: true };
+        }
+        return rejectWithValue(err);
+      });
+  }
+);
+
 const getExpiration = (state) => {
   const { expiryTime, customExpiryTime } = state;
   if (expiryTime === 'custom' && customExpiryTime.value) {
@@ -117,10 +163,12 @@ const getExpiration = (state) => {
   }
 };
 
-const loadRequested = () => {
+const loadRequested = (state) => {
   return {
     ...initialState,
     loading: true,
+    hasWaivePermission: state.hasWaivePermission,
+    hasCreateWaiverRequestPermission: state.hasCreateWaiverRequestPermission,
   };
 };
 
@@ -231,6 +279,18 @@ const setCustomExpiryTime = (state, { payload }) =>
     customExpiryTime: nxDateInputStateHelpers.userInput(customDateValidator, payload),
   });
 
+const setNoteToReviewer = (state, { payload }) =>
+  setIsDirtyFlag({
+    ...state,
+    noteToReviewer: nxTextInputStateHelpers.userInput(null, payload),
+  });
+
+const setPermissions = (state, { payload }) => ({
+  ...state,
+  hasWaivePermission: payload.hasWaivePermission,
+  hasCreateWaiverRequestPermission: payload.hasCreateWaiverRequestPermission,
+});
+
 const startSubmitMaskSuccessTimer = (dispatch, publicId, scanId, origin) => {
   setTimeout(() => {
     dispatch(actions.resetSubmitMaskState());
@@ -252,6 +312,8 @@ const addContainerImageWaiverPageSlice = createSlice({
     setCustomExpiryTime: setCustomExpiryTime,
     setWaiverReason: setWaiverReason,
     setWaiverComment: setWaiverComment,
+    setNoteToReviewer: setNoteToReviewer,
+    setPermissions: setPermissions,
     resetSubmitMaskState: propSetConst('submitMaskState', null),
   },
   extraReducers: {
@@ -261,6 +323,10 @@ const addContainerImageWaiverPageSlice = createSlice({
     [save.pending]: saveRequested,
     [save.fulfilled]: saveFulfilled,
     [save.rejected]: saveFailed,
+    [requestSave.pending]: saveRequested,
+    [requestSave.fulfilled]: saveFulfilled,
+    [requestSave.rejected]: saveFailed,
+    [loadPermissions.fulfilled]: (state, { payload }) => setPermissions(state, { payload }),
   },
 });
 
@@ -270,5 +336,7 @@ export const actions = {
   ...addContainerImageWaiverPageSlice.actions,
   load,
   save,
+  requestSave,
+  loadPermissions,
   returnToContainerReportPage,
 };

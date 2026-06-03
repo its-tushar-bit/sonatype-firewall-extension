@@ -14,6 +14,7 @@ import {
   faSitemap,
   faMicroscope,
   faChartPie,
+  faFileCheck,
 } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
@@ -27,6 +28,7 @@ export default function FirewallSidebar(props) {
   const vulnSearchState = 'firewall.vulnerabilitySearch';
   const vulnSearchDetailState = 'firewall.vulnerabilitySearchDetail';
   const enterpriseReportingState = 'firewall.enterpriseReporting';
+  const firewallWaiversState = 'firewall.waivers';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
@@ -35,6 +37,7 @@ export default function FirewallSidebar(props) {
   const apiHref = uiRouterState.href(apiState);
   const vulnSearchHref = uiRouterState.href(vulnSearchState);
   const enterpriseReportingHref = uiRouterState.href(enterpriseReportingState);
+  const firewallWaiversHref = uiRouterState.href(firewallWaiversState);
 
   // Use currentState from Redux props (triggers re-render) instead of uiRouterState.includes()
   // which may return stale data when the re-render is driven by Redux state changes
@@ -73,6 +76,13 @@ export default function FirewallSidebar(props) {
             icon={faMicroscope}
             text="Vulnerability Lookup"
             href={vulnSearchHref}
+          />
+          <NxGlobalSidebar2NavigationLink
+            isSelected={isSelected(firewallWaiversState)}
+            id="sonatype-firewall-waivers-navigation-button"
+            icon={faFileCheck}
+            text="Waivers"
+            href={firewallWaiversHref}
           />
           {isFirewallEnterpriseReportingEnabled && (
             <NxGlobalSidebar2NavigationLink

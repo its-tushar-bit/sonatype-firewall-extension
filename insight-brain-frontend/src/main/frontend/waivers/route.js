@@ -7,6 +7,7 @@ import router from 'MainRoot/router/routerInstance';
 import AddWaiverPageContainer from './AddWaiverPageContainer';
 import RequestWaiverPage from './RequestWaiverPage';
 import RequestWaiverReviewPage from './RequestWaiverReviewPage';
+import FirewallReviewWaiverRequestPage from 'MainRoot/firewall/waiverRequests/FirewallReviewWaiverRequestPage';
 import SidebarLayout from 'MainRoot/sidebarNav/SidebarLayout';
 import WaiverDetailsContainer from './waiverDetails/WaiverDetailsContainer';
 
@@ -58,6 +59,18 @@ router.stateRegistry.register({
   component: WaiverDetailsContainer,
   data: {
     title: 'Waiver detail view',
+  },
+});
+
+// Review a Firewall waiver request from within the LC/dashboard context.
+// Uses FirewallReviewWaiverRequestPage (which handles repository-scoped waiver requests
+// correctly) but registered outside the firewall parent state so it renders in the LC layout.
+router.stateRegistry.register({
+  name: 'dashboardFirewallWaiverRequestReview',
+  url: '/dashboardFirewallWaiverRequestReview/{ownerType}/{ownerId}/{waiverRequestId}?origin',
+  component: FirewallReviewWaiverRequestPage,
+  data: {
+    title: 'Review Requested Waiver',
   },
 });
 

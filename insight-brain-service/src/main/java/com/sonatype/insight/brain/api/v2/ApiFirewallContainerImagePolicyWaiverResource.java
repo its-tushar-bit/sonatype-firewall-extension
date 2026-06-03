@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverDTO;
+import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverRequestDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverRequestService;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -58,11 +60,19 @@ public class ApiFirewallContainerImagePolicyWaiverResource
 
   static final String POLICY_WAIVER = "/policyWaiver";
 
+  static final String POLICY_WAIVER_REQUEST = "/policyWaiverRequest";
+
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
+  private final ApiPolicyWaiverRequestService apiPolicyWaiverRequestService;
+
   @Inject
-  public ApiFirewallContainerImagePolicyWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
+  public ApiFirewallContainerImagePolicyWaiverResource(
+      final ApiPolicyWaiverService apiPolicyWaiverService,
+      final ApiPolicyWaiverRequestService apiPolicyWaiverRequestService)
+  {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
+    this.apiPolicyWaiverRequestService = apiPolicyWaiverRequestService;
   }
 
   @POST
@@ -89,6 +99,26 @@ public class ApiFirewallContainerImagePolicyWaiverResource
           "</ol>") ApiContainerImageWaiverDTO waiverDTO)
   {
     apiPolicyWaiverService.addContainerImageWaiver(containerImageId, waiverDTO);
+  }
+
+  @POST
+  @Path(CONTAINER_IMAGE_ID + POLICY_WAIVER_REQUEST)
+  @Audited(AuditEvent.CREATE_WAIVER_REQUEST)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to request a waiver for all policy violations of a container image. " +
+      "\n\nPermissions required: authenticated user (waiver request workflow must be enabled)",
+      responses = {
+        @ApiResponse(
+            responseCode = "204",
+            description = "Waiver request has been created successfully.")
+      })
+  public void requestWaiver(
+      @Parameter(description = "The container image id.",
+          required = true) @PathParam("containerImageId") final String containerImageId,
+      @RequestBody(
+          description = "Fields: comment, noteToReviewer, expiryTime, waiverReasonId") ApiContainerImageWaiverRequestDTO requestDTO)
+  {
+    apiPolicyWaiverRequestService.addContainerImagePolicyWaiverRequest(containerImageId, requestDTO);
   }
 
   @DELETE

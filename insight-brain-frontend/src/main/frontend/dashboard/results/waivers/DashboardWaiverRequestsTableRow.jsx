@@ -38,6 +38,29 @@ export default function DashboardWaiverRequestsTableRow({ stateGo, waiverRequest
       policyWaiverRequestId: waiverRequestId,
     };
 
+    const isFirewallRequest =
+      ownerType === 'repository' ||
+      ownerType === 'repository_manager' ||
+      ownerType === 'repository_container' ||
+      ownerType === 'all_repositories';
+
+    if (isFirewallRequest) {
+      // 'all_repositories' is the display alias used in responses, but the API path requires 'repository_container'
+      const apiOwnerType =
+        ownerType === 'all_repositories' || ownerId === 'REPOSITORY_CONTAINER_ID'
+          ? 'repository_container'
+          : ownerType;
+      dispatch(
+        stateGo('dashboardFirewallWaiverRequestReview', {
+          ownerType: apiOwnerType,
+          ownerId,
+          waiverRequestId: waiverRequestId,
+          origin: 'dashboard.overview.waiverRequests',
+        })
+      );
+      return;
+    }
+
     const permissionCheck =
       ownerType === 'root_organization'
         ? checkPermissions(['WAIVE_POLICY_VIOLATIONS'])

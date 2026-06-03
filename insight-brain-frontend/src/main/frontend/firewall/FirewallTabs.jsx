@@ -10,23 +10,18 @@ import * as PropTypes from 'prop-types';
 import { always, complement, either, equals, filter, map, pipe } from 'ramda';
 import { NxTab, NxTabList, NxTabPanel, NxTabs } from '@sonatype/react-shared-components';
 
-import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/constants/states';
+import { QUARANTINE, ROI } from 'MainRoot/constants/states';
 import FirewallQuarantineTable from 'MainRoot/firewall/FirewallQuarantineTable';
-import DashboardWaivers from 'MainRoot/dashboard/results/waivers/DashboardWaivers';
 import RoiFirewallMetrics from 'MainRoot/firewall/roiMetrics/RoiFirewallMetrics';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 
-const TABS = [QUARANTINE, WAIVERS, ROI];
+const TABS = [QUARANTINE, ROI];
 
 const FirewallTabs = forwardRef(function FirewallTabs({ router, stateGo, ...props }, ref) {
   const firewallTabsRefs = {
     quarantine: {
       panel: useRef(),
       name: capitalizeFirstLetter(QUARANTINE),
-    },
-    waivers: {
-      panel: useRef(),
-      name: capitalizeFirstLetter(WAIVERS),
     },
     roi: {
       panel: useRef(),
@@ -53,13 +48,12 @@ const FirewallTabs = forwardRef(function FirewallTabs({ router, stateGo, ...prop
   );
   const TAB_STATES = {
     [QUARANTINE]: 'firewall.firewallPage.components.quarantine',
-    [WAIVERS]: 'firewall.firewallPage.components.waivers',
     [ROI]: 'firewall.firewallPage.roi',
   };
   const onTabSelect = (index) => stateGo(TAB_STATES[TABS[index]]);
 
   const activeTab = router?.currentState?.data?.activeTab;
-  const activeTabIndex = TABS.indexOf(activeTab === WAIVERS ? WAIVERS : activeTab === ROI ? ROI : QUARANTINE);
+  const activeTabIndex = TABS.indexOf(activeTab === ROI ? ROI : QUARANTINE);
 
   return (
     <NxTabs activeTab={activeTabIndex} onTabSelect={onTabSelect}>
@@ -67,11 +61,6 @@ const FirewallTabs = forwardRef(function FirewallTabs({ router, stateGo, ...prop
       <NxTabPanel id={`firewall-${QUARANTINE}-tab-panel`}>
         <div ref={firewallTabsRefs.quarantine.panel}>
           <FirewallQuarantineTable {...props} />
-        </div>
-      </NxTabPanel>
-      <NxTabPanel id={`firewall-${WAIVERS}-tab-panel`}>
-        <div ref={firewallTabsRefs.waivers.panel}>
-          <DashboardWaivers />
         </div>
       </NxTabPanel>
       <NxTabPanel id={`firewall-${ROI}-tab-panel`}>

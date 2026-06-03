@@ -43,20 +43,17 @@ describe('FirewallTabs', () => {
 
   const propsRoiTabDisabled = { ...props, router: roiTabDisabled };
 
-  it('renders the FirewallTabs component correctly', () => {
+  it('renders Quarantine and ROI tabs but NOT the Waivers tab', () => {
     render(<FirewallTabs {...props} />);
 
     const tabList = screen.getByRole('tablist');
     const tabs = within(tabList).getAllByRole('tab');
-    const tabPanels = screen.getAllByRole('tabpanel');
 
     expect(tabList).toBeInTheDocument();
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(2);
     expect(tabs[0]).toHaveTextContent('Quarantine');
-    expect(tabs[1]).toHaveTextContent('Waivers');
-    expect(tabs[2]).toHaveTextContent('Return on InvestmentReturn on Investment');
-    expect(tabPanels).toHaveLength(1);
-    expect(tabPanels[0]).toHaveAttribute('id', 'firewall-quarantine-tab-panel');
+    expect(tabs[1]).toHaveTextContent('Return on Investment');
+    expect(screen.queryByRole('tab', { name: /waivers/i })).not.toBeInTheDocument();
   });
 
   it('does not render the ROI tab if roiEnabled param is undefined', () => {
@@ -64,44 +61,26 @@ describe('FirewallTabs', () => {
 
     const tabList = screen.getByRole('tablist');
     const tabs = within(tabList).getAllByRole('tab');
-    const tabPanels = screen.getAllByRole('tabpanel');
 
-    expect(tabs).toHaveLength(2);
+    expect(tabs).toHaveLength(1);
     expect(tabs[0]).toHaveTextContent('Quarantine');
-    expect(tabs[1]).toHaveTextContent('Waivers');
-    expect(tabPanels).toHaveLength(1);
-    expect(tabPanels[0]).toHaveAttribute('id', 'firewall-quarantine-tab-panel');
+    expect(screen.queryByRole('tab', { name: /waivers/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /return on investment/i })).not.toBeInTheDocument();
   });
 
-  it('renders quarantine table when clicking on corresponding tab', () => {
+  it('renders quarantine tab panel by default', () => {
     render(<FirewallTabs {...props} />);
 
-    const tabList = screen.getByRole('tablist');
-    const tabs = within(tabList).getAllByRole('tab');
-
-    fireEvent.click(tabs[0]);
     const tabPanels = screen.getAllByRole('tabpanel');
-
     expect(tabPanels).toHaveLength(1);
     expect(tabPanels[0]).toHaveAttribute('id', 'firewall-quarantine-tab-panel');
   });
 
-  it('renders waivers table when clicking on corresponding tab', () => {
-    const waiverProps = { ...props, router: { ...roiTabEnabled, currentState: { data: { activeTab: 'waivers' } } } };
-    render(<FirewallTabs {...waiverProps} />);
-
-    const tabPanels = screen.getAllByRole('tabpanel');
-
-    expect(tabPanels).toHaveLength(1);
-    expect(tabPanels[0]).toHaveAttribute('id', 'firewall-waivers-tab-panel');
-  });
-
-  it('renders ROI content when clicking on corresponding tab', () => {
+  it('renders ROI content when ROI is the active tab', () => {
     const roiProps = { ...props, router: { ...roiTabEnabled, currentState: { data: { activeTab: 'roi' } } } };
     render(<FirewallTabs {...roiProps} />);
 
     const tabPanels = screen.getAllByRole('tabpanel');
-
     expect(tabPanels).toHaveLength(1);
     expect(tabPanels[0]).toHaveAttribute('id', 'firewall-roi-tab-panel');
   });

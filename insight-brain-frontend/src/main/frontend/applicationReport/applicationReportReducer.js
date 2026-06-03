@@ -68,6 +68,7 @@ import {
   TOGGLE_SHOW_FILTER_POPOVER,
   EXPAND_ALL_DEPENDENCY_TREE_NODES,
   COLLAPSE_ALL_DEPENDENCY_TREE_NODES,
+  CLEAR_SELECTED_REPORT,
 } from './applicationReportActions';
 import { populateDependencyNodeKeys as populateEntryNodeKeys } from 'MainRoot/applicationReport/DependencyInfoGenerator';
 import {
@@ -150,6 +151,9 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case SET_RAW_SORTING_PARAMETERS:
       return updateRawDataDisplayedEntries(pathSet(['rawSortConfiguration'], payload, state));
+
+    case CLEAR_SELECTED_REPORT:
+      return { ...state, selectedReport: null };
 
     case LOAD_REPORT_REQUESTED:
       return setPendingLoads(['common', 'policy'], {

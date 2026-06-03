@@ -113,8 +113,17 @@ describe('AddOrRequestWaiverButton', () => {
   });
 
   describe('firewall and repository', () => {
-    it('shows add waiver button on firewall and no segmented button', () => {
-      renderComponent({ isFirewallOrRepository: true });
+    it('shows segmented add/request waiver button on firewall when workflow is enabled', () => {
+      renderComponent({ isFirewallOrRepository: true, isWaiverRequestWorkflowEnabled: true });
+      const addWaiverButton = screen.getByRole('button', { name: 'Add Waiver' });
+      const dropdownButton = screen.getByLabelText('more options');
+
+      expect(addWaiverButton).toBeVisible();
+      expect(dropdownButton).toBeVisible();
+    });
+
+    it('shows plain add waiver button on firewall when workflow is disabled', () => {
+      renderComponent({ isFirewallOrRepository: true, isWaiverRequestWorkflowEnabled: false });
       const addWaiverButton = screen.getByRole('button', { name: 'Add Waiver' });
       const dropdownButton = screen.queryByLabelText('more options');
 
@@ -122,7 +131,21 @@ describe('AddOrRequestWaiverButton', () => {
       expect(dropdownButton).toBe(null);
     });
 
-    it('hide add waiver and request waiver buttons on firewall and no waive permission', () => {
+    it('shows plain request waiver button on firewall when only create permission', () => {
+      renderComponent({
+        isFirewallOrRepository: true,
+        hasPermissionForAppWaivers: false,
+        hasFirewallOnlyCreatePermission: true,
+        isWaiverRequestWorkflowEnabled: true,
+      });
+      const requestWaiverButton = screen.getByRole('button', { name: /request waiver/i });
+      const addWaiverButton = screen.queryByRole('button', { name: 'Add Waiver' });
+
+      expect(requestWaiverButton).toBeVisible();
+      expect(addWaiverButton).toBe(null);
+    });
+
+    it('hides all buttons on firewall with no waive permission', () => {
       renderComponent({ isFirewallOrRepository: true, hasPermissionForAppWaivers: false });
       const addWaiverButton = screen.queryByRole('button', { name: 'Add Waiver' });
       const requestWaiverButton = screen.queryByRole('button', { name: 'Request Waiver' });

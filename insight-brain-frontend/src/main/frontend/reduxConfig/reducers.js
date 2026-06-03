@@ -123,6 +123,9 @@ import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplica
 import sbomExportSlice from 'MainRoot/sbomManager/features/sbomExport/sbomExportSlice';
 import applicationLatestEvaluationsSlice from 'MainRoot/applicationLatestEvaluations/applicationLatestEvaluationsSlice';
 import roiFirewallMetricsSlice from 'MainRoot/firewall/roiMetrics/roiFirewallMetricsSlice';
+import firewallWaiverRequestsReducer from 'MainRoot/firewall/waiverRequests/firewallWaiverRequestsSlice';
+import firewallRequestWaiverReducer from 'MainRoot/firewall/waiverRequests/firewallRequestWaiverSlice';
+import containerImageWaiversReducer from 'MainRoot/firewall/waiverRequests/containerImageWaiversSlice';
 import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/roiConfigurationPageSlice';
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
@@ -264,6 +267,9 @@ export default combineReducers({
   sbomApplicationsPage: sbomApplicationsPageSlice,
   applicationLatestEvaluations: applicationLatestEvaluationsSlice,
   roiFirewallMetrics: roiFirewallMetricsSlice,
+  firewallWaiverRequests: firewallWaiverRequestsReducer,
+  firewallRequestWaiver: firewallRequestWaiverReducer,
+  containerImageWaivers: containerImageWaiversReducer,
   roiConfigurationPage: roiConfigurationPageSlice,
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
   displayTheme: displayThemeSlice,

@@ -7,22 +7,28 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.constraints.NotNull;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestReviewDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverRequestsApplicableToViolationDTO;
@@ -36,10 +42,15 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
@@ -116,6 +127,10 @@ public class ApiPolicyWaiverRequestService
 
   private final LicenseNameProvider licenseNameProvider;
 
+  private final RepositoryService repositoryService;
+
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   public ApiPolicyWaiverRequestService(
       ApiPolicyWaiverService apiPolicyWaiverService,
@@ -131,7 +146,9 @@ public class ApiPolicyWaiverRequestService
       IdUtils idUtils,
       TelemetryUtils telemetryUtils,
       RequestPolicyWaiverEventService requestPolicyWaiverEventService,
-      LicenseNameProvider licenseNameProvider)
+      LicenseNameProvider licenseNameProvider,
+      RepositoryService repositoryService,
+      RepositoryManagerDAO repositoryManagerDAO)
   {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.telemetrySender = telemetrySender;
@@ -147,6 +164,8 @@ public class ApiPolicyWaiverRequestService
     this.telemetryUtils = telemetryUtils;
     this.requestPolicyWaiverEventService = requestPolicyWaiverEventService;
     this.licenseNameProvider = licenseNameProvider;
+    this.repositoryService = repositoryService;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   /**
@@ -221,6 +240,43 @@ public class ApiPolicyWaiverRequestService
     return toDto(policyWaiverRequest, policyWaiverReason);
   }
 
+  public void addContainerImagePolicyWaiverRequest(
+      String containerImageId,
+      ApiContainerImageWaiverRequestDTO requestDTO)
+  {
+    if (!SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.isEnabled()) {
+      throw new UnauthorizedException("Waiver requests are disabled by system property "
+          + SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getPropertyName());
+    }
+
+    String internalApplicationOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerImageId);
+
+    List<PolicyViolation> policyViolations =
+        policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(internalApplicationOwnerId, Stage.ID_PROXY,
+            Action.ID_FAIL);
+
+    if (policyViolations.isEmpty()) {
+      throw new NotFoundException(
+          "No applicable policy violations found to request a waiver for container image with the given ID");
+    }
+
+    policyViolationDAO.loadConstraintFacts(policyViolations);
+    PolicyViolation anchorViolation = policyViolations.get(0);
+
+    Date expiryTime = requestDTO != null ? requestDTO.expiryTime : null;
+    String comment = requestDTO != null ? requestDTO.comment : null;
+    String noteToReviewer = requestDTO != null ? requestDTO.noteToReviewer : null;
+    String waiverReasonId = requestDTO != null ? requestDTO.waiverReasonId : null;
+
+    validateExpiryTime(expiryTime);
+    validatePolicyWaiverReasonId(waiverReasonId);
+
+    // Scope the waiver request to REPOSITORY_CONTAINER_ID so it appears in the
+    // Firewall waiver requests tab, which queries by repository/repository_manager/REPOSITORY_CONTAINER_ID.
+    createPolicyWaiverRequest(RepositoryContainer.REPOSITORY_CONTAINER_ID, anchorViolation, comment, noteToReviewer,
+        ALL_COMPONENTS, expiryTime, waiverReasonId, false);
+  }
+
   private ApiPolicyWaiverRequestDTO toDto(
       PolicyWaiverRequest policyWaiverRequest,
       PolicyWaiverReason policyWaiverReason)
@@ -236,7 +292,11 @@ public class ApiPolicyWaiverRequestService
     dto.expiryTime = policyWaiverRequest.getExpiryTime();
     dto.hash = policyWaiverRequest.getHash();
     dto.policyId = policyWaiverRequest.getPolicyId();
-    dto.policyName = policyDAO.getById(policyWaiverRequest.getPolicyId()).getName();
+    Policy policy = policyDAO.getById(policyWaiverRequest.getPolicyId());
+    if (policy != null) {
+      dto.policyName = policy.getName();
+      dto.threatLevel = policy.getThreatLevel();
+    }
     dto.requesterId = policyWaiverRequest.getRequesterId();
     dto.requesterName = policyWaiverRequest.getRequesterName();
     dto.reviewerName = policyWaiverRequest.getReviewerName();
@@ -250,10 +310,29 @@ public class ApiPolicyWaiverRequestService
       dto.componentIdentifier =
           ApiComponentIdentifierDTOV2.fromComponentIdentifier(policyWaiverRequest.getComponentIdentifier());
     }
+    else if (policyWaiverRequest.getPolicyViolationId() != null) {
+      // Fallback: try to get component identifier from the violation itself
+      try {
+        AbstractPolicyViolation violation = getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
+        if (violation.getComponentIdentifier() != null) {
+          dto.componentIdentifier =
+              ApiComponentIdentifierDTOV2.fromComponentIdentifier(violation.getComponentIdentifier());
+        }
+      }
+      catch (NotFoundException e) {
+        log.debug("Policy violation {} no longer exists for waiver request {}; componentIdentifier will be null",
+            policyWaiverRequest.getPolicyViolationId(), policyWaiverRequest.getId());
+      }
+    }
 
-    dto.scopeOwnerId = owner.getId();
-    dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
-    dto.scopeOwnerName = owner.getName();
+    if (owner != null) {
+      dto.scopeOwnerId = owner.getId();
+      dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
+      dto.scopeOwnerName = owner.getName();
+    }
+    else {
+      dto.scopeOwnerId = policyWaiverRequest.getOwnerId();
+    }
 
     if (policyWaiverRequest.getComponentMatchStrategy() != null) {
       dto.matcherStrategy = policyWaiverRequest.getComponentMatchStrategy();
@@ -430,7 +509,12 @@ public class ApiPolicyWaiverRequestService
     // Throws NotFoundException if the policy violation does not exist.
     AbstractPolicyViolation abstractPolicyViolation =
         getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
-    if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
+    // REPOSITORY_CONTAINER_ID is a virtual scope that covers all container image violations.
+    // Container image applications live in the org hierarchy, not the repository hierarchy,
+    // so isViolationOwnerId would always return false for that scope — skip the check.
+    if (!RepositoryContainer.REPOSITORY_CONTAINER_ID.equals(internalOwnerId)
+        && !isViolationOwnerId(abstractPolicyViolation, internalOwnerId))
+    {
       throw new NotFoundException("Could not find policy violation with ID " + abstractPolicyViolation.getId() + ".");
     }
 
@@ -445,7 +529,11 @@ public class ApiPolicyWaiverRequestService
     switch (status) {
       case APPROVED:
         Owner owner = ownerDAO.getById(internalOwnerId);
-        approvePolicyWaiverRequest(owner, policyWaiverRequest, abstractPolicyViolation,
+        // For container image waiver requests scoped to REPOSITORY_CONTAINER_ID, save the waiver
+        // against REPOSITORY_CONTAINER_ID so it appears in the Existing Waivers table, which
+        // queries policyWaivers by REPOSITORY_CONTAINER_ID as the owner.
+        Owner effectiveOwner = owner;
+        approvePolicyWaiverRequest(effectiveOwner, policyWaiverRequest, abstractPolicyViolation,
             apiPolicyWaiverRequestReviewDTO);
         break;
       case REJECTED:
@@ -482,6 +570,10 @@ public class ApiPolicyWaiverRequestService
     validateExpireWhenRemediationAvailable(apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
         matcherStrategy);
 
+    // Determine container image flags from the violation's component format
+    boolean isDockerComponent = abstractPolicyViolation.getComponentIdentifier() != null
+        && "docker".equalsIgnoreCase(abstractPolicyViolation.getComponentIdentifier().getFormat());
+
     // Persist the policy waiver and the policy waiver request
     PolicyWaiver policyWaiver;
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
@@ -490,7 +582,10 @@ public class ApiPolicyWaiverRequestService
       policyWaiver = apiPolicyWaiverService.savePolicyWaiver(tx, owner.getId(), abstractPolicyViolation,
           apiPolicyWaiverRequestReviewDTO.comment, matcherStrategy, apiPolicyWaiverRequestReviewDTO.expiryTime,
           apiPolicyWaiverRequestReviewDTO.waiverReasonId,
-          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable);
+          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
+          isDockerComponent, // isForContainerImageComponent
+          isDockerComponent // isForContainerImage
+      );
 
       // Update the policy waiver request
       policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
@@ -530,6 +625,62 @@ public class ApiPolicyWaiverRequestService
     policyWaiverRequestDAO.update(policyWaiverRequest);
 
     auditPolicyWaiverRequest(policyWaiverRequest);
+  }
+
+  public List<ApiPolicyWaiverRequestDTO> getPolicyWaiverRequests(
+      OwnerType ownerType,
+      String ownerId,
+      String repositoryFormat)
+  {
+    log.debug("Received request to list policy waiver requests for ownerType {}, ownerId {}, repositoryFormat {}",
+        ownerType, ownerId, repositoryFormat);
+
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    checkReadPermission(ownerType, internalOwnerId);
+
+    // Collect owner IDs that waiver requests could be stored against.
+    // Requests can be scoped to a repository, repository_manager, or repository_container.
+    List<Repository> matchingRepos = repositoryService.getRepositoriesWithReadPermission()
+        .stream()
+        .filter(repo -> matchesRepositoryFormat(repo, repositoryFormat))
+        .collect(Collectors.toList());
+
+    Set<String> allowedOwnerIds = matchingRepos.stream()
+        .map(Repository::getId)
+        .collect(Collectors.toSet());
+
+    // Also include parent repository managers and the repository container,
+    // since waiver requests can be scoped at those levels too.
+    Set<String> repoManagerIds = matchingRepos.stream()
+        .map(Repository::getRepositoryManagerId)
+        .collect(Collectors.toSet());
+    allowedOwnerIds.addAll(repoManagerIds);
+    allowedOwnerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    Map<String, PolicyWaiverReason> reasonsById =
+        policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
+    List<ApiPolicyWaiverRequestDTO> result = new ArrayList<>();
+    for (String allowedOwnerId : allowedOwnerIds) {
+      policyWaiverRequestDAO.getByOwnerId(allowedOwnerId)
+          .stream()
+          .map(r -> toDto(r, reasonsById.get(r.getWaiverReasonId())))
+          .forEach(result::add);
+    }
+    return result;
+  }
+
+  private static boolean matchesRepositoryFormat(Repository repo, String repositoryFormat) {
+    if (repositoryFormat == null || repositoryFormat.isEmpty()) {
+      return true;
+    }
+    if ("docker".equalsIgnoreCase(repositoryFormat)) {
+      return "docker".equalsIgnoreCase(repo.getFormat());
+    }
+    if ("component".equalsIgnoreCase(repositoryFormat)) {
+      return !"docker".equalsIgnoreCase(repo.getFormat());
+    }
+    return true;
   }
 
   public ApiPolicyWaiverRequestDTO getPolicyWaiverRequest(

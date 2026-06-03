@@ -463,13 +463,27 @@ public class ApiPolicyWaiverService
       policyWaiverReasons = policyWaiverReasonDAO.getAllByIds(waiverReasonIds);
     }
 
+    Set<String> policyIds = policyWaivers.stream()
+        .map(PolicyWaiver::getPolicyId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+    Map<String, Policy> policiesById = policyDAO.getByIds(policyIds)
+        .stream()
+        .collect(Collectors.toMap(Policy::getId, p -> p));
+
     List<ApiPolicyWaiverDTO> apiPolicyWaiverDTOS = new ArrayList<>();
     for (PolicyWaiver policyWaiver : policyWaivers) {
       PolicyWaiverReason policyWaiverReason = policyWaiverReasons.stream()
           .filter(waiverReason -> waiverReason.getId().equals(policyWaiver.getWaiverReasonId()))
           .findFirst()
           .orElse(null);
-      apiPolicyWaiverDTOS.add(ApiPolicyWaiverDTO.toDto(policyWaiver, policyWaiverReason, owner));
+      ApiPolicyWaiverDTO dto = ApiPolicyWaiverDTO.toDto(policyWaiver, policyWaiverReason, owner);
+      Policy policy = policiesById.get(policyWaiver.getPolicyId());
+      if (policy != null) {
+        dto.policyName = policy.getName();
+        dto.threatLevel = policy.getThreatLevel();
+      }
+      apiPolicyWaiverDTOS.add(dto);
     }
 
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
@@ -1019,6 +1033,31 @@ public class ApiPolicyWaiverService
         false, // Default value for isForContainerImageComponent
         false // Default value for isForContainerImage
     );
+  }
+
+  PolicyWaiver savePolicyWaiver(
+      TransactionContext tx,
+      String ownerId,
+      AbstractPolicyViolation abstractPolicyViolation,
+      String comment,
+      ComponentMatcherStrategyForWaiver matcherStrategy,
+      Date expiryTime,
+      String policyWaiverReasonId,
+      boolean expireWhenRemediationAvailable,
+      boolean isForContainerImageComponent,
+      boolean isForContainerImage)
+  {
+    return savePolicyWaiverInternal(
+        tx,
+        ownerId,
+        abstractPolicyViolation,
+        comment,
+        matcherStrategy,
+        expiryTime,
+        policyWaiverReasonId,
+        expireWhenRemediationAvailable,
+        isForContainerImageComponent,
+        isForContainerImage);
   }
 
   private PolicyWaiver savePolicyWaiverInternal(

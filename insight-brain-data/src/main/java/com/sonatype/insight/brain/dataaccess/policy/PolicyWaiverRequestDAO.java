@@ -158,6 +158,7 @@ public class PolicyWaiverRequestDAO
     var condition = (hash != null ? POLICY_WAIVER_REQUEST.HASH.eq(hash) : POLICY_WAIVER_REQUEST.HASH.isNull())
         .and(POLICY_WAIVER_REQUEST.POLICY_ID.eq(policyId))
         .and(POLICY_WAIVER_REQUEST.OWNER_ID.eq(ownerId))
+        .and(POLICY_WAIVER_REQUEST.STATUS.notEqual(PolicyWaiverRequestStatus.REJECTED.name()))
         .and(POLICY_WAIVER_REQUEST.EXPIRY_TIME.isNull()
             .or(POLICY_WAIVER_REQUEST.EXPIRY_TIME.greaterThan(new Date())));
 
@@ -182,6 +183,7 @@ public class PolicyWaiverRequestDAO
     var condition = (hash != null ? POLICY_WAIVER_REQUEST.HASH.eq(hash) : POLICY_WAIVER_REQUEST.HASH.isNull())
         .and(POLICY_WAIVER_REQUEST.POLICY_ID.eq(policyId))
         .and(POLICY_WAIVER_REQUEST.OWNER_ID.eq(ownerId))
+        .and(POLICY_WAIVER_REQUEST.STATUS.notEqual(PolicyWaiverRequestStatus.REJECTED.name()))
         .and(POLICY_WAIVER_REQUEST.EXPIRY_TIME.isNull()
             .or(POLICY_WAIVER_REQUEST.EXPIRY_TIME.greaterThan(new Date())));
 

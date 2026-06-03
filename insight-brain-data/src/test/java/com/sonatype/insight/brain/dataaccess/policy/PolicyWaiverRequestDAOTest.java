@@ -202,6 +202,35 @@ public class PolicyWaiverRequestDAOTest
   }
 
   @Test
+  public void testInsert_AfterRejection_Succeeds() {
+    String hash = "12345678901234567890";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+
+    PolicyWaiverRequest first = new PolicyWaiverRequest().setOwnerId(ownerId)
+        .setPolicyId(policyId)
+        .setHash(hash)
+        .setConstraintFacts(constraintFacts)
+        .setPolicyViolationId("policyViolationId");
+    tempEntity.newPolicyWaiverRequest(first);
+    first.setStatus(PolicyWaiverRequestStatus.REJECTED);
+    dao.update(first);
+
+    // A new request for the same violation should succeed now that the first is REJECTED
+    PolicyWaiverRequest second = new PolicyWaiverRequest().setOwnerId(ownerId)
+        .setPolicyId(policyId)
+        .setHash(hash)
+        .setConstraintFacts(constraintFacts)
+        .setPolicyViolationId("policyViolationId");
+    tempEntity.newPolicyWaiverRequest(second);
+
+    assertThat(second.getId()).isNotNull().isNotEqualTo(first.getId());
+    assertThat(dao.getById(second.getId()).getStatus()).isEqualTo(REQUESTED);
+  }
+
+  @Test
   public void testInsert_Duplicate_ComponentLevel() {
     String hash = "12345678901234567890";
     Policy policy = tempEntity.newPolicy(organization);

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.Consumes;
@@ -14,6 +16,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -135,8 +138,29 @@ public class ApiPolicyWaiverRequestResource
   }
 
   @GET
+  @Path(OWNERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
+  @Operation(
+      description = "Use this method to list all policy waiver requests for the given owner." +
+          "\n\nPermissions required: View IQ Elements",
+      responses = {@ApiResponse(responseCode = "200", description = "The list of policy waiver requests.",
+          useReturnTypeSchema = true)})
+  public List<ApiPolicyWaiverRequestDTO> getPolicyWaiverRequests(
+      @Parameter(description = "The owner type. Possible values are application, organization, repository, "
+          + "repository_manager, repository_container.", required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "The id for the ownerType.", required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(description = "Optional filter for repository format. Use 'docker' to return only container "
+          + "repository waiver requests, or 'component' to return only non-container repository waiver requests. "
+          + "Omit to return all.") @QueryParam("repositoryFormat") String repositoryFormat)
+  {
+    return apiPolicyWaiverRequestService.getPolicyWaiverRequests(ownerType, ownerId, repositoryFormat);
+  }
+
+  @GET
   @Path(POLICY_WAIVER_REQUEST_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @RequiresEntitlement(LicensedFeature.WAIVER_REQUEST_WORKFLOW)
   @Operation(
       description = "Use this method to retrieve policy waiver request details for the policyWaiverRequestId specified."
           + "\n" //

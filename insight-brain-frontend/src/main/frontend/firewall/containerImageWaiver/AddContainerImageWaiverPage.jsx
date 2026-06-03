@@ -30,7 +30,13 @@ import { getContainerReportParams } from 'MainRoot/applicationReport/application
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import { actions } from './addContainerImageWaiverPageSlice';
-import { selectAddContainerImageWaiverPage, selectWaiverReasons } from './addContainerImageWaiverPageSelectors';
+import {
+  selectAddContainerImageWaiverPage,
+  selectWaiverReasons,
+  selectNoteToReviewer,
+  selectHasWaivePermission,
+  selectHasCreateWaiverRequestPermission,
+} from './addContainerImageWaiverPageSelectors';
 import { getExpirationDaysMessage, isCustomExpiryTimeSelected, useWaiverExpirations } from 'MainRoot/util/waiverUtils';
 import {
   selectIsContainerImagesEvaluationEnabled,
@@ -50,6 +56,9 @@ export default function AddContainerImageWaiverPage() {
   const uiRouterState = useRouterState();
   const dispatch = useDispatch();
   const { publicId, scanId, origin } = useSelector(selectRouterCurrentParams);
+  const hasWaivePermission = useSelector(selectHasWaivePermission);
+  const hasCreateWaiverRequestPermission = useSelector(selectHasCreateWaiverRequestPermission);
+  const isRequestMode = !hasWaivePermission && hasCreateWaiverRequestPermission;
   const containerReportParams = getContainerReportParams(publicId, scanId, origin);
   const backButtonHref = uiRouterState.href('firewall.containerReport', containerReportParams);
   const isContainerImagesEvalEnabled = useSelector(selectIsContainerImagesEvaluationEnabled);
@@ -68,6 +77,7 @@ export default function AddContainerImageWaiverPage() {
     submitError,
     submitMaskState,
   } = useSelector(selectAddContainerImageWaiverPage);
+  const noteToReviewer = useSelector(selectNoteToReviewer);
   const loadError = !isContainerImagesEvalEnabled && !isProductFeaturesLoading ? FEATURE_NOT_SUPPORTED_TEXT : errorProp;
   const waiverReasons = useSelector(selectWaiverReasons);
   const containerImageLabel = head(split(' : ', containerImageName));
@@ -83,10 +93,15 @@ export default function AddContainerImageWaiverPage() {
   const setCustomExpiryTime = (value) => dispatch(actions.setCustomExpiryTime(value));
   const setWaiverReason = (value) => dispatch(actions.setWaiverReason(value));
   const setWaiverComment = (value) => dispatch(actions.setWaiverComment(value));
-  const save = () => dispatch(actions.save({ publicId, scanId, origin }));
+  const setNoteToReviewer = (value) => dispatch(actions.setNoteToReviewer(value));
+  const save = () =>
+    isRequestMode
+      ? dispatch(actions.requestSave({ publicId, scanId, origin }))
+      : dispatch(actions.save({ publicId, scanId, origin }));
 
   useEffect(() => {
     loadData();
+    dispatch(actions.loadPermissions({}));
   }, []);
 
   const onExpiryTimeChange = (value) => {
@@ -109,7 +124,7 @@ export default function AddContainerImageWaiverPage() {
     <NxPageMain className="add-firewall-container-image-waiver-page">
       <MenuBarBackButton text="Back to Container Report" href={backButtonHref} />
       <NxPageTitle>
-        <NxH1 className="nx-h1">Add Waiver</NxH1>
+        <NxH1 className="nx-h1">{isRequestMode ? 'Request Waiver' : 'Add Waiver'}</NxH1>
       </NxPageTitle>
       <NxTile>
         <NxStatefulForm
@@ -121,6 +136,7 @@ export default function AddContainerImageWaiverPage() {
           validationErrors={formValidationErrors}
           submitError={submitError}
           submitMaskState={submitMaskState}
+          submitBtnText={isRequestMode ? 'Request Waiver' : undefined}
         >
           <NxTile.Header>
             <NxTile.HeaderTitle>
@@ -218,6 +234,17 @@ export default function AddContainerImageWaiverPage() {
                 onChange={setWaiverComment}
               />
             </NxFormGroup>
+
+            {isRequestMode && (
+              <NxFormGroup className="add-waiver-note-to-reviewer" label="Note to Reviewer">
+                <NxTextInput
+                  id="add-container-image-note-to-reviewer"
+                  type="textarea"
+                  {...noteToReviewer}
+                  onChange={setNoteToReviewer}
+                />
+              </NxFormGroup>
+            )}
           </NxTile.Content>
         </NxStatefulForm>
       </NxTile>

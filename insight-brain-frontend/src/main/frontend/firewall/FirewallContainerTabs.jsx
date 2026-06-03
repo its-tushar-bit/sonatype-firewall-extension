@@ -10,22 +10,17 @@ import * as PropTypes from 'prop-types';
 import { map, pipe } from 'ramda';
 import { NxTab, NxTabList, NxTabPanel, NxTabs } from '@sonatype/react-shared-components';
 
-import { QUARANTINE, WAIVERS } from 'MainRoot/constants/states';
+import { QUARANTINE } from 'MainRoot/constants/states';
 import FirewallContainerQuarantineTable from 'MainRoot/firewall/FirewallContainerQuarantineTable';
-import FirewallContainerWaiverTable from 'MainRoot/firewall/FirewallContainerWaiverTable';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 
-const TABS = [QUARANTINE, WAIVERS];
+const TABS = [QUARANTINE];
 
 const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router, stateGo, ...props }, ref) {
   const firewallTabsRefs = {
     quarantine: {
       panel: useRef(),
       name: capitalizeFirstLetter(QUARANTINE),
-    },
-    waivers: {
-      panel: useRef(),
-      name: capitalizeFirstLetter(WAIVERS),
     },
   };
 
@@ -45,8 +40,7 @@ const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router
   const renderTabs = pipe(map(renderTab));
   const onTabSelect = (index) => stateGo(`firewall.firewallPage.containers.${TABS[index]}`);
 
-  const activeTab = router?.currentState?.data?.activeTab === WAIVERS ? WAIVERS : QUARANTINE;
-  const activeTabIndex = TABS.indexOf(activeTab);
+  const activeTabIndex = 0;
 
   return (
     <NxTabs activeTab={activeTabIndex} onTabSelect={onTabSelect}>
@@ -55,9 +49,6 @@ const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router
         <div ref={firewallTabsRefs.quarantine.panel}>
           <FirewallContainerQuarantineTable {...props} />
         </div>
-      </NxTabPanel>
-      <NxTabPanel id={`firewall-container-${WAIVERS}-tab-panel`}>
-        <FirewallContainerWaiverTable {...props} stateGo={stateGo} />
       </NxTabPanel>
     </NxTabs>
   );

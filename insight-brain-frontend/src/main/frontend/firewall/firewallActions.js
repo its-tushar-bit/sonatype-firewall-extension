@@ -35,7 +35,7 @@ import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoo
 import { selectRepositoryId, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
-import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { checkPermissions, authErrorMessage } from 'MainRoot/util/authorizationUtil';
 import { getShowWelcomeModalFromStore, removeShowWelcomeModalFromStore } from './firewallWelcomeModalStore';
 import { loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 
@@ -834,11 +834,15 @@ export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, ge
       const { data } = responses[0];
       const convertData = convertToWaiverViolationFormat(data);
       return checkPermissionToAddWaivers(repositoryId)
-        .then((_) => {
-          dispatch(loadViolationDetailFulfilled({ ...convertData, hasWaivePermission: true, _ }));
+        .then(() => {
+          dispatch(loadViolationDetailFulfilled({ ...convertData, hasWaivePermission: true, hasCreateWaiverRequestPermission: true }));
         })
-        .catch(() => {
-          dispatch(loadViolationDetailFulfilled(convertData));
+        .catch((err) => {
+          if (err === authErrorMessage) {
+            dispatch(loadViolationDetailFulfilled({ ...convertData, hasCreateWaiverRequestPermission: true }));
+          } else {
+            throw err;
+          }
         });
     })
     .catch((error) => {

@@ -168,6 +168,7 @@
 @use '../firewall/bulkWaive/bulkWaivePage/bulkWaiveTableRow/bulkWaiveTableRow';
 @use '../firewall/bulkWaive/bulkWaiveConfigurationPage/firewallBulkWaiveConfigurationPage';
 @use '../firewall/renewWaiver/renewWaiverPage';
+@use '../firewall/waiverRequests/firewallWaiverRequests';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../configuration/userTokensConfiguration/userTokensConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';

@@ -43,10 +43,11 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsFirewallOrRepositoryAndNotContainerImagesEval } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
-import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
+import { loadExistingWaiversData, loadContainerWaiverList } from 'MainRoot/firewall/firewallActions';
+import { clearSelectedReport } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectComponentDetailsViolationsSlice } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { compose, prop } from 'ramda';
-import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
+import { FIREWALL_WAIVER_DETAILS, FIREWALL_WAIVERS } from 'MainRoot/constants/states';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -414,7 +415,7 @@ export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, wai
     });
 
     if (waiverList.length === 1 || idIndex === -1) {
-      const stateToGo = isStandaloneFirewall ? FIREWALL_FIREWALLPAGE_WAIVERS : 'dashboard.overview.waivers';
+      const stateToGo = isStandaloneFirewall ? FIREWALL_WAIVERS : 'dashboard.overview.waivers';
       dispatch(stateGo(stateToGo));
     } else {
       const nextItem = idIndex + 1 === waiverList.length ? waiverList[0] : waiverList[idIndex + 1];
@@ -454,7 +455,13 @@ export function deleteWaiver(ownerType, ownerId, waiverId, ownerName, forContain
           }
           dispatch(deleteWaiverMaskTimerDone());
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        if (routerName === 'transitiveViolations') {
+        if (forContainerImage) {
+          // Refresh the container waiver list so the deleted waiver no longer appears in the
+          // Existing Waivers tab. Clear the cached report so activeProxyFailedViolationCount
+          // is recomputed fresh when the user navigates back to the container report.
+          dispatch(loadContainerWaiverList());
+          dispatch(clearSelectedReport());
+        } else if (routerName === 'transitiveViolations') {
           const currentParams = selectRouterCurrentParams(state);
           const { ownerId = '', scanId = '', hash = '' } = currentParams;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));

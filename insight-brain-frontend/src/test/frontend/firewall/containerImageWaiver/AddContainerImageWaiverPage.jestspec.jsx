@@ -11,6 +11,7 @@ import moment from 'moment';
 import {
   getActiveViolationsWithActionFailUrl,
   getAddContainerImagePolicyWaiverUrl,
+  getCreateContainerImageWaiverRequestUrl,
   getPolicyWaiverReasonsUrl,
 } from 'MainRoot/util/CLMLocation';
 import AddContainerImageWaiverPage from 'MainRoot/firewall/containerImageWaiver/AddContainerImageWaiverPage';
@@ -53,9 +54,10 @@ describe('AddContainerImageWaiverPage', () => {
     jest.spyOn(productFeatures, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
     axiosMock.onGet(getActiveViolationsWithActionFailUrl('test-public-id', 'proxy')).reply(200, mockPayload);
     axiosMock.onGet(getPolicyWaiverReasonsUrl()).reply(200, waiverReasons);
+    axiosMock.onPut(/rest\/user\/permissions/).reply(200, ['WAIVE_POLICY_VIOLATIONS']);
 
     renderComponent();
-    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /Add Waiver/i })).toBeInTheDocument());
   });
 
   it('renders load error when feature flag is disabled', async () => {
@@ -180,6 +182,7 @@ describe('AddContainerImageWaiverPage', () => {
     const commentsInput = screen.getByRole('textbox', { name: 'Comments' });
     await user.type(commentsInput, 'Test waiver comment');
 
+    axiosMock.onPost(getAddContainerImagePolicyWaiverUrl('test-public-id')).reply(200, {});
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     await user.click(submitButton);
     expect(axiosMock.history.post.length).toBe(1);
@@ -199,6 +202,7 @@ describe('AddContainerImageWaiverPage', () => {
     const dateInput = dateWrapper.querySelector('input[type="date"]') || dateWrapper.querySelector('input');
     fireEvent.change(dateInput, { target: { value: futureDate } });
 
+    axiosMock.onPost(getAddContainerImagePolicyWaiverUrl('test-public-id')).reply(200, {});
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     await user.click(submitButton);
 
@@ -212,6 +216,7 @@ describe('AddContainerImageWaiverPage', () => {
   it('passes origin to the save thunk when form is submitted', async () => {
     const user = userEvent.setup();
     const saveSpy = jest.spyOn(addContainerImageWaiverPageSlice.actions, 'save');
+    axiosMock.onPost(getAddContainerImagePolicyWaiverUrl('test-public-id')).reply(200, {});
 
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     await user.click(submitButton);

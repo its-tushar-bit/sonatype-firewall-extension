@@ -993,6 +993,12 @@ export function getWebhookEventTypesUrl(context) {
   return context ? `${baseUrl}?context=${context}` : baseUrl;
 }
 
+export function getListPolicyWaiverRequestsUrl(ownerType, ownerId, repositoryFormat) {
+  const base = uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}`;
+  return repositoryFormat ? `${base}?repositoryFormat=${encodeURIComponent(repositoryFormat)}` : base;
+}
+
+
 export function getCreatePolicyWaiverRequestUrl(ownerType, ownerId, policyViolationId) {
   return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/policyViolation/${policyViolationId}`;
 }
@@ -1760,8 +1766,16 @@ export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
   return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
 }
 
+export function getCreateContainerImageWaiverRequestUrl(containerImageId) {
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiverRequest`;
+}
+
 export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
   return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
+}
+
+export function getContainerImageAllRepositoriesWaiversUrl() {
+  return uriTemplate`/api/v2/policyWaivers/repository_container/REPOSITORY_CONTAINER_ID`;
 }
 
 export function getFirewallBulkWaiverUrl(ownerType, ownerId) {

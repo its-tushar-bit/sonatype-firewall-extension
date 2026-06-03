@@ -42,6 +42,7 @@ describe('firewallReducer', function () {
       showManageWaiverPage: false,
       violationDetails: [],
       hasWaivePermission: false,
+      hasCreateWaiverRequestPermission: false,
     }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
@@ -1452,6 +1453,7 @@ describe('firewallReducer', function () {
           ...minimumState.componentDetailsPage,
           violationDetails: { data: 'payload' },
           hasWaivePermission: false,
+          hasCreateWaiverRequestPermission: false,
           firewallViolationDetailsLoading: false,
           firewallViolationDetailsError: null,
         },
@@ -1460,14 +1462,15 @@ describe('firewallReducer', function () {
       expect(
         reduce(minimumState, {
           type: 'FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED',
-          payload: { data: 'payload', hasWaivePermission: true },
+          payload: { data: 'payload', hasWaivePermission: true, hasCreateWaiverRequestPermission: true },
         })
       ).toEqual({
         ...minimumState,
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
-          violationDetails: { data: 'payload', hasWaivePermission: true },
+          violationDetails: { data: 'payload', hasWaivePermission: true, hasCreateWaiverRequestPermission: true },
           hasWaivePermission: true,
+          hasCreateWaiverRequestPermission: true,
           firewallViolationDetailsLoading: false,
           firewallViolationDetailsError: null,
         },

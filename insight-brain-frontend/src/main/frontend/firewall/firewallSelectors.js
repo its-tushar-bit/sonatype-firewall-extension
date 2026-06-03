@@ -72,6 +72,11 @@ export const selectHasPermissionToAddWaivers = createSelector(
   prop('hasWaivePermission')
 );
 
+export const selectHasFirewallWaiverCreatePermission = createSelector(
+  selectFirewallComponentDetailsPage,
+  prop('hasCreateWaiverRequestPermission')
+);
+
 export const selectComponentDetails = createSelector(selectFirewallComponentDetailsPage, prop('componentDetails'));
 
 export const selectAddWaiverFromFirewallRedirectionProps = createSelector(

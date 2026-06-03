@@ -15,7 +15,10 @@ import {
   QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
   ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
 } from 'MainRoot/utility/services/routeStateUtilService';
-import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS, ROI } from 'MainRoot/constants/states';
+import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS, ROI, REQUESTED, APPROVED } from 'MainRoot/constants/states';
+import FirewallWaiversPage from 'MainRoot/firewall/waiverRequests/FirewallWaiversPage';
+import FirewallReviewWaiverRequestPage from 'MainRoot/firewall/waiverRequests/FirewallReviewWaiverRequestPage';
+import FirewallRequestWaiverPage from 'MainRoot/firewall/waiverRequests/FirewallRequestWaiverPage';
 import { isAuthorized, isFeatureEnabled } from 'MainRoot/util/permissionService';
 import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
@@ -203,6 +206,81 @@ router.stateRegistry.register({
   },
 });
 
+// Standalone Waivers page
+router.stateRegistry.register({
+  name: 'firewall.waivers',
+  url: '/waivers',
+  component: FirewallWaiversPage,
+  data: {
+    title: 'Waivers',
+    authenticationRequired: true,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.components',
+  url: '/components',
+  data: {
+    title: 'Waivers - Components',
+    activeTab: COMPONENTS,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.components.requested',
+  url: '/requested',
+  data: {
+    title: 'Components - Requested Waivers',
+    activeSubTab: REQUESTED,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.components.approved',
+  url: '/approved',
+  data: {
+    title: 'Components - Approved Waivers',
+    activeSubTab: APPROVED,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.containers',
+  url: '/containers',
+  data: {
+    title: 'Waivers - Containers',
+    activeTab: CONTAINERS,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.containers.requested',
+  url: '/requested',
+  data: {
+    title: 'Containers - Requested Waivers',
+    activeSubTab: REQUESTED,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.waivers.containers.approved',
+  url: '/approved',
+  data: {
+    title: 'Containers - Approved Waivers',
+    activeSubTab: APPROVED,
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.reviewWaiverRequest',
+  url: '/waivers/review/{ownerType}/{ownerId}/{waiverRequestId}?origin',
+  component: FirewallReviewWaiverRequestPage,
+  data: {
+    title: 'Review Waiver Request',
+    authenticationRequired: true,
+  },
+});
+
 router.stateRegistry.register({
   name: 'firewall.vulnerabilitySearch',
   url: '/vulnerabilities',
@@ -380,6 +458,17 @@ router.stateRegistry.register({
   component: AddWaiverPageContainer,
   data: {
     title: 'Add Waiver',
+  },
+});
+
+router.stateRegistry.register({
+  name: 'firewall.requestWaiver',
+  url:
+    '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/requestWaiver/{violationId}?pathname&componentDisplayName',
+  component: FirewallRequestWaiverPage,
+  data: {
+    title: 'Request Waiver',
+    isDirty: ['firewallRequestWaiver', 'isDirty'],
   },
 });
 
@@ -1216,6 +1305,17 @@ router.stateRegistry.register({
   component: AddWaiverPageContainer,
   data: {
     title: 'Add Waiver',
+  },
+});
+
+router.stateRegistry.register({
+  name: 'repository.requestWaiver',
+  url:
+    '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/requestWaiver/{violationId}?pathname&componentDisplayName',
+  component: FirewallRequestWaiverPage,
+  data: {
+    title: 'Request Waiver',
+    isDirty: ['firewallRequestWaiver', 'isDirty'],
   },
 });
 

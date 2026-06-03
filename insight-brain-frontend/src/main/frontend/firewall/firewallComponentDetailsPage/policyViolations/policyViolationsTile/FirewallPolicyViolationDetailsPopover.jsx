@@ -23,6 +23,7 @@ import {
   selectFirewallPolicyViolations,
   selectFirewallIsLoading,
   selectHasPermissionToAddWaivers,
+  selectHasFirewallWaiverCreatePermission,
 } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -46,12 +47,17 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const componentDetailsPolicyViolations = useSelector(selectFirewallPolicyViolations);
   const bulkWaivePolicyViolations = useSelector(selectRepositoryComponents);
   const hasPermissionForAddWaivers = useSelector(selectHasPermissionToAddWaivers);
+  const hasFirewallOnlyCreatePermission = useSelector(selectHasFirewallWaiverCreatePermission);
   const loading = useSelector(selectFirewallIsLoading);
   const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
   const hasWaiverRequestWorkflow = useSelector(selectHasWaiverRequestWorkflow);
 
-  // Config flag OFF → button hidden (existing behavior). Config flag ON + no entitlement → button with lock icon.
-  const effectiveWaiverRequestEnabled = isWaiverRequestWorkflowEnabled && hasWaiverRequestWorkflow;
+  // For Standalone Firewall the waiver-request-workflow-enabled system config is a Lifecycle-only concern;
+  // show the button based on the entitlement alone. For non-standalone contexts (e.g. repository results
+  // summary page) retain the combined check so the admin toggle is still respected.
+  const effectiveWaiverRequestEnabled = isStandaloneFirewall
+    ? hasWaiverRequestWorkflow
+    : isWaiverRequestWorkflowEnabled && hasWaiverRequestWorkflow;
 
   // Try to find the violation in component details violations first, then fall back to bulk waive violations, or use selectedPolicyViolation directly
   const policyDetail = selectedPolicyViolation
@@ -77,6 +83,16 @@ export default function FirewallPolicyViolationDetailsPopover() {
     if (!policyDetail) return;
     dispatch(
       stateGo(`${isStandaloneFirewall ? 'firewall' : 'repository'}.addWaiver`, {
+        ...addWaiverRedirectionProps,
+        violationId: policyDetail.policyViolationId,
+      })
+    );
+  };
+
+  const navigateToRequestWaiverPage = () => {
+    if (!policyDetail) return;
+    dispatch(
+      stateGo(`${isStandaloneFirewall ? 'firewall' : 'repository'}.requestWaiver`, {
         ...addWaiverRedirectionProps,
         violationId: policyDetail.policyViolationId,
       })
@@ -125,10 +141,11 @@ export default function FirewallPolicyViolationDetailsPopover() {
             <AddOrRequestWaiverButton
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
               hasPermissionForAppWaivers={hasPermissionForAddWaivers}
+              hasFirewallOnlyCreatePermission={hasFirewallOnlyCreatePermission}
               isFirewallOrRepository
               isWaiverRequestWorkflowEnabled={effectiveWaiverRequestEnabled}
               onClickAddWaiver={redirectToAddWaiverPage}
-              onClickRequestWaiver={() => {}}
+              onClickRequestWaiver={navigateToRequestWaiverPage}
             />
           </NxButtonBar>
         ) : null}

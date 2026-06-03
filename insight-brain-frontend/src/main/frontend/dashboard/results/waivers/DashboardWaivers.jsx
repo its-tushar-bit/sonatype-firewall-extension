@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import * as PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectDashboardFilter, selectCurrentTab, selectWaiversResults } from '../../dashboardSelectors';
@@ -29,7 +30,7 @@ import FirewallDeleteWaiverModalContainer from 'MainRoot/firewall/waivers/Firewa
 import { loadFirewallDashboardWaivePermission } from 'MainRoot/firewall/waivers/firewallDashboardWaiverActions';
 import { NxTabs, NxTabList, NxTab, NxTabPanel, NxTile } from '@sonatype/react-shared-components';
 
-export default function DashboardWaivers() {
+export default function DashboardWaivers({ repositoryFormat }) {
   const loadWaivers = () => dispatch(loadWaiverResults());
   const waiverTabs = [WAIVERS_RESULTS_TYPE, WAIVER_REQUESTS_RESULTS_TYPE];
   const currentTab = useSelector(selectCurrentTab);
@@ -54,10 +55,16 @@ export default function DashboardWaivers() {
   const modifiedWaivers = {
     ...waivers,
     results: waivers?.results
-      ? waivers.results.map((waiver) => ({
-          ...waiver,
-          expiryTime: waiver.expiryTime === null && waiver.isAutoWaiver ? -1 : waiver.expiryTime,
-        }))
+      ? waivers.results
+          .filter((waiver) => {
+            if (!repositoryFormat) return true;
+            // Components tab: exclude all_repositories-scoped waivers (those are container-only).
+            return waiver.ownerType !== 'all_repositories';
+          })
+          .map((waiver) => ({
+            ...waiver,
+            expiryTime: waiver.expiryTime === null && waiver.isAutoWaiver ? -1 : waiver.expiryTime,
+          }))
       : [],
   };
 
@@ -108,3 +115,7 @@ export default function DashboardWaivers() {
     </NxTile>
   );
 }
+
+DashboardWaivers.propTypes = {
+  repositoryFormat: PropTypes.string,
+};

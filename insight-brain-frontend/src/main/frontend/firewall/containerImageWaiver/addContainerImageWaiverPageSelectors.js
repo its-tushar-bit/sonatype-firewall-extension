@@ -11,3 +11,12 @@ export const selectAddContainerImageWaiverPage = prop('addContainerImageWaiverPa
 export const selectWaiverSlice = prop('waivers');
 
 export const selectWaiverReasons = createSelector(selectWaiverSlice, path(['waiverReasons', 'data']));
+
+export const selectHasWaivePermission = createSelector(selectAddContainerImageWaiverPage, prop('hasWaivePermission'));
+
+export const selectHasCreateWaiverRequestPermission = createSelector(
+  selectAddContainerImageWaiverPage,
+  prop('hasCreateWaiverRequestPermission')
+);
+
+export const selectNoteToReviewer = createSelector(selectAddContainerImageWaiverPage, prop('noteToReviewer'));

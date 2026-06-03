@@ -126,4 +126,36 @@ public class PullRequestPollingSchedulerTest
       scheduler.deregister();
     });
   }
+
+  @Test
+  public void setSuppressed_isPerTenant() {
+    Tenant tenant1 = testAsNewTenant(t1 -> {
+      assertThat(scheduler.isSuppressed()).isFalse();
+      assertThat(scheduler.setSuppressed(false)).isFalse();
+    });
+    Tenant tenant2 = testAsNewTenant(t2 -> {
+      assertThat(scheduler.isSuppressed()).isFalse();
+    });
+
+    // Suppress on tenant1 only
+    TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t1 -> {
+      assertThat(scheduler.setSuppressed(true)).isTrue();
+      assertThat(scheduler.isSuppressed()).isTrue();
+    });
+
+    // Tenant2's view must be untouched
+    TenantTestHelper.testAsTenantAndInvalidate(tenant2.tenantSlug, t2 -> {
+      assertThat(scheduler.isSuppressed()).isFalse();
+      assertThat(scheduler.setSuppressed(true)).isTrue();
+    });
+
+    // Reverting tenant1 must not affect tenant2
+    TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t1 -> {
+      assertThat(scheduler.setSuppressed(false)).isTrue();
+      assertThat(scheduler.isSuppressed()).isFalse();
+    });
+    TenantTestHelper.testAsTenantAndInvalidate(tenant2.tenantSlug, t2 -> {
+      assertThat(scheduler.isSuppressed()).isTrue();
+    });
+  }
 }

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.relay;
 
 import java.time.Duration;
 
+import com.sonatype.insight.brain.relay.dto.RelayAckResponse;
+import com.sonatype.insight.brain.relay.dto.RelayEventsResponse;
 import com.sonatype.insight.brain.relay.dto.RelayRegisterResponse;
 import com.sonatype.insight.brain.relay.dto.RelayRotateKeyResponse;
 import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
@@ -30,6 +32,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -442,5 +445,132 @@ public class RelayClientTest
 
     assertThatExceptionOfType(NotAuthorizedException.class)
         .isThrownBy(() -> client.deleteInstallation("key", "12345"));
+  }
+
+  @Test
+  public void pollEvents_success_returnsEvents() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .withHeader("X-Relay-Key", equalTo("k"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{\"events\":[{\"eventId\":\"e1\",\"provider\":\"github\",\"eventType\":\"pull_request_opened\","
+                + "\"repositoryUrl\":\"https://github.com/o/r\",\"timestamp\":\"2026-01-01T00:00:00Z\","
+                + "\"receiptHandle\":\"r-1\",\"payload\":{\"number\":1}}]}")));
+
+    RelayEventsResponse response = client.pollEvents("k", 50);
+
+    assertThat(response.getEvents()).hasSize(1);
+    assertThat(response.getEvents().get(0).getEventId()).isEqualTo("e1");
+    assertThat(response.getEvents().get(0).getReceiptHandle()).isEqualTo("r-1");
+    assertThat(response.getEvents().get(0).getPayload()).containsEntry("number", 1);
+  }
+
+  @Test
+  public void pollEvents_empty_returnsEmptyList() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{\"events\":[]}")));
+
+    RelayEventsResponse response = client.pollEvents("k", 50);
+    assertThat(response.getEvents()).isEmpty();
+  }
+
+  @Test
+  public void pollEvents_401_isNotAuthorized() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .willReturn(aResponse().withStatus(401)));
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> client.pollEvents("k", 50));
+  }
+
+  @Test
+  public void pollEvents_500_mapsTo500() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .willReturn(aResponse().withStatus(500)));
+
+    assertThatExceptionOfType(InternalServerErrorException.class)
+        .isThrownBy(() -> client.pollEvents("k", 50));
+  }
+
+  @Test
+  public void pollEvents_503_mapsToBadGateway() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .willReturn(aResponse().withStatus(503)));
+
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.pollEvents("k", 50));
+  }
+
+  @Test
+  public void pollEvents_malformedJson_isBadGateway() {
+    relayServer.stubFor(get(urlPathEqualTo("/api/events"))
+        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("not json")));
+
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.pollEvents("k", 50));
+  }
+
+  @Test
+  public void pollEvents_blankApiKey_isBadRequest() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.pollEvents(null, 50));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.pollEvents("", 50));
+  }
+
+  @Test
+  public void pollEvents_nonPositiveMax_isBadRequest() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.pollEvents("k", 0));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.pollEvents("k", -1));
+  }
+
+  @Test
+  public void ack_success() {
+    relayServer.stubFor(post(urlPathEqualTo("/api/events/ack"))
+        .withHeader("X-Relay-Key", equalTo("k"))
+        .withRequestBody(equalToJson("{\"receiptHandles\":[\"a\",\"b\"]}"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{\"acknowledged\":[\"a\",\"b\"],\"failed\":[]}")));
+
+    RelayAckResponse response = client.ack("k", java.util.List.of("a", "b"));
+
+    assertThat(response.getAcknowledged()).containsExactly("a", "b");
+    assertThat(response.getFailed()).isEmpty();
+  }
+
+  @Test
+  public void ack_partialFailure_reportsFailedHandles() {
+    relayServer.stubFor(post(urlPathEqualTo("/api/events/ack"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{\"acknowledged\":[\"a\"],\"failed\":[\"b\"]}")));
+
+    RelayAckResponse response = client.ack("k", java.util.List.of("a", "b"));
+
+    assertThat(response.getAcknowledged()).containsExactly("a");
+    assertThat(response.getFailed()).containsExactly("b");
+  }
+
+  @Test
+  public void ack_emptyHandles_returnsEmptyResponseWithoutHttpCall() {
+    RelayAckResponse response = client.ack("k", java.util.Collections.emptyList());
+    assertThat(response.getAcknowledged()).isEmpty();
+    assertThat(response.getFailed()).isEmpty();
+    relayServer.verify(0,
+        com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor(urlPathEqualTo("/api/events/ack")));
+  }
+
+  @Test
+  public void ack_503_mapsToBadGateway() {
+    relayServer.stubFor(post(urlPathEqualTo("/api/events/ack"))
+        .willReturn(aResponse().withStatus(503)));
+
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.ack("k", java.util.List.of("a")));
   }
 }

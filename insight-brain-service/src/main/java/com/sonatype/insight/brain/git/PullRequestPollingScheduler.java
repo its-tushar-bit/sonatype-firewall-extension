@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import datadog.trace.api.Trace;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,14 @@ public class PullRequestPollingScheduler
   private final ScmNodeProcessor scmNodeProcessor;
 
   public boolean disableForTesting;
+
+  /**
+   * Suppresses the body of each scheduled discovery cycle without tearing the scheduler down.
+   * Toggled by {@code RelayPollingService}: when relay polling is healthy this is set to
+   * {@code true} so we don't double-deliver events; when the relay degrades it flips back to
+   * {@code false} so the legacy SCM polling can act as a fallback.
+   */
+  private final TenantReference<AtomicBoolean> suppressed = new TenantReference<>(AtomicBoolean::new);
 
   @Inject
   public PullRequestPollingScheduler(
@@ -148,11 +157,28 @@ public class PullRequestPollingScheduler
   @Trace
   @VisibleForTesting
   void discoverPullRequestsForCommenting() {
+    if (suppressed.get().get()) {
+      log.trace("Pull request polling suppressed by relay integration; skipping cycle");
+      return;
+    }
     if (isLicensed()) {
       log.debug("Commencing pull request polling cycle");
       pullRequestPollingService.fetchAndSendPullRequestsForCommenting();
       log.debug("Pull request polling cycle complete");
     }
+  }
+
+  /**
+   * Suppresses or resumes the discovery cycle for the current tenant. Idempotent.
+   *
+   * @return true if the suppression state changed, false otherwise
+   */
+  public boolean setSuppressed(boolean suppress) {
+    return suppressed.get().getAndSet(suppress) != suppress;
+  }
+
+  public boolean isSuppressed() {
+    return suppressed.get().get();
   }
 
   private void stopPullRequestPolling() {
@@ -163,6 +189,7 @@ public class PullRequestPollingScheduler
     ScheduledExecutorService scheduledExecutorService = tenantScheduledExecutorServices.get();
     scheduledExecutorService.shutdown();
     tenantScheduledExecutorServices.remove();
+    suppressed.remove();
     log.info("Stopped SCM pull request discovery");
   }
 

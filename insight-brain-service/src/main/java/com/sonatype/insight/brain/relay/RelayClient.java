@@ -12,6 +12,9 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
+import com.sonatype.insight.brain.relay.dto.RelayAckRequest;
+import com.sonatype.insight.brain.relay.dto.RelayAckResponse;
+import com.sonatype.insight.brain.relay.dto.RelayEventsResponse;
 import com.sonatype.insight.brain.relay.dto.RelayGitHubAppSecretRequest;
 import com.sonatype.insight.brain.relay.dto.RelayRegisterRequest;
 import com.sonatype.insight.brain.relay.dto.RelayRegisterResponse;
@@ -41,6 +44,7 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -78,6 +82,10 @@ public class RelayClient
   static final String RELAY_KEY_HEADER = "X-Relay-Key";
 
   static final String WEBHOOK_TOKEN_HEADER = "x-relay-webhook-token";
+
+  static final String EVENTS_PATH = "api/events";
+
+  static final String EVENTS_ACK_PATH = "api/events/ack";
 
   static final int CONNECTION_POOL_SIZE = 5;
 
@@ -173,6 +181,41 @@ public class RelayClient
     req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
     req.setHeader(WEBHOOK_TOKEN_HEADER, webhookToken);
     return execute(retryCreator.apply(REGISTER_PATH), req, RelayRegisterResponse.class);
+  }
+
+  /**
+   * Polls the relay for up to {@code maxEvents} buffered events for the customer associated with
+   * {@code apiKey}. Returns an empty response (never null) when the relay has nothing to deliver.
+   */
+  public RelayEventsResponse pollEvents(String apiKey, int maxEvents) {
+    requireApiKey(apiKey);
+    if (maxEvents <= 0) {
+      throw new BadRequestException("maxEvents must be positive.");
+    }
+    String uri = UriBuilder.fromUri(buildUri(EVENTS_PATH)).queryParam("max", maxEvents).build().toString();
+    HttpGet req = new HttpGet(uri);
+    req.setHeader(RELAY_KEY_HEADER, apiKey);
+    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+    RelayEventsResponse response = execute(retryCreator.apply(EVENTS_PATH), req, RelayEventsResponse.class);
+    return response != null ? response : new RelayEventsResponse(java.util.Collections.emptyList());
+  }
+
+  /**
+   * Acknowledges processed events so the relay can drop them from SQS. The relay returns a
+   * per-handle outcome; partial failures are non-fatal and are reported in the response.
+   */
+  public RelayAckResponse ack(String apiKey, java.util.List<String> receiptHandles) {
+    requireApiKey(apiKey);
+    if (receiptHandles == null || receiptHandles.isEmpty()) {
+      return new RelayAckResponse();
+    }
+    HttpPost req = new HttpPost(buildUri(EVENTS_ACK_PATH));
+    req.setEntity(
+        new StringEntity(JsonUtils.format(new RelayAckRequest(receiptHandles)), ContentType.APPLICATION_JSON));
+    req.setHeader(RELAY_KEY_HEADER, apiKey);
+    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+    RelayAckResponse response = execute(retryCreator.apply(EVENTS_ACK_PATH), req, RelayAckResponse.class);
+    return response != null ? response : new RelayAckResponse();
   }
 
   /**

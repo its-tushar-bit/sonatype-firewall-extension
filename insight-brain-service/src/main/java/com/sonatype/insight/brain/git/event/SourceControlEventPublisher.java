@@ -54,6 +54,31 @@ public class SourceControlEventPublisher
     if (null == event || !apiConfigFeaturesService.isSaasLifecycleScmEnabled()) {
       return;
     }
+    doPublish(event);
+  }
+
+  /**
+   * Persists an event without consulting the SaaS-Lifecycle-SCM feature gate. The relay
+   * integration is itself an admin-enabled SCM ingestion path; if the relay flag is on the
+   * customer has implicitly opted in to SCM event processing, and silently dropping events
+   * would mask the relay being non-functional.
+   *
+   * <p>
+   * <b>Restricted use:</b> the only legitimate caller is {@link
+   * com.sonatype.insight.brain.relay.RelayPollingService}. Any new caller must verify it
+   * has its own equivalent feature gate (e.g. an admin-managed configuration property)
+   * before invoking this method — do not copy-paste a publish call from elsewhere.
+   *
+   * @param event the event to persist
+   */
+  public void publishEventBypassingFeatureGate(SourceControlEvent event) {
+    if (null == event) {
+      return;
+    }
+    doPublish(event);
+  }
+
+  private void doPublish(SourceControlEvent event) {
     populateScmUsernameIfMissing(event);
     sourceControlEventDAO.insert(event);
     if (null != sourceControlEventCreationListener && null != sourceControlEventCreationListener.get()) {

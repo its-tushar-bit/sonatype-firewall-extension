@@ -462,8 +462,8 @@ public class ComponentLoader
             if (!relativePopularityJson.isNull()) {
               relativePopularity = (int) (relativePopularityJson.asDouble() * 100);
             }
-            final long catalogDate = componentJson.get("createTime").asLong();
-
+            final JsonNode createTimeJson = componentJson.get("createTime");
+            Long catalogDate = (createTimeJson != null && !createTimeJson.isNull()) ? createTimeJson.asLong() : null;
             component.setRelativePopularity(relativePopularity);
             component.setCatalogDate(catalogDate);
           }

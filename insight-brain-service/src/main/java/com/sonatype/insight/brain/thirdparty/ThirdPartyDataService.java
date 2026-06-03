@@ -158,7 +158,7 @@ public class ThirdPartyDataService
     List<ThirdPartyScan> scanData = thirdPartyScanDAO.getByScanId(scanId);
     if (!scanData.isEmpty()) {
       log.debug("Found {} third party scan data files for scanId {}", scanData.size(), scanId);
-      return loadThirdPartyDataForScan(scanId, scanData.get(0).getCreateTime());
+      return loadThirdPartyDataForScan(scanId);
     }
     return null;
   }
@@ -180,10 +180,7 @@ public class ThirdPartyDataService
     thirdPartyFileDAO.deleteByScanId(scanId);
   }
 
-  private ThirdPartyApplicationReportDTO loadThirdPartyDataForScan(
-      String scanId,
-      final Date scanTime)
-  {
+  private ThirdPartyApplicationReportDTO loadThirdPartyDataForScan(String scanId) {
     ThirdPartyApplicationReportDTO thirdPartyApplicationReportDTO = new ThirdPartyApplicationReportDTO();
 
     List<ThirdPartyFile> scanFiles = thirdPartyFileDAO.getByScanId(scanId);
@@ -199,7 +196,7 @@ public class ThirdPartyDataService
         List<ThirdPartyFileCoordinate> mapValues = (List<ThirdPartyFileCoordinate>) multimap.getValue();
         ThirdPartyFileCoordinate coord = mapValues.get(0);
         ComponentIdentifier componentIdentifier = getComponentIdentifier(coord);
-        thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(mapValues, componentIdentifier, scanTime));
+        thirdPartyApplicationReportDTO.billOfMaterials.add(toBomRow(mapValues, componentIdentifier));
         populateSecurityVulnerabilities(coord, componentIdentifier, thirdPartyApplicationReportDTO);
         populateLicenseInformation(coord, componentIdentifier, thirdPartyApplicationReportDTO);
       }
@@ -286,13 +283,14 @@ public class ThirdPartyDataService
 
   private ThirdPartyBillOfMaterialsRowDTO toBomRow(
       final List<ThirdPartyFileCoordinate> coordinates,
-      final ComponentIdentifier componentIdentifier,
-      final Date scanTime)
+      final ComponentIdentifier componentIdentifier)
   {
     ThirdPartyFileCoordinate coordinate = coordinates.get(0);
     final ThirdPartyBillOfMaterialsRowDTO dto =
         new ThirdPartyBillOfMaterialsRowDTO(componentIdentifier, coordinate.getHash());
-    dto.createTime = scanTime.getTime();
+    // CLM-39739: do not stamp scan upload time as createTime. HDS overwrites this with the real
+    // catalog date for known components; for HDS-miss components, leaving it null keeps the age
+    // policy guard (AgeInDaysConditionType) from firing on a wall-clock placeholder.
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
     dto.pathnames = coordinates.stream().parallel().map(c -> c.getPackageUrl()).collect(Collectors.toSet());

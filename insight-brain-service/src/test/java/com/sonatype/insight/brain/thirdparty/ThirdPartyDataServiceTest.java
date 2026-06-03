@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.thirdparty;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.withinPercentage;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -273,6 +272,26 @@ public class ThirdPartyDataServiceTest
     assertBomContains(scanData.billOfMaterials, coord1, file);
     assertSecurityRowsForComponent(scanData.securityRows, coord1, sec1coord1);
     assertLicenseRowsForComponent(scanData.licenseRows, coord1, 1, lic1coord1);
+  }
+
+  @Test
+  public void testGetScanData_doesNotStampWallClockCreateTime() {
+    // CLM-39739: third-party (CycloneDX) scans must not stamp the scan upload time as createTime.
+    // Doing so caused the policy engine to read an HDS-miss component's catalogDate as "now",
+    // making "Age younger than 7 days" policies false-positive on every HDS-miss component
+    // (e.g. Go pseudo-versions, fictional namespaces, container scans of brand-new images).
+    // After the fix, createTime is left null on the wire; HDS overwrites it with the real catalog
+    // date for known components, and the policy engine's null guard skips unknown components.
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.newThirdPartyFileCoordinate(file, "CycloneDx", "golang",
+        "golang.org/x/sys", "v0.0.0-20180830151530-1cc6d1ef6c74", "hashGoSys",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20180830151530-1cc6d1ef6c74");
+
+    final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    assertThat(scanData.billOfMaterials).hasSize(1);
+    assertThat(scanData.billOfMaterials.get(0).createTime).isNull();
   }
 
   @Test
@@ -663,7 +682,10 @@ public class ThirdPartyDataServiceTest
               ? coordinate.getPackageUrl()
               : PackageUrlIdentifier.toPackageUrl(bomRow.componentIdentifier);
           assertThat(bomRow.componentIdentifier).isEqualTo(handler.getComponentIdentifier(coordinate));
-          assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
+          // CLM-39739: createTime is left null on the wire so HDS fills it in for known components
+          // and HDS-miss components do not carry a wall-clock placeholder that the age policy
+          // engine would interpret as "freshly cataloged."
+          assertThat(bomRow.createTime).isNull();
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
           assertThat(bomRow.packageUrl).isEqualTo(expectedPurl);
         });

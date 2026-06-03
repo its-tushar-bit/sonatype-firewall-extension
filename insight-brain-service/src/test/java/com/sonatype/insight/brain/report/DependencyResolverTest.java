@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.google.common.collect.Sets;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
@@ -938,7 +939,8 @@ public class DependencyResolverTest
 
     assertThat(newIsNode.get("hash").asText()).isNotBlank();
     assertThat(newIsNode.get("proprietary").asBoolean()).isFalse();
-    assertThat(newIsNode.get("createTime")).isNotNull();
+    // CLM-39739: HDS-miss components emit JSON null, not a wall-clock timestamp.
+    assertThat(newIsNode.get("createTime")).isEqualTo(NullNode.getInstance());
     assertThat(newIsNode.get("relativePopularity").asInt()).isZero();
     assertThat(newIsNode.get("filenames").get(0).asText()).isEqualTo(
         PackageUrlIdentifier.fromComponentIdentifier(innerSourceId).getPackageUrl());

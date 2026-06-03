@@ -101,10 +101,11 @@ public class AgeInDaysConditionType
 
   @Override
   public boolean internalEvaluateCondition(Component component, String operator, Integer value) {
-    if (component.getCatalogDate() == null || component.getCatalogDate() == 0L) {
+    Long catalogDate = component.getCatalogDate();
+    if (catalogDate == null || catalogDate <= 0L) {
       return false;
     }
-    int ageInDays = (int) ((System.currentTimeMillis() - component.getCatalogDate()) / DAY_IN_MILLISECONDS);
+    int ageInDays = (int) ((System.currentTimeMillis() - catalogDate) / DAY_IN_MILLISECONDS);
     if ("older than".equals(operator)) {
       return ageInDays > value;
     }

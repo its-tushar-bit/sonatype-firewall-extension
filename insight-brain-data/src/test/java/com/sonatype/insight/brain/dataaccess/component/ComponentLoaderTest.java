@@ -553,6 +553,71 @@ public class ComponentLoaderTest
   }
 
   @Test
+  public void testGetAll_NullCreateTime_setsCatalogDateToNull() throws Exception {
+    String hash = "abc123-null-ct";
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+
+    ObjectNode component = objectMapper.createObjectNode();
+    ComponentIdentifier id = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component.set("componentIdentifier", objectMapper.valueToTree(id));
+    component.put("hash", hash);
+    component.put("matchState", MatchState.EXACT.getId());
+    component.set("displayName", objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(id)));
+    component.put("proprietary", false);
+    component.put("relativePopularity", 50.0);
+    component.putNull("createTime");
+
+    aaData.add(objectMapper.valueToTree(component));
+    bom.set("aaData", aaData);
+
+    ObjectNode securityData = objectMapper.createObjectNode();
+    securityData.set("aaData", objectMapper.createArrayNode());
+
+    List<Component> components = componentLoader.getAll(null, false,
+        objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).hasSize(1);
+    assertThat(components.get(0).getCatalogDate())
+        .as("HDS-miss component with null createTime must yield null catalogDate (CLM-39739)")
+        .isNull();
+  }
+
+  @Test
+  public void testGetAll_PresentCreateTime_setsCatalogDateToValue() throws Exception {
+    String hash = "abc123-real-ct";
+    long expectedCatalogDate = 1577836800000L; // 2020-01-01T00:00:00Z
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+
+    ObjectNode component = objectMapper.createObjectNode();
+    ComponentIdentifier id = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component.set("componentIdentifier", objectMapper.valueToTree(id));
+    component.put("hash", hash);
+    component.put("matchState", MatchState.EXACT.getId());
+    component.set("displayName", objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(id)));
+    component.put("proprietary", false);
+    component.put("relativePopularity", 50.0);
+    component.put("createTime", expectedCatalogDate);
+
+    aaData.add(objectMapper.valueToTree(component));
+    bom.set("aaData", aaData);
+
+    ObjectNode securityData = objectMapper.createObjectNode();
+    securityData.set("aaData", objectMapper.createArrayNode());
+
+    List<Component> components = componentLoader.getAll(null, false,
+        objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).hasSize(1);
+    assertThat(components.get(0).getCatalogDate())
+        .as("HDS-hit component with real createTime must yield the same catalogDate")
+        .isEqualTo(expectedCatalogDate);
+  }
+
+  @Test
   public void testGetAll_WithDetectionType() throws Exception {
     String hash = "abc123";
     String refId = "CVE-123";

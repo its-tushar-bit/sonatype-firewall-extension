@@ -131,8 +131,8 @@ public class ApiPolicyExportResourceV2
       @Parameter(description = "Internal ID of the owner",
           required = true) @PathParam("ownerId") @AuthzContext(AuthzContext.Key.INTERNAL_ID) final String ownerId,
       @Parameter(description = "If true, include policies from parent levels in the hierarchy. " +
-          "For repositories, includes policies from the repository and parent organization " +
-          "(RepositoryManager and RepositoryContainer levels are skipped as they do not define policies). " +
+          "For repositories, includes policies from the repository, RepositoryManager, RepositoryContainer, and parent organization. "
+          +
           "For applications, includes policies from the application and parent organization(s). " +
           "For organizations, includes policies from the organization and any parent organizations. " +
           "Default: false (direct policies only)") @QueryParam("includeInherited") @DefaultValue("false") final boolean includeInherited)

@@ -37,11 +37,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sonatype</groupId>
-      <artifactId>jemalloc-jni</artifactId>
-      <version>1.0.0-01</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
@@ -296,7 +291,6 @@
               <artifactSet>
                 <includes>
                   <include>com.sonatype.insight.brain:insight-brain-service</include>
-                  <include>com.sonatype:jemalloc-jni</include>
                   <include>io.dropwizard:dropwizard-json-logging</include>
                   <include>io.opentracing:*</include>
                   <include>com.datadoghq:dd-trace-api</include>
@@ -490,15 +484,7 @@
                   <outputDirectory>${project.build.directory}</outputDirectory>
                   <destFileName>dd-java-agent.jar</destFileName>
                 </artifactItem>
-                <artifactItem>
-                  <groupId>com.sonatype</groupId>
-                  <artifactId>jemalloc-jni</artifactId>
-                  <classifier>linux-x86_64</classifier>
-                  <type>so</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                  <destFileName>libjemalloc-jni.so</destFileName>
-                </artifactItem>
+
               </artifactItems>
             </configuration>
           </execution>

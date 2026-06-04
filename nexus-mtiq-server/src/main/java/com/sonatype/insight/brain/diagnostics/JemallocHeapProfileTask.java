@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.diagnostics;
 
 import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.jemalloc.JemallocProfileDumper;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -45,8 +44,9 @@ public class JemallocHeapProfileTask
     try {
       profilingAlreadyActive = JemallocProfileDumper.dumpProfile(profilePath.toString());
     }
-    catch (UnsatisfiedLinkError e) {
-      throw new IllegalStateException("jemalloc-jni library not loaded, unable to create heap profile");
+    catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+      throw new IllegalStateException(
+          "jemalloc mallctl symbol not available, unable to create heap profile. Is jemalloc LD_PRELOAD'd?", e);
     }
 
     log.info("Created jemalloc heap profile: {}", basename);

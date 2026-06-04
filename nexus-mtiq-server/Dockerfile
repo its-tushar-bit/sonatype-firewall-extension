@@ -44,14 +44,16 @@ RUN apt-get update && apt-get install -y \
   curl \
   libjemalloc2 \
   tini \
-&& rm -rf /var/lib/apt/lists/*
+&& rm -rf /var/lib/apt/lists/* \
+# Java's System.loadLibrary("jemalloc") requires the unversioned libjemalloc.so name (dev-package
+# convention), but only libjemalloc2 (runtime package) is installed. Create the symlink manually.
+&& for f in /usr/lib/*/libjemalloc.so.2; do ln -sf "$f" "${f%.2}"; done
 
 # Copy assembly from builder
 COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server
 
-# Copy Datadog jar and JNI code
+# Copy Datadog jar
 COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
-COPY target/libjemalloc-jni.so /opt/sonatype/nexus-iq-server/libjemalloc-jni.so
 
 # This is where we will store persistent data
 VOLUME /sonatype-work
@@ -62,8 +64,8 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -Djava.library.path=/opt/sonatype/nexus-iq-server -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
-ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"
+ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
+ENV LD_PRELOAD="libjemalloc.so.2"
 
 # Use tini init in order to get proper orphaned process reaping
 ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]

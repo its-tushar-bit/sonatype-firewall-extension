@@ -10,6 +10,8 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.security.CurrentUser.ANONYMOUS;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
@@ -123,6 +125,13 @@ public class HdsClient
 
   private final ConsumptionRecorder consumptionRecorder;
 
+  // Cache the FedRAMP audit feature flag check for 5 minutes. Without this, every HDS POST issued by the telemetry
+  // submitter triggers a SystemConfigurationPropertyDAO.getByName DB call inside maybeAddUsernameHeader; if the
+  // connection pool is contended the submitter blocks indefinitely on borrowObject and the telemetry queue grows
+  // unbounded (CLM-40144). Remove once #15913 (general SystemConfigurationProperty caching) is merged.
+  private final Supplier<Boolean> fedRampAuditEnabled = Suppliers.memoizeWithExpiration(
+      ENABLE_FEDRAMP_AUDIT::isEnabled, Duration.ofMinutes(5));
+
   private static volatile String version;
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "hds.upload.file";
@@ -145,7 +154,7 @@ public class HdsClient
 
   static final String USERNAME_HEADER = "X-CLM-Username";
 
-  static final String DISABLE_TELEMETRY_CONFIG_KEY = "com.sonatype.insight.disableOutboundTelemetryRequests";
+  public static final String DISABLE_TELEMETRY_CONFIG_KEY = "com.sonatype.insight.disableOutboundTelemetryRequests";
 
   static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats", "user-telemetry");
 
@@ -1105,8 +1114,20 @@ public class HdsClient
     version = versionService.getVersion("Unknown");
   }
 
+  private boolean isFedRampAuditEnabled() {
+    try {
+      // Guava memoization does not cache exceptions, so a transient failure does not pin this at false for the full
+      // expiry window; the next request re-evaluates rather than staying disabled until the cache rolls over.
+      return fedRampAuditEnabled.get();
+    }
+    catch (Exception e) {
+      log.warn("Failed to check FedRAMP audit config, defaulting to disabled", e);
+      return false;
+    }
+  }
+
   private void maybeAddUsernameHeader(final HttpUriRequest req) {
-    if (currentUser == null || !ENABLE_FEDRAMP_AUDIT.isEnabled()) {
+    if (currentUser == null || !isFedRampAuditEnabled()) {
       return;
     }
 

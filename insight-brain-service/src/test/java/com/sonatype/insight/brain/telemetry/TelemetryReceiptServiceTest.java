@@ -261,7 +261,7 @@ public class TelemetryReceiptServiceTest
     }
 
     // Submit telemetry data
-    return receiptService.onTelemetrySubmitted(telemetryData);
+    return receiptService.onTelemetrySubmitted(telemetryData, System.currentTimeMillis());
   }
 
   private void asBaseUrl(String baseUrl) {

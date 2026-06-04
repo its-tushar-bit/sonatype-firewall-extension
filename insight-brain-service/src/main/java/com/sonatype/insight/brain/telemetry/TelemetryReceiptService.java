@@ -33,7 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 @Singleton
 public class TelemetryReceiptService
 {
-  private static final TelemetryReceipt NO_RECEIPT = new TelemetryReceipt(List.of());
+  private static final TelemetryReceipt NO_RECEIPT = new TelemetryReceipt(List.of(), 0L);
 
   private static final String LOCALHOST_URL = "http://localhost";
 
@@ -104,12 +104,12 @@ public class TelemetryReceiptService
         receiptDTOS);
   }
 
-  public TelemetryReceipt onTelemetrySubmitted(List<TelemetryData> telemetryData) {
+  public TelemetryReceipt onTelemetrySubmitted(List<TelemetryData> telemetryData, long submitTimeMs) {
     if (!shouldCapture(telemetryData)) {
       return NO_RECEIPT;
     }
 
-    return addReceiptFor(telemetryData);
+    return addReceiptFor(telemetryData, submitTimeMs);
   }
 
   private boolean isForLocalhost() {
@@ -147,8 +147,8 @@ public class TelemetryReceiptService
     return purposes;
   }
 
-  private TelemetryReceipt addReceiptFor(List<TelemetryData> telemetryData) {
-    var telemetryReceipt = new TelemetryReceipt(telemetryData);
+  private TelemetryReceipt addReceiptFor(List<TelemetryData> telemetryData, long submitTimeMs) {
+    var telemetryReceipt = new TelemetryReceipt(telemetryData, submitTimeMs);
     telemetryReceipts.get().add(telemetryReceipt);
     return telemetryReceipt;
   }
@@ -191,7 +191,7 @@ public class TelemetryReceiptService
   {
     private final List<TelemetryData> telemetryData;
 
-    private final long submitTimeMs = System.currentTimeMillis();
+    private final long submitTimeMs;
 
     private long sentTimeMs;
 
@@ -199,8 +199,9 @@ public class TelemetryReceiptService
 
     private Exception errorResult;
 
-    public TelemetryReceipt(List<TelemetryData> telemetryData) {
+    public TelemetryReceipt(List<TelemetryData> telemetryData, long submitTimeMs) {
       this.telemetryData = telemetryData;
+      this.submitTimeMs = submitTimeMs;
     }
 
     public void markInError(Exception error) {

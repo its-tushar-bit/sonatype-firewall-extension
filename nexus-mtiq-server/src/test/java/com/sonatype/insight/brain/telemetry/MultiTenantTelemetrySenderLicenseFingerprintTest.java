@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -101,7 +102,8 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
     HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId, null, null);
     telemetrySender =
-        new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService);
+        new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService,
+            TelemetrySender.DEFAULT_MAX_QUEUE_SIZE, TelemetrySender.DEFAULT_DRAIN_TIMEOUT_MS);
 
     telemetrySender.start();
   }
@@ -137,9 +139,9 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
       // send some fake telemetry
       TelemetryData telemetryDataSend = new TelemetryData(TelemetryPurpose.DATABASE);
       telemetryDataSend.put("test-key", "test-value");
-      doReturn(new TelemetryReceipt(List.of(telemetryDataSend)))
+      doReturn(new TelemetryReceipt(List.of(telemetryDataSend), System.currentTimeMillis()))
           .when(mockTelemetryReceiptService)
-          .onTelemetrySubmitted(anyList());
+          .onTelemetrySubmitted(anyList(), anyLong());
       telemetrySender.send(telemetryDataSend);
     });
 

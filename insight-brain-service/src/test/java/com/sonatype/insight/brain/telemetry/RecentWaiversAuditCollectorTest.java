@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -26,6 +28,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +50,9 @@ public class RecentWaiversAuditCollectorTest
   private String testAppId;
 
   private RecentWaiversAuditCollector collector;
+
+  // Counter ensures scan IDs are unique even under rapid iteration in the cap test
+  private final AtomicInteger scanCounter = new AtomicInteger(0);
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
@@ -233,6 +239,22 @@ public class RecentWaiversAuditCollectorTest
   }
 
   @Test
+  @Category(SlowTest.class)
+  public void collectAllData_WhenViolationCountExceedsCap_ReturnsExactlyCapEntries() {
+    // given: More violations than the cap (501), all waived within the lookback window
+    for (int i = 0; i < 501; i++) {
+      PolicyWaiver waiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), testAppId);
+      createWaivedViolation(jacksonDatabind, waiver, 24);
+    }
+
+    // when
+    List<TelemetryData> telemetryData = collector.collectAllData();
+
+    // then: Result is bounded to the 500-entry cap defined in PolicyViolationDAO
+    assertThat(telemetryData).hasSize(500);
+  }
+
+  @Test
   public void isClusterTelemetry_ReturnsTrue() {
     // when
     boolean isClusterTelemetry = collector.isClusterTelemetry();
@@ -249,8 +271,8 @@ public class RecentWaiversAuditCollectorTest
       PolicyWaiver waiver,
       int hoursAgo)
   {
-    // Use unique scan ID to avoid duplicate key violations
-    String scanId = "scanId-" + System.nanoTime();
+    // nanoTime + counter guarantees uniqueness under rapid iteration (e.g., cap test with 501 inserts)
+    String scanId = "scanId-" + System.nanoTime() + "-" + scanCounter.getAndIncrement();
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(testAppId, TEST_STAGE, scanId);
 
     Date openTime = DateTime.now().minusHours(hoursAgo + 10).toDate();
@@ -271,8 +293,8 @@ public class RecentWaiversAuditCollectorTest
    * Creates an auto-waived violation for testing.
    */
   private PolicyViolation createAutoWaivedViolation(ComponentIdentifier component, int hoursAgo) {
-    // Use unique scan ID to avoid duplicate key violations
-    String scanId = "scanId-" + System.nanoTime();
+    // nanoTime + counter guarantees uniqueness under rapid iteration (e.g., cap test with 501 inserts)
+    String scanId = "scanId-" + System.nanoTime() + "-" + scanCounter.getAndIncrement();
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(testAppId, TEST_STAGE, scanId);
 
     Date openTime = DateTime.now().minusHours(hoursAgo + 10).toDate();

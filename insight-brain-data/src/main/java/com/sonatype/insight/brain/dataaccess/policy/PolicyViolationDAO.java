@@ -78,6 +78,10 @@ public class PolicyViolationDAO
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationDAO.class);
 
+  // Caps per-run result size for audit collectors to prevent OOM at scale (EI-1273).
+  // Violations beyond the cap are dropped — acceptable since downstream analytics tolerate sampling.
+  private static final int MAX_AUDIT_VIOLATIONS_PER_RUN = 500;
+
   @Override
   public Table<?> getJooqTable() {
     return POLICY_VIOLATION;
@@ -2062,10 +2066,11 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Returns violations remediated since the cutoff time.
+   * Returns up to {@value #MAX_AUDIT_VIOLATIONS_PER_RUN} violations remediated since the cutoff
+   * time, ordered by fix_time ascending. Logs a warning if the cap is reached.
    *
    * @param cutoffTime the cutoff date (violations with fixTime >= cutoffTime are returned)
-   * @return list of remediated violations, empty list if none found
+   * @return list of remediated violations (capped), empty list if none found
    */
   public List<PolicyViolation> findRemediatedSince(Date cutoffTime) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -2074,27 +2079,37 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Returns violations remediated since the cutoff time.
+   * Returns up to {@value #MAX_AUDIT_VIOLATIONS_PER_RUN} violations remediated since the cutoff
+   * time, ordered by fix_time ascending. Logs a warning if the cap is reached.
    *
    * @param tx the transaction context
    * @param cutoffTime the cutoff date (violations with fixTime >= cutoffTime are returned)
-   * @return list of remediated violations, empty list if none found
+   * @return list of remediated violations (capped), empty list if none found
    */
   public List<PolicyViolation> findRemediatedSince(TransactionContext tx, Date cutoffTime) {
-    return tx.dsl()
+    List<PolicyViolation> results = tx.dsl()
         .selectFrom(POLICY_VIOLATION)
         .where(POLICY_VIOLATION.FIX_TIME.greaterOrEqual(cutoffTime))
+        .orderBy(POLICY_VIOLATION.FIX_TIME.asc())
+        .limit(MAX_AUDIT_VIOLATIONS_PER_RUN)
         .fetchInto(PolicyViolation.class);
+    if (results.size() == MAX_AUDIT_VIOLATIONS_PER_RUN) {
+      log.warn(
+          "findRemediatedSince hit the {} violation cap — some remediated violations will not be included in audit telemetry this run.",
+          MAX_AUDIT_VIOLATIONS_PER_RUN);
+    }
+    return results;
   }
 
   /**
-   * Returns violations CURRENTLY waived since the cutoff time.
+   * Returns up to {@value #MAX_AUDIT_VIOLATIONS_PER_RUN} violations CURRENTLY waived since the
+   * cutoff time, ordered by waive_time ascending. Logs a warning if the cap is reached.
    * <p>
    * IMPORTANT: This excludes violations that were waived but later remediated.
    * Those violations appear in RecentRemediationsAuditCollector instead.
    *
    * @param cutoffTime the cutoff date (violations with waiveTime >= cutoffTime are returned)
-   * @return list of currently waived violations, empty list if none found
+   * @return list of currently waived violations (capped), empty list if none found
    */
   public List<PolicyViolation> findCurrentlyWaivedSince(Date cutoffTime) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -2103,20 +2118,29 @@ public class PolicyViolationDAO
   }
 
   /**
-   * Returns violations CURRENTLY waived since the cutoff time.
+   * Returns up to {@value #MAX_AUDIT_VIOLATIONS_PER_RUN} violations CURRENTLY waived since the
+   * cutoff time, ordered by waive_time ascending. Logs a warning if the cap is reached.
    * <p>
    * IMPORTANT: This excludes violations that were waived but later remediated.
    * Those violations appear in RecentRemediationsAuditCollector instead.
    *
    * @param tx the transaction context
    * @param cutoffTime the cutoff date (violations with waiveTime >= cutoffTime are returned)
-   * @return list of currently waived violations, empty list if none found
+   * @return list of currently waived violations (capped), empty list if none found
    */
   public List<PolicyViolation> findCurrentlyWaivedSince(TransactionContext tx, Date cutoffTime) {
-    return tx.dsl()
+    List<PolicyViolation> results = tx.dsl()
         .selectFrom(POLICY_VIOLATION)
         .where(POLICY_VIOLATION.WAIVE_TIME.greaterOrEqual(cutoffTime)
             .and(POLICY_VIOLATION.FIX_TIME.isNull()))
+        .orderBy(POLICY_VIOLATION.WAIVE_TIME.asc())
+        .limit(MAX_AUDIT_VIOLATIONS_PER_RUN)
         .fetchInto(PolicyViolation.class);
+    if (results.size() == MAX_AUDIT_VIOLATIONS_PER_RUN) {
+      log.warn(
+          "findCurrentlyWaivedSince hit the {} violation cap — some waived violations will not be included in audit telemetry this run.",
+          MAX_AUDIT_VIOLATIONS_PER_RUN);
+    }
+    return results;
   }
 }

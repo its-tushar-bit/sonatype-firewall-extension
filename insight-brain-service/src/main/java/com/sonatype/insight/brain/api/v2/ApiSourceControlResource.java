@@ -85,6 +85,8 @@ public class ApiSourceControlResource
 
   static final String RELAY_REGISTER_PATH = "/relay/register";
 
+  static final String RELAY_DEREGISTER_PATH = "/relay/deregister";
+
   static final String RELAY_WEBHOOK_URL_PATH = "/relayWebhookUrl";
 
   static final String RELAY_WEBHOOK_SECRET_PATH = "/relayWebhookSecret";
@@ -441,6 +443,30 @@ public class ApiSourceControlResource
   public Response registerWithRelay(RelayRegisterAdminRequest body) {
     try {
       sourceControlService.registerWithRelay(body);
+      return Response.ok().build();
+    }
+    catch (RelayFeatureDisabledException e) {
+      return Response.status(Status.PRECONDITION_FAILED).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+    }
+  }
+
+  @POST
+  @Path(RELAY_DEREGISTER_PATH)
+  @Audited(AuditEvent.DEREGISTER_SCM_RELAY)
+  @Operation(description = "Deregister this IQ Server from the SCM webhook relay. Drops the local "
+      + "relay_configuration row and asks the relay to delete the customer record (SQS queue + "
+      + "DynamoDB row). Required before switching auth modes (PAT ↔ GitHub App) since the relay "
+      + "rejects cross-mode switching of an existing customer."
+      + "\n\nPermissions required: System Configuration.",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "Deregistration succeeded (or the local row was already absent)."),
+        @ApiResponse(responseCode = "412",
+            description = "The relay integration feature flag is disabled.")
+      })
+  public Response deregisterFromRelay() {
+    try {
+      sourceControlService.deregisterFromRelay();
       return Response.ok().build();
     }
     catch (RelayFeatureDisabledException e) {

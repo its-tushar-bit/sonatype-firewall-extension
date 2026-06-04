@@ -298,6 +298,20 @@ public class ApiSourceControlService
   }
 
   /**
+   * Admin-triggered deregistration. Drops the local row and best-effort calls the relay's
+   * {@code DELETE /api/register} to remove the customer record (SQS queue + DynamoDB row).
+   * Idempotent: silent no-op if no local row exists.
+   */
+  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
+  public void deregisterFromRelay() {
+    // Use the admin-triggered path which calls requireFeatureGateOpen() so a closed feature
+    // gate surfaces as RelayFeatureDisabledException → 412 (matches sibling endpoints).
+    // deregisterTenant() bypasses the gate and is reserved for tenant-lifecycle paths
+    // (DeleteTenantsJob) where the gate state is irrelevant.
+    relayRegistrationService.deregisterIfRegistered();
+  }
+
+  /**
    * Returns the webhook URL the SCM provider should be pointed at, or {@code null} if no
    * registration exists. The resource layer maps {@code null} to 404 and a closed feature gate
    * to 412.

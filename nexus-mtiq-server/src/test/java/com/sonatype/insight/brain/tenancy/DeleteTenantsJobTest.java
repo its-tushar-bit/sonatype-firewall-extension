@@ -176,7 +176,7 @@ public class DeleteTenantsJobTest
   public void testDeleteTenant_jobRegistration() {
     MultiTenantTaskScheduler taskScheduler = mock(MultiTenantTaskScheduler.class);
 
-    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null, null, null);
+    deleteTenantsJob = new DeleteTenantsJob(taskScheduler, null, null, null, null, null, null, null, null, null, null);
 
     deleteTenantsJob.register();
 

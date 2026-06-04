@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.relay.dto.RelayRotateKeyResponse;
 import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.lifecycle.Managed;
@@ -55,6 +57,8 @@ public class RelayRegistrationService
 
   private final GitHubAppDAO gitHubAppDAO;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public RelayRegistrationService(
       RelayClient relayClient,
@@ -62,7 +66,8 @@ public class RelayRegistrationService
       @Nullable LicenseContent licenseContent,
       PasswordHandler passwordHandler,
       Configuration configuration,
-      GitHubAppDAO gitHubAppDAO)
+      GitHubAppDAO gitHubAppDAO,
+      TenantUtil tenantUtil)
   {
     this.relayClient = relayClient;
     this.relayConfigurationDAO = relayConfigurationDAO;
@@ -70,6 +75,7 @@ public class RelayRegistrationService
     this.passwordHandler = passwordHandler;
     this.configuration = configuration;
     this.gitHubAppDAO = gitHubAppDAO;
+    this.tenantUtil = tenantUtil;
   }
 
   /**
@@ -156,6 +162,12 @@ public class RelayRegistrationService
     // moves on rather than aborting bean wiring. The polling cycle will figure out the
     // actual registration state on its first tick once the application is fully started.
     try {
+      // In MTIQ, Managed.start() runs once in the global-tenant context where there is no
+      // relay_configuration table; per-tenant register() drives this method instead.
+      if (tenantUtil.isMultiTenant() && tenantUtil.isGlobalTenant()) {
+        log.debug("Skipping relay registerOnStartup in global tenant context");
+        return;
+      }
       if (!isFeatureGateOpen()) {
         log.debug("Relay integration gate closed; skipping registerOnStartup");
         return;
@@ -168,6 +180,62 @@ public class RelayRegistrationService
     }
     catch (RuntimeException e) {
       log.warn("Relay registration on startup failed; will retry on next admin trigger: {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Best-effort tenant deregistration. Decrypts the stored API key, asks the relay to drop the
+   * tenant's SQS queue and DynamoDB record, and removes the local {@code relay_configuration}
+   * row. Best-effort: the local row drop is attempted regardless of whether the relay returns
+   * 404, 5xx, or a network error — a dead relay never blocks tenant deletion. If the local DAO
+   * delete itself throws, the failure is logged and swallowed; in the tenant-deletion flow the
+   * caller (DeleteTenantsJob) drops the entire schema immediately afterwards, which removes the
+   * row. Returns silently if no row exists.
+   *
+   * <p>
+   * Callers outside the tenant-deletion flow MUST NOT rely on the local row being unconditionally
+   * removed; if the DAO delete fails the row may persist until the next tenant-deletion attempt.
+   *
+   */
+  public void deregisterTenant() {
+    RelayConfiguration configurationRow = relayConfigurationDAO.get();
+    if (configurationRow == null) {
+      log.debug("No relay_configuration row to deregister; skipping");
+      return;
+    }
+    String apiKey = decryptForDeregister(configurationRow.getApiKey());
+    if (apiKey != null) {
+      try {
+        relayClient.deregister(apiKey);
+        log.info("Relay deregistration succeeded (customerId={})", configurationRow.getCustomerId());
+      }
+      catch (NotFoundException e) {
+        log.info("Relay reported customer already gone; dropping local row (customerId={})",
+            configurationRow.getCustomerId());
+      }
+      catch (RuntimeException e) {
+        log.warn("Relay deregister failed; dropping local row anyway (customerId={}): {}",
+            configurationRow.getCustomerId(), e.getMessage());
+      }
+    }
+    try {
+      relayConfigurationDAO.delete();
+    }
+    catch (RuntimeException e) {
+      log.warn("Failed to delete local relay_configuration row: {}", e.getMessage());
+    }
+  }
+
+  private String decryptForDeregister(String encryptedApiKey) {
+    if (StringUtils.isBlank(encryptedApiKey)) {
+      return null;
+    }
+    try {
+      return passwordHandler.decryptPassword(encryptedApiKey);
+    }
+    catch (RuntimeException e) {
+      log.warn("Failed to decrypt relay API key for deregister; skipping remote call: {}", e.getMessage());
+      return null;
     }
   }
 

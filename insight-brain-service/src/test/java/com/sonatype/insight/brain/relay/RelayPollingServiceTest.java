@@ -46,6 +46,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +86,9 @@ public class RelayPollingServiceTest
   @Mock
   private ScmNodeProcessor scmNodeProcessor;
 
+  private final RelayPollingStartDelayCalculator startDelayCalculator =
+      (interval, defaultDelay) -> defaultDelay;
+
   private RelayPollingService service;
 
   @Before
@@ -96,7 +100,7 @@ public class RelayPollingServiceTest
     // Default: 3 failures triggers fallback (matches the production constant).
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
         relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 50, 3, 1);
+        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 50, 3, 1);
     service.disableSchedulingForTesting = true;
 
     lenient().when(passwordHandler.decryptPassword(anyString())).thenAnswer(inv -> "plain-" + inv.getArgument(0));
@@ -334,7 +338,7 @@ public class RelayPollingServiceTest
   public void pollOnce_respectsConfiguredMaxEvents() {
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
         relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 7, 3, 1);
+        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 7, 3, 1);
     service.disableSchedulingForTesting = true;
     primeRegistration();
     when(relayClient.pollEvents("plain-encrypted-key", 7)).thenReturn(new RelayEventsResponse(Collections.emptyList()));
@@ -587,6 +591,30 @@ public class RelayPollingServiceTest
     service.register();
 
     verify(relayClient, never()).pollEvents(anyString(), anyInt());
+    verify(relayRegistrationService, never()).registerOnStartup();
+  }
+
+  @Test
+  public void register_triggersPerTenantRegistrationOnce() {
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+
+    service.register();
+
+    verify(relayRegistrationService, times(1)).registerOnStartup();
+  }
+
+  @Test
+  public void register_swallowsRegistrationFailures() {
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+    org.mockito.Mockito.doThrow(new RuntimeException("boom")).when(relayRegistrationService).registerOnStartup();
+
+    service.register(); // must not throw
+
+    // Confirm registration WAS attempted (the catch is in register(), not in the caller).
+    // startPolling() is a no-op under disableSchedulingForTesting, so the symmetric
+    // try/catch around it cannot be exercised here without invasive plumbing; the
+    // production code path is documented in register()'s Javadoc.
+    verify(relayRegistrationService).registerOnStartup();
   }
 
   @Test
@@ -608,7 +636,7 @@ public class RelayPollingServiceTest
     // Allow up to 3 drain iterations.
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
         relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, 0, 60, 2, 3, 3);
+        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 2, 3, 3);
     service.disableSchedulingForTesting = true;
     primeRegistration();
 

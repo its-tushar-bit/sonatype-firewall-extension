@@ -156,4 +156,22 @@ public class ApiSourceControlServiceRelayWebhookSecretTest
     verify(relayRegistrationService, never()).getConfiguration();
     verify(passwordHandler, never()).decryptPassword(any(String.class));
   }
+
+  // -------------------------------------------------------------------------
+  // deregisterFromRelay routing
+  //
+  // The admin-triggered REST path must call deregisterIfRegistered() (which honors the
+  // feature gate) and not deregisterTenant() (gate-bypassing, reserved for
+  // DeleteTenantsJob and similar tenant-lifecycle paths). Without this routing the
+  // /relay/deregister endpoint silently returns 200 when the gate is closed, breaking
+  // symmetry with /relay/register, /relay/rotate-key, and /relayWebhookSecret.
+  // -------------------------------------------------------------------------
+
+  @Test
+  public void deregisterFromRelay_callsDeregisterIfRegistered_notDeregisterTenant() {
+    service.deregisterFromRelay();
+
+    verify(relayRegistrationService).deregisterIfRegistered();
+    verify(relayRegistrationService, never()).deregisterTenant();
+  }
 }

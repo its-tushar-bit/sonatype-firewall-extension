@@ -115,6 +115,8 @@ public class RelayPollingService
 
   private final ScmNodeProcessor scmNodeProcessor;
 
+  private final RelayPollingStartDelayCalculator startDelayCalculator;
+
   private final TenantReference<ScheduledExecutorService> tenantScheduledExecutorServices;
 
   private final TenantReference<ScheduledFuture<?>> tenantPollingFuture;
@@ -151,11 +153,13 @@ public class RelayPollingService
       PullRequestPollingScheduler pullRequestPollingScheduler,
       PasswordHandler passwordHandler,
       ShutdownHandler shutdownHandler,
-      ScmNodeProcessor scmNodeProcessor)
+      ScmNodeProcessor scmNodeProcessor,
+      RelayPollingStartDelayCalculator startDelayCalculator)
   {
     this(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker, relayEventMapper,
         relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler,
-        shutdownHandler, scmNodeProcessor, DEFAULT_POLL_INITIAL_DELAY_SECONDS, DEFAULT_POLL_INTERVAL_SECONDS,
+        shutdownHandler, scmNodeProcessor, startDelayCalculator,
+        DEFAULT_POLL_INITIAL_DELAY_SECONDS, DEFAULT_POLL_INTERVAL_SECONDS,
         DEFAULT_MAX_EVENTS_PER_CYCLE, DEFAULT_FAILURE_THRESHOLD, DEFAULT_MAX_DRAIN_ITERATIONS);
   }
 
@@ -172,6 +176,7 @@ public class RelayPollingService
       PasswordHandler passwordHandler,
       ShutdownHandler shutdownHandler,
       ScmNodeProcessor scmNodeProcessor,
+      RelayPollingStartDelayCalculator startDelayCalculator,
       int pollInitialDelaySeconds,
       int pollIntervalSeconds,
       int maxEventsPerCycle,
@@ -192,6 +197,7 @@ public class RelayPollingService
     this.passwordHandler = passwordHandler;
     this.shutdownHandler = shutdownHandler;
     this.scmNodeProcessor = scmNodeProcessor;
+    this.startDelayCalculator = startDelayCalculator;
     this.pollInitialDelaySeconds = pollInitialDelaySeconds;
     this.pollIntervalSeconds = pollIntervalSeconds;
     this.maxEventsPerCycle = maxEventsPerCycle;
@@ -205,13 +211,46 @@ public class RelayPollingService
 
   @Override
   public void register() {
-    if (scmNodeProcessor.shouldRun()) {
+    if (!scmNodeProcessor.shouldRun()) {
+      return;
+    }
+    // Per-tenant: ensure this tenant is registered with the relay before polling starts.
+    // registerOnStartup is idempotent and gated on the feature flag internally.
+    //
+    // Single-tenant note: RelayRegistrationService is itself a Dropwizard Managed singleton
+    // and Dropwizard already invokes its start() (which calls registerOnStartup) at boot.
+    // The call here is therefore redundant in single-tenant deployments — the second call
+    // short-circuits on isRegistered() with a single DAO read. Keeping the call here keeps
+    // the MTIQ per-tenant path symmetric (where registerOnStartup must run on each tenant
+    // register and Dropwizard's per-process Managed hook does NOT).
+    try {
+      relayRegistrationService.registerOnStartup();
+    }
+    catch (RuntimeException e) {
+      // Wording note: registerOnStartup itself runs once per tenant lifecycle; the "retry"
+      // happens via the polling cycle's pre-flight branch — every pollOnce() with a null
+      // relay_configuration calls registerOnDemand(). So polling continues to fire and
+      // each cycle re-attempts registration until it succeeds (no admin action required
+      // beyond the initial one that triggered registerOnStartup).
+      log.warn("Tenant {} relay registration failed during register(); the polling cycle's pre-flight "
+          + "will re-attempt registration on every cycle until success: {}",
+          tenantSlug(), e.getMessage());
+    }
+    // A startup-time failure here (e.g. a transient DB hiccup in the per-tenant start-delay
+    // calculator) would otherwise leave this tenant without relay polling for the JVM lifetime.
+    try {
       startPolling();
       // INFO log per tenant on successful registration: a silent register() makes a
       // missing executor invisible to operators tailing the log. Tagging with the tenant
       // slug means "how many tenants actually scheduled polling?" is a single grep instead
       // of a jstack of RelayPolling-* threads.
       log.info("Relay polling registered for tenant {}", tenantSlug());
+    }
+    catch (RuntimeException e) {
+      // register() runs once per tenant lifecycle; recovery requires a server restart or
+      // explicit re-register call.
+      log.warn("Tenant {} relay polling could not start; this tenant will not poll until the next process restart: {}",
+          tenantSlug(), e.getMessage());
     }
   }
 
@@ -229,6 +268,12 @@ public class RelayPollingService
   @Override
   public void deregister() {
     if (scmNodeProcessor.shouldRun()) {
+      // Stop local polling only. Relay-side deregistration (DELETE /api/register) is
+      // intentionally scoped to hard-deletion via DeleteTenantsJob: a tenant that is
+      // deprovisioned (this hook fires) without being deleted may be re-provisioned, in
+      // which case the relay's customer record + SQS queue are still useful and would
+      // need to be re-created if dropped here. Hard-deletion is the only path that
+      // permanently removes the tenant; that path explicitly calls deregisterTenant().
       stopPolling();
     }
     else {
@@ -262,11 +307,15 @@ public class RelayPollingService
       return;
     }
     Runnable task = this::runPollCycleWithErrorBoundary;
+    int initialDelay = startDelayCalculator.computeInitialDelaySeconds(pollIntervalSeconds, pollInitialDelaySeconds);
     ScheduledFuture<?> future = tenantScheduledExecutorServices.get()
-        .scheduleAtFixedRate(task, pollInitialDelaySeconds, pollIntervalSeconds, TimeUnit.SECONDS);
+        .scheduleAtFixedRate(task, initialDelay, pollIntervalSeconds, TimeUnit.SECONDS);
     tenantPollingFuture.set(future);
+    // Tag with tenant slug + the calculator-derived initialDelay (mtiq) instead of the
+    // raw pollInitialDelaySeconds default — staggering only matters when you can see what
+    // each tenant landed on.
     log.info("Tenant {} scheduled relay polling every {}s starting in {}s",
-        tenantSlug(), pollIntervalSeconds, pollInitialDelaySeconds);
+        tenantSlug(), pollIntervalSeconds, initialDelay);
   }
 
   private void stopPolling() {

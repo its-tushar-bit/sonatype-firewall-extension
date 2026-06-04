@@ -15,8 +15,10 @@ import com.sonatype.insight.brain.relay.dto.RelayRotateKeyResponse;
 import com.sonatype.insight.brain.relay.dto.RelayRotateWebhookSecretResponse;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.sonatype.licensing.product.util.LicenseContent;
 
@@ -63,12 +65,15 @@ public class RelayRegistrationServiceTest
   @Mock
   private com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO gitHubAppDAO;
 
+  @Mock
+  private TenantUtil tenantUtil;
+
   private RelayRegistrationService service;
 
   @Before
   public void before() {
     service = new RelayRegistrationService(
-        relayClient, relayConfigurationDAO, licenseContent, passwordHandler, configuration, gitHubAppDAO);
+        relayClient, relayConfigurationDAO, licenseContent, passwordHandler, configuration, gitHubAppDAO, tenantUtil);
     Mockito.lenient()
         .when(passwordHandler.encryptPassword(Mockito.anyString()))
         .thenAnswer(inv -> "enc-" + inv.<String>getArgument(0));
@@ -545,7 +550,7 @@ public class RelayRegistrationServiceTest
   public void registerOnDemand_nullLicenseContent_throwsIllegalState() {
     enableFeature();
     service = new RelayRegistrationService(
-        relayClient, relayConfigurationDAO, null, passwordHandler, configuration, gitHubAppDAO);
+        relayClient, relayConfigurationDAO, null, passwordHandler, configuration, gitHubAppDAO, tenantUtil);
 
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> service.registerOnDemand());
@@ -591,6 +596,117 @@ public class RelayRegistrationServiceTest
 
     when(configuration.getRelayUrl()).thenReturn("   ");
     assertThat(service.getGitHubAppWebhookUrl()).isNull();
+  }
+
+  @Test
+  public void registerOnStartup_skipsInGlobalTenantOfMtiq() {
+    enableFeature();
+    when(tenantUtil.isMultiTenant()).thenReturn(true);
+    when(tenantUtil.isGlobalTenant()).thenReturn(true);
+
+    service.registerOnStartup();
+
+    verify(relayClient, never()).register(any());
+    verify(relayConfigurationDAO, never()).set(any());
+  }
+
+  @Test
+  public void deregisterTenant_noConfiguration_isNoop() {
+    when(relayConfigurationDAO.get()).thenReturn(null);
+
+    service.deregisterTenant();
+
+    verify(relayClient, never()).deregister(any());
+    verify(relayConfigurationDAO, never()).delete();
+  }
+
+  @Test
+  public void deregisterTenant_happyPath_callsRelayAndDeletesLocalRow() {
+    when(passwordHandler.decryptPassword("enc-api-key")).thenReturn("plain-api-key");
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+
+    service.deregisterTenant();
+
+    verify(relayClient).deregister("plain-api-key");
+    verify(relayConfigurationDAO).delete();
+  }
+
+  @Test
+  public void deregisterTenant_relayReturns404_stillDeletesLocalRow() {
+    when(passwordHandler.decryptPassword("enc-api-key")).thenReturn("plain-api-key");
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+    Mockito.doThrow(new NotFoundException("already gone")).when(relayClient).deregister(any());
+
+    service.deregisterTenant();
+
+    verify(relayConfigurationDAO).delete();
+  }
+
+  @Test
+  public void deregisterTenant_relay5xx_stillDeletesLocalRow() {
+    when(passwordHandler.decryptPassword("enc-api-key")).thenReturn("plain-api-key");
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+    Mockito.doThrow(new BadGatewayException("relay down")).when(relayClient).deregister(any());
+
+    service.deregisterTenant();
+
+    verify(relayConfigurationDAO).delete();
+  }
+
+  @Test
+  public void deregisterTenant_networkError_stillDeletesLocalRow() {
+    when(passwordHandler.decryptPassword("enc-api-key")).thenReturn("plain-api-key");
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+    Mockito.doThrow(new RuntimeException("boom")).when(relayClient).deregister(any());
+
+    service.deregisterTenant();
+
+    verify(relayConfigurationDAO).delete();
+  }
+
+  @Test
+  public void deregisterTenant_apiKeyDecryptFails_skipsRemoteCallButDeletesLocalRow() {
+    when(passwordHandler.decryptPassword("enc-api-key")).thenThrow(new RuntimeException("bad cipher"));
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+
+    service.deregisterTenant();
+
+    verify(relayClient, never()).deregister(any());
+    verify(relayConfigurationDAO).delete();
+  }
+
+  @Test
+  public void deregisterTenant_daoDeleteFails_logsAndDoesNotThrow() {
+    // Documents the log-and-swallow contract on the local-row delete: callers outside the
+    // tenant-deletion flow MUST NOT rely on the row being removed when this delete fails.
+    // A future refactor that promotes the exception would break that contract; this test
+    // guards against that.
+    when(passwordHandler.decryptPassword("enc-api-key")).thenReturn("plain-api-key");
+    RelayConfiguration cfg = new RelayConfiguration();
+    cfg.setApiKey("enc-api-key");
+    cfg.setCustomerId("cust-1");
+    when(relayConfigurationDAO.get()).thenReturn(cfg);
+    Mockito.doThrow(new RuntimeException("db gone")).when(relayConfigurationDAO).delete();
+
+    service.deregisterTenant();
+
+    verify(relayClient).deregister(any());
+    verify(relayConfigurationDAO).delete();
   }
 
   @Test

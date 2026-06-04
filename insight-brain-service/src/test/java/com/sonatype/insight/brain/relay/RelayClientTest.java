@@ -20,6 +20,7 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAuthorizedException;
 import org.junit.Before;
@@ -572,5 +573,59 @@ public class RelayClientTest
 
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.ack("k", java.util.List.of("a")));
+  }
+
+  @Test
+  public void deregister_success() {
+    relayServer.stubFor(delete(urlPathEqualTo("/api/register"))
+        .withHeader("X-Relay-Key", equalTo("k"))
+        .willReturn(aResponse().withStatus(204)));
+
+    client.deregister("k");
+
+    relayServer
+        .verify(com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor(urlPathEqualTo("/api/register")));
+  }
+
+  @Test
+  public void deregister_blankApiKey_isBadRequest() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.deregister(null));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> client.deregister(""));
+  }
+
+  @Test
+  public void deregister_401_isNotAuthorized() {
+    relayServer.stubFor(delete(urlPathEqualTo("/api/register"))
+        .willReturn(aResponse().withStatus(401)));
+
+    assertThatExceptionOfType(NotAuthorizedException.class)
+        .isThrownBy(() -> client.deregister("k"));
+  }
+
+  @Test
+  public void deregister_404_isNotFound() {
+    relayServer.stubFor(delete(urlPathEqualTo("/api/register"))
+        .willReturn(aResponse().withStatus(404)));
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> client.deregister("k"));
+  }
+
+  @Test
+  public void deregister_500_mapsTo500() {
+    relayServer.stubFor(delete(urlPathEqualTo("/api/register"))
+        .willReturn(aResponse().withStatus(500).withBody("boom")));
+
+    assertThatExceptionOfType(InternalServerErrorException.class)
+        .isThrownBy(() -> client.deregister("k"));
+  }
+
+  @Test
+  public void deregister_503_mapsToBadGateway() {
+    relayServer.stubFor(delete(urlPathEqualTo("/api/register"))
+        .willReturn(aResponse().withStatus(503)));
+
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.deregister("k"));
   }
 }

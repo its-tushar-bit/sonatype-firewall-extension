@@ -201,6 +201,45 @@ public class RelayClient
   }
 
   /**
+   * Deletes the customer's relay registration. Used during tenant deregistration, admin-triggered
+   * deregistration, and cross-mode migration (PAT ↔ GitHub App). Status codes map through
+   * {@link #throwForStatus} as for the other endpoints (404 surfaces as
+   * {@link NotFoundException} so callers can treat "already gone" as success when desired).
+   */
+  public void deregister(String apiKey) {
+    requireApiKey(apiKey);
+    HttpDelete req = new HttpDelete(buildUri(REGISTER_PATH));
+    req.setHeader(RELAY_KEY_HEADER, apiKey);
+    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+    execute(retryCreator.apply(REGISTER_PATH), req, null);
+  }
+
+  /**
+   * Removes a single GitHub App installation from the relay's installation index without
+   * touching the customer record. Used when the IQ admin deletes one App on a tenant that
+   * still has others registered: the customer-wide deregister would tear down everything,
+   * and IQ-side cleanup alone leaves an orphan index entry that keeps routing webhooks for
+   * the deleted installation into the customer's queue.
+   *
+   * <p>
+   * The relay returns 204 on success and on idempotent re-call (already-deleted), 401 when
+   * the api key is invalid, and 403 when the installation belongs to a different customer.
+   * 4xx responses surface as {@link jakarta.ws.rs.NotAuthorizedException} /
+   * {@link jakarta.ws.rs.BadRequestException} per the standard {@link #execute} mapping.
+   */
+  public void deleteInstallation(String apiKey, String installationId) {
+    requireApiKey(apiKey);
+    if (StringUtils.isBlank(installationId)) {
+      throw new BadRequestException("installationId is required.");
+    }
+    String path = INSTALLATION_PATH_PREFIX + installationId;
+    HttpDelete req = new HttpDelete(buildUri(path));
+    req.setHeader(RELAY_KEY_HEADER, apiKey);
+    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+    execute(retryCreator.apply(INSTALLATION_PATH_PREFIX), req, null);
+  }
+
+  /**
    * Acknowledges processed events so the relay can drop them from SQS. The relay returns a
    * per-handle outcome; partial failures are non-fatal and are reported in the response.
    */
@@ -277,45 +316,6 @@ public class RelayClient
     req.setHeader(RELAY_KEY_HEADER, apiKey);
     req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
     execute(retryCreator.apply(GITHUB_APP_WEBHOOK_SECRET_PATH), req, null);
-  }
-
-  /**
-   * Deletes the customer's relay registration. Used during admin-triggered deregistration and
-   * cross-mode migration (PAT ↔ GitHub App). Status codes map through {@link #throwForStatus}
-   * as for the other endpoints (404 surfaces as {@link NotFoundException} so callers can treat
-   * "already gone" as success when desired).
-   */
-  public void deregister(String apiKey) {
-    requireApiKey(apiKey);
-    HttpDelete req = new HttpDelete(buildUri(REGISTER_PATH));
-    req.setHeader(RELAY_KEY_HEADER, apiKey);
-    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
-    execute(retryCreator.apply(REGISTER_PATH), req, null);
-  }
-
-  /**
-   * Removes a single GitHub App installation from the relay's installation index without
-   * touching the customer record. Used when the IQ admin deletes one App on a tenant that
-   * still has others registered: the customer-wide deregister would tear down everything,
-   * and IQ-side cleanup alone leaves an orphan index entry that keeps routing webhooks for
-   * the deleted installation into the customer's queue.
-   *
-   * <p>
-   * The relay returns 204 on success and on idempotent re-call (already-deleted), 401 when
-   * the api key is invalid, and 403 when the installation belongs to a different customer.
-   * 4xx responses surface as {@link jakarta.ws.rs.NotAuthorizedException} /
-   * {@link jakarta.ws.rs.BadRequestException} per the standard {@link #execute} mapping.
-   */
-  public void deleteInstallation(String apiKey, String installationId) {
-    requireApiKey(apiKey);
-    if (StringUtils.isBlank(installationId)) {
-      throw new BadRequestException("installationId is required.");
-    }
-    String path = INSTALLATION_PATH_PREFIX + installationId;
-    HttpDelete req = new HttpDelete(buildUri(path));
-    req.setHeader(RELAY_KEY_HEADER, apiKey);
-    req.setHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
-    execute(retryCreator.apply(INSTALLATION_PATH_PREFIX), req, null);
   }
 
   /**

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -83,6 +84,8 @@ public class DeleteTenantsJob
 
   private final OperationalDataStore operationalDataStore;
 
+  private final RelayRegistrationService relayRegistrationService;
+
   @Inject
   public DeleteTenantsJob(
       MultiTenantTaskScheduler taskScheduler,
@@ -94,7 +97,8 @@ public class DeleteTenantsJob
       TenantMetadataDAO tenantMetadataDAO,
       TenantManager tenantManager,
       TenantValidator tenantValidator,
-      OperationalDataStore operationalDataStore)
+      OperationalDataStore operationalDataStore,
+      RelayRegistrationService relayRegistrationService)
   {
     this.taskScheduler = taskScheduler;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
@@ -106,6 +110,7 @@ public class DeleteTenantsJob
     this.tenantManager = tenantManager;
     this.tenantValidator = tenantValidator;
     this.operationalDataStore = operationalDataStore;
+    this.relayRegistrationService = relayRegistrationService;
   }
 
   @Override
@@ -172,6 +177,10 @@ public class DeleteTenantsJob
     tenant.setLastUpdated(today);
     deletedTenantDAO.update(tenant);
 
+    // The early-return paths below intentionally skip relay deregistration: the tenant's
+    // relay_configuration row is still readable, and the next retry of this job will reach
+    // deregisterRelay once the blocking step succeeds. If a step fails permanently, the
+    // relay-side queue and registration must be cleaned up out-of-band.
     if (tenantExists && !deleteAuth0Resources(tenant)) {
       log.warn("Not able to delete Auth0 resources for tenant {}", tenant.getId());
       return;
@@ -180,6 +189,13 @@ public class DeleteTenantsJob
     if (!deleteJobs(tenant)) {
       log.warn("Not able to delete tenants jobs for tenant {}", tenant.getId());
       return;
+    }
+
+    // Best-effort: ask the relay to drop this tenant's SQS queue and DynamoDB record while we
+    // can still read the encrypted API key from the tenant's relay_configuration row. Failures
+    // are logged and swallowed so a dead relay does not block schema drop and tenant deletion.
+    if (tenantExists) {
+      deregisterRelay(tenant);
     }
 
     if (tenantExists && !deleteDatabaseSchema(tenant)) {
@@ -216,6 +232,26 @@ public class DeleteTenantsJob
     }
 
     return success;
+  }
+
+  // Visible for testing
+  void deregisterRelay(DeletedTenant deletedTenant) {
+    try {
+      tenantManager.performDatabaseRegistrationAndRunAs(deletedTenant.getId(), () -> {
+        try {
+          relayRegistrationService.deregisterTenant();
+        }
+        catch (Exception e) {
+          log.warn("Relay deregister threw for tenant {}; continuing with deletion: {}",
+              deletedTenant.getId(), e.getMessage());
+        }
+        return true;
+      });
+    }
+    catch (Exception e) {
+      log.warn("Could not run relay deregister for tenant {}; continuing with deletion: {}",
+          deletedTenant.getId(), e.getMessage());
+    }
   }
 
   boolean deleteJobs(DeletedTenant deletedTenant) {

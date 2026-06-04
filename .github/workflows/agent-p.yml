@@ -13,9 +13,13 @@
 #   - ANTHROPIC_API_KEY: Anthropic API key (only needed if NOT using AWS Bedrock)
 #
 
-name: Sonatype Guide - Agentic Patches
+name: Sonatype Guide - Agent P
 
 on:
+  schedule:
+    # Run Monday to Friday at 8:07 UTC
+    # Minute :07 dodges GitHub's top-of-hour queue contention.
+    - cron: '7 6 * * 1-5'   # 06:07 UTC
   workflow_dispatch:
     inputs:
       branch:
@@ -44,6 +48,10 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
+
+concurrency:
+  group: agp-workflow
+  cancel-in-progress: false
 
 jobs:
   agp:

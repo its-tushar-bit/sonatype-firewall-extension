@@ -9,7 +9,7 @@ ignore:
 
 # Agent configuration - use AWS Bedrock for AI model access
 agent:
-  enabled: false
+  enabled: true
   provider: bedrock
   model: arn:aws:bedrock:us-west-2:135167709271:application-inference-profile/qj5q2hjf1hos
   awsRegion: us-west-2
@@ -31,5 +31,5 @@ pr:
 
 # Limits for PR creation
 limits:
-  maxOpenPRs: 5       # Maximum number of open PRs at any time
-  maxPRsPerRun: 3     # Conservative initial limit
+  maxOpenPRs: 20       # Maximum number of open PRs at any time
+  maxPRsPerRun: 10     # Conservative initial limit

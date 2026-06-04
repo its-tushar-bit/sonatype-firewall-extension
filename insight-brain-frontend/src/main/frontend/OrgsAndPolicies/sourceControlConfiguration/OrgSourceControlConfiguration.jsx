@@ -6,6 +6,7 @@
 import React from 'react';
 import {
   NxButton,
+  NxCopyToClipboard,
   NxFieldset,
   NxFontAwesomeIcon,
   NxForm,
@@ -32,6 +33,8 @@ import {
   selectTenantScmOptionsTypes,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
+  selectRelayWebhookUrl,
+  selectShouldShowRelayWebhookUrl,
   selectSourceControlConfigurationSlice,
   selectValidationError,
 } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSelectors';
@@ -39,6 +42,7 @@ import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sou
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
 import GitHubAppAuthenticationMethod from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/GitHubAppAuthenticationMethod';
+import RelayWebhookSecretField from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/RelayWebhookSecretField';
 
 const OrgSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -54,6 +58,8 @@ const OrgSourceControlConfiguration = () => {
   const isAutomationSupported = useSelector(selectIsAutomationSupported);
   const validationError = useSelector(selectValidationError);
   const sourceControlOptions = useSelector(selectTenantScmOptionsTypes);
+  const relayWebhookUrl = useSelector(selectRelayWebhookUrl);
+  const showRelayWebhookUrl = useSelector(selectShouldShowRelayWebhookUrl);
 
   const doLoad = () => dispatch(actions.load());
   const save = () => dispatch(actions.save());
@@ -260,6 +266,17 @@ const OrgSourceControlConfiguration = () => {
           </NxFormRow>
         </NxFieldset>
       )}
+      {showRelayWebhookUrl && (
+        <NxCopyToClipboard
+          id="source-control-relay-webhook-url"
+          className="iq-relay-webhook-url-copy"
+          label="Relay Webhook URL"
+          sublabel="Paste this URL into your SCM provider's webhook configuration to send pull request events to IQ."
+          content={relayWebhookUrl}
+          inputProps={{ inputAttributes: { rows: 1, wrap: 'off' } }}
+        />
+      )}
+      <RelayWebhookSecretField />
       {/* Unsupported for some licenses */}
       <NxTooltip title={!isAutomationSupported ? SCM_FEATURE_UNSUPPORTED_MESSAGE : ''}>
         <NxFieldset

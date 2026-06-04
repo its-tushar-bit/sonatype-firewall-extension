@@ -26,6 +26,7 @@ import GitHubAppRegistrationModal from 'MainRoot/OrgsAndPolicies/sourceControlCo
 import { selectGitHubApps, selectLoading, selectError, selectHasEditPermission } from './manageGitHubAppsSelectors';
 import { fetchGitHubApps, checkEditPermission, openDeleteModal, resetState } from './manageGitHubAppsSlice';
 import ManageGitHubAppsDeleteModal from './ManageGitHubAppsDeleteModal';
+import RelayLinkBadge from './RelayLinkBadge';
 
 export default function ManageGitHubApps() {
   const dispatch = useDispatch();
@@ -134,6 +135,7 @@ export default function ManageGitHubApps() {
               <NxTable.Row>
                 <NxTable.Cell>GitHub Organization</NxTable.Cell>
                 <NxTable.Cell>GitHub Application</NxTable.Cell>
+                <NxTable.Cell>Relay Link</NxTable.Cell>
                 <NxTable.Cell>Date</NxTable.Cell>
                 <NxTable.Cell>Actions</NxTable.Cell>
               </NxTable.Row>
@@ -148,6 +150,9 @@ export default function ManageGitHubApps() {
                       {isPersonal && <span className="nx-badge"> (personal)</span>}
                     </NxTable.Cell>
                     <NxTable.Cell>{app.slug}</NxTable.Cell>
+                    <NxTable.Cell>
+                      <RelayLinkBadge state={app.relayLinkState} attempts={app.relayLinkAttempts} />
+                    </NxTable.Cell>
                     <NxTable.Cell>{formatDate(app.lastUpdatedAt)}</NxTable.Cell>
                     <NxTable.Cell>
                       {app.installationUrl && (

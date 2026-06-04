@@ -7,6 +7,16 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use 'MainRoot/scss/variables' as *;
 
+// NxCopyToClipboard ships with full-width form-section spacing (margin-bottom 8x and a
+// 800px grid) that doesn't blend with the denser NxFieldset rows around it. The PAT-mode
+// relay URL follows a tall fieldset, so its top margin collapses with the fieldset's
+// bottom margin and looks like an oversized gap. Pull it up by one spacing unit so the
+// URL reads as a normal form field.
+.iq-relay-webhook-url-copy {
+  margin-top: calc(var(--nx-spacing-8x) * -1);
+  margin-bottom: var(--nx-spacing-4x);
+}
+
 .iq-source-control {
   &-toggle {
     &__title {

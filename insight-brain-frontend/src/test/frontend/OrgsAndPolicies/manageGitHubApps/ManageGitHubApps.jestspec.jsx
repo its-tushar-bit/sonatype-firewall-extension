@@ -49,6 +49,8 @@ describe('ManageGitHubApps', () => {
       isActive: true,
       lastUpdatedAt: '2026-01-15T10:00:00Z',
       installationUrl: 'https://github.com/settings/installations/12345',
+      relayLinkState: 'OK',
+      relayLinkAttempts: 0,
     },
     {
       id: 'uuid-2',
@@ -59,6 +61,8 @@ describe('ManageGitHubApps', () => {
       isActive: true,
       lastUpdatedAt: '2026-01-16T10:00:00Z',
       installationUrl: null,
+      relayLinkState: 'ERROR',
+      relayLinkAttempts: 4,
     },
   ];
 
@@ -85,6 +89,20 @@ describe('ManageGitHubApps', () => {
       expect(screen.getByText('sonatype-iq-app1')).toBeInTheDocument();
       expect(screen.getByText('sonatype-iq-app2')).toBeInTheDocument();
     });
+  });
+
+  it('renders the relay-link badge for each app row', async () => {
+    render(<ManageGitHubApps />, { preloadedState: defaultState });
+
+    await waitFor(() => {
+      expect(screen.getByText('sonatype-iq-app1')).toBeInTheDocument();
+      expect(screen.getByText('sonatype-iq-app2')).toBeInTheDocument();
+    });
+
+    // app1 is OK -> tooltip-only badge with the check icon.
+    expect(screen.getByTestId('relay-link-badge-ok')).toBeInTheDocument();
+    // app2 is ERROR with 4 attempts -> visible counter badge.
+    expect(screen.getByTestId('relay-link-badge-error').textContent).toMatch(/Retrying \(4\/10\)/);
   });
 
   it('renders empty state when no apps', async () => {

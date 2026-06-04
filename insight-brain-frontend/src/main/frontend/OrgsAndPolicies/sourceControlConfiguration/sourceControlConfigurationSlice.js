@@ -8,6 +8,8 @@ import createSlice from 'MainRoot/reduxConfig/createSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   getCompositeSourceControlUrl,
+  getRelayWebhookSecret,
+  getRelayWebhookUrl,
   getSourceControlMetricsUrl,
   getSourceControlUrl,
   getValidateScmConfigButtonUrl,
@@ -87,6 +89,8 @@ export const initialState = {
   hasPendingGitHubAppReturn: false,
   isReplaceGitHubAppModalOpen: false,
   hasEditPermission: false,
+  relayWebhookUrl: null,
+  relayWebhookSecret: null,
 };
 
 const setProvider = (state, { payload }) => {
@@ -327,6 +331,11 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (options = {}, { rejectWit
   return Promise.all(promises)
     .then(() => {
       dispatch(actions.checkEditPermission());
+      // Relay webhook URL is auxiliary; failures must not block the main form load.
+      // The thunk's rejected reducer captures error state; we just need to swallow
+      // the rejected promise here to avoid unhandled-rejection warnings.
+      dispatch(actions.fetchRelayWebhookUrl()).catch(() => {});
+      dispatch(actions.fetchRelayWebhookSecret()).catch(() => {});
       return dispatch(actions.loadSCMRootConfig(options));
     })
     .catch(rejectWithValue);
@@ -738,6 +747,61 @@ const validateFailed = (state, { payload }) => {
   };
 };
 
+// 404 (relay enabled but IQ not registered) and 412 (relay feature off) are expected
+// "not available" responses; resolve with null so the UI hides the field. Other errors
+// reject so callers can observe the failure.
+const fetchRelayWebhookUrl = createAsyncThunk(
+  `${REDUCER_NAME}/fetchRelayWebhookUrl`,
+  (_, { rejectWithValue, signal }) => {
+    return axios
+      .get(getRelayWebhookUrl(), { signal })
+      .then((response) => response.data?.webhookUrl ?? null)
+      .catch((error) => {
+        const status = error?.response?.status;
+        if (status === 404 || status === 412) {
+          return null;
+        }
+        return rejectWithValue(error);
+      });
+  }
+);
+
+const fetchRelayWebhookUrlFulfilled = (state, { payload }) => {
+  state.relayWebhookUrl = payload;
+};
+
+const fetchRelayWebhookUrlRejected = (state) => {
+  state.relayWebhookUrl = null;
+};
+
+// Mirrors fetchRelayWebhookUrl: the secret endpoint returns 404 when no PAT-mode
+// registration exists (no row, or App-mode registration) and 412 when the relay
+// feature gate is closed. Both resolve to null so the UI hides the field. Other
+// errors reject so callers can observe the failure.
+const fetchRelayWebhookSecret = createAsyncThunk(
+  `${REDUCER_NAME}/fetchRelayWebhookSecret`,
+  (_, { rejectWithValue, signal }) => {
+    return axios
+      .get(getRelayWebhookSecret(), { signal })
+      .then((response) => response.data?.webhookSecret ?? null)
+      .catch((error) => {
+        const status = error?.response?.status;
+        if (status === 404 || status === 412) {
+          return null;
+        }
+        return rejectWithValue(error);
+      });
+  }
+);
+
+const fetchRelayWebhookSecretFulfilled = (state, { payload }) => {
+  state.relayWebhookSecret = payload;
+};
+
+const fetchRelayWebhookSecretRejected = (state) => {
+  state.relayWebhookSecret = null;
+};
+
 const sourceControl = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -818,6 +882,10 @@ const sourceControl = createSlice({
     [checkEditPermission.rejected]: (state) => {
       state.hasEditPermission = false;
     },
+    [fetchRelayWebhookUrl.fulfilled]: fetchRelayWebhookUrlFulfilled,
+    [fetchRelayWebhookUrl.rejected]: fetchRelayWebhookUrlRejected,
+    [fetchRelayWebhookSecret.fulfilled]: fetchRelayWebhookSecretFulfilled,
+    [fetchRelayWebhookSecret.rejected]: fetchRelayWebhookSecretRejected,
     [UI_ROUTER_ON_FINISH]: (state) => {
       // Only reset form-specific state, preserve data and modal state
       // This avoids unnecessary object creation and preserves references
@@ -833,6 +901,10 @@ const sourceControl = createSlice({
       state.isRepoUrlDirty = initialState.isRepoUrlDirty;
       state.hasEditPermission = initialState.hasEditPermission;
       state.hasPendingGitHubAppReturn = initialState.hasPendingGitHubAppReturn;
+      // Reset the relay webhook URL on route change so it's re-fetched scoped to the
+      // newly-loaded owner; otherwise stale per-owner URL state could leak across pages.
+      state.relayWebhookUrl = initialState.relayWebhookUrl;
+      state.relayWebhookSecret = initialState.relayWebhookSecret;
       // Preserved: showGitHubAppSuccessModal, sourceControl, serverSourceControl, sourceControlMetrics
     },
   },
@@ -847,4 +919,6 @@ export const actions = {
   reset,
   validate,
   checkEditPermission,
+  fetchRelayWebhookUrl,
+  fetchRelayWebhookSecret,
 };

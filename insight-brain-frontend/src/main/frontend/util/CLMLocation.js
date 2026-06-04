@@ -361,6 +361,14 @@ export function getSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/sourceControl/${ownerType}/${ownerId}`;
 }
 
+export function getRelayWebhookUrl() {
+  return '/api/v2/sourceControl/relayWebhookUrl';
+}
+
+export function getRelayWebhookSecret() {
+  return '/api/v2/sourceControl/relayWebhookSecret';
+}
+
 export function getCreatePullRequestUrl() {
   return uriTemplate`/rest/sourceControl/pullRequest`;
 }

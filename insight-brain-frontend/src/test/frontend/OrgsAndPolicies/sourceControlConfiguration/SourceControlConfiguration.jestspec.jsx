@@ -10,6 +10,8 @@ import {
   getApplicationSummaryUrl,
   getCompositeSourceControlUrl,
   getOrganizationUrl,
+  getRelayWebhookSecret,
+  getRelayWebhookUrl,
   getSourceControlMetricsUrl,
   getSourceControlUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -102,6 +104,11 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultRootOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
       axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
+      // Relay feature is off by default in this suite. Tests that need the URL or secret
+      // fields override these mocks individually (see RelayWebhookUrlDisplay.jestspec.jsx
+      // and RelayWebhookSecretField.jestspec.jsx).
+      axiosMock.onGet(getRelayWebhookUrl()).reply(412);
+      axiosMock.onGet(getRelayWebhookSecret()).reply(412);
     });
 
     describe('initial source control configuration render', () => {
@@ -121,9 +128,15 @@ describe('sourceControlConfiguration', () => {
         renderComponent();
         expect(screen.getByText('Loading…')).toBeVisible();
         await screen.findByText('Source Control Configuration');
-        expect(axiosMock.history.get.length).toBe(2);
-        expect(axiosMock.history.get[0].url).toBe(getCompositeSourceControlUrl(ownerType, ownerId));
-        expect(axiosMock.history.get[1].url).toBe(getSourceControlMetricsUrl(ownerType, ownerId));
+        const requestedUrls = axiosMock.history.get.map(({ url }) => url);
+        expect(requestedUrls).toEqual(
+          expect.arrayContaining([
+            getCompositeSourceControlUrl(ownerType, ownerId),
+            getSourceControlMetricsUrl(ownerType, ownerId),
+            getRelayWebhookUrl(),
+            getRelayWebhookSecret(),
+          ])
+        );
       });
 
       it('shows all form elements on successful initial render with correct default configuration values', async () => {
@@ -1099,6 +1112,8 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultOrgConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
       axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
+      axiosMock.onGet(getRelayWebhookUrl()).reply(412);
+      axiosMock.onGet(getRelayWebhookSecret()).reply(412);
     });
 
     describe('initial source control configuration render', () => {
@@ -2072,6 +2087,8 @@ describe('sourceControlConfiguration', () => {
       axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, defaultAppConfigResponse);
       axiosMock.onGet(getSourceControlMetricsUrl(ownerType, ownerId)).reply(200, { results: [] });
       axiosMock.onPut(new RegExp('/rest/user/permissions')).reply(200, ['WRITE']);
+      axiosMock.onGet(getRelayWebhookUrl()).reply(412);
+      axiosMock.onGet(getRelayWebhookSecret()).reply(412);
     });
 
     describe('initial source control configuration render', () => {

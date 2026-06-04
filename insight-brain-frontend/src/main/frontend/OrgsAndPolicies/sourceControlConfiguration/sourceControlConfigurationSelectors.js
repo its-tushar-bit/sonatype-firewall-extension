@@ -158,3 +158,41 @@ export const selectHasPendingGitHubAppReturn = createSelector(
 export const selectSourceControl = createSelector(selectSourceControlConfigurationSlice, prop('sourceControl'));
 
 export const selectHasEditPermission = createSelector(selectSourceControlConfigurationSlice, prop('hasEditPermission'));
+
+export const selectRelayWebhookUrl = createSelector(selectSourceControlConfigurationSlice, prop('relayWebhookUrl'));
+
+export const selectRelayWebhookSecret = createSelector(
+  selectSourceControlConfigurationSlice,
+  prop('relayWebhookSecret')
+);
+
+// Relay webhook URL is only meaningful for PAT-style auth. GitHub App customers receive
+// webhooks through the App's own configured callback, so the field is hidden for them.
+export const selectShouldShowRelayWebhookUrl = createSelector(
+  selectSourceControlConfigurationSlice,
+  ({ sourceControl, serverSourceControl, relayWebhookUrl }) => {
+    if (!relayWebhookUrl || !sourceControl) return false;
+    const provider = effectiveProvider(sourceControl, serverSourceControl);
+    if (!provider) return false;
+    const isGitHubApp =
+      provider === 'github' && effectiveAuthenticationType(sourceControl) === AUTHENTICATION_TYPES.GITHUB_APP;
+    return !isGitHubApp;
+  }
+);
+
+// Mirror of selectShouldShowRelayWebhookUrl for the per-customer signing secret. Same
+// PAT-only visibility rules: requires the secret to be loaded, the form to be ready, a
+// provider to be picked, and the auth method to NOT be GitHub App. The relay webhook URL
+// must also be present — a registration without a URL is App-mode (and has no
+// per-customer secret).
+export const selectShouldShowRelayWebhookSecret = createSelector(
+  selectSourceControlConfigurationSlice,
+  ({ sourceControl, serverSourceControl, relayWebhookUrl, relayWebhookSecret }) => {
+    if (!relayWebhookSecret || !relayWebhookUrl || !sourceControl) return false;
+    const provider = effectiveProvider(sourceControl, serverSourceControl);
+    if (!provider) return false;
+    const isGitHubApp =
+      provider === 'github' && effectiveAuthenticationType(sourceControl) === AUTHENTICATION_TYPES.GITHUB_APP;
+    return !isGitHubApp;
+  }
+);

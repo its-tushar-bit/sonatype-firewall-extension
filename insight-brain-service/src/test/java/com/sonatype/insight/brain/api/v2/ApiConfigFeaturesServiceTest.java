@@ -1452,6 +1452,10 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("autoWaivers", true);
     expectedFeatureConfigMap.put("BUILT_FROM_SOURCE", false);
     expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI", false);
+    expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED", false);
+    expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED", false);
+    expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW", false);
+    expectedFeatureConfigMap.put("PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK", false);
     expectedFeatureConfigMap.put("cleanUpSbomContinuousMonitoringReport", true);
     expectedFeatureConfigMap.put("codeInsights", true);
     expectedFeatureConfigMap.put("componentChangeDetectionApi", false);

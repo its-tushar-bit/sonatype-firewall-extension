@@ -56,7 +56,7 @@ import { selectPermissions } from 'MainRoot/mainHeader/mainHeaderSelectors';
  *
  * Only Nexus-One-specific item: "Nexus One UI" at the top, gated on
  * the Preview feature flag, that links to the existing
- * `#/previewUiSettings` toggle page.
+ * in-bundle `#/ui-settings` settings page (`nexusOneUiSettings`).
  *
  * All other items drop the user back into Classic chrome for that
  * admin page (no Nexus-One equivalents exist yet).
@@ -133,7 +133,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   const items: ItemSpec[] = [
     {
       label: 'Nexus One UI',
-      stateName: 'previewUiSettings',
+      stateName: 'nexusOneUiSettings',
       showIf: CONFIGURE_SYSTEM && isPreviewNexusOneUiEnabled,
       testId: 'nexus-one-top-nav-settings-item-preview-ui',
     },

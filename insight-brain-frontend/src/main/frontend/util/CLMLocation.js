@@ -624,6 +624,12 @@ export function getProductFeaturesUrl() {
   return uriTemplate`/rest/product/features`;
 }
 
+// CLM-39545 / P1-F4: feature-flag toggle endpoint. POST enables a flag,
+// DELETE disables it. Used by the Preview-UI Settings page.
+export function getConfigFeatureUrl(featureName) {
+  return uriTemplate`/api/v2/config/features/${featureName}`;
+}
+
 export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }

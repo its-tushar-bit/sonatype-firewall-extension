@@ -53,6 +53,19 @@ public class SystemConfigurationProperty
    */
   public static final String PREVIEW_NEXUS_ONE_UI = "PREVIEW_NEXUS_ONE_UI";
 
+  /** CLM-39606: allow anonymous users to access Nexus One UI when enabled. */
+  public static final String PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED = "PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED";
+
+  /** CLM-39606: allow logged-in users to opt into Nexus One UI when enabled. */
+  public static final String PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED = "PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED";
+
+  /** CLM-39606: default new sessions to Nexus One UI when enabled. */
+  public static final String PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW = "PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW";
+
+  /** CLM-39606: suppress Classic/Preview switch feedback prompt when enabled. */
+  public static final String PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK =
+      "PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK";
+
   public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
 
   public static final String WEBHOOK_CONFIGURATION = "WEBHOOK_CONFIGURATION";

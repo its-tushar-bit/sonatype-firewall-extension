@@ -14,6 +14,8 @@ import {
 } from 'MainRoot/nosc/comingSoon';
 import { PreviewPagePlaceholder } from 'MainRoot/nosc/shell/PreviewPagePlaceholder';
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
+import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
+import { isAuthorized } from 'MainRoot/util/permissionService';
 
 function readHashPath(): string {
   const rawHash = typeof window !== 'undefined' ? window.location.hash : '';
@@ -42,6 +44,18 @@ router.stateRegistry.register({
   component: PlatformHome,
   data: {
     title: 'Nexus One',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneUiSettings',
+  url: '/ui-settings',
+  component: PreviewUiSettingsPage,
+  data: {
+    title: 'Nexus One UI Settings',
+  },
+  resolve: {
+    isAuthorized: () => isAuthorized(['CONFIGURE_SYSTEM']),
   },
 } as ReactStateDeclaration);
 

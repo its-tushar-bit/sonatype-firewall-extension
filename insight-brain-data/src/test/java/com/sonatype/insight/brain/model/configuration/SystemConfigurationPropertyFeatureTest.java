@@ -33,15 +33,62 @@ public class SystemConfigurationPropertyFeatureTest
     assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled(emptyMap)).isFalse();
     assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled(emptyMap)).isFalse();
     assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(emptyMap)).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED.isEnabled(emptyMap))
+        .isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.isEnabled(emptyMap))
+        .isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.isEnabled(emptyMap))
+        .isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.isEnabled(emptyMap))
+        .isFalse();
   }
 
   @Test
   public void testPreviewNexusOneUi_PropertyPresent_FeatureEnabled() {
+    assertPreviewFlagEnabledWhenPropertyPresent(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI);
+  }
+
+  @Test
+  public void testPreviewNexusOneUi_PropertyPresentFalseValue_StillEnabled() {
     Map<String, SystemConfigurationProperty> map = new HashMap<>();
     String propertyName = SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getPropertyName();
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
+    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
 
     assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(map)).isTrue();
+  }
+
+  @Test
+  public void testPreviewNexusOneUiAnonymousEnabled() {
+    assertPreviewFlagEnabledWhenPropertyPresent(
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED);
+  }
+
+  @Test
+  public void testPreviewNexusOneUiLoggedInEnabled() {
+    assertPreviewFlagEnabledWhenPropertyPresent(
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED);
+  }
+
+  @Test
+  public void testPreviewNexusOneUiDefaultToPreview() {
+    assertPreviewFlagEnabledWhenPropertyPresent(
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW);
+  }
+
+  @Test
+  public void testPreviewNexusOneUiDisableSwitchFeedback() {
+    assertPreviewFlagEnabledWhenPropertyPresent(
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK);
+  }
+
+  private static void assertPreviewFlagEnabledWhenPropertyPresent(
+      SystemConfigurationPropertyFeature feature)
+  {
+    Map<String, SystemConfigurationProperty> map = new HashMap<>();
+    String propertyName = feature.getPropertyName();
+    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
+
+    assertThat(feature.isEnabled(map)).isTrue();
   }
 
   @Test

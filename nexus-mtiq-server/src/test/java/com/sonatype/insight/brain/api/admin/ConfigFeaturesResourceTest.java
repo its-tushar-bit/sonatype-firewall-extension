@@ -150,6 +150,10 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS.getId(),
         SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.getId(),
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getId(),
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.getId(),
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.getId(),
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.getId(),
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
         SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
       })).toArray(String[]::new);

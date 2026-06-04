@@ -123,11 +123,11 @@ mvn clean install -Pquick
 1. **Start the backend server:**
    ```bash
    cd insight-brain-service
-   mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml'
+   mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
    ```
 
 2. **Access the application:**
-   - URL: http://localhost:8070
+   - URL: http://localhost:8072
    - Default credentials:
      - Username: `admin`
      - Password: `admin123`

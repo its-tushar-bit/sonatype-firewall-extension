@@ -8,6 +8,7 @@ import { apiFetch, ApiError, API_PREFIX } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
 import { parsePackageIdentifier } from '@guide/ui-core/utils';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
+import { toStringArray } from '../utils/searchParams';
 import type {
   ComponentSearchResponse,
   ComponentsFilters,
@@ -129,16 +130,26 @@ export async function getComponentVulnerabilities(
   filters: VulnerabilitiesFilters,
   options: VulnerabilitiesSearchOptions
 ): Promise<VulnerabilitySearchResponse> {
-  const { offset = 0, limit = 25 } = options;
-  return apiFetch<VulnerabilitySearchResponse>(
-    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/vulnerabilities`
-  ).catch((e: unknown) => {
-    // Endpoint not yet wired to real backend (GUIDE-2606) — return empty result on 404
-    if (e instanceof ApiError && e.status === 404) {
-      return { hits: [], total: 0, offset, limit, aggregations: {} } as VulnerabilitySearchResponse;
-    }
-    throw e;
-  });
+  const purl = buildPurl(ecosystem, pkg, version);
+  const params = new URLSearchParams({ purl });
+  params.set('offset', String(options.offset ?? 0));
+  params.set('limit', String(options.limit ?? 25));
+  if (options.sortField) params.set('sortField', options.sortField);
+  if (options.sortOrder) params.set('sortOrder', options.sortOrder);
+
+  toStringArray(filters.affectedEcosystems).forEach((e) => params.append('affectedEcosystems', e));
+  toStringArray(filters.severities).forEach((s) => params.append('severities', s));
+  toStringArray(filters.cwes).forEach((c) => params.append('cwes', c));
+
+  if (filters.minCvss !== undefined) params.set('minCvss', String(filters.minCvss));
+  if (filters.maxCvss !== undefined) params.set('maxCvss', String(filters.maxCvss));
+  if (filters.minEpss !== undefined) params.set('minEpss', String(filters.minEpss));
+  if (filters.maxEpss !== undefined) params.set('maxEpss', String(filters.maxEpss));
+  if (filters.exploitationKnown !== undefined) params.set('exploitationKnown', String(filters.exploitationKnown));
+  if (filters.hasMalware !== undefined) params.set('hasMalware', String(filters.hasMalware));
+  if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
+
+  return apiFetch<VulnerabilitySearchResponse>(`${API_PREFIX}/components/vulnerabilities?${params}`);
 }
 
 export async function getComponentVersions(
@@ -159,10 +170,7 @@ export async function getComponentVersions(
   if (sortOrder) params.set('sortOrder', sortOrder);
   if (filters.isStable !== undefined) params.set('isStable', String(filters.isStable));
   if (filters.hasMalware !== undefined) params.set('hasMalware', String(filters.hasMalware));
-  if (filters.severities) {
-    const sevs = Array.isArray(filters.severities) ? filters.severities : [filters.severities];
-    sevs.forEach((s) => params.append('severities', s));
-  }
+  toStringArray(filters.severities).forEach((s) => params.append('severities', s));
   if (filters.minVersionScore !== undefined) params.set('minVersionScore', String(filters.minVersionScore));
   if (filters.maxVersionScore !== undefined) params.set('maxVersionScore', String(filters.maxVersionScore));
   if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
@@ -177,14 +185,24 @@ export async function getComponentDependencies(
   filters: ComponentsFilters,
   options: ComponentsSearchOptions
 ): Promise<ComponentSearchResponse> {
-  const { offset = 0, limit = 25 } = options;
-  return apiFetch<ComponentSearchResponse>(
-    `${API_PREFIX}/components/${encodeURIComponent(ecosystem)}/${encodeURIComponent(pkg)}/${encodeURIComponent(version)}/dependencies`
-  ).catch((e: unknown) => {
-    // Endpoint not yet wired to real backend (GUIDE-2606) — return empty result on 404
-    if (e instanceof ApiError && e.status === 404) {
-      return { hits: [], total: 0, offset, limit, aggregations: {} } as ComponentSearchResponse;
-    }
-    throw e;
-  });
+  const purl = buildPurl(ecosystem, pkg, version);
+  const params = new URLSearchParams({ purl });
+  params.set('offset', String(options.offset ?? 0));
+  params.set('limit', String(options.limit ?? 25));
+  if (query) params.set('query', query);
+  if (options.sortField) params.set('sortField', options.sortField);
+  if (options.sortOrder) params.set('sortOrder', options.sortOrder);
+
+  toStringArray(filters.formats).forEach((f) => params.append('formats', f));
+  toStringArray(filters.categories).forEach((c) => params.append('categories', c));
+  toStringArray(filters.severities).forEach((s) => params.append('severities', s));
+  toStringArray(filters.licenses).forEach((l) => params.append('licenses', l));
+  toStringArray(filters.licenseFamilies).forEach((lf) => params.append('licenseFamilies', lf));
+
+  if (filters.minVersionScore !== undefined) params.set('minVersionScore', String(filters.minVersionScore));
+  if (filters.maxVersionScore !== undefined) params.set('maxVersionScore', String(filters.maxVersionScore));
+  if (filters.hasMalware !== undefined) params.set('hasMalware', String(filters.hasMalware));
+  if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
+
+  return apiFetch<ComponentSearchResponse>(`${API_PREFIX}/components/dependencies?${params}`);
 }

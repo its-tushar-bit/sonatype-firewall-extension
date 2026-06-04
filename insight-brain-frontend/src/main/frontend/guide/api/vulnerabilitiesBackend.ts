@@ -7,6 +7,7 @@
 import { apiFetch, API_PREFIX } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
 import { getCVSSSeverity } from '@guide/ui-core';
+import { toStringArray } from '../utils/searchParams';
 import type {
   Vulnerability,
   VulnerabilitySearchResponse,
@@ -50,21 +51,19 @@ export function filterVulnerabilities(
 
   // affectedEcosystems filter
   if (filters.affectedEcosystems) {
-    const ecosystems = Array.isArray(filters.affectedEcosystems)
-      ? filters.affectedEcosystems
-      : [filters.affectedEcosystems];
+    const ecosystems = toStringArray(filters.affectedEcosystems);
     result = result.filter((v) => v.affectedEcosystems?.some((eco) => ecosystems.includes(eco)));
   }
 
   // severities filter (uses Sonatype-adjusted severity for consistency with display)
   if (filters.severities) {
-    const severities = Array.isArray(filters.severities) ? filters.severities : [filters.severities];
+    const severities = toStringArray(filters.severities);
     result = result.filter((v) => severities.includes(getCVSSSeverity(v.sonatypeCvssSeverity ?? v.cvssSeverity ?? 0)));
   }
 
   // cwes filter
   if (filters.cwes) {
-    const cwes = Array.isArray(filters.cwes) ? filters.cwes : [filters.cwes];
+    const cwes = toStringArray(filters.cwes);
     result = result.filter((v) => v.cwes?.some((cwe) => cwes.includes(cwe)));
   }
 

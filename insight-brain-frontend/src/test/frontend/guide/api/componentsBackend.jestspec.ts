@@ -225,17 +225,116 @@ describe('componentsBackend', () => {
     });
   });
 
-  describe('getComponentVulnerabilities (unwired — 404 until GUIDE-2606)', () => {
-    it('calls apiFetch with the component vulnerabilities path and no mock handler', async () => {
-      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} });
+  describe('getComponentVulnerabilities (wired)', () => {
+    const emptyResponse = { hits: [], total: 0, offset: 0, limit: 25, aggregations: {} };
+
+    it('calls the correct endpoint with PURL and default pagination', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
 
       await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
 
-      expect(mockApiFetch).toHaveBeenCalledTimes(1);
-      const [path, init] = mockApiFetch.mock.calls[0];
-      expect(path).toContain('/api/v2/guide/components/');
-      expect(path).toContain('vulnerabilities');
-      expect(init).toBeUndefined();
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe(
+        '/api/v2/guide/components/vulnerabilities?purl=pkg%3Anpm%2Flodash%404.17.21&offset=0&limit=25'
+      );
+    });
+
+    it('does not double-encode scoped npm packages', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', '@scope/name', '1.0.0', undefined, {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('pkg%3Anpm%2F%40scope%2Fname%401.0.0');
+      expect(path).not.toContain('%2540');
+    });
+
+    it('appends sort options when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, {
+        offset: 0, limit: 25, sortField: 'publishedDate', sortOrder: 'desc',
+      });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('sortField=publishedDate');
+      expect(path).toContain('sortOrder=desc');
+    });
+
+    it('appends severities, affectedEcosystems, and cwes as repeated params', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {
+        severities: ['critical', 'high'],
+        affectedEcosystems: ['npm', 'maven'],
+        cwes: ['CWE-79', 'CWE-89'],
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('severities=critical');
+      expect(path).toContain('severities=high');
+      expect(path).toContain('affectedEcosystems=npm');
+      expect(path).toContain('affectedEcosystems=maven');
+      expect(path).toContain('cwes=CWE-79');
+      expect(path).toContain('cwes=CWE-89');
+    });
+
+    it('appends scalar cvss and epss filters when defined', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {
+        minCvss: 7.5, maxCvss: 10, minEpss: 0.1, maxEpss: 1.0,
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('minCvss=7.5');
+      expect(path).toContain('maxCvss=10');
+      expect(path).toContain('minEpss=0.1');
+      expect(path).toContain('maxEpss=1');
+    });
+
+    it('appends boolean filters when defined', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {
+        exploitationKnown: true, hasMalware: false,
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('exploitationKnown=true');
+      expect(path).toContain('hasMalware=false');
+    });
+
+    it('appends publishedWindow when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {
+        publishedWindow: '30d',
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('publishedWindow=30d');
+    });
+
+    it('omits absent filter and sort params', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).not.toContain('severities');
+      expect(path).not.toContain('affectedEcosystems');
+      expect(path).not.toContain('sortField');
+      expect(path).not.toContain('minCvss');
+    });
+
+    it('propagates non-404 errors', async () => {
+      const { ApiError } = jest.requireActual<typeof import('GuideRoot/api/apiFetch')>('GuideRoot/api/apiFetch');
+      mockApiFetch.mockRejectedValue(new ApiError('server error', 500, 'Internal Server Error'));
+
+      await expect(
+        getComponentVulnerabilities('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
+      ).rejects.toThrow('server error');
     });
   });
 
@@ -331,17 +430,123 @@ describe('componentsBackend', () => {
     });
   });
 
-  describe('getComponentDependencies (unwired — 404 until GUIDE-2606)', () => {
-    it('calls apiFetch with the component dependencies path and no mock handler', async () => {
-      mockApiFetch.mockResolvedValue({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} });
+  describe('getComponentDependencies (wired)', () => {
+    const emptyResponse = { hits: [], total: 0, offset: 0, limit: 25, aggregations: {} };
+
+    it('calls the correct endpoint with PURL and default pagination', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
 
       await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
 
-      expect(mockApiFetch).toHaveBeenCalledTimes(1);
-      const [path, init] = mockApiFetch.mock.calls[0];
-      expect(path).toContain('/api/v2/guide/components/');
-      expect(path).toContain('dependencies');
-      expect(init).toBeUndefined();
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toBe(
+        '/api/v2/guide/components/dependencies?purl=pkg%3Anpm%2Flodash%404.17.21&offset=0&limit=25'
+      );
+    });
+
+    it('does not double-encode scoped npm packages', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', '@scope/name', '1.0.0', undefined, {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('pkg%3Anpm%2F%40scope%2Fname%401.0.0');
+      expect(path).not.toContain('%2540');
+    });
+
+    it('appends sort options when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, {
+        offset: 0, limit: 25, sortField: 'sonatypeScore', sortOrder: 'asc',
+      });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('sortField=sonatypeScore');
+      expect(path).toContain('sortOrder=asc');
+    });
+
+    it('appends query text filter when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', 'commons', {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('query=commons');
+    });
+
+    it('omits query param when undefined', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).not.toContain('query=');
+    });
+
+    it('appends formats, categories, severities, licenses, and licenseFamilies as repeated params', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {
+        formats: ['npm', 'maven'],
+        categories: ['Security'],
+        severities: ['critical'],
+        licenses: ['MIT'],
+        licenseFamilies: ['Permissive'],
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('formats=npm');
+      expect(path).toContain('formats=maven');
+      expect(path).toContain('categories=Security');
+      expect(path).toContain('severities=critical');
+      expect(path).toContain('licenses=MIT');
+      expect(path).toContain('licenseFamilies=Permissive');
+    });
+
+    it('appends version score range when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {
+        minVersionScore: 2.0, maxVersionScore: 8.5,
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('minVersionScore=2');
+      expect(path).toContain('maxVersionScore=8.5');
+    });
+
+    it('appends hasMalware and publishedWindow when provided', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {
+        hasMalware: true, publishedWindow: '90d',
+      }, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).toContain('hasMalware=true');
+      expect(path).toContain('publishedWindow=90d');
+    });
+
+    it('omits absent filter and sort params', async () => {
+      mockApiFetch.mockResolvedValue(emptyResponse);
+
+      await getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 });
+
+      const [path] = mockApiFetch.mock.calls[0];
+      expect(path).not.toContain('formats');
+      expect(path).not.toContain('severities');
+      expect(path).not.toContain('sortField');
+      expect(path).not.toContain('minVersionScore');
+    });
+
+    it('propagates non-404 errors', async () => {
+      const { ApiError } = jest.requireActual<typeof import('GuideRoot/api/apiFetch')>('GuideRoot/api/apiFetch');
+      mockApiFetch.mockRejectedValue(new ApiError('server error', 500, 'Internal Server Error'));
+
+      await expect(
+        getComponentDependencies('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
+      ).rejects.toThrow('server error');
     });
   });
 

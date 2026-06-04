@@ -14,3 +14,8 @@ export function toParamsRecord(searchParams: ReadonlySearchParams): Record<strin
   }
   return result;
 }
+
+/** Normalizes a single value, array, or undefined to a string array. */
+export function toStringArray(v: string | string[] | undefined): string[] {
+  return v === undefined ? [] : Array.isArray(v) ? v : [v];
+}

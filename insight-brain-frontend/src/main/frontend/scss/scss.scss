@@ -117,6 +117,7 @@
 @use '../violation/waiveTransitiveViolationsPopover';
 @use '../violation/requestWaiveTransitiveViolationsPopover';
 @use '../violation/policyViolationConstraintInfo';
+@use '../violation/ReachabilityEvidence/reachabilityEvidence';
 @use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';
 @use '../quarantinedComponentReport/quarantinedComponentReport';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';

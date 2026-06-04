@@ -61,6 +61,7 @@ import transitiveViolationsReducer from '../violation/transitiveViolationsReduce
 import userConfigurationReducer from '../security/users/usersReducer';
 import administratorsSlice from '../configuration/administrators/administratorsSlice';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsSlice';
+import reachabilityEvidenceReducer from '../violation/ReachabilityEvidence/reachabilityEvidenceSlice';
 import componentDetailsViolationsReducer from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import successMetricsReportSlice from '../labs/successMetrics/successMetricsSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
@@ -208,6 +209,7 @@ export default combineReducers({
   gettingStarted: gettingStartedReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
+  reachabilityEvidence: reachabilityEvidenceReducer,
   samlConfiguration: samlConfigurationSlice,
   oidcConfiguration: oidcConfigurationSlice,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,

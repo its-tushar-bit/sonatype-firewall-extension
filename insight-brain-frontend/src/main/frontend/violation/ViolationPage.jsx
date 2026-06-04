@@ -76,6 +76,7 @@ export default function ViolationPage(props) {
     similarWaiversFilterSelectedIds,
     setFilterIdsSimilarWaivers,
     isAutoWaiversEnabled,
+    scanId,
   } = props;
 
   const $state = useRouterState();
@@ -164,6 +165,7 @@ export default function ViolationPage(props) {
       <InvalidViolationGuard violationMissingDatabaseIdentifier={violationMissingDatabaseIdentifier}>
         <LoadWrapper error={error} loading={violationLoading} retryHandler={load}>
           <ViolationDetailsTile
+            key={selectedViolationId}
             {...{
               $state,
               stageTypes,
@@ -177,6 +179,7 @@ export default function ViolationPage(props) {
               policyDetail,
               hasPermissionForAppWaivers,
               constraintViolations,
+              scanId,
               isSbomManager,
               isContainerImagesEvaluationEnabled,
               isWaiverRequestWorkflowEnabled,
@@ -316,6 +319,7 @@ export const violationPageTypes = {
   isContainerImagesEvaluationEnabled: PropTypes.bool,
   similarWaiversFilterSelectedIds: PropTypes.object,
   setFilterIdsSimilarWaivers: PropTypes.func,
+  scanId: PropTypes.string,
 };
 
 ViolationPage.propTypes = violationPageTypes;

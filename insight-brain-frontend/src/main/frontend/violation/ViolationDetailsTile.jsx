@@ -11,6 +11,7 @@ import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/u
 import { NxH2, NxH3, NxPolicyViolationIndicator, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
+import ReachabilityEvidence from 'MainRoot/violation/ReachabilityEvidence/ReachabilityEvidence';
 import { timeAgo } from '../util/CommonServices';
 import { capitalizeFirstLetter } from '../util/jsUtil';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
@@ -232,6 +233,7 @@ export default function ViolationDetailsTile(props) {
         <div className="iq-violation-details__reachability">
           <NxH3>Reachability Analysis</NxH3>
           <ReachabilityStatus reachabilityStatus={reachabilityStatus} />
+          <ReachabilityEvidence reachabilityStatus={reachabilityStatus} />
         </div>
       )}
     </section>
@@ -287,4 +289,5 @@ ViolationDetailsTile.propTypes = {
   isContainerImagesEvaluationEnabled: PropTypes.bool,
   isWaiverRequestWorkflowEnabled: PropTypes.bool,
   constraintViolations: constraintViolationsPropType,
+  scanId: PropTypes.string,
 };

@@ -248,3 +248,12 @@ a.nx-btn {
     height: 40px;
   }
 }
+
+// Bootstrap sets code { color: #d14 } and pre { color: $grayDark } which overrides RSC colors
+.nx-pre {
+  color: var(--nx-color-text);
+
+  code, .nx-code {
+    color: inherit;
+  }
+}

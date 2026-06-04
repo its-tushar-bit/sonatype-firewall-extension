@@ -18,6 +18,7 @@ import ViolationPage from './ViolationPage';
 import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
+import { getMostRecentScanId } from './violationSelectors';
 import {
   selectIsFirewall,
   selectRouterCurrentParams,
@@ -35,6 +36,7 @@ import {
   selectFirewallComponentDetailsPageRouteParams,
   selectFirewallIsLoading,
 } from 'MainRoot/firewall/firewallSelectors';
+
 import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 function mapStateToProps(state, props) {
@@ -53,7 +55,7 @@ function mapStateToProps(state, props) {
   const selectPolicyId = props.selectPolicyId;
   const firewallPolicyViolations = firewallComponentDetailsPage.policyViolations;
   const componentApplicationDetails = selectComponentDetails(state);
-  const { tabId } = selectRouterCurrentParams(state);
+  const { tabId, scanId } = selectRouterCurrentParams(state);
   const firewallComponentDetailsPageParams = selectFirewallComponentDetailsPageRouteParams(state);
   const isSbomManager = selectIsSbomManager(state);
   const isAutoWaiversEnabled = selectIsAutoWaiversEnabled(state);
@@ -98,6 +100,7 @@ function mapStateToProps(state, props) {
       ? firewallComponentDetailsPage?.componentDetails?.hash
       : componentApplicationDetails?.hash,
     tabId,
+    scanId: scanId || getMostRecentScanId(violationDetails?.stageData),
     repositoryId: isFirewallOrRepository ? firewallComponentDetailsPageParams.repositoryId : null,
     matchState: isFirewallOrRepository ? firewallComponentDetailsPageParams.matchState : null,
     pathname: isFirewallOrRepository ? firewallComponentDetailsPageParams.pathname : null,

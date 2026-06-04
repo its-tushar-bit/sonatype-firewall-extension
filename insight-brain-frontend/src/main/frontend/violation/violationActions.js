@@ -15,6 +15,8 @@ import {
   getApplicationSummaryUrl,
   getApplicableAutoWaiverUrl,
 } from '../util/CLMLocation';
+import { extractSecurityVulnerabilityRefId, getMostRecentScanId } from './violationSelectors';
+import { loadEvidence } from './ReachabilityEvidence/reachabilityEvidenceSlice';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
@@ -72,7 +74,10 @@ export function loadViolation(id) {
     return Promise.all(parallelRequests)
       .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
       .then(compose(dispatch, loadViolationDetailsFulfilled))
-      .then(compose(dispatch, loadVulnerabilityDetails))
+      .then(() => {
+        dispatch(loadReachabilityEvidence());
+        return dispatch(loadVulnerabilityDetails());
+      })
       .catch(compose(dispatch, loadViolationDetailsFailed));
   };
 }
@@ -254,3 +259,33 @@ function checkEditIqPermission(applicationPublicId) {
 const loadVulnerabilityDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
 const loadVulnerabilityDetailsFulfilled = payloadParamActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
 const loadVulnerabilityDetailsFailed = payloadParamActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);
+
+/**
+ * Loads reachability evidence if the current violation is REACHABLE and has a
+ * security vulnerability reference. Dispatched as part of the violation page load.
+ * Evidence failure is non-blocking — it does not affect the main page load.
+ */
+export function loadReachabilityEvidence() {
+  return function (dispatch, getState) {
+    const state = getState();
+    const { violationDetails } = state.violation;
+
+    if (!violationDetails || violationDetails.reachabilityStatus !== 'REACHABLE') {
+      return;
+    }
+
+    const { applicationPublicId, constraintViolations, stageData } = violationDetails;
+    const vulnerabilityId = extractSecurityVulnerabilityRefId(constraintViolations);
+    if (!vulnerabilityId || !applicationPublicId) {
+      return;
+    }
+
+    const { scanId } = state.router.currentParams;
+    const reportId = scanId || getMostRecentScanId(stageData);
+    if (!reportId) {
+      return;
+    }
+
+    dispatch(loadEvidence({ applicationPublicId, reportId, vulnerabilityId }));
+  };
+}

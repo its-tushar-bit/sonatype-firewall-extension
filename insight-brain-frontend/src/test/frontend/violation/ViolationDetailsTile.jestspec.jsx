@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { screen, render, fireEvent, within } from 'TestRoot/SpecUtil';
+
 import { pathSet } from 'MainRoot/util/jsUtil';
 import ViolationDetailsTile from 'MainRoot/violation/ViolationDetailsTile';
 import * as commonServices from 'MainRoot/util/CommonServices';
@@ -584,6 +585,232 @@ describe('ViolationDetailsTile', function () {
     it('renders "Not reachable" if reachabilityStatus has any other string', () => {
       renderComponent(pathSet(['violationDetails', 'reachabilityStatus'], 'some_string', minimalProps));
       expect(screen.getByText('Not reachable')).toBeInTheDocument();
+    });
+
+    describe('evidence accordion', () => {
+      const reachableProps = () => ({
+        ...pathSet(['violationDetails', 'reachabilityStatus'], 'REACHABLE', minimalProps),
+      });
+
+      function evidenceState(evidence, overrides = {}) {
+        return {
+          reachabilityEvidence: {
+            loading: false,
+            loadError: null,
+            evidence,
+            isOpen: false,
+            currentRequestId: null,
+            ...overrides,
+          },
+        };
+      }
+
+      function getPathTrace(pathIndex = 0) {
+        const traces = screen.getAllByRole('region', { name: /call path trace/i });
+        return traces[pathIndex]?.textContent;
+      }
+
+      function renderWithEvidence(response, extraProps = {}) {
+        renderComponent({ ...reachableProps(), ...extraProps }, evidenceState(response, { isOpen: true }));
+      }
+
+      it('does not render evidence accordion when NON_REACHABLE', () => {
+        renderComponent(
+          pathSet(['violationDetails', 'reachabilityStatus'], 'NON_REACHABLE', minimalProps),
+          evidenceState({ paths: [{ segments: [{ type: 'method', method: 'com/A.b()V', filePath: '/a.jar', component: null }] }], truncated: false })
+        );
+        expect(screen.queryByRole('button', { name: /reachability evidence/i })).not.toBeInTheDocument();
+      });
+
+      it('does not render evidence accordion when evidence is null (still loading)', () => {
+        renderComponent(reachableProps(), evidenceState(null));
+        expect(screen.queryByRole('button', { name: /reachability evidence/i })).not.toBeInTheDocument();
+      });
+
+      it('does not render evidence accordion when evidence has empty paths (404 sentinel)', () => {
+        renderComponent(reachableProps(), evidenceState({ paths: [], truncated: false }));
+        expect(screen.queryByRole('button', { name: /reachability evidence/i })).not.toBeInTheDocument();
+      });
+
+      it('renders evidence accordion when evidence has paths', () => {
+        renderComponent(
+          reachableProps(),
+          evidenceState({ paths: [{ segments: [{ type: 'method', method: 'com/A.b()V', filePath: '/a.jar', component: null }] }], truncated: false })
+        );
+        expect(screen.getByRole('button', { name: /reachability evidence/i })).toBeInTheDocument();
+      });
+
+      it('shows error accordion when there is a load error', () => {
+        renderComponent(
+          reachableProps(),
+          evidenceState(null, { loadError: 'Failed to load reachability evidence', isOpen: true })
+        );
+        expect(screen.getByRole('button', { name: /reachability evidence/i })).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toHaveTextContent(/Failed to load reachability evidence/);
+      });
+
+      it('renders a single-method path', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/example/App.run()V', filePath: '/app.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('App.run()');
+      });
+
+      it('renders a direct call chain in one component (no gaps, no elision)', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/Main.main([Ljava/lang/String;)V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/app/Service.process()V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/app/Dao.query()V', filePath: '/app.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('Main.main()Service.process()Dao.query()');
+      });
+
+      it('renders intra-component gaps as "..."', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/A.start()V', filePath: '/app.jar', component: null },
+            { type: 'gap' },
+            { type: 'method', method: 'com/app/B.middle()V', filePath: '/app.jar', component: null },
+            { type: 'gap' },
+            { type: 'method', method: 'com/app/C.end()V', filePath: '/app.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('A.start()...B.middle()...C.end()');
+      });
+
+      it('renders cross-component elision as "... N more components ..."', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/Entry.start()V', filePath: '/app.jar', component: null },
+            { type: 'elided', count: 5 },
+            { type: 'method', method: 'com/vuln/Sink.exec()V', filePath: '/vuln.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('Entry.start()... 5 more components ...Sink.exec()');
+      });
+
+      it('renders multiple boundary crossings as separate sections labeled by component or filePath', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/Controller.handle()V', filePath: '/app.jar', component: 'pkg:maven/com.app/app@1.0' },
+            { type: 'method', method: 'com/lib/Service.call()V', filePath: '/lib.jar', component: null },
+            { type: 'method', method: 'com/data/Repo.find()V', filePath: '/data.jar', component: 'pkg:maven/com.data/repo@1.0' },
+            { type: 'method', method: 'com/vuln/Parser.parse()V', filePath: '/vuln.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('Controller.handle()Service.call()Repo.find()Parser.parse()');
+        expect(screen.getByRole('group', { name: 'pkg:maven/com.app/app@1.0' })).toHaveTextContent('Controller.handle()');
+        expect(screen.getByRole('group', { name: '/lib.jar' })).toHaveTextContent('Service.call()');
+        expect(screen.getByRole('group', { name: 'pkg:maven/com.data/repo@1.0' })).toHaveTextContent('Repo.find()');
+        expect(screen.getByRole('group', { name: '/vuln.jar' })).toHaveTextContent('Parser.parse()');
+      });
+
+      it('groups consecutive same-filePath methods in one section', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/A.one()V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/app/A.two()V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/app/A.three()V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/lib/B.start()V', filePath: '/lib.jar', component: null },
+            { type: 'method', method: 'com/lib/B.end()V', filePath: '/lib.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('A.one()A.two()A.three()B.start()B.end()');
+        const appSection = screen.getByRole('group', { name: '/app.jar' });
+        const libSection = screen.getByRole('group', { name: '/lib.jar' });
+        expect(appSection.textContent).toBe('A.one()A.two()A.three()');
+        expect(libSection.textContent).toBe('B.start()B.end()');
+      });
+
+      it('renders a complex path with gaps, elision, and multiple components', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/Entry.main([Ljava/lang/String;)V', filePath: '/app.jar', component: null },
+            { type: 'gap' },
+            { type: 'method', method: 'com/app/Entry.init()V', filePath: '/app.jar', component: null },
+            { type: 'elided', count: 12 },
+            { type: 'method', method: 'com/vuln/Jackson.deserialize(Ljava/io/InputStream;)Ljava/lang/Object;', filePath: '/jackson.jar', component: null },
+            { type: 'gap' },
+            { type: 'method', method: 'com/vuln/Jackson.readValue()V', filePath: '/jackson.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe(
+          'Entry.main()...Entry.init()... 12 more components ...Jackson.deserialize()...Jackson.readValue()'
+        );
+        expect(screen.getByRole('group', { name: '/app.jar' })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: '/jackson.jar' })).toBeInTheDocument();
+      });
+
+      it('renders multiple paths with correct headings and traces', () => {
+        renderWithEvidence({
+          paths: [
+            { segments: [
+              { type: 'method', method: 'com/app/Main.main([Ljava/lang/String;)V', filePath: '/app.jar', component: null },
+              { type: 'method', method: 'com/vuln/Lib.bad()V', filePath: '/lib.jar', component: null },
+            ] },
+            { segments: [
+              { type: 'method', method: 'com/app/Test.run()V', filePath: '/app.jar', component: null },
+              { type: 'gap' },
+              { type: 'method', method: 'com/app/Test.call()V', filePath: '/app.jar', component: null },
+              { type: 'method', method: 'com/vuln/Lib.bad()V', filePath: '/lib.jar', component: null },
+            ] },
+          ],
+          truncated: true,
+        });
+
+        expect(screen.getByRole('heading', { name: 'Path 1' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Path 2' })).toBeInTheDocument();
+        expect(getPathTrace(0)).toBe('Main.main()Lib.bad()');
+        expect(getPathTrace(1)).toBe('Test.run()...Test.call()Lib.bad()');
+      });
+
+      it('renders a fully-elided middle with boundaries on both sides', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/A.first()V', filePath: '/app.jar', component: null },
+            { type: 'method', method: 'com/app/A.second()V', filePath: '/app.jar', component: null },
+            { type: 'elided', count: 20 },
+            { type: 'method', method: 'com/vuln/Z.penultimate()V', filePath: '/vuln.jar', component: null },
+            { type: 'method', method: 'com/vuln/Z.last()V', filePath: '/vuln.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('A.first()A.second()... 20 more components ...Z.penultimate()Z.last()');
+      });
+
+      it('renders consecutive elision segments', () => {
+        renderWithEvidence({
+          paths: [{ segments: [
+            { type: 'method', method: 'com/app/A.entry()V', filePath: '/a.jar', component: null },
+            { type: 'elided', count: 3 },
+            { type: 'method', method: 'com/mid/B.mid()V', filePath: '/b.jar', component: null },
+            { type: 'elided', count: 7 },
+            { type: 'method', method: 'com/vuln/C.sink()V', filePath: '/c.jar', component: null },
+          ] }],
+          truncated: true,
+        });
+
+        expect(getPathTrace()).toBe('A.entry()... 3 more components ...B.mid()... 7 more components ...C.sink()');
+      });
     });
   });
 });

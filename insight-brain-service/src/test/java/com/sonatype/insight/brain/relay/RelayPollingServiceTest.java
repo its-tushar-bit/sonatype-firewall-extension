@@ -11,6 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.logging.MDCRelayEventScope;
 import com.sonatype.insight.brain.model.relay.RelayConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.relay.dto.RelayAckResponse;
@@ -27,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.MDC;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -89,18 +91,22 @@ public class RelayPollingServiceTest
   private final RelayPollingStartDelayCalculator startDelayCalculator =
       (interval, defaultDelay) -> defaultDelay;
 
+  private RelayPollerCounters counters;
+
   private RelayPollingService service;
 
   @Before
   public void before() {
+    counters = new RelayPollerCounters();
     // Default: gitHubAppDAO returns nothing for the relay-link retry pre-flight in most
     // tests. Tests that exercise the retry loop override this stub locally.
     lenient().when(gitHubAppDAO.getActiveByRelayLinkState(org.mockito.ArgumentMatchers.anySet()))
         .thenReturn(java.util.Collections.emptyList());
     // Default: 3 failures triggers fallback (matches the production constant).
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 50, 3, 1);
+        relayEventMapper, relayEventDeduplicator, counters, sourceControlEventPublisher,
+        pullRequestPollingScheduler, passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator,
+        0, 60, 50, 3, 1);
     service.disableSchedulingForTesting = true;
 
     lenient().when(passwordHandler.decryptPassword(anyString())).thenAnswer(inv -> "plain-" + inv.getArgument(0));
@@ -188,6 +194,9 @@ public class RelayPollingServiceTest
 
     // After threshold, legacy polling re-engages — same contract as other failure paths.
     verify(pullRequestPollingScheduler, atLeastOnce()).setSuppressed(false);
+    // pollErrors must increment once per uncaught throwable so the support zip and telemetry
+    // show the failure rate; a silent zero would be the worst possible operator UX.
+    assertThat(counters.snapshot().pollErrors()).isEqualTo(3);
   }
 
   @Test
@@ -293,6 +302,15 @@ public class RelayPollingServiceTest
     ArgumentCaptor<List<String>> handles = ArgumentCaptor.forClass(List.class);
     verify(relayClient).ack(eq("plain-encrypted-key"), handles.capture());
     assertThat(handles.getValue()).containsExactly("rh-1", "rh-2");
+    RelayPollerCounters.Snapshot snapshot = counters.snapshot();
+    assertThat(snapshot.eventsPolled()).isEqualTo(2);
+    assertThat(snapshot.eventsProcessed()).isEqualTo(2);
+    assertThat(snapshot.eventsUnmatched()).isZero();
+    assertThat(snapshot.eventsDuplicate()).isZero();
+    assertThat(snapshot.pollErrors()).isZero();
+    assertThat(snapshot.ackErrors()).isZero();
+    assertThat(snapshot.fallbackActive()).isFalse();
+    assertThat(snapshot.lastSuccessfulPollAt()).isNotNull();
   }
 
   @Test
@@ -337,8 +355,9 @@ public class RelayPollingServiceTest
   @Test
   public void pollOnce_respectsConfiguredMaxEvents() {
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 7, 3, 1);
+        relayEventMapper, relayEventDeduplicator, counters, sourceControlEventPublisher,
+        pullRequestPollingScheduler, passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator,
+        0, 60, 7, 3, 1);
     service.disableSchedulingForTesting = true;
     primeRegistration();
     when(relayClient.pollEvents("plain-encrypted-key", 7)).thenReturn(new RelayEventsResponse(Collections.emptyList()));
@@ -389,6 +408,9 @@ public class RelayPollingServiceTest
     // setSuppressed(true) would silently disable legacy polling while the relay is
     // failing. Asserting anyBoolean() catches both regressions.
     verify(pullRequestPollingScheduler, never()).setSuppressed(anyBoolean());
+    RelayPollerCounters.Snapshot snapshot = counters.snapshot();
+    assertThat(snapshot.pollErrors()).isEqualTo(2);
+    assertThat(snapshot.fallbackActive()).isFalse();
   }
 
   @Test
@@ -401,6 +423,8 @@ public class RelayPollingServiceTest
     service.pollOnce();
 
     verify(pullRequestPollingScheduler, atLeastOnce()).setSuppressed(false);
+    assertThat(counters.snapshot().fallbackActive()).isTrue();
+    assertThat(counters.snapshot().pollErrors()).isEqualTo(3);
   }
 
   @Test
@@ -420,6 +444,7 @@ public class RelayPollingServiceTest
 
     verify(pullRequestPollingScheduler, atLeastOnce()).setSuppressed(false);
     verify(pullRequestPollingScheduler, atLeastOnce()).setSuppressed(true);
+    assertThat(counters.snapshot().fallbackActive()).isFalse();
   }
 
   @Test
@@ -436,6 +461,10 @@ public class RelayPollingServiceTest
     service.pollOnce();
 
     verify(pullRequestPollingScheduler, atLeastOnce()).setSuppressed(false);
+    RelayPollerCounters.Snapshot snapshot = counters.snapshot();
+    assertThat(snapshot.ackErrors()).isEqualTo(3);
+    assertThat(snapshot.eventsUnmatched()).isEqualTo(3);
+    assertThat(snapshot.fallbackActive()).isTrue();
   }
 
   @Test
@@ -472,6 +501,28 @@ public class RelayPollingServiceTest
     ArgumentCaptor<List<String>> handles = ArgumentCaptor.forClass(List.class);
     verify(relayClient).ack(eq("plain-encrypted-key"), handles.capture());
     assertThat(handles.getValue()).containsExactly("rh-dup");
+    RelayPollerCounters.Snapshot snapshot = counters.snapshot();
+    assertThat(snapshot.eventsDuplicate()).isEqualTo(1);
+    assertThat(snapshot.eventsProcessed()).isZero();
+    assertThat(snapshot.eventsPolled()).isEqualTo(1);
+  }
+
+  @Test
+  public void pollOnce_setsMdcRelayEventIdDuringMapping() {
+    primeRegistration();
+    RelayEvent event = inboundEvent("e-mdc", "rh-mdc");
+    when(relayClient.pollEvents(anyString(), anyInt())).thenReturn(new RelayEventsResponse(List.of(event)));
+    String[] observed = new String[1];
+    when(relayEventMapper.map(any(), any(), any(), any())).thenAnswer(inv -> {
+      observed[0] = MDC.get(MDCRelayEventScope.RELAY_EVENT_ID);
+      return Collections.emptyList();
+    });
+    when(relayClient.ack(anyString(), anyList())).thenReturn(new RelayAckResponse());
+
+    service.pollOnce();
+
+    assertThat(observed[0]).isEqualTo("e-mdc");
+    assertThat(MDC.get(MDCRelayEventScope.RELAY_EVENT_ID)).isNull();
   }
 
   @Test
@@ -519,6 +570,9 @@ public class RelayPollingServiceTest
     verify(relayEventDeduplicator).recordProcessed(eq("e-1"), eq("app-public-1"), eq(7), eq("sha-1"),
         anyString(), eq(RelayMode.MODE_PAT));
     verify(relayClient).ack(eq("plain-encrypted-key"), eq(List.of("rh-1")));
+    RelayPollerCounters.Snapshot snapshot = counters.snapshot();
+    assertThat(snapshot.eventsDuplicate()).isEqualTo(1);
+    assertThat(snapshot.eventsProcessed()).isZero();
   }
 
   @Test
@@ -635,8 +689,9 @@ public class RelayPollingServiceTest
   public void pollOnce_drainsMultiplePagesUntilQueueEmpty() {
     // Allow up to 3 drain iterations.
     service = new RelayPollingService(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker,
-        relayEventMapper, relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler,
-        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator, 0, 60, 2, 3, 3);
+        relayEventMapper, relayEventDeduplicator, counters, sourceControlEventPublisher,
+        pullRequestPollingScheduler, passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator,
+        0, 60, 2, 3, 3);
     service.disableSchedulingForTesting = true;
     primeRegistration();
 

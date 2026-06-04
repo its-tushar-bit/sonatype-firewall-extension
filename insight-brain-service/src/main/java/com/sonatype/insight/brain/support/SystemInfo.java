@@ -60,6 +60,10 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import com.sonatype.insight.brain.model.relay.RelayConfiguration;
+import com.sonatype.insight.brain.relay.RelayPollerCounters;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
+import com.sonatype.insight.brain.service.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -103,6 +107,12 @@ public class SystemInfo
 
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
+  private final Configuration configuration;
+
+  private final RelayRegistrationService relayRegistrationService;
+
+  private final RelayPollerCounters relayPollerCounters;
+
   @Inject
   SystemInfo(
       final InsightConfig insightConfig,
@@ -112,6 +122,9 @@ public class SystemInfo
       final SamlConfigurationService samlConfigurationService,
       final MailConfigurationDAO mailConfigurationDAO,
       final ProxyServerConfigurationDAO proxyServerConfigurationDAO,
+      final Configuration configuration,
+      final RelayRegistrationService relayRegistrationService,
+      final RelayPollerCounters relayPollerCounters,
       SamlDeploymentManager samlDeploymentManager)
   {
     this.insightConfig = insightConfig;
@@ -121,6 +134,9 @@ public class SystemInfo
     this.samlConfigurationService = samlConfigurationService;
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
+    this.configuration = configuration;
+    this.relayRegistrationService = relayRegistrationService;
+    this.relayPollerCounters = relayPollerCounters;
     this.samlDeploymentManager = samlDeploymentManager;
   }
 
@@ -404,8 +420,60 @@ public class SystemInfo
     entries.add(getNetworkInterfaces());
     entries.add(getFileStores());
     entries.add(getClientInfo(requestUrl));
+    entries.add(getRelayInfo());
 
     return entries;
+  }
+
+  Entry<String, SortedMap<String, Object>> getRelayInfo() {
+    final SortedMap<String, Object> entries = new TreeMap<>();
+
+    final String relayUrl = configuration.getRelayUrl();
+    final boolean featureGateOpen = relayRegistrationService.isFeatureGateOpen();
+    final RelayConfiguration relayConfiguration = relayRegistrationService.getConfiguration();
+    final boolean registered = relayConfiguration != null;
+
+    entries.put("relayUrl", relayUrl);
+    entries.put("featureEnabled", featureGateOpen);
+    entries.put("registered", registered);
+    if (registered) {
+      entries.put("customerId", relayConfiguration.getCustomerId());
+      entries.put("registeredAt",
+          relayConfiguration.getRegisteredAt() == null
+              ? null
+              : relayConfiguration.getRegisteredAt().toInstant().toString());
+    }
+
+    final RelayPollerCounters.Snapshot snapshot = relayPollerCounters.snapshot();
+    final String mode;
+    if (!featureGateOpen) {
+      mode = "disabled";
+    }
+    else if (!registered) {
+      // Feature on but no relay_configuration row yet: registration has not completed.
+      // Distinct from "fallback" (relay was up and is now degraded) and from "relay"
+      // (relay is healthy and polling is active).
+      mode = "pending-registration";
+    }
+    else if (snapshot.fallbackActive()) {
+      mode = "fallback";
+    }
+    else {
+      mode = "relay";
+    }
+    entries.put("mode", mode);
+    entries.put("lastSuccessfulPollAt",
+        snapshot.lastSuccessfulPollAt() == null ? null : snapshot.lastSuccessfulPollAt().toString());
+    entries.put("fallbackActive", snapshot.fallbackActive());
+    entries.put("eventsPolled", snapshot.eventsPolled());
+    entries.put("eventsProcessed", snapshot.eventsProcessed());
+    entries.put("eventsUnmatched", snapshot.eventsUnmatched());
+    entries.put("eventsDuplicate", snapshot.eventsDuplicate());
+    entries.put("pollErrors", snapshot.pollErrors());
+    entries.put("ackErrors", snapshot.ackErrors());
+    entries.put("eventsProcessingErrors", snapshot.eventsProcessingErrors());
+
+    return wrapEntry("relay-info", entries);
   }
 
   String getSystemInfoJson(final String requestUrl) {

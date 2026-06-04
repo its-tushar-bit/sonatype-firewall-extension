@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.relay;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
+import com.sonatype.insight.brain.logging.MDCRelayEventScope;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import jakarta.ws.rs.NotAuthorizedException;
 import com.sonatype.insight.brain.model.Application;
@@ -105,6 +107,8 @@ public class RelayPollingService
 
   private final RelayEventDeduplicator relayEventDeduplicator;
 
+  private final RelayPollerCounters counters;
+
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final PullRequestPollingScheduler pullRequestPollingScheduler;
@@ -149,6 +153,7 @@ public class RelayPollingService
       GitHubAppRelayLinker gitHubAppRelayLinker,
       RelayEventMapper relayEventMapper,
       RelayEventDeduplicator relayEventDeduplicator,
+      RelayPollerCounters counters,
       SourceControlEventPublisher sourceControlEventPublisher,
       PullRequestPollingScheduler pullRequestPollingScheduler,
       PasswordHandler passwordHandler,
@@ -157,8 +162,8 @@ public class RelayPollingService
       RelayPollingStartDelayCalculator startDelayCalculator)
   {
     this(relayClient, relayRegistrationService, gitHubAppDAO, gitHubAppRelayLinker, relayEventMapper,
-        relayEventDeduplicator, sourceControlEventPublisher, pullRequestPollingScheduler, passwordHandler,
-        shutdownHandler, scmNodeProcessor, startDelayCalculator,
+        relayEventDeduplicator, counters, sourceControlEventPublisher, pullRequestPollingScheduler,
+        passwordHandler, shutdownHandler, scmNodeProcessor, startDelayCalculator,
         DEFAULT_POLL_INITIAL_DELAY_SECONDS, DEFAULT_POLL_INTERVAL_SECONDS,
         DEFAULT_MAX_EVENTS_PER_CYCLE, DEFAULT_FAILURE_THRESHOLD, DEFAULT_MAX_DRAIN_ITERATIONS);
   }
@@ -171,6 +176,7 @@ public class RelayPollingService
       GitHubAppRelayLinker gitHubAppRelayLinker,
       RelayEventMapper relayEventMapper,
       RelayEventDeduplicator relayEventDeduplicator,
+      RelayPollerCounters counters,
       SourceControlEventPublisher sourceControlEventPublisher,
       PullRequestPollingScheduler pullRequestPollingScheduler,
       PasswordHandler passwordHandler,
@@ -192,6 +198,7 @@ public class RelayPollingService
     this.gitHubAppRelayLinker = gitHubAppRelayLinker;
     this.relayEventMapper = relayEventMapper;
     this.relayEventDeduplicator = relayEventDeduplicator;
+    this.counters = counters;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.pullRequestPollingScheduler = pullRequestPollingScheduler;
     this.passwordHandler = passwordHandler;
@@ -367,11 +374,10 @@ public class RelayPollingService
    * counter, no fallback engagement, invisible until support tools.
    *
    * <p>
-   * On any throwable: the ERROR log carries the real cause, and {@link #recordFailure()}
-   * lets legacy SCM polling re-engage after the failure threshold so users keep getting PR
-   * scans while the underlying issue is diagnosed. The pollErrors counter is incremented
-   * in the observability branch where the counters bean is wired in (downstream of this
-   * branch).
+   * On any throwable: the ERROR log carries the real cause, {@code counters.incPollErrors()}
+   * makes it visible in the support zip and telemetry, and {@link #recordFailure()} lets
+   * legacy SCM polling re-engage after the failure threshold so users keep getting PR
+   * scans while the underlying issue is diagnosed.
    */
   @VisibleForTesting
   void runPollCycleWithErrorBoundary() {
@@ -381,6 +387,10 @@ public class RelayPollingService
     }
     catch (Throwable t) {
       log.error("Relay polling cycle threw unexpectedly: {}", t.getMessage(), t);
+      // Surface the failure in the support zip / telemetry. Without this an Error escaping
+      // pollOnce would be invisible from the operator's view (eventsPolled didn't advance,
+      // but no error counter incremented either).
+      counters.incPollErrors();
       recordFailure();
     }
   }
@@ -506,10 +516,12 @@ public class RelayPollingService
       }
       catch (RuntimeException e) {
         log.warn("Relay poll failed: {}", e.getMessage());
+        counters.incPollErrors();
         recordFailure();
         return;
       }
       List<RelayEvent> events = response.getEvents() != null ? response.getEvents() : List.of();
+      counters.incEventsPolled(events.size());
       if (events.isEmpty()) {
         // Queue empty on this iteration — fully drained (including the common idle case).
         drained = true;
@@ -539,6 +551,12 @@ public class RelayPollingService
     }
     log.debug("Relay poll cycle: drained {} event(s), published {} SourceControlEvent(s)", totalDrained,
         totalPublished);
+    // Intentionally only stamped when the cycle reaches this point without an early
+    // return on any page's poll/ack failure. Operators reading lastSuccessfulPollAt from
+    // the support zip therefore see the timestamp of the last cycle that completed end
+    // to end — it can lag behind the time at which individual events were processed in
+    // a high-volume cycle that ultimately tripped on a later page's ack.
+    counters.setLastSuccessfulPollAt(Instant.now());
     recordSuccess();
   }
 
@@ -594,86 +612,95 @@ public class RelayPollingService
         handlesToAck.add(event.getReceiptHandle());
       }
       String eventId = event.getEventId();
-      if (relayEventDeduplicator.isPrimaryDuplicate(eventId)) {
-        log.debug("Skipping duplicate relay eventId={}", eventId);
-        continue;
-      }
-      try {
-        List<SourceControlEvent> mapped =
-            relayEventMapper.map(event, applicationsByRepoUrl, sourceControlsByRepoUrl, authenticationType);
-        // Capture the secondary key from the first app whose check actually passed (preferred),
-        // OR — if every app is a secondary-dup — from the first dup'd app as a fallback so
-        // the relay_event_log row reflects the (app, pr, commit) we deduped on. Without the
-        // dup fallback, all-secondary-dup events recorded a half-row (null app/pr/commit)
-        // that operators reading the table could not distinguish from a mapper failure.
-        // Recording the dup'd tuple does not affect dedup correctness: the row whose
-        // existence we just confirmed via isSecondaryDuplicate already carries that tuple,
-        // and the secondary index is non-unique so a duplicate-tuple row is harmless.
-        String firstAppPublicId = null;
-        Integer firstPrNumber = null;
-        String firstCommitHash = null;
-        String firstDupAppPublicId = null;
-        Integer firstDupPrNumber = null;
-        String firstDupCommitHash = null;
-        for (SourceControlEvent sourceControlEvent : mapped) {
-          String appPublicId = relayEventDeduplicator.resolveApplicationPublicId(
-              sourceControlEvent.getApplicationId());
-          if (relayEventDeduplicator.isSecondaryDuplicate(appPublicId,
-              sourceControlEvent.getPullRequestNumber(), sourceControlEvent.getCommitHash(), mode,
-              event.getEventType()))
-          {
-            if (firstDupAppPublicId == null) {
-              firstDupAppPublicId = appPublicId;
-              firstDupPrNumber = sourceControlEvent.getPullRequestNumber();
-              firstDupCommitHash = sourceControlEvent.getCommitHash();
+      try (MDCRelayEventScope ignored = MDCRelayEventScope.forEventId(eventId)) {
+        if (relayEventDeduplicator.isPrimaryDuplicate(eventId)) {
+          counters.incEventsDuplicate();
+          log.debug("Skipping duplicate relay eventId={}", eventId);
+          continue;
+        }
+        try {
+          List<SourceControlEvent> mapped =
+              relayEventMapper.map(event, applicationsByRepoUrl, sourceControlsByRepoUrl, authenticationType);
+          if (mapped.isEmpty()) {
+            // No application bound to the repository URL (or unmappable payload).
+            counters.incEventsUnmatched();
+          }
+          // Capture the secondary key from the first app whose check actually passed (preferred),
+          // OR — if every app is a secondary-dup — from the first dup'd app as a fallback so
+          // the relay_event_log row reflects the (app, pr, commit) we deduped on. Without the
+          // dup fallback, all-secondary-dup events recorded a half-row (null app/pr/commit)
+          // that operators reading the table could not distinguish from a mapper failure.
+          // Recording the dup'd tuple does not affect dedup correctness: the row whose
+          // existence we just confirmed via isSecondaryDuplicate already carries that tuple,
+          // and the secondary index is non-unique so a duplicate-tuple row is harmless.
+          String firstAppPublicId = null;
+          Integer firstPrNumber = null;
+          String firstCommitHash = null;
+          String firstDupAppPublicId = null;
+          Integer firstDupPrNumber = null;
+          String firstDupCommitHash = null;
+          for (SourceControlEvent sourceControlEvent : mapped) {
+            String appPublicId = relayEventDeduplicator.resolveApplicationPublicId(
+                sourceControlEvent.getApplicationId());
+            if (relayEventDeduplicator.isSecondaryDuplicate(appPublicId,
+                sourceControlEvent.getPullRequestNumber(), sourceControlEvent.getCommitHash(), mode,
+                event.getEventType()))
+            {
+              counters.incEventsDuplicate();
+              if (firstDupAppPublicId == null) {
+                firstDupAppPublicId = appPublicId;
+                firstDupPrNumber = sourceControlEvent.getPullRequestNumber();
+                firstDupCommitHash = sourceControlEvent.getCommitHash();
+              }
+              log.debug("Skipping secondary-duplicate relay eventId={} app={} pr={} commit={} type={}",
+                  eventId, appPublicId, sourceControlEvent.getPullRequestNumber(),
+                  sourceControlEvent.getCommitHash(), event.getEventType());
+              continue;
             }
-            log.debug("Skipping secondary-duplicate relay eventId={} app={} pr={} commit={} type={}",
-                eventId, appPublicId, sourceControlEvent.getPullRequestNumber(),
-                sourceControlEvent.getCommitHash(), event.getEventType());
-            continue;
+            sourceControlEventPublisher.publishEventBypassingFeatureGate(sourceControlEvent);
+            if (firstAppPublicId == null) {
+              // Capture the secondary key AFTER successful publish so a publish failure on
+              // the first non-dup app doesn't leave us with a captured-but-not-actually-
+              // recorded tuple.
+              firstAppPublicId = appPublicId;
+              firstPrNumber = sourceControlEvent.getPullRequestNumber();
+              firstCommitHash = sourceControlEvent.getCommitHash();
+            }
+            counters.incEventsProcessed();
+            published++;
           }
-          sourceControlEventPublisher.publishEventBypassingFeatureGate(sourceControlEvent);
-          if (firstAppPublicId == null) {
-            // Capture the secondary key AFTER successful publish so a publish failure on
-            // the first non-dup app doesn't leave us with a captured-but-not-actually-
-            // recorded tuple (the outer catch would still record null fields anyway, but
-            // capturing only after success keeps the intent clean).
-            firstAppPublicId = appPublicId;
-            firstPrNumber = sourceControlEvent.getPullRequestNumber();
-            firstCommitHash = sourceControlEvent.getCommitHash();
+          // Prefer the non-dup tuple; fall back to the dup tuple if every app was a dup;
+          // null only when mapped.isEmpty() (no app bound to the repository URL).
+          //
+          // recordProcessed is wrapped in its own try so a dedup-log DB failure here is
+          // logged accurately as a dedup-write failure (NOT misclassified as a
+          // processing failure) and does NOT fall through to the outer catch block's
+          // null-secondary-key fallback (which would overwrite a successful publish).
+          String recordApp = firstAppPublicId != null ? firstAppPublicId : firstDupAppPublicId;
+          Integer recordPr = firstAppPublicId != null ? firstPrNumber : firstDupPrNumber;
+          String recordCommit = firstAppPublicId != null ? firstCommitHash : firstDupCommitHash;
+          try {
+            relayEventDeduplicator.recordProcessed(eventId, recordApp, recordPr, recordCommit,
+                event.getEventType(), mode);
           }
-          published++;
+          catch (RuntimeException recordError) {
+            log.warn("Failed to record relay eventId={} in dedup log after successful processing: {}",
+                eventId, recordError.getMessage());
+          }
         }
-        // Prefer the non-dup tuple; fall back to the dup tuple if every app was a dup;
-        // null only when mapped.isEmpty() (no app bound to the repository URL).
-        //
-        // recordProcessed is wrapped in its own try so a dedup-log DB failure here is
-        // logged accurately as a dedup-write failure (NOT misclassified as a
-        // processing failure) and does NOT fall through to the outer catch block's
-        // null-secondary-key fallback (which would overwrite a successful publish).
-        String recordApp = firstAppPublicId != null ? firstAppPublicId : firstDupAppPublicId;
-        Integer recordPr = firstAppPublicId != null ? firstPrNumber : firstDupPrNumber;
-        String recordCommit = firstAppPublicId != null ? firstCommitHash : firstDupCommitHash;
-        try {
-          relayEventDeduplicator.recordProcessed(eventId, recordApp, recordPr, recordCommit,
-              event.getEventType(), mode);
-        }
-        catch (RuntimeException recordError) {
-          log.warn("Failed to record relay eventId={} in dedup log after successful processing: {}",
-              eventId, recordError.getMessage());
-        }
-      }
-      catch (RuntimeException e) {
-        log.error("Failed to process relay eventId={}: {}", eventId, e.getMessage(), e);
-        // Receipt handle is already in handlesToAck (added before the try). Record the
-        // event id in the dedup log even on failure so that a redelivery via the legacy
-        // path (with a different UUID) is still recognized by primary dedup.
-        try {
-          relayEventDeduplicator.recordProcessed(eventId, null, null, null, event.getEventType(), mode);
-        }
-        catch (RuntimeException recordError) {
-          log.warn("Failed to record relay eventId={} in dedup log after processing error: {}",
-              eventId, recordError.getMessage());
+        catch (RuntimeException e) {
+          log.error("Failed to process relay eventId={}: {}", eventId, e.getMessage(), e);
+          counters.incEventsProcessingErrors();
+          // Receipt handle is already in handlesToAck (added before the try). Record the
+          // event id in the dedup log even on failure so that a redelivery via the legacy
+          // path (with a different UUID) is still recognized by primary dedup.
+          try {
+            relayEventDeduplicator.recordProcessed(eventId, null, null, null, event.getEventType(), mode);
+          }
+          catch (RuntimeException recordError) {
+            log.warn("Failed to record relay eventId={} in dedup log after processing error: {}",
+                eventId, recordError.getMessage());
+          }
         }
       }
     }
@@ -700,6 +727,7 @@ public class RelayPollingService
         // Don't crash the poller on ack failures; events will be redelivered after their
         // visibility timeout. This counts as a failure for fallback purposes.
         log.warn("Relay ack failed for {} handle(s): {}", chunk.size(), e.getMessage());
+        counters.incAckErrors();
         recordFailure();
         return false;
       }
@@ -750,6 +778,7 @@ public class RelayPollingService
       log.warn("Relay polling failed {} consecutive times; activating SCM polling fallback",
           consecutiveFailures.get().get());
     }
+    counters.setFallbackActive(fallbackActive);
   }
 
   private String decryptApiKey(String encryptedApiKey) {

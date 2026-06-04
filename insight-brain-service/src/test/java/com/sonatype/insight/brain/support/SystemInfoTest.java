@@ -20,8 +20,11 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.LicenseInfo;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicensingModel;
+import com.sonatype.insight.brain.relay.RelayPollerCounters;
+import com.sonatype.insight.brain.relay.RelayRegistrationService;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -66,6 +69,12 @@ public class SystemInfoTest
 
   private SamlDeploymentManager samlDeploymentManager;
 
+  private Configuration configuration;
+
+  private RelayRegistrationService relayRegistrationService;
+
+  private RelayPollerCounters relayPollerCounters;
+
   @Before
   public void setUp() throws Exception {
     File sonatypeWork = tempDir.newFolder("sonatype-work");
@@ -81,6 +90,9 @@ public class SystemInfoTest
     mailConfigurationDAO = mock(MailConfigurationDAO.class);
     proxyServerConfigurationDAO = mock(ProxyServerConfigurationDAO.class);
     samlDeploymentManager = mock(SamlDeploymentManager.class);
+    configuration = mock(Configuration.class);
+    relayRegistrationService = mock(RelayRegistrationService.class);
+    relayPollerCounters = new RelayPollerCounters();
 
     systemInfo = new SystemInfo(
         insightConfig,
@@ -90,6 +102,9 @@ public class SystemInfoTest
         samlConfigurationService,
         mailConfigurationDAO,
         proxyServerConfigurationDAO,
+        configuration,
+        relayRegistrationService,
+        relayPollerCounters,
         samlDeploymentManager);
   }
 
@@ -321,6 +336,117 @@ public class SystemInfoTest
         objectMapper.readValue(systemInfo.getProxyServerConfiguration(), ProxyServerConfiguration.class);
 
     assertThat(masked.getPassword()).isNull();
+  }
+
+  @Test
+  public void testGetRelayInfo_disabledByDefault() {
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getRelayInfo();
+    assertThat(entry.getKey()).isEqualTo("relay-info");
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).containsEntry("featureEnabled", false)
+        .containsEntry("registered", false)
+        .containsEntry("mode", "disabled")
+        .containsEntry("fallbackActive", false)
+        .containsEntry("eventsPolled", 0L)
+        .containsEntry("eventsProcessed", 0L)
+        .containsEntry("eventsUnmatched", 0L)
+        .containsEntry("eventsDuplicate", 0L)
+        .containsEntry("pollErrors", 0L)
+        .containsEntry("ackErrors", 0L)
+        .containsEntry("eventsProcessingErrors", 0L);
+    // No customer credentials must leak into the support zip section.
+    assertThat(entries).doesNotContainKeys("apiKey", "webhookSigningSecret", "webhookSecret");
+  }
+
+  @Test
+  public void testGetRelayInfo_pendingRegistration() {
+    // Coverage for the post-flag-enable / pre-registration window: feature gate is open
+    // but no relay_configuration row exists yet (admin enabled the flag, hasn't called
+    // registerWithRelay). Distinguishes from "disabled" (flag off), "relay" (registered
+    // and healthy), and "fallback" (registered but degraded). Operators reading the
+    // support zip in this window need to know the registration step is pending, not
+    // that the relay is broken.
+    org.mockito.Mockito.when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(null);
+
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getRelayInfo();
+    assertThat(entry.getKey()).isEqualTo("relay-info");
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).containsEntry("featureEnabled", true)
+        .containsEntry("registered", false)
+        .containsEntry("mode", "pending-registration");
+    // Same secret-leak guard applies in this state.
+    assertThat(entries).doesNotContainKeys("apiKey", "webhookSigningSecret", "webhookSecret");
+  }
+
+  @Test
+  public void testGetRelayInfo_relayHealthy() {
+    // Steady-state: feature on, registered, fallback NOT active. mode='relay' is the
+    // only state that confirms IQ is actually consuming relay events end-to-end.
+    org.mockito.Mockito.when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setCustomerId("cust-123");
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+    // Counters: not in fallback (default false on a fresh RelayPollerCounters).
+
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getRelayInfo();
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).containsEntry("featureEnabled", true)
+        .containsEntry("registered", true)
+        .containsEntry("mode", "relay")
+        .containsEntry("fallbackActive", false)
+        .containsEntry("customerId", "cust-123");
+    assertThat(entries).doesNotContainKeys("apiKey", "webhookSigningSecret", "webhookSecret");
+  }
+
+  @Test
+  public void testGetRelayInfo_lastSuccessfulPollAtFormatting() {
+    // Coverage for the non-null lastSuccessfulPollAt branch in getRelayInfo(). When the
+    // counters bean has recorded a successful poll, the support-zip section must include
+    // the ISO-8601 string. Distinguishes the operator-visible "polling has succeeded at
+    // least once" state from the not-yet-polled steady state where the field is null.
+    org.mockito.Mockito.when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setCustomerId("cust-789");
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+    java.time.Instant instant = java.time.Instant.parse("2026-06-01T12:34:56Z");
+    relayPollerCounters.setLastSuccessfulPollAt(instant);
+
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getRelayInfo();
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).containsEntry("lastSuccessfulPollAt", "2026-06-01T12:34:56Z");
+  }
+
+  @Test
+  public void testGetRelayInfo_fallbackActive() {
+    // Degraded steady-state: feature on, registered, but consecutive poll failures pushed
+    // legacy SCM polling back online. mode='fallback' tells operators users are still
+    // getting PR scans (via legacy path) even though relay polling is degraded.
+    org.mockito.Mockito.when(relayRegistrationService.isFeatureGateOpen()).thenReturn(true);
+    com.sonatype.insight.brain.model.relay.RelayConfiguration cfg =
+        new com.sonatype.insight.brain.model.relay.RelayConfiguration();
+    cfg.setCustomerId("cust-456");
+    org.mockito.Mockito.when(relayRegistrationService.getConfiguration()).thenReturn(cfg);
+    // Force fallback by recording threshold-crossing failures on the live counters bean
+    // (the test setUp constructs a real RelayPollerCounters; cheaper than mocking the
+    // Snapshot).
+    relayPollerCounters.setFallbackActive(true);
+
+    final Entry<String, SortedMap<String, Object>> entry = systemInfo.getRelayInfo();
+
+    final SortedMap<String, Object> entries = entry.getValue();
+    assertThat(entries).containsEntry("featureEnabled", true)
+        .containsEntry("registered", true)
+        .containsEntry("mode", "fallback")
+        .containsEntry("fallbackActive", true)
+        .containsEntry("customerId", "cust-456");
+    assertThat(entries).doesNotContainKeys("apiKey", "webhookSigningSecret", "webhookSecret");
   }
 
   private InputStream getRequiredResource(String path) {

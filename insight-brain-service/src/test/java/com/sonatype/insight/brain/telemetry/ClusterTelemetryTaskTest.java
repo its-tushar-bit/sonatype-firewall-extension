@@ -98,6 +98,7 @@ public class ClusterTelemetryTaskTest
       TelemetryPurpose.ROLE_USAGE, //
       TelemetryPurpose.REPOSITORY_CONFIGURATION, //
       TelemetryPurpose.SOURCE_CONTROL_METRICS, //
+      TelemetryPurpose.SCM_RELAY_INTEGRATION, //
       TelemetryPurpose.CLUSTER_USAGE, //
       TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
       TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations

@@ -11,6 +11,7 @@ import {
   getComponentVulnerabilities,
   getComponentVersions,
   getComponentDependencies,
+  getRecommendations,
   _resetBrowseAggregationsCacheForTests,
 } from 'GuideRoot/api/componentsBackend';
 jest.mock('GuideRoot/api/apiFetch', () => ({
@@ -341,6 +342,70 @@ describe('componentsBackend', () => {
       expect(path).toContain('/api/v2/guide/components/');
       expect(path).toContain('dependencies');
       expect(init).toBeUndefined();
+    });
+  });
+
+  describe('getRecommendations (wired)', () => {
+    const fakeRecommendations = {
+      outcome: 'FOUND_RECOMMENDATIONS' as const,
+      fromVersion: { version: '4.17.21', directVulnerabilities: {}, transitiveVulnerabilities: {} },
+      toVersions: [{ version: '4.17.21', directVulnerabilities: {}, transitiveVulnerabilities: {} }],
+    };
+
+    it('POSTs to the recommendations endpoint with a PURL body for a namespaced package', async () => {
+      mockApiFetch.mockResolvedValue(fakeRecommendations);
+
+      const result = await getRecommendations('maven', 'org.springframework:spring-core', '5.3.0');
+
+      expect(mockApiFetch).toHaveBeenCalledTimes(1);
+      const [path, init] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/recommendations');
+      expect(init?.method).toBe('POST');
+      expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+      expect(JSON.parse(init?.body as string)).toEqual({ purl: 'pkg:maven/org.springframework/spring-core@5.3.0' });
+      expect(result).toBe(fakeRecommendations);
+    });
+
+    it('POSTs with a PURL body for a non-namespaced package', async () => {
+      mockApiFetch.mockResolvedValue(fakeRecommendations);
+
+      await getRecommendations('npm', 'lodash', '4.17.21');
+
+      const [path, init] = mockApiFetch.mock.calls[0];
+      expect(path).toBe('/api/v2/guide/recommendations');
+      expect(JSON.parse(init?.body as string)).toEqual({ purl: 'pkg:npm/lodash@4.17.21' });
+    });
+
+    it('does not double-encode scoped npm packages in the PURL body', async () => {
+      mockApiFetch.mockResolvedValue(fakeRecommendations);
+
+      await getRecommendations('npm', '@scope/name', '1.0.0');
+
+      const [, init] = mockApiFetch.mock.calls[0];
+      const { purl } = JSON.parse(init?.body as string);
+      expect(purl).toBe('pkg:npm/@scope/name@1.0.0');
+    });
+
+    it('returns null when the backend returns 404', async () => {
+      const { ApiError } = jest.requireActual<typeof import('GuideRoot/api/apiFetch')>('GuideRoot/api/apiFetch');
+      mockApiFetch.mockRejectedValue(new ApiError('not found', 404, 'Not Found'));
+
+      const result = await getRecommendations('npm', 'no-such-package', '1.0.0');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null on non-404 errors so a recommendations failure does not break the page', async () => {
+      const { ApiError } = jest.requireActual<typeof import('GuideRoot/api/apiFetch')>('GuideRoot/api/apiFetch');
+      mockApiFetch.mockRejectedValue(new ApiError('server error', 500, 'Internal Server Error'));
+
+      await expect(getRecommendations('npm', 'lodash', '4.17.21')).resolves.toBeNull();
+    });
+
+    it('returns null on network/unknown errors', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network failure'));
+
+      await expect(getRecommendations('npm', 'lodash', '4.17.21')).resolves.toBeNull();
     });
   });
 });

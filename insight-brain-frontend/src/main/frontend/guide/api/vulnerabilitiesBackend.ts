@@ -193,7 +193,7 @@ export function computeVulnerabilityAggregations(vulnerabilities: Vulnerability[
 }
 
 /**
- * Calls GET /api/v2/guide/vulnerabilities with the supplied URL search params
+ * Calls GET /api/v2/guide/vulnerabilities/search with the supplied URL search params
  * forwarded verbatim. URL parameter keys are aligned with backend `@QueryParam`
  * names by design (see `@guide/ui-core`'s FILTER MAPPING REFERENCE), so no
  * remapping is needed.
@@ -205,7 +205,7 @@ export async function searchVulnerabilities(
   searchParams: ReadonlySearchParams
 ): Promise<VulnerabilitySearchResponse> {
   return apiFetch<VulnerabilitySearchResponse>(
-    `${API_PREFIX}/vulnerabilities?${searchParams.toString()}`
+    `${API_PREFIX}/vulnerabilities/search?${searchParams.toString()}`
   );
 }
 

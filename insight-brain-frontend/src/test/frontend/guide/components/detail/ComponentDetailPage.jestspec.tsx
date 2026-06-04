@@ -22,6 +22,7 @@ jest.mock('GuideRoot/api/componentsBackend', () => ({
   getComponentVulnerabilities: jest.fn(),
   getComponentVersions: jest.fn(),
   getComponentDependencies: jest.fn(),
+  getRecommendations: jest.fn(),
 }));
 
 jest.mock('@guide/ui-core', () => {
@@ -30,8 +31,8 @@ jest.mock('@guide/ui-core', () => {
     ...actual,
     PageLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="page-layout">{children}</div>,
     ComponentTabsLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    ComponentDetailsHeader: ({ component }: { component: { name: string; version: string } }) => (
-      <h1 data-testid="component-header">{component.name} {component.version}</h1>
+    ComponentDetailsHeader: ({ component, recommendationsResponse }: { component: { name: string; version: string }; recommendationsResponse: unknown }) => (
+      <h1 data-testid="component-header" data-has-recommendations={recommendationsResponse !== null ? 'true' : 'false'}>{component.name} {component.version}</h1>
     ),
     MalwareBanner: () => null,
     ComponentProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -45,6 +46,7 @@ const mockGetComponentDetail = backend.getComponentDetail as jest.MockedFunction
 const mockGetComponentVulnerabilities = backend.getComponentVulnerabilities as jest.MockedFunction<typeof backend.getComponentVulnerabilities>;
 const mockGetComponentVersions = backend.getComponentVersions as jest.MockedFunction<typeof backend.getComponentVersions>;
 const mockGetComponentDependencies = backend.getComponentDependencies as jest.MockedFunction<typeof backend.getComponentDependencies>;
+const mockGetRecommendations = backend.getRecommendations as jest.MockedFunction<typeof backend.getRecommendations>;
 
 const emptyCountResponse = { hits: [], total: 2, offset: 0, limit: 1, aggregations: {} };
 
@@ -62,6 +64,7 @@ describe('ComponentDetailPage', () => {
     mockGetComponentVulnerabilities.mockResolvedValue(emptyCountResponse as any);
     mockGetComponentVersions.mockResolvedValue(emptyCountResponse as any);
     mockGetComponentDependencies.mockResolvedValue(emptyCountResponse as any);
+    mockGetRecommendations.mockResolvedValue(null);
   });
 
   it('shows skeleton while loading', () => {
@@ -91,6 +94,39 @@ describe('ComponentDetailPage', () => {
 
     expect(screen.getByText(/please check the url and try again/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /go to home/i })).toHaveAttribute('href', '/');
+  });
+
+  it('passes recommendations to the header when available', async () => {
+    const fakeRecommendations = {
+      outcome: 'FOUND_RECOMMENDATIONS' as const,
+      fromVersion: { version: '4.17.21' },
+      toVersions: [],
+    };
+    mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
+    mockGetRecommendations.mockResolvedValue(fakeRecommendations as any);
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('component-header')).toHaveAttribute('data-has-recommendations', 'true');
+  });
+
+  it('passes null recommendations to the header when unavailable (e.g., 404 or backend error)', async () => {
+    // getRecommendations swallows all errors and returns null — verified at the function level in
+    // componentsBackend.jestspec.ts. This test asserts that the page renders the unavailable state
+    // for that null, regardless of whether the underlying cause was a 404, 500, or network failure.
+    mockGetComponentDetail.mockResolvedValue(mockComponentDetail);
+    mockGetRecommendations.mockResolvedValue(null);
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('component-header')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('component-header')).toHaveAttribute('data-has-recommendations', 'false');
+    expect(screen.queryByRole('heading', { name: /we hit a snag/i })).not.toBeInTheDocument();
   });
 
   it('shows error state when fetch rejects', async () => {

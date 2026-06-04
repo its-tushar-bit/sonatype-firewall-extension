@@ -17,6 +17,7 @@ import type {
   VersionsFilters,
   VulnerabilitySearchResponse,
   ComponentDetails,
+  RecommendationResponse,
 } from '@guide/ui-core/types';
 
 function buildPurl(ecosystem: string, pkg: string, version: string): string {
@@ -102,6 +103,22 @@ export async function getComponentDetail(
       if (e instanceof ApiError && e.status === 404) return null;
       throw e;
     });
+}
+
+export async function getRecommendations(
+  ecosystem: string,
+  pkg: string,
+  version: string
+): Promise<RecommendationResponse | null> {
+  const purl = buildPurl(ecosystem, pkg, version);
+  return apiFetch<RecommendationResponse>(`${API_PREFIX}/recommendations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ purl }),
+  }).catch(() => {
+    // Recommendations are supplementary — any failure (404, 500, network) should not block the component detail page.
+    return null;
+  });
 }
 
 export async function getComponentVulnerabilities(

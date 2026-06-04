@@ -22,17 +22,19 @@ import {
   getComponentVulnerabilities,
   getComponentVersions,
   getComponentDependencies,
+  getRecommendations,
 } from 'GuideRoot/api/componentsBackend';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
 import { ComponentDetailSkeleton } from './ComponentDetailSkeleton';
-import type { ComponentDetails } from '@guide/ui-core/types';
+import type { ComponentDetails, RecommendationResponse } from '@guide/ui-core/types';
 
 interface DetailState {
   component: ComponentDetails;
   vulnCount: number;
   versionsCount: number;
   depsCount: number;
+  recommendations: RecommendationResponse | null;
 }
 
 export function ComponentDetailPage() {
@@ -56,8 +58,9 @@ export function ComponentDetailPage() {
       getComponentVulnerabilities(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
       getComponentVersions(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
       getComponentDependencies(ecosystem, pkg, version, undefined, {}, { offset: 0, limit: 1 }),
+      getRecommendations(ecosystem, pkg, version),
     ])
-      .then(([component, vulnRes, versionsRes, depsRes]) => {
+      .then(([component, vulnRes, versionsRes, depsRes, recommendations]) => {
         if (!cancelled) {
           clearErrorRetries();
           if (!component) {
@@ -68,6 +71,7 @@ export function ComponentDetailPage() {
               vulnCount: vulnRes.total,
               versionsCount: versionsRes.total,
               depsCount: depsRes.total,
+              recommendations,
             });
           }
         }
@@ -103,7 +107,7 @@ export function ComponentDetailPage() {
     );
   }
 
-  const { component, vulnCount, versionsCount, depsCount } = state;
+  const { component, vulnCount, versionsCount, depsCount, recommendations } = state;
 
   return (
     <PageLayout>
@@ -112,7 +116,7 @@ export function ComponentDetailPage() {
         ecosystem={ecosystem}
         packageName={pkg}
         version={version}
-        recommendationsResponse={null}
+        recommendationsResponse={recommendations}
       />
       <MalwareBanner
         isMalware={component.isMalware}

@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { getCsrfToken } from '../auth/csrfToken';
+
 /**
  * API configuration for Guide SPA.
  *
@@ -25,6 +27,8 @@ export const API_PREFIX = '/api/v2/guide';
 
 /** Artificial latency for mock responses — makes loading states visible during development. Remove when real backend is integrated. */
 const MOCK_LATENCY_MS = 1500;
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /** Error class for API errors with status code */
 export class ApiError extends Error {
@@ -61,12 +65,23 @@ export async function apiFetch<T>(
   path: string,
   init?: ApiFetchOptions
 ): Promise<T> {
-  const { mockHandler, ...fetchOptions } = init ?? {};
+  const { mockHandler, ...fetchOptions_ } = init ?? {};
+  let fetchOptions: Omit<ApiFetchOptions, 'mockHandler'> = fetchOptions_;
 
   if (USE_MOCKS && mockHandler) {
     // Simulate network latency to exercise loading states
     await new Promise((resolve) => setTimeout(resolve, MOCK_LATENCY_MS));
     return mockHandler() as T;
+  }
+
+  const method = (fetchOptions.method ?? 'GET').toUpperCase();
+  if (!SAFE_METHODS.has(method)) {
+    const token = getCsrfToken();
+    if (token) {
+      const headers = new Headers(fetchOptions.headers as HeadersInit | undefined);
+      headers.set('X-CSRF-TOKEN', token);
+      fetchOptions = { ...fetchOptions, headers };
+    }
   }
 
   const response = await fetch(path, fetchOptions);

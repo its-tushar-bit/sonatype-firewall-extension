@@ -55,7 +55,7 @@ describe('vulnerabilitiesBackend', () => {
 
       expect(mockApiFetch).toHaveBeenCalledTimes(1);
       const [path, init] = mockApiFetch.mock.calls[0];
-      expect(path).toBe(`/api/v2/guide/vulnerabilities?${params.toString()}`);
+      expect(path).toBe(`/api/v2/guide/vulnerabilities/search?${params.toString()}`);
       expect(init).toBeUndefined();
       expect(result).toBe(fakeResponse);
     });
@@ -70,7 +70,7 @@ describe('vulnerabilitiesBackend', () => {
       await searchVulnerabilities(params);
 
       const [path] = mockApiFetch.mock.calls[0];
-      expect(path).toBe('/api/v2/guide/vulnerabilities?affectedEcosystems=maven&affectedEcosystems=npm');
+      expect(path).toBe('/api/v2/guide/vulnerabilities/search?affectedEcosystems=maven&affectedEcosystems=npm');
     });
 
     it('forwards an empty searchParams as a bare query string', async () => {
@@ -79,7 +79,7 @@ describe('vulnerabilitiesBackend', () => {
       await searchVulnerabilities(new URLSearchParams());
 
       const [path] = mockApiFetch.mock.calls[0];
-      expect(path).toBe('/api/v2/guide/vulnerabilities?');
+      expect(path).toBe('/api/v2/guide/vulnerabilities/search?');
     });
   });
 

@@ -307,7 +307,7 @@ public class OrganizationResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
     String dispositionHeader = response.getHeader(HttpHeaders.CONTENT_DISPOSITION);
     String headerStart = "attachment; filename=\"move_organization_errors";
     assertThat(dispositionHeader).startsWith(headerStart);

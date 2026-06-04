@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.DefaultValue;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.utils.Csv;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.197.0
@@ -85,26 +88,32 @@ public class UserActivityResource
 
   @GET
   @Path("/export")
-  @Produces("text/csv")
+  @Produces("text/csv; charset=utf-8")
   @Audited(AuditEvent.EXPORT_AUDIT_LOG)
   @HasFeature(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING)
   public Response exportUserActivity(
       @QueryParam("startUtcDate") final String startUtcDate,
       @QueryParam("endUtcDate") final String endUtcDate,
       @QueryParam("username") final String username,
-      @DefaultValue("1000") @QueryParam("limit") final Integer limit,
-      @DefaultValue("0") @QueryParam("offset") final Integer offset,
-      @QueryParam("activityTypes") final List<String> activityTypes,
-      @QueryParam("domains") final List<String> domains,
-      @QueryParam("errorTypes") final List<String> errorTypes)
+      @QueryParam("limit") final Integer limit,
+      @QueryParam("offset") final Integer offset,
+      @QueryParam("activityTypes") final Set<String> activityTypes,
+      @QueryParam("domains") final Set<String> domains,
+      @QueryParam("errorTypes") final Set<String> errorTypes)
   {
-    List<ApiActivityEventDTO> activities = userActivityService.getAllUserActivitiesForExport(
-        startUtcDate, endUtcDate, username, limit, offset, activityTypes, domains, errorTypes);
-
-    final String fileName = username != null && !username.trim().isEmpty()
+    final String fileNamePrefix = StringUtils.isNotBlank(username)
         ? "user_activity_detail"
         : "user_activity_all";
-    return Csv.generate(Response.ok(), fileName, ApiActivityEventDTO.getCsvHeader(), activities)
-        .build();
+
+    // Validation (date range + non-negative limit/offset) runs synchronously inside
+    // streamAllUserActivitiesForExport so a BadRequestException becomes HTTP 400 before
+    // Response.ok(streamingOutput) commits the 200 status. limit/offset are applied to the
+    // lazy stream by the service.
+    Stream<ApiActivityEventDTO> events = userActivityService.streamAllUserActivitiesForExport(
+        startUtcDate, endUtcDate, username, limit, offset, activityTypes, domains, errorTypes);
+
+    // flushPerRow=true: ALB / corporate-proxy idle timeouts can drop the connection if the
+    // response stalls during a sparse 30-day export (CLM-38045).
+    return Csv.generate(Response.ok(), fileNamePrefix, ApiActivityEventDTO.getCsvHeader(), events, true).build();
   }
 }

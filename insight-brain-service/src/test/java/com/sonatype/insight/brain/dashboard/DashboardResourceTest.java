@@ -481,7 +481,7 @@ public class DashboardResourceTest
 
   private void assertResponseOkAndCsvHeadersSet(HttpResponse response, String fileNamePrefix) throws ParseException {
     assertResponseStatus(200, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
     String dispositionHeader = response.getHeader(HttpHeaders.CONTENT_DISPOSITION);
     String headerStart = "attachment; filename=\"" + fileNamePrefix + "-";
     assertThat(dispositionHeader).startsWith(headerStart);
@@ -1077,5 +1077,8 @@ public class DashboardResourceTest
 
   {
     csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    // Csv.generate now formats the filename timestamp in UTC (CLM-38894); parse it back in UTC
+    // so the time-proximity check at assertResponseOkAndCsvHeadersSet works on non-UTC hosts.
+    filenameTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 }

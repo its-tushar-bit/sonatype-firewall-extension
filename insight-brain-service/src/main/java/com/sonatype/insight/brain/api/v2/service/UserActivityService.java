@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -25,6 +27,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import jakarta.inject.Inject;
@@ -67,6 +70,9 @@ public class UserActivityService
 {
   private static final Logger log = LoggerFactory.getLogger(UserActivityService.class);
 
+  // Thread-safe once construction is complete; do not reconfigure (e.g. registerModule) at any
+  // call site — the streaming export path reads from this instance from many request threads
+  // simultaneously inside a hot inner flatMap.
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final int DEFAULT_LIMIT = 100;
@@ -240,9 +246,13 @@ public class UserActivityService
     List<File> auditLogFiles = auditLogFilesProvider.getAuditLogFiles(
         LocalDate.parse(startUtcDate), LocalDate.parse(endUtcDate));
 
+    Set<String> activityTypeSet = activityTypes == null ? Set.of() : Set.copyOf(activityTypes);
+    Set<String> domainSet = domains == null ? Set.of() : Set.copyOf(domains);
+    Set<String> errorTypeSet = errorTypes == null ? Set.of() : Set.copyOf(errorTypes);
+
     UserActivityResult result = executeWithTimeout(
         () -> processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
-            activityTypes, domains, errorTypes));
+            activityTypeSet, domainSet, errorTypeSet));
 
     ApiUserActivityDetailDTO response = new ApiUserActivityDetailDTO();
     response.username = username;
@@ -252,29 +262,117 @@ public class UserActivityService
     return response;
   }
 
+  /**
+   * Streams all user activity events for CSV export without an enforced request timeout.
+   *
+   * Unlike the summary/detail/buffered-export methods which delegate to executeWithTimeout
+   * and enforce a 30-second ceiling, this method streams results directly to avoid holding
+   * the entire dataset in memory. Exports over large date ranges or many audit files may
+   * therefore run longer than 30 seconds, which is intentional — the client is receiving
+   * a continuous byte stream rather than waiting for a single in-memory result.
+   *
+   * The buffered path's MAX_FILES_TO_PROCESS / MAX_FILE_SIZE_BYTES / MAX_TOTAL_FILE_SIZE_BYTES
+   * guards are intentionally NOT applied here — those caps were designed to protect the
+   * in-memory summary path from memory pressure, which streaming bypasses by construction.
+   * The 30-day date-range cap in {@code validateRequiredFields} is the sole bound on data
+   * volume; client back-pressure (closing the connection) is the sole bound on throughput.
+   */
   @Authorize(permission = Permission.ACCESS_AUDIT_LOG)
-  public List<ApiActivityEventDTO> getAllUserActivitiesForExport(
+  public Stream<ApiActivityEventDTO> streamAllUserActivitiesForExport(
       final String startUtcDate,
       final String endUtcDate,
       final String username,
       final Integer limit,
       final Integer offset,
-      final List<String> activityTypes,
-      final List<String> domains,
-      final List<String> errorTypes)
+      final Set<String> activityTypes,
+      final Set<String> domains,
+      final Set<String> errorTypes)
   {
+    // Use the same validation surface as the other endpoints — rejects invalid dates plus
+    // negative limit/offset with HTTP 400, consistent with getUserActivitySummary/Detail.
     validateParams(startUtcDate, endUtcDate, limit, offset);
 
-    int actualLimit = limit != null ? Math.min(limit, MAX_LIMIT) : DEFAULT_LIMIT;
-    int actualOffset = offset != null ? offset : 0;
     List<File> auditLogFiles = auditLogFilesProvider.getAuditLogFiles(
         LocalDate.parse(startUtcDate), LocalDate.parse(endUtcDate));
 
-    UserActivityResult result = executeWithTimeout(
-        () -> processAuditFilesForUserWithPagination(auditLogFiles, username, actualLimit, actualOffset,
-            activityTypes, domains, errorTypes));
+    Stream<ApiActivityEventDTO> events = auditLogFiles.stream()
+        .flatMap(file -> streamAuditFileForExport(file, username, activityTypes, domains, errorTypes));
 
-    return result.activities;
+    // offset > 0 short-circuits the no-op skip(0); both `offset=null` and `offset=0` produce
+    // an unbounded-from-start stream (covered by testExportUserActivity_withOffset_*).
+    // limit has no equivalent shortcut: limit(0) is a meaningful "header-only" request
+    // (testExportUserActivity_withLimitZero_returnsHeaderOnly), distinct from null=unbounded.
+    if (offset != null && offset > 0) {
+      events = events.skip(offset);
+    }
+    if (limit != null) {
+      events = events.limit(limit);
+    }
+
+    return events;
+  }
+
+  private Stream<ApiActivityEventDTO> streamAuditFileForExport(
+      File file,
+      String username,
+      Set<String> activityTypes,
+      Set<String> domains,
+      Set<String> errorTypes)
+  {
+    ClusterLock clusterLock = clusterLockManager.createForAuditJsonFileStore(
+        "audit-file-processing-" + file.getName());
+    try {
+      clusterLock.lock();
+      BufferedReader reader = createBufferedReader(file);
+      return reader.lines()
+          .flatMap(line -> {
+            try {
+              AuditDTO auditEvent = objectMapper.readValue(line, AuditDTO.class);
+              if (isRelevantAuditEvent(auditEvent, username)
+                  && matchesFilters(auditEvent, activityTypes, domains, errorTypes))
+          {
+                return Stream.of(convertToActivityEventDTO(auditEvent));
+              }
+              return Stream.empty();
+            }
+            catch (Exception e) {
+              if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+              }
+              log.debug("Failed to parse audit line in {}: {}", file.getName(), line, e);
+              return Stream.empty();
+            }
+          })
+          .onClose(() -> {
+            try {
+              reader.close();
+            }
+            catch (IOException e) {
+              log.debug("Failed to close reader for audit file: {}", file.getName(), e);
+            }
+            finally {
+              clusterLock.close();
+            }
+          });
+    }
+    catch (IOException e) {
+      // Transient: file moved/rotated between getAuditLogFiles() listing and read.
+      // Release lock, log at debug, return empty for this file so the export continues.
+      clusterLock.close();
+      log.debug("Failed to open audit file for export: {}", file.getName(), e);
+      return Stream.empty();
+    }
+    catch (RuntimeException | Error e) {
+      // Real failure (e.g. clusterLock.lock() reports DB issue). Release the lock so it isn't
+      // leaked, then re-throw so the caller sees a 500 instead of an empty CSV body. (D5 — broad
+      // catch widens past IOException to release the lock; STL feedback — surface real errors.)
+      clusterLock.close();
+      throw e;
+    }
+    // No catch (Exception) needed: the only checked exception thrown here is IOException
+    // (handled above). ClusterLock.lock() is void, and createBufferedReader's signature is
+    // `throws IOException`. If a future change introduces a new checked exception in this
+    // block, the compiler will require it to be handled or declared.
   }
 
   // Visible for testing
@@ -439,10 +537,10 @@ public class UserActivityService
   private BufferedReader createBufferedReader(File file) throws IOException {
     if (file.getName().endsWith(".gz")) {
       return new BufferedReader(new InputStreamReader(
-          new GZIPInputStream(Files.newInputStream(file.toPath()))));
+          new GZIPInputStream(Files.newInputStream(file.toPath())), StandardCharsets.UTF_8));
     }
     else {
-      return Files.newBufferedReader(file.toPath());
+      return Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
     }
   }
 
@@ -478,9 +576,9 @@ public class UserActivityService
       String username,
       int limit,
       int offset,
-      List<String> activityTypes,
-      List<String> domains,
-      List<String> errorTypes)
+      Set<String> activityTypes,
+      Set<String> domains,
+      Set<String> errorTypes)
   {
     List<ApiActivityEventDTO> events = new ArrayList<>();
     int currentOffset = 0;
@@ -529,9 +627,9 @@ public class UserActivityService
   private List<ApiActivityEventDTO> processAuditFileForUser(
       File file,
       String username,
-      List<String> activityTypes,
-      List<String> domains,
-      List<String> errorTypes) throws IOException
+      Set<String> activityTypes,
+      Set<String> domains,
+      Set<String> errorTypes) throws IOException
   {
     List<ApiActivityEventDTO> events = new ArrayList<>();
 
@@ -561,9 +659,9 @@ public class UserActivityService
 
   private boolean matchesFilters(
       AuditDTO auditEvent,
-      List<String> activityTypes,
-      List<String> domains,
-      List<String> errorTypes)
+      Set<String> activityTypes,
+      Set<String> domains,
+      Set<String> errorTypes)
   {
     // Filter by activity type
     if (activityTypes != null && !activityTypes.isEmpty()) {

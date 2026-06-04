@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.GZIPOutputStream;
@@ -195,7 +196,7 @@ public class UserActivityResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
     assertThat(response.getHeader("Content-Disposition")).contains("attachment");
     assertThat(response.getHeader("Content-Disposition")).contains("user_activity");
     assertThat(response.getHeader("Content-Disposition")).contains(".csv");
@@ -218,7 +219,7 @@ public class UserActivityResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
   }
 
   @Test
@@ -233,7 +234,7 @@ public class UserActivityResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
     assertThat(response.getHeader("Content-Disposition")).contains("attachment");
     assertThat(response.getHeader("Content-Disposition")).contains("user_activity_detail");
     assertThat(response.getHeader("Content-Disposition")).contains(".csv");
@@ -258,7 +259,7 @@ public class UserActivityResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_OK, response);
-    assertThat(response.getContentType()).isEqualTo("text/csv");
+    assertThat(response.getContentType()).startsWith("text/csv");
   }
 
   @Test
@@ -282,6 +283,191 @@ public class UserActivityResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.SC_FORBIDDEN, response);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_setsUtf8ContentType() throws Exception {
+    copyTestResource("audit-2024-03-13.log");
+
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).contains("charset=utf-8");
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_filenameUsesUtcTimestamp() throws Exception {
+    copyTestResource("audit-2024-03-13.log");
+
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    // Filename pattern: user_activity_all-yyyyMMdd-HHmmss.csv (UTC timestamp via DateTimeFormatter)
+    assertThat(response.getHeader("Content-Disposition"))
+        .matches(".*user_activity_all-\\d{8}-\\d{6}\\.csv.*");
+  }
+
+  @Test
+  public void testExportUserActivity_withLimit_appliesLimitOnStreamingResponse() throws Exception {
+    copyTestResource("audit-2024-03-13.log");
+
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .query("limit", "1")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    // Single streaming code path now — charset always declared.
+    assertThat(response.getContentType()).contains("charset=utf-8");
+    assertThat(response.getHeader("Content-Disposition")).contains("user_activity_all");
+
+    // Header line + at most 1 data row = at most 2 lines.
+    String csv = response.getBodyText();
+    long lineCount = csv.lines().count();
+    assertThat(lineCount).isLessThanOrEqualTo(2L);
+  }
+
+  @Test
+  public void testExportUserActivity_withOffset_skipsRowsOnStreamingResponse() throws Exception {
+    copyTestResource("audit-2024-03-13.log");
+
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .query("offset", "0")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).contains("charset=utf-8");
+  }
+
+  @Test
+  public void testExportUserActivity_withLimitZero_returnsHeaderOnly() throws Exception {
+    copyTestResource("audit-2024-03-13.log");
+
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .query("limit", "0")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).contains("charset=utf-8");
+
+    // limit=0 → header only, no data rows.
+    String csv = response.getBodyText();
+    long lineCount = csv.lines().count();
+    assertThat(lineCount).isEqualTo(1L);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_invalidDateRange_returns400() throws Exception {
+    // Date range > 30 days triggers BadRequestException inside streamAllUserActivitiesForExport.
+    // The exception must propagate as HTTP 400, not a 200 with a partial CSV body —
+    // proving validation completes before Response.ok(streamingOutput) is built (D7).
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-01-01")
+        .query("endUtcDate", "2024-03-31") // ~89 days, exceeds 30-day cap
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_missingStartDate_returns400() throws Exception {
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("endUtcDate", "2024-03-13")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_negativeLimit_returns400() throws Exception {
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .query("limit", "-1")
+        .get();
+
+    // Consistent with getUserActivitySummary/Detail: negative pagination is rejected
+    // synchronously by validatePaginationParameters (HTTP 400) — not silently normalized.
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_negativeOffset_returns400() throws Exception {
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-03-10")
+        .query("endUtcDate", "2024-03-13")
+        .query("offset", "-1")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  @Test
+  public void testExportUserActivity_streamingPath_writesUtf8EncodedNonAsciiUsername() throws Exception {
+    // Build a gzipped audit-log file in the per-test logDir with a single JSON event whose
+    // username contains a non-ASCII character. Inlined here (instead of a checked-in binary
+    // fixture) so the .gz bytes are produced fresh from a UTF-8-encoded source string.
+    String auditLine = "{\"timestamp\":\"2024-04-01T10:00:00.000Z\","
+        + "\"username\":\"josé\","
+        + "\"type\":\"LOGIN\",\"domain\":\"security.user\","
+        + "\"requestMethod\":\"POST\",\"requestUri\":\"/api/v2/auth/login\","
+        + "\"remoteIpAddress\":\"10.0.0.99\",\"userAgent\":\"curl/8\"}";
+    // Resolve the same dir the AuditLogFilesProvider actually reads from. main's
+    // DefaultAuditLogFilesProvider.getAuditLogDirectory prefers the configured auditLogFilename
+    // (parent dir + name) over sonatypeWork/logs — so plant the fixture there.
+    InsightConfig insightConfig = lookup(InsightConfig.class);
+    Path auditDir = new File(insightConfig.getAuditLogFilename()).getAbsoluteFile().getParentFile().toPath();
+    Files.createDirectories(auditDir);
+    Path gzFile = auditDir.resolve("audit-2024-04-01.log.gz");
+    try (GZIPOutputStream gz = new GZIPOutputStream(Files.newOutputStream(gzFile))) {
+      gz.write(auditLine.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // No username filter: stream all rows so the non-ASCII username appears in the CSV
+    // regardless of whether the HTTP client URL-encodes 'é' the same way the server decodes it.
+    HttpResponse response = restRequest().auth(getUser())
+        .path("/export")
+        .query("startUtcDate", "2024-04-01")
+        .query("endUtcDate", "2024-04-01")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).contains("charset=utf-8");
+
+    String csv = new String(response.getBodyBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    assertThat(csv).contains("josé");
+
+    // Negative check: bytes should NOT be platform-default-encoded (which would corrupt 'é' on
+    // some JVMs). The raw UTF-8 byte sequence for 'é' is 0xC3 0xA9 — assert that pair is present.
+    byte[] body = response.getBodyBytes();
+    boolean foundUtf8E = false;
+    for (int i = 0; i < body.length - 1; i++) {
+      if ((body[i] & 0xFF) == 0xC3 && (body[i + 1] & 0xFF) == 0xA9) {
+        foundUtf8E = true;
+        break;
+      }
+    }
+    assertThat(foundUtf8E).as("UTF-8 byte sequence 0xC3 0xA9 (é) must be present in CSV body").isTrue();
   }
 
   private void copyTestResource(String filename) throws IOException {

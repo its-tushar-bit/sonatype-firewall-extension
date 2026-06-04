@@ -11,6 +11,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Stream;
+import jakarta.inject.Inject;
+
+import com.sonatype.insight.brain.api.v2.dto.ApiActivityEventDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
 import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -19,8 +25,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import jakarta.inject.Inject;
-import java.util.Collections;
+
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
@@ -81,6 +86,39 @@ public class UserActivityServiceAuthzTest
     grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.ACCESS_AUDIT_LOG);
 
     userActivityService.getUserActivityDetail("2024-02-04", "2024-02-08", "test.user", 100, 0, null, null, null);
+
+    verify(auditLogFilesProvider, times(1)).getAuditLogFiles(any(), any());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testStreamAllUserActivitiesForExport_Unauthenticated() {
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2024-02-04", "2024-02-08", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      stream.count();
+    }
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testStreamAllUserActivitiesForExport_Unauthorized() {
+    login();
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2024-02-04", "2024-02-08", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      stream.count();
+    }
+  }
+
+  @Test
+  public void testStreamAllUserActivitiesForExport_Authorized() {
+    when(auditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(Collections.emptyList());
+    grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.ACCESS_AUDIT_LOG);
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2024-02-04", "2024-02-08", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      stream.count();
+    }
 
     verify(auditLogFilesProvider, times(1)).getAuditLogFiles(any(), any());
   }

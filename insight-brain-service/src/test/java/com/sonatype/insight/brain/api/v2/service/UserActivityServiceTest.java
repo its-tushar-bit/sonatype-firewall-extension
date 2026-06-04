@@ -11,7 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiActivityEventDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivitySummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityDetailDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
@@ -35,11 +39,14 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 
-import static org.mockito.Mockito.mock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -364,10 +371,6 @@ public class UserActivityServiceTest
     assertThat(result.pagination.offset).isEqualTo(1);
     assertThat(result.pagination.hasMore).isTrue();
   }
-
-  // =================================================================
-  // Tests for edge cases and error handling
-  // =================================================================
 
   @Test
   public void testGetUserActivitySummary_withExcessiveDateRange_throwsException() {
@@ -814,98 +817,6 @@ public class UserActivityServiceTest
   }
 
   @Test
-  public void testGetAllUserActivitiesForExport_withAllUsers_returnsAllActivitiesWithUsernames() throws IOException {
-    File auditFile = createAuditLogFile("audit.log",
-        "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"john.doe\"," +
-            "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
-            "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}",
-        "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"jane.smith\"," +
-            "\"type\":\"view\",\"domain\":\"reporting\",\"requestMethod\":\"GET\"," +
-            "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.101\"}");
-
-    when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
-        .thenReturn(List.of(auditFile));
-
-    var result = userActivityService.getAllUserActivitiesForExport(
-        "2024-03-10", "2024-03-13", null, 100, 0, null, null, null);
-
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(2);
-
-    assertThat(result.get(0).username).isNotNull();
-    assertThat(result.get(0).username).isIn("john.doe", "jane.smith");
-    assertThat(result.get(0).timestamp).isNotNull();
-    assertThat(result.get(0).type).isNotNull();
-
-    assertThat(result.get(1).username).isNotNull();
-    assertThat(result.get(1).username).isIn("john.doe", "jane.smith");
-    assertThat(result.get(1).timestamp).isNotNull();
-    assertThat(result.get(1).type).isNotNull();
-  }
-
-  @Test
-  public void testGetAllUserActivitiesForExport_withSpecificUser_returnsFilteredActivitiesWithUsername() throws IOException {
-    File auditFile = createAuditLogFile("audit.log",
-        "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"john.doe\"," +
-            "\"type\":\"login\",\"domain\":\"authentication\",\"requestMethod\":\"POST\"," +
-            "\"requestUri\":\"/api/v2/auth/login\",\"remoteIpAddress\":\"192.168.1.100\"}",
-        "{\"timestamp\":\"2024-03-13T15:30:45.123Z\",\"username\":\"jane.smith\"," +
-            "\"type\":\"view\",\"domain\":\"reporting\",\"requestMethod\":\"GET\"," +
-            "\"requestUri\":\"/api/v2/reports\",\"remoteIpAddress\":\"192.168.1.101\"}",
-        "{\"timestamp\":\"2024-03-13T16:30:45.123Z\",\"username\":\"john.doe\"," +
-            "\"type\":\"create\",\"domain\":\"governance\",\"requestMethod\":\"POST\"," +
-            "\"requestUri\":\"/api/v2/applications\",\"remoteIpAddress\":\"192.168.1.100\"}");
-
-    when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
-        .thenReturn(List.of(auditFile));
-
-    var result = userActivityService.getAllUserActivitiesForExport(
-        "2024-03-10", "2024-03-13", "john.doe", 100, 0, null, null, null);
-
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(2);
-    assertThat(result).allSatisfy(activity -> {
-      assertThat(activity.username).isEqualTo("john.doe");
-      assertThat(activity.timestamp).isNotNull();
-      assertThat(activity.type).isIn("login", "create");
-    });
-  }
-
-  @Test
-  public void testGetAllUserActivitiesForExport_withFilters_returnsFilteredResults() throws IOException {
-    File auditFile = createExportTestScenario();
-    setupMockAuditFiles(auditFile);
-
-    var result = userActivityService.getAllUserActivitiesForExport(
-        "2024-03-10", "2024-03-13", null, 100, 0,
-        List.of("login"), List.of("authentication"), null);
-
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(2);
-    assertThat(result).allSatisfy(activity -> {
-      assertThat(activity.type).isEqualTo("login");
-      assertThat(activity.domain).isEqualTo("authentication");
-      assertThat(activity.username).isIn("john.doe", "jane.smith");
-    });
-  }
-
-  @Test
-  public void testGetAllUserActivitiesForExport_withUserAndFilters_returnsCombinedFiltering() throws IOException {
-    File auditFile = createExportTestScenario();
-    setupMockAuditFiles(auditFile);
-
-    var result = userActivityService.getAllUserActivitiesForExport(
-        "2024-03-10", "2024-03-13", "john.doe", 100, 0,
-        List.of("view"), List.of("reporting"), null);
-
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(1);
-    assertThat(result.get(0).username).isEqualTo("john.doe");
-    assertThat(result.get(0).type).isEqualTo("view");
-    assertThat(result.get(0).domain).isEqualTo("reporting");
-  }
-
-  @Test
   public void testApiActivityEventDTO_includesUsernameField() throws IOException {
     File auditFile = createAuditLogFile("audit.log",
         "{\"timestamp\":\"2024-03-13T14:30:45.123Z\",\"username\":\"test.user\"," +
@@ -916,8 +827,12 @@ public class UserActivityServiceTest
     when(mockAuditLogFilesProvider.getAuditLogFiles(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of(auditFile));
 
-    var exportResult = userActivityService.getAllUserActivitiesForExport(
-        "2024-03-10", "2024-03-13", null, 100, 0, null, null, null);
+    List<ApiActivityEventDTO> exportResult;
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2024-03-10", "2024-03-13", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      exportResult = stream.collect(Collectors.toList());
+    }
 
     var detailResult = userActivityService.getUserActivityDetail(
         "2024-03-10", "2024-03-13", "test.user", 100, 0, null, null, null);
@@ -931,7 +846,198 @@ public class UserActivityServiceTest
     assertThat(detailResult.activities.get(0).timestamp).isEqualTo("2024-03-13T14:30:45.123Z");
   }
 
+  @Test
+  public void testStreamAllUserActivitiesForExport_returnsAllMatchingEventsAcrossFiles() throws Exception {
+    // Given two audit files, one with 3 events for 'alice' and one with 2 events for 'bob'
+    File file1 = givenAuditFile("audit-1.json",
+        auditLine("alice", "2026-05-01T10:00:00Z"),
+        auditLine("alice", "2026-05-01T10:05:00Z"),
+        auditLine("alice", "2026-05-01T10:10:00Z"));
+    File file2 = givenAuditFile("audit-2.json",
+        auditLine("bob", "2026-05-02T09:00:00Z"),
+        auditLine("bob", "2026-05-02T09:05:00Z"));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file1, file2));
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      assertThat(events).hasSize(5);
+      assertThat(events).filteredOn(e -> "alice".equals(e.username)).hasSize(3);
+      assertThat(events).filteredOn(e -> "bob".equals(e.username)).hasSize(2);
+      assertThat(events).extracting(e -> e.type).containsOnly("login");
+      assertThat(events).extracting(e -> e.domain).containsOnly("security.user");
+    }
+  }
+
+  @Test
+  public void testStreamAuditFileForExport_releasesLockAndPropagatesWhenLockAcquisitionThrowsRuntimeException() throws Exception {
+    File file = givenAuditFile("audit-runtime-fail.json", auditLine("alice", "2026-05-01T10:00:00Z"));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    ClusterLock failingLock = mock(ClusterLock.class);
+    doThrow(new IllegalStateException("simulated lock failure")).when(failingLock).lock();
+    when(mockClusterLockManager.createForAuditJsonFileStore(anyString())).thenReturn(failingLock);
+
+    // Lock is still released (no leak), but the exception now propagates so the caller
+    // gets a 500 instead of an empty CSV. STL feedback: surface real errors.
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+      try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+          "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of()))
+      {
+        stream.count();
+      }
+    }).withMessage("simulated lock failure");
+
+    verify(failingLock).close(); // D5: lock released on the RuntimeException path
+  }
+
+  @Test
+  public void testStreamAuditFileForExport_releasesLockWhenAuditFileCannotBeOpened() throws Exception {
+    File missing = new File("/tmp/does-not-exist-" + System.nanoTime() + ".json");
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(missing));
+
+    ClusterLock mockLock = mock(ClusterLock.class);
+    when(mockClusterLockManager.createForAuditJsonFileStore(anyString())).thenReturn(mockLock);
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of()))
+    {
+      assertThat(stream.count()).isZero();
+    }
+
+    verify(mockLock).close();
+  }
+
+  @Test
+  public void testStreamAuditFileForExport_releasesLockWhenStreamIsClosedEarly() throws Exception {
+    File file = givenAuditFile("audit-many.json",
+        auditLine("alice", "2026-05-01T10:00:00Z"),
+        auditLine("alice", "2026-05-01T10:01:00Z"),
+        auditLine("alice", "2026-05-01T10:02:00Z"));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    ClusterLock mockLock = mock(ClusterLock.class);
+    when(mockClusterLockManager.createForAuditJsonFileStore(anyString())).thenReturn(mockLock);
+
+    Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of());
+    // consumer reads one then abandons. close() must be called manually because Java
+    // streams are not auto-closed by terminal operations like findFirst() — onClose() handlers
+    // only run on close().
+    stream.findFirst();
+    stream.close();
+
+    verify(mockLock, times(1)).close();
+  }
+
+  @Test
+  public void testStreamAllUserActivitiesForExport_filtersByActivityType() throws Exception {
+    File file = givenAuditFile("audit-filter-type.json",
+        auditLineFull("alice", "2026-05-01T10:00:00Z", "security.user", "LOGIN", null),
+        auditLineFull("alice", "2026-05-01T10:05:00Z", "governance.application", "VIEW_APPLICATION", null),
+        auditLineFull("alice", "2026-05-01T10:10:00Z", "evaluation.application", "EVALUATE_APPLICATION", null));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of("LOGIN"), Set.of(), Set.of()))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      assertThat(events).hasSize(1);
+      assertThat(events.get(0).type).isEqualTo("LOGIN");
+    }
+  }
+
+  @Test
+  public void testStreamAllUserActivitiesForExport_filtersByDomainTopLevel() throws Exception {
+    File file = givenAuditFile("audit-filter-domain.json",
+        auditLineFull("alice", "2026-05-01T10:00:00Z", "security.user", "LOGIN", null),
+        auditLineFull("alice", "2026-05-01T10:05:00Z", "governance.application", "VIEW_APPLICATION", null),
+        auditLineFull("alice", "2026-05-01T10:10:00Z", "security.role", "VIEW_ROLE", null));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of("security"), Set.of()))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      // top-level "security" matches both "security.user" and "security.role" but NOT "governance.application"
+      assertThat(events).hasSize(2);
+      assertThat(events).allSatisfy(e -> assertThat(e.domain).startsWith("security."));
+    }
+  }
+
+  @Test
+  public void testStreamAllUserActivitiesForExport_filtersByErrorTypeIncludingSuccess() throws Exception {
+    File file = givenAuditFile("audit-filter-error.json",
+        auditLineFull("alice", "2026-05-01T10:00:00Z", "security.user", "LOGIN", null), // success
+        auditLineFull("alice", "2026-05-01T10:05:00Z", "security.user", "LOGIN", "bad-credentials"),
+        auditLineFull("alice", "2026-05-01T10:10:00Z", "security.user", "LOGIN", "rate-limited"));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    // Success-only — error == null
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of("Success")))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      assertThat(events).hasSize(1);
+      assertThat(events.get(0).errorType).isNull();
+    }
+
+    // Specific error type
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of("bad-credentials")))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      assertThat(events).hasSize(1);
+      assertThat(events.get(0).errorType).isEqualTo("bad-credentials");
+    }
+
+    // Multiple types in OR
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of(), Set.of(), Set.of("bad-credentials", "rate-limited")))
+    {
+      List<ApiActivityEventDTO> events = stream.collect(Collectors.toList());
+      assertThat(events).hasSize(2);
+    }
+  }
+
+  @Test
+  public void testStreamAllUserActivitiesForExport_emptyResultWhenFilterMatchesNothing() throws Exception {
+    File file = givenAuditFile("audit-filter-no-match.json",
+        auditLineFull("alice", "2026-05-01T10:00:00Z", "security.user", "LOGIN", null));
+    when(mockAuditLogFilesProvider.getAuditLogFiles(any(), any())).thenReturn(List.of(file));
+
+    try (Stream<ApiActivityEventDTO> stream = userActivityService.streamAllUserActivitiesForExport(
+        "2026-05-01", "2026-05-20", null, null, null, Set.of("DOES_NOT_EXIST"), Set.of(), Set.of()))
+    {
+      assertThat(stream.count()).isZero();
+    }
+  }
+
   // Helper methods for testing
+
+  private File givenAuditFile(String name, String... jsonLines) throws IOException {
+    File f = tempFolder.newFile(name);
+    Files.writeString(f.toPath(), String.join("\n", jsonLines));
+    return f;
+  }
+
+  private static String auditLine(String username, String timestampIso) {
+    return auditLineFull(username, timestampIso, "security.user", "login", null);
+  }
+
+  private static String auditLineFull(String username, String timestampIso, String domain, String type, String error) {
+    StringBuilder sb = new StringBuilder("{");
+    sb.append(String.format("\"username\":\"%s\",", username));
+    sb.append(String.format("\"timestamp\":\"%s\",", timestampIso));
+    sb.append(String.format("\"domain\":\"%s\",", domain));
+    sb.append(String.format("\"type\":\"%s\"", type));
+    if (error != null) {
+      sb.append(String.format(",\"error\":\"%s\"", error));
+    }
+    sb.append("}");
+    return sb.toString();
+  }
 
   private File createAuditLogFile(String filename, String... lines) throws IOException {
     Path auditFile = tempFolder.newFile(filename).toPath();

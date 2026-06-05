@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { apiFetch, API_PREFIX } from './apiFetch';
+import { apiFetch, ApiError, API_PREFIX } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
 import { getCVSSSeverity } from '@guide/ui-core';
 import { toStringArray } from '../utils/searchParams';
@@ -252,7 +252,11 @@ export function _resetBrowseAggregationsCacheForTests(): void {
  */
 export async function getVulnerabilityDetails(vulnId: string): Promise<Vulnerability | null> {
   if (!vulnId.trim()) return null;
-  return apiFetch<Vulnerability | null>(`${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}`);
+  return apiFetch<Vulnerability | null>(`${API_PREFIX}/vulnerabilities/${encodeURIComponent(vulnId)}`)
+    .catch((e: unknown) => {
+      if (e instanceof ApiError && e.status === 404) return null;
+      throw e;
+    });
 }
 
 /** Accepted sortField values for affected-components queries. Single source of truth shared with ComponentsImpactedTab. */

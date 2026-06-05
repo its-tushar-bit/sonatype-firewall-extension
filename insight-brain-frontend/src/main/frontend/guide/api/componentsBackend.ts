@@ -174,7 +174,13 @@ export async function getComponentVersions(
   if (filters.minVersionScore !== undefined) params.set('minVersionScore', String(filters.minVersionScore));
   if (filters.maxVersionScore !== undefined) params.set('maxVersionScore', String(filters.maxVersionScore));
   if (filters.publishedWindow) params.set('publishedWindow', filters.publishedWindow);
-  return apiFetch<ComponentVersionsResponse>(`${API_PREFIX}/components/versions?${params}`);
+  return apiFetch<ComponentVersionsResponse>(`${API_PREFIX}/components/versions?${params}`)
+    .catch((e: unknown) => {
+      if (e instanceof ApiError && e.status === 404) {
+        return { hits: [], total: 0, offset, limit, aggregations: {} } as ComponentVersionsResponse;
+      }
+      throw e;
+    });
 }
 
 export async function getComponentDependencies(

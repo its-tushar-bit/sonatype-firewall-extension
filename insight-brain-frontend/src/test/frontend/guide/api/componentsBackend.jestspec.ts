@@ -19,7 +19,7 @@ jest.mock('GuideRoot/api/apiFetch', () => ({
   apiFetch: jest.fn(),
 }));
 
-import { apiFetch } from 'GuideRoot/api/apiFetch';
+import { apiFetch, ApiError } from 'GuideRoot/api/apiFetch';
 
 const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
 
@@ -427,6 +427,22 @@ describe('componentsBackend', () => {
       expect(path).not.toContain('sortField');
       expect(path).not.toContain('versionQuery');
       expect(init).toBeUndefined();
+    });
+
+    it('returns empty result when the backend responds 404', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('not found', 404, 'Not Found'));
+
+      const result = await getComponentVersions('npm', 'no-such-package', '1.0.0', undefined, {}, { offset: 5, limit: 10 });
+
+      expect(result).toEqual({ hits: [], total: 0, offset: 5, limit: 10, aggregations: {} });
+    });
+
+    it('rethrows non-404 errors', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('server error', 500, 'Internal Server Error'));
+
+      await expect(
+        getComponentVersions('npm', 'lodash', '4.17.21', undefined, {}, { offset: 0, limit: 25 })
+      ).rejects.toThrow('server error');
     });
   });
 

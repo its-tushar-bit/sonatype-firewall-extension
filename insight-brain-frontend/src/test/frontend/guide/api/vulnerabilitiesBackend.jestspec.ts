@@ -20,7 +20,7 @@ jest.mock('GuideRoot/api/apiFetch', () => ({
   apiFetch: jest.fn(),
 }));
 
-import { apiFetch } from 'GuideRoot/api/apiFetch';
+import { apiFetch, ApiError } from 'GuideRoot/api/apiFetch';
 
 const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
 
@@ -232,6 +232,20 @@ describe('vulnerabilitiesBackend', () => {
 
       const [path] = mockApiFetch.mock.calls[0];
       expect(path).toBe('/api/v2/guide/vulnerabilities/CVE%202021%2044228');
+    });
+
+    it('returns null when the backend responds 404', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('not found', 404, 'Not Found'));
+
+      const result = await getVulnerabilityDetails('FAKE-CVE-2099-99999');
+
+      expect(result).toBeNull();
+    });
+
+    it('rethrows non-404 errors', async () => {
+      mockApiFetch.mockRejectedValue(new ApiError('server error', 500, 'Internal Server Error'));
+
+      await expect(getVulnerabilityDetails('CVE-2021-44228')).rejects.toThrow('server error');
     });
   });
 

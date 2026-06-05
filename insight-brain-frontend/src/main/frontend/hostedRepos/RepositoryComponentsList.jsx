@@ -104,13 +104,6 @@ export default function RepositoryComponentsList() {
           is cleared.
         </NxInfoAlert>
       )}
-      <NxFilterInput
-        placeholder="Search by repository component name"
-        value={inputValue}
-        onChange={handleFilterChange}
-        id="iq-hosted-repos-components-filter"
-        className="iq-hosted-repos-components__filter"
-      />
       <NxLoadWrapper
         loading={loading && components.length === 0}
         error={components.length === 0 ? error : null}
@@ -118,6 +111,13 @@ export default function RepositoryComponentsList() {
       >
         <NxTile>
           <NxTile.Content>
+            <NxFilterInput
+              placeholder="Search by repository component name"
+              value={inputValue}
+              onChange={handleFilterChange}
+              id="iq-hosted-repos-components-filter"
+              className="iq-hosted-repos-components__filter"
+            />
             <NxTableContainer>
               <NxTable>
                 <NxTable.Head>

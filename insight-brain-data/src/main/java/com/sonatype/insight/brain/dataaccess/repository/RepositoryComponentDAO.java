@@ -1049,9 +1049,15 @@ public class RepositoryComponentDAO
     if (repositoryIds == null || repositoryIds.isEmpty()) {
       return Map.of();
     }
-    try (TransactionContext tx = createTransactionContext()) {
-      return getLastScanTimesByRepositoryIds(tx, repositoryIds);
+    List<List<String>> partitions = Lists.partition(new ArrayList<>(repositoryIds), getInOperatorThreshold());
+    Map<String, Date> result = new HashMap<>();
+    for (List<String> partition : partitions) {
+      try (TransactionContext tx = createTransactionContext()) {
+        getLastScanTimesByRepositoryIds(tx, partition).forEach((repoId, date) -> result.merge(repoId, date,
+            (existing, incoming) -> incoming.after(existing) ? incoming : existing));
+      }
     }
+    return result;
   }
 
   public Map<String, Date> getLastScanTimesByRepositoryIds(TransactionContext tx, Collection<String> repositoryIds) {

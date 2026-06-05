@@ -4,46 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 .iq-hosted-repos-list-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 24px;
-
-  &__header {
-    margin-bottom: 24px;
-  }
-
-  &__title-section {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
   &__title {
-    font-size: 32px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--nx-color-text);
-  }
-
-  &__subtitle {
-    font-size: 14px;
-    color: var(--nx-color-text-secondary);
-    margin: 0;
-  }
-
-  &__content {
-    background-color: var(--nx-color-component-background);
-    border-radius: 4px;
-    padding: 16px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__filters {
     display: flex;
     gap: 16px;
+    margin-bottom: var(--nx-spacing-4x);
   }
 
   &__search {
@@ -66,13 +36,10 @@
 
   &__table {
     width: 100%;
-  }
-}
 
-#iq-hosted-repos-list-page {
-  .nx-cell {
-    padding-top: var(--nx-spacing-2x);
-    padding-bottom: var(--nx-spacing-2x);
-    height: auto;
+    .nx-cell {
+      padding-top: var(--nx-spacing-2x);
+      padding-bottom: var(--nx-spacing-2x);
+    }
   }
 }

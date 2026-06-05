@@ -9,20 +9,43 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   NxLoadWrapper,
   NxPageTitle,
+  NxH1,
   NxH4,
-  NxH3,
   NxP,
   NxTextLink,
   NxTile,
   NxButton,
   NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
-import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisVertical, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { faDatabase } from '@fortawesome/pro-regular-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from './hostedReposSlice';
 import { selectRepositoryManagers, selectLoading, selectError } from './hostedReposSelectors';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+
+function getActivityIndicator(lastActivityTime) {
+  if (lastActivityTime == null) {
+    return {
+      label: 'No activity recorded',
+      className: 'iq-hosted-repos__status--no-activity',
+    };
+  }
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const isStale = Date.now() - lastActivityTime > sevenDaysMs;
+  const date = new Date(lastActivityTime);
+  const label = `Last activity: ${date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })}`;
+  return {
+    label,
+    className: isStale ? 'iq-hosted-repos__status--stale' : 'iq-hosted-repos__status--active',
+  };
+}
 
 export default function HostedReposPage() {
   const dispatch = useDispatch();
@@ -64,7 +87,7 @@ export default function HostedReposPage() {
     return (
       <div className="iq-hosted-repos__grid">
         {repositoryManagers.map((rm) => {
-          const isConnected = rm.connectionStatus === 'CONNECTED';
+          const activity = getActivityIndicator(rm.lastActivityTime);
 
           return (
             <NxTile
@@ -95,12 +118,10 @@ export default function HostedReposPage() {
               </NxTile.Header>
               <NxTile.Content>
                 <div className="iq-hosted-repos__card-footer">
-                  {isConnected && (
-                    <>
-                      <span className="iq-hosted-repos__card-count-label">Hosted Repositories</span>
-                      <span className="iq-hosted-repos__card-count-value">{rm.hostedRepositoryCount}</span>
-                    </>
-                  )}
+                  <div className={`iq-hosted-repos__card-status ${activity.className}`}>
+                    <NxFontAwesomeIcon icon={faCircle} className="iq-hosted-repos__status-icon" />
+                    <span className="iq-hosted-repos__status-label">{activity.label}</span>
+                  </div>
                 </div>
               </NxTile.Content>
             </NxTile>
@@ -125,15 +146,14 @@ export default function HostedReposPage() {
   return (
     <div className="iq-hosted-repos">
       <NxPageTitle>
-        <NxH3>Repository Managers</NxH3>
+        <NxH1>Repository Managers</NxH1>
+        <NxPageTitle.Description>
+          <NxP>Select a Nexus Repository Manager instance to view its hosted repositories.</NxP>
+          <NxTextLink href="#" external>
+            Learn more about hosted repository evaluation
+          </NxTextLink>
+        </NxPageTitle.Description>
       </NxPageTitle>
-
-      <div className="iq-hosted-repos__description">
-        <NxP>Select a Nexus Repository Manager instance to view its hosted repositories.</NxP>
-        <NxTextLink href="#" external>
-          Learn more about hosted repository evaluation
-        </NxTextLink>
-      </div>
 
       <NxLoadWrapper loading={loading} error={error} retryHandler={retryHandler}>
         {renderContent()}

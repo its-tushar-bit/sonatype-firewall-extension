@@ -147,6 +147,25 @@ function IqSidebarNav(props) {
                 href={orgsPoliciesHref}
               />
             )}
+            {isLicensed && isHostedRepositoryEvaluationEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('hostedRepos')}
+                id="hosted-repos-navigation-button"
+                icon={faDatabase}
+                text={
+                  <>
+                    <span>Hosted Repos</span>
+                    <span className="iq-api-nav-link__navigation-badge">
+                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                      <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                      NEW
+                      <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                    </span>
+                  </>
+                }
+                href={hostedReposHref}
+              />
+            )}
             {isReportsListAvailable && isOrgsAndAppsEnabled && (
               <NxGlobalSidebar2NavigationLink
                 isSelected={isReportsSelected}
@@ -190,25 +209,6 @@ function IqSidebarNav(props) {
                 icon={faGavel}
                 text="Legal"
                 href={legalHref}
-              />
-            )}
-            {isLicensed && isHostedRepositoryEvaluationEnabled && (
-              <NxGlobalSidebar2NavigationLink
-                isSelected={isSelected('hostedRepos')}
-                id="hosted-repos-navigation-button"
-                icon={faDatabase}
-                text={
-                  <>
-                    <span>Hosted Repos</span>
-                    <span className="iq-api-nav-link__navigation-badge">
-                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                      <span className="iq-api-nav-link__tooltip-only-text"> (</span>
-                      NEW
-                      <span className="iq-api-nav-link__tooltip-only-text">)</span>
-                    </span>
-                  </>
-                }
-                href={hostedReposHref}
               />
             )}
             {isLicensed && isIntegratedEnterpriseReportingSupported && (

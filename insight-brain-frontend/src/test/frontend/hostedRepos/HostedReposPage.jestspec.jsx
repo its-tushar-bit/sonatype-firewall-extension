@@ -27,18 +27,22 @@ describe('HostedReposPage', () => {
     },
   };
 
+  const recentActivityTime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+
   const mockRepositoryManagers = [
     {
       instanceId: 'nxrm-prod',
       baseUrl: 'http://nxrm-prod:8081',
       hostedRepositoryCount: 5,
       connectionStatus: 'CONNECTED',
+      lastActivityTime: recentActivityTime,
     },
     {
       instanceId: 'nxrm-dev',
       baseUrl: 'http://nxrm-dev:8081',
       hostedRepositoryCount: 0,
       connectionStatus: 'DISCONNECTED',
+      lastActivityTime: null,
     },
   ];
 
@@ -156,7 +160,7 @@ describe('HostedReposPage', () => {
     });
   });
 
-  it('should render connected repository manager card', async () => {
+  it('should render repository manager card with recent activity', async () => {
     const connectedState = {
       ...defaultPreloadedState,
       hostedRepos: {
@@ -167,27 +171,17 @@ describe('HostedReposPage', () => {
 
     renderComponent(connectedState);
 
-    // Wait for component's useEffect fetch to complete
-    await waitFor(() => {
-      expect(axiosMock.history.get.length).toBe(1);
-    });
-
     await waitFor(() => {
       expect(screen.getByText('nxrm-prod')).toBeInTheDocument();
       expect(screen.getByText('http://nxrm-prod:8081')).toBeInTheDocument();
-      expect(screen.getByText('Hosted Repositories')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
+      const label = screen.getByText(/Last activity:/i);
+      expect(label).toBeInTheDocument();
+      expect(label.closest('.iq-hosted-repos__card-status')).toHaveClass('iq-hosted-repos__status--active');
     });
   });
 
-  it('should render disconnected repository manager card', async () => {
-    // Override the default mock to return only disconnected manager
-    axiosMock.reset();
-    axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
-      repositoryManagers: [mockRepositoryManagers[1]],
-    });
-
-    const disconnectedState = {
+  it('should render "No activity recorded" when lastActivityTime is null', async () => {
+    const noActivityState = {
       ...defaultPreloadedState,
       hostedRepos: {
         ...defaultPreloadedState.hostedRepos,
@@ -195,13 +189,46 @@ describe('HostedReposPage', () => {
       },
     };
 
-    renderComponent(disconnectedState);
+    renderComponent(noActivityState);
 
     await waitFor(() => {
       expect(screen.getByText('nxrm-dev')).toBeInTheDocument();
-      expect(screen.getByText('http://nxrm-dev:8081')).toBeInTheDocument();
+      expect(screen.getByText('No activity recorded')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Hosted Repositories')).not.toBeInTheDocument();
+  });
+
+  it('should render stale activity indicator when lastActivityTime is older than 7 days', async () => {
+    // Use a timestamp from 2020 — always > 7 days ago
+    const oldTimestamp = new Date('2020-01-01T00:00:00Z').getTime();
+
+    const staleManager = {
+      instanceId: 'nxrm-stale',
+      baseUrl: 'http://nxrm-stale:8081',
+      hostedRepositoryCount: 2,
+      connectionStatus: 'CONNECTED',
+      lastActivityTime: oldTimestamp,
+    };
+
+    axiosMock.reset();
+    axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
+      repositoryManagers: [staleManager],
+    });
+
+    const staleState = {
+      ...defaultPreloadedState,
+      hostedRepos: {
+        ...defaultPreloadedState.hostedRepos,
+        repositoryManagers: [staleManager],
+      },
+    };
+
+    renderComponent(staleState);
+
+    await waitFor(() => {
+      const label = screen.getByText(/Last activity:/i);
+      expect(label).toBeInTheDocument();
+      expect(label.closest('.iq-hosted-repos__status--stale')).toBeInTheDocument();
+    });
   });
 
   it('should render multiple repository manager cards', async () => {
@@ -334,26 +361,4 @@ describe('HostedReposPage', () => {
     });
   });
 
-  it('should not display "Hosted Repositories" section for disconnected state', async () => {
-    // Override the default mock to return only disconnected manager
-    axiosMock.reset();
-    axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
-      repositoryManagers: [mockRepositoryManagers[1]],
-    });
-
-    const disconnectedState = {
-      ...defaultPreloadedState,
-      hostedRepos: {
-        ...defaultPreloadedState.hostedRepos,
-        repositoryManagers: [mockRepositoryManagers[1]],
-      },
-    };
-
-    renderComponent(disconnectedState);
-
-    await waitFor(() => {
-      expect(screen.getByText('nxrm-dev')).toBeInTheDocument();
-      expect(screen.queryByText('Hosted Repositories')).not.toBeInTheDocument();
-    });
-  });
 });

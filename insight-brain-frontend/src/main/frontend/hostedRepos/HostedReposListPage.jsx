@@ -6,7 +6,16 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { NxLoadWrapper, NxFilterInput, NxFormSelect, NxTable, NxBreadcrumb } from '@sonatype/react-shared-components';
+import {
+  NxLoadWrapper,
+  NxFilterInput,
+  NxFormSelect,
+  NxTable,
+  NxBreadcrumb,
+  NxPageTitle,
+  NxH1,
+  NxTile,
+} from '@sonatype/react-shared-components';
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { selectRepositoryManagerId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -134,84 +143,88 @@ function HostedRepositoriesListPage() {
   }
 
   return (
-    <div id="iq-hosted-repos-list-page" className="iq-hosted-repos-list-page">
+    <main className="nx-page-main iq-hosted-repos-list-page">
       {breadcrumbs.length > 0 && <NxBreadcrumb crumbs={breadcrumbs} />}
 
-      <header className="iq-hosted-repos-list-page__header">
-        <div className="iq-hosted-repos-list-page__title-section">
-          <h1 className="iq-hosted-repos-list-page__title">{repositoryManager?.instanceId || 'Repository Manager'}</h1>
-          {repositoryManager?.baseUrl && (
-            <p className="iq-hosted-repos-list-page__subtitle">{repositoryManager.baseUrl}</p>
-          )}
-        </div>
-      </header>
+      <NxPageTitle>
+        <NxH1 className="iq-hosted-repos-list-page__title">
+          {repositoryManager?.instanceId || 'Repository Manager'}
+        </NxH1>
+        {repositoryManager?.baseUrl && <NxPageTitle.Description>{repositoryManager.baseUrl}</NxPageTitle.Description>}
+      </NxPageTitle>
 
-      <div className="iq-hosted-repos-list-page__content">
-        <div className="iq-hosted-repos-list-page__filters">
-          <NxFilterInput
-            id="repository-search-input"
-            className="iq-hosted-repos-list-page__search"
-            searchIcon
-            placeholder="Search repositories"
-            value={inputText}
-            onChange={handleSearchChange}
-          />
-          <NxFormSelect
-            className="iq-hosted-repos-list-page__format-filter"
-            value={formatsFilter}
-            onChange={handleFormatChange}
-          >
-            <option value="">Format</option>
-            {availableFormats.map((format) => (
-              <option key={format} value={format}>
-                {format}
-              </option>
-            ))}
-          </NxFormSelect>
-        </div>
-
-        <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-          <div className="iq-hosted-repos-list-page__count-bar">
-            <span className="iq-hosted-repos-list-page__count">
-              {repositories && totalCount > repositories.length
-                ? `${repositories.length} of ${totalCount} repositories`
-                : `${totalCount} ${totalCount === 1 ? 'repository' : 'repositories'}`}
-            </span>
+      <NxTile>
+        <NxTile.Content>
+          <div className="iq-hosted-repos-list-page__filters">
+            <NxFilterInput
+              id="repository-search-input"
+              className="iq-hosted-repos-list-page__search"
+              searchIcon
+              placeholder="Search repositories"
+              value={inputText}
+              onChange={handleSearchChange}
+            />
+            <NxFormSelect
+              className="iq-hosted-repos-list-page__format-filter"
+              value={formatsFilter}
+              onChange={handleFormatChange}
+            >
+              <option value="">All</option>
+              {availableFormats.map((format) => (
+                <option key={format} value={format}>
+                  {format}
+                </option>
+              ))}
+            </NxFormSelect>
           </div>
-          <NxTable className="iq-hosted-repos-list-page__table">
-            <NxTable.Head>
-              <NxTable.Row>
-                <NxTable.Cell isSortable sortDir={getSortDirection('publicId')} onClick={() => handleSort('publicId')}>
-                  NAME
-                </NxTable.Cell>
-                <NxTable.Cell isSortable sortDir={getSortDirection('format')} onClick={() => handleSort('format')}>
-                  FORMAT
-                </NxTable.Cell>
-                <NxTable.Cell
-                  isSortable
-                  sortDir={getSortDirection('lastScannedTime')}
-                  onClick={() => handleSort('lastScannedTime')}
-                >
-                  LATEST COMPONENT EVALUATION
-                </NxTable.Cell>
-                <NxTable.Cell chevron />
-              </NxTable.Row>
-            </NxTable.Head>
-            <NxTable.Body emptyMessage="No repositories found">
-              {repositories &&
-                repositories.map((repo, index) => (
-                  <NxTable.Row key={repo.publicId ?? index} isClickable onClick={() => handleRepoClick(repo)}>
-                    <NxTable.Cell>{repo.publicId}</NxTable.Cell>
-                    <NxTable.Cell>{repo.format}</NxTable.Cell>
-                    <NxTable.Cell>{formatLastScanned(repo.lastScannedTime, repo.hasQueuedScans)}</NxTable.Cell>
-                    <NxTable.Cell chevron />
-                  </NxTable.Row>
-                ))}
-            </NxTable.Body>
-          </NxTable>
-        </NxLoadWrapper>
-      </div>
-    </div>
+
+          <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+            <div className="iq-hosted-repos-list-page__count-bar">
+              <span className="iq-hosted-repos-list-page__count">
+                {repositories && totalCount > repositories.length
+                  ? `${repositories.length} of ${totalCount} repositories`
+                  : `${totalCount} ${totalCount === 1 ? 'repository' : 'repositories'}`}
+              </span>
+            </div>
+            <NxTable className="iq-hosted-repos-list-page__table">
+              <NxTable.Head>
+                <NxTable.Row>
+                  <NxTable.Cell
+                    isSortable
+                    sortDir={getSortDirection('publicId')}
+                    onClick={() => handleSort('publicId')}
+                  >
+                    NAME
+                  </NxTable.Cell>
+                  <NxTable.Cell isSortable sortDir={getSortDirection('format')} onClick={() => handleSort('format')}>
+                    FORMAT
+                  </NxTable.Cell>
+                  <NxTable.Cell
+                    isSortable
+                    sortDir={getSortDirection('lastScannedTime')}
+                    onClick={() => handleSort('lastScannedTime')}
+                  >
+                    LATEST COMPONENT EVALUATION
+                  </NxTable.Cell>
+                  <NxTable.Cell chevron />
+                </NxTable.Row>
+              </NxTable.Head>
+              <NxTable.Body emptyMessage="No repositories found">
+                {repositories &&
+                  repositories.map((repo, index) => (
+                    <NxTable.Row key={repo.publicId ?? index} isClickable onClick={() => handleRepoClick(repo)}>
+                      <NxTable.Cell>{repo.publicId}</NxTable.Cell>
+                      <NxTable.Cell>{repo.format}</NxTable.Cell>
+                      <NxTable.Cell>{formatLastScanned(repo.lastScannedTime, repo.hasQueuedScans)}</NxTable.Cell>
+                      <NxTable.Cell chevron />
+                    </NxTable.Row>
+                  ))}
+              </NxTable.Body>
+            </NxTable>
+          </NxLoadWrapper>
+        </NxTile.Content>
+      </NxTile>
+    </main>
   );
 }
 

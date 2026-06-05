@@ -34,4 +34,9 @@ public class ApiLifecycleRepositoryManagerDTO
 
   /** Connection status of the repository manager */
   public ConnectionStatus connectionStatus;
+
+  /**
+   * Timestamp (epoch millis) of the most recent activity for this repository manager, or null if no activity recorded
+   */
+  public Long lastActivityTime;
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerDTO.ConnectionStatus;
 import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerListDTO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -38,13 +40,17 @@ public class ApiLifecycleService
 
   private final RepositoryDAO repositoryDAO;
 
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
   @Inject
   public ApiLifecycleService(
       final RepositoryManagerDAO repositoryManagerDAO,
-      final RepositoryDAO repositoryDAO)
+      final RepositoryDAO repositoryDAO,
+      final RepositoryComponentDAO repositoryComponentDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -59,20 +65,61 @@ public class ApiLifecycleService
         .filter(r -> r.getRepositoryManagerId() != null)
         .collect(Collectors.groupingBy(Repository::getRepositoryManagerId, Collectors.counting()));
 
+    // Group all monitored hosted repos by RM ID for last-activity computation
+    Map<String, List<Repository>> reposByRmId = allHostedRepositories.stream()
+        .filter(Repository::isMonitoringEnabled)
+        .filter(r -> r.getRepositoryManagerId() != null)
+        .collect(Collectors.groupingBy(Repository::getRepositoryManagerId));
+
+    // Fetch last scan times for all hosted repo IDs in one query
+    List<String> allRepoIds = allHostedRepositories.stream()
+        .map(Repository::getId)
+        .filter(id -> id != null)
+        .collect(Collectors.toList());
+    Map<String, Date> lastScanTimeByRepoId = repositoryComponentDAO.getLastScanTimesByRepositoryIds(allRepoIds);
+
+    // Compute last activity time per RM: MAX(lastScanTime, lastManualConfigureTime) across all repos
+    Map<String, Long> lastActivityTimeByRmId = reposByRmId.entrySet()
+        .stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> entry.getValue()
+                .stream()
+                .mapToLong(repo -> {
+                  long scanTime = repo.getId() != null && lastScanTimeByRepoId.containsKey(repo.getId())
+                      ? lastScanTimeByRepoId.get(repo.getId()).getTime()
+                      : 0L;
+                  long configureTime = repo.getLastManualConfigureTime() != null
+                      ? repo.getLastManualConfigureTime().getTime()
+                      : 0L;
+                  return Math.max(scanTime, configureTime);
+                })
+                .max()
+                .orElse(0L)));
+
     List<ApiLifecycleRepositoryManagerDTO> dtos = repositoryManagers.stream()
-        .map(rm -> toDTO(rm, Ints.saturatedCast(hostedRepoCountByRmId.getOrDefault(rm.getId(), 0L))))
+        .map(rm -> {
+          int hostedRepoCount = Ints.saturatedCast(hostedRepoCountByRmId.getOrDefault(rm.getId(), 0L));
+          Long lastActivity = lastActivityTimeByRmId.getOrDefault(rm.getId(), 0L);
+          return toDTO(rm, hostedRepoCount, lastActivity > 0 ? lastActivity : null);
+        })
         .collect(Collectors.toList());
 
     return new ApiLifecycleRepositoryManagerListDTO(dtos);
   }
 
-  private ApiLifecycleRepositoryManagerDTO toDTO(RepositoryManager rm, int hostedRepoCount) {
+  private ApiLifecycleRepositoryManagerDTO toDTO(
+      final RepositoryManager rm,
+      final int hostedRepoCount,
+      final Long lastActivityTime)
+  {
     ApiLifecycleRepositoryManagerDTO dto = new ApiLifecycleRepositoryManagerDTO();
 
     dto.instanceId = rm.getInstanceId();
     dto.baseUrl = rm.getBaseUrl();
     dto.hostedRepositoryCount = hostedRepoCount;
     dto.connectionStatus = determineConnectionStatus(rm);
+    dto.lastActivityTime = lastActivityTime;
 
     return dto;
   }

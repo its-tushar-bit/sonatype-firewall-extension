@@ -5,14 +5,18 @@
  */
 package com.sonatype.insight.brain.license;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupCount;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.brain.webhook.ManagementEvent.LicenseThreatGroupEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 
@@ -20,6 +24,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.OwnerType.ORGANIZATION;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -70,5 +75,39 @@ public class LicenseThreatGroupServiceTest
     assertThat(handler.getEvent().licenseThreatGroup.getId()).isEqualTo(created.getId());
 
     eventBus.unregister(handler);
+  }
+
+  @Test
+  public void testGetLicenseThreatGroupCounts_rejectsOwnerTypeMismatch() {
+    Application application = tempEntity.newApplicationWithParent("owner-type-mismatch");
+
+    assertThatThrownBy(() -> service.getLicenseThreatGroupCounts(ORGANIZATION, application.getId()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("not a organization owner");
+  }
+
+  @Test
+  public void testGetLicenseThreatGroupCounts_returnsCachedListOnSecondCall() {
+    Organization organization = tempEntity.newOrganization();
+
+    List<LicenseThreatGroupCount> first =
+        service.getLicenseThreatGroupCounts(ORGANIZATION, organization.getId());
+    List<LicenseThreatGroupCount> second =
+        service.getLicenseThreatGroupCounts(ORGANIZATION, organization.getId());
+
+    assertThat(second).isSameAs(first);
+  }
+
+  @Test
+  public void testAddLicenseThreatGroupInvalidatesCountsCache() {
+    Organization organization = tempEntity.newOrganization();
+
+    List<LicenseThreatGroupCount> before =
+        service.getLicenseThreatGroupCounts(ORGANIZATION, organization.getId());
+    service.addLicenseThreatGroup(organization.getId(), new LicenseThreatGroup(null, "CachedLtg", 3));
+    List<LicenseThreatGroupCount> after =
+        service.getLicenseThreatGroupCounts(ORGANIZATION, organization.getId());
+
+    assertThat(after).isNotSameAs(before);
   }
 }

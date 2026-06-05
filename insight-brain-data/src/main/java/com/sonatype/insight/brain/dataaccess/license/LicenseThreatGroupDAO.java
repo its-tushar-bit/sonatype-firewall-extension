@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupComponentCandidate;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -38,6 +39,9 @@ import org.jooq.Record;
 import org.jooq.SelectFieldOrAsterisk;
 import org.jooq.Table;
 
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponent.APPLICATION_COMPONENT;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponentLicense.APPLICATION_COMPONENT_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroup.LICENSE_THREAT_GROUP;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
@@ -423,6 +427,163 @@ public class LicenseThreatGroupDAO
     }
 
     return result;
+  }
+
+  /**
+   * Lists license threat groups visible to the given owner via the {@code owner_ancestor} view. Used to surface
+   * inherited LTGs with zero matching components on the owner-scoped REST counts path.
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroup> listVisibleLicenseThreatGroupsForOwner(
+      final TransactionContext tx,
+      final String ownerId)
+  {
+    var hierarchyOwnerIdsSubquery = tx.dsl()
+        .select(OWNER_ANCESTOR.ANCESTOR_ID)
+        .from(OWNER_ANCESTOR)
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId));
+
+    return tx.dsl()
+        .selectFrom(LICENSE_THREAT_GROUP)
+        .where(LICENSE_THREAT_GROUP.OWNER_ID.in(hierarchyOwnerIdsSubquery))
+        .fetch(this::toEntity);
+  }
+
+  /**
+   * Lists scoped application components whose effective license maps to a visible license threat group for the
+   * given owner. Does not apply obligation review filtering — see
+   * {@code LicenseThreatGroupUnreviewedComponentCounter} in the service module.
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByOwner(
+      final TransactionContext tx,
+      final OwnerType ownerType,
+      final String ownerId)
+  {
+    var applicationIdsSubquery = tx.dsl()
+        .select(APPLICATION_ANCESTOR.APPLICATION_ID)
+        .from(APPLICATION_ANCESTOR)
+        .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(ownerId));
+
+    var hierarchyOwnerIdsSubquery = tx.dsl()
+        .select(OWNER_ANCESTOR.ANCESTOR_ID)
+        .from(OWNER_ANCESTOR)
+        .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId));
+
+    return tx.dsl()
+        .select(
+            LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
+            LICENSE_THREAT_GROUP.NAME,
+            LICENSE_THREAT_GROUP.THREAT_LEVEL,
+            APPLICATION_COMPONENT.APPLICATION_ID,
+            APPLICATION_COMPONENT.HASH,
+            APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
+            APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
+            APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID)
+        .from(LICENSE_THREAT_GROUP)
+        .join(LICENSE_THREAT_GROUP_LICENSE)
+        .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
+            .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+        .join(APPLICATION_COMPONENT_LICENSE)
+        .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
+        .join(APPLICATION_COMPONENT)
+        .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
+            .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
+            .and(ownerType == OwnerType.APPLICATION
+                ? APPLICATION_COMPONENT.APPLICATION_ID.eq(ownerId)
+                : APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIdsSubquery)))
+        .where(LICENSE_THREAT_GROUP.OWNER_ID.in(hierarchyOwnerIdsSubquery))
+        .and(APPLICATION_COMPONENT.HASH.isNotNull())
+        .fetch(this::toComponentCandidate);
+  }
+
+  /**
+   * @see #listComponentCandidatesByOwner(TransactionContext, OwnerType, String)
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByOwner(
+      final OwnerType ownerType,
+      final String ownerId)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return listComponentCandidatesByOwner(tx, ownerType, ownerId);
+    }
+  }
+
+  /**
+   * Lists application components whose effective license maps to any license threat group across the supplied
+   * {@code applicationIds}. The caller passes in the user's already-authorized scoped-application set, so this
+   * method does no further authz filtering. An empty {@code applicationIds} short-circuits with an empty list.
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIds(
+      final TransactionContext tx,
+      final Collection<String> applicationIds)
+  {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    return getListWithSqlInClause(
+        new ArrayList<>(applicationIds),
+        chunk -> listComponentCandidatesByApplicationIdsChunk(tx, chunk));
+  }
+
+  private List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIdsChunk(
+      final TransactionContext tx,
+      final Collection<String> applicationIds)
+  {
+    return tx.dsl()
+        .select(
+            LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
+            LICENSE_THREAT_GROUP.NAME,
+            LICENSE_THREAT_GROUP.THREAT_LEVEL,
+            APPLICATION_COMPONENT.APPLICATION_ID,
+            APPLICATION_COMPONENT.HASH,
+            APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
+            APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
+            APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID)
+        .from(LICENSE_THREAT_GROUP)
+        .join(LICENSE_THREAT_GROUP_LICENSE)
+        .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
+            .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+        .join(APPLICATION_COMPONENT_LICENSE)
+        .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
+        .join(APPLICATION_COMPONENT)
+        .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
+            .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
+            .and(APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIds)))
+        .where(APPLICATION_COMPONENT.HASH.isNotNull())
+        .fetch(this::toComponentCandidate);
+  }
+
+  /**
+   * @see #listComponentCandidatesByApplicationIds(TransactionContext, Collection)
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIds(
+      final Collection<String> applicationIds)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return listComponentCandidatesByApplicationIds(tx, applicationIds);
+    }
+  }
+
+  private LicenseThreatGroupComponentCandidate toComponentCandidate(Record row) {
+    return new LicenseThreatGroupComponentCandidate(
+        row.get(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID),
+        row.get(LICENSE_THREAT_GROUP.NAME),
+        row.get(LICENSE_THREAT_GROUP.THREAT_LEVEL),
+        row.get(APPLICATION_COMPONENT.APPLICATION_ID),
+        row.get(APPLICATION_COMPONENT.HASH),
+        row.get(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT),
+        row.get(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
+        row.get(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
   }
 
   @Override

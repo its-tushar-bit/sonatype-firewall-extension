@@ -86,9 +86,7 @@ describe('RecentlyImportedSbomsTile', () => {
 
       renderTile();
 
-      await waitFor(() => expect(screen.queryByText(/Loading…/)).toBeNull());
-
-      expect(screen.getByText(/No recently imported SBOMs./)).toBeVisible();
+      expect(await screen.findByText(/No recently imported SBOMs./)).toBeVisible();
     });
 
     it('renders an error message if an error occurs', async () => {

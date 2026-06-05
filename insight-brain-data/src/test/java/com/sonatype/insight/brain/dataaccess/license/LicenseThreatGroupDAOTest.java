@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -22,9 +23,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupComponentCandidate;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -274,7 +278,6 @@ public class LicenseThreatGroupDAOTest
     assertUpdateLicenseThreatGroupWithDuplicateName(parentOrganizationId, group1, group2.getName(), application);
   }
 
-  //
   @Test
   public void testUpdateLTGInOrganization_ClashesWithParentOrganization() {
     Organization parentOrganization = organizationDAO.getById(organization.getParentOrganizationId());
@@ -529,6 +532,124 @@ public class LicenseThreatGroupDAOTest
     nameable1.setName("Test Duplicate Name");
     assertThatThrownBy(() -> getDao().update(nameable1)).isInstanceOf(InvalidLicenseThreatGroupException.class)
         .hasMessageContaining("A license threat group with the same name already exists.");
+  }
+
+  @Test
+  public void testListComponentCandidatesByOwner_OwnerWithNoLicenseThreatGroups() {
+    Organization newOrg = tempEntity.newOrganization();
+
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, newOrg.getId());
+
+    assertThat(candidates).isEmpty();
+  }
+
+  @Test
+  public void testListVisibleLicenseThreatGroupsForOwner_includesInheritedLtgWithNoComponents() {
+    LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      List<LicenseThreatGroup> visible =
+          licenseThreatGroupDAO.listVisibleLicenseThreatGroupsForOwner(tx, organization.getId());
+
+      assertThat(visible).extracting(LicenseThreatGroup::getId).contains(ltg.getId());
+    }
+  }
+
+  @Test
+  public void testListComponentCandidatesByOwner_returnsComponentLinkedViaEffectiveLicense() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    seedMatchingComponent(application, "h-a-1", "GPL-2.0");
+
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+
+    assertThat(candidates).hasSize(1);
+    assertThat(candidates.get(0).getLicenseThreatGroupName()).isEqualTo("Banned");
+    assertThat(candidates.get(0).getHash()).isEqualTo("h-a-1");
+    assertThat(candidates.get(0).getEffectiveLicenseId()).isEqualTo("GPL-2.0");
+  }
+
+  @Test
+  public void testListComponentCandidatesByOwner_MultipleComponentsAcrossApps() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    Application app2 = tempEntity.newApplication(organization.getId());
+
+    seedMatchingComponent(application, "h-a-1", "GPL-2.0");
+    seedMatchingComponent(application, "h-a-2", "GPL-2.0");
+    seedMatchingComponent(app2, "h-b-1", "GPL-2.0");
+
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+
+    assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash)
+        .containsExactlyInAnyOrder("h-a-1", "h-a-2", "h-b-1");
+  }
+
+  @Test
+  public void testListComponentCandidatesByOwner_ApplicationNarrowingExcludesSiblingApps() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    Application siblingApp = tempEntity.newApplication(organization.getId());
+
+    seedMatchingComponent(application, "h-a-1", "GPL-2.0");
+    seedMatchingComponent(siblingApp, "h-b-1", "GPL-2.0");
+    seedMatchingComponent(siblingApp, "h-b-2", "GPL-2.0");
+
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.APPLICATION, application.getId());
+
+    assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-a-1");
+  }
+
+  @Test
+  public void testListComponentCandidatesByOwner_OrganizationHierarchyIncludesDescendantApps() {
+    Organization parentOrg = organizationDAO.getById(organization.getParentOrganizationId());
+    tempEntity.newLicenseThreatGroup(parentOrg.getId(), "Banned", 10, "GPL-2.0");
+
+    seedMatchingComponent(application, "h-child-1", "GPL-2.0");
+
+    List<LicenseThreatGroupComponentCandidate> parentCandidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, parentOrg.getId());
+    assertThat(parentCandidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-child-1");
+
+    List<LicenseThreatGroupComponentCandidate> childCandidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+    assertThat(childCandidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-child-1");
+  }
+
+  @Test
+  public void testListComponentCandidatesByApplicationIds_returnsMatchesForScopedApps() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    Application app2 = tempEntity.newApplication(organization.getId());
+    Application otherOrgApp = tempEntity.newApplication(tempEntity.newOrganization().getId());
+
+    seedMatchingComponent(application, "h-a-1", "GPL-2.0");
+    seedMatchingComponent(app2, "h-b-1", "GPL-2.0");
+    seedMatchingComponent(otherOrgApp, "h-out", "GPL-2.0");
+
+    List<LicenseThreatGroupComponentCandidate> candidates = licenseThreatGroupDAO
+        .listComponentCandidatesByApplicationIds(Set.of(application.getId(), app2.getId()));
+
+    assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash)
+        .containsExactlyInAnyOrder("h-a-1", "h-b-1");
+  }
+
+  @Test
+  public void testListComponentCandidatesByApplicationIds_emptyInput() {
+    assertThat(licenseThreatGroupDAO.listComponentCandidatesByApplicationIds(Collections.emptySet())).isEmpty();
+  }
+
+  private void seedMatchingComponent(Application app, String hash, String licenseId) {
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("g", "a-" + hash, "1.0.0");
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, identifier);
+    String acId = appComponentDAO().getByApplicationIdAndStageTypeIdAndHash(app.getId(), BuildStageType.ID, hash)
+        .getId();
+    tempEntity.newApplicationComponentLicense(acId, licenseId);
+  }
+
+  private com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO appComponentDAO() {
+    return daoFactory.createApplicationComponentDAO();
   }
 
   @Test

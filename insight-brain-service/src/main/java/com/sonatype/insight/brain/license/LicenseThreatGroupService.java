@@ -5,10 +5,18 @@
  */
 package com.sonatype.insight.brain.license;
 
+import java.time.Duration;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -18,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupCount;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -26,18 +35,31 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupCond
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.17.0
  */
 @Named
+@Singleton
 public class LicenseThreatGroupService
 {
+  private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupService.class);
+
+  static final Duration COUNTS_CACHE_EXPIRATION = Duration.ofSeconds(30);
+
+  static final long COUNTS_CACHE_MAXIMUM_SIZE = 1000L;
+
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
   private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO;
@@ -50,6 +72,13 @@ public class LicenseThreatGroupService
 
   private final IdUtils idUtils;
 
+  private final LicenseThreatGroupUnreviewedComponentCounter unreviewedComponentCounter;
+
+  // Tenant-scoped cache of per-owner LTG counts. Short TTL balances freshness with protection against repeated
+  // aggregation queries on a dashboard widget (see CLM-38159-style fan-out scenarios). TenantReference wrapper
+  // ensures MTIQ tenants never share cached entries.
+  private final TenantReference<Cache<Map.Entry<OwnerType, String>, List<LicenseThreatGroupCount>>> countsCaches;
+
   @Inject
   public LicenseThreatGroupService(
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
@@ -57,7 +86,8 @@ public class LicenseThreatGroupService
       final PolicyDAO policyDAO,
       final OwnerDAO ownerDAO,
       final ManagementEventService managementEventService,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      final LicenseThreatGroupUnreviewedComponentCounter unreviewedComponentCounter)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
@@ -65,6 +95,8 @@ public class LicenseThreatGroupService
     this.ownerDAO = ownerDAO;
     this.managementEventService = managementEventService;
     this.idUtils = idUtils;
+    this.unreviewedComponentCounter = unreviewedComponentCounter;
+    this.countsCaches = new TenantReference<>(this::createCountsCache);
   }
 
   @Authorize(permission = Permission.READ)
@@ -75,6 +107,71 @@ public class LicenseThreatGroupService
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     return licenseThreatGroupDAO.getByOwnerId(ownerId);
+  }
+
+  /**
+   * Returns per-License-Threat-Group counts of unreviewed components for the given owner, suitable for the Legal
+   * Obligations dashboard tile (CLM-39604). Results include inherited LTGs (with zero counts when there are no
+   * matching components) and are sorted by threat level DESC, unreviewed component count DESC, name ASC.
+   *
+   * <p>
+   * Backed by a short-lived tenant-isolated cache to absorb bursts of dashboard refreshes. Cache entries are
+   * invalidated on any LTG mutation for the same owner via {@link #invalidateCountsCacheFor(OwnerType, String)}.
+   *
+   * @since 1.204
+   */
+  @Authorize(permission = Permission.READ)
+  public List<LicenseThreatGroupCount> getLicenseThreatGroupCounts(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) String ownerId)
+  {
+    // Resolve the owner by id without assuming the path ownerType (e.g. organization path + application id).
+    // Public application ids are normalized only when the path declares application scope.
+    String lookupId = ownerType == OwnerType.APPLICATION
+        ? idUtils.getInternalOwnerId(OwnerType.APPLICATION, ownerId)
+        : ownerId;
+    Owner owner = ownerDAO.getByIdNotNull(lookupId);
+    if (owner.getType() != ownerType) {
+      throw new BadRequestException(
+          "Owner id '" + ownerId + "' is not a " + ownerType.name().toLowerCase(Locale.ROOT) + " owner.");
+    }
+    String internalOwnerId = owner.getId();
+    Map.Entry<OwnerType, String> key = new AbstractMap.SimpleImmutableEntry<>(ownerType, internalOwnerId);
+    try {
+      return countsCaches.get().get(key, () -> {
+        List<LicenseThreatGroupCount> counts =
+            unreviewedComponentCounter.countByOwner(ownerType, internalOwnerId);
+        return defensiveCopy(counts);
+      });
+    }
+    catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException) cause;
+      }
+      throw new RuntimeException("Failed to load license threat group counts", cause);
+    }
+  }
+
+  /**
+   * Returns per-License-Threat-Group counts of unreviewed components across the supplied application ids. Intended
+   * for stacked dashboard code (CLM-39604 / #16041) where the caller has already resolved the user's authorized
+   * application scope.
+   *
+   * @since 1.204
+   */
+  public List<LicenseThreatGroupCount> getUnreviewedComponentCountsByApplicationIds(
+      final Collection<String> applicationIds)
+  {
+    return defensiveCopy(unreviewedComponentCounter.countByApplicationIds(applicationIds));
+  }
+
+  /**
+   * Invalidates the tenant-wide LTG counts cache (conservative full flush — cheap at maxSize 1000). Called from
+   * LTG CRUD and from {@link LicenseThreatGroupLicenseResource} when group membership changes.
+   */
+  public void invalidateLicenseThreatGroupCountsCache() {
+    countsCaches.get().invalidateAll();
   }
 
   @Authorize(permission = Permission.READ)
@@ -91,19 +188,6 @@ public class LicenseThreatGroupService
     return result;
   }
 
-  private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(final String ownerId) {
-    List<LicenseThreatGroupWithLicenses> results = new ArrayList<>();
-    for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
-      LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
-      ltgwl.id = ltg.getId();
-      ltgwl.name = ltg.getName();
-      ltgwl.threatLevel = ltg.getThreatLevel();
-      ltgwl.licenses = licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
-      results.add(ltgwl);
-    }
-    return results;
-  }
-
   @Authorize(permission = Permission.WRITE)
   public LicenseThreatGroup addLicenseThreatGroup(
       @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String orgId,
@@ -115,6 +199,7 @@ public class LicenseThreatGroupService
 
     auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.CREATED, licenseThreatGroup);
+    invalidateCountsCacheFor(OwnerType.ORGANIZATION, orgId);
 
     return licenseThreatGroup;
   }
@@ -137,6 +222,7 @@ public class LicenseThreatGroupService
 
     auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.UPDATED, licenseThreatGroup);
+    invalidateCountsCacheFor(ownerType, internalOwnerId);
 
     return licenseThreatGroup;
   }
@@ -162,12 +248,7 @@ public class LicenseThreatGroupService
 
     auditLicenseThreatGroup(licenseThreatGroup);
     managementEventService.postEvent(EventAction.DELETED, licenseThreatGroup);
-  }
-
-  private void auditLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
-    AuditData.get() //
-        .setLicenseThreatGroup(licenseThreatGroup)
-        .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
+    invalidateCountsCacheFor(ownerType, internalOwnerId);
   }
 
   public static class ApplicableLicenseThreatGroups
@@ -209,6 +290,51 @@ public class LicenseThreatGroupService
     public int threatLevel;
 
     public List<LicenseThreatGroupLicense> licenses;
+  }
+
+  private Cache<Map.Entry<OwnerType, String>, List<LicenseThreatGroupCount>> createCountsCache() {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(COUNTS_CACHE_EXPIRATION.toMillis(), TimeUnit.MILLISECONDS)
+        .maximumSize(COUNTS_CACHE_MAXIMUM_SIZE)
+        .build();
+  }
+
+  private void invalidateCountsCacheFor(final OwnerType ownerType, final String ownerId) {
+    invalidateLicenseThreatGroupCountsCache();
+  }
+
+  private static List<LicenseThreatGroupCount> defensiveCopy(final List<LicenseThreatGroupCount> counts) {
+    if (counts == null || counts.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<LicenseThreatGroupCount> copies = new ArrayList<>(counts.size());
+    for (LicenseThreatGroupCount count : counts) {
+      copies.add(new LicenseThreatGroupCount(
+          count.getLicenseThreatGroupId(),
+          count.getLicenseThreatGroupName(),
+          count.getThreatLevel(),
+          count.getUnreviewedComponentCount()));
+    }
+    return copies;
+  }
+
+  private List<LicenseThreatGroupWithLicenses> loadLicenseThreatGroups(final String ownerId) {
+    List<LicenseThreatGroupWithLicenses> results = new ArrayList<>();
+    for (LicenseThreatGroup ltg : licenseThreatGroupDAO.getByOwnerId(ownerId)) {
+      LicenseThreatGroupWithLicenses ltgwl = new LicenseThreatGroupWithLicenses();
+      ltgwl.id = ltg.getId();
+      ltgwl.name = ltg.getName();
+      ltgwl.threatLevel = ltg.getThreatLevel();
+      ltgwl.licenses = licenseThreatGroupLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
+      results.add(ltgwl);
+    }
+    return results;
+  }
+
+  private void auditLicenseThreatGroup(LicenseThreatGroup licenseThreatGroup) {
+    AuditData.get() //
+        .setLicenseThreatGroup(licenseThreatGroup)
+        .setData("licenseThreatGroupThreatLevel", licenseThreatGroup.getThreatLevel());
   }
 
   private void validateLicenseThreatGroupNotUsedInAnyPolicy(Owner owner, LicenseThreatGroup licenseThreatGroup) {

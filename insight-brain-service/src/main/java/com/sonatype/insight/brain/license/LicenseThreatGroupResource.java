@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.product.license.RequiresEntitlement;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.license.LicenseThreatGroupCount;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -68,6 +69,23 @@ public class LicenseThreatGroupResource
       @PathParam("ownerId") String ownerId)
   {
     return licenseThreatGroupService.getApplicableLicenseThreatGroups(ownerType, ownerId);
+  }
+
+  /**
+   * Returns per-License-Threat-Group unreviewed-component counts for the dashboard tile (CLM-39604). Intentionally not
+   * {@code @Audited}: this is a high-frequency read endpoint. License enforcement is inherited from the class-level
+   * {@link ProductLicenseEnforcementPoint} annotation ({@code POLICY_MANAGEMENT}).
+   *
+   * @since 1.204
+   */
+  @GET
+  @Path("counts")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<LicenseThreatGroupCount> getLicenseThreatGroupCounts(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId)
+  {
+    return licenseThreatGroupService.getLicenseThreatGroupCounts(ownerType, ownerId);
   }
 
   @RequiresEntitlement(LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS)

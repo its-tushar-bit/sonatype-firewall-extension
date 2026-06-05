@@ -188,4 +188,40 @@ public class LicenseThreatGroupServiceAuthzTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(org.getId());
     licenseThreatGroupService.deleteLicenseThreatGroup(OwnerType.ORGANIZATION, org.getId(), ltg.getId());
   }
+
+  // CLM-39702 — counts endpoint READ permission enforcement
+
+  @Test
+  public void testGetLicenseThreatGroupCountsForApplication_Authorized() {
+    grantReadPermission(app.getId());
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test
+  public void testGetLicenseThreatGroupCountsForOrganization_Authorized() {
+    grantReadPermission(org.getId());
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLicenseThreatGroupCountsForApplication_Unauthenticated() {
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetLicenseThreatGroupCountsForOrganization_Unauthenticated() {
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.ORGANIZATION, org.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicenseThreatGroupCountsForApplication_Unauthorized() {
+    login();
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetLicenseThreatGroupCountsForOrganization_Unauthorized() {
+    login();
+    licenseThreatGroupService.getLicenseThreatGroupCounts(OwnerType.ORGANIZATION, org.getId());
+  }
 }

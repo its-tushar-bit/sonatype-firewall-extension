@@ -638,6 +638,12 @@ export function getConfigFeatureUrl(featureName) {
   return uriTemplate`/api/v2/config/features/${featureName}`;
 }
 
+// CLM-39702: License Threat Group counts endpoint. Used by the Legal
+// Obligations tile (frontend integration in Epic 4 — Dashboard).
+export function getLicenseThreatGroupCountsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/counts`;
+}
+
 export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }

@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class LicenseThreatGroupResourceAuditTest
     extends AbstractAuditTest
 {
@@ -114,5 +116,21 @@ public class LicenseThreatGroupResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_LICENSE_THREAT_GROUP, "unauthorized");
     assertOrganizationData(auditDTO, organization);
+  }
+
+  /**
+   * The counts endpoint is intentionally not {@code @Audited}: it is a high-frequency dashboard read. This test
+   * asserts no audit events are emitted for either the CREATE/UPDATE/DELETE domains when the counts endpoint is
+   * hit, and that the endpoint itself does not introduce a new audited event (CLM-39702, CLM-38750).
+   */
+  @Test
+  public void testGetLicenseThreatGroupCounts_NotAudited() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+
+    restRequest(organization).path("counts").get();
+
+    assertThat(getLogEntries(AuditEvent.CREATE_LICENSE_THREAT_GROUP)).isEmpty();
+    assertThat(getLogEntries(AuditEvent.UPDATE_LICENSE_THREAT_GROUP)).isEmpty();
+    assertThat(getLogEntries(AuditEvent.DELETE_LICENSE_THREAT_GROUP)).isEmpty();
   }
 }

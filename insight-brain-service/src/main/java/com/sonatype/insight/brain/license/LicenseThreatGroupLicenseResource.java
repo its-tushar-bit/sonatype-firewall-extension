@@ -48,15 +48,19 @@ public class LicenseThreatGroupLicenseResource
 
   private final LicenseDAO licenseDAO;
 
+  private final LicenseThreatGroupService licenseThreatGroupService;
+
   @Inject
   public LicenseThreatGroupLicenseResource(
       final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO,
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
-      final LicenseDAO licenseDAO)
+      final LicenseDAO licenseDAO,
+      final LicenseThreatGroupService licenseThreatGroupService)
   {
     this.licenseThreatGroupLicenseDAO = licenseThreatGroupLicenseDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.licenseDAO = licenseDAO;
+    this.licenseThreatGroupService = licenseThreatGroupService;
   }
 
   @GET
@@ -82,6 +86,7 @@ public class LicenseThreatGroupLicenseResource
       Set<String> licenseIds)
   {
     licenseThreatGroupLicenseDAO.setLicenses(licenseThreatGroupId, licenseIds);
+    licenseThreatGroupService.invalidateLicenseThreatGroupCountsCache();
 
     AuditData.get() //
         .setLicenseThreatGroup(licenseThreatGroupDAO.getByIdNotNull(licenseThreatGroupId)) //

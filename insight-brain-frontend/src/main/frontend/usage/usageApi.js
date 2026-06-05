@@ -9,6 +9,7 @@ import {
   getConsumptionExportUrl,
   getConsumptionHistoryBreakdownUrl,
   getConsumptionHistoryBySourceUrl,
+  getConsumptionHistoryByStageUrl,
   getConsumptionSummaryUrl,
   getConsumptionTopAppsUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -36,6 +37,14 @@ export function fetchConsumptionHistoryBreakdown(aggregation = 'monthly') {
  */
 export function fetchConsumptionBySource() {
   return axios.get(getConsumptionHistoryBySourceUrl());
+}
+
+/**
+ * Fetches the consumption history grouped by application stage
+ * @returns {Promise} Axios response with stage breakdown array
+ */
+export function fetchConsumptionByStage() {
+  return axios.get(getConsumptionHistoryByStageUrl());
 }
 
 /**

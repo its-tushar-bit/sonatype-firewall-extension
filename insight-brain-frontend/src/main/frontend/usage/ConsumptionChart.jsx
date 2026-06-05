@@ -5,10 +5,10 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxH3, NxTile, NxFormSelect } from '@sonatype/react-shared-components';
+import { NxH2, NxTile, NxFormSelect } from '@sonatype/react-shared-components';
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -21,10 +21,19 @@ import {
 } from 'recharts';
 import moment from 'moment';
 
+import { ACTIVITY_COLORS, FALLBACK_COLOR } from './usageChartPalette';
+import { formatCount, formatNumber } from './usageFormatters';
+
 function formatPeriodLabel(dateStr, aggregation) {
   if (!dateStr) return '';
   if (aggregation === 'monthly') {
     return moment(dateStr).format('MMM YYYY');
+  }
+  if (aggregation === 'weekly') {
+    // The backend labels each weekly bucket by its week-start date. We
+    // display the week-end (week-start + 6) so the rightmost bar reads as
+    // "the week of <date near today>" instead of a date a week ago.
+    return moment(dateStr).add(6, 'days').format('MMM D');
   }
   return moment(dateStr).format('MMM D');
 }
@@ -42,13 +51,6 @@ function formatTooltipLabel(dateStr, aggregation) {
   return moment(dateStr).format('MMM D, YYYY');
 }
 
-function formatCount(value) {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(0)}k`;
-  }
-  return String(value);
-}
-
 const ACTIVITY_KEYS = [
   'App Scan + Re-evaluate',
   'Continuous Monitoring',
@@ -58,18 +60,69 @@ const ACTIVITY_KEYS = [
   'Reachability Analysis',
 ];
 
-// Palette tuned to match the approved mockup. Weights are bumped to 60/70
-// for softer saturation (NX's 50 weight is max-saturated and reads too
-// vivid). Indigo + purple pair gives the blue/violet family the mockup
-// shows for App Scan and Component Details.
-const ACTIVITY_COLORS = {
-  'App Scan + Re-evaluate': 'var(--nx-swatch-indigo-50)',
-  'Continuous Monitoring': 'var(--nx-swatch-green-60)',
-  'Component Details': 'var(--nx-swatch-purple-60)',
-  'Version Recommendations': 'var(--nx-swatch-orange-60)',
-  APIs: 'var(--nx-swatch-blue-70)',
-  'Reachability Analysis': 'var(--nx-swatch-red-60)',
-};
+function colorFor(key) {
+  return ACTIVITY_COLORS[key] || FALLBACK_COLOR;
+}
+
+/**
+ * Custom recharts <Tooltip content> renderer. Filters payload entries with
+ * value=0 so the tooltip only shows metrics with actual activity. Lays out
+ * each row as `label: count (pct%)` per the approved mockup, with the
+ * monthly limit shown in the footer when known. Exported for unit testing.
+ */
+export function renderTooltipContent({ active, payload, label, monthlyLimit }) {
+  if (!active || !payload) return null;
+  const nonZero = payload.filter((entry) => entry.value);
+  const total = nonZero.reduce((sum, e) => sum + (e.value || 0), 0);
+  const formatPct = (v) => (total > 0 ? `${Math.round((v / total) * 100)}%` : '0%');
+  return (
+    <div className="iq-usage-chart__tooltip">
+      <div className="iq-usage-chart__tooltip-label">{label}</div>
+      {nonZero.length === 0 ? (
+        <div className="iq-usage-chart__tooltip-empty">No activity</div>
+      ) : (
+        <>
+          <div className="iq-usage-chart__tooltip-total">{`Total: ${formatNumber(total)} components`}</div>
+          <ul className="iq-usage-chart__tooltip-list">
+            {nonZero.map((entry) => (
+              <li key={entry.name} className="iq-usage-chart__tooltip-row">
+                <span
+                  className="iq-usage-chart__tooltip-swatch"
+                  style={{ backgroundColor: entry.color }}
+                  aria-hidden="true"
+                />
+                <span className="iq-usage-chart__tooltip-name">{entry.name}:</span>
+                <span className="iq-usage-chart__tooltip-value">
+                  {formatNumber(entry.value)} ({formatPct(entry.value)})
+                </span>
+              </li>
+            ))}
+          </ul>
+          {typeof monthlyLimit === 'number' && monthlyLimit > 0 && (
+            <div className="iq-usage-chart__tooltip-footer">{`Monthly Limit: ${formatNumber(monthlyLimit)}`}</div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Custom legend renderer for the stacked bar chart. Renders colored swatches
+ * with dark text labels instead of Recharts' default colored text.
+ */
+function renderLegendContent({ payload }) {
+  return (
+    <ul className="iq-usage-chart-legend" role="list">
+      {payload.map((entry) => (
+        <li key={entry.value} className="iq-usage-chart-legend__item">
+          <span className="iq-usage-chart-legend__swatch" style={{ backgroundColor: entry.color }} aria-hidden="true" />
+          <span className="iq-usage-chart-legend__label">{entry.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function ConsumptionChart({ historyBreakdown, aggregation, onAggregationChange, monthlyLimit }) {
   if (!historyBreakdown || historyBreakdown.length === 0) {
@@ -97,11 +150,19 @@ export default function ConsumptionChart({ historyBreakdown, aggregation, onAggr
   const isOverLimit = hasLimit && maxStackedTotal > monthlyLimit;
   const overageCeiling = isOverLimit ? maxStackedTotal * 1.05 : 0;
 
+  // Wrap renderTooltipContent so it has access to `aggregation` for the
+  // human-readable date and `monthlyLimit` for the footer line.
+  const tooltipContentWithLabel = ({ active, payload, label }) => {
+    const isoDate = payload && payload[0] && payload[0].payload && payload[0].payload.isoDate;
+    const niceLabel = formatTooltipLabel(isoDate, aggregation) || label;
+    return renderTooltipContent({ active, payload, label: niceLabel, monthlyLimit });
+  };
+
   return (
     <NxTile className="iq-usage-chart-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH3>Consumption by Type</NxH3>
+          <NxH2>Consumption by Type</NxH2>
         </NxTile.HeaderTitle>
         <NxTile.HeaderActions>
           <NxFormSelect
@@ -118,34 +179,14 @@ export default function ConsumptionChart({ historyBreakdown, aggregation, onAggr
       <NxTile.Content>
         <div className="iq-usage-chart__wrapper">
           <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="period" />
               <YAxis tickFormatter={formatCount} />
-              <Tooltip
-                formatter={(value, name) => [value.toLocaleString(), name]}
-                labelFormatter={(label, payload) => {
-                  const isoDate = payload && payload[0] && payload[0].payload && payload[0].payload.isoDate;
-                  return formatTooltipLabel(isoDate, aggregation) || label;
-                }}
-                contentStyle={{
-                  backgroundColor: 'var(--nx-color-component-background)',
-                  border: '1px solid var(--nx-color-border)',
-                  borderRadius: '4px',
-                  color: 'var(--nx-color-text)',
-                }}
-              />
-              <Legend />
+              <Tooltip content={tooltipContentWithLabel} wrapperStyle={{ outline: 'none' }} />
+              <Legend content={renderLegendContent} />
               {ACTIVITY_KEYS.map((key) => (
-                <Area
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stackId="1"
-                  stroke="none"
-                  fill={ACTIVITY_COLORS[key]}
-                  fillOpacity={0.6}
-                />
+                <Bar key={key} dataKey={key} stackId="1" fill={colorFor(key)} fillOpacity={1} />
               ))}
               {isOverLimit && (
                 <ReferenceArea
@@ -172,7 +213,7 @@ export default function ConsumptionChart({ historyBreakdown, aggregation, onAggr
                   />
                 </ReferenceLine>
               )}
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </NxTile.Content>

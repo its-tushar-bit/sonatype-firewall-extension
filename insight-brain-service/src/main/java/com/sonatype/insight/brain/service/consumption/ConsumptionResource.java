@@ -153,6 +153,25 @@ public class ConsumptionResource
   }
 
   @GET
+  @Path("history/by-stage")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      description = "12-month consumption history grouped by application stage. "
+          + "Events without a matching policy_evaluation row are bucketed as 'Unknown'. "
+          + "Requires CONFIGURE_SYSTEM or VIEW_USAGE.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Retrieved"),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Missing permission")
+      })
+  public Response getHistoryByStage() {
+    requireAccess();
+    List<ConsumptionHistoryBreakdownDTO> breakdown =
+        consumptionService.getMonthlyHistoryByStage(getSubscriptionDay());
+    return Response.ok(breakdown).build();
+  }
+
+  @GET
   @Path("top-apps")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description = "Top consuming apps for current billing month. Requires CONFIGURE_SYSTEM or VIEW_USAGE.",

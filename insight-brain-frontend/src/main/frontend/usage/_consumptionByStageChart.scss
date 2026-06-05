@@ -4,13 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+// Note: NX's `.nx-tile + .nx-tile { margin-top: 8px }` adjacent-sibling rule
+// is reset by `.iq-usage-page__chart-row > .nx-tile` in _usageDashboard.scss.
 
-.iq-usage-source-tile {
-  margin: 0;
-}
-
-.iq-usage-source-chart {
+.iq-usage-stage-chart {
   display: grid;
   grid-template-columns: minmax(180px, 260px) 1fr;
   gap: var(--nx-spacing-12x);
@@ -21,23 +18,23 @@
   }
 }
 
-.iq-usage-source-chart__donut {
+.iq-usage-stage-chart__donut {
   height: 220px;
   position: relative;
 }
 
-.iq-usage-source-chart__center-total {
+.iq-usage-stage-chart__center-total {
   fill: var(--nx-color-text-dark);
   font-size: 28px;
   font-weight: 600;
 }
 
-.iq-usage-source-chart__center-label {
+.iq-usage-stage-chart__center-label {
   fill: var(--nx-color-text);
   font-size: var(--nx-font-size-m);
 }
 
-.iq-usage-source-chart__legend {
+.iq-usage-stage-chart__legend {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -46,7 +43,7 @@
   gap: var(--nx-spacing-3x);
 }
 
-.iq-usage-source-chart__legend-row {
+.iq-usage-stage-chart__legend-row {
   display: grid;
   grid-template-columns: 12px minmax(120px, 1fr) minmax(80px, 2fr) auto auto;
   gap: var(--nx-spacing-3x);
@@ -54,14 +51,14 @@
   font-size: var(--nx-font-size);
 }
 
-.iq-usage-source-chart__swatch {
+.iq-usage-stage-chart__swatch {
   display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 2px;
 }
 
-.iq-usage-source-chart__label {
+.iq-usage-stage-chart__label {
   color: var(--nx-color-text-dark);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -69,7 +66,7 @@
   font-size: var(--nx-font-size-m);
 }
 
-.iq-usage-source-chart__bar-track {
+.iq-usage-stage-chart__bar-track {
   display: block;
   width: 100%;
   height: 6px;
@@ -78,14 +75,14 @@
   overflow: hidden;
 }
 
-.iq-usage-source-chart__bar-fill {
+.iq-usage-stage-chart__bar-fill {
   display: block;
   height: 100%;
   border-radius: 3px;
   transition: width 120ms ease-out;
 }
 
-.iq-usage-source-chart__count {
+.iq-usage-stage-chart__count {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--nx-color-text-dark);
@@ -93,20 +90,10 @@
   font-size: var(--nx-font-size-m);
 }
 
-.iq-usage-source-chart__percent {
+.iq-usage-stage-chart__percent {
   font-variant-numeric: tabular-nums;
   color: var(--nx-color-text);
   min-width: 36px;
   text-align: right;
   font-size: var(--nx-font-size-m);
-}
-
-.iq-usage-source-chart__legend-more {
-  margin-top: var(--nx-spacing-2x);
-}
-
-.iq-usage-source-chart__bar-track {
-  @include nx-dark-mode-helpers.dark-mode {
-    background-color: var(--nx-color-interactive-background-disabled);
-  }
 }

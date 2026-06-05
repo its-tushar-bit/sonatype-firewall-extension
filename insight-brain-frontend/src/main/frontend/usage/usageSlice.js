@@ -9,6 +9,7 @@ import {
   fetchConsumptionSummary,
   fetchConsumptionHistoryBreakdown,
   fetchConsumptionBySource,
+  fetchConsumptionByStage,
   fetchTopConsumingApps,
   fetchDailyHistory,
 } from './usageApi';
@@ -21,12 +22,14 @@ const initialState = {
   historyBreakdown: [],
   chartAggregation: 'daily',
   sourceBreakdown: [],
+  stageBreakdown: [],
   topApps: null,
   dailyHistory: null,
 
   loadingSummary: false,
   loadingHistoryBreakdown: false,
   loadingSourceBreakdown: false,
+  loadingStageBreakdown: false,
   loadingTopApps: false,
   loadingDailyHistory: false,
   loadingAll: false,
@@ -34,6 +37,7 @@ const initialState = {
   loadErrorSummary: null,
   loadErrorHistoryBreakdown: null,
   loadErrorSourceBreakdown: null,
+  loadErrorStageBreakdown: null,
   loadErrorTopApps: null,
   loadErrorDailyHistory: null,
   loadErrorAll: null,
@@ -69,6 +73,15 @@ const loadSourceBreakdown = createAsyncThunk(`${REDUCER_NAME}/loadSourceBreakdow
   }
 });
 
+const loadStageBreakdown = createAsyncThunk(`${REDUCER_NAME}/loadStageBreakdown`, async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetchConsumptionByStage();
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error);
+  }
+});
+
 const loadTopApps = createAsyncThunk(`${REDUCER_NAME}/loadTopApps`, async (_, { rejectWithValue }) => {
   try {
     const response = await fetchTopConsumingApps();
@@ -91,10 +104,11 @@ const loadAllUsageData = createAsyncThunk(
   `${REDUCER_NAME}/loadAllUsageData`,
   async (aggregation = 'daily', { rejectWithValue }) => {
     try {
-      const [summaryRes, breakdownRes, sourceRes, topAppsRes, dailyRes] = await Promise.allSettled([
+      const [summaryRes, breakdownRes, sourceRes, stageRes, topAppsRes, dailyRes] = await Promise.allSettled([
         fetchConsumptionSummary(),
         fetchConsumptionHistoryBreakdown(aggregation),
         fetchConsumptionBySource(),
+        fetchConsumptionByStage(),
         fetchTopConsumingApps(),
         fetchDailyHistory(),
       ]);
@@ -108,6 +122,7 @@ const loadAllUsageData = createAsyncThunk(
         summary: summaryRes.value.data,
         historyBreakdown: breakdownRes.status === 'fulfilled' ? breakdownRes.value.data : [],
         sourceBreakdown: sourceRes.status === 'fulfilled' ? sourceRes.value.data : [],
+        stageBreakdown: stageRes.status === 'fulfilled' ? stageRes.value.data : [],
         topApps: topAppsRes.status === 'fulfilled' ? topAppsRes.value.data : null,
         dailyHistory: dailyRes.status === 'fulfilled' ? dailyRes.value.data : null,
       };
@@ -176,6 +191,22 @@ const sourceBreakdownRejected = (state, { payload }) => ({
   loadErrorSourceBreakdown: Messages.getHttpErrorMessage(payload),
 });
 
+const stageBreakdownPending = (state) => ({
+  ...state,
+  loadingStageBreakdown: true,
+  loadErrorStageBreakdown: null,
+});
+const stageBreakdownFulfilled = (state, { payload }) => ({
+  ...state,
+  loadingStageBreakdown: false,
+  stageBreakdown: payload,
+});
+const stageBreakdownRejected = (state, { payload }) => ({
+  ...state,
+  loadingStageBreakdown: false,
+  loadErrorStageBreakdown: Messages.getHttpErrorMessage(payload),
+});
+
 const topAppsPending = (state) => ({ ...state, loadingTopApps: true, loadErrorTopApps: null });
 const topAppsFulfilled = (state, { payload }) => ({
   ...state,
@@ -242,6 +273,9 @@ const usageSlice = createSlice({
       .addCase(loadSourceBreakdown.pending, sourceBreakdownPending)
       .addCase(loadSourceBreakdown.fulfilled, sourceBreakdownFulfilled)
       .addCase(loadSourceBreakdown.rejected, sourceBreakdownRejected)
+      .addCase(loadStageBreakdown.pending, stageBreakdownPending)
+      .addCase(loadStageBreakdown.fulfilled, stageBreakdownFulfilled)
+      .addCase(loadStageBreakdown.rejected, stageBreakdownRejected)
       .addCase(loadTopApps.pending, topAppsPending)
       .addCase(loadTopApps.fulfilled, topAppsFulfilled)
       .addCase(loadTopApps.rejected, topAppsRejected)
@@ -261,6 +295,7 @@ export const actions = {
   loadSummary,
   loadHistoryBreakdown,
   loadSourceBreakdown,
+  loadStageBreakdown,
   loadTopApps,
   loadDailyHistory,
   loadAllUsageData,

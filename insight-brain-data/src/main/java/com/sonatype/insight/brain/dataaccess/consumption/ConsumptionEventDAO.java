@@ -35,6 +35,7 @@ import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ConsumptionEvents.CONSUMPTION_EVENTS;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
 
 /**
  * DAO for consumption events.
@@ -49,6 +50,8 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.ConsumptionEv
 public class ConsumptionEventDAO
     extends AbstractOperationalSqlDAO<ConsumptionEvent>
 {
+  public static final String STAGE_UNKNOWN = "Unknown";
+
   @Inject
   public ConsumptionEventDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
@@ -288,6 +291,68 @@ public class ConsumptionEventDAO
   {
     return groupedHistoryByWindows(windowStarts, windowEnds, windowLabels,
         CONSUMPTION_EVENTS.SOURCE, "source");
+  }
+
+  /**
+   * Get history grouped by IQ stage (from policy_evaluation.stage_type_id) bucketed by billing
+   * window. Events without a matching policy_evaluation row, or with a null scan_id, are bucketed
+   * under "Unknown".
+   */
+  public List<ConsumptionMonthlyBreakdown> historyByStageByWindows(
+      final List<Instant> windowStarts,
+      final List<Instant> windowEnds,
+      final List<LocalDate> windowLabels)
+  {
+    if (windowStarts.isEmpty()) {
+      return List.of();
+    }
+    Instant oldestStart = windowStarts.stream().min(Instant::compareTo).orElseThrow();
+    Instant newestEnd = windowEnds.stream().max(Instant::compareTo).orElseThrow();
+    Field<LocalDate> bucketCase = windowBucketCase(windowStarts, windowEnds, windowLabels);
+    Field<LocalDate> windowStartCol = DSL.field("window_start", LocalDate.class);
+    Field<String> stageCol = DSL.field("stage", String.class);
+    Field<Integer> componentCountCol = DSL.field("component_count", Integer.class);
+    Field<String> stageOrUnknown = DSL.coalesce(POLICY_EVALUATION.STAGE_TYPE_ID, DSL.inline(STAGE_UNKNOWN));
+    try (TransactionContext tx = createTransactionContext()) {
+      Table<?> inner = tx.dsl()
+          .select(bucketCase.as("window_start"),
+              stageOrUnknown.as("stage"),
+              CONSUMPTION_EVENTS.COMPONENT_COUNT.as("component_count"))
+          .from(CONSUMPTION_EVENTS)
+          // Match to the canonical policy_evaluation row for each consumption event:
+          // 1. APPLICATION_ID match — `scan_id` is unique only within an application
+          // (PolicyEvaluationDAO.getLastByApplicationIdAndScanId always pairs
+          // scan_id with applicationId), so cross-application scan_id collisions
+          // would otherwise multiply SUM(component_count).
+          // 2. REEVALUATION=false — re-evaluation reuses an existing scan_id, producing
+          // a second row with reevaluation=true; without this filter SUM doubles.
+          // (Continuous-monitoring evaluations always generate a fresh scan_id, so
+          // they produce a single row with reevaluation=false, for_monitoring=true
+          // and bucket cleanly under their actual stage.)
+          // 3. FOR_OBSOLETE_SCAN=false — for consistency with the other queries in
+          // PolicyEvaluationDAO (lines 305, 357, 518, 554, 651, 673). The
+          // persistence layer (PolicyEvaluationDAO.validate) currently rejects
+          // for_obsolete_scan=true paired with reevaluation=false, so this is
+          // belt-and-suspenders today, but cheap insurance if validate is relaxed.
+          .leftJoin(POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.SCAN_ID.eq(CONSUMPTION_EVENTS.SCAN_ID)
+              .and(POLICY_EVALUATION.APPLICATION_ID.eq(CONSUMPTION_EVENTS.APP_ID))
+              .and(POLICY_EVALUATION.REEVALUATION.isFalse())
+              .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.isFalse()))
+          .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(oldestStart)))
+          .and(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.lessThan(Date.from(newestEnd)))
+          .asTable("e");
+      return tx.dsl()
+          .select(windowStartCol, stageCol, DSL.sum(componentCountCol))
+          .from(inner)
+          .where(windowStartCol.isNotNull())
+          .groupBy(windowStartCol, stageCol)
+          .orderBy(windowStartCol.asc())
+          .fetch(record -> new ConsumptionMonthlyBreakdown(
+              record.get(0, LocalDate.class),
+              record.get(1, String.class),
+              record.get(2, Long.class) != null ? record.get(2, Long.class) : 0L));
+    }
   }
 
   private List<ConsumptionMonthlyBreakdown> groupedHistoryByWindows(

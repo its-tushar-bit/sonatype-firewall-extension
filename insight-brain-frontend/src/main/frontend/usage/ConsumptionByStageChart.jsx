@@ -3,44 +3,39 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 import { ResponsivePie } from '@nivo/pie';
-import { NxH2, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxTile } from '@sonatype/react-shared-components';
 
-import { SOURCE_COLORS, FALLBACK_COLOR } from './usageChartPalette';
+import { STAGE_COLORS, FALLBACK_COLOR } from './usageChartPalette';
 import { formatNumber, formatPercent } from './usageFormatters';
 
-export const SOURCE_LABELS = {
-  UI: 'UI',
-  CLI: 'CLI',
-  CI_CD: 'CI/CD',
-  IDE: 'IDE',
-  REPO_MANAGER: 'Repository Manager',
-  API: 'API',
-  CONTINUOUS_MONITOR: 'Continuous Monitoring',
-  UNKNOWN: 'Unknown',
+// The literal "Unknown" must match ConsumptionEventDAO.STAGE_UNKNOWN (Java).
+// If renamed there, update this map and STAGE_COLORS in usageChartPalette.js.
+export const STAGE_LABELS = {
+  build: 'Build',
+  'stage-release': 'Stage Release',
+  release: 'Release',
+  operate: 'Operate',
+  develop: 'Develop',
+  'continuous-monitoring': 'Continuous Monitoring',
+  proxy: 'Proxy',
+  Unknown: 'Unknown',
 };
 
-// Re-exports for backward compatibility with existing tests.
-export { SOURCE_COLORS, FALLBACK_COLOR };
-
-const TOP_N_VISIBLE = 5;
-
 function labelFor(token) {
-  return SOURCE_LABELS[token] || token;
+  return STAGE_LABELS[token] || token;
 }
 
 function colorFor(token) {
-  return SOURCE_COLORS[token] || FALLBACK_COLOR;
+  return STAGE_COLORS[token] || FALLBACK_COLOR;
 }
 
 function buildEntries(breakdown) {
   const raw = Object.entries(breakdown || {}).filter(([, count]) => typeof count === 'number' && count > 0);
-
   const total = raw.reduce((acc, [, count]) => acc + count, 0);
   if (total === 0) return { entries: [], total: 0 };
-
   const entries = raw
     .map(([token, count]) => ({
       token,
@@ -53,38 +48,36 @@ function buildEntries(breakdown) {
       if (b.count !== a.count) return b.count - a.count;
       return a.label.localeCompare(b.label);
     });
-
   return { entries, total };
 }
 
-export default function ConsumptionBySourceChart({ sourceBreakdown }) {
-  const [expanded, setExpanded] = useState(false);
-
+export default function ConsumptionByStageChart({ stageBreakdown }) {
   const { entries, total, chartData, maxCount } = useMemo(() => {
-    if (!sourceBreakdown || sourceBreakdown.length === 0) {
+    if (!stageBreakdown || stageBreakdown.length === 0) {
       return { entries: [], total: 0, chartData: [], maxCount: 0 };
     }
-    const currentMonth = [...sourceBreakdown].sort((a, b) => (b.month || '').localeCompare(a.month || ''))[0];
+    const currentMonth = [...stageBreakdown].sort((a, b) => (b.month || '').localeCompare(a.month || ''))[0];
     if (!currentMonth || !currentMonth.breakdown) {
       return { entries: [], total: 0, chartData: [], maxCount: 0 };
     }
-    const { entries, total } = buildEntries(currentMonth.breakdown);
-    const chartData = entries.map(({ token, label, count, color }) => ({
+    const built = buildEntries(currentMonth.breakdown);
+    const data = built.entries.map(({ token, label, count, color }) => ({
       id: token,
       label,
       value: count,
       color,
     }));
-    const maxCount = entries.length > 0 ? entries[0].count : 0;
-    return { entries, total, chartData, maxCount };
-  }, [sourceBreakdown]);
+    return {
+      entries: built.entries,
+      total: built.total,
+      chartData: data,
+      maxCount: built.entries[0]?.count ?? 0,
+    };
+  }, [stageBreakdown]);
 
   if (entries.length === 0) {
     return null;
   }
-
-  const overflowCount = Math.max(0, entries.length - TOP_N_VISIBLE);
-  const visibleEntries = expanded ? entries : entries.slice(0, TOP_N_VISIBLE);
 
   const centerLayer = ({ centerX, centerY }) => (
     <g>
@@ -93,7 +86,7 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
         y={centerY - 10}
         textAnchor="middle"
         dominantBaseline="central"
-        className="iq-usage-source-chart__center-total"
+        className="iq-usage-stage-chart__center-total"
       >
         {formatNumber(total)}
       </text>
@@ -102,7 +95,7 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
         y={centerY + 14}
         textAnchor="middle"
         dominantBaseline="central"
-        className="iq-usage-source-chart__center-label"
+        className="iq-usage-stage-chart__center-label"
       >
         Evaluations
       </text>
@@ -110,15 +103,15 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
   );
 
   return (
-    <NxTile className="iq-usage-source-tile">
+    <NxTile className="iq-usage-stage-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH2>Consumption by Source</NxH2>
+          <NxH2>Consumption by Stage</NxH2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <div className="iq-usage-source-chart">
-          <div className="iq-usage-source-chart__donut">
+        <div className="iq-usage-stage-chart">
+          <div className="iq-usage-stage-chart__donut">
             <ResponsivePie
               data={chartData}
               innerRadius={0.72}
@@ -137,37 +130,30 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
               )}
             />
           </div>
-          <ul className="iq-usage-source-chart__legend" role="list">
-            {visibleEntries.map((entry) => (
-              <li key={entry.token} className="iq-usage-source-chart__legend-row">
+          <ul className="iq-usage-stage-chart__legend" role="list">
+            {entries.map((entry) => (
+              <li key={entry.token} className="iq-usage-stage-chart__legend-row">
                 <span
-                  className="iq-usage-source-chart__swatch"
+                  className="iq-usage-stage-chart__swatch"
                   style={{ backgroundColor: entry.color }}
                   aria-hidden="true"
                 />
-                <span className="iq-usage-source-chart__label" title={entry.label}>
+                <span className="iq-usage-stage-chart__label" title={entry.label}>
                   {entry.label}
                 </span>
-                <span className="iq-usage-source-chart__bar-track" aria-hidden="true">
+                <span className="iq-usage-stage-chart__bar-track" aria-hidden="true">
                   <span
-                    className="iq-usage-source-chart__bar-fill"
+                    className="iq-usage-stage-chart__bar-fill"
                     style={{
                       width: maxCount > 0 ? `${(entry.count / maxCount) * 100}%` : '0%',
                       backgroundColor: entry.color,
                     }}
                   />
                 </span>
-                <span className="iq-usage-source-chart__count">{formatNumber(entry.count)}</span>
-                <span className="iq-usage-source-chart__percent">{formatPercent(entry.percent)}</span>
+                <span className="iq-usage-stage-chart__count">{formatNumber(entry.count)}</span>
+                <span className="iq-usage-stage-chart__percent">{formatPercent(entry.percent)}</span>
               </li>
             ))}
-            {overflowCount > 0 && (
-              <li className="iq-usage-source-chart__legend-more">
-                <NxTextLink onClick={() => setExpanded((prev) => !prev)}>
-                  {expanded ? 'Show fewer' : `More sources (${overflowCount})`}
-                </NxTextLink>
-              </li>
-            )}
           </ul>
         </div>
       </NxTile.Content>
@@ -175,8 +161,8 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
   );
 }
 
-ConsumptionBySourceChart.propTypes = {
-  sourceBreakdown: PropTypes.arrayOf(
+ConsumptionByStageChart.propTypes = {
+  stageBreakdown: PropTypes.arrayOf(
     PropTypes.shape({
       month: PropTypes.string.isRequired,
       consumed: PropTypes.number.isRequired,

@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxH3, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 
 const DEFAULT_VISIBLE = 5;
 
@@ -24,7 +24,7 @@ export default function TopConsumingApps({ topApps }) {
     <NxTile className="iq-usage-top-apps-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH3>Top Consuming Applications</NxH3>
+          <NxH2>Top Consuming Applications</NxH2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
@@ -38,7 +38,7 @@ export default function TopConsumingApps({ topApps }) {
                 <span className="iq-usage-top-apps__name" title={displayName}>
                   {displayName}
                 </span>
-                <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString()}</span>
+                <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString('en-US')}</span>
                 <span className="iq-usage-top-apps__percent">{percent}%</span>
               </div>
             );

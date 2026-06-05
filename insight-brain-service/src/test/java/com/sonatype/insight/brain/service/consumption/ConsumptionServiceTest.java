@@ -554,6 +554,50 @@ public class ConsumptionServiceTest
     assertThat(result).hasSize(12);
   }
 
+  // --- I3: getMonthlyHistoryByStage coverage ---
+
+  @Test
+  public void getMonthlyHistoryByStage_callsDAOWith12WindowsAndPivotsRows() {
+    LocalDate label = LocalDate.of(2026, 1, 1);
+    List<ConsumptionMonthlyBreakdown> rows = Arrays.asList(
+        new ConsumptionMonthlyBreakdown(label, "build", 100L),
+        new ConsumptionMonthlyBreakdown(label, "release", 25L));
+    when(eventDAO.historyByStageByWindows(anyList(), anyList(), anyList())).thenReturn(rows);
+
+    List<ConsumptionHistoryBreakdownDTO> result = service.getMonthlyHistoryByStage(1);
+
+    assertThat(result).extracting(ConsumptionHistoryBreakdownDTO::getMonth).contains(label.toString());
+    // Find the entry corresponding to our label and verify its breakdown contains both stages.
+    ConsumptionHistoryBreakdownDTO matched = result.stream()
+        .filter(dto -> label.toString().equals(dto.getMonth()))
+        .findFirst()
+        .orElseThrow();
+    assertThat(matched.getBreakdown()).containsEntry("build", 100L);
+    assertThat(matched.getBreakdown()).containsEntry("release", 25L);
+
+    // Verify the DAO was actually called with 12 windows — matches the test name.
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<Instant>> startsCaptor = ArgumentCaptor.forClass(List.class);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<Instant>> endsCaptor = ArgumentCaptor.forClass(List.class);
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<LocalDate>> labelsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventDAO).historyByStageByWindows(startsCaptor.capture(), endsCaptor.capture(), labelsCaptor.capture());
+    assertThat(startsCaptor.getValue()).hasSize(12);
+    assertThat(endsCaptor.getValue()).hasSize(12);
+    assertThat(labelsCaptor.getValue()).hasSize(12);
+  }
+
+  @Test
+  public void getMonthlyHistoryByStage_emptyResult_returnsZeroPaddedWindows() {
+    when(eventDAO.historyByStageByWindows(anyList(), anyList(), anyList()))
+        .thenReturn(Collections.emptyList());
+
+    List<ConsumptionHistoryBreakdownDTO> result = service.getMonthlyHistoryByStage(1);
+
+    assertThat(result).hasSize(12);
+  }
+
   // --- I3: getDailyHistory coverage ---
 
   @Test

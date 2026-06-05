@@ -7,7 +7,7 @@ import React, { useEffect, useCallback, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  NxH2,
+  NxH1,
   NxPageMain,
   NxTile,
   NxLoadWrapper,
@@ -25,6 +25,7 @@ import {
   selectHistoryBreakdown,
   selectChartAggregation,
   selectSourceBreakdown,
+  selectStageBreakdown,
   selectTopApps,
   selectDailyHistory,
   selectLoadingAll,
@@ -32,24 +33,15 @@ import {
 } from './usageSelectors';
 import ConsumptionChart from './ConsumptionChart';
 import ConsumptionBySourceChart from './ConsumptionBySourceChart';
+import ConsumptionByStageChart from './ConsumptionByStageChart';
 import TopConsumingApps from './TopConsumingApps';
 import EvaluatedComponentsTile from './EvaluatedComponentsTile';
 import { downloadConsumptionExport } from './usageApi';
 import { authErrorMessage } from 'MainRoot/util/authorizationUtil';
 
-import './_usageDashboard.scss';
+import { formatNumber } from './usageFormatters';
 
-/**
- * Formats a number with commas for display
- * @param {number} num - Number to format
- * @returns {string} Formatted number string
- */
-function formatNumber(num) {
-  if (num === null || num === undefined) {
-    return '0';
-  }
-  return num.toLocaleString();
-}
+import './_usageDashboard.scss';
 
 /**
  * Formats an ISO date-only string (YYYY-MM-DD) for display. Parses via moment
@@ -72,6 +64,7 @@ export default function UsageDashboard({ isAuthorized }) {
   const historyBreakdown = useSelector(selectHistoryBreakdown);
   const chartAggregation = useSelector(selectChartAggregation);
   const sourceBreakdown = useSelector(selectSourceBreakdown);
+  const stageBreakdown = useSelector(selectStageBreakdown);
   const topApps = useSelector(selectTopApps);
   const dailyHistory = useSelector(selectDailyHistory);
   const loading = useSelector(selectLoadingAll);
@@ -147,7 +140,14 @@ export default function UsageDashboard({ isAuthorized }) {
         <div className="iq-usage-card__content">
           <div className="iq-usage-card__value">
             {formatNumber(consumed)}
-            {hasLimit && ` / ${formatNumber(limit)}`}
+            <span className="iq-usage-card__value-label"> consumed</span>
+            {hasLimit && (
+              <>
+                <span className="iq-usage-card__value-separator"> / </span>
+                {formatNumber(limit)}
+                <span className="iq-usage-card__value-label"> limit</span>
+              </>
+            )}
           </div>
           {hasLimit && (
             <div className={`iq-usage-card__progress-container iq-usage-card__progress-container--${getState()}`}>
@@ -194,7 +194,7 @@ export default function UsageDashboard({ isAuthorized }) {
   return (
     <NxPageMain id="usage-page" className="iq-usage-page">
       <div className="iq-usage-page__header">
-        <NxH2>Usage</NxH2>
+        <NxH1>Usage</NxH1>
         {loading || exporting || !isAuthorized ? (
           <NxButton variant="tertiary" onClick={handleExport} disabled>
             <NxFontAwesomeIcon icon={faDownload} />
@@ -225,7 +225,10 @@ export default function UsageDashboard({ isAuthorized }) {
               onAggregationChange={handleAggregationChange}
               monthlyLimit={summary?.limit}
             />
-            <ConsumptionBySourceChart sourceBreakdown={sourceBreakdown} />
+            <div className="iq-usage-page__chart-row">
+              <ConsumptionBySourceChart sourceBreakdown={sourceBreakdown} />
+              <ConsumptionByStageChart stageBreakdown={stageBreakdown} />
+            </div>
             <TopConsumingApps topApps={topApps} />
             <EvaluatedComponentsTile dailyHistory={dailyHistory} />
           </div>

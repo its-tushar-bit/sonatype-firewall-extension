@@ -22,7 +22,7 @@ jest.mock('recharts', () => {
   };
 });
 
-import ConsumptionChart from 'MainRoot/usage/ConsumptionChart';
+import ConsumptionChart, { renderTooltipContent } from 'MainRoot/usage/ConsumptionChart';
 
 describe('ConsumptionChart', () => {
   function entry(month, breakdown) {
@@ -169,5 +169,79 @@ describe('ConsumptionChart', () => {
       />
     );
     expect(container.querySelector('.recharts-reference-area-rect')).not.toBeInTheDocument();
+  });
+
+  it('renders bar segments (post stacked-bar swap) instead of area paths', () => {
+    const { container } = render(
+      <ConsumptionChart
+        historyBreakdown={[entry('2026-01-01', { 'App Scan + Re-evaluate': 100, APIs: 50 })]}
+        aggregation="monthly"
+        onAggregationChange={() => {}}
+      />
+    );
+    expect(container.querySelector('.recharts-bar')).toBeInTheDocument();
+    expect(container.querySelector('.recharts-area')).not.toBeInTheDocument();
+  });
+});
+
+describe('ConsumptionChart tooltip content', () => {
+  it('returns null when the tooltip is inactive', () => {
+    expect(renderTooltipContent({ active: false, payload: [], label: '' })).toBeNull();
+  });
+
+  it('returns null when payload is missing', () => {
+    expect(renderTooltipContent({ active: true, payload: null, label: 'Apr 10' })).toBeNull();
+  });
+
+  it('filters zero-value rows from the rendered tooltip', () => {
+    const payload = [
+      { name: 'App Scan + Re-evaluate', value: 5, color: '#0072B2' },
+      { name: 'Component Details', value: 0, color: '#CC79A7' },
+      { name: 'APIs', value: 3, color: '#56B4E9' },
+    ];
+    const { queryByText } = render(<>{renderTooltipContent({ active: true, payload, label: 'Apr 15' })}</>);
+    expect(queryByText('App Scan + Re-evaluate:')).toBeInTheDocument();
+    expect(queryByText('APIs:')).toBeInTheDocument();
+    expect(queryByText('Component Details:')).not.toBeInTheDocument();
+  });
+
+  it('renders Total reflecting the sum of non-zero rows', () => {
+    const payload = [
+      { name: 'App Scan + Re-evaluate', value: 5, color: '#0' },
+      { name: 'Component Details', value: 0, color: '#0' },
+      { name: 'APIs', value: 3, color: '#0' },
+    ];
+    const { getByText } = render(<>{renderTooltipContent({ active: true, payload, label: 'Apr 15' })}</>);
+    expect(getByText(/Total: 8 components/i)).toBeInTheDocument();
+  });
+
+  it('renders each row as `count (pct%)` per the design mockup', () => {
+    const payload = [
+      { name: 'App Scan + Re-evaluate', value: 5, color: '#0' },
+      { name: 'APIs', value: 3, color: '#0' },
+    ];
+    const { getByText } = render(<>{renderTooltipContent({ active: true, payload, label: 'Apr 15' })}</>);
+    expect(getByText(/5 \(63%\)/)).toBeInTheDocument();
+    expect(getByText(/3 \(38%\)/)).toBeInTheDocument();
+  });
+
+  it('renders "Monthly Limit: N" footer when monthlyLimit is provided', () => {
+    const payload = [{ name: 'App Scan + Re-evaluate', value: 5, color: '#0' }];
+    const { getByText } = render(
+      <>{renderTooltipContent({ active: true, payload, label: 'Apr 15', monthlyLimit: 1000 })}</>
+    );
+    expect(getByText(/Monthly Limit: 1,000/)).toBeInTheDocument();
+  });
+
+  it('omits the Monthly Limit footer when monthlyLimit is missing or zero', () => {
+    const payload = [{ name: 'App Scan + Re-evaluate', value: 5, color: '#0' }];
+    const { queryByText } = render(<>{renderTooltipContent({ active: true, payload, label: 'Apr 15' })}</>);
+    expect(queryByText(/Monthly Limit:/)).not.toBeInTheDocument();
+  });
+
+  it('renders "No activity" when every row is zero', () => {
+    const payload = [{ name: 'App Scan + Re-evaluate', value: 0, color: '#0' }];
+    const { getByText } = render(<>{renderTooltipContent({ active: true, payload, label: 'Apr 15' })}</>);
+    expect(getByText(/No activity/i)).toBeInTheDocument();
   });
 });

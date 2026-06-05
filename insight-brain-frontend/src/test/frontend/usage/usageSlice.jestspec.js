@@ -19,11 +19,13 @@ describe('usageSlice.allFulfilled', () => {
 
   it('applies historyBreakdown when payload.aggregation matches current state.chartAggregation', () => {
     const state = reducer(undefined, { type: '@@INIT' });
+    const stageBreakdown = [{ month: '2026-05', consumed: 30, breakdown: { build: 30 } }];
     const action = makeFulfilledAction({
       aggregation: 'daily',
       summary: { consumed: 10 },
       historyBreakdown: dailyBreakdown,
       sourceBreakdown: [],
+      stageBreakdown,
       topApps: null,
       dailyHistory: null,
     });
@@ -31,6 +33,7 @@ describe('usageSlice.allFulfilled', () => {
     const next = reducer(state, action);
 
     expect(next.historyBreakdown).toEqual(dailyBreakdown);
+    expect(next.stageBreakdown).toEqual(stageBreakdown);
     expect(next.summary).toEqual({ consumed: 10 });
     expect(next.loadingAll).toBe(false);
   });
@@ -139,6 +142,7 @@ describe('usageSlice.loadAllUsageData thunk', () => {
     axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(500);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(500);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(500);
     axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(500);
     axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(500);
 
@@ -148,6 +152,7 @@ describe('usageSlice.loadAllUsageData thunk', () => {
     expect(result.payload.summary).toEqual(summaryResponse);
     expect(result.payload.historyBreakdown).toEqual([]);
     expect(result.payload.sourceBreakdown).toEqual([]);
+    expect(result.payload.stageBreakdown).toEqual([]);
     expect(result.payload.topApps).toBeNull();
     expect(result.payload.dailyHistory).toBeNull();
   });
@@ -156,11 +161,52 @@ describe('usageSlice.loadAllUsageData thunk', () => {
     axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(500);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
     axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, []);
     axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
 
     const result = await store.dispatch(actions.loadAllUsageData('daily'));
 
     expect(result.type).toBe(actions.loadAllUsageData.rejected.type);
+  });
+
+  it('populates stageBreakdown from /history/by-stage on success', async () => {
+    const stageBreakdown = [{ month: '2026-05', consumed: 60, breakdown: { build: 60 } }];
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, stageBreakdown);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, null);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    const result = await store.dispatch(actions.loadAllUsageData('daily'));
+
+    expect(result.type).toBe(actions.loadAllUsageData.fulfilled.type);
+    expect(result.payload.stageBreakdown).toEqual(stageBreakdown);
+  });
+});
+
+describe('usageSlice.loadStageBreakdown', () => {
+  it('sets loadingStageBreakdown=true on pending', () => {
+    const action = { type: actions.loadStageBreakdown.pending.type };
+    const state = reducer(undefined, action);
+    expect(state.loadingStageBreakdown).toBe(true);
+    expect(state.loadErrorStageBreakdown).toBeNull();
+  });
+
+  it('stores stageBreakdown on fulfilled', () => {
+    const payload = [{ month: '2026-04-01', consumed: 100, breakdown: { build: 100 } }];
+    const action = { type: actions.loadStageBreakdown.fulfilled.type, payload };
+    const state = reducer(undefined, action);
+    expect(state.loadingStageBreakdown).toBe(false);
+    expect(state.stageBreakdown).toEqual(payload);
+  });
+
+  it('stores error on rejected', () => {
+    const errorPayload = { response: { data: { message: 'boom' } } };
+    const action = { type: actions.loadStageBreakdown.rejected.type, payload: errorPayload };
+    const state = reducer(undefined, action);
+    expect(state.loadingStageBreakdown).toBe(false);
+    expect(state.loadErrorStageBreakdown).toBeTruthy();
   });
 });

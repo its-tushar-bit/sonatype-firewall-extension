@@ -166,6 +166,13 @@ public class ConsumptionService
     return groupBreakdownRows(rows, false, windows.labels);
   }
 
+  public List<ConsumptionHistoryBreakdownDTO> getMonthlyHistoryByStage(int subscriptionDayOfMonth) {
+    BillingWindowSeries windows = computeRecentWindows(subscriptionDayOfMonth, DEFAULT_HISTORY_MONTHS);
+    List<ConsumptionMonthlyBreakdown> rows =
+        eventDAO.historyByStageByWindows(windows.starts, windows.ends, windows.labels);
+    return groupBreakdownRows(rows, false, windows.labels);
+  }
+
   /** Compute the last {@code n} billing windows ending at the current window, ASC (oldest first). */
   private static BillingWindowSeries computeRecentWindows(int subscriptionDayOfMonth, int n) {
     LocalDate today = LocalDate.now(ZoneOffset.UTC);

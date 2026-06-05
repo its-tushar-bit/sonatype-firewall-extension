@@ -516,4 +516,234 @@ public class ConsumptionEventDAOTest
       assertThat(b.getComponentCount()).isEqualTo(200L);
     });
   }
+
+  @Test
+  public void historyByStageByWindows_groupsByWindowAndStage() {
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    String appId = tempEntity.newApplicationWithParent().getId();
+    String buildScanId = "scan-build-1";
+    String releaseScanId = "scan-release-1";
+    tempEntity.insertPolicyEvaluation(appId, buildScanId, "build");
+    tempEntity.insertPolicyEvaluation(appId, releaseScanId, "release");
+
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 100, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e1.setScanId(buildScanId);
+    ConsumptionEvent e2 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 40, billingMonth,
+        Instant.parse("2026-04-16T12:00:00Z"));
+    e2.setScanId(buildScanId);
+    ConsumptionEvent e3 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 10, billingMonth,
+        Instant.parse("2026-04-17T14:00:00Z"));
+    e3.setScanId(releaseScanId);
+    tempEntity.insertConsumptionEvents(Arrays.asList(e1, e2, e3));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(2);
+    assertThat(breakdown).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("build");
+      assertThat(b.getComponentCount()).isEqualTo(140L);
+    });
+    assertThat(breakdown).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("release");
+      assertThat(b.getComponentCount()).isEqualTo(10L);
+    });
+  }
+
+  @Test
+  public void historyByStageByWindows_eventsWithoutScanId_bucketToUnknown() {
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 50, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e1.setScanId(null);
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e1));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getGroupKey()).isEqualTo(ConsumptionEventDAO.STAGE_UNKNOWN);
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(50L);
+  }
+
+  @Test
+  public void historyByStageByWindows_eventsWithMissingPolicyEvaluation_bucketToUnknown() {
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 25, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e1.setScanId("scan-orphan");
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e1));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getGroupKey()).isEqualTo(ConsumptionEventDAO.STAGE_UNKNOWN);
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(25L);
+  }
+
+  @Test
+  public void historyByStageByWindows_emptyWindowsReturnsEmpty() {
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Collections.emptyList());
+
+    assertThat(breakdown).isEmpty();
+  }
+
+  @Test
+  public void historyByStageByWindows_filtersByTimeRange() {
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    String appId = tempEntity.newApplicationWithParent().getId();
+    String scanId = "scan-build-2";
+    tempEntity.insertPolicyEvaluation(appId, scanId, "build");
+
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 7, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e1.setScanId(scanId);
+    ConsumptionEvent e2 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 99,
+        LocalDate.of(2026, 3, 1),
+        Instant.parse("2026-03-15T10:00:00Z"));
+    e2.setScanId(scanId);
+    tempEntity.insertConsumptionEvents(Arrays.asList(e1, e2));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(7L);
+  }
+
+  @Test
+  public void historyByStageByWindows_reevaluationRow_doesNotDoubleCount() {
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    String appId = tempEntity.newApplicationWithParent().getId();
+    String scanId = "scan-with-reeval";
+
+    // Primary (reevaluation=false) policy_evaluation row
+    tempEntity.insertPolicyEvaluation(appId, scanId, "build");
+    // Reevaluation row sharing the same applicationId+scan_id
+    tempEntity.insertPolicyReEvaluation(appId, scanId, "build");
+
+    ConsumptionEvent e = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 50, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e.setScanId(scanId);
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getGroupKey()).isEqualTo("build");
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(50L); // not 100L
+  }
+
+  @Test
+  public void historyByStageByWindows_forMonitoringRow_bucketsToActualStage() {
+    // PolicyMonitor.evaluate generates a fresh scan_id and writes a single
+    // policy_evaluation row with reevaluation=false, for_monitoring=true. The
+    // consumption event records that same fresh scan_id with
+    // activity_type=CONTINUOUS_MONITORING. The JOIN must match this row so the
+    // event buckets under its actual stage rather than falling into "Unknown".
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    String appId = tempEntity.newApplicationWithParent().getId();
+    String monitoringScanId = "scan-monitoring-only";
+
+    // Only a for_monitoring=true row exists for this scan_id (PolicyMonitor never
+    // creates a primary first; it generates a fresh scan_id each run).
+    tempEntity.insertPolicyEvaluationForMonitoring(appId, monitoringScanId, "build");
+
+    ConsumptionEvent e = buildEventWithTimestamp("org-1", appId,
+        ActivityType.CONTINUOUS_MONITORING, 50, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e.setScanId(monitoringScanId);
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getGroupKey()).isEqualTo("build"); // not "Unknown"
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(50L);
+  }
+
+  // Note: the JOIN explicitly filters FOR_OBSOLETE_SCAN=false for consistency with
+  // the other queries in PolicyEvaluationDAO. PolicyEvaluationDAO.validate today
+  // rejects for_obsolete_scan=true paired with reevaluation=false at insert time, so
+  // a regression test against this filter is not feasible without bypassing the DAO.
+
+  @Test
+  public void historyByStageByWindows_scanIdSharedAcrossApplications_doesNotDoubleCount() {
+    // `policy_evaluation.scan_id` is unique only within an application, so a
+    // pair of (applicationId, scanId) is the actual identifier (see
+    // `PolicyEvaluationDAO.getLastByApplicationIdAndScanId`). Without an
+    // applicationId match in the JOIN, a consumption event whose scan_id
+    // happens to also exist for a different application would fan out and
+    // multiply SUM(component_count).
+    LocalDate label1 = LocalDate.of(2026, 4, 1);
+    Instant start1 = label1.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant end1 = LocalDate.of(2026, 5, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    LocalDate billingMonth = LocalDate.of(2026, 4, 1);
+
+    String appA = tempEntity.newApplicationWithParent().getId();
+    String appB = tempEntity.newApplicationWithParent().getId();
+    String sharedScanId = "scan-collision";
+
+    // Same scan_id, two different applications, two different stages
+    tempEntity.insertPolicyEvaluation(appA, sharedScanId, "build");
+    tempEntity.insertPolicyEvaluation(appB, sharedScanId, "release");
+
+    ConsumptionEvent e = buildEventWithTimestamp("org-1", appA, ActivityType.APP_SCAN, 50, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z"));
+    e.setScanId(sharedScanId);
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e));
+
+    List<ConsumptionMonthlyBreakdown> breakdown = dao.historyByStageByWindows(
+        Collections.singletonList(start1),
+        Collections.singletonList(end1),
+        Collections.singletonList(label1));
+
+    assertThat(breakdown).hasSize(1);
+    assertThat(breakdown.get(0).getGroupKey()).isEqualTo("build"); // appA's stage, not appB's
+    assertThat(breakdown.get(0).getComponentCount()).isEqualTo(50L); // not 100L
+  }
 }

@@ -5,16 +5,11 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxH3, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxTile } from '@sonatype/react-shared-components';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
 
-function formatNumber(num) {
-  if (num === null || num === undefined) {
-    return '0';
-  }
-  return num.toLocaleString();
-}
+import { formatNumber } from './usageFormatters';
 
 function formatDayLabel(dateStr) {
   if (!dateStr) return '';
@@ -51,7 +46,7 @@ export default function EvaluatedComponentsTile({ dailyHistory }) {
     <NxTile className="iq-usage-evaluated-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH3>Evaluated Components</NxH3>
+          <NxH2>Evaluated Components</NxH2>
         </NxTile.HeaderTitle>
         <NxTile.HeaderActions>
           <span className="iq-usage-evaluated__period">30 Days</span>
@@ -82,7 +77,7 @@ export default function EvaluatedComponentsTile({ dailyHistory }) {
                   <YAxis tickFormatter={formatCount} />
                   <Tooltip
                     labelFormatter={formatDayLabel}
-                    formatter={(value) => [value.toLocaleString(), 'Components (Cumulative)']}
+                    formatter={(value) => [value.toLocaleString('en-US'), 'Components (Cumulative)']}
                     contentStyle={{
                       backgroundColor: 'var(--nx-color-component-background)',
                       border: '1px solid var(--nx-color-border)',

@@ -2805,6 +2805,34 @@ public class TemporaryEntity
     policyEvaluationDAO.insert(policyEvaluation);
   }
 
+  public void insertPolicyEvaluation(String scanId, String stageTypeId) {
+    newPolicyEvaluation(newApplicationWithParent().getId(), stageTypeId, scanId);
+  }
+
+  public void insertPolicyEvaluation(String applicationId, String scanId, String stageTypeId) {
+    newPolicyEvaluation(applicationId, stageTypeId, scanId);
+  }
+
+  public void insertPolicyReEvaluation(String scanId, String stageTypeId) {
+    newPolicyReEvaluation(newApplicationWithParent().getId(), stageTypeId, scanId, new Date());
+  }
+
+  public void insertPolicyReEvaluation(String applicationId, String scanId, String stageTypeId) {
+    newPolicyReEvaluation(applicationId, stageTypeId, scanId, new Date());
+  }
+
+  public void insertPolicyEvaluationForMonitoring(String scanId, String stageTypeId) {
+    newPolicyEvaluation(newApplicationWithParent().getId(), stageTypeId, scanId,
+        /* isReevaluation */ false, /* isForMonitoring */ true, /* isForObsoleteScan */ false,
+        new Date());
+  }
+
+  public void insertPolicyEvaluationForMonitoring(String applicationId, String scanId, String stageTypeId) {
+    newPolicyEvaluation(applicationId, stageTypeId, scanId,
+        /* isReevaluation */ false, /* isForMonitoring */ true, /* isForObsoleteScan */ false,
+        new Date());
+  }
+
   public PolicyEvaluation newPolicyEvaluation(
       String applicationId,
       String stageTypeId,

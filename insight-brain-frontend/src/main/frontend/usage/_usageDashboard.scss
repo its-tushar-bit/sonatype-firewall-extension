@@ -17,6 +17,30 @@
   margin-bottom: var(--nx-spacing-6x);
 }
 
+.iq-usage-page__chart-row {
+  display: flex;
+  gap: var(--nx-spacing-6x);
+  flex-wrap: wrap;
+  align-items: stretch;
+
+  // Force both child tiles to share the same outer dimensions so source/stage
+  // line up cleanly when they render side-by-side at full width. Resets any
+  // NX `.nx-tile + .nx-tile { margin-top: 8px }` adjacent-sibling rules and
+  // the per-tile bottom margin so the row container owns spacing.
+  > .nx-tile {
+    flex: 1 1 320px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+
+    // Tile content stretches to fill the column so source/stage tiles match
+    // the taller of the two when rendered side-by-side.
+    .nx-tile__content {
+      flex: 1 1 auto;
+    }
+  }
+}
+
 .iq-usage-content {
   display: flex;
   flex-direction: column;
@@ -49,7 +73,7 @@
 }
 
 .iq-usage-card__billing-month {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   font-weight: 400;
   color: var(--nx-color-text);
 }
@@ -65,6 +89,18 @@
   font-weight: 600;
   line-height: 1.2;
   color: var(--nx-color-text-dark);
+}
+
+.iq-usage-card__value-label {
+  font-size: var(--nx-font-size);
+  font-weight: 400;
+  color: var(--nx-color-text);
+}
+
+.iq-usage-card__value-separator {
+  font-size: var(--nx-font-size-l);
+  font-weight: 400;
+  color: var(--nx-color-text);
 }
 
 .iq-usage-card__progress-container {
@@ -102,7 +138,7 @@
 }
 
 .iq-usage-card__progress-percentage {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   font-weight: 600;
   color: var(--nx-color-text);
   min-width: 40px;
@@ -143,7 +179,7 @@
 .iq-usage-card__details {
   display: flex;
   gap: var(--nx-spacing-6x);
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
   margin-top: var(--nx-spacing-2x);
 }
@@ -165,11 +201,41 @@
 }
 
 .iq-usage-chart__aggregation-select {
-  width: 120px;
+  width: 140px;
+}
+
+// --- Custom legend for Consumption by Type chart ---
+.iq-usage-chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--nx-spacing-4x);
+  margin-top: var(--nx-spacing-6x);
+}
+
+.iq-usage-chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-spacing-2x);
+}
+
+.iq-usage-chart-legend__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.iq-usage-chart-legend__label {
+  color: var(--nx-color-text-dark);
+  font-size: var(--nx-font-size-m);
 }
 
 .iq-usage-chart__wrapper {
-  height: 500px;
+  height: 400px;
   width: 100%;
 }
 
@@ -177,9 +243,75 @@
   background: var(--nx-color-component-background);
   border: 1px solid var(--nx-color-border);
   border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 13px;
+  padding: var(--nx-spacing-3x) var(--nx-spacing-4x);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
+  min-width: 240px;
+  max-width: 320px;
+  box-shadow: var(--nx-box-shadow-overlay, 0 2px 6px rgba(0, 0, 0, 0.12));
+}
+
+.iq-usage-chart__tooltip-label {
+  font-weight: 600;
+  margin-bottom: var(--nx-spacing-base);
+}
+
+.iq-usage-chart__tooltip-total {
+  color: var(--nx-color-text-stark);
+  font-weight: 600;
+  margin-bottom: var(--nx-spacing-2x);
+}
+
+.iq-usage-chart__tooltip-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-base);
+}
+
+.iq-usage-chart__tooltip-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: baseline;
+  column-gap: var(--nx-spacing-2x);
+}
+
+.iq-usage-chart__tooltip-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  align-self: center;
+}
+
+.iq-usage-chart__tooltip-name {
+  color: var(--nx-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iq-usage-chart__tooltip-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--nx-color-text-stark);
+  text-align: right;
+  padding-left: var(--nx-spacing-3x);
+}
+
+.iq-usage-chart__tooltip-footer {
+  margin-top: var(--nx-spacing-2x);
+  padding-top: var(--nx-spacing-2x);
+  border-top: 1px solid var(--nx-color-border-secondary);
+  color: var(--nx-color-text);
+  font-size: var(--nx-font-size-m);
+}
+
+.iq-usage-chart__tooltip-empty {
+  color: var(--nx-color-text);
+  font-style: italic;
 }
 
 // --- Source Donut Chart Tile ---
@@ -198,7 +330,7 @@
 }
 
 .iq-usage-top-apps__subtitle {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
   margin-bottom: var(--nx-spacing-4x);
 }
@@ -221,7 +353,7 @@
 
 .iq-usage-top-apps__name {
   flex: 1;
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   font-weight: 600;
   color: var(--nx-color-text-dark);
   overflow: hidden;
@@ -230,7 +362,7 @@
 }
 
 .iq-usage-top-apps__count {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   font-weight: 600;
   color: var(--nx-color-text-dark);
   min-width: 60px;
@@ -238,7 +370,7 @@
 }
 
 .iq-usage-top-apps__percent {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
   min-width: 40px;
   text-align: right;
@@ -251,7 +383,7 @@
 }
 
 .iq-usage-evaluated__period {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
 }
 
@@ -272,7 +404,7 @@
 }
 
 .iq-usage-insights-widget__label {
-  font-size: var(--nx-font-size-s);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
 }
 
@@ -283,7 +415,7 @@
 }
 
 .iq-usage-insights-widget__date {
-  font-size: var(--nx-font-size-xs);
+  font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
 }
 

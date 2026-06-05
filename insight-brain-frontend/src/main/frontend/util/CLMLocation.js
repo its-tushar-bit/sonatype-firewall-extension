@@ -1933,6 +1933,8 @@ export const getConsumptionHistoryBreakdownUrl = (aggregation) => {
 
 export const getConsumptionHistoryBySourceUrl = () => uriTemplate`/api/v2/consumption/history/by-source`;
 
+export const getConsumptionHistoryByStageUrl = () => uriTemplate`/api/v2/consumption/history/by-stage`;
+
 export const getConsumptionTopAppsUrl = () => uriTemplate`/api/v2/consumption/top-apps`;
 
 export const getConsumptionDailyHistoryUrl = () => uriTemplate`/api/v2/consumption/daily-history`;

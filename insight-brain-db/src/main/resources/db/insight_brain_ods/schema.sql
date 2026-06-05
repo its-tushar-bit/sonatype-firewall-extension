@@ -447,6 +447,7 @@ CREATE INDEX policy_evaluation_app_monitoring_stage_idx ON policy_evaluation(app
 CREATE INDEX policy_evaluation_app_time_idx ON policy_evaluation(application_id, time);
 CREATE INDEX policy_evaluation_commit_hash_idx ON policy_evaluation(commit_hash);
 CREATE INDEX policy_evaluation_reeval_time_idx ON policy_evaluation (reevaluation, stage_type_id, application_id, time DESC);
+CREATE INDEX policy_evaluation_scan_app_idx ON policy_evaluation (scan_id, application_id);
 
 CREATE TABLE policy_violation_constraint_facts (
    policy_violation_constraint_facts_id VARCHAR(20) NOT NULL,

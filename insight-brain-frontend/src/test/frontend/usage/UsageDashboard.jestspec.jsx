@@ -56,6 +56,9 @@ describe('UsageDashboard', () => {
     axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock
+      .onGet(/\/api\/v2\/consumption\/history\/by-stage/)
+      .reply(200, [{ month: '2026-05-01', consumed: 250, breakdown: { build: 250 } }]);
     axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, []);
     axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
   });
@@ -78,15 +81,33 @@ describe('UsageDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(axiosMock.history.get.length).toBe(5);
+      expect(axiosMock.history.get.length).toBe(6);
     });
 
     const urls = axiosMock.history.get.map((req) => req.url);
     expect(urls.some((url) => url.includes('/api/v2/consumption/summary'))).toBe(true);
     expect(urls.some((url) => url.includes('/api/v2/consumption/history/breakdown'))).toBe(true);
     expect(urls.some((url) => url.includes('/api/v2/consumption/history/by-source'))).toBe(true);
+    expect(urls.some((url) => url.includes('/api/v2/consumption/history/by-stage'))).toBe(true);
     expect(urls.some((url) => url.includes('/api/v2/consumption/top-apps'))).toBe(true);
     expect(urls.some((url) => url.includes('/api/v2/consumption/daily-history'))).toBe(true);
+  });
+
+  it('renders ConsumptionByStageChart in the 2-column chart row when data is present', async () => {
+    axiosMock
+      .onGet(/\/api\/v2\/consumption\/history\/by-source/)
+      .reply(200, [{ month: '2026-05-01', consumed: 100, breakdown: { CI_CD: 100 } }]);
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText('Consumption by Stage')).toBeInTheDocument();
+    });
+    const sourceTitle = screen.getByText('Consumption by Source');
+    const stageTitle = screen.getByText('Consumption by Stage');
+    // Both tiles share the same .iq-usage-page__chart-row ancestor
+    const sourceRow = sourceTitle.closest('.iq-usage-page__chart-row');
+    const stageRow = stageTitle.closest('.iq-usage-page__chart-row');
+    expect(sourceRow).toBeTruthy();
+    expect(stageRow).toBe(sourceRow);
   });
 
   it('should display summary card after loading', async () => {

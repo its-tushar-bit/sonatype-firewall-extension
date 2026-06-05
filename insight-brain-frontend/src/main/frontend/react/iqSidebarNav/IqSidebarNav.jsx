@@ -28,6 +28,7 @@ import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar'
 import SonatypeDeveloperSidebar from 'MainRoot/development/SonatypeDeveloperSidebar';
 import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
 import FirewallSidebar from 'MainRoot/firewall/FirewallSidebar';
+import ComponentsConsumedSidebarTile from 'MainRoot/usage/ComponentsConsumedSidebarTile';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 function IqSidebarNav(props) {
@@ -241,6 +242,7 @@ function IqSidebarNav(props) {
                 href={apiHref}
               />
             )}
+            {isLicensed && <ComponentsConsumedSidebarTile collapsed={!isOpen} />}
           </>
         )}
       </NxGlobalSidebar2>

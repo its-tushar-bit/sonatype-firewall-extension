@@ -30,20 +30,25 @@ import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
+import { useFeatureFlags } from 'GuideRoot/feature-flags/FeatureFlagProvider';
+import { FEATURE_FLAGS } from 'GuideRoot/feature-flags/featureFlags';
 import type { VulnerabilitySearchResponse } from '@guide/ui-core/types';
 
 const LIMIT = 25;
 
 export function VulnerabilitiesPage() {
   const searchParams = useAdapterSearchParams();
+  const { isFeatureEnabled, isLoading: flagsLoading } = useFeatureFlags();
   const [response, setResponse] = useState<VulnerabilitySearchResponse | null>(null);
   const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   useEffect(() => {
+    if (flagsLoading) return;
     let cancelled = false;
 
     const params = new URLSearchParams(searchParams.toString());
+    if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
     setError(null);
@@ -66,9 +71,9 @@ export function VulnerabilitiesPage() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams]);
+  }, [searchParams, flagsLoading]);
 
-  if (isPending && response === null) return <FilteredPageSkeleton variant="vulnerabilities" />;
+  if ((isPending || flagsLoading) && response === null) return <FilteredPageSkeleton variant="vulnerabilities" />;
 
   if (error) {
     return <ErrorPage showGoBack={false} onRetry={reloadPage} />;
@@ -94,6 +99,7 @@ export function VulnerabilitiesPage() {
         formAction="/vulnerabilities"
         searchPlaceholder="Search vulnerabilities..."
         sortOptions={vulnerabilitySortOptions}
+        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)}
         totalResults={total}
         header={<VulnerabilitiesHeader total={total} />}
         clearRemovesQuery

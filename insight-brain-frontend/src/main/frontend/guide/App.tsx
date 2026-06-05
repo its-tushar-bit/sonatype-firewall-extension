@@ -57,27 +57,15 @@ function AuthGate() {
                 <Route path="/" element={<Home />} />
                 <Route
                   path="/components"
-                  element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                      <ComponentsSearchPage />
-                    </FeatureGate>
-                  }
+                  element={ <ComponentsSearchPage />}
                 />
                 <Route
                   path="/vulnerabilities"
-                  element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                      <VulnerabilitiesPage />
-                    </FeatureGate>
-                  }
+                  element={ <VulnerabilitiesPage /> }
                 />
                 <Route
                   path="/vulnerability/:vulnId"
-                  element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                      <VulnerabilityDetailLayout />
-                    </FeatureGate>
-                  }
+                  element={ <VulnerabilityDetailLayout /> }
                 >
                   <Route index element={<SecurityDetailsTab />} />
                   <Route path="components-impacted" element={<ComponentsImpactedTab />} />
@@ -86,7 +74,7 @@ function AuthGate() {
                 <Route
                   path="/search"
                   element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
+                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
                       <SearchPage />
                     </FeatureGate>
                   }
@@ -94,11 +82,7 @@ function AuthGate() {
                 <Route path="/mcp" element={<McpPage />} />
                 <Route
                   path="/component/:ecosystem/:pkg/:version"
-                  element={
-                    <FeatureGate flag={FEATURE_FLAGS.GUIDE_UI}>
-                      <ComponentDetailPage />
-                    </FeatureGate>
-                  }
+                  element={ <ComponentDetailPage /> }
                 >
                   <Route index element={<OverviewTab />} />
                   <Route path="versions" element={<VersionsTab />} />

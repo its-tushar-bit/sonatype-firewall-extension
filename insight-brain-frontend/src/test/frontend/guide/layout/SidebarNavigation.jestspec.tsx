@@ -35,25 +35,12 @@ function renderSidebar() {
   );
 }
 
-describe('SidebarNavigation feature flag filtering', () => {
+describe('SidebarNavigation', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('shows Components and Vulnerabilities when guide-ui flag is enabled', async () => {
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
-
-    renderSidebar();
-
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'Components' })).toBeInTheDocument();
-    });
-    expect(screen.getByRole('link', { name: 'Vulnerabilities' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'MCP' })).toBeInTheDocument();
-  });
-
-  it('hides Components and Vulnerabilities when guide-ui flag is disabled', async () => {
+  it('shows all nav items regardless of feature flags', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
 
     renderSidebar();
@@ -61,12 +48,12 @@ describe('SidebarNavigation feature flag filtering', () => {
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
     });
+    expect(screen.getByRole('link', { name: 'Components' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Vulnerabilities' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'MCP' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Components' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Vulnerabilities' })).not.toBeInTheDocument();
   });
 
-  it('hides flagged items when the fetch fails (default-disabled)', async () => {
+  it('shows all nav items when flag fetch fails', async () => {
     jest
       .spyOn(featureFlagsApi, 'fetchFeatureFlags')
       .mockRejectedValue(new Error('500'));
@@ -76,7 +63,8 @@ describe('SidebarNavigation feature flag filtering', () => {
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
     });
-    expect(screen.queryByRole('link', { name: 'Components' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Vulnerabilities' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Components' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Vulnerabilities' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'MCP' })).toBeInTheDocument();
   });
 });

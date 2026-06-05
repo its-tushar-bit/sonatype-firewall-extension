@@ -62,7 +62,7 @@ function getInitials(displayName?: string, username?: string): string {
 export function TopNavigation({ onSidebarToggle, sidebarToggleRef }: TopNavigationProps) {
   const { user, logout } = useAuth();
   const { isLoading, isFeatureEnabled } = useFeatureFlags();
-  const showSearch = !isLoading && isFeatureEnabled(FEATURE_FLAGS.GUIDE_UI);
+  const showSearch = !isLoading && isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH);
 
   return (
     <div className={styles.root}>

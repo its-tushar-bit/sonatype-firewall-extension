@@ -6,7 +6,7 @@
 
 import { apiFetch, ApiError, API_PREFIX } from './apiFetch';
 import { makeKeylessTtlCache } from './ttlCache';
-import { parsePackageIdentifier } from '@guide/ui-core/utils';
+import { parsePackageIdentifier, type Aggregations } from '@guide/ui-core/utils';
 import type { ReadonlySearchParams } from '@guide/ui-core/adapters';
 import { toStringArray } from '../utils/searchParams';
 import type {

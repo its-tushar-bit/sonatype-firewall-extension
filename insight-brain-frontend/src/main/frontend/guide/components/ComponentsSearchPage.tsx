@@ -31,12 +31,15 @@ import { toParamsRecord } from 'GuideRoot/utils/searchParams';
 import { FilteredPageSkeleton } from 'GuideRoot/layout/FilteredPageSkeleton';
 import { ErrorPage } from 'GuideRoot/layout/ErrorPage';
 import { reloadPage, clearErrorRetries } from 'GuideRoot/utils/navigation';
+import { useFeatureFlags } from 'GuideRoot/feature-flags/FeatureFlagProvider';
+import { FEATURE_FLAGS } from 'GuideRoot/feature-flags/featureFlags';
 import type { ComponentSearchResponse } from '@guide/ui-core/types';
 
 const LIMIT = 25;
 
 export function ComponentsSearchPage() {
   const searchParams = useAdapterSearchParams();
+  const { isFeatureEnabled, isLoading: flagsLoading } = useFeatureFlags();
   const [data, setData] = useState<ComponentSearchResponse | null>(null);
   const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,11 +47,13 @@ export function ComponentsSearchPage() {
   const [filterPending, setFilterPending] = useState(false);
   const [toolbarPending, setToolbarPending] = useState(false);
   useEffect(() => {
+    if (flagsLoading) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
 
     const params = new URLSearchParams(searchParams.toString());
+    if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
     Promise.all([
@@ -62,7 +67,7 @@ export function ComponentsSearchPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [searchParams]);
+  }, [searchParams, flagsLoading]);
 
   if (loading && data === null) return <FilteredPageSkeleton variant="components" />;
 
@@ -91,6 +96,7 @@ export function ComponentsSearchPage() {
         sortOptions={componentSortOptions}
         clearRemovesQuery={true}
         hasQuery={hasQuery}
+        hideSearch={!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)}
         totalResults={total}
         header={<ComponentsHeader total={total} />}
         onFilterSidebarPendingChange={setFilterPending}

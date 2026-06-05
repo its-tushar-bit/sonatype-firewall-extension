@@ -94,3 +94,68 @@ describe('FeatureGate', () => {
     });
   });
 });
+
+function renderAtSearch(ui: React.ReactElement) {
+  return render(
+    <Theme>
+      <FeatureFlagProvider>
+        <MemoryRouter initialEntries={['/search']}>
+          <Routes>
+            <Route path="/" element={<div>Home Page</div>} />
+            <Route path="/search" element={ui} />
+          </Routes>
+        </MemoryRouter>
+      </FeatureFlagProvider>
+    </Theme>
+  );
+}
+
+describe('FeatureGate on /search route with GUIDE_SEARCH flag', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders the search page when guide-search is present', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+
+    renderAtSearch(
+      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+        <div>Search Page</div>
+      </FeatureGate>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Search Page')).toBeInTheDocument();
+    });
+  });
+
+  it('redirects to / when guide-search is absent (only guide-ui present)', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
+
+    renderAtSearch(
+      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+        <div>Search Page</div>
+      </FeatureGate>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Home Page')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Search Page')).not.toBeInTheDocument();
+  });
+
+  it('redirects to / when no feature flags are present', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
+
+    renderAtSearch(
+      <FeatureGate flag={FEATURE_FLAGS.GUIDE_SEARCH}>
+        <div>Search Page</div>
+      </FeatureGate>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Home Page')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Search Page')).not.toBeInTheDocument();
+  });
+});

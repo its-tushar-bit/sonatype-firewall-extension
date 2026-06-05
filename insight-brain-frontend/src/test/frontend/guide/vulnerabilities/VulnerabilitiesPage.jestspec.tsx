@@ -5,9 +5,11 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '../test-utils';
+import { render as renderBase, screen, waitFor } from '../test-utils';
 import { VulnerabilitiesPage } from 'GuideRoot/vulnerabilities/VulnerabilitiesPage';
 import * as vulnerabilitiesBackend from 'GuideRoot/api/vulnerabilitiesBackend';
+import * as featureFlagsApi from 'GuideRoot/feature-flags/featureFlagsApi';
+import { FeatureFlagProvider } from 'GuideRoot/feature-flags/FeatureFlagProvider';
 import { reloadPage } from 'GuideRoot/utils/navigation';
 
 // Mock ResizeObserver (used by @guide/ui-core and @radix-ui components but not available in jsdom)
@@ -41,10 +43,12 @@ jest.mock('@guide/ui-core', () => {
       children,
       header,
       aggregations,
+      hideSearch,
     }: {
       children: React.ReactNode;
       header: React.ReactNode;
       aggregations?: FacetAggregations;
+      hideSearch?: boolean;
     }) => (
       <>
         {header}
@@ -99,6 +103,9 @@ const mockSearchResponse = {
   },
 };
 
+const render = (ui: React.ReactElement, options?: Parameters<typeof renderBase>[1]) =>
+  renderBase(<FeatureFlagProvider>{ui}</FeatureFlagProvider>, options);
+
 describe('VulnerabilitiesPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -106,6 +113,8 @@ describe('VulnerabilitiesPage', () => {
     mockSearchVulnerabilities.mockResolvedValue(mockSearchResponse);
     // Default: no browse cache, so the page degrades to search-only aggregations.
     mockFetchVulnerabilityBrowseAggregations.mockResolvedValue(null);
+    // Default: guide-search flag is enabled (tests can override)
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
   });
 
   describe('loading state', () => {
@@ -332,6 +341,21 @@ describe('VulnerabilitiesPage', () => {
       expect(callArgs.get('offset')).toBe('0');
       expect(callArgs.get('limit')).toBe('10');
       expect(callArgs.get('sort')).toBe('publishedDate:desc');
+    });
+
+    it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
+      jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
+
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/?query=log4j'] },
+      });
+
+      await waitFor(() => {
+        expect(mockSearchVulnerabilities).toHaveBeenCalled();
+      });
+
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('query')).toBeNull();
     });
   });
 

@@ -7,8 +7,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '../test-utils';
+import { render as renderBase, screen, waitFor } from '../test-utils';
 import { ComponentsSearchPage } from 'GuideRoot/components/ComponentsSearchPage';
+import * as featureFlagsApi from 'GuideRoot/feature-flags/featureFlagsApi';
+import { FeatureFlagProvider } from 'GuideRoot/feature-flags/FeatureFlagProvider';
 import type { ComponentSearchResponse } from '@guide/ui-core/types';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({
@@ -29,7 +31,7 @@ jest.mock('@guide/ui-core', () => {
   return {
     ...actual,
     PageLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    FilteredPageLayout: ({ children, header, aggregations }: { children: React.ReactNode; header: React.ReactNode; aggregations?: FacetAggregations }) => (
+    FilteredPageLayout: ({ children, header, aggregations, hideSearch }: { children: React.ReactNode; header: React.ReactNode; aggregations?: FacetAggregations; hideSearch?: boolean }) => (
       <>
         {header}
         <ul aria-label="facet-aggregations">
@@ -75,7 +77,16 @@ function makeMockResponse(total: number, hitCount = 25): ComponentSearchResponse
   };
 }
 
+const render = (ui: React.ReactElement, options?: Parameters<typeof renderBase>[1]) =>
+  renderBase(<FeatureFlagProvider>{ui}</FeatureFlagProvider>, options);
+
 describe('ComponentsSearchPage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default: guide-search flag is enabled
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -247,6 +258,20 @@ describe('ComponentsSearchPage', () => {
 
     const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
     expect(callArg.get('limit')).toBe('10');
+  });
+
+  it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
+    mockSearchComponents.mockResolvedValue(makeMockResponse(0, 0));
+
+    render(<ComponentsSearchPage />, {
+      routerOptions: { initialEntries: ['/components?query=lodash'] },
+    });
+
+    await screen.findByText('no results');
+
+    const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+    expect(callArg.get('query')).toBeNull();
   });
 
   describe('zero-count facets from browse aggregations', () => {

@@ -50,8 +50,10 @@ Available space tokens: `tight(1) inline(2) item(3) section(4) header(5) page(6)
 ## Testing and type-checking
 
 ```bash
-# TypeScript (Guide only)
-npx tsc --noEmit --project tsconfig.guide.json
+# Run from insight-brain-frontend/
+
+# TypeScript
+npx tsc --noEmit
 
 # All guide tests
 yarn jest -- guide

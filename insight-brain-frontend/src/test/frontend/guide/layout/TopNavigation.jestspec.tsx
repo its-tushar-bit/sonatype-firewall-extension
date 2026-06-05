@@ -22,7 +22,7 @@ describe('TopNavigation', () => {
       headers: new Headers(),
       json: async () => ({ hits: [], total: 0, offset: 0, limit: 25, aggregations: {} }),
     });
-    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-search']);
   });
 
   afterEach(() => {
@@ -59,6 +59,7 @@ describe('TopNavigation', () => {
     });
   });
 
+  // guide-ui is intentionally absent — search visibility is controlled by guide-search only
   it('renders the global search input with placeholder', async () => {
     render(
       <FeatureFlagProvider>
@@ -124,5 +125,19 @@ describe('TopNavigation', () => {
     await waitFor(() => {
       expect(screen.queryByPlaceholderText(/search components and vulnerabilities/i)).not.toBeInTheDocument();
     });
+  });
+
+  it('hides search when guide-search is absent even if guide-ui is present', async () => {
+    jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
+
+    render(
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    );
+
+    // Wait for the component to finish loading flags (logout button is always present)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument());
+    expect(screen.queryByPlaceholderText(/search components and vulnerabilities/i)).not.toBeInTheDocument();
   });
 });

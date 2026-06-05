@@ -58,7 +58,7 @@
  *   - No workspace zip + distributed-agent fan-out.
  *   - No `mvn deploy` (deployCondition is pinned to { false } — see below).
  *   - No artifact archival (additionalArtifacts omitted) — Jenkinsfile.main
- *     archives ~GB of .zip / .tar.gz / .jar per build that nothing downloads.
+ *     archives ~GB of .zip / .jar per build that nothing downloads.
  *   - JDKs are downloaded unconditionally as part of the main reactor via the
  *     `jdks` profile; Jenkinsfile.main instead wrapped a separate `mvn -pl
  *     :insight-brain -Pjdks` invocation around the MTIQ image build.

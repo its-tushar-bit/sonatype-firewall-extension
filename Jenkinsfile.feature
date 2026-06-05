@@ -540,8 +540,8 @@ void configureBranchJob() {
               'branches',
           name: 'runRefPolicyImportIntTest'),
       booleanParam(defaultValue: false,
-          description: 'If checked will create bundled artifacts (shade, assembly). Required for releases and MTIQ ' +
-              'image push.',
+          description: 'If checked will create bundled artifacts (shade, jreleaser, MTIQ assembly). Required for ' +
+              'releases and MTIQ image push.',
           name: 'bundlingEnabled'),
       booleanParam(defaultValue: false,
           description: 'If checked will include slow tests (tests taking >100 seconds)',

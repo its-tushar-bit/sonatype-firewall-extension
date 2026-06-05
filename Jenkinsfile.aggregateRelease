@@ -176,8 +176,6 @@ pipeline {
             // Trailing * in patterns (e.g., *.tar.gz*) matches both the file AND its .asc signature
             def distFiles = [
               includes: [
-                'nexus-iq-server/target/*.zip*',
-                'nexus-iq-server/target/*.tar.gz*',
                 'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
                 'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
                 'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz.sha256'
@@ -231,8 +229,7 @@ pipeline {
         script {
           writeFile(
             file: 'release-candidates.txt',
-            text: """https://download-staging.sonatype.com/clm/server/nexus-iq-server-${FULL_RELEASE_VERSION}-bundle.tar.gz
-https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${FULL_RELEASE_VERSION}.jar
+            text: """https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${FULL_RELEASE_VERSION}.jar
 
 Docker images will be published by the releaseIQServer job.""".toString()
           )

@@ -56,7 +56,7 @@
         </executions>
       </plugin>
       <!-- Publish jvm.options (static file at repo root) as a standalone Maven artifact
-           so Docker and other consumers can download it independently of the bundle tarball. -->
+           so Docker and other consumers can download it independently. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -87,25 +87,6 @@
         <configuration>
           <configFile>jreleaser.yml</configFile>
         </configuration>
-      </plugin>
-      <!-- This will be deprecated in the future -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>create-distro</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/server-bundle.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

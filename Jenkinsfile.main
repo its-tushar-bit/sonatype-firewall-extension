@@ -91,10 +91,8 @@ make(
     },
     distFiles: [
       includes: [
-        'nexus-iq-server/target/*.zip*',
         'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
         'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
-        'nexus-iq-server/target/*.tar.gz*',
         'nexus-iq-diagnostics/target/*.jar*',
         'nexus-mtiq-server/target/*.tar.gz*'
       ],

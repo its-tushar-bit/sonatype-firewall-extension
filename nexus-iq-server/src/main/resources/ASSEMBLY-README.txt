@@ -8,7 +8,7 @@ Running the Sonatype IQ Server
 
 This package contains example scripts to configure Sonatype IQ Server to run as a system service with systemd or init.d. The scripts are located in the examples directory of the installation. Additionally, the examples directory contains a sample configuration file that can be used to configure the server.
 
-To start the Sonatype IQ Server run the demo script for your operating system:
+To start the Sonatype IQ Server, run the wrapper script for your operating system:
 
 # Linux
 ./bin/nexus-iq-server server path/to/config.yml
@@ -42,13 +42,12 @@ The Sonatype IQ Server can be Run as a Service, please see our help documentatio
 # Windows
 - http://links.sonatype.com/products/nxiq/doc/run-as-a-service-windows
 
-Migrating from the standalone jar
-=================================
+Note on the Standalone JAR Distribution
+========================================
 
-The bundled distribution for IQ server contains the server and CLI jar files, along with demo.sh/bat files and a sample config file. To run the application, you would need to ensure Java is installed on your system and invoke it with the correct arguments. For example:
-java -jar nexus-iq-server.jar server path/to/config.yml
-With this new distribution, there is a wrapper script which allows you to invoke the application without needing to install the JDK. To run the server, use the following command:
-./bin/nexus-iq-server server path/to/config.yml
+The standalone JAR distribution has been discontinued. This bundled distribution
+is the only supported format. See https://help.sonatype.com/en/sonatype-iq-server-feature-status.html
+for details.
 
 Authentication in the Sonatype IQ Server
 ========================================

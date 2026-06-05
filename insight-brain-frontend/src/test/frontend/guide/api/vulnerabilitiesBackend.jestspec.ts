@@ -113,7 +113,7 @@ describe('vulnerabilitiesBackend', () => {
       await fetchVulnerabilityBrowseAggregations();
 
       const [path] = mockApiFetch.mock.calls[0];
-      expect(path).toBe('/api/v2/guide/vulnerabilities?limit=1');
+      expect(path).toBe('/api/v2/guide/vulnerabilities/search?limit=1');
     });
 
     it('returns the same in-flight promise to concurrent callers', () => {

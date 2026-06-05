@@ -224,7 +224,7 @@ const browseAggregationsCache = makeKeylessTtlCache<Aggregations | null>(
   async () => {
     try {
       const response = await apiFetch<VulnerabilitySearchResponse>(
-        `${API_PREFIX}/vulnerabilities?limit=1`
+        `${API_PREFIX}/vulnerabilities/search?limit=1`
       );
       return (response.aggregations as Aggregations | undefined) ?? null;
     } catch {

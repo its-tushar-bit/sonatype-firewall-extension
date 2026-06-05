@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -158,6 +161,13 @@ public class PolicyViolationTelemetryCollector
   private Date timeOfPolicyEvaluation;
 
   private final ComponentHelper componentHelper;
+
+  private Clock clock = Clock.systemUTC();
+
+  @VisibleForTesting
+  void setClockForTesting(Clock clock) {
+    this.clock = clock;
+  }
 
   public PolicyViolationTelemetryCollector(
       final PolicyWaiverDAO policyWaiverDAO,
@@ -339,6 +349,19 @@ public class PolicyViolationTelemetryCollector
    * Records telemetry for existing, unchanged policy violations for auditing purposes.
    * Uses the CONDITION_TYPE_VIOLATION_AUDIT purpose.
    *
+   * <p>
+   * Applied non-COMPLIANCE legacy violations are excluded — they have a dedicated audit path via
+   * {@link #addTelemetryForLegacyViolationAudit}, which uses the same {@code lastTelemetryEmittedDate}
+   * gate. Excluding exactly that sub-type prevents the shared gate field from suppressing
+   * {@code TIME_TO_LEGACY_VIOLATION_AUDIT} when both methods are called for the same violation in
+   * the same scan. COMPLIANCE-stage and first-time-applied legacy violations do not have a dedicated
+   * audit path, so they continue to emit {@code CONDITION_TYPE_VIOLATION_AUDIT} here.
+   *
+   * <p>
+   * As a side effect, stamps {@code policyViolation.lastTelemetryEmittedDate} with today's UTC
+   * date when telemetry is emitted. The caller's {@code updateBatch} persists this field
+   * automatically, gating subsequent calls to once per calendar day per violation.
+   *
    * @param policyViolation The policy violation to include in telemetry.
    * @param components The associated component(s).
    * @param constraintsTelemetryData Formatted constraint data for telemetry.
@@ -348,12 +371,28 @@ public class PolicyViolationTelemetryCollector
       final List<Component> components,
       final List<Constraint> constraintsTelemetryData)
   {
-    if (policyViolation != null) {
-      TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT, policyViolation, components)
-              .put(POLICY_CONSTRAINTS, constraintsTelemetryData);
-      telemetryDataList.add(telemetryData);
+    if (policyViolation == null) {
+      return;
     }
+    // Skip only applied non-COMPLIANCE legacy violations — they emit TIME_TO_LEGACY_VIOLATION_AUDIT
+    // instead. All other legacy violations (COMPLIANCE-stage, first-time-applied) have no dedicated
+    // audit path and must continue to emit here.
+    if (policyViolation.isLegacyViolation()
+        && policyViolation.isLegacyViolationApplied()
+        && !Stage.ID_COMPLIANCE.equals(policyViolation.getStageTypeId()))
+    {
+      return;
+    }
+    LocalDate todayUtc = LocalDate.now(clock);
+    LocalDate lastEmitted = policyViolation.getLastTelemetryEmittedDate();
+    if (lastEmitted != null && !lastEmitted.isBefore(todayUtc)) {
+      return;
+    }
+    TelemetryData telemetryData =
+        createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT, policyViolation, components)
+            .put(POLICY_CONSTRAINTS, constraintsTelemetryData);
+    telemetryDataList.add(telemetryData);
+    policyViolation.setLastTelemetryEmittedDate(todayUtc);
   }
 
   public Condition formatConditionForTelemetryData(ConditionFact conditionFact, String constraintFactOperatorName) {
@@ -399,20 +438,36 @@ public class PolicyViolationTelemetryCollector
    * Uses the TIME_TO_LEGACY_VIOLATION_AUDIT purpose to enable tracking of specific legacy violations
    * that persist over time and detection of missing legacy violation data.
    *
-   * This audit event is sent on every scan for unchanged legacy violations, allowing comparison
-   * with original TIME_TO_LEGACY_VIOLATION events to identify missing data.
+   * <p>
+   * Gated to once per UTC calendar day per violation via {@code lastTelemetryEmittedDate},
+   * preventing unbounded emit on every scan for customers with many long-lived legacy violations.
+   *
+   * <p>
+   * Mutual exclusivity with {@link #addTelemetryForConditionTypeViolationAudit} holds from scan 2+
+   * (once {@code legacyViolationApplied=true} is persisted). On the transition scan where a
+   * violation first becomes legacy-applied, {@code addTelemetryForConditionTypeViolationAudit} runs
+   * first (guard not yet active), stamps {@code lastTelemetryEmittedDate=today}, and this method is
+   * then suppressed by the shared gate for the remainder of that day. No double-emission occurs, but
+   * {@code TIME_TO_LEGACY_VIOLATION_AUDIT} is not emitted on the transition day itself.
    *
    * @param legacyViolation The legacy policy violation to include in telemetry.
    * @param component The associated component.
    */
   public void addTelemetryForLegacyViolationAudit(PolicyViolation legacyViolation, Component component) {
-    if (legacyViolation != null) {
-      TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT, legacyViolation, component)
-              .put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
-
-      telemetryDataList.add(telemetryData);
+    if (legacyViolation == null) {
+      return;
     }
+    LocalDate todayUtc = LocalDate.now(clock);
+    LocalDate lastEmitted = legacyViolation.getLastTelemetryEmittedDate();
+    if (lastEmitted != null && !lastEmitted.isBefore(todayUtc)) {
+      return;
+    }
+    TelemetryData telemetryData =
+        createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT, legacyViolation, component)
+            .put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
+
+    telemetryDataList.add(telemetryData);
+    legacyViolation.setLastTelemetryEmittedDate(todayUtc);
   }
 
   public void addTelemetryForReachableViolation(

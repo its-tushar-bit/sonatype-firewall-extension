@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,6 +21,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
@@ -78,6 +82,11 @@ public class PolicyViolationTelemetryCollectorTest
   private static final String TEST_APP_ID = "testApp";
 
   private static final String TEST_STAGE = "testStage";
+
+  private static final LocalDate FIXED_TEST_DATE = LocalDate.of(2026, 1, 15);
+
+  private static final Clock FIXED_CLOCK =
+      Clock.fixed(FIXED_TEST_DATE.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
   private static final PolicyEvaluation policyEvaluation =
       new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", CurrentUser.SYSTEM, ScanTriggerType.CLI);
@@ -647,6 +656,51 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
+  public void testAddTelemetryForLegacyViolationAudit_GatedToOncePerDay_SecondCallSameDaySkipped() {
+    // given: A legacy violation already emitted today
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720)
+            .markFixedAsLegacy();
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLastTelemetryEmittedDate(FIXED_TEST_DATE);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+
+    // when: Called again on same day
+    telemetryCollector.addTelemetryForLegacyViolationAudit(violation, testablePolicyViolation.getComponent());
+
+    // then: Skipped — gate suppresses duplicate same-day emit
+    assertThat(telemetryCollector.getTelemetryData()).isEmpty();
+  }
+
+  @Test
+  public void testAddTelemetryForLegacyViolationAudit_GatedToOncePerDay_PreviousDayAllowed() {
+    // given: A legacy violation last emitted yesterday
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720)
+            .markFixedAsLegacy();
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLastTelemetryEmittedDate(FIXED_TEST_DATE.minusDays(1));
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+
+    // when
+    telemetryCollector.addTelemetryForLegacyViolationAudit(violation, testablePolicyViolation.getComponent());
+
+    // then: Emitted — previous day allows new emit; date stamped to today
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(telemetryCollector.getTelemetryData().get(0).getPurpose())
+        .isEqualTo(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
+  @Test
   public void testAddTelemetryForUnwaivedViolation() {
     // given a policy violation that was unwaived and the new open violation created for it
     var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
@@ -1028,8 +1082,8 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
-  public void testAddTelemetryForConditionTypeViolationAudit_TimeAttributeIsZero() {
-    // given
+  public void testAddTelemetryForConditionTypeViolationAudit_EmitsWithElapsedTimeAttribute() {
+    // given: violation opened 48 hours ago
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
             .openedHoursAgo(48);
@@ -1046,14 +1100,252 @@ public class PolicyViolationTelemetryCollectorTest
         testablePolicyViolation.getComponents(),
         formattedConstraints);
 
-    // then: TIME should be 0 for audit telemetry (not calculated duration)
+    // then: telemetry emitted and TIME attribute is present (elapsed ms since open, same as
+    // CONDITION_TYPE_VIOLATION — computed by createTelemetry via computeTimeBetween)
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     assertThat(telemetryData).hasSize(1);
-    // Note: The test should validate that TIME is properly set in the telemetry
-    // The actual time value should match what CONDITION_TYPE_VIOLATION uses
+    assertThat(telemetryData.get(0).getAttributes()).containsKey(TIME);
+    assertThat((long) telemetryData.get(0).getAttributes().get(TIME)).isGreaterThan(0L);
   }
 
-  // Add this helper method to the test class
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_emittedFirstTimeWhenNoPriorDate() {
+    // given: violation with no prior telemetry date
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    assertThat(violation.getLastTelemetryEmittedDate()).isNull();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation,
+        testablePolicyViolation.getComponents(),
+        constraints);
+
+    // then: telemetry emitted and date stamped to today UTC
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(telemetryCollector.getTelemetryData().get(0).getPurpose())
+        .isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_suppressedWhenAlreadyEmittedToday() {
+    // given: violation with last emitted date already set to today
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLastTelemetryEmittedDate(FIXED_TEST_DATE);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation,
+        testablePolicyViolation.getComponents(),
+        constraints);
+
+    // then: no telemetry emitted (already emitted today)
+    assertThat(telemetryCollector.getTelemetryData()).isEmpty();
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_reemittedWhenLastEmitWasYesterday() {
+    // given: violation last emitted yesterday
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLastTelemetryEmittedDate(FIXED_TEST_DATE.minusDays(1));
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation,
+        testablePolicyViolation.getComponents(),
+        constraints);
+
+    // then: telemetry emitted and date updated to today
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_suppressedOnSecondCallSameScan() {
+    // given: same violation object passed twice (simulates consecutive scans in same day)
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when: called twice for the same violation object (first call sets date, second skips)
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+
+    // then: only one telemetry entry emitted
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_SkipsLegacyViolations() {
+    // given: an applied legacy violation (legacyViolationTime != null makes isLegacyViolation() true)
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLegacyViolationTime(new Date(System.currentTimeMillis() - 720 * 3600_000L));
+    violation.setLegacyViolationApplied(true);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+
+    // then: legacy violations are excluded — they have their own audit path
+    assertThat(telemetryCollector.getTelemetryData()).isEmpty();
+    assertThat(violation.getLastTelemetryEmittedDate()).isNull();
+  }
+
+  @Test
+  public void testConditionTypeAuditThenLegacyAudit_OnSameViolation_LegacyAuditStillEmits() {
+    // given: an applied legacy violation with no prior emit
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLegacyViolationTime(new Date(System.currentTimeMillis() - 720 * 3600_000L));
+    violation.setLegacyViolationApplied(true);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when: ScanPolicyEvaluator calls condition-type audit first (line 842), then legacy audit (line 974)
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+    telemetryCollector.addTelemetryForLegacyViolationAudit(violation, testablePolicyViolation.getComponent());
+
+    // then: condition-type audit is skipped (legacy violation), legacy audit emits once
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(telemetryCollector.getTelemetryData().get(0).getPurpose())
+        .isEqualTo(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
+  @Test
+  public void testLegacyViolationTransitionDay_ConditionTypeAuditRunsFirst_LegacyAuditSuppressedSameDay() {
+    // given: violation with legacyViolationTime set but legacyViolationApplied=false (not yet persisted)
+    // — this is the state at ScanPolicyEvaluator line 842 on the transition scan
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLegacyViolationTime(new Date(System.currentTimeMillis() - 720 * 3600_000L));
+    // legacyViolationApplied is false (default) — guard in addTelemetryForConditionTypeViolationAudit
+    // does not fire yet
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when: condition-type audit runs first (applied=false → guard inactive → emits + stamps date)
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+
+    // ScanPolicyEvaluator line 964: !isLegacyViolationApplied() → enters the if-branch, sets
+    // legacyViolationApplied=true and calls addTelemetryForLegacyViolation (not audit).
+    // addTelemetryForLegacyViolationAudit is in the else-if branch and is never reached on the
+    // transition scan. This call is a defensive gate test only — it verifies that IF the audit
+    // method were called after the date was stamped, the gate would still suppress it.
+    violation.setLegacyViolationApplied(true);
+    telemetryCollector.addTelemetryForLegacyViolationAudit(violation, testablePolicyViolation.getComponent());
+
+    // then: only CONDITION_TYPE_VIOLATION_AUDIT emitted; the defensive call above is suppressed
+    // by the gate (date already stamped). In production the audit method is never called here at all.
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(telemetryCollector.getTelemetryData().get(0).getPurpose())
+        .isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_ComplianceStageLegacyViolation_StillEmits() {
+    // given: an applied legacy violation at COMPLIANCE stage — ScanPolicyEvaluator never calls
+    // addTelemetryForLegacyViolationAudit for COMPLIANCE stage, so CONDITION_TYPE_VIOLATION_AUDIT
+    // is its only audit path and must not be skipped
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLegacyViolationTime(new Date(System.currentTimeMillis() - 720 * 3600_000L));
+    violation.setLegacyViolationApplied(true);
+    violation.setStageTypeId(Stage.ID_COMPLIANCE);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+    assertThat(violation.getLastTelemetryEmittedDate()).isNull();
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+
+    // then: COMPLIANCE-stage legacy violations are NOT skipped — they emit CONDITION_TYPE_VIOLATION_AUDIT
+    assertThat(telemetryCollector.getTelemetryData()).hasSize(1);
+    assertThat(telemetryCollector.getTelemetryData().get(0).getPurpose())
+        .isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_ComplianceStageLegacyViolation_GatedToOncePerDay() {
+    // given: a COMPLIANCE-stage applied legacy violation already emitted today
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720);
+    PolicyViolation violation = testablePolicyViolation.getPolicyViolation();
+    violation.setLegacyViolationTime(new Date(System.currentTimeMillis() - 720 * 3600_000L));
+    violation.setLegacyViolationApplied(true);
+    violation.setStageTypeId(Stage.ID_COMPLIANCE);
+    violation.setLastTelemetryEmittedDate(FIXED_TEST_DATE);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+    telemetryCollector.setClockForTesting(FIXED_CLOCK);
+    List<Constraint> constraints = buildFormattedConstraints(telemetryCollector, testablePolicyViolation);
+
+    // when: called a second time on the same day
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        violation, testablePolicyViolation.getComponents(), constraints);
+
+    // then: suppressed — already emitted today
+    assertThat(telemetryCollector.getTelemetryData()).isEmpty();
+    assertThat(violation.getLastTelemetryEmittedDate()).isEqualTo(FIXED_TEST_DATE);
+  }
+
   private List<Constraint> buildFormattedConstraints(
       PolicyViolationTelemetryCollector telemetryCollector,
       TestablePolicyViolation testablePolicyViolation)
@@ -2092,6 +2384,7 @@ public class PolicyViolationTelemetryCollectorTest
       copy.setWaiveTime(original.getWaiveTime());
       copy.setReachabilityStatus(original.getReachabilityStatus());
       copy.setIsRemediatedByVersionChange(original.getIsRemediatedByVersionChange());
+      copy.setLastTelemetryEmittedDate(original.getLastTelemetryEmittedDate());
 
       return copy;
     }

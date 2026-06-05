@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -67,6 +68,9 @@ public class PolicyViolation
 
   @Column(name = "is_remediated_by_version_change")
   private Boolean isRemediatedByVersionChange;
+
+  @Column(name = "last_telemetry_emitted_date")
+  private LocalDate lastTelemetryEmittedDate;
 
   public PolicyViolation() {
   }
@@ -262,6 +266,14 @@ public class PolicyViolation
 
   public void setIsRemediatedByVersionChange(Boolean isRemediatedByVersionChange) {
     this.isRemediatedByVersionChange = isRemediatedByVersionChange;
+  }
+
+  public LocalDate getLastTelemetryEmittedDate() {
+    return lastTelemetryEmittedDate;
+  }
+
+  public void setLastTelemetryEmittedDate(LocalDate lastTelemetryEmittedDate) {
+    this.lastTelemetryEmittedDate = lastTelemetryEmittedDate;
   }
 
   @Transient

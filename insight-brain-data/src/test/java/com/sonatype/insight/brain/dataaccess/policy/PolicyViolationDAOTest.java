@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -3003,6 +3004,7 @@ public class PolicyViolationDAOTest
     violation.setLegacyViolationApplied(true);
     violation.setReachabilityStatus(ReachabilityStatus.NON_REACHABLE);
     violation.setAutoPolicyWaiverId("auto-waiver-id");
+    violation.setLastTelemetryEmittedDate(LocalDate.of(2026, 3, 15));
     return violation;
   }
 
@@ -3011,6 +3013,7 @@ public class PolicyViolationDAOTest
     violation.setLegacyViolationApplied(false);
     violation.setSeenByMonitoringEvaluation(false);
     violation.setActionTypeId(Action.ID_WARN);
+    violation.setLastTelemetryEmittedDate(LocalDate.of(2026, 3, 16));
   }
 
   private PolicyViolation loadWithConstraintFacts(String id) {

@@ -504,6 +504,8 @@ CREATE TABLE policy_violation (
 
   is_remediated_by_version_change boolean DEFAULT NULL,
 
+  last_telemetry_emitted_date date NULL,
+
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
   CONSTRAINT policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)

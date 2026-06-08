@@ -13,7 +13,9 @@ import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.FIPSConfig;
+import com.sonatype.insight.brain.service.SystemConfigurationPropertyCacheInvalidationJob;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -1308,7 +1310,9 @@ public class ApiConfigFeaturesServiceTest
   public void testGetAllSystemConfigurationPropertyFeatureWithValue_multiTenant() {
     TenantUtil tenantUtilMock = Mockito.mock(TenantUtil.class);
     Mockito.when(tenantUtilMock.isSingleTenant()).thenReturn(false);
-    ApiConfigFeaturesService service = new ApiConfigFeaturesService(tenantUtilMock);
+    ApiConfigFeaturesService service = new ApiConfigFeaturesService(tenantUtilMock,
+        Mockito.mock(TaskScheduler.class),
+        Mockito.mock(SystemConfigurationPropertyCacheInvalidationJob.class));
 
     Map<String, Boolean> expectedFeatureConfigMap = getExpectedFeatureConfigMap();
     expectedFeatureConfigMap.put("saasLifecycleScmEnabled", true);

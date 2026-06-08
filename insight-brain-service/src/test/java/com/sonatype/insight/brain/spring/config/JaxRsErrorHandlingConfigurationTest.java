@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 import java.lang.reflect.Field;
@@ -30,12 +29,10 @@ public class JaxRsErrorHandlingConfigurationTest
   public void shouldWireSpringManagedMapperToFeatureFlagAwareJavaLangErrorHandler() throws Exception {
     SystemConfigurationPropertyDAO originalSystemConfigurationPropertyDAO = getSystemConfigurationPropertyDAO();
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = mock(SystemConfigurationPropertyDAO.class);
-    TransactionContext transactionContext = mock(TransactionContext.class);
     String propertyName = SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getPropertyName();
 
     try {
-      when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(transactionContext);
-      when(systemConfigurationPropertyDAO.getByName(transactionContext, propertyName))
+      when(systemConfigurationPropertyDAO.getByName(propertyName))
           .thenReturn(new SystemConfigurationProperty(propertyName, "false"),
               new SystemConfigurationProperty(propertyName, "true"));
       SystemConfigurationPropertyFeature.injectDependencies(systemConfigurationPropertyDAO);
@@ -59,8 +56,7 @@ public class JaxRsErrorHandlingConfigurationTest
 
         javaLangErrorHandler.handleExit(runtime);
         verify(runtime).exit(1);
-        verify(systemConfigurationPropertyDAO, times(2)).createTransactionContext();
-        verify(systemConfigurationPropertyDAO, times(2)).getByName(transactionContext, propertyName);
+        verify(systemConfigurationPropertyDAO, times(2)).getByName(propertyName);
       }
     }
     finally {

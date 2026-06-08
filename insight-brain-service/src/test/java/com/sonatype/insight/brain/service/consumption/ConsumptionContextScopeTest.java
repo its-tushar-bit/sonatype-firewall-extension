@@ -65,6 +65,7 @@ public class ConsumptionContextScopeTest
     lenient().when(mockSystemConfigDao.createTransactionContext()).thenReturn(mockTx);
     lenient().when(mockTx.dsl()).thenReturn(DSL.using(SQLDialect.POSTGRES));
     lenient().when(mockSystemConfigDao.getByName(any(), any())).thenAnswer(inv -> featureFlagState.get());
+    lenient().when(mockSystemConfigDao.getByName(any(String.class))).thenAnswer(inv -> featureFlagState.get());
     lenient().doAnswer(inv -> {
       String value = inv.getArgument(2);
       featureFlagState.set(value == null ? null : new SystemConfigurationProperty(inv.getArgument(1), value));

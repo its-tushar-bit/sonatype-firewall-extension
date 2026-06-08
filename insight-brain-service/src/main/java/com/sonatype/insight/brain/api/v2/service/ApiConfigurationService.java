@@ -483,6 +483,7 @@ public class ApiConfigurationService
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_PROPERTIES)) {
         String[] properties = StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
             TASK_PARAM_PROPERTIES_DELIMITER);
+        systemConfigurationPropertyDAO.invalidateCache();
         applyConfigurationToClients(properties);
       }
     }, log, CONFIG_APPLY_ERROR);

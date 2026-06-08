@@ -152,6 +152,9 @@ public class JobClassNameTest
         "com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask",
         "HostedDeploymentBlockCleanupTask");
     insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.service.SystemConfigurationPropertyCacheInvalidationJob",
+        "SystemConfigurationPropertyCacheInvalidation");
+    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.relay.RelayLinkRetrySweepTask", "RelayLinkRetrySweepTask");
   }
 

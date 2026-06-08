@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
-import java.util.Map;
-
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -86,9 +84,9 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       String valueInEnvVar = System.getenv().get(NXIQ_ADVANCED_SEARCH_CONFIGURATION_ENV_VAR);
-      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
+      return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -109,8 +107,8 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop != null && Boolean.parseBoolean(prop.getValue());
     }
 
@@ -140,12 +138,9 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
-      if (valueInEnvVar != null) {
-        return Boolean.parseBoolean(valueInEnvVar);
-      }
-      return super.isEnabled(allProperties);
+      return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -158,21 +153,20 @@ public enum SystemConfigurationPropertyFeature
   },
   ENABLE_SSO_ONLY(SystemConfigurationProperty.ENABLE_SSO_ONLY, false)
   {
+    private boolean isEnabledFromProperty(SystemConfigurationProperty prop) {
+      // Enabled in MTIQ non-FIPS mode when not explicitly set, disabled otherwise
+      return prop == null
+          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
+          : Boolean.parseBoolean(prop.getValue());
+    }
+
     @Override
     public boolean isEnabled(TransactionContext tx) {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
-
-      if (valueInEnvVar == null) {
-        final SystemConfigurationProperty systemConfigurationProperty =
-            systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-        // Enabled in MTIQ non-FIPS mode, disabled otherwise
-        return systemConfigurationProperty == null
-            ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
-            : Boolean.parseBoolean(systemConfigurationProperty.getValue());
-      }
-      else {
+      if (valueInEnvVar != null) {
         return Boolean.parseBoolean(valueInEnvVar);
       }
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(tx, getPropertyName()));
     }
 
     @Override
@@ -184,16 +178,12 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
       if (valueInEnvVar != null) {
         return Boolean.parseBoolean(valueInEnvVar);
       }
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
-      // Enabled in MTIQ non-FIPS mode when not explicitly set, disabled otherwise
-      return prop == null
-          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
-          : Boolean.parseBoolean(prop.getValue());
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(getPropertyName()));
     }
   },
   API_PAGE(SystemConfigurationProperty.API_PAGE, true),
@@ -219,23 +209,21 @@ public enum SystemConfigurationPropertyFeature
    */
   LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false)
   {
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      // Enabled in MTIQ non-FIPS mode, disabled otherwise
-      return systemConfigurationProperty == null
-          ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
-    }
-
-    @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    private boolean isEnabledFromProperty(SystemConfigurationProperty prop) {
       // Enabled in MTIQ non-FIPS mode when not explicitly set, disabled otherwise
       return prop == null
           ? !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(prop.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(tx, getPropertyName()));
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(getPropertyName()));
     }
   },
 
@@ -260,11 +248,11 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       if (tenantUtil.isSingleTenant()) {
         return true;
       }
-      return super.isEnabled(allProperties);
+      return super.isEnabled();
     }
   },
 
@@ -284,12 +272,12 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       if (tenantUtil.isSingleTenant()) {
         return true;
       }
       String valueInEnvVar = System.getenv().get(NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR);
-      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
+      return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -332,16 +320,13 @@ public enum SystemConfigurationPropertyFeature
     // treated as enabled.
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
@@ -359,16 +344,13 @@ public enum SystemConfigurationPropertyFeature
     // treated as enabled.
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
@@ -386,11 +368,11 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       if (tenantUtil.isSingleTenant()) {
         return false;
       }
-      return super.isEnabled(allProperties);
+      return super.isEnabled();
     }
   },
 
@@ -398,16 +380,13 @@ public enum SystemConfigurationPropertyFeature
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
@@ -416,16 +395,13 @@ public enum SystemConfigurationPropertyFeature
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
@@ -436,68 +412,57 @@ public enum SystemConfigurationPropertyFeature
     // treated as enabled.
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
   },
 
   SAML_ENABLED(SystemConfigurationProperty.SAML_ENABLED, true)
   {
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-
-      // CLM-35986 - default this based on the environment we are in.
-      // 1) On prem IQ - Default to be enabled.
-      // 2) MTIQ with FIPS enabled - Default to be enabled.
-      // 3) MITQ with FIPS disabled - Default to be disabled.
-      return systemConfigurationProperty == null
-          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
-    }
-
-    @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
-      // CLM-35986 - default this based on the environment we are in.
-      // 1) On prem IQ - Default to be enabled.
-      // 2) MTIQ with FIPS enabled - Default to be enabled.
-      // 3) MITQ with FIPS disabled - Default to be disabled.
+    // CLM-35986 - default this based on the environment we are in.
+    // 1) On prem IQ - Default to be enabled.
+    // 2) MTIQ with FIPS enabled - Default to be enabled.
+    // 3) MITQ with FIPS disabled - Default to be disabled.
+    private boolean isEnabledFromProperty(SystemConfigurationProperty prop) {
       return prop == null
           ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(prop.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(tx, getPropertyName()));
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(getPropertyName()));
     }
   },
 
   USER_MANAGEMENT_PAGES(SystemConfigurationProperty.USER_MANAGEMENT_PAGES, true)
   {
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      // Enabled in single tenant OR FIPS mode, disabled otherwise
-      return systemConfigurationProperty == null
-          ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
-    }
-
-    @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
-      // Enabled in single tenant OR FIPS mode, disabled otherwise
+    // Enabled in single tenant OR FIPS mode, disabled otherwise
+    private boolean isEnabledFromProperty(SystemConfigurationProperty prop) {
       return prop == null
           ? tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled()
           : Boolean.parseBoolean(prop.getValue());
+    }
+
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(tx, getPropertyName()));
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return isEnabledFromProperty(systemConfigurationPropertyDAO.getByName(getPropertyName()));
     }
   },
 
@@ -512,9 +477,9 @@ public enum SystemConfigurationPropertyFeature
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
+    public boolean isEnabled() {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR);
-      return valueInEnvVar == null ? super.isEnabled(allProperties) : Boolean.parseBoolean(valueInEnvVar);
+      return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
     }
 
     @Override
@@ -532,16 +497,13 @@ public enum SystemConfigurationPropertyFeature
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null
-          ? super.isEnabled(tx)
-          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      var prop = systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
     @Override
-    public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-      SystemConfigurationProperty prop = allProperties.get(getPropertyName());
+    public boolean isEnabled() {
+      var prop = systemConfigurationPropertyDAO.getByName(getPropertyName());
       return prop == null || Boolean.parseBoolean(prop.getValue());
     }
 
@@ -615,27 +577,13 @@ public enum SystemConfigurationPropertyFeature
     return propertyValue;
   }
 
-  public final boolean isEnabled() {
-    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
-      return isEnabled(tx);
-    }
+  public boolean isEnabled() {
+    var prop = systemConfigurationPropertyDAO.getByName(propertyName);
+    return (prop == null) == enabledWhenAbsent;
   }
 
   public boolean isEnabled(TransactionContext tx) {
-    SystemConfigurationProperty systemConfigurationProperty =
-        systemConfigurationPropertyDAO.getByName(tx, propertyName);
-    return (systemConfigurationProperty == null) == enabledWhenAbsent;
-  }
-
-  /**
-   * Checks if this feature is enabled using a pre-loaded map of all properties.
-   * This avoids N individual database queries when checking multiple features.
-   *
-   * @param allProperties map of property name to SystemConfigurationProperty
-   * @return true if the feature is enabled
-   */
-  public boolean isEnabled(final Map<String, SystemConfigurationProperty> allProperties) {
-    SystemConfigurationProperty prop = allProperties.get(propertyName);
+    var prop = systemConfigurationPropertyDAO.getByName(tx, propertyName);
     return (prop == null) == enabledWhenAbsent;
   }
 
@@ -645,10 +593,8 @@ public enum SystemConfigurationPropertyFeature
     }
   }
 
-  public final boolean isStored() {
-    try (TransactionContext tx = systemConfigurationPropertyDAO.createTransactionContext()) {
-      return isStored(tx);
-    }
+  public boolean isStored() {
+    return systemConfigurationPropertyDAO.getByName(propertyName) != null;
   }
 
   public boolean isStored(TransactionContext tx) {
@@ -664,7 +610,7 @@ public enum SystemConfigurationPropertyFeature
   }
 
   public void setEnabled(TransactionContext tx, boolean enabled) {
-    if (isEnabled() == enabled) {
+    if (isEnabled(tx) == enabled) {
       return;
     }
     if (enabled == enabledWhenAbsent) {

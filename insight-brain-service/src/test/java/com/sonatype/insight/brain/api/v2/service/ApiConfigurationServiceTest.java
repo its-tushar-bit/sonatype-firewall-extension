@@ -92,6 +92,10 @@ public class ApiConfigurationServiceTest
   private SystemConfigurationPropertyDAO dao;
 
   @Inject
+  @Named("spySystemConfigurationPropertyDAO")
+  private SystemConfigurationPropertyDAO spySystemConfigurationPropertyDAO;
+
+  @Inject
   @Named("testTaskScheduler")
   private TaskScheduler taskScheduler;
 
@@ -761,6 +765,24 @@ public class ApiConfigurationServiceTest
 
     verify(spy).applyConfigurationToClients(SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL);
+  }
+
+  @Test
+  public void testExecute_invalidatesDAOCache() throws Exception {
+    Set<String> propertyNames = SetUtils.hashSet(SystemConfigurationProperty.BASE_URL);
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put(ApiConfigurationService.TASK_PARAM_PROPERTIES,
+        StringUtils.join(propertyNames, ApiConfigurationService.TASK_PARAM_PROPERTIES_DELIMITER));
+    JobDataMap jobDataMap = new JobDataMap(parameters);
+    JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
+    when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+
+    // Reset invocation count since beforeTest() may have already called invalidateCache()
+    org.mockito.Mockito.clearInvocations(spySystemConfigurationPropertyDAO);
+
+    service.execute(mockJobExecutionContext);
+
+    verify(spySystemConfigurationPropertyDAO).invalidateCache();
   }
 
   @Test
@@ -2204,6 +2226,14 @@ public class ApiConfigurationServiceTest
     @Bean(name = "com.sonatype.insight.brain.api.v2.service.ApiConfigurationServiceTest$TestConfigurationListener")
     public TestConfigurationListener testConfigurationListener() {
       return spy(new TestConfigurationListener());
+    }
+
+    @Bean(name = "spySystemConfigurationPropertyDAO")
+    @Primary
+    public SystemConfigurationPropertyDAO spySystemConfigurationPropertyDAO(
+        SystemConfigurationPropertyDAO realDao)
+    {
+      return spy(realDao);
     }
   }
 

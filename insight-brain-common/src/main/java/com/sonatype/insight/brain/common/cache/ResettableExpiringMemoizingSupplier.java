@@ -3,16 +3,26 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.utils;
+package com.sonatype.insight.brain.common.cache;
 
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * This is a copy of {@link com.google.common.base.Suppliers.ExpiringMemoizingSupplier}
- * https://github.com/google/guava/blob/v33.1.0/guava/src/com/google/common/base/Suppliers.java#L271-L322 with a reset
- * method to allow us to have a cache with a single value that can be reset
+ * A TTL-based memoizing supplier with reset capability.
+ * <p>
+ * Based on {@code com.google.common.base.Suppliers.ExpiringMemoizingSupplier} from
+ * <a href="https://github.com/google/guava/blob/v33.1.0/guava/src/com/google/common/base/Suppliers.java#L271-L322">
+ * Guava</a>, with additional {@link #reset()} and {@link #setMemoizedValue(Object)} methods to support
+ * eager cache invalidation and manual value injection.
+ * </p>
+ * <p>
+ * Thread safety is achieved through double-checked locking on {@link #get()} and synchronization on
+ * mutating methods.
+ * </p>
+ *
+ * @param <T> the type of the cached value
  */
 public class ResettableExpiringMemoizingSupplier<T>
     implements Supplier<T>
@@ -46,6 +56,7 @@ public class ResettableExpiringMemoizingSupplier<T>
     long nanos = expirationNanos;
     long now = nanoTime();
     boolean changed = false;
+    T changedValue = null;
     if (nanos == 0 || now - nanos >= 0) {
       synchronized (this) {
         if (nanos == expirationNanos) { // recheck for lost race
@@ -54,13 +65,14 @@ public class ResettableExpiringMemoizingSupplier<T>
           value = newValue;
           if (oldValue != newValue) {
             changed = true;
+            changedValue = newValue;
           }
           resetExpiration(now);
         }
       }
     }
     if (onChange != null && changed) {
-      onChange.accept(value);
+      onChange.accept(changedValue);
     }
     return value;
   }
@@ -81,18 +93,23 @@ public class ResettableExpiringMemoizingSupplier<T>
     return System.nanoTime();
   }
 
-  // Visible for testing
+  /**
+   * Resets the cache, causing the next call to {@link #get()} to re-invoke the delegate.
+   */
   public synchronized void reset() {
     expirationNanos = 0;
   }
 
-  // Visible for testing
+  /**
+   * Returns the currently memoized value without triggering a refresh.
+   */
   public T getMemoizedValue() {
     return value;
   }
 
   /**
-   * Manually set an updated value that will be returned for the next `duration` without ever calling the `delegate`.
+   * Manually set an updated value that will be returned for the next {@code duration} without ever calling the
+   * delegate.
    */
   public synchronized void setMemoizedValue(final T newValue) {
     resetExpiration();

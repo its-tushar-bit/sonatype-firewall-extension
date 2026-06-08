@@ -21,7 +21,6 @@ import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -74,11 +73,9 @@ public class FeaturesService
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
 
-      // Batch load all properties once to avoid N individual queries for feature flags
-      Map<String, SystemConfigurationProperty> allProps = systemConfigurationPropertyDAO.getAllAsMap();
       features.addAll(
           Arrays.stream(SystemConfigurationPropertyFeature.values())
-              .filter(f -> f.isEnabled(allProps))
+              .filter(SystemConfigurationPropertyFeature::isEnabled)
               .collect(Collectors.toSet()));
 
       if (developerEnablementService.shouldEnableDeveloperProduct()) {

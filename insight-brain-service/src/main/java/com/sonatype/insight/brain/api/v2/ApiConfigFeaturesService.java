@@ -20,7 +20,9 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.SystemConfigurationPropertyCacheInvalidationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -85,9 +87,19 @@ public class ApiConfigFeaturesService
 
   private final TenantUtil tenantUtil;
 
+  private final TaskScheduler taskScheduler;
+
+  private final SystemConfigurationPropertyCacheInvalidationJob cacheInvalidationJob;
+
   @Inject
-  public ApiConfigFeaturesService(final TenantUtil tenantUtil) {
+  public ApiConfigFeaturesService(
+      final TenantUtil tenantUtil,
+      final TaskScheduler taskScheduler,
+      final SystemConfigurationPropertyCacheInvalidationJob cacheInvalidationJob)
+  {
     this.tenantUtil = tenantUtil;
+    this.taskScheduler = taskScheduler;
+    this.cacheInvalidationJob = cacheInvalidationJob;
   }
 
   /**
@@ -129,6 +141,7 @@ public class ApiConfigFeaturesService
     }
 
     systemConfigurationPropertyFeature.setEnabled(true);
+    invalidateCacheOnOtherNodes();
     AuditData.get().setSystemConfigurationPropertyFeature(systemConfigurationPropertyFeature);
     log.debug("Enabled feature '{}'", feature);
   }
@@ -147,8 +160,18 @@ public class ApiConfigFeaturesService
     }
 
     systemConfigurationPropertyFeature.setEnabled(false);
+    invalidateCacheOnOtherNodes();
     AuditData.get().setSystemConfigurationPropertyFeature(systemConfigurationPropertyFeature);
     log.debug("Disabled feature '{}'", feature);
+  }
+
+  private void invalidateCacheOnOtherNodes() {
+    try {
+      taskScheduler.scheduleOneTimeTaskForAllOtherNodes(cacheInvalidationJob);
+    }
+    catch (Exception e) {
+      log.warn("Failed to schedule cross-node cache invalidation; other nodes will refresh on TTL expiry", e);
+    }
   }
 
   private static void throwErrorIfFeatureNoLongerSupported(final String feature) {

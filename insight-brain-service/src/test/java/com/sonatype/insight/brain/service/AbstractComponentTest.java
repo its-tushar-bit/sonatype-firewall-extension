@@ -179,6 +179,9 @@ public class AbstractComponentTest
       customizeConfig(insightConfig);
     }
     cleanupInsightWorkFiles();
+    if (systemConfigurationPropertyDAO != null) {
+      systemConfigurationPropertyDAO.invalidateCache();
+    }
     setUpTestLicenseThreatGroups();
     grantDefaultTestUserAllPermissions();
     setUpSecurity();

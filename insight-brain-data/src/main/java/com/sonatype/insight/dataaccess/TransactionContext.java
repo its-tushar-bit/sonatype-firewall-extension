@@ -9,6 +9,8 @@ package com.sonatype.insight.dataaccess;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.sql.DataSource;
 
 import jakarta.annotation.Nullable;
@@ -105,6 +107,8 @@ public class TransactionContext
 
   private boolean committed = false;
 
+  private List<Runnable> afterCommitHooks;
+
   /**
    * Create a TransactionContext from a DataSource.
    *
@@ -189,6 +193,35 @@ public class TransactionContext
     finally {
       releaseConnection();
     }
+    runAfterCommitHooks();
+  }
+
+  /**
+   * Register a hook to run after the transaction commits successfully.
+   * Hooks execute in registration order after the connection is returned to the pool.
+   * If the transaction is rolled back, hooks are not executed.
+   * If a hook throws, remaining hooks still execute and exceptions are logged.
+   */
+  public void afterCommit(Runnable hook) {
+    if (afterCommitHooks == null) {
+      afterCommitHooks = new ArrayList<>();
+    }
+    afterCommitHooks.add(hook);
+  }
+
+  private void runAfterCommitHooks() {
+    if (afterCommitHooks == null) {
+      return;
+    }
+    for (Runnable hook : afterCommitHooks) {
+      try {
+        hook.run();
+      }
+      catch (RuntimeException e) {
+        log.warn("After-commit hook failed", e);
+      }
+    }
+    afterCommitHooks = null;
   }
 
   /**
@@ -205,6 +238,7 @@ public class TransactionContext
       throw new RuntimeException("Failed to rollback transaction", e);
     }
     finally {
+      afterCommitHooks = null;
       releaseConnection();
     }
   }

@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,13 +68,11 @@ public class MultiTenantSsoUserServiceTest
 
   @Test
   public void testUpsertByUsername_OAuth2() {
-    final TransactionContext tx = mock(TransactionContext.class);
     when(samlSsoUserProvider.isSsoConfigured()).thenReturn(false);
     when(oAuth2SsoUserProvider.isSsoConfigured()).thenReturn(true);
-    when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(tx);
-    when(systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.OAUTH2_ENABLED)).thenReturn(
+    when(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.OAUTH2_ENABLED)).thenReturn(
         new SystemConfigurationProperty(SystemConfigurationProperty.OAUTH2_ENABLED, "true"));
-    when(systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.SAML_ENABLED)).thenReturn(
+    when(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SAML_ENABLED)).thenReturn(
         new SystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true"));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();

@@ -81,7 +81,7 @@ public class RelayRegistrationServiceTest
     // Default: feature flag off (mock returns null property -> enabledWhenAbsent=false -> false).
     SystemConfigurationPropertyDAO sysDao = Mockito.mock(SystemConfigurationPropertyDAO.class);
     TransactionContext tx = Mockito.mock(TransactionContext.class);
-    when(sysDao.createTransactionContext()).thenReturn(tx);
+    Mockito.lenient().when(sysDao.createTransactionContext()).thenReturn(tx);
     SystemConfigurationPropertyFeature.injectDependencies(sysDao);
   }
 
@@ -727,8 +727,15 @@ public class RelayRegistrationServiceTest
     TransactionContext tx = Mockito.mock(TransactionContext.class);
     SystemConfigurationProperty prop =
         new SystemConfigurationProperty(SystemConfigurationProperty.SCM_RELAY_INTEGRATION, "true");
-    when(sysDao.createTransactionContext()).thenReturn(tx);
-    when(sysDao.getByName(any(), Mockito.eq(SystemConfigurationProperty.SCM_RELAY_INTEGRATION)))
+    Mockito.lenient().when(sysDao.createTransactionContext()).thenReturn(tx);
+    // Stub both overloads: isEnabled() uses the cache-backed getByName(name), while
+    // isEnabled(tx) uses getByName(tx, name). Use lenient so tests that exercise only one
+    // path don't trip Mockito's unnecessary-stubbing check.
+    Mockito.lenient()
+        .when(sysDao.getByName(Mockito.eq(SystemConfigurationProperty.SCM_RELAY_INTEGRATION)))
+        .thenReturn(prop);
+    Mockito.lenient()
+        .when(sysDao.getByName(any(), Mockito.eq(SystemConfigurationProperty.SCM_RELAY_INTEGRATION)))
         .thenReturn(prop);
     SystemConfigurationPropertyFeature.injectDependencies(sysDao);
   }

@@ -384,6 +384,77 @@ public class TransactionContextConnectionPoolTest
     }
   }
 
+  // --- afterCommit hook tests ---
+
+  @Test
+  public void testAfterCommit_hooksRunAfterCommit() {
+    var ran = new boolean[]{false};
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> ran[0] = true);
+      assertThat(ran[0]).as("hook should not run before commit").isFalse();
+      tx.commit();
+    }
+    assertThat(ran[0]).as("hook should run after commit").isTrue();
+  }
+
+  @Test
+  public void testAfterCommit_hooksRunInOrder() {
+    var order = new java.util.ArrayList<Integer>();
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> order.add(1));
+      tx.afterCommit(() -> order.add(2));
+      tx.afterCommit(() -> order.add(3));
+      tx.commit();
+    }
+    assertThat(order).containsExactly(1, 2, 3);
+  }
+
+  @Test
+  public void testAfterCommit_hooksNotRunOnRollback() {
+    var ran = new boolean[]{false};
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> ran[0] = true);
+      tx.rollback();
+    }
+    assertThat(ran[0]).as("hook should not run on rollback").isFalse();
+  }
+
+  @Test
+  public void testAfterCommit_hooksNotRunOnCloseWithoutCommit() {
+    var ran = new boolean[]{false};
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> ran[0] = true);
+    }
+    assertThat(ran[0]).as("hook should not run on implicit rollback").isFalse();
+  }
+
+  @Test
+  public void testAfterCommit_failingHookDoesNotPreventOthers() {
+    var secondRan = new boolean[]{false};
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> {
+        throw new RuntimeException("boom");
+      });
+      tx.afterCommit(() -> secondRan[0] = true);
+      tx.commit();
+    }
+    assertThat(secondRan[0]).as("second hook should run despite first failing").isTrue();
+  }
+
+  @Test
+  public void testAfterCommit_connectionReleasedBeforeHooksRun() {
+    try (TransactionContext tx = newTx()) {
+      tx.begin();
+      tx.afterCommit(() -> assertThat(pool.getNumActive()).as("connection released before hook").isZero());
+      tx.commit();
+    }
+  }
+
   /**
    * Minimal DataSource wrapper that delegates all standard methods to a real pool, allowing
    * subclasses to override only {@link #getConnection()} for testing failure scenarios while

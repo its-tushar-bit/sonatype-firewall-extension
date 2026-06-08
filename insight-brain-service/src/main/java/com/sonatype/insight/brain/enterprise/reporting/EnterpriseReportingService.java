@@ -55,7 +55,7 @@ import com.sonatype.insight.brain.solution.Solution;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.utils.MostRecentMemoizingFunction;
-import com.sonatype.insight.brain.utils.ResettableExpiringMemoizingSupplier;
+import com.sonatype.insight.brain.common.cache.ResettableExpiringMemoizingSupplier;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;

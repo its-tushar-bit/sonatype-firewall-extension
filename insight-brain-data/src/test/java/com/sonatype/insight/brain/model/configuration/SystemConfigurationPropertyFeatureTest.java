@@ -5,216 +5,242 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SystemConfigurationPropertyFeatureTest
+    extends AbstractDataTest
 {
-  @Test
-  public void testIsEnabledWithMap_PropertyAbsent_EnabledWhenAbsentTrue() {
-    // Features with enabledWhenAbsent = true should return true when property is absent
-    Map<String, SystemConfigurationProperty> emptyMap = Collections.emptyMap();
+  private SystemConfigurationPropertyDAO dao;
 
-    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled(emptyMap)).isTrue();
-    assertThat(SystemConfigurationPropertyFeature.CODE_INSIGHTS.isEnabled(emptyMap)).isTrue();
-    assertThat(SystemConfigurationPropertyFeature.PR_COMMENTING.isEnabled(emptyMap)).isTrue();
+  @Before
+  public void setUp() {
+    dao = daoFactory.createSystemConfigurationPropertyDAO();
   }
 
   @Test
-  public void testIsEnabledWithMap_PropertyAbsent_EnabledWhenAbsentFalse() {
+  public void isEnabled_enabledWhenAbsent_returnsTrueWhenPropertyAbsent() {
+    // TRANSITIVE_SOLVER has enabledWhenAbsent = true
+    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void isEnabled_enabledWhenAbsent_returnsFalseWhenPropertyPresent() {
+    // TRANSITIVE_SOLVER has enabledWhenAbsent = true, so presence means disabled
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyName(), "true");
+
+    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_disabledWhenAbsent_returnsFalseWhenPropertyAbsent() {
+    // BUILT_FROM_SOURCE has enabledWhenAbsent = false
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_disabledWhenAbsent_returnsTrueWhenPropertyPresent() {
+    // BUILT_FROM_SOURCE has enabledWhenAbsent = false, so presence means enabled
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.getPropertyName(), "false");
+
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void isEnabled_withTransaction_enabledWhenAbsent() {
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled(tx)).isTrue();
+    }
+  }
+
+  @Test
+  public void isEnabled_withTransaction_disabledWhenPresent() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyName(), "true");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled(tx)).isFalse();
+    }
+  }
+
+  @Test
+  public void isStored_returnsTrueWhenPropertyPresent() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyName(), "true");
+
+    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isStored()).isTrue();
+  }
+
+  @Test
+  public void isStored_returnsFalseWhenPropertyAbsent() {
+    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isStored()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_advancedSearchEnabled_usesValueParsing() {
+    // ADVANCED_SEARCH_ENABLED uses value parsing, not presence/absence
+    String propertyName = SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getPropertyName();
+
+    // Absent = disabled
+    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled()).isFalse();
+
+    // Value "true" = enabled
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled()).isTrue();
+
+    // Value "false" = disabled
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_autoWaivers_enabledWhenAbsentOrValueTrue() {
+    // AUTO_WAIVERS: enabled when absent OR when value is "true"
+    String propertyName = SystemConfigurationPropertyFeature.AUTO_WAIVERS.getPropertyName();
+
+    // Absent = enabled (enabledWhenAbsent = true)
+    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled()).isTrue();
+
+    // Value "true" = enabled
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled()).isTrue();
+
+    // Value "false" = disabled
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_containerImagesEvalEnabled_enabledWhenAbsentOrValueTrue() {
+    String propertyName = SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getPropertyName();
+
+    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()).isTrue();
+
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()).isTrue();
+
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_zscaler_enabledWhenAbsentOrValueTrue() {
+    String propertyName = SystemConfigurationPropertyFeature.ZSCALER.getPropertyName();
+
+    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled()).isTrue();
+
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled()).isTrue();
+
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_thirdPartyKevLookup_enabledWhenAbsentOrValueTrue() {
+    String propertyName = SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getPropertyName();
+
+    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled()).isTrue();
+
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled()).isTrue();
+
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void isEnabled_exitOnFatalError_enabledWhenAbsentOrValueTrue() {
+    String propertyName = SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getPropertyName();
+
+    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled()).isTrue();
+
+    dao.set(propertyName, "true");
+    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled()).isTrue();
+
+    dao.set(propertyName, "false");
+    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void setEnabled_togglesFeature() {
+    // Start disabled (absent, enabledWhenAbsent = false)
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isFalse();
+
+    // Enable it
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isTrue();
+
+    // Disable it
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isFalse();
+  }
+
+  // Tests for presence-based feature flags (enabledWhenAbsent = false)
+
+  @Test
+  public void presenceBasedFlags_DisabledWhenAbsent() {
     // Features with enabledWhenAbsent = false should return false when property is absent
-    Map<String, SystemConfigurationProperty> emptyMap = Collections.emptyMap();
-
-    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled(emptyMap)).isFalse();
-    assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled(emptyMap)).isFalse();
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(emptyMap)).isFalse();
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED.isEnabled(emptyMap))
-        .isFalse();
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.isEnabled(emptyMap))
-        .isFalse();
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.isEnabled(emptyMap))
-        .isFalse();
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.isEnabled(emptyMap))
-        .isFalse();
+    assertThat(SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW.isEnabled()).isFalse();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.isEnabled()).isFalse();
   }
 
   @Test
-  public void testPreviewNexusOneUi_PropertyPresent_FeatureEnabled() {
+  public void previewNexusOneUi_PropertyPresent_FeatureEnabled() {
     assertPreviewFlagEnabledWhenPropertyPresent(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI);
   }
 
   @Test
-  public void testPreviewNexusOneUi_PropertyPresentFalseValue_StillEnabled() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getPropertyName();
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
+  public void previewNexusOneUi_PropertyPresentFalseValue_StillEnabled() {
+    // Presence-based: even a value of "false" means enabled, because enabledWhenAbsent = false
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.getPropertyName(), "false");
 
-    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled(map)).isTrue();
+    assertThat(SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI.isEnabled()).isTrue();
   }
 
   @Test
-  public void testPreviewNexusOneUiAnonymousEnabled() {
+  public void previewNexusOneUiAnonymousEnabled() {
     assertPreviewFlagEnabledWhenPropertyPresent(
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_ANONYMOUS_ENABLED);
   }
 
   @Test
-  public void testPreviewNexusOneUiLoggedInEnabled() {
+  public void previewNexusOneUiLoggedInEnabled() {
     assertPreviewFlagEnabledWhenPropertyPresent(
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_LOGGEDIN_ENABLED);
   }
 
   @Test
-  public void testPreviewNexusOneUiDefaultToPreview() {
+  public void previewNexusOneUiDefaultToPreview() {
     assertPreviewFlagEnabledWhenPropertyPresent(
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DEFAULT_TO_PREVIEW);
   }
 
   @Test
-  public void testPreviewNexusOneUiDisableSwitchFeedback() {
+  public void previewNexusOneUiDisableSwitchFeedback() {
     assertPreviewFlagEnabledWhenPropertyPresent(
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK);
   }
 
-  private static void assertPreviewFlagEnabledWhenPropertyPresent(
+  private void assertPreviewFlagEnabledWhenPropertyPresent(
       SystemConfigurationPropertyFeature feature)
   {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = feature.getPropertyName();
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
+    tempEntity.newSystemConfigurationProperty(feature.getPropertyName(), "true");
 
-    assertThat(feature.isEnabled(map)).isTrue();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_PropertyPresent_TrueValue() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyName();
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-
-    // For features with enabledWhenAbsent = true, presence of row means disabled
-    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_PropertyPresent_FalseValue() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyName();
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-
-    // For features with enabledWhenAbsent = true, presence of row means disabled (regardless of value)
-    assertThat(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_AdvancedSearchEnabled() {
-    // ADVANCED_SEARCH_ENABLED uses value parsing, not presence/absence
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getPropertyName();
-
-    // Absent = disabled (special case - requires explicit "true" value)
-    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled(map)).isFalse();
-
-    // Value "true" = enabled
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled(map)).isTrue();
-
-    // Value "false" = disabled
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_AutoWaivers() {
-    // AUTO_WAIVERS: enabled when absent OR when value is "true"
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.AUTO_WAIVERS.getPropertyName();
-
-    // Absent = enabled (enabledWhenAbsent = true)
-    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled(map)).isTrue();
-
-    // Value "true" = enabled
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled(map)).isTrue();
-
-    // Value "false" = disabled
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_DeveloperSuggestNonBreakingVersion() {
-    // Same logic as AUTO_WAIVERS: enabled when absent OR when value is "true"
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getPropertyName();
-
-    assertThat(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_ContainerImagesEvalEnabled() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getPropertyName();
-
-    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_Zscaler() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.ZSCALER.getPropertyName();
-
-    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.ZSCALER.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_ThirdPartyKevLookup() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getPropertyName();
-
-    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled(map)).isFalse();
-  }
-
-  @Test
-  public void testIsEnabledWithMap_ExitOnFatalError() {
-    Map<String, SystemConfigurationProperty> map = new HashMap<>();
-    String propertyName = SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getPropertyName();
-
-    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "true"));
-    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled(map)).isTrue();
-
-    map.put(propertyName, new SystemConfigurationProperty(propertyName, "false"));
-    assertThat(SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled(map)).isFalse();
+    assertThat(feature.isEnabled()).isTrue();
   }
 }

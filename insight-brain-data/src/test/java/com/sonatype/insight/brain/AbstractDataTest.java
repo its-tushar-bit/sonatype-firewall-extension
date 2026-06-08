@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.ConditionTypesTestHelper;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -37,6 +38,7 @@ public abstract class AbstractDataTest
 
   @Before
   public void initialize() {
+    SystemConfigurationPropertyDAO.invalidateEntireCache();
     daoFactory = new TestDAOFactory(databaseRule);
     SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
     clusterLockManager = new ClusterLockManagerProvider(

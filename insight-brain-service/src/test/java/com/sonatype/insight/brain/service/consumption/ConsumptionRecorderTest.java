@@ -192,6 +192,8 @@ public class ConsumptionRecorderTest
 
     lenient().when(mockSystemConfigDao.getByName(any(), any()))
         .thenAnswer(invocation -> featureFlagState.get());
+    lenient().when(mockSystemConfigDao.getByName(any(String.class)))
+        .thenAnswer(invocation -> featureFlagState.get());
 
     lenient().doAnswer(invocation -> {
       String value = invocation.getArgument(2);

@@ -105,7 +105,8 @@ public class SupportServiceTest
     final String firstFilename = firstZip.getName();
     assertThat(firstFilename).startsWith("support-" + nowPrefix);
     final int zipIndex = firstFilename.indexOf(".zip");
-    final int counterValue = Integer.parseInt(firstFilename.substring(zipIndex - 1, zipIndex));
+    final int lastDash = firstFilename.lastIndexOf('-');
+    final int counterValue = Integer.parseInt(firstFilename.substring(lastDash + 1, zipIndex));
 
     final File secondZip = supportService.createSupportZip(false, null, false);
     assertThat(secondZip.getName()).startsWith("support-" + nowPrefix).endsWith("-" + (counterValue + 1) + ".zip");

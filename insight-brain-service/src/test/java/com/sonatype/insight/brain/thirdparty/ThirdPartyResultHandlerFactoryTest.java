@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -75,9 +74,8 @@ public class ThirdPartyResultHandlerFactoryTest
   @Before
   public void setUp() {
     mockConfigDao = mock(SystemConfigurationPropertyDAO.class);
-    when(mockConfigDao.createTransactionContext()).thenReturn(mock(TransactionContext.class));
     // Default: no rows → CONTAINER_IMAGES_EVAL_ENABLED is enabled (enabledWhenAbsent=true)
-    when(mockConfigDao.getByName(any(), any(String.class))).thenReturn(null);
+    when(mockConfigDao.getByName(any(String.class))).thenReturn(null);
     SystemConfigurationPropertyFeature.injectDependencies(mockConfigDao);
 
     com.sonatype.insight.brain.sbom.spdx.Spdx3VersionHandler spdx3VersionHandler =
@@ -102,8 +100,8 @@ public class ThirdPartyResultHandlerFactoryTest
   @Test
   public void testContainerUriSonatype_featureDisabled_withoutLicense_returnsHandler() {
     // Row present → CONTAINER_IMAGES_EVAL_ENABLED is disabled (enabledWhenAbsent=true)
-    when(mockConfigDao.getByName(any(), eq(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)))
-        .thenReturn(mock(com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.class));
+    when(mockConfigDao.getByName(eq(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)))
+        .thenReturn(mock(SystemConfigurationProperty.class));
 
     ThirdPartyScanContext context = new ThirdPartyScanContext(null, null, null, null, null);
 

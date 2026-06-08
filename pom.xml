@@ -132,7 +132,7 @@
      -->
     <jdks-maven-plugin.jdk-dir-version>jdk-25.0.2+10</jdks-maven-plugin.jdk-dir-version>
     <gitlab4j-api.version>6.2.0</gitlab4j-api.version>
-    <micrometer.version>1.15.4</micrometer.version>
+    <micrometer.version>1.17.0</micrometer.version>
     <spring-boot.version>4.0.6</spring-boot.version>
     <aspectj.version>1.9.25.1</aspectj.version>
     <aspectj-maven-plugin.version>1.14.1</aspectj-maven-plugin.version>

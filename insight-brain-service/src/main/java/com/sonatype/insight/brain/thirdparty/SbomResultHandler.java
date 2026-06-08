@@ -1179,7 +1179,7 @@ public class SbomResultHandler
     }
   }
 
-  private Metadata getFilteredMetadata(final Bom sourceBom) {
+  protected Metadata getFilteredMetadata(final Bom sourceBom) {
     // making sure we copy only identity data and nothing else
     Metadata filtered = null;
     Metadata metadata = sourceBom.getMetadata();

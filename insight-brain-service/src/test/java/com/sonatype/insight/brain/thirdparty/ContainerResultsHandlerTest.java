@@ -512,4 +512,160 @@ public class ContainerResultsHandlerTest
     assertThat(coordinateSecurity.getRecommendations()).isEqualTo(recommendation);
     assertThat(coordinateSecurity.getFixedBy()).isEqualTo(fixedBy);
   }
+
+  @Test
+  public void testParseBom_extractsContentSetsFromNeuVectorFormat() {
+    String json = """
+        {
+          "error_message": null,
+          "report": {
+            "modules": [],
+            "ContentSets": [
+              "rhel-9-for-x86_64-baseos-rpms",
+              "rhel-9-for-x86_64-appstream-rpms"
+            ]
+          }
+        }""";
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI, null, null, json);
+
+    Pair<Bom, Boolean> result = containerResultHandler.parseBom(content);
+
+    Bom bom = result.getLeft();
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getProperties()).isNotNull();
+    assertThat(bom.getMetadata().getProperties())
+        .filteredOn(p -> ContainerResultHandler.CONTENT_SET_PROPERTY_NAME.equals(p.getName()))
+        .extracting(org.cyclonedx.model.Property::getValue)
+        .containsExactlyInAnyOrder(
+            "rhel-9-for-x86_64-baseos-rpms",
+            "rhel-9-for-x86_64-appstream-rpms");
+  }
+
+  @Test
+  public void testParseBom_noContentSetsForNonRedHatImage() {
+    String json = """
+        {
+          "error_message": null,
+          "report": {"modules": []}
+        }""";
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI, null, null, json);
+
+    Pair<Bom, Boolean> result = containerResultHandler.parseBom(content);
+
+    Bom bom = result.getLeft();
+    assertThat(bom.getMetadata()).isNull();
+  }
+
+  @Test
+  public void testParseBom_handlesErrorResponseWithoutReport() {
+    String json = """
+        {"error_message": "Scan failed: registry unreachable"}""";
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI, null, null, json);
+
+    Pair<Bom, Boolean> result = containerResultHandler.parseBom(content);
+
+    Bom bom = result.getLeft();
+    assertThat(bom).isNotNull();
+    assertThat(bom.getComponents()).isEmpty();
+    assertThat(bom.getVulnerabilities()).isEmpty();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_includesContentSetsInForwardedBom() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String json = """
+        {
+          "error_message": "",
+          "report": {
+            "image_id": "abc",
+            "repository": "rhel-image",
+            "tag": "1.0",
+            "modules": [
+              {"name": "bash", "version": "5.0", "source": "rhel:8.6"}
+            ],
+            "ContentSets": [
+              "rhel-9-for-x86_64-baseos-rpms",
+              "rhel-9-for-x86_64-appstream-rpms"
+            ]
+          }
+        }""";
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:rhel:1.0", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = proxyContainerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    Bom forwardedBom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    assertThat(forwardedBom.getMetadata()).isNotNull();
+    assertThat(forwardedBom.getMetadata().getProperties())
+        .filteredOn(p -> ContainerResultHandler.CONTENT_SET_PROPERTY_NAME.equals(p.getName()))
+        .extracting(org.cyclonedx.model.Property::getValue)
+        .containsExactlyInAnyOrder(
+            "rhel-9-for-x86_64-baseos-rpms",
+            "rhel-9-for-x86_64-appstream-rpms");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_dropsNonAllowlistedMetadataProperties() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String json = """
+        {
+          "bomFormat": "CycloneDX",
+          "specVersion": "1.6",
+          "version": 1,
+          "metadata": {
+            "component": {
+              "type": "container",
+              "group": "library",
+              "name": "rhel-image",
+              "version": "1.0",
+              "purl": "pkg:generic/library/rhel-image@1.0?nexustype=container"
+            },
+            "properties": [
+              {"name": "%s", "value": "rhel-9-for-x86_64-baseos-rpms"},
+              {"name": "some.other.property", "value": "should-be-dropped"}
+            ]
+          },
+          "components": [
+            {
+              "type": "file",
+              "bom-ref": "bash-ref",
+              "name": "bash",
+              "version": "5.0",
+              "purl": "pkg:generic/library/bash@5.0?nexustype=container"
+            }
+          ]
+        }""".formatted(ContainerResultHandler.CONTENT_SET_PROPERTY_NAME);
+
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
+        "app-id", null, null, ProxyStageType.ID);
+    scanContext.setContainerItemContentType(ItemContentType.CONTAINER_URI_SONATYPE);
+    scanContext.setContainerImageSbomSpecification(SbomSpecification.CYCLONEDX);
+
+    ContainerResultHandler cycloneDxHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, scanContext, testProductLicense);
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:rhel:1.0", ItemContentType.CONTAINER_URI_SONATYPE, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = cycloneDxHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    Bom forwardedBom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    assertThat(forwardedBom.getMetadata().getProperties())
+        .extracting(org.cyclonedx.model.Property::getName)
+        .containsExactly(ContainerResultHandler.CONTENT_SET_PROPERTY_NAME)
+        .doesNotContain("some.other.property");
+  }
 }

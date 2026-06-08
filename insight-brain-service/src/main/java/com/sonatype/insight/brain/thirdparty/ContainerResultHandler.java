@@ -45,7 +45,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.google.gson.Gson;
 import com.neuvector.model.ModuleCve;
 import com.neuvector.model.ScanModule;
-import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +53,8 @@ import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
@@ -70,6 +71,10 @@ public class ContainerResultHandler
   private static final Logger log = LoggerFactory.getLogger(ContainerResultHandler.class);
 
   public static final String SONATYPE_CONTAINER = "Sonatype-Container";
+
+  static final String CONTENT_SET_PROPERTY_NAME = "sonatype.container.scanner.rhel.content_set";
+
+  private static final Set<String> ALLOWED_METADATA_PROPERTY_NAMES = Set.of(CONTENT_SET_PROPERTY_NAME);
 
   private final SbomComponentInfoTelemetry componentInfoTelemetry;
 
@@ -147,7 +152,8 @@ public class ContainerResultHandler
       }
     }
 
-    ScanRepoReportData scanRepoReportData = new Gson().fromJson(content.getContent(), ScanRepoReportData.class);
+    ScanRepoReportDataWithContentSets scanRepoReportData =
+        new Gson().fromJson(content.getContent(), ScanRepoReportDataWithContentSets.class);
     componentInfoTelemetry.setContentType(SbomFormat.JSON.name());
 
     Bom bom = new Bom();
@@ -242,7 +248,27 @@ public class ContainerResultHandler
     }
     bom.getVulnerabilities().addAll(cveCycloneDxVulnMap.values());
     bom.setComponents(new ArrayList<>(componentsToAdd));
+
+    addContentSetsToBom(scanRepoReportData.getContentSets(), bom);
+
     return Pair.of(bom, true);
+  }
+
+  private void addContentSetsToBom(List<String> contentSets, Bom bom) {
+    if (contentSets == null || contentSets.isEmpty()) {
+      return;
+    }
+    Metadata metadata = bom.getMetadata();
+    if (metadata == null) {
+      metadata = new Metadata();
+      bom.setMetadata(metadata);
+    }
+    for (String contentSet : contentSets) {
+      Property property = new Property();
+      property.setName(CONTENT_SET_PROPERTY_NAME);
+      property.setValue(contentSet);
+      metadata.addProperty(property);
+    }
   }
 
   private String getUrl(final Vulnerability vulnerability) {
@@ -303,6 +329,25 @@ public class ContainerResultHandler
   @Override
   String determineThirdPartyIdentificationSource(final String contentPath) {
     return SONATYPE_CONTAINER;
+  }
+
+  @Override
+  protected Metadata getFilteredMetadata(final Bom sourceBom) {
+    Metadata filtered = super.getFilteredMetadata(sourceBom);
+    Metadata source = sourceBom.getMetadata();
+    if (source == null || source.getProperties() == null) {
+      return filtered;
+    }
+    for (Property prop : source.getProperties()) {
+      // null-guard before Set.contains: Set.of() throws NPE on contains(null) (see CLM-37961)
+      if (prop.getName() != null && ALLOWED_METADATA_PROPERTY_NAMES.contains(prop.getName())) {
+        if (filtered == null) {
+          filtered = new Metadata();
+        }
+        filtered.addProperty(prop);
+      }
+    }
+    return filtered;
   }
 
   @Override

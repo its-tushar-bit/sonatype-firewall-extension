@@ -18,6 +18,7 @@ describe('productMetadata', () => {
   describe('PRODUCT_METADATA', () => {
     it('contains entries for all known solution ids', () => {
       const expectedIds: SolutionId[] = [
+        'developer',
         'lifecycle',
         'nexusRepositoryManager',
         'firewall',
@@ -29,7 +30,16 @@ describe('productMetadata', () => {
         expect(PRODUCT_METADATA[id].displayName).toEqual(expect.any(String));
         expect(PRODUCT_METADATA[id].iconLight).toEqual(expect.any(String));
         expect(PRODUCT_METADATA[id].iconDark).toEqual(expect.any(String));
-        expect(PRODUCT_METADATA[id].marketingUrl).toMatch(/^https:\/\/www\.sonatype\.com\//);
+      });
+    });
+
+    it('has a marketingUrl for every product except developer', () => {
+      (Object.keys(PRODUCT_METADATA) as SolutionId[]).forEach((id) => {
+        if (id === 'developer') {
+          expect(PRODUCT_METADATA[id].marketingUrl).toBeUndefined();
+        } else {
+          expect(PRODUCT_METADATA[id].marketingUrl).toMatch(/^https:\/\/www\.sonatype\.com\//);
+        }
       });
     });
   });
@@ -90,10 +100,18 @@ describe('productMetadata', () => {
   });
 
   describe('getExploreProducts', () => {
-    it('returns all known products when nothing is licensed', () => {
+    it('returns all products with a marketingUrl when nothing is licensed', () => {
       const result = getExploreProducts([]);
       const ids = result.map((p) => p.id);
-      expect(ids.sort()).toEqual(Object.keys(PRODUCT_METADATA).sort());
+      const expected = (Object.keys(PRODUCT_METADATA) as SolutionId[]).filter(
+        (id) => PRODUCT_METADATA[id].marketingUrl !== undefined,
+      );
+      expect(ids.sort()).toEqual(expected.sort());
+    });
+
+    it('omits developer from Explore (no marketing URL)', () => {
+      const result = getExploreProducts([]);
+      expect(result.map((p) => p.id)).not.toContain('developer');
     });
 
     it('omits products that are already licensed', () => {

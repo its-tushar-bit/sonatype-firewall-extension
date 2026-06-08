@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import developerLight from './images/light/developer-color-icon.svg';
+import developerDark from './images/dark/developer-color-reversed-icon.svg';
 import lifecycleLight from './images/light/lifecycle-color-icon.svg';
 import lifecycleDark from './images/dark/lifecycle-color-reversed-icon.svg';
 import nxrmLight from './images/light/repository-color-icon.svg';
@@ -15,6 +17,7 @@ import guideLight from './images/light/guide-color-icon.svg';
 import guideDark from './images/dark/guide-color-reversed-icon.svg';
 
 export type SolutionId =
+  | 'developer'
   | 'lifecycle'
   | 'nexusRepositoryManager'
   | 'firewall'
@@ -31,8 +34,9 @@ export interface ProductMetadata {
   iconLight: string;
   iconDark: string;
   // Marketing/upsell URL used by the Explore section when the product isn't licensed.
-  // Mirrors the legacy `defaultSolutionsList` URLs.
-  marketingUrl: string;
+  // Mirrors the legacy `defaultSolutionsList` URLs. Omit to exclude from Explore
+  // (e.g. Developer has no marketing page yet — matches the legacy filter).
+  marketingUrl?: string;
 }
 
 export type LicensedProduct =
@@ -48,6 +52,11 @@ export type LicensedProduct =
     };
 
 export const PRODUCT_METADATA: Record<SolutionId, ProductMetadata> = {
+  developer: {
+    displayName: 'Developer',
+    iconLight: developerLight,
+    iconDark: developerDark,
+  },
   lifecycle: {
     displayName: 'Lifecycle',
     iconLight: lifecycleLight,
@@ -125,13 +134,13 @@ export function groupAndSortLicensedSolutions(
 
 export function getExploreProducts(licensed: LicensedProduct[]): ExploreProduct[] {
   const licensedIds = new Set(licensed.map((p) => p.id));
-  const explore: ExploreProduct[] = (Object.keys(PRODUCT_METADATA) as SolutionId[])
-    .filter((id) => !licensedIds.has(id))
-    .map((id) => ({
-      id,
-      displayName: PRODUCT_METADATA[id].displayName,
-      url: PRODUCT_METADATA[id].marketingUrl,
-    }));
+  const explore: ExploreProduct[] = [];
+  for (const id of Object.keys(PRODUCT_METADATA) as SolutionId[]) {
+    if (licensedIds.has(id)) continue;
+    const { displayName, marketingUrl } = PRODUCT_METADATA[id];
+    if (!marketingUrl) continue;
+    explore.push({ id, displayName, url: marketingUrl });
+  }
   explore.sort((a, b) => a.displayName.localeCompare(b.displayName));
   return explore;
 }

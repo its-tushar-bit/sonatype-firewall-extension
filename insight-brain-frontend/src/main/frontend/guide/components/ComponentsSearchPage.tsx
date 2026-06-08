@@ -82,7 +82,13 @@ export function ComponentsSearchPage() {
     mergeAggregations(browseAggregations, data?.aggregations as Aggregations | undefined) ?? {};
   const rawOffset = parseInt(searchParams.get('offset') ?? '0', 10);
   const offset = Number.isNaN(rawOffset) ? 0 : rawOffset;
-  const hasQuery = !!searchParams.get('query');
+  const query = searchParams.get('query') ?? '';
+  const hasQuery = !!query;
+  const sortField = searchParams.get('sortField') ?? '';
+  const sortOrder = searchParams.get('sortOrder') ?? '';
+  const defaultSortValue = sortField && sortOrder
+    ? (sortField === '_score' && !query ? 'trending:desc' : `${sortField}:${sortOrder}`)
+    : (query ? '_score:desc' : 'trending:desc');
   const showPagination = components.length > 0 && total > LIMIT;
 
   return (
@@ -94,6 +100,7 @@ export function ComponentsSearchPage() {
         customFilterConfigs={{ ...COMPONENT_FILTER_ORDER, ...componentFilterDefinitions }}
         searchPlaceholder="Search components..."
         sortOptions={componentSortOptions}
+        defaultSortValue={defaultSortValue}
         clearRemovesQuery={true}
         hasQuery={hasQuery}
         hideSearch={!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)}

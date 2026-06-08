@@ -31,9 +31,10 @@ jest.mock('@guide/ui-core', () => {
   return {
     ...actual,
     PageLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    FilteredPageLayout: ({ children, header, aggregations, hideSearch }: { children: React.ReactNode; header: React.ReactNode; aggregations?: FacetAggregations; hideSearch?: boolean }) => (
+    FilteredPageLayout: ({ children, header, aggregations, hideSearch, defaultSortValue }: { children: React.ReactNode; header: React.ReactNode; aggregations?: FacetAggregations; hideSearch?: boolean; defaultSortValue?: string }) => (
       <>
         {header}
+        {defaultSortValue && <span data-testid="default-sort-value">{defaultSortValue}</span>}
         <ul aria-label="facet-aggregations">
           {Object.entries(aggregations ?? {}).flatMap(([groupKey, buckets]) =>
             Object.entries(buckets ?? {}).map(([bucketKey, count]) => (
@@ -258,6 +259,50 @@ describe('ComponentsSearchPage', () => {
 
     const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
     expect(callArg.get('limit')).toBe('10');
+  });
+
+  describe('defaultSortValue passed to FilteredPageLayout', () => {
+    it('is trending:desc when no sort and no query (browse mode)', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
+
+      await screen.findByText('Results: 3');
+      expect(screen.getByTestId('default-sort-value')).toHaveTextContent('trending:desc');
+    });
+
+    it('is _score:desc when no sort but query is present', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?query=lodash'] },
+      });
+
+      await screen.findByText('Results: 3');
+      expect(screen.getByTestId('default-sort-value')).toHaveTextContent('_score:desc');
+    });
+
+    it('is trending:desc when sort is _score but query is absent (cleared query)', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?sortField=_score&sortOrder=desc'] },
+      });
+
+      await screen.findByText('Results: 3');
+      expect(screen.getByTestId('default-sort-value')).toHaveTextContent('trending:desc');
+    });
+
+    it('mirrors the URL sort when an explicit non-_score sort is in the URL', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?sortField=publishedDate&sortOrder=desc'] },
+      });
+
+      await screen.findByText('Results: 3');
+      expect(screen.getByTestId('default-sort-value')).toHaveTextContent('publishedDate:desc');
+    });
   });
 
   it('strips query from API call when GUIDE_SEARCH is disabled', async () => {

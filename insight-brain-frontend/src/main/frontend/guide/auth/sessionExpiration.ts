@@ -32,6 +32,28 @@ interface SessionExpirationTracker {
   refreshFromResponse: (response: Response) => void;
 }
 
+// Module-level handle to the currently-running tracker. AuthProvider creates
+// exactly one tracker for the user's session and calls start()/stop() on it,
+// so any module that fields a backend response (apiFetch, loginApi, etc.) can
+// notify the tracker without threading it through React context.
+let activeTracker: SessionExpirationTracker | null = null;
+
+/**
+ * Notifies the active session-expiration tracker (if any) of a backend
+ * response so it can re-read IQ-SESSION-EXPIRATION-TIMESTAMP and reschedule
+ * its warning/expiry timers. This makes any authenticated request count as
+ * activity, mirroring the legacy IQ behaviour where the warning only fires
+ * after the user has actually been idle.
+ *
+ * Mirrors authFetch's existing rule: only successful responses (status < 400)
+ * count as activity. A 401 means Shiro has already invalidated the session,
+ * so extending the timers off an error response would be wrong.
+ */
+export function notifySessionResponse(response: Response): void {
+  if (response.status >= 400) return;
+  activeTracker?.refreshFromResponse(response);
+}
+
 export function createSessionExpirationTracker(
   options: TrackerOptions
 ): SessionExpirationTracker {
@@ -50,12 +72,16 @@ export function createSessionExpirationTracker(
     }
   }
 
+  function getAdjustedExpiry(): number | undefined {
+    const raw = readExpirationTimestamp();
+    return raw === undefined ? undefined : raw + clockOffset;
+  }
+
   function scheduleTimers() {
     clearTimers();
-    const serverExpiry = readExpirationTimestamp();
-    if (serverExpiry === undefined) return;
+    const adjustedExpiry = getAdjustedExpiry();
+    if (adjustedExpiry === undefined) return;
 
-    const adjustedExpiry = serverExpiry + clockOffset;
     const now = Date.now();
     const timeUntilExpiry = adjustedExpiry - now;
     const timeUntilWarning = timeUntilExpiry - WARNING_BEFORE_MS;
@@ -66,21 +92,49 @@ export function createSessionExpirationTracker(
     }
 
     if (timeUntilWarning > 0) {
-      warningTimer = setTimeout(() => {
-        options.onWarning();
-      }, timeUntilWarning);
+      warningTimer = setTimeout(handleWarningTick, timeUntilWarning);
     } else {
+      // Already inside the warning window. Fire immediately; the expiry timer
+      // below still drives the eventual logout.
       options.onWarning();
     }
 
-    expiredTimer = setTimeout(() => {
-      options.onExpired();
-    }, timeUntilExpiry);
+    expiredTimer = setTimeout(handleExpiredTick, timeUntilExpiry);
   }
 
-  return {
-    start: scheduleTimers,
-    stop: clearTimers,
+  // Re-read the cookie when each timer fires. If the cookie has been pushed
+  // forward by activity since the timer was scheduled, we silently reschedule
+  // instead of showing the warning / logging out — the source of truth is the
+  // server-issued cookie, not the original schedule.
+  function handleWarningTick() {
+    const adjustedExpiry = getAdjustedExpiry();
+    if (adjustedExpiry !== undefined && adjustedExpiry - Date.now() > WARNING_BEFORE_MS) {
+      scheduleTimers();
+      return;
+    }
+    options.onWarning();
+  }
+
+  function handleExpiredTick() {
+    const adjustedExpiry = getAdjustedExpiry();
+    if (adjustedExpiry !== undefined && adjustedExpiry > Date.now()) {
+      scheduleTimers();
+      return;
+    }
+    options.onExpired();
+  }
+
+  const tracker: SessionExpirationTracker = {
+    start() {
+      activeTracker = tracker;
+      scheduleTimers();
+    },
+    stop() {
+      clearTimers();
+      if (activeTracker === tracker) {
+        activeTracker = null;
+      }
+    },
     refreshFromResponse(response: Response) {
       const dateHeader = response.headers.get('Date');
       if (dateHeader) {
@@ -89,4 +143,6 @@ export function createSessionExpirationTracker(
       scheduleTimers();
     },
   };
+
+  return tracker;
 }

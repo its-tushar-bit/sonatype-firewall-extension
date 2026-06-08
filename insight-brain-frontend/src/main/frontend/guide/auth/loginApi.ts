@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { notifySessionResponse } from './sessionExpiration';
 
 const SESSION_URL = '/rest/user/session';
 
@@ -22,6 +23,7 @@ interface RawSessionPayload {
 
 export async function fetchSession(): Promise<SessionResponse> {
   const response = await fetch(SESSION_URL, { credentials: 'same-origin' });
+  notifySessionResponse(response);
 
   if (response.status === 401) {
     return {

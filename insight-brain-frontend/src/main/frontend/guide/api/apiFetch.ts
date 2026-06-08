@@ -5,28 +5,17 @@
  */
 
 import { getCsrfToken } from '../auth/csrfToken';
+import { notifySessionResponse } from '../auth/sessionExpiration';
 
 /**
  * API configuration for Guide SPA.
  *
- * When self-hosted, the SPA is served from IQ Server and uses relative URLs.
- * Backend endpoints will be at: /api/v2/guide/...
- *
- * Real backend endpoints are being built in insight-brain-service, mirroring
- * seaworthy's backend-server API.
+ * The SPA is served from IQ Server and uses relative URLs. Backend endpoints
+ * live under `/api/v2/guide/...` and mirror seaworthy's backend-server API.
  */
 
-/**
- * Feature flag to control mock data usage.
- * TODO: Set to false when real backend endpoints exist.
- */
-export const USE_MOCKS = true;
-
-/** API prefix for all Guide endpoints. Matches JAX-RS path in insight-brain-service when available. (GUIDE-2316). */
+/** API prefix for all Guide endpoints. Matches JAX-RS path in insight-brain-service. */
 export const API_PREFIX = '/api/v2/guide';
-
-/** Artificial latency for mock responses — makes loading states visible during development. Remove when real backend is integrated. */
-const MOCK_LATENCY_MS = 1500;
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -42,37 +31,22 @@ export class ApiError extends Error {
   }
 }
 
-/** Options for apiFetch */
-export interface ApiFetchOptions extends RequestInit {
-  /** Mock handler to use when USE_MOCKS is true */
-  mockHandler?: () => unknown;
-}
+export type ApiFetchOptions = RequestInit;
 
 /**
- * Generic fetch wrapper that handles mock data and error responses.
+ * Generic fetch wrapper for Guide backend endpoints.
  *
- * When USE_MOCKS is true and a mockHandler is provided, returns the mock
- * data after a small artificial latency to exercise loading states.
- *
- * Otherwise, performs a real fetch and throws ApiError on non-2xx responses.
- *
- * @param path - The URL path to fetch
- * @param init - Standard fetch options plus mockHandler
- * @returns Parsed JSON response typed as T
- * @throws ApiError on non-2xx responses
+ * Sends `credentials: 'same-origin'` so the IQ session cookie travels with
+ * the request, attaches a CSRF token on unsafe methods, notifies the
+ * session-expiration tracker on every response so activity-driven session
+ * extension is reflected client-side, and throws {@link ApiError} on non-2xx
+ * responses.
  */
 export async function apiFetch<T>(
   path: string,
   init?: ApiFetchOptions
 ): Promise<T> {
-  const { mockHandler, ...fetchOptions_ } = init ?? {};
-  let fetchOptions: Omit<ApiFetchOptions, 'mockHandler'> = fetchOptions_;
-
-  if (USE_MOCKS && mockHandler) {
-    // Simulate network latency to exercise loading states
-    await new Promise((resolve) => setTimeout(resolve, MOCK_LATENCY_MS));
-    return mockHandler() as T;
-  }
+  let fetchOptions: ApiFetchOptions = init ?? {};
 
   const method = (fetchOptions.method ?? 'GET').toUpperCase();
   if (!SAFE_METHODS.has(method)) {
@@ -84,7 +58,9 @@ export async function apiFetch<T>(
     }
   }
 
-  const response = await fetch(path, fetchOptions);
+  const response = await fetch(path, { credentials: 'same-origin', ...fetchOptions });
+
+  notifySessionResponse(response);
 
   if (!response.ok) {
     let errorMessage = `${response.status} ${response.statusText}`;

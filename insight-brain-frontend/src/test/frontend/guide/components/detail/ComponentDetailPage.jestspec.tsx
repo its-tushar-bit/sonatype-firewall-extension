@@ -9,7 +9,7 @@ import { Route, Routes } from 'react-router';
 import { render, screen, waitFor } from '../../test-utils';
 import { ComponentDetailPage } from 'GuideRoot/components/detail/ComponentDetailPage';
 import * as backend from 'GuideRoot/api/componentsBackend';
-import { mockComponentDetail } from 'GuideRoot/api/mocks/mockComponentDetailData';
+import { mockComponentDetail } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 
 jest.mock('GuideRoot/utils/navigation', () => ({
   reloadPage: jest.fn(),

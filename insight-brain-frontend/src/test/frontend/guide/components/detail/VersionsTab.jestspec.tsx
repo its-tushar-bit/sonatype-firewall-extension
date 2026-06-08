@@ -10,7 +10,7 @@ import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
 import { VersionsTab } from 'GuideRoot/components/detail/VersionsTab';
 import * as backend from 'GuideRoot/api/componentsBackend';
-import { mockComponentDetail, mockVersions } from 'GuideRoot/api/mocks/mockComponentDetailData';
+import { mockComponentDetail, mockVersions } from 'TestRoot/guide/api/fixtures/componentDetailFixtures';
 import { ComponentProvider } from '@guide/ui-core';
 
 jest.mock('GuideRoot/api/componentsBackend', () => ({

@@ -25,11 +25,11 @@ import { apiFetch, ApiError } from 'GuideRoot/api/apiFetch';
 const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
 
 beforeEach(() => {
-  // Default: delegate to mockHandler when present (preserves behaviour for endpoints
-  // in other backends that still use mock data — see componentsBackend, searchBackend).
-  mockApiFetch.mockImplementation(async <T>(_path: string, init?: { mockHandler?: () => unknown }): Promise<T> => {
-    if (init?.mockHandler) return init.mockHandler() as T;
-    throw new Error('No mock handler — real API not available in tests');
+  // Default: every call must be set up explicitly with mockApiFetch.mockResolvedValue(...)
+  // or mockApiFetch.mockRejectedValue(...). An unconfigured call throws so we never
+  // silently hit the real network from tests.
+  mockApiFetch.mockImplementation(async () => {
+    throw new Error('apiFetch was called without a per-test mock — set mockApiFetch.mockResolvedValue / mockRejectedValue first');
   });
 });
 

@@ -200,6 +200,11 @@ public class TestProductLicenseManager
       ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_SAAS,
       ProductLicenseDetails.PRODUCT_LIFECYCLE_FOUNDATION_SAAS,
       ProductLicenseDetails.PRODUCT_AUDITOR_SAAS,
+      // GUIDE_SELF_HOSTED is needed so CLMLicenseManager derives GUIDE, GUIDE_MCP, and
+      // GUIDE_SEARCH features for integration tests under AbstractResourceTest. Without it
+      // the SearchLicenseFilter / McpLicenseFilter return 403 on every Guide endpoint.
+      // Tests that need to verify "no Guide license" can call setProducts(...) explicitly.
+      ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED,
     };
 
     private Set<LicensedFeature> features;

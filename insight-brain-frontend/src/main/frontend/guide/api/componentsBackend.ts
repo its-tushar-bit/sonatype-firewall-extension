@@ -21,14 +21,32 @@ import type {
   RecommendationResponse,
 } from '@guide/ui-core/types';
 
+/**
+ * Build a canonical PURL from coordinate parts, mirroring Guide SaaS's
+ * {@code ui/src/lib/recommendationsUtils.ts} {@code buildPurl}.
+ *
+ * Each coordinate component is percent-encoded via {@code encodeURIComponent} so
+ * characters with PURL syntactic meaning ({@code /}, {@code @}, {@code %}) inside a
+ * component are encoded rather than misinterpreted as separators. This is essential
+ * for scoped npm packages: a name like {@code @types/node} must become
+ * {@code %40types%2Fnode} in the PURL string, otherwise the upstream {@code PackageURL}
+ * parser splits at the literal {@code /} and reads it as
+ * {@code (namespace=@types, name=node)} instead of the
+ * {@code (namespace=null, name=@types/node)} form OpenSearch indexes by.
+ *
+ * {@code URLSearchParams} double-encodes the resulting {@code %XX} sequences for URL
+ * transport ({@code %40} → {@code %2540}), so the backend receives the canonical form
+ * intact after one URL-decode. That matches Guide SaaS's wire format (Spring's
+ * {@code UriComponentsBuilder} double-encodes {@code %} the same way), so search-server
+ * sees identical input from both deployments.
+ */
 function buildPurl(ecosystem: string, pkg: string, version: string): string {
   const { namespace, name } = parsePackageIdentifier(pkg);
   const normalizedFormat = ecosystem.trim().toLowerCase();
-  // No pre-encoding here — URLSearchParams encodes the whole PURL string once when it's
-  // used as a query param value. Pre-encoding with encodeURIComponent causes double-encoding
-  // (%40 → %2540) and breaks scoped npm packages like @scope/name.
-  const namespacePrefix = namespace ? `${namespace.trim()}/` : '';
-  return `pkg:${normalizedFormat}/${namespacePrefix}${name.trim()}@${version.trim()}`;
+  const encodedName = encodeURIComponent(name.trim());
+  const encodedVersion = encodeURIComponent(version.trim());
+  const namespacePrefix = namespace ? `${encodeURIComponent(namespace.trim())}/` : '';
+  return `pkg:${normalizedFormat}/${namespacePrefix}${encodedName}@${encodedVersion}`;
 }
 
 /**

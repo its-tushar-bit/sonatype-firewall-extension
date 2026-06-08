@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.spring.config;
 
-import com.sonatype.insight.brain.mcp.McpServletProvider;
-import com.sonatype.insight.brain.mcp.policy.PolicyAnnotator;
-import com.sonatype.insight.brain.mcp.search.SearchApiClient;
+import com.sonatype.insight.brain.guide.mcp.McpServletProvider;
+import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.guide.core.SearchApiClient;
 
 import jakarta.servlet.ServletRegistration;
 import org.slf4j.Logger;

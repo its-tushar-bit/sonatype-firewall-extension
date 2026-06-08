@@ -80,7 +80,13 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
       // GUIDE_UI: prevents tenants from toggling the flag via the features API; product switcher visibility
       // is gated by TenantUtil.isMultiTenant() in SolutionResolver independently of this flag.
-      SystemConfigurationPropertyFeature.GUIDE_UI);
+      SystemConfigurationPropertyFeature.GUIDE_UI,
+      // Guide self-hosted is single-tenant only. SearchLicenseFilter and McpLicenseFilter
+      // also hard-block any /api/v2/guide/* and /mcp/* request when isMultiTenant() is true;
+      // banning the licensed features here keeps the features API consistent with that.
+      LicensedFeature.GUIDE,
+      LicensedFeature.GUIDE_MCP,
+      LicensedFeature.GUIDE_SEARCH);
 
   private final ApiConfigFeaturesService service;
 

@@ -197,15 +197,21 @@ describe('componentsBackend', () => {
       expect(init).toBeUndefined();
     });
 
-    it('does not double-encode scoped npm packages in the PURL', async () => {
+    it('encodes the scope and slash inside scoped npm names', async () => {
       mockApiFetch.mockResolvedValue({ format: 'npm', name: 'name', version: '1.0.0' });
 
       await getComponentDetail('npm', '@scope/name', '1.0.0');
 
       const [path] = mockApiFetch.mock.calls[0];
-      // URLSearchParams encodes @ → %40 and / → %2F once; no double-encoding (%2540)
-      expect(path).toContain('pkg%3Anpm%2F%40scope%2Fname%401.0.0');
-      expect(path).not.toContain('%2540');
+      // buildPurl percent-encodes the scoped name (@scope/name → %40scope%2Fname),
+      // then URLSearchParams double-encodes those %XX for transport (%40 → %2540,
+      // %2F → %252F). After one URL-decode at the backend the canonical form
+      // pkg:npm/%40scope%2Fname@1.0.0 is preserved, which the upstream PackageURL
+      // parser correctly reads as (namespace=null, name=@scope/name) — the form
+      // OpenSearch indexes by. Without the double-encoding the slash in the name
+      // would collapse to a literal / and the parser would misread it as
+      // (namespace=@scope, name=name), causing a 404.
+      expect(path).toContain('pkg%3Anpm%2F%2540scope%252Fname%401.0.0');
     });
 
     it('returns null when the backend returns 404', async () => {
@@ -239,14 +245,14 @@ describe('componentsBackend', () => {
       );
     });
 
-    it('does not double-encode scoped npm packages', async () => {
+    it('encodes the scope and slash inside scoped npm names', async () => {
       mockApiFetch.mockResolvedValue(emptyResponse);
 
       await getComponentVulnerabilities('npm', '@scope/name', '1.0.0', undefined, {}, { offset: 0, limit: 25 });
 
       const [path] = mockApiFetch.mock.calls[0];
-      expect(path).toContain('pkg%3Anpm%2F%40scope%2Fname%401.0.0');
-      expect(path).not.toContain('%2540');
+      // See getComponentDetail's encoding test for the rationale.
+      expect(path).toContain('pkg%3Anpm%2F%2540scope%252Fname%401.0.0');
     });
 
     it('appends sort options when provided', async () => {
@@ -460,14 +466,14 @@ describe('componentsBackend', () => {
       );
     });
 
-    it('does not double-encode scoped npm packages', async () => {
+    it('encodes the scope and slash inside scoped npm names', async () => {
       mockApiFetch.mockResolvedValue(emptyResponse);
 
       await getComponentDependencies('npm', '@scope/name', '1.0.0', undefined, {}, { offset: 0, limit: 25 });
 
       const [path] = mockApiFetch.mock.calls[0];
-      expect(path).toContain('pkg%3Anpm%2F%40scope%2Fname%401.0.0');
-      expect(path).not.toContain('%2540');
+      // See getComponentDetail's encoding test for the rationale.
+      expect(path).toContain('pkg%3Anpm%2F%2540scope%252Fname%401.0.0');
     });
 
     it('appends sort options when provided', async () => {
@@ -597,14 +603,18 @@ describe('componentsBackend', () => {
       expect(JSON.parse(init?.body as string)).toEqual({ purl: 'pkg:npm/lodash@4.17.21' });
     });
 
-    it('does not double-encode scoped npm packages in the PURL body', async () => {
+    it('sends the canonical (encoded-internals) PURL form for scoped npm packages', async () => {
       mockApiFetch.mockResolvedValue(fakeRecommendations);
 
       await getRecommendations('npm', '@scope/name', '1.0.0');
 
       const [, init] = mockApiFetch.mock.calls[0];
       const { purl } = JSON.parse(init?.body as string);
-      expect(purl).toBe('pkg:npm/@scope/name@1.0.0');
+      // buildPurl percent-encodes the scoped name so the backend parses it as
+      // (namespace=null, name=@scope/name) — matching how OpenSearch indexes the
+      // component. Without the encoding the upstream parser splits on the literal
+      // slash and mis-reads it as (namespace=@scope, name=name).
+      expect(purl).toBe('pkg:npm/%40scope%2Fname@1.0.0');
     });
 
     it('returns null when the backend returns 404', async () => {

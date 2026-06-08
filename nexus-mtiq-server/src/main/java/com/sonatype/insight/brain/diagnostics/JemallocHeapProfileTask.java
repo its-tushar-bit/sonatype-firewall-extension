@@ -44,9 +44,18 @@ public class JemallocHeapProfileTask
     try {
       profilingAlreadyActive = JemallocProfileDumper.dumpProfile(profilePath.toString());
     }
-    catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+    catch (UnsatisfiedLinkError | NoClassDefFoundError | IllegalArgumentException
+        | ExceptionInInitializerError e)
+    {
+      // The first failing call gets ExceptionInInitializerError wrapping the real cause; subsequent calls get
+      // NoClassDefFoundError because the class is in an error state. Unwrap the former so the operator sees the
+      // original failure message rather than a generic wrapper.
+      Throwable rootCause = (e instanceof ExceptionInInitializerError && e.getCause() != null) ? e.getCause() : e;
+      String detail = (rootCause.getMessage() != null) ? rootCause.getMessage() : rootCause.getClass().getSimpleName();
       throw new IllegalStateException(
-          "jemalloc mallctl symbol not available, unable to create heap profile. Is jemalloc LD_PRELOAD'd?", e);
+          "jemalloc mallctl symbol not available, unable to create heap profile. Is jemalloc LD_PRELOAD'd? ("
+              + detail + ")",
+          e);
     }
 
     log.info("Created jemalloc heap profile: {}", basename);

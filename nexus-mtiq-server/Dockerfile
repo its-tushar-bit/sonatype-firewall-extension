@@ -44,10 +44,7 @@ RUN apt-get update && apt-get install -y \
   curl \
   libjemalloc2 \
   tini \
-&& rm -rf /var/lib/apt/lists/* \
-# Java's System.loadLibrary("jemalloc") requires the unversioned libjemalloc.so name (dev-package
-# convention), but only libjemalloc2 (runtime package) is installed. Create the symlink manually.
-&& for f in /usr/lib/*/libjemalloc.so.2; do ln -sf "$f" "${f%.2}"; done
+&& rm -rf /var/lib/apt/lists/*
 
 # Copy assembly from builder
 COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server

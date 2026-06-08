@@ -46,21 +46,25 @@ public class JemallocProfileDumper
       SIZE_T // newlen: size_t
   );
 
+  private static final String JEMALLOC_SONAME = "libjemalloc.so.2";
+
   private static final MethodHandle MALLCTL;
 
   static {
-    // jemalloc uses a large static TLS block and cannot be dlopen'd at runtime — it must be LD_PRELOAD'd.
-    // System.loadLibrary registers the already-loaded library with the classloader so that loaderLookup() can
-    // find its symbols. If jemalloc isn't preloaded, this throws UnsatisfiedLinkError which is caught by
-    // JemallocHeapProfileTask.
-    System.loadLibrary("jemalloc");
-
+    // Use libraryLookup rather than System.loadLibrary because System.loadLibrary only walks java.library.path,
+    // whereas the native loader's load-path configuration is what knows where libjemalloc.so.2 actually lives on
+    // multi-arch systems. The String (name) overload of libraryLookup goes through that loader; the Path overload
+    // would treat the argument as a filesystem path and fail.
+    //
+    // Despite jemalloc's large static TLS block normally preventing dlopen at runtime, this is safe because
+    // LD_PRELOAD already mapped jemalloc at exec time — the loader matches by (device, inode) and just bumps the
+    // refcount of the existing mapping.
     Linker linker = Linker.nativeLinker();
-    SymbolLookup lookup = SymbolLookup.loaderLookup();
+    SymbolLookup lookup = SymbolLookup.libraryLookup(JEMALLOC_SONAME, Arena.global());
 
     MemorySegment mallctlAddr = lookup.find("mallctl")
         .orElseThrow(() -> new UnsatisfiedLinkError(
-            "mallctl symbol not found in loaded jemalloc library"));
+            "mallctl symbol not found in loaded jemalloc library — is " + JEMALLOC_SONAME + " LD_PRELOAD'd?"));
 
     MALLCTL = linker.downcallHandle(mallctlAddr, MALLCTL_DESCRIPTOR);
   }

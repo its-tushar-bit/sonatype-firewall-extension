@@ -38,6 +38,7 @@
     "@react-hook/resize-observer": "^1.2.6",
     "@reduxjs/toolkit": "^2.11.2",
     "@sonatype/react-commonmark": "^3.0.1",
+    "@sonatype/nexus-one-components": "^0.1.0",
     "@sonatype/react-shared-components": "^14.0.13",
     "@sonatype/solution-switcher-react-component": "^14.3.0",
     "@sonatype/version-graph": "^1.0.13",

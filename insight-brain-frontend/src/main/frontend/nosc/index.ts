@@ -14,7 +14,3 @@
 // Semantic Icons
 export { ActionIcons, StatusIcons, NavIcons } from './icons';
 export type { ActionIconName, StatusIconName, NavIconName } from './icons';
-
-// Design Tokens
-export { colors, spacing, radii, fontSizes } from './theme';
-export type { ColorToken, SpacingToken, RadiusToken, FontSizeToken } from './theme';

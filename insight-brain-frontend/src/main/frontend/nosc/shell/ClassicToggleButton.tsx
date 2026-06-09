@@ -15,7 +15,9 @@ import { selectIsPreviewNexusOneUiEnabled } from 'MainRoot/productFeatures/produ
 import { bundleIndexUrl, isNexusOneBundle } from 'MainRoot/util/urlUtil';
 
 import '@radix-ui/themes/styles.css';
-import 'MainRoot/nosc/theme/theme-variables.css';
+// Loaded here because this button is rendered inside the Classic bundle
+// (App.jsx) where the Nexus One SPA's CSS is not loaded.
+import '@sonatype/nexus-one-components';
 
 function readHashPath(): string {
   const rawHash = typeof window !== 'undefined' ? window.location.hash : '';

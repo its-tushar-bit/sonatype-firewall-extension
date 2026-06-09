@@ -11,12 +11,13 @@ import router from 'MainRoot/router/routerInstance';
 import { NexusOneShellLayout } from 'MainRoot/nosc/shell/NexusOneShellLayout';
 
 import '@radix-ui/themes/styles.css';
-// Shared IQ theme (gray/slate scales, layout tokens). Brand blue/tomato also appear here
-// until @sonatype/nexus-one-components (CLM-40381) replaces local CSS.
-import 'MainRoot/nosc/theme/theme-variables.css';
-// Nexus One brand/accent overrides — load last so edits in this file take effect.
-// Master: apps/ux-standards/system/src/tokens/nexus-one-tokens.css
-import 'MainRoot/nosc/theme/nexus-one-tokens.css';
+// Sonatype Nexus One brand colors, Radix palette (with brand blue/tomato
+// scale overrides), and typography. Side-effect import — the package's
+// index.js auto-imports the CSS files. This is the Nexus One SPA entry
+// point; all components mounted under it inherit the loaded CSS. Components
+// rendered outside the Nexus One SPA (e.g. `ClassicToggleButton`, mounted
+// inside the Classic bundle) load the lib import themselves.
+import '@sonatype/nexus-one-components';
 import './nexus-one.css';
 
 function ThemedApp() {

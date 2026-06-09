@@ -13,7 +13,6 @@ import { SOLUTIONS, Solution } from 'MainRoot/nosc/platformHome/solutions';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
 
 import '@radix-ui/themes/styles.css';
-import 'MainRoot/nosc/theme/theme-variables.css';
 
 /**
  * P1-F14 / CLM-39608. The Nexus One Platform Home: a 5-tile grid of

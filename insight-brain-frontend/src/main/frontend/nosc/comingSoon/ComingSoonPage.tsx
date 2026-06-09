@@ -11,7 +11,6 @@ import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 
 import '@radix-ui/themes/styles.css';
-import 'MainRoot/nosc/theme/theme-variables.css';
 
 /**
  * P1-F15: generic "Coming Soon" placeholder for Nexus One Preview modules

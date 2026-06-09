@@ -15,7 +15,6 @@ import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
 
 import '@radix-ui/themes/styles.css';
-import 'MainRoot/nosc/theme/theme-variables.css';
 
 /**
  * The SystemConfigurationPropertyFeature sub-flag names mirrored on

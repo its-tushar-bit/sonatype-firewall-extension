@@ -3010,6 +3010,11 @@
     pascalcase "^0.1.1"
     xss-filters "^1.2.6"
 
+"@sonatype/nexus-one-components@^0.1.0":
+  version "0.1.0"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@sonatype/nexus-one-components/-/nexus-one-components-0.1.0.tgz#47b53f3e1a93725965b576489fef2e959e402a48"
+  integrity sha512-DjhO6XtUnqxOScJ7Dkp1pgGoNu1VuOjo4aFW02PTVDO9lQt7wDA7Wn10tmCfW5dFoK/PXbnjnBj1Xvkx1rnYpw==
+
 "@sonatype/react-commonmark@^3.0.1":
   version "3.0.1"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/@sonatype/react-commonmark/-/react-commonmark-3.0.1.tgz"

@@ -14,8 +14,6 @@ import { TopNav } from './TopNav';
 import LeftNav from './LeftNav';
 
 import '@radix-ui/themes/styles.css';
-import 'MainRoot/nosc/theme/nexus-one-tokens.css';
-import 'MainRoot/nosc/theme/theme-variables.css';
 
 /**
  * Nexus One shell chrome (TopNav + LeftNav) for the dedicated

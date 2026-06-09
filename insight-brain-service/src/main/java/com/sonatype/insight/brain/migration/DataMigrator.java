@@ -66,6 +66,8 @@ public class DataMigrator
 
   private final FirewallMetricsMigrator firewallMetricsMigrator;
 
+  private final ReferencePolicyBackfillMigrator referencePolicyBackfillMigrator;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -93,6 +95,7 @@ public class DataMigrator
       RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator,
       SamlUserGroupMigrator samlUserGroupMigrator,
       FirewallMetricsMigrator firewallMetricsMigrator,
+      ReferencePolicyBackfillMigrator referencePolicyBackfillMigrator,
       final ClusterLockManager clusterLockManager)
   {
     this.policyJsonMigrator = policyJsonMigrator;
@@ -118,6 +121,7 @@ public class DataMigrator
     this.repositoryComponentDisplayNameMigrator = repositoryComponentDisplayNameMigrator;
     this.samlUserGroupMigrator = samlUserGroupMigrator;
     this.firewallMetricsMigrator = firewallMetricsMigrator;
+    this.referencePolicyBackfillMigrator = referencePolicyBackfillMigrator;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -156,5 +160,6 @@ public class DataMigrator
     repositoryComponentDisplayNameMigrator.migrate();
     samlUserGroupMigrator.migrate();
     firewallMetricsMigrator.migrate();
+    referencePolicyBackfillMigrator.migrate();
   }
 }

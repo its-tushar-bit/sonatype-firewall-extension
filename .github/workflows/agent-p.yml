@@ -89,7 +89,7 @@ jobs:
           verbose: ${{ inputs.verbose }}
           # Monorepo mode: AGP auto-discovers all projects in the repository
           # working-directory: 'ui'
-          docker-registry: sonatype.repo.sonatype.app/docker-all
+          docker-image: sonatype.repo.sonatype.app/docker-all/sonatype/agp:latest
           docker-username: ${{ secrets.RC_USERNAME }}
           docker-password: ${{ secrets.RC_PASSWORD }}
           npmrc-content: ${{ steps.npmrc.outputs.content }}

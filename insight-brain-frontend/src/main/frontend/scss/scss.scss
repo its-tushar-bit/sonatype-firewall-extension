@@ -158,7 +158,6 @@
 @use '../OrgsAndPolicies/legacyViolationsEditor/legacyViolationsEditor';
 @use '../OrgsAndPolicies/selectContactModal/selectContactModal';
 @use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';
-@use '../OrgsAndPolicies/waiverExpirationNotificationEditor/waiverExpirationNotificationEditor';
 @use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
 @use '../OrgsAndPolicies/sourceControlConfiguration/sourceControlConfiguration';
 @use '../OrgsAndPolicies/manageGitHubApps/manageGitHubApps';
@@ -169,6 +168,7 @@
 @use '../firewall/bulkWaive/bulkWaivePage/bulkWaiveTableRow/bulkWaiveTableRow';
 @use '../firewall/bulkWaive/bulkWaiveConfigurationPage/firewallBulkWaiveConfigurationPage';
 @use '../firewall/renewWaiver/renewWaiverPage';
+@use '../firewall/iqProxy/firewallProxyConfigurationPage';
 @use '../firewall/waiverRequests/firewallWaiverRequests';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
 @use '../configuration/userTokensConfiguration/userTokensConfiguration';

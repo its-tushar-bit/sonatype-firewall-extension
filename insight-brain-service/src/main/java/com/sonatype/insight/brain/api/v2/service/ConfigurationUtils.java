@@ -119,7 +119,7 @@ public class ConfigurationUtils
     return url;
   }
 
-  private static void validateUrl(String url) {
+  public static void validateUrl(String url) {
     try {
       new URL(url);
     }

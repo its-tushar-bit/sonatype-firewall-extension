@@ -523,6 +523,8 @@ public enum SystemConfigurationPropertyFeature
 
   CONSUMPTION_REPORTING(SystemConfigurationProperty.CONSUMPTION_REPORTING_ENABLED, false),
 
+  IQ_PROXY_ENABLED(SystemConfigurationProperty.IQ_PROXY_ENABLED, false),
+
   /**
    * Gates the SCM webhook relay integration. Disabled by default. The {@code relayUrl}
    * config property defaults to the production CLM gateway (mirroring {@code hdsUrl}),

@@ -1,0 +1,33 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.iq-firewall-proxy-form {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+
+  &__name-field {
+    width: 300px;
+  }
+
+  &__url-row {
+    display: flex;
+    flex-direction: row;
+    height: 40px;
+    padding-top: 10px;
+  }
+}
+
+.iq-firewall-proxy-modal {
+  &__proxy-url-label {
+    margin-top: 1rem;
+  }
+}
+
+.iq-copy-url-button--hidden {
+  visibility: hidden;
+}

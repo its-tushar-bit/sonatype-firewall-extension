@@ -242,6 +242,15 @@ describe('RepositorySummaryView', () => {
     expect(accessTile).toBeVisible();
   });
 
+  it('does not render IQ Proxy form on individual repository page', async () => {
+    renderComponent(preloadedState);
+
+    await screen.findByTestId('repositories_access');
+
+    expect(screen.queryByPlaceholderText('Repository name')).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Upstream repository URL')).not.toBeInTheDocument();
+  });
+
   it('renders namespace confusion protection and access tile only for hosted repositories', async () => {
     axiosMock.onGet(getRepositoryInfoUrl(ownerId)).reply(200, {
       managerInstanceId: '7EDE7A0F-41612922-1613498A-165AA9D9-D1031992',

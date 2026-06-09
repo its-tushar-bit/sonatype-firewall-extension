@@ -375,3 +375,5 @@ export const selectIsUsageDashboardEnabled = createSelector(
   (flagEnabled, hasLifecycle, isStandaloneSbom, isStandaloneFirewall, isStandaloneDeveloper) =>
     flagEnabled && hasLifecycle && !isStandaloneSbom && !isStandaloneFirewall && !isStandaloneDeveloper
 );
+
+export const selectIsIqProxyEnabled = createSelector(selectProductFeatures, propOr(false, 'iq-proxy-enabled'));

@@ -5,8 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import static com.sonatype.insight.brain.repository.RepositoryService.buildProxyUrl;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -16,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -71,11 +78,13 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -90,6 +99,8 @@ import com.sonatype.insight.lqa.LqaComponentIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import com.google.common.base.Strings;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -141,7 +152,13 @@ public class ApiFirewallService
 
   private final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService;
 
+  private final BaseUrl baseUrl;
+
   private final FirewallPermissionGate firewallPermissionGate;
+
+  private static final Set<String> PROXY_FORMATS = Set.of("maven2", "npm", "pypi", "nuget");
+
+  private static final Set<String> ALLOWED_UPSTREAM_SCHEMES = Set.of("http", "https");
 
   @Inject
   public ApiFirewallService(
@@ -158,6 +175,7 @@ public class ApiFirewallService
       final OwnerDAO ownerDAO,
       final OrganizationService organizationService,
       final com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
+      final BaseUrl baseUrl,
       final FirewallPermissionGate firewallPermissionGate)
   {
     this.productLicense = productLicense;
@@ -173,6 +191,7 @@ public class ApiFirewallService
     this.ownerDAO = ownerDAO;
     this.organizationService = organizationService;
     this.mainRepositoryService = mainRepositoryService;
+    this.baseUrl = baseUrl;
     this.firewallPermissionGate = firewallPermissionGate;
   }
 
@@ -709,6 +728,53 @@ public class ApiFirewallService
     AuditData.get().setRepositoryManager(repoManager);
   }
 
+  @Authorize(permission = Permission.WRITE)
+  public ApiRepositoryDTO addRepository(
+      @AuthzContext(Key.REPOSITORY_MANAGER_ID) String repositoryManagerId,
+      ApiRepositoryDTO apiRepositoryDTO)
+  {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repositoryManagerId);
+    if (repositoryManager.getManagerType() != ManagerType.VIRTUAL) {
+      throw new BadRequestException("Repository Manager type must be virtual.");
+    }
+
+    if (apiRepositoryDTO.repositoryId != null) {
+      throw new BadRequestException("The repository ID must be null.");
+    }
+
+    if (Strings.isNullOrEmpty(apiRepositoryDTO.publicId)) {
+      throw new BadRequestException("Repository public ID is required.");
+    }
+
+    if (Strings.isNullOrEmpty(apiRepositoryDTO.format)) {
+      throw new BadRequestException("Repository format is required.");
+    }
+
+    if (!PROXY_FORMATS.contains(apiRepositoryDTO.format)) {
+      throw new BadRequestException("Repository format not supported.");
+    }
+
+    if (Strings.isNullOrEmpty(apiRepositoryDTO.upstreamUrl)) {
+      throw new BadRequestException("Repository upstream URL is required.");
+    }
+
+    validateUpstreamUrl(apiRepositoryDTO.upstreamUrl);
+
+    Repository repository = ApiRepositoryDTO.toRepository(apiRepositoryDTO);
+    repository.setRepositoryManagerId(repositoryManagerId);
+    repository.setRepositoryType(RepositoryType.proxy);
+    repository.setQuarantineEnabled(true);
+    repository.setAuditEnabled(true);
+    repositoryDAO.insert(repository);
+
+    AuditData.get().setRepository(repository);
+
+    ApiRepositoryDTO result = ApiRepositoryDTO.fromRepository(repository);
+    result.proxyUrl = buildProxyUrl(baseUrl.get(), repositoryManager.getInstanceId(), repository.getPublicId());
+    return result;
+  }
+
   public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     checkWritePermission(RepositoryContainer.SINGLETON);
@@ -717,6 +783,24 @@ public class ApiFirewallService
       throw new BadRequestException("The repository manager ID must be null.");
     }
 
+    RepositoryManager repositoryManager = toRepositoryManager(apiRepositoryManagerDTO);
+    repositoryManagerDAO.insert(repositoryManager);
+
+    AuditData.get().setRepositoryManager(repositoryManager);
+
+    return fromRepositoryManager(repositoryManager);
+  }
+
+  public ApiRepositoryManagerDTO addVirtualRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
+    productLicense.validateFeature(LicensedFeature.FIREWALL);
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
+    if (apiRepositoryManagerDTO.id != null) {
+      throw new BadRequestException("The repository manager ID must be null.");
+    }
+
+    apiRepositoryManagerDTO.instanceId = UUID.randomUUID().toString();
+    apiRepositoryManagerDTO.managerType = ManagerType.VIRTUAL;
     RepositoryManager repositoryManager = toRepositoryManager(apiRepositoryManagerDTO);
     repositoryManagerDAO.insert(repositoryManager);
 
@@ -742,7 +826,40 @@ public class ApiFirewallService
     dto.instanceId = repositoryManager.getInstanceId();
     dto.productName = repositoryManager.getProductName();
     dto.productVersion = repositoryManager.getProductVersion();
+    dto.managerType = repositoryManager.getManagerType();
     return dto;
+  }
+
+  static void validateUpstreamUrl(String url) {
+    URI parsed;
+    try {
+      parsed = new URI(url);
+    }
+    catch (URISyntaxException e) {
+      throw new BadRequestException("Invalid upstream URL: " + url, e);
+    }
+    String scheme = parsed.getScheme();
+    if (scheme == null || !ALLOWED_UPSTREAM_SCHEMES.contains(scheme.toLowerCase())) {
+      throw new BadRequestException("Upstream URL must use http or https.");
+    }
+    String host = parsed.getHost();
+    if (Strings.isNullOrEmpty(host)) {
+      throw new BadRequestException("Upstream URL must include a host.");
+    }
+    InetAddress[] addresses;
+    try {
+      addresses = InetAddress.getAllByName(host);
+    }
+    catch (UnknownHostException e) {
+      throw new BadRequestException("Upstream URL host could not be resolved: " + host, e);
+    }
+    for (InetAddress address : addresses) {
+      if (address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isLinkLocalAddress()
+          || address.isSiteLocalAddress() || address.isMulticastAddress())
+      {
+        throw new BadRequestException("Upstream URL must not point to an internal or restricted address.");
+      }
+    }
   }
 
   private static RepositoryManager toRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
@@ -752,6 +869,7 @@ public class ApiFirewallService
     repositoryManager.setInstanceId(apiRepositoryManagerDTO.instanceId);
     repositoryManager.setProductName(apiRepositoryManagerDTO.productName);
     repositoryManager.setProductVersion(apiRepositoryManagerDTO.productVersion);
+    repositoryManager.setManagerType(apiRepositoryManagerDTO.managerType);
     return repositoryManager;
   }
 }

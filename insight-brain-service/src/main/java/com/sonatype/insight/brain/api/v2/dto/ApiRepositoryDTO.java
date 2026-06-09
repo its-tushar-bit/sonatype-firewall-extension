@@ -32,6 +32,10 @@ public class ApiRepositoryDTO
 
   public boolean monitoringEnabled;
 
+  public String upstreamUrl;
+
+  public String proxyUrl;
+
   public static RepositoryDTO toRepositoryDTO(ApiRepositoryDTO dto) {
     RepositoryDTO repositoryDTO = new RepositoryDTO();
     repositoryDTO.name = dto.publicId;
@@ -56,6 +60,7 @@ public class ApiRepositoryDTO
     repository.setPolicyCompliantComponentSelectionEnabled(dto.policyCompliantComponentSelectionEnabled);
     repository.setNamespaceConfusionProtectionEnabled(dto.namespaceConfusionProtectionEnabled);
     repository.setMonitoringEnabled(dto.monitoringEnabled);
+    repository.setUpstreamUrl(dto.upstreamUrl);
     return repository;
   }
 
@@ -70,6 +75,7 @@ public class ApiRepositoryDTO
     apiRepositoryDTO.policyCompliantComponentSelectionEnabled = repository.isPolicyCompliantComponentSelectionEnabled();
     apiRepositoryDTO.namespaceConfusionProtectionEnabled = repository.isNamespaceConfusionProtectionEnabled();
     apiRepositoryDTO.monitoringEnabled = repository.isMonitoringEnabled();
+    apiRepositoryDTO.upstreamUrl = repository.getUpstreamUrl();
     return apiRepositoryDTO;
   }
 

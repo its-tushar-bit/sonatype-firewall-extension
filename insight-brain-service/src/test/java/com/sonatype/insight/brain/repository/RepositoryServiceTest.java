@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -151,6 +152,7 @@ public class RepositoryServiceTest
   @Before
   public void before() {
     policyViolationLogDTOAssert = new PolicyViolationLogDTOAssert(repositoryManagerDAO);
+    setBaseUrl("http://localhost/", true);
 
     FirewallIgnorePatterns firewallIgnorePatterns = new FirewallIgnorePatterns();
     firewallIgnorePatterns.regexpsByRepositoryFormat = new HashMap<>();
@@ -589,13 +591,18 @@ public class RepositoryServiceTest
 
   @Test
   public void testGetRepositoryById() {
-    Repository repository = tempEntity.newRepository();
+    RepositoryManager virtualManager = tempEntity.newRepositoryManager();
+    virtualManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(virtualManager);
+    Repository repository = tempEntity.newRepository(virtualManager);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), new Date());
 
     RepositoryDTO actual = repositoryService.getRepositoryById(repository.getId());
     assertThat(actual.repository).isNotNull();
     assertThat(actual.repository.getPublicId()).isEqualTo(repository.getPublicId());
     assertThat(actual.oldestEvalTimestamp).isEqualTo(repositoryComponent.getLastEvaluationTime().getTime());
+    assertThat(actual.proxyUrl)
+        .isEqualTo("http://localhost/api/v2/proxy/" + actual.managerInstanceId + "/" + repository.getPublicId());
   }
 
   @Test

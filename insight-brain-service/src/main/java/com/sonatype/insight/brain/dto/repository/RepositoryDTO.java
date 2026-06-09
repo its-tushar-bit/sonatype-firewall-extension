@@ -15,5 +15,7 @@ public class RepositoryDTO
 
   public String managerName;
 
+  public String proxyUrl;
+
   public Repository repository;
 }

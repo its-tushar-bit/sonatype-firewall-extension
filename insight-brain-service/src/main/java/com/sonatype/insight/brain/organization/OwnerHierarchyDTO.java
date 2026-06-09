@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -117,6 +118,7 @@ public class OwnerHierarchyDTO
           ownerHierarchyRepositoryManagerDTO.id = repositoryManager.getId();
           ownerHierarchyRepositoryManagerDTO.name = repositoryManager.getName();
           ownerHierarchyRepositoryManagerDTO.synthetic = true;
+          ownerHierarchyRepositoryManagerDTO.managerType = repositoryManager.getManagerType();
           return ownerHierarchyRepositoryManagerDTO;
         };
 
@@ -208,6 +210,8 @@ public class OwnerHierarchyDTO
   {
     public List<String> repositoryManagerIds = new ArrayList<>();
 
+    public List<String> virtualRepositoryManagerIds = new ArrayList<>();
+
     OwnerHierarchyRepositoryContainerDTO() {
       id = RepositoryContainer.REPOSITORY_CONTAINER_ID;
       name = RepositoryContainer.SINGLETON.getName();
@@ -220,17 +224,25 @@ public class OwnerHierarchyDTO
 
     @Override
     List<String> getChildIds(OwnerType... ignored) {
-      return repositoryManagerIds;
+      return Stream.concat(repositoryManagerIds.stream(), virtualRepositoryManagerIds.stream())
+          .collect(Collectors.toList());
     }
 
     @Override
     public void addChild(final OwnerHierarchyEntityDTO child) {
-      repositoryManagerIds.add(child.id);
+      if (child instanceof OwnerHierarchyRepositoryManagerDTO
+          && ((OwnerHierarchyRepositoryManagerDTO) child).managerType == ManagerType.VIRTUAL)
+      {
+        virtualRepositoryManagerIds.add(child.id);
+      }
+      else {
+        repositoryManagerIds.add(child.id);
+      }
     }
 
     @Override
     boolean hasChild(final String childId) {
-      return this.getChildIds().contains(childId);
+      return repositoryManagerIds.contains(childId) || virtualRepositoryManagerIds.contains(childId);
     }
   }
 
@@ -240,6 +252,8 @@ public class OwnerHierarchyDTO
     public boolean synthetic;
 
     public String instanceId;
+
+    public ManagerType managerType;
 
     public List<String> repositoryIds = new ArrayList<>();
 
@@ -270,6 +284,7 @@ public class OwnerHierarchyDTO
           ownerHierarchyRepositoryManagerDTO.id = repositoryManager.getId();
           ownerHierarchyRepositoryManagerDTO.name = repositoryManager.getName();
           ownerHierarchyRepositoryManagerDTO.instanceId = repositoryManager.getInstanceId();
+          ownerHierarchyRepositoryManagerDTO.managerType = repositoryManager.getManagerType();
           return ownerHierarchyRepositoryManagerDTO;
         };
   }

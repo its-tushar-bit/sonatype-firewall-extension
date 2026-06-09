@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -367,5 +368,61 @@ public class OwnerHierarchyTest
     assertThat(hierarchy.getOrganizationById(orgOne.getId()).id).isEqualTo(orgOne.getId());
     assertThat(hierarchy.getOrganizationById(orgTwo.getId()).id).isEqualTo(orgTwo.getId());
     assertThat(hierarchy.getOrganizationById("Ramdon ID")).isNull();
+  }
+
+  @Test
+  public void testVirtualRepositoryManagerRoutedToVirtualList() {
+    // given a virtual repository manager and a regular repository manager
+    RepositoryManager virtualManager = tempEntity.newRepositoryManager();
+    virtualManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(virtualManager);
+
+    RepositoryManager regularManager = tempEntity.newRepositoryManager();
+
+    List<Organization> orgs = organizationService.getAll();
+    List<RepositoryManager> repositoryManagers = Arrays.asList(virtualManager, regularManager);
+    OwnerHierarchy hierarchy =
+        new OwnerHierarchy(orgs, emptyList(), repositoryManagers, emptyList(), organizationDAO, repositoryManagerDAO);
+
+    // then the virtual manager is in virtualRepositoryManagerIds, not repositoryManagerIds
+    OwnerHierarchyRepositoryContainerDTO repositoryContainer = hierarchy.getRepositoryContainer();
+    assertThat(repositoryContainer.repositoryManagerIds).containsExactly(regularManager.getId());
+    assertThat(repositoryContainer.virtualRepositoryManagerIds).containsExactly(virtualManager.getId());
+  }
+
+  @Test
+  public void testRegularRepositoryManagerRoutedToRegularList() {
+    // given two repository managers with no managerType set
+    RepositoryManager managerOne = tempEntity.newRepositoryManager();
+    RepositoryManager managerTwo = tempEntity.newRepositoryManager();
+
+    List<Organization> orgs = organizationService.getAll();
+    List<RepositoryManager> repositoryManagers = Arrays.asList(managerOne, managerTwo);
+    OwnerHierarchy hierarchy =
+        new OwnerHierarchy(orgs, emptyList(), repositoryManagers, emptyList(), organizationDAO, repositoryManagerDAO);
+
+    // then both managers are in repositoryManagerIds, and virtualRepositoryManagerIds is empty
+    OwnerHierarchyRepositoryContainerDTO repositoryContainer = hierarchy.getRepositoryContainer();
+    assertThat(repositoryContainer.repositoryManagerIds).containsExactlyInAnyOrder(
+        managerOne.getId(),
+        managerTwo.getId());
+    assertThat(repositoryContainer.virtualRepositoryManagerIds).isEmpty();
+  }
+
+  @Test
+  public void testManagerTypeIsPropagatedToDTO() {
+    // given a virtual repository manager
+    RepositoryManager virtualManager = tempEntity.newRepositoryManager();
+    virtualManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(virtualManager);
+
+    List<Organization> orgs = organizationService.getAll();
+    List<RepositoryManager> repositoryManagers = Arrays.asList(virtualManager);
+    OwnerHierarchy hierarchy =
+        new OwnerHierarchy(orgs, emptyList(), repositoryManagers, emptyList(), organizationDAO, repositoryManagerDAO);
+
+    // then the managerType is set on the DTO
+    OwnerHierarchyRepositoryManagerDTO managerDTO = hierarchy.getRepositoryManagerById(virtualManager.getId());
+    assertThat(managerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
   }
 }

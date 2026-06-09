@@ -41,6 +41,7 @@ export const initialState = {
   toggleOrganizationsCheck: true,
   toggleApplicationsCheck: true,
   toggleRepositoryManagersCheck: false,
+  toggleVirtualRepositoryManagersCheck: false,
   toggleRepositoriesCheck: true,
   filteredEntries: {
     applications: [],
@@ -216,6 +217,7 @@ const onRouterFinish = (state, { payload }) => {
     state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
     state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
     state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+    state.toggleVirtualRepositoryManagersCheck = initialState.toggleVirtualRepositoryManagersCheck;
     state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
     resetFilter(state);
   }
@@ -232,6 +234,7 @@ const loadFulfilled = (state, { payload }) => {
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
   state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;
+  state.toggleVirtualRepositoryManagersCheck = initialState.toggleVirtualRepositoryManagersCheck;
   state.toggleRepositoriesCheck = initialState.toggleRepositoriesCheck;
   state.flattenEntries = payload.flattenEntries;
 };
@@ -448,6 +451,7 @@ const ownerSideNavSlice = createSlice({
     toggleOrganizationsCollapse: toggleBooleanProp('toggleOrganizationsCheck'),
     toggleApplicationsCollapse: toggleBooleanProp('toggleApplicationsCheck'),
     toggleRepositoryManagersCollapse: toggleBooleanProp('toggleRepositoryManagersCheck'),
+    toggleVirtualRepositoryManagersCollapse: toggleBooleanProp('toggleVirtualRepositoryManagersCheck'),
     toggleRepositoresCollapse: toggleBooleanProp('toggleRepositoriesCheck'),
     setDisplayedOrganization: propSet('displayedOrganization'),
     setFilterQuery,

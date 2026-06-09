@@ -22,7 +22,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -42,6 +44,9 @@ public class ApiFirewallServiceAuthzTest
 {
   @Inject
   private ApiFirewallService apiFirewallService;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
 
   @Test
   public void testGetReleaseQuarantineSummary_Authorized() {
@@ -285,6 +290,55 @@ public class ApiFirewallServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testAddRepositoryManager_Unauthenticated() {
     apiFirewallService.addRepositoryManager(new ApiRepositoryManagerDTO());
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_Authorized() {
+    grantWritePermission(RepositoryContainer.SINGLETON.getId());
+
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testVirtualName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddVirtualRepositoryManager_Unauthorized() {
+    login();
+    apiFirewallService.addVirtualRepositoryManager(new ApiRepositoryManagerDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddVirtualRepositoryManager_Unauthenticated() {
+    apiFirewallService.addVirtualRepositoryManager(new ApiRepositoryManagerDTO());
+  }
+
+  @Test
+  public void testAddRepository_Authorized() {
+    setBaseUrl("http://localhost:8070/");
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+    grantWritePermission(repositoryManager.getId());
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+    apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddRepository_Unauthorized() {
+    login();
+    apiFirewallService.addRepository(repositoryManager.getId(), new ApiRepositoryDTO());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddRepository_Unauthenticated() {
+    apiFirewallService.addRepository(repositoryManager.getId(), new ApiRepositoryDTO());
   }
 
   private void configureRepositories() {

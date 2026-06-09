@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.sonatype.insight.brain.model.repository.ManagerType;
+
 public class ApiRepositoryManagerDTO
 {
   public String id;
@@ -16,4 +18,6 @@ public class ApiRepositoryManagerDTO
   public String productName;
 
   public String productVersion;
+
+  public ManagerType managerType;
 }

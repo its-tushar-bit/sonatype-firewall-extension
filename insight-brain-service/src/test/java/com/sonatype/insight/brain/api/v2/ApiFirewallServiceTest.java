@@ -80,6 +80,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityE
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -2419,6 +2420,266 @@ public class ApiFirewallServiceTest
     ApiRepositoryListDTO dto = new ApiRepositoryListDTO();
     dto.repositories = Arrays.stream(repositories).map(ApiRepositoryDTO::fromRepository).collect(Collectors.toList());
     return dto;
+  }
+
+  @Test
+  public void testAddRepository() throws Exception {
+    setBaseUrl("http://localhost:8070/");
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+    ApiRepositoryDTO result = apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+
+    // Assert the repository data in the response
+    assertThat(result.repositoryId).isNotNull();
+    assertThat(result.publicId).isEqualTo("test-repo");
+    assertThat(result.format).isEqualTo("maven2");
+    assertThat(result.type).isEqualTo("proxy");
+    assertThat(result.upstreamUrl).isEqualTo("https://repo1.maven.org/maven2/");
+    assertThat(result.proxyUrl).isEqualTo(
+        "http://localhost:8070/api/v2/proxy/" + repositoryManager.getInstanceId() + "/test-repo");
+
+    // Assert the repository data in the db
+    Repository storedRepository = repositoryDAO.getById(result.repositoryId);
+    assertThat(storedRepository.getPublicId()).isEqualTo("test-repo");
+    assertThat(storedRepository.getFormat()).isEqualTo("maven2");
+    assertThat(storedRepository.getRepositoryType()).isEqualTo(RepositoryType.proxy);
+    assertThat(storedRepository.getRepositoryManagerId()).isEqualTo(repositoryManager.getId());
+    assertThat(storedRepository.getUpstreamUrl()).isEqualTo("https://repo1.maven.org/maven2/");
+  }
+
+  @Test
+  public void testAddRepository_CannotSpecifyRepositoryId() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.repositoryId = "some-existing-id";
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> {
+          apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+        })
+        .withMessageContaining("The repository ID must be null.");
+  }
+
+  @Test
+  public void testAddRepository_MissingPublicId() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.format = "maven2";
+    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
+        .withMessage("Repository public ID is required.");
+  }
+
+  @Test
+  public void testAddRepository_MissingFormat() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.upstreamUrl = "https://repo1.maven.org/maven2/";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
+        .withMessage("Repository format is required.");
+  }
+
+  @Test
+  public void testAddRepository_MissingUpstreamUrl() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
+        .withMessage("Repository upstream URL is required.");
+  }
+
+  @Test
+  public void testAddRepository_UnsupportedFormat() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "unsupported-format";
+    apiRepositoryDTO.upstreamUrl = "https://example.com/repo/";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO))
+        .withMessage("Repository format not supported.");
+  }
+
+  @Test
+  public void testAddRepository_InvalidUpstreamUrl() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setManagerType(ManagerType.VIRTUAL);
+    repositoryManagerDAO.update(repositoryManager);
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+    apiRepositoryDTO.upstreamUrl = "not-a-valid-url";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO));
+  }
+
+  @Test
+  public void testValidateUpstreamUrl_RejectsNonHttpScheme() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("file:///etc/passwd"))
+        .withMessageContaining("http or https");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("ftp://example.com/"))
+        .withMessageContaining("http or https");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("jar:http://example.com/x.jar!/"))
+        .withMessageContaining("http or https");
+  }
+
+  @Test
+  public void testValidateUpstreamUrl_RejectsInternalAddresses() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://127.0.0.1/"))
+        .withMessageContaining("internal or restricted");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://169.254.169.254/latest/meta-data/"))
+        .withMessageContaining("internal or restricted");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://192.168.1.1/"))
+        .withMessageContaining("internal or restricted");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ApiFirewallService.validateUpstreamUrl("http://10.0.0.1/"))
+        .withMessageContaining("internal or restricted");
+  }
+
+  @Test
+  public void testValidateUpstreamUrl_AcceptsPublicHttps() {
+    ApiFirewallService.validateUpstreamUrl("https://repo1.maven.org/maven2/");
+    ApiFirewallService.validateUpstreamUrl("http://example.com/");
+  }
+
+  @Test
+  public void testAddRepository_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ApiRepositoryDTO apiRepositoryDTO = new ApiRepositoryDTO();
+    apiRepositoryDTO.publicId = "test-repo";
+    apiRepositoryDTO.format = "maven2";
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      apiFirewallService.addRepository(repositoryManager.getId(), apiRepositoryDTO);
+    });
+  }
+
+  @Test
+  public void testAddRepositoryManager_WithManagerType() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.instanceId = "testInstanceId";
+    apiRepositoryManagerDTO.name = "testName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+    apiRepositoryManagerDTO.managerType = ManagerType.VIRTUAL;
+
+    apiRepositoryManagerDTO = apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
+
+    // Assert the managerType is returned in the response
+    assertThat(apiRepositoryManagerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
+
+    // Assert the managerType is persisted in the db
+    RepositoryManager storedRepositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
+    assertThat(storedRepositoryManager.getManagerType()).isEqualTo(ManagerType.VIRTUAL);
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testVirtualName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    apiRepositoryManagerDTO = apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
+
+    // Assert the response data
+    assertThat(apiRepositoryManagerDTO.id).isNotNull();
+    assertThat(apiRepositoryManagerDTO.instanceId).isNotBlank();
+    assertThat(apiRepositoryManagerDTO.name).isEqualTo("testVirtualName");
+    assertThat(apiRepositoryManagerDTO.productName).isEqualTo("testProductName");
+    assertThat(apiRepositoryManagerDTO.productVersion).isEqualTo("testProductVersion");
+    assertThat(apiRepositoryManagerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
+
+    // Assert the data persisted in the db
+    RepositoryManager storedRepositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
+    assertThat(storedRepositoryManager.getInstanceId()).isEqualTo(apiRepositoryManagerDTO.instanceId);
+    assertThat(storedRepositoryManager.getName()).isEqualTo("testVirtualName");
+    assertThat(storedRepositoryManager.getManagerType()).isEqualTo(ManagerType.VIRTUAL);
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_SetsManagerTypeWhenCallerOmitsIt() throws Exception {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testVirtualName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+    apiRepositoryManagerDTO.managerType = null;
+
+    apiRepositoryManagerDTO = apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
+
+    assertThat(apiRepositoryManagerDTO.managerType).isEqualTo(ManagerType.VIRTUAL);
+    RepositoryManager storedRepositoryManager = repositoryManagerDAO.getById(apiRepositoryManagerDTO.id);
+    assertThat(storedRepositoryManager.getManagerType()).isEqualTo(ManagerType.VIRTUAL);
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_CannotSpecifyRepositoryManagerId() {
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.id = "testId";
+    apiRepositoryManagerDTO.name = "testVirtualName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO))
+        .withMessageContaining("The repository manager ID must be null.");
+  }
+
+  @Test
+  public void testAddVirtualRepositoryManager_NoFirewallFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+
+    ApiRepositoryManagerDTO apiRepositoryManagerDTO = new ApiRepositoryManagerDTO();
+    apiRepositoryManagerDTO.name = "testVirtualName";
+    apiRepositoryManagerDTO.productName = "testProductName";
+    apiRepositoryManagerDTO.productVersion = "testProductVersion";
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO));
   }
 
   private void configureAndAssertRepositories(Object... repositoriesAndUpdatedAfterDate) {

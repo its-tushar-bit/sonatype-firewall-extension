@@ -53,6 +53,7 @@ owner-summary {
 
 .iq-tile-scroll-container--owner-summary-view {
   width: calc(100% - #{$iq-spacing-sm});
+  padding-bottom: var(--nx-footer-height, 52px);
 }
 
 .iq-owner-public-id {

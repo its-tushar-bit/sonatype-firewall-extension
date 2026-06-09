@@ -11,3 +11,4 @@ export const selectOwnerSummarySlice = createSelector(selectOrgsAndPoliciesSlice
 export const selectLoading = createSelector(selectOwnerSummarySlice, prop('loading'));
 export const selectLoadError = createSelector(selectOwnerSummarySlice, prop('loadError'));
 export const selectHasEditIqPermission = createSelector(selectOwnerSummarySlice, prop('hasEditIqPermission'));
+export const selectHasViewIqPermission = createSelector(selectOwnerSummarySlice, prop('hasViewIqPermission'));

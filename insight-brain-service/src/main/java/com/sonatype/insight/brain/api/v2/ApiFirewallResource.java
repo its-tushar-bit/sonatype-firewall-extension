@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationRequestList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryComponentEvaluationResultList;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryContainerDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
@@ -111,6 +112,8 @@ public class ApiFirewallResource
 
   static final String REPOSITORY_MANAGERS_PATH = "repositoryManagers";
 
+  static final String VIRTUAL_MANAGERS_PATH = "virtualManagers";
+
   static final String SWAGGER_UI_API_LABEL = "Firewall";
 
   private static final String REPOSITORIES_PATH = "repositories";
@@ -129,6 +132,8 @@ public class ApiFirewallResource
       COMPONENTS_PATH + "/" + REPOSITORY_MANAGER_ID_PATH + "/" + REPOSITORY_ID_PATH + "/evaluate";
 
   static final String REPOSITORY_CONTAINER_PATH = "repositoryContainer";
+
+  static final String ADD_REPOSITORY_PATH = REPOSITORY_MANAGER_PATH + "/" + REPOSITORIES_PATH;
 
   static final String CONNECTION_VERIFY_PATH = "connection/verify";
 
@@ -501,6 +506,29 @@ public class ApiFirewallResource
     return apiFirewallService.addRepositoryManager(apiRepositoryManagerDTO);
   }
 
+  @POST
+  @Path(ADD_REPOSITORY_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CONFIGURE_REPOSITORY)
+  @Operation(description = "Use this method to add a new repository to a virtual repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the new repository.",
+            useReturnTypeSchema = true)
+      })
+  public ApiRepositoryDTO addRepository(
+      @Parameter(
+          description = "Enter the repository manager ID.") @PathParam("repositoryManagerId") String repositoryManagerId,
+      @RequestBody(description = "Enter values for the new repository.",
+          required = true, useParameterTypeSchema = true) ApiRepositoryDTO apiRepositoryDTO)
+  {
+    return apiFirewallService.addRepository(repositoryManagerId, apiRepositoryDTO);
+  }
+
   @GET
   @Path(REPOSITORIES_CONFIGURATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -742,5 +770,26 @@ public class ApiFirewallResource
     apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
     // Get all applications (no organization or application ID filtering) accessible for component evaluation
     return applicationSummaryService.getApplications(Goal.VIEW_CIP, null, Collections.emptySet());
+  }
+
+  @POST
+  @Path(VIRTUAL_MANAGERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_REPOSITORY_MANAGER)
+  @Operation(description = "Use this method to add a new repository manager." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+        @ApiResponse(responseCode = "200",
+            description = "The response contains the details of the new repository manager.",
+            useReturnTypeSchema = true)
+      })
+  public ApiRepositoryManagerDTO addVirtualRepositoryManager(
+      @RequestBody(description = "Enter values for the new repository manager.",
+          required = true, useParameterTypeSchema = true) ApiRepositoryManagerDTO apiRepositoryManagerDTO)
+  {
+    return apiFirewallService.addVirtualRepositoryManager(apiRepositoryManagerDTO);
   }
 }

@@ -156,6 +156,7 @@ public class ConfigFeaturesResourceTest
         SystemConfigurationPropertyFeature.PREVIEW_NEXUS_ONE_UI_DISABLE_SWITCH_FEEDBACK.getId(),
         SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.getId(),
         SystemConfigurationPropertyFeature.SCM_RELAY_INTEGRATION.getId(),
+        SystemConfigurationPropertyFeature.IQ_PROXY_ENABLED.getId(),
       })).toArray(String[]::new);
 
   @Before

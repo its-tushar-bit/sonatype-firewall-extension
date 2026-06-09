@@ -18,7 +18,7 @@ export const selectRouterStateUrl = createSelector(selectRouterState, prop('url'
 export const selectCurrentRouteName = createSelector(selectRouterState, prop('name'));
 export const selectCurrentRouteTitle = createSelector(selectRouterState, path(['data', 'title']));
 
-export const selectRouterPrevState = createSelector(selectRouterSlice, (router) => prop('prevState', router) ?? {});
+export const selectRouterPrevState = createSelector(selectRouterSlice, prop('prevState'));
 
 export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('prevParams'));
 
@@ -36,6 +36,7 @@ const nameIncludesFirewall = includesNamePart('firewall');
 const nameStartsWithDeveloper = (stringToSearch = '') => stringToSearch.startsWith('developer');
 export const nameStartsWithFirewall = (stringToSearch = '') => stringToSearch.startsWith('firewall');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
+const nameIncludesVirtualRepositoryContainer = includesNamePart('virtual_repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');
 const nameIncludesPolicy = includesNamePart('policy');
@@ -64,6 +65,10 @@ export const selectIsSbomManagerComponentDetails = createSelector(
   isSbomManagerComponentDetails
 );
 export const selectIsRepositoryContainer = createSelector(selectCurrentRouteName, nameIncludesRepositoryContainer);
+export const selectIsVirtualRepositoryContainer = createSelector(
+  selectCurrentRouteName,
+  nameIncludesVirtualRepositoryContainer
+);
 export const selectIsRepositoryManager = createSelector(selectCurrentRouteName, nameIncludesRepositoryManager);
 export const selectIsCategory = createSelector(selectRouterStateUrl, nameIncludesCategory);
 export const selectIsLegacyViolation = createSelector(selectRouterStateUrl, nameIncludesLegacyViolations);
@@ -157,9 +162,10 @@ export const selectIsRepositoriesRelated = createSelector(
   selectIsRepository,
   selectIsRepositories,
   selectIsRepositoryContainer,
+  selectIsVirtualRepositoryContainer,
   selectIsRepositoryManager,
-  (isRepository, isRepositories, isRepositoryContainer, isRepositoryManager) =>
-    isRepository || isRepositories || isRepositoryContainer || isRepositoryManager
+  (isRepository, isRepositories, isRepositoryContainer, isVirtualRepositoryContainer, isRepositoryManager) =>
+    isRepository || isRepositories || isRepositoryContainer || isVirtualRepositoryContainer || isRepositoryManager
 );
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
@@ -169,6 +175,7 @@ export const selectSbomVersionId = createSelector(selectRouterCurrentParams, pro
 export const selectSbomVersionIdCdp = createSelector(selectRouterCurrentParams, propOr('', 'sbomVersion'));
 export const selectSbomComponentHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryManagerId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryManagerId'));
+export const selectRepositoryManagerInstanceId = createSelector(selectRouterCurrentParams, propOr('', 'instanceId'));
 export const selectRepositoryContainerId = createSelector(
   selectRouterCurrentParams,
   propOr('REPOSITORY_CONTAINER_ID', 'repositoryContainerId')
@@ -268,25 +275,29 @@ export const selectIncludesManagementView = createSelector(
 );
 
 export const selectPrevStateIsAppOwnerManagementView = createSelector(selectRouterPrevState, (prevState) =>
-  prevState.name?.includes('management.view.application')
+  prevState?.name?.includes('management.view.application')
 );
 
 export const selectPrevStateIsFirewallDashboard = createSelector(selectRouterPrevState, (prevState) =>
-  prevState.name?.includes(FIREWALL_FIREWALLPAGE)
+  prevState?.name?.includes(FIREWALL_FIREWALLPAGE)
 );
 
 export const selectPrevStateIsRepositoryManagerView = createSelector(selectRouterPrevState, (prevState) =>
-  prevState.name?.includes('management.view.repository_manager')
+  prevState?.name?.includes('management.view.repository_manager')
+);
+
+export const selectPrevStateIsVirtualRepositoryContainerView = createSelector(selectRouterPrevState, (prevState) =>
+  prevState?.name?.includes('management.view.virtual_repository_container')
 );
 
 export const selectPrevStateIsRepositorySection = createSelector(selectRouterPrevState, (prevState) =>
   Boolean(
-    prevState.name?.includes('repository_container') ||
-      prevState.name?.includes('repository_manager') ||
-      prevState.name?.includes('management.view.repository') || // covers repo summary/detail child pages
-      prevState.name?.includes('firewall.repository-report') || // non-docker repo results page
-      prevState.name?.includes('firewall.containerRepositoryResults') || // docker repo results page
-      prevState.name?.includes('hostedRepoComponents') // hosted repo components page
+    prevState?.name?.includes('repository_container') ||
+      prevState?.name?.includes('repository_manager') ||
+      prevState?.name?.includes('management.view.repository') || // covers repo summary/detail child pages
+      prevState?.name?.includes('firewall.repository-report') || // non-docker repo results page
+      prevState?.name?.includes('firewall.containerRepositoryResults') || // docker repo results page
+      prevState?.name?.includes('hostedRepoComponents') // hosted repo components page
   )
 );
 

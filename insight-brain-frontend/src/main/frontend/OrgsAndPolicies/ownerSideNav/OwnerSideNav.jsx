@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import classnames from 'classnames';
@@ -27,7 +27,11 @@ import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModa
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { actions } from './ownerSideNavSlice';
 import { selectOwnerSideNavSlice, selectIsOrganizationTopOfHierarchyForUser } from './ownerSideNavSelectors';
-import { selectLoading as selectOwnerSummaryLoading } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import {
+  selectLoading as selectOwnerSummaryLoading,
+  selectHasEditIqPermission,
+  selectHasViewIqPermission,
+} from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import Application from './Application';
 import Organization from './Organization';
 import RepositoryManager from './RepositoryManager';
@@ -41,6 +45,7 @@ import {
   selectIncludesManagementView,
   selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
+  selectIsVirtualRepositoryContainer,
   selectIsRepositoryManager,
   selectIsRepository,
   selectRepositoryId,
@@ -53,13 +58,14 @@ import {
   selectIsScmEnabled,
   selectIsOrgsAndAppsEnabled,
   selectIsFirewallSupported,
+  selectIsIqProxyEnabled,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { getOwnerInfo } from './utils';
 import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
-
+import AddRepositoryManagerModal from 'MainRoot/firewall/iqProxy/AddRepositoryManagerModal';
 const getId = (repositoryOrId) => {
   if (typeof repositoryOrId === 'string') return repositoryOrId;
   return repositoryOrId.id;
@@ -77,6 +83,7 @@ export default function OwnerSideNav() {
     toggleOrganizationsCheck,
     toggleApplicationsCheck,
     toggleRepositoryManagersCheck,
+    toggleVirtualRepositoryManagersCheck,
     toggleRepositoriesCheck,
     filterQuery,
     filteredEntries,
@@ -84,6 +91,8 @@ export default function OwnerSideNav() {
     ownersMap,
   } = useSelector(selectOwnerSideNavSlice);
   const loadingOwnerSummary = useSelector(selectOwnerSummaryLoading);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const hasViewIqPermission = useSelector(selectHasViewIqPermission);
   const isSbomManager = useSelector(selectIsSbomManager);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const isRootOrganization = useSelector(selectIsRootOrganization);
@@ -93,10 +102,22 @@ export default function OwnerSideNav() {
   const isRepository = useSelector(selectIsRepository);
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
+  const isVirtualRepositoryContainer = useSelector(selectIsVirtualRepositoryContainer);
+  // isRepositoryContainer is true for both routes (substring match), so disambiguate
+  const isOnlyRepositoryContainer = isRepositoryContainer && !isVirtualRepositoryContainer;
   const isApplication = useSelector(selectIsApplication);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
+  const virtualRepositoryManagersCount =
+    ownersMap?.['REPOSITORY_CONTAINER_ID']?.virtualRepositoryManagerIds?.length || 0;
   const showRepositoriesLink =
-    repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated && !isSbomManager;
+    repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isSbomManager && !isRepositoriesRelated;
+  const isIqProxyEnabled = useSelector(selectIsIqProxyEnabled);
+  const showVirtualRepositoriesLink =
+    isOrganizationTopOfHierarchyForUser &&
+    !isSbomManager &&
+    !isRepositoriesRelated &&
+    hasViewIqPermission &&
+    isIqProxyEnabled;
   const selectedApplicationId = useSelector(selectApplicationId);
   const selectedRepositoryId = useSelector(selectRepositoryId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
@@ -109,9 +130,11 @@ export default function OwnerSideNav() {
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const prefixRoute = useSelector(selectPrefixRoute);
-
   const uiRouterState = useRouterState();
   const goToRepositoriesUrl = uiRouterState.href(prefixRoute('management.view.repository_container'), {
+    repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+  });
+  const goToVirtualRepositoriesUrl = uiRouterState.href(prefixRoute('management.view.virtual_repository_container'), {
     repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
   });
 
@@ -129,6 +152,9 @@ export default function OwnerSideNav() {
   const onToggleRepositoryManagersCollapse = () => {
     dispatch(actions.toggleRepositoryManagersCollapse());
   };
+  const onToggleVirtualRepositoryManagersCollapse = () => {
+    dispatch(actions.toggleVirtualRepositoryManagersCollapse());
+  };
   const onToggleRepositoriesCollapse = () => {
     dispatch(actions.toggleRepositoresCollapse());
   };
@@ -137,6 +163,14 @@ export default function OwnerSideNav() {
     dispatch(actions.load());
   };
 
+  const [isAddRepoManagerModalOpen, setIsAddRepoManagerModalOpen] = useState(false);
+
+  const onAddRepoManagerClose = (name) => {
+    setIsAddRepoManagerModalOpen(false);
+    if (name) {
+      dispatch(actions.forceReload());
+    }
+  };
   // in addition to initial loading -> handles one particular case: when user clicks
   // Orgs and Policies icon on global sidebar being on org/app summary page
   // (component does not unmount thus load is not triggered)
@@ -148,21 +182,19 @@ export default function OwnerSideNav() {
 
   const renderParentOrganizationItem = (displayedOrganization) => {
     const orgClassnames = classnames('iq-navbar-item iq-selected-org', {
-      active: isOrganization || isRepositoryContainer || isRepositoryManager,
+      active: isOrganization || isOnlyRepositoryContainer || isVirtualRepositoryContainer || isRepositoryManager,
     });
 
     const [, routeParams] = getOwnerInfo(displayedOrganization);
-    const organizationUrl = uiRouterState.href(
-      prefixRoute(`management.view.${displayedOrganization.type}`),
-      routeParams
-    );
+    const ownerRouteType = isVirtualRepositoryContainer ? 'virtual_repository_container' : displayedOrganization.type;
+    const organizationUrl = uiRouterState.href(prefixRoute(`management.view.${ownerRouteType}`), routeParams);
 
     return (
       <>
         {displayedOrganization.name ? (
           <NxOverflowTooltip>
             <a className={orgClassnames} href={organizationUrl}>
-              {displayedOrganization.name}
+              {isVirtualRepositoryContainer ? 'Virtual Repository Managers' : displayedOrganization.name}
             </a>
           </NxOverflowTooltip>
         ) : null}
@@ -188,26 +220,73 @@ export default function OwnerSideNav() {
   };
 
   const renderRepositoryManagers = (owner = {}) => {
-    if (!isRepositoryContainer || !owner || !ownersMap) return null;
+    if ((!isOnlyRepositoryContainer && !isVirtualRepositoryContainer) || !owner || !ownersMap) return null;
 
     const repositoryManagerIds = owner.repositoryManagerIds || [];
-
-    return (
-      <NxCollapsibleItems
-        role="menu"
-        onToggleCollapse={onToggleRepositoryManagersCollapse}
-        isOpen={toggleRepositoryManagersCheck}
-        id="repository-managers-collapsible"
-        triggerContent="Repository Managers"
+    const virtualRepositoryManagerIds = owner.virtualRepositoryManagerIds || [];
+    const addVirtualRepoManagerButton = hasEditIqPermission ? (
+      <NxButton
+        data-testid="virtual-repository-managers-add"
+        variant="icon-only"
+        title="Add Virtual Repository Manager"
+        onClick={() => setIsAddRepoManagerModalOpen(true)}
       >
-        {repositoryManagerIds.map((repositoryManagerId) => {
-          return (
-            <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
-              <RepositoryManager repositoryManagerId={repositoryManagerId} />
-            </NxCollapsibleItems.Child>
-          );
-        })}
-      </NxCollapsibleItems>
+        <NxFontAwesomeIcon icon={faPlus} />
+      </NxButton>
+    ) : null;
+    return (
+      <>
+        {isOnlyRepositoryContainer && (
+          <NxCollapsibleItems
+            role="menu"
+            onToggleCollapse={onToggleRepositoryManagersCollapse}
+            isOpen={toggleRepositoryManagersCheck}
+            id="repository-managers-collapsible"
+            triggerContent={`Repository Managers (${repositoryManagerIds.length})`}
+          >
+            {repositoryManagerIds.map((repositoryManagerId) => {
+              return (
+                <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
+                  <RepositoryManager repositoryManagerId={repositoryManagerId} />
+                </NxCollapsibleItems.Child>
+              );
+            })}
+          </NxCollapsibleItems>
+        )}
+        {isVirtualRepositoryContainer && (
+          <NxCollapsibleItems
+            role="menu"
+            onToggleCollapse={onToggleVirtualRepositoryManagersCollapse}
+            isOpen={toggleVirtualRepositoryManagersCheck}
+            id="virtual-repository-managers-collapsible"
+            triggerContent={`Virtual Repository Managers (${virtualRepositoryManagerIds.length})`}
+            actionContent={addVirtualRepoManagerButton}
+          >
+            {virtualRepositoryManagerIds.map((repositoryManagerId) => {
+              return (
+                <NxCollapsibleItems.Child role="menuitem" key={repositoryManagerId}>
+                  <RepositoryManager repositoryManagerId={repositoryManagerId} />
+                </NxCollapsibleItems.Child>
+              );
+            })}
+          </NxCollapsibleItems>
+        )}
+      </>
+    );
+  };
+
+  const renderVirtualRepositoriesNavigationItem = () => {
+    if (!showVirtualRepositoriesLink) return null;
+    const virtualRepositoriesClassnames = classnames('iq-navbar-item iq-repositories-link', {
+      active: isRepositoriesRelated,
+    });
+    return (
+      <a className={virtualRepositoriesClassnames} href={goToVirtualRepositoriesUrl}>
+        <div className="iq-owner-name">Virtual Repository Managers</div>
+        <div className="iq-children-counter">
+          <span>({virtualRepositoryManagersCount})</span>
+        </div>
+      </a>
     );
   };
 
@@ -216,8 +295,13 @@ export default function OwnerSideNav() {
       return <NxLoadingSpinner />;
     }
 
+    const regularManagers = (entries.repositoryManagers || []).filter((rm) => rm.managerType !== 'virtual');
+    const virtualManagers = (entries.repositoryManagers || []).filter((rm) => rm.managerType === 'virtual');
+
     if (
-      (isRepositoryContainer && isNilOrEmpty(entries.repositoryManagers)) ||
+      ((isOnlyRepositoryContainer || isVirtualRepositoryContainer) &&
+        isNilOrEmpty(regularManagers) &&
+        isNilOrEmpty(virtualManagers)) ||
       (isRepositoryManager && isNilOrEmpty(entries.repositories)) ||
       ((isOrganization || isApplication) && isNilOrEmpty(entries.organizations) && isNilOrEmpty(entries.applications))
     ) {
@@ -226,7 +310,8 @@ export default function OwnerSideNav() {
 
     return (
       <>
-        {renderFilteredRepositoryManagers(entries.repositoryManagers)}
+        {renderFilteredRepositoryManagers(regularManagers)}
+        {renderVirtualFilteredRepositoryManagers(virtualManagers)}
         {renderFilteredOrganizations(entries.organizations)}
         {renderFilteredApplications(entries.applications)}
         {renderRepositories(entries.repositories, { filtered: true })}
@@ -305,7 +390,7 @@ export default function OwnerSideNav() {
   };
 
   const renderFilteredRepositoryManagers = (repositoryManagers) => {
-    if (!isRepositoryContainer || isEmpty(repositoryManagers)) return null;
+    if (!isOnlyRepositoryContainer || isEmpty(repositoryManagers)) return null;
 
     return (
       <NxCollapsibleItems
@@ -314,6 +399,38 @@ export default function OwnerSideNav() {
         isOpen={toggleRepositoryManagersCheck}
         id="repository-managers-collapsible"
         triggerContent="Repository Managers"
+      >
+        {repositoryManagers.map((repositoryManager) => (
+          <NxCollapsibleItems.Child role="menuitem" key={repositoryManager.id}>
+            <RepositoryManager repositoryManagerId={repositoryManager.id} />
+          </NxCollapsibleItems.Child>
+        ))}
+      </NxCollapsibleItems>
+    );
+  };
+
+  const renderVirtualFilteredRepositoryManagers = (repositoryManagers) => {
+    if (!isVirtualRepositoryContainer || isEmpty(repositoryManagers)) return null;
+
+    const plusButton = (
+      <NxButton
+        data-testid="virtual-repository-managers-add"
+        variant="icon-only"
+        title="Add Virtual Repository Manager"
+        onClick={() => setIsAddRepoManagerModalOpen(true)}
+      >
+        <NxFontAwesomeIcon icon={faPlus} />
+      </NxButton>
+    );
+
+    return (
+      <NxCollapsibleItems
+        role="menu"
+        onToggleCollapse={onToggleVirtualRepositoryManagersCollapse}
+        isOpen={toggleVirtualRepositoryManagersCheck}
+        id="virtual-repository-managers-collapsible"
+        triggerContent="Virtual Repository Managers"
+        actionContent={plusButton}
       >
         {repositoryManagers.map((repositoryManager) => {
           return (
@@ -453,6 +570,7 @@ export default function OwnerSideNav() {
                 ) : (
                   <>
                     {isStandaloneFirewall && renderRepositoriesNavigationItem()}
+                    {isStandaloneFirewall && renderVirtualRepositoriesNavigationItem()}
                     {isFirewallSupported && !isSbomManager && (
                       <>
                         {renderRepositoryManagers(displayedOrganization)}
@@ -480,7 +598,8 @@ export default function OwnerSideNav() {
           );
         }}
       </NxLoadWrapper>
-      <OwnerModal />
+      <OwnerModal shouldRedirectToNewOrg={false} />
+      {isAddRepoManagerModalOpen && <AddRepositoryManagerModal onClose={onAddRepoManagerClose} />}
     </div>,
     portalContainer
   );

@@ -110,6 +110,7 @@ import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/en
 import enterpriseReportingSupportInfoSlice from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSlice';
 import enterpriseReportingFilterSlice from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSlice';
 import firewallEnterpriseReportingSlice from 'MainRoot/firewall/enterpriseReporting/firewallEnterpriseReportingSlice';
+import firewallIqProxySlice from 'MainRoot/firewall/iqProxy/firewallIqProxySlice';
 import operationalReportingLandingPageSlice from 'MainRoot/operationalReporting/operationalReportingLandingPageSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
 import react2ShellSlice from 'MainRoot/report/react2shell/react2ShellSlice';
@@ -253,6 +254,7 @@ export default combineReducers({
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,
   enterpriseReportingSupportInfo: enterpriseReportingSupportInfoSlice,
   firewallEnterpriseReporting: firewallEnterpriseReportingSlice,
+  firewallIqProxy: firewallIqProxySlice,
   enterpriseReportingFilter: enterpriseReportingFilterSlice,
   operationalReportingLandingPage: operationalReportingLandingPageSlice,
   sast: sastReportSlice,

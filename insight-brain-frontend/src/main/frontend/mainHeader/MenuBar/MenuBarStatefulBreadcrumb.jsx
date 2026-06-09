@@ -13,6 +13,7 @@ import {
   selectCurrentRouteTitle,
   selectCurrentRouteName,
   selectIsRepositoryContainer,
+  selectIsVirtualRepositoryContainer,
   selectIsRepository,
   selectRepositoryId,
   selectIsRepositoryManager,
@@ -27,6 +28,7 @@ import { useRouterState } from '../../react/RouterStateContext';
 import {
   selectOwnersMap,
   selectDisplayedOrganization,
+  selectIsVirtualRepositoryManager,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -46,7 +48,9 @@ const getBreadcrumb = (
   sbomVersionId,
   isSbomManagerCdp,
   sbomComponentHash,
-  sbomManagerComponentDisplayName = ''
+  sbomManagerComponentDisplayName = '',
+  isVirtualRepositoryManager = false,
+  isVirtualRepositoryContainer = false
 ) => {
   const isSbomManager = routePrefix === 'sbomManager.';
   const breadcrumb = [];
@@ -109,9 +113,13 @@ const getBreadcrumb = (
 
   while (!isNilOrEmpty(currentOwner)) {
     const [parentEntityIdKey, routeParams] = getOwnerInfo(currentOwner);
+    const isRepoContainerCrumb = currentOwner.type === 'repository_container';
+    const showAsVirtual = isRepoContainerCrumb && (isVirtualRepositoryManager || isVirtualRepositoryContainer);
+    const crumbType = showAsVirtual ? 'virtual_repository_container' : currentOwner.type;
+    const crumbName = showAsVirtual ? 'Virtual Repository Managers' : currentOwner.name;
     breadcrumb.unshift({
-      name: currentOwner.name,
-      href: uiRouterState.href(`${routePrefix}management.view.${currentOwner.type}`, routeParams),
+      name: crumbName,
+      href: uiRouterState.href(`${routePrefix}management.view.${crumbType}`, routeParams),
     });
 
     currentOwner = currentOwner[parentEntityIdKey] ? ownersMap[currentOwner[parentEntityIdKey]] : null;
@@ -134,6 +142,8 @@ const MenuBarStatefulBreadcrumb = () => {
   const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const routePrefix = useSelector(selectRoutePrefix);
+  const isVirtualRepositoryManager = useSelector(selectIsVirtualRepositoryManager);
+  const isVirtualRepositoryContainer = useSelector(selectIsVirtualRepositoryContainer);
   const isSbomManagerCdp = useSelector(selectIsSbomManagerComponentDetails);
   const sbomVersionId = isSbomManagerCdp ? useSelector(selectSbomVersionIdCdp) : useSelector(selectSbomVersionId);
   const sbomManagerComponentDisplayName = useSelector(selectComponentDetails)?.displayName;
@@ -158,7 +168,9 @@ const MenuBarStatefulBreadcrumb = () => {
     sbomVersionId,
     isSbomManagerCdp,
     sbomComponentHash,
-    sbomManagerComponentDisplayName
+    sbomManagerComponentDisplayName,
+    isVirtualRepositoryManager,
+    isVirtualRepositoryContainer
   );
 
   return <NxStatefulBreadcrumb crumbs={breadcrumb} />;

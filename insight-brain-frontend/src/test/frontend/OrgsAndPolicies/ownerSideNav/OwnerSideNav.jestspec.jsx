@@ -507,7 +507,7 @@ describe('OwnerSideNav', () => {
 
       it('should render repository managers menu item', async () => {
         renderComponent(state);
-        const repoManagersMenu = await screen.findByRole('button', { name: 'Repository Managers' });
+        const repoManagersMenu = await screen.findByRole('button', { name: /Repository Managers/ });
         expect(repoManagersMenu).toBeVisible();
       });
 
@@ -1965,6 +1965,143 @@ describe('OwnerSideNav', () => {
       const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
       expect(goToTreeViewLink).toBeVisible();
       expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
+    });
+  });
+
+  describe('Add Virtual Repository Manager button access control', () => {
+    const virtualContainerState = {
+      productFeatures: {
+        productFeatures: {
+          firewall: true,
+          'orgs-and-apps': true,
+        },
+      },
+      router: {
+        currentState: { name: 'management.view.virtual_repository_container' },
+        currentParams: { repositoryContainerId: 'REPOSITORY_CONTAINER_ID' },
+      },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          filterQuery: rscInitialState(''),
+          filteredEntries: { applications: [], organizations: [] },
+          displayedOrganization: {
+            id: 'REPOSITORY_CONTAINER_ID',
+            name: 'Virtual Repository Managers',
+            type: 'repository_container',
+            virtualRepositoryManagerIds: ['virtualManagerOne'],
+          },
+        },
+        ownerSummary: { loading: false },
+      },
+    };
+
+    beforeEach(() => {
+      const ownersMap = {
+        ROOT_ORGANIZATION_ID: {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'ROOT_ORGANIZATION_NAME',
+          type: 'organization',
+          repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+        },
+        REPOSITORY_CONTAINER_ID: {
+          id: 'REPOSITORY_CONTAINER_ID',
+          name: 'Virtual Repository Managers',
+          type: 'repository_container',
+          parentId: 'ROOT_ORGANIZATION_ID',
+          virtualRepositoryManagerIds: ['virtualManagerOne'],
+        },
+        virtualManagerOne: {
+          id: 'virtualManagerOne',
+          name: 'My Virtual Manager',
+          type: 'repository_manager',
+          managerType: 'virtual',
+          parentId: 'REPOSITORY_CONTAINER_ID',
+        },
+      };
+      mockAxiosCalls.onGet(ownerListUrl).reply(200, { topParentOrganizationId, ownersMap });
+      mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, []);
+    });
+
+    it('shows the Add Virtual Repository Manager button when user has write permission', async () => {
+      const stateWithWriteAccess = mergeDeepRight(virtualContainerState, {
+        orgsAndPolicies: { ownerSummary: { hasEditIqPermission: true } },
+      });
+
+      renderComponent(stateWithWriteAccess);
+
+      expect(await screen.findByRole('button', { name: 'Add Virtual Repository Manager' })).toBeVisible();
+    });
+
+    it('hides the Add Virtual Repository Manager button when user lacks write permission', async () => {
+      const stateWithoutWriteAccess = mergeDeepRight(virtualContainerState, {
+        orgsAndPolicies: { ownerSummary: { hasEditIqPermission: false } },
+      });
+
+      renderComponent(stateWithoutWriteAccess);
+
+      await screen.findByRole('button', { name: /Virtual Repository Managers/ });
+      expect(screen.queryByRole('button', { name: 'Add Virtual Repository Manager' })).toBeNull();
+    });
+  });
+
+  describe('Virtual Repository Managers navigation link access control', () => {
+    const firewallOwnersMap = {
+      ROOT_ORGANIZATION_ID: {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'ROOT_ORGANIZATION_NAME',
+        type: 'organization',
+        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+      },
+      REPOSITORY_CONTAINER_ID: {
+        id: 'REPOSITORY_CONTAINER_ID',
+        name: 'Virtual Repository Managers',
+        type: 'repository_container',
+        parentId: 'ROOT_ORGANIZATION_ID',
+        virtualRepositoryManagerIds: [],
+      },
+    };
+
+    const firewallNavState = {
+      productFeatures: { productFeatures: { firewall: true, 'orgs-and-apps': true, 'iq-proxy-enabled': true } },
+      router: {
+        currentState: { name: 'firewall.management.view.organization' },
+        currentParams: { organizationId: 'ROOT_ORGANIZATION_ID' },
+      },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          ownersMap: firewallOwnersMap,
+          filterQuery: rscInitialState(''),
+          filteredEntries: { applications: [], organizations: [] },
+          displayedOrganization: {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'ROOT_ORGANIZATION_NAME',
+            type: 'organization',
+            repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+          },
+        },
+        ownerSummary: { loading: false },
+      },
+    };
+
+    it('shows the Virtual Repository Managers link when user has view permission', async () => {
+      const stateWithViewAccess = mergeDeepRight(firewallNavState, {
+        orgsAndPolicies: { ownerSummary: { hasViewIqPermission: true } },
+      });
+
+      renderComponent(stateWithViewAccess);
+
+      expect(await screen.findByRole('link', { name: 'Virtual Repository Managers (0)' })).toBeVisible();
+    });
+
+    it('hides the Virtual Repository Managers link when user lacks view permission', async () => {
+      const stateWithoutViewAccess = mergeDeepRight(firewallNavState, {
+        orgsAndPolicies: { ownerSummary: { hasViewIqPermission: false } },
+      });
+
+      renderComponent(stateWithoutViewAccess);
+
+      await screen.findByRole('link', { name: /ROOT_ORGANIZATION_NAME/ });
+      expect(screen.queryByRole('link', { name: 'Virtual Repository Managers (0)' })).toBeNull();
     });
   });
 });

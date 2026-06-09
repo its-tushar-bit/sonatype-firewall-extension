@@ -6,8 +6,13 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
-import { NxLoadWrapper, NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
-import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import { NxLoadWrapper, NxPageTitle, NxH1, NxH2, NxTile } from '@sonatype/react-shared-components';
+import {
+  selectLoading,
+  selectLoadError,
+  selectHasEditIqPermission,
+  selectHasViewIqPermission,
+} from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import {
   selectSelectedOwner,
@@ -24,6 +29,8 @@ import RepositoriesConfigurationTile from 'MainRoot/OrgsAndPolicies/repositories
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import FirewallProxyConfigurationPage from 'MainRoot/firewall/iqProxy/FirewallProxyConfigurationPage';
+import { selectIsVirtualRepositoryManager } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
 import { selectIsFirewall, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -36,6 +43,9 @@ export default function RepositoryManagerSummaryView() {
   const entityId = useSelector(selectEntityId);
   const owner = useSelector(selectSelectedOwner);
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
+  const isVirtualRepositoryManager = useSelector(selectIsVirtualRepositoryManager);
+  const hasEditIqPermission = useSelector(selectHasEditIqPermission);
+  const hasViewIqPermission = useSelector(selectHasViewIqPermission);
   const isFirewall = useSelector(selectIsFirewall);
   const isSbomManager = useSelector(selectIsSbomManager);
   const isHostedRepositoryEvaluationEnabled = useSelector(selectIsHostedRepositoryEvaluationEnabled);
@@ -44,6 +54,7 @@ export default function RepositoryManagerSummaryView() {
   const getIconUrl = () => getAddIconUrl('repository_manager', owner.id) + `?${Math.random()}`;
 
   useEffect(() => {
+    dispatch(actions.checkEditIqPermission());
     if (entityId) {
       doLoad();
     }
@@ -81,6 +92,20 @@ export default function RepositoryManagerSummaryView() {
               <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
               {isFirewall && <WaiverExpirationNotificationTile />}
               <AccessTile />
+              {isVirtualRepositoryManager && hasViewIqPermission && hasEditIqPermission && (
+                <NxTile id="iq-proxy-repo-pill-configuration" data-testid="iq-proxy-repo-tile">
+                  <NxTile.Header>
+                    <NxTile.Headings>
+                      <NxTile.HeaderTitle>
+                        <NxH2>IQ proxy</NxH2>
+                      </NxTile.HeaderTitle>
+                    </NxTile.Headings>
+                  </NxTile.Header>
+                  <NxTile.Content>
+                    <FirewallProxyConfigurationPage embedded />
+                  </NxTile.Content>
+                </NxTile>
+              )}
             </div>
           </div>
         </div>

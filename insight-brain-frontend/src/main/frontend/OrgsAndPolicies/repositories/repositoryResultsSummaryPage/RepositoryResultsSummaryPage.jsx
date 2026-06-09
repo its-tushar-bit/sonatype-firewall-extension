@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectPrevStateIsFirewallDashboard,
   selectPrevStateIsRepositoryManagerView,
+  selectPrevStateIsVirtualRepositoryContainerView,
   selectRouterCurrentParams,
   selectRouterPrevParams,
   selectHideBackButtonParam,
@@ -55,6 +56,7 @@ export default function RepositoryResultsSummaryPage() {
   const prevParams = useSelector(selectRouterPrevParams);
   const prevStateIsFirewall = useSelector(selectPrevStateIsFirewallDashboard);
   const prevStateIsRepositoryManagerView = useSelector(selectPrevStateIsRepositoryManagerView);
+  const prevStateIsVirtualRepositoryContainerView = useSelector(selectPrevStateIsVirtualRepositoryContainerView);
   const hideBackButton = useSelector(selectHideBackButtonParam);
 
   const uiRouterState = useRouterState();
@@ -86,17 +88,23 @@ export default function RepositoryResultsSummaryPage() {
       return uiRouterState.href('firewall.management.view.repository_manager', {
         repositoryManagerId: prevParams.repositoryManagerId,
       });
-    } else {
-      return uiRouterState.href('firewall.management.view.repository_container', {
-        repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+    }
+    if (prevStateIsVirtualRepositoryContainerView) {
+      return uiRouterState.href('firewall.management.view.virtual_repository_container', {
+        repositoryContainerId: prevParams.repositoryContainerId,
       });
     }
+    return uiRouterState.href('firewall.management.view.repository_container', {
+      repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+    });
   };
 
   const backButtonText = prevStateIsFirewall
     ? 'Firewall Dashboard'
     : prevStateIsRepositoryManagerView
     ? repositoryManager?.name
+    : prevStateIsVirtualRepositoryContainerView
+    ? 'Virtual Repository Managers'
     : 'Repository Managers';
 
   return (

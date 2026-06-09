@@ -33,6 +33,7 @@ describe('RepositoriesConfigurationTile', () => {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceIdA',
       managerName: 'managerNameA',
+      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceIdA/repositoryNameA',
       repository: {
         id: 'repositoryA',
         repositoryManagerId: 'repositoryManagerIdA',
@@ -46,6 +47,7 @@ describe('RepositoriesConfigurationTile', () => {
     {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceIdB',
+      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceIdB/repositoryNameB',
       repository: {
         id: 'repositoryB',
         repositoryManagerId: 'repositoryManagerIdB',
@@ -64,6 +66,7 @@ describe('RepositoriesConfigurationTile', () => {
       oldestEvalTimestamp: null,
       managerInstanceId: 'managerInstanceId',
       managerName: 'managerName',
+      proxyUrl: 'http://localhost/api/v2/proxy/managerInstanceId/repositoryName',
       repository: {
         id: 'repository',
         repositoryManagerId: 'repositoryManagerId',
@@ -157,7 +160,7 @@ describe('RepositoriesConfigurationTile', () => {
       jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
       jest.spyOn(repositoriesSelectors, 'selectRepositoriesLoading').mockReturnValue(false);
       jest.spyOn(routerSelectors, 'selectIsRepositoryManager').mockReturnValue(false);
-      jest.spyOn(ownerSideNavSelectors, 'selectRepoManagerOwnersEntriesSorted').mockReturnValue([
+      jest.spyOn(ownerSideNavSelectors, 'selectNonVirtualRepoManagerOwnersEntriesSorted').mockReturnValue([
         {
           type: 'repository_manager',
           id: 'repositoryManagerIdA',
@@ -288,6 +291,96 @@ describe('RepositoriesConfigurationTile', () => {
         fireEvent.click(editIcons[0]);
 
         expect(goToRepositorySummaryViewSpy).toHaveBeenCalledWith('repositoryA');
+      });
+    });
+
+    describe('Copy proxy URL button at repository managers level', () => {
+      it('copy button is hidden for non-virtual manager repos', () => {
+        renderComponent();
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        // Both managers are non-virtual (no managerType: 'virtual'), so all copy buttons should be hidden
+        expect(copyButtons.length).toBe(2);
+        copyButtons.forEach((btn) => {
+          expect(btn).toHaveClass('iq-copy-url-button--hidden');
+        });
+      });
+
+      it('copy button is visible for virtual manager proxy repos on virtual page', () => {
+        jest.spyOn(ownerSideNavSelectors, 'selectVirtualRepoManagerOwnersEntriesSorted').mockReturnValue([
+          {
+            type: 'repository_manager',
+            id: 'virtualManagerIdA',
+            name: 'Virtual Manager A',
+            instanceId: 'managerInstanceIdA',
+            repositoryIds: ['repositoryA'],
+            parentId: 'REPOSITORY_CONTAINER_ID',
+            managerType: 'virtual',
+          },
+          {
+            type: 'repository_manager',
+            id: 'virtualManagerIdB',
+            name: 'Virtual Manager B',
+            instanceId: 'managerInstanceIdB',
+            repositoryIds: ['repositoryB'],
+            parentId: 'REPOSITORY_CONTAINER_ID',
+            managerType: 'virtual',
+          },
+        ]);
+
+        renderComponent({ virtualOnly: true });
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        // repositoryA is proxy on a virtual manager => visible
+        // repositoryB is hosted on a virtual manager => hidden
+        expect(copyButtons[0]).not.toHaveClass('iq-copy-url-button--hidden');
+        expect(copyButtons[1]).toHaveClass('iq-copy-url-button--hidden');
+      });
+
+      it('copy button is hidden for virtual manager hosted repos on virtual page', () => {
+        jest.spyOn(ownerSideNavSelectors, 'selectVirtualRepoManagerOwnersEntriesSorted').mockReturnValue([
+          {
+            type: 'repository_manager',
+            id: 'virtualManagerId',
+            name: 'Virtual Manager',
+            instanceId: 'managerInstanceIdB',
+            repositoryIds: ['repositoryB'],
+            parentId: 'REPOSITORY_CONTAINER_ID',
+            managerType: 'virtual',
+          },
+        ]);
+
+        renderComponent({ virtualOnly: true });
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        // repositoryB is hosted even though manager is virtual => still hidden
+        expect(copyButtons[0]).toHaveClass('iq-copy-url-button--hidden');
+      });
+
+      it('copies the correct proxy URL to the clipboard when clicked', () => {
+        const clipboardWriteText = jest.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText: clipboardWriteText } });
+
+        jest.spyOn(ownerSideNavSelectors, 'selectVirtualRepoManagerOwnersEntriesSorted').mockReturnValue([
+          {
+            type: 'repository_manager',
+            id: 'virtualManagerId',
+            name: 'Virtual Manager',
+            instanceId: 'managerInstanceIdA',
+            repositoryIds: ['repositoryA'],
+            parentId: 'REPOSITORY_CONTAINER_ID',
+            managerType: 'virtual',
+          },
+        ]);
+
+        renderComponent({ virtualOnly: true });
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        fireEvent.click(copyButtons[0]);
+
+        expect(clipboardWriteText).toHaveBeenCalledWith(
+          'http://localhost/api/v2/proxy/managerInstanceIdA/repositoryNameA'
+        );
       });
     });
   });
@@ -454,6 +547,50 @@ describe('RepositoriesConfigurationTile', () => {
         fireEvent.click(editIcons[0]);
 
         expect(goToRepositorySummaryViewSpy).toHaveBeenCalledWith('repository');
+      });
+    });
+
+    describe('Copy proxy URL button at repository manager level', () => {
+      it('copy button is hidden when the owner is not a virtual manager', () => {
+        renderComponent();
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        expect(copyButtons.length).toBe(1);
+        expect(copyButtons[0]).toHaveClass('iq-copy-url-button--hidden');
+      });
+
+      it('copy button is visible for virtual manager with a proxy repo', () => {
+        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+          id: 'virtualManagerId',
+          instanceId: 'managerInstanceId',
+          name: 'Virtual Manager',
+          managerType: 'virtual',
+        });
+
+        renderComponent();
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+
+        expect(copyButtons[0]).not.toHaveClass('iq-copy-url-button--hidden');
+      });
+
+      it('copies the correct proxy URL to the clipboard at manager level', () => {
+        const clipboardWriteText = jest.fn().mockResolvedValue(undefined);
+        Object.assign(navigator, { clipboard: { writeText: clipboardWriteText } });
+
+        jest.spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwner').mockReturnValue({
+          id: 'virtualManagerId',
+          instanceId: 'managerInstanceId',
+          name: 'Virtual Manager',
+          managerType: 'virtual',
+        });
+
+        renderComponent();
+        const copyButtons = screen.queryAllByTestId('repository-copy-url-button');
+        fireEvent.click(copyButtons[0]);
+
+        expect(clipboardWriteText).toHaveBeenCalledWith(
+          'http://localhost/api/v2/proxy/managerInstanceId/repositoryName'
+        );
       });
     });
   });

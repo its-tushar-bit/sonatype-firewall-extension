@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useRef } from 'react';
+import * as PropTypes from 'prop-types';
 import {
   NxStatefulForm,
   NxH2,
@@ -22,7 +23,7 @@ import {
   NxStatefulFilterDropdown,
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
-import { faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+import { faCopy, faPen, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { actions, VIEW_TYPES } from './repositoriesConfigurationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -41,14 +42,16 @@ import {
   selectRepositoryFormatsFilter,
   selectRepositoryPublicIdFilter,
 } from './repositoriesConfigurationSelectors';
-import { selectRepoManagerOwnersEntriesSorted } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
+import {
+  selectNonVirtualRepoManagerOwnersEntriesSorted,
+  selectVirtualRepoManagerOwnersEntriesSorted,
+} from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsRepositoryManager, selectPrevStateIsRepositorySection } from 'MainRoot/reduxUiRouter/routerSelectors';
-import PropTypes from 'prop-types';
 
-const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
+const RepositoriesConfigurationTile = ({ virtualOnly = false, showHostedRepoLink = false }) => {
   const dispatch = useDispatch();
 
   const loadRepositories = () => dispatch(actions.loadRepositories());
@@ -68,7 +71,9 @@ const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
   const goToRepositorySummaryView = (repositoryId) => dispatch(actions.goToRepositorySummaryView(repositoryId));
 
   const repositoriesByManagerInstanceId = useSelector(selectRepositoriesByManagerInstanceId);
-  const repoManagerOwnersEntries = useSelector(selectRepoManagerOwnersEntriesSorted);
+  const nonVirtualRepoManagerOwnersEntries = useSelector(selectNonVirtualRepoManagerOwnersEntriesSorted);
+  const virtualRepoManagerOwnersEntries = useSelector(selectVirtualRepoManagerOwnersEntriesSorted);
+  const repoManagerOwnersEntries = virtualOnly ? virtualRepoManagerOwnersEntries : nonVirtualRepoManagerOwnersEntries;
   const isLoading = useSelector(selectRepositoriesLoading);
   const loadError = useSelector(selectRepositoriesLoadError);
   const deleteError = useSelector(selectRepositoriesDeleteError);
@@ -229,87 +234,106 @@ const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
     </NxModal>
   );
 
-  const mapRepositoryToRow = (repository) => {
-    const repositoryData = repository.repository;
-    return (
-      <NxTable.Row key={repositoryData.id}>
-        <NxTable.Cell className="iq-repositories-configuration-table-repository">
-          {repositoryData.repositoryType === 'hosted' ? (
-            <NxOverflowTooltip>
-              {showHostedRepoLink && owner?.instanceId ? (
+  const mapRepositoryToRow = (managerId, isVirtualManager) =>
+    function RepositoryRow(repository) {
+      const repositoryData = repository.repository;
+      const copyProxyUrl = () => {
+        navigator.clipboard.writeText(repository.proxyUrl);
+      };
+      return (
+        <NxTable.Row key={repositoryData.id}>
+          <NxTable.Cell className="iq-repositories-configuration-table-repository">
+            {repositoryData.repositoryType === 'hosted' ? (
+              <NxOverflowTooltip>
+                {showHostedRepoLink && owner?.instanceId ? (
+                  <NxTextLink
+                    className="nx-truncate-ellipsis"
+                    data-testid="repositories_configuration-hosted-link"
+                    href={uiRouterState.href('hostedRepoComponents', {
+                      repositoryId: repositoryData.id,
+                      repositoryManagerId: owner.instanceId,
+                      repositoryPublicId: repositoryData.publicId,
+                    })}
+                  >
+                    {repositoryData.publicId}
+                  </NxTextLink>
+                ) : (
+                  <div className="nx-truncate-ellipsis">{repositoryData.publicId}</div>
+                )}
+              </NxOverflowTooltip>
+            ) : (
+              <NxOverflowTooltip>
                 <NxTextLink
                   className="nx-truncate-ellipsis"
-                  data-testid="repositories_configuration-hosted-link"
-                  href={uiRouterState.href('hostedRepoComponents', {
-                    repositoryId: repositoryData.id,
-                    repositoryManagerId: owner.instanceId,
-                    repositoryPublicId: repositoryData.publicId,
-                  })}
+                  data-testid="repositories_configuration-link"
+                  href={
+                    repositoryData.format === 'docker'
+                      ? uiRouterState.href('firewall.containerRepositoryResults', { repositoryId: repositoryData.id })
+                      : uiRouterState.href('firewall.repository-report', { repositoryId: repositoryData.id })
+                  }
                 >
                   {repositoryData.publicId}
                 </NxTextLink>
-              ) : (
-                <div className="nx-truncate-ellipsis">{repositoryData.publicId}</div>
-              )}
-            </NxOverflowTooltip>
-          ) : (
+              </NxOverflowTooltip>
+            )}
+          </NxTable.Cell>
+          <NxTable.Cell className="iq-repositories-configuration-table-repository-format">
             <NxOverflowTooltip>
-              <NxTextLink
-                className="nx-truncate-ellipsis"
-                data-testid="repositories_configuration-link"
-                href={
-                  repositoryData.format === 'docker'
-                    ? uiRouterState.href('firewall.containerRepositoryResults', { repositoryId: repositoryData.id })
-                    : uiRouterState.href('firewall.repository-report', { repositoryId: repositoryData.id })
-                }
-              >
-                {repositoryData.publicId}
-              </NxTextLink>
+              <div className="nx-truncate-ellipsis">{repositoryData.format}</div>
             </NxOverflowTooltip>
-          )}
-        </NxTable.Cell>
-        <NxTable.Cell className="iq-repositories-configuration-table-repository-format">
-          <NxOverflowTooltip>
-            <div className="nx-truncate-ellipsis">{repositoryData.format}</div>
-          </NxOverflowTooltip>
-        </NxTable.Cell>
-        <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
-          <NxOverflowTooltip>
-            <div className="nx-truncate-ellipsis">{repositoryData.repositoryType}</div>
-          </NxOverflowTooltip>
-        </NxTable.Cell>
-        <NxTable.Cell>
-          <NxOverflowTooltip>
-            <div className="nx-truncate-ellipsis">{getEnablement(repositoryData)}</div>
-          </NxOverflowTooltip>
-        </NxTable.Cell>
-        <NxTable.Cell>
-          <div className="nx-btn-bar">
-            <NxButton
-              data-testid="repository-edit-button"
-              variant="icon-only"
-              title="Edit"
-              onClick={() => goToRepositorySummaryView(repositoryData.id)}
-            >
-              <NxFontAwesomeIcon icon={faPen} />
-            </NxButton>
-          </div>
-        </NxTable.Cell>
-        <NxTable.Cell>
-          <div className="nx-btn-bar">
-            <NxButton
-              data-testid="repository-delete-button"
-              variant="icon-only"
-              title="Delete"
-              onClick={() => openDeleteModal({ publicId: repositoryData.publicId, id: repositoryData.id })}
-            >
-              <NxFontAwesomeIcon icon={faTrashAlt} />
-            </NxButton>
-          </div>
-        </NxTable.Cell>
-      </NxTable.Row>
-    );
-  };
+          </NxTable.Cell>
+          <NxTable.Cell className="iq-repositories-configuration-table-repository-type">
+            <NxOverflowTooltip>
+              <div className="nx-truncate-ellipsis">{repositoryData.repositoryType}</div>
+            </NxOverflowTooltip>
+          </NxTable.Cell>
+          <NxTable.Cell>
+            <NxOverflowTooltip>
+              <div className="nx-truncate-ellipsis">{getEnablement(repositoryData)}</div>
+            </NxOverflowTooltip>
+          </NxTable.Cell>
+          <NxTable.Cell>
+            <div className="nx-btn-bar">
+              <NxButton
+                data-testid="repository-copy-url-button"
+                variant="icon-only"
+                title="Copy Proxy URL"
+                onClick={copyProxyUrl}
+                className={
+                  isVirtualManager && repositoryData.repositoryType === 'proxy'
+                    ? undefined
+                    : 'iq-copy-url-button--hidden'
+                }
+                aria-hidden={isVirtualManager && repositoryData.repositoryType === 'proxy' ? undefined : true}
+                tabIndex={isVirtualManager && repositoryData.repositoryType === 'proxy' ? undefined : -1}
+              >
+                <NxFontAwesomeIcon icon={faCopy} />
+              </NxButton>
+              <NxButton
+                data-testid="repository-edit-button"
+                variant="icon-only"
+                title="Edit"
+                onClick={() => goToRepositorySummaryView(repositoryData.id)}
+              >
+                <NxFontAwesomeIcon icon={faPen} />
+              </NxButton>
+            </div>
+          </NxTable.Cell>
+          <NxTable.Cell>
+            <div className="nx-btn-bar">
+              <NxButton
+                data-testid="repository-delete-button"
+                variant="icon-only"
+                title="Delete"
+                onClick={() => openDeleteModal({ publicId: repositoryData.publicId, id: repositoryData.id })}
+              >
+                <NxFontAwesomeIcon icon={faTrashAlt} />
+              </NxButton>
+            </div>
+          </NxTable.Cell>
+        </NxTable.Row>
+      );
+    };
 
   const showHighlight = (column) => (sortConfiguration[0].key === column ? sortConfiguration[0].dir : null);
 
@@ -350,7 +374,9 @@ const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
               })
             }
           >
-            {repositoriesByManagerInstanceId[repoManager.instanceId]?.map(mapRepositoryToRow)}
+            {repositoriesByManagerInstanceId[repoManager.instanceId]?.map(
+              mapRepositoryToRow(repoManager.instanceId, repoManager.managerType === 'virtual')
+            )}
           </IqCollapsibleRow>
         </NxTable.Body>
       );
@@ -365,7 +391,9 @@ const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
         isLoading={isLoading}
         retryHandler={loadRepositoriesByManagerId}
       >
-        {repositoriesByManagerInstanceId[owner.instanceId]?.map(mapRepositoryToRow)}
+        {repositoriesByManagerInstanceId[owner.instanceId]?.map(
+          mapRepositoryToRow(owner?.instanceId, owner.managerType === 'virtual')
+        )}
       </NxTable.Body>
     );
   };
@@ -458,6 +486,7 @@ const RepositoriesConfigurationTile = ({ showHostedRepoLink = false }) => {
 };
 
 RepositoriesConfigurationTile.propTypes = {
+  virtualOnly: PropTypes.bool,
   showHostedRepoLink: PropTypes.bool,
 };
 

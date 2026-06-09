@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -53,6 +54,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -112,6 +114,8 @@ public class RepositoryService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final BaseUrl baseUrl;
+
   private final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
   @Inject
@@ -128,6 +132,7 @@ public class RepositoryService
       OwnerDAO ownerDAO,
       OrganizationService organizationService,
       final ClusterLockManager clusterLockManager,
+      final BaseUrl baseUrl,
       final com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
@@ -142,6 +147,7 @@ public class RepositoryService
     this.ownerDAO = ownerDAO;
     this.organizationService = organizationService;
     this.clusterLockManager = clusterLockManager;
+    this.baseUrl = baseUrl;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
   }
 
@@ -330,6 +336,10 @@ public class RepositoryService
     return repositories;
   }
 
+  public static String buildProxyUrl(String baseUrl, String repositoryManagerInstanceId, String repositoryPublicId) {
+    return baseUrl + "api/v2/proxy/" + repositoryManagerInstanceId + "/" + repositoryPublicId;
+  }
+
   private List<RepositoryDTO> convertRepositories(List<Repository> repositories) {
     Set<String> repositoryManagerIds = repositories.stream()
         .map(Repository::getRepositoryManagerId)
@@ -339,6 +349,10 @@ public class RepositoryService
         .stream()
         .collect(Collectors.toMap(RepositoryManager::getId, Function.identity(), (existing, replacement) -> existing));
 
+    boolean hasVirtualManager = repositoryManagerMap.values()
+        .stream()
+        .anyMatch(rm -> rm.getManagerType() == ManagerType.VIRTUAL);
+    String baseUrlValue = hasVirtualManager ? baseUrl.get() : null;
     List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
 
     for (Repository repository : repositories) {
@@ -348,6 +362,10 @@ public class RepositoryService
       RepositoryManager repositoryManager = repositoryManagerMap.get(repository.getRepositoryManagerId());
       repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
       repositoryDTO.managerName = repositoryManager.getName();
+      if (repositoryManager.getManagerType() == ManagerType.VIRTUAL) {
+        repositoryDTO.proxyUrl =
+            buildProxyUrl(baseUrlValue, repositoryManager.getInstanceId(), repository.getPublicId());
+      }
 
       repositoryDTOs.add(repositoryDTO);
     }

@@ -9,6 +9,8 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -52,6 +54,10 @@ public class RepositoryManager
 
   @Column(name = "related_organization_id")
   private String relatedOrganizationId;
+
+  @Column(name = "manager_type")
+  @Enumerated(EnumType.STRING)
+  private ManagerType managerType;
 
   public RepositoryManager() {
   }
@@ -167,5 +173,13 @@ public class RepositoryManager
 
   public void setRelatedOrganizationId(final String relatedOrganizationId) {
     this.relatedOrganizationId = relatedOrganizationId;
+  }
+
+  public ManagerType getManagerType() {
+    return managerType;
+  }
+
+  public void setManagerType(final ManagerType managerType) {
+    this.managerType = managerType;
   }
 }

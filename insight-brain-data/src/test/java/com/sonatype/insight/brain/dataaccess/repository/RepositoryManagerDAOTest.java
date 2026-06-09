@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ManagerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -89,23 +90,51 @@ public class RepositoryManagerDAOTest
   }
 
   @Test
+  public void testInsert_DuplicateInstanceId() {
+    tempEntity.newRepositoryManager("MyInstanceId");
+
+    assertThatThrownBy(() -> tempEntity.newRepositoryManager("MyInstanceId"))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
+        .hasMessage("There is already a repository manager with instance ID MyInstanceId.");
+  }
+
+  @Test
   public void testInsert_ValidateNullInstanceId() {
-    assertThatThrownBy(() -> tempEntity.newRepositoryManager(null))
+    RepositoryManager repoManager = new RepositoryManager();
+    repoManager.setName("TestManager");
+    // Non-virtual manager with null instanceId should fail
+    assertThatThrownBy(() -> dao.insert(repoManager))
         .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
+  }
+
+  @Test
+  public void testInsert_ValidateEmptyInstanceId() {
+    RepositoryManager repoManager = new RepositoryManager();
+    repoManager.setInstanceId(" ");
+    repoManager.setName("TestManager");
+    assertThatThrownBy(() -> dao.insert(repoManager))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
+        .hasMessage("The repository manager instance ID cannot be null or empty.");
+  }
+
+  @Test
+  public void testInsert_VirtualManager_AllowsNullInstanceId() {
+    RepositoryManager repoManager = new RepositoryManager();
+    repoManager.setName("VirtualManager");
+    repoManager.setManagerType(ManagerType.VIRTUAL);
+    // Virtual manager with null instanceId should be allowed (server generates it later)
+    // But since we're testing DAO directly, we need to set it to avoid DB constraint
+    repoManager.setInstanceId("virtual-" + System.nanoTime());
+    dao.insert(repoManager);
+    assertThat(dao.getById(repoManager.getId())).isNotNull();
   }
 
   @Test
   public void testUpdate_ValidateNullInstanceId() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     repoManager.setInstanceId(null);
-    assertThatThrownBy(() -> dao.update(repoManager)).isInstanceOf(InvalidRepositoryManagerException.class)
-        .hasMessage("The repository manager instance ID cannot be null or empty.");
-  }
-
-  @Test
-  public void testInsert_ValidateEmptyInstanceId() {
-    assertThatThrownBy(() -> tempEntity.newRepositoryManager(" "))
+    assertThatThrownBy(() -> dao.update(repoManager))
         .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
@@ -117,15 +146,6 @@ public class RepositoryManagerDAOTest
     assertThatThrownBy(() -> dao.update(repoManager))
         .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
-  }
-
-  @Test
-  public void testInsert_DuplicateInstanceId() {
-    tempEntity.newRepositoryManager("MyInstanceId");
-
-    assertThatThrownBy(() -> tempEntity.newRepositoryManager("MyInstanceId"))
-        .isInstanceOf(InvalidRepositoryManagerException.class)
-        .hasMessage("There is already a repository manager with instance ID MyInstanceId.");
   }
 
   @Test

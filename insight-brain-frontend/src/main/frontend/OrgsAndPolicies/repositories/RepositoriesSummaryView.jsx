@@ -15,12 +15,12 @@ import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/Repositorie
 import { selectLoadError, selectLoading } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import WaiverExpirationNotificationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/waiverExpirationNotificationTile/WaiverExpirationNotificationTile';
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectLoadError as selectLoadSelectedOwnerError,
   selectSelectedOwner,
   selectShowLimitedFirewallAccessAlert,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsVirtualRepositoryContainer, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function RepositoriesSummaryView() {
   const dispatch = useDispatch();
@@ -29,25 +29,26 @@ export default function RepositoriesSummaryView() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const owner = useSelector(selectSelectedOwner);
   const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
+  const isVirtualRepositoryContainer = useSelector(selectIsVirtualRepositoryContainer);
   const isFirewall = useSelector(selectIsFirewall);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
 
   useEffect(() => {
-    dispatch(actions.checkEditIqPermission());
     if (!owner) {
       doLoad();
     }
   }, []);
 
   function repositoriesSummary() {
+    const pageTitle = isVirtualRepositoryContainer ? 'Virtual Repository Managers' : owner.name;
     return (
       <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
         <div id="repository-page">
           <header>
             <NxPageTitle id="repositories-summary" className="iq-page-title">
               <NxH1>
-                <span>{owner.name}</span>
+                <span>{pageTitle}</span>
               </NxH1>
             </NxPageTitle>
             <RepositoriesPills />
@@ -58,7 +59,11 @@ export default function RepositoriesSummaryView() {
             id="repositories-summary-sections"
           >
             <div id="scrollable-content">
-              <RepositoriesConfigurationTile key="container-view" showHostedRepoLink={false} />
+              <RepositoriesConfigurationTile
+                key="container-view"
+                virtualOnly={isVirtualRepositoryContainer}
+                showHostedRepoLink={false}
+              />
               <PoliciesTile />
               <NamespaceConfusionProtectionTile />
               {isFirewall && <WaiverExpirationNotificationTile />}

@@ -26,6 +26,14 @@ export const selectRepoManagerOwnersEntriesSorted = createSelector(
   selectRepoManagerOwnersEntries,
   sort(ascend(prop('name')))
 );
+export const selectVirtualRepoManagerOwnersEntriesSorted = createSelector(
+  selectRepoManagerOwnersEntriesSorted,
+  (managers) => managers.filter((m) => m.managerType === 'virtual')
+);
+export const selectNonVirtualRepoManagerOwnersEntriesSorted = createSelector(
+  selectRepoManagerOwnersEntriesSorted,
+  (managers) => managers.filter((m) => m.managerType !== 'virtual')
+);
 export const selectTopParentOrganizationId = createSelector(selectOwnerSideNavSlice, prop('topParentOrganizationId'));
 export const selectTopParentOrganization = createSelector(
   selectTopParentOrganizationId,
@@ -140,6 +148,12 @@ export const selectPrevStateOwnerName = createSelector(
  * This selector identifies if the displayed organization is the top org that the user has permission,
  * it could be a synthetic org or a full org
  */
+export const selectIsVirtualRepositoryManager = createSelector(
+  selectOwnersMap,
+  selectSelectedOwnerId,
+  (ownersMap, selectedOwnerId) => ownersMap?.[selectedOwnerId]?.managerType === 'virtual'
+);
+
 export const selectIsOrganizationTopOfHierarchyForUser = createSelector(
   selectOwnersMap,
   selectDisplayedOrganization,

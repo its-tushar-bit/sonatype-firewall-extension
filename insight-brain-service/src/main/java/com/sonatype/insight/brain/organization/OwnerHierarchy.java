@@ -268,10 +268,10 @@ public class OwnerHierarchy
       // If user permission is granted per repo, add the missing repo managers as synthetic repo managers
       if (!repositoryManagerMap.containsKey(repository.getRepositoryManagerId())) {
         RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repository.getRepositoryManagerId());
-        repositoryManagerMap
-            .put(repository.getRepositoryManagerId(), transformToSyntheticRepositoryManagerDTO
-                .apply(repositoryManager));
-        this.repositoryContainer.repositoryManagerIds.add(repository.getRepositoryManagerId());
+        OwnerHierarchyRepositoryManagerDTO syntheticDto =
+            transformToSyntheticRepositoryManagerDTO.apply(repositoryManager);
+        repositoryManagerMap.put(repository.getRepositoryManagerId(), syntheticDto);
+        this.repositoryContainer.addChild(syntheticDto);
       }
     }
 

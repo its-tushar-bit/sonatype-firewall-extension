@@ -14,144 +14,83 @@
  *
  * SCOPE OF TEST EXECUTION
  *
- * This pipeline runs *proper unit tests only* (Surefire) — the tests that are
- * fast and self-contained. The slower test categories that Jenkinsfile.main's
- * getParallelTests() fans out across parallel agents are deliberately excluded:
+ * Single-agent pipeline. Compile once, then run tests as independent `mvn`
+ * invocations (own JVM / forks) on the same workspace — no workspace zip,
+ * no cross-agent fan-out. Regex slices match Jenkinsfile.main#getParallelTests
+ * so a test class lands in the same partition on both pipelines.
  *
- *   getParallelTests stage                       | status in this build
- *   ---------------------------------------------+------------------------------------
- *   Java Functional Tests                        | SKIPPED via -D skip-functional-test
- *                                                | (browser / end-to-end tests)
- *   Unit and Integration Tests (A, B, D-G, H-J,  | PARTIAL: Surefire (unit tests) run;
- *     L-N, O-P, R+T, S, C+U-Z — all non-mtiq,    | Failsafe (integration tests)
- *     non-frontend modules)                      | SKIPPED via -DskipITs.
- *                                                | SlowTest-annotated tests are
- *                                                | excluded via -DexcludedGroups=SlowTest.
- *   MTIQ Unit and Integration Tests              | PARTIAL: same rules as above —
- *                                                | Surefire runs, Failsafe + SlowTest
- *                                                | excluded.
- *   Frontend Tests (Jest)                        | RUN as part of the standard test
- *                                                | phase (frontend-maven-plugin binds
- *                                                | Jest to `test`, not `integration-test`).
+ * Stages:
+ *   Build & Test              — compile + package (tests skipped)
+ *   Unit + Integration Tests  — 9 alphabetical partitions + MTIQ + Jest + JaCoCo
+ *   Playwright Sanity Tests   — -Psanity @Category(SanityTest)
  *
- * Net effect: Jenkinsfile.main's parallel stages still own every integration /
- * functional / slow test during the side-by-side period, so nothing is lost
- * while we evaluate this simpler shape. If the experiment succeeds, the
- * follow-up that deletes the slow tests can leave -DskipITs,
- * -D skip-functional-test, and -DexcludedGroups=SlowTest in place here — they
- * will simply become no-ops.
- *
- * What this pipeline verifies:
- *   - Full multi-module Maven compile (main + test sources)
- *   - Surefire unit tests across every module (minus SlowTest)
- *   - Frontend Jest unit tests
- *   - License headers (license-maven-plugin)
- *   - Spotless formatting check
- *   - IQ policy evaluation (with Java + JS reachability)
- *   - Assemblies / distribution artifacts can be produced
- *   - JaCoCo unit-test coverage (aggregated via recordCoverage)
- *
- * Other differences from the legacy insight-brain Jenkinsfile:
- *   - No dispatch to Jenkinsfile.main / Jenkinsfile.feature / Jenkinsfile.mergequeue.
- *   - No iq-pipeline-library dependency; uses mavenSnapshotPipeline from
- *     jenkins-shared directly, and notifyChat directly for notifications.
- *   - No workspace zip + distributed-agent fan-out.
- *   - No `mvn deploy` (deployCondition is pinned to { false } — see below).
- *   - No artifact archival (additionalArtifacts omitted) — Jenkinsfile.main
- *     archives ~GB of .zip / .jar per build that nothing downloads.
- *   - JDKs are downloaded unconditionally as part of the main reactor via the
- *     `jdks` profile; Jenkinsfile.main instead wrapped a separate `mvn -pl
- *     :insight-brain -Pjdks` invocation around the MTIQ image build.
- *   - MTIQ Docker image build + push to RSC runs on main-branch builds only.
- *     The Jenkinsfile.main flow additionally pushes that image to dev ECR and
- *     triggers deploy-to-shared-dev + bump-mtiq-version — those are deferred
- *     to a follow-up (see the "follow-ups" list in the PR).
+ * See runUnitTestPartitions() for the exact regex slices.
  */
 
 // Abort any in-flight build on the same non-main branch when a new one arrives.
+def buildProperties = []
 if (!currentBuild.fullProjectName.endsWith('/main')) {
-  properties([disableConcurrentBuilds(abortPrevious: true)])
+  buildProperties << disableConcurrentBuilds(abortPrevious: true)
 }
+buildProperties << parameters([
+    booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
+        description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+    choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
+        description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.')
+])
+properties(buildProperties)
 
 mavenSnapshotPipeline(
     agentLabel: 'iq-large',
     deployBranch: 'main',
-    // Experimental pipeline — never deploy SNAPSHOTs from here while we're evaluating
-    // the new build shape. Flip to the default (isDeployBranch(env, 'main')) once we
-    // are ready to replace the legacy pipeline.
     deployCondition: { false },
     javaVersion: 'OpenJDK 25',
     mavenVersion: 'Maven 3.9.x',
     useEventSpy: false,
-    // Maven options — see buildOptions() for per-flag rationale. The key flags for
-    // this experiment are `-DskipITs`, `-D skip-functional-test`, and
-    // `-DexcludedGroups=SlowTest`, which together scope test execution to proper
-    // (fast) Surefire unit tests.
     mavenOptions: buildOptions(),
-    // buildsupport-sonar-coverage wires up jacoco:prepare-agent (so Surefire is
-    // instrumented) and jacoco:report (so target/site/jacoco/jacoco.xml is
-    // produced). Same profile Jenkinsfile.main's createUnitTests enables;
-    // see pom.xml where it pins jacoco to 0.8.14 for JDK 25 compatibility.
-    //
-    // jdks triggers a one-time download of all target-platform JDKs into the
-    // root module's target/jdks/ during `process-resources`. Its plugins are
-    // <inherited>false</inherited>, so adding this to the reactor-wide profile
-    // list activates it on the :insight-brain module only (one download, not
-    // one-per-module). Having it in the primary pass means postBuildAndTest's
-    // MTIQ image build can jump straight to jreleaser:assemble without a
-    // separate `mvn -pl :insight-brain -Pjdks` invocation.
+    // buildsupport-sonar-coverage: JaCoCo instrumentation + report.
+    // jdks: downloads target-platform JDKs for jreleaser's jlink assembly.
     mavenProfiles: ['buildsupport-sonar-coverage', 'jdks'],
     useInstall4J: false,
     useSpotless: true,
-    // Run IQ policy evaluation on feature branches too — mirrors current behavior.
     runFeatureBranchPolicyEvaluations: true,
     performSonarAnalysis: false,
-    // Only globs that are guaranteed to match should be listed here. The shared
-    // library's collectTestResults() calls `junit <glob>` once per entry with
-    // allowEmptyResults: false, so any glob that matches zero files fails the
-    // whole build (observed on insight-brain build #1). Since we always pass
-    // -DskipITs, the **/target/failsafe-reports/*.xml glob is deliberately
-    // omitted — add it back if/when Failsafe is re-enabled (e.g. after the
-    // embedded-postgres follow-up from arrow-artichoke lands and we want ITs).
+    // Every glob must match at least one file (allowEmptyResults: false).
     testResults: [
         '**/target/surefire-reports/*.xml',
+        '**/target/failsafe-reports/*.xml',
         '**/target/jest-reports/*.xml'
     ],
-    // additionalArtifacts intentionally omitted. Jenkinsfile.main archives
-    // nexus-iq-server zips/tarballs, nexus-iq-diagnostics jars, and nexus-mtiq
-    // tarballs every build — GBs of artifacts that no downstream job copies.
-    // If a future need for Jenkins-archived snapshot artifacts emerges, add
-    // them here as a narrow, named subset rather than a broad reinstatement.
-    // Override the default build closure so we can wire in the Sonatype Docker
-    // registry credentials and the Testcontainers environment variables required
-    // by insight-brain's integration tests.
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo,
                             boolean useInstall4J ->
-      withSonatypeDockerRegistry() {
-        withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
-                 "TESTCONTAINERS_RYUK_DISABLED=true"]) {
-          buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+      try {
+        withSonatypeDockerRegistry() {
+          withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                   "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+            buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+
+            stage('Unit + Integration Tests') {
+              runUnitTestPartitions()
+              runJacocoReport()
+            }
+
+            if (!params.skipPlaywrightTests) {
+              stage('Playwright Sanity Tests') {
+                runPlaywrightSanitySuite()
+              }
+            }
+          }
         }
       }
+      finally {
+        capturePlaywrightArtifacts()
+      }
     },
-    // Runs after a successful Build & Test. Two responsibilities:
-    //   1. Publish aggregated JaCoCo unit-test coverage. Each module's jacoco.xml
-    //      is generated by the `report` execution of the jacoco-maven-plugin
-    //      (bound to the `verify` phase via the buildsupport-sonar-coverage
-    //      profile), so the globbed pattern picks up every module.
-    //   2. On the main branch only, build and push the MTIQ Docker image to
-    //      the Sonatype private registry. JDKs required by jreleaser's jlink
-    //      assembly were already downloaded during the primary Maven pass
-    //      (via the `jdks` profile in mavenProfiles above), so this step only
-    //      needs to run jreleaser:assemble + `docker buildx build --push`.
     postBuildAndTest: {
       catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE',
           message: 'Failed to publish JaCoCo coverage reports.') {
         recordCoverage(
             tools: [[parser: 'JACOCO', pattern: '**/target/site/jacoco/jacoco.xml']],
-            // sourceCodeRetention: 'NEVER' skips the inline source-code painting
-            // step, which is slow on a repo this size and of limited value when
-            // coverage is the only metric we care about here.
             sourceCodeRetention: 'NEVER'
         )
       }
@@ -161,7 +100,6 @@ mavenSnapshotPipeline(
       }
     },
     iqPolicyEvaluation: { stage ->
-      // Skip policy evaluation for merge-queue branches — matches existing behavior.
       if (env.BRANCH_NAME?.startsWith('gh-readonly-queue')) {
         return
       }
@@ -196,7 +134,6 @@ mavenSnapshotPipeline(
           iqStage: stage,
           iqApplication: 'insight-brain',
           iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
-          // Test files inside the maven modules are excluded from the scan.
           iqModuleExcludes: [
               [moduleExclude: '**/test/**'],
               [moduleExclude: '**/test-classes/**/module.xml']
@@ -224,30 +161,14 @@ mavenSnapshotPipeline(
 )
 
 /**
- * Build nexus-mtiq-server's jlink distribution via jreleaser and push the
- * resulting multi-arch Docker image to the Sonatype private registry.
- *
- * Preconditions:
- *   - `mvn clean install -Pjdks ...` has already run (so target/jdks/ is
- *     populated for jreleaser's jlink targetJdks).
- *   - The build agent has docker and docker buildx available, and the iq
- *     agent label already provides those.
- *
- * Intentionally scoped smaller than Jenkinsfile.main's pushMTIQDockerImage():
- *   - Only fires on the main branch (caller-gated). Feature-branch image
- *     pushes — gated on an mtiqImagePushEnabled parameter or a `_mtiq`
- *     suffix in Jenkinsfile.main — are not carried forward here.
- *   - Does not push to dev ECR, and does not trigger deploy-to-shared-dev or
- *     bump-mtiq-version. Those integrations stay on Jenkinsfile.main for now.
+ * Build + push the MTIQ multi-arch Docker image to Sonatype private registry.
+ * Requires the `jdks` profile to have run first (populates target/jdks/).
  */
 void pushMtiqDockerImage() {
   String iqVersion = getMavenProjectVersion('.')
   String imageVersion = mtiqImageVersion()
   echo "Building MTIQ Docker image: iqVersion='${iqVersion}' imageVersion='${imageVersion}'"
 
-  // jreleaser:assemble is NOT bound to any phase in nexus-mtiq-server/pom.xml,
-  // so we invoke it directly. The module's jreleaser.yml reads JDKs out of
-  // target/jdks/ — already populated by the `jdks` profile in the main pass.
   mvn jreleaserConfig(), ' -pl :nexus-mtiq-server jreleaser:assemble'
 
   dir('nexus-mtiq-server') {
@@ -262,11 +183,7 @@ void pushMtiqDockerImage() {
   }
 }
 
-/**
- * MTIQ image tag: {yyyyMMddHHmm}-{buildNumber}-{gitShort8}. Matches the
- * format Jenkinsfile.main#mtiqImageVersion() produces for main-branch builds
- * so that consumers watching RSC for "newest tag" logic keep working.
- */
+/** MTIQ image tag: {yyyyMMddHHmm}-{buildNumber}-{gitShort8}. */
 private String mtiqImageVersion() {
   String dateSection = new Date().format('yyyyMMddHHmm', TimeZone.getTimeZone('UTC'))
   String buildNumSection = env.BUILD_NUMBER
@@ -274,12 +191,115 @@ private String mtiqImageVersion() {
   return "${dateSection}-${buildNumSection}-${gitShortHashSection}"
 }
 
-/**
- * Minimal mavenCommon config for invoking jreleaser:assemble inside
- * postBuildAndTest. Matches the JDK / Maven versions the primary pass uses
- * so that jreleaser runs on the same toolchain that built the SNAPSHOT jars.
- */
+/** mavenCommon config for jreleaser:assemble. */
 private Map<String, ?> jreleaserConfig() {
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false
+  )
+}
+
+/** Run the Playwright @Category(SanityTest) suite. */
+private void runPlaywrightSanitySuite() {
+  String args = "-pl insight-brain-playwright-test"
+  args += " -Psanity"
+  args += " -Dit.test='%regex[.*Test.class]'"
+  args += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
+  args += " -DdetectTestEntityLeaks"
+  args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
+  args += " --threads 4 --no-transfer-progress"
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += " verify"
+  mvn playwrightMavenConfig(), args
+}
+
+/** mavenCommon config for the Playwright invocation. */
+private Map<String, ?> playwrightMavenConfig() {
+  return mavenCommon(
+      javaVersion: 'OpenJDK 25',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false
+  )
+}
+
+/**
+ * Run test partitions sequentially. Each partition is its own `mvn` process
+ * for JVM-level isolation. Regex slices match Jenkinsfile.main#getParallelTests.
+ */
+private void runUnitTestPartitions() {
+  runUnitTestPartition('Unit and Integration Tests A',     '.*/[A].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests B',     '.*/[B].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests D-G',   '.*/[D-G].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests H-K',   '.*/[H-K].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests L-N',   '.*/[L-N].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests O-P',   '.*/[O-P].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests R+T',   '.*/[RT].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests S',     '.*/[S].*Test.class')
+  runUnitTestPartition('Unit and Integration Tests C+U-Z', '.*/[CU-Z].*Test.class')
+  runMtiqUnitTests()
+  runFrontendTests()
+}
+
+/** Run a single unit/integration partition. jacoco:report is deferred to runJacocoReport(). */
+private void runUnitTestPartition(String stageName, String regex) {
+  echo "Running partition: ${stageName} (regex ${regex})"
+  String args = "-pl '!nexus-mtiq-server,!insight-brain-frontend,!insight-brain-playwright-test,!insight-brain-java-functional-test'"
+  args += " -Dtest=%regex[${regex}]"
+  args += " -Dit.test=%regex[${regex}]"
+  args += " -DexcludedGroups=SlowTest"
+  args += " -DdetectTestEntityLeaks"
+  args += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += " --threads 4 --no-transfer-progress"
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:prepare-agent surefire:test failsafe:integration-test failsafe:verify'
+  mvn testPartitionMavenConfig(), args
+}
+
+/** MTIQ unit/integration partition. 90m timeout matches Jenkinsfile.main. */
+private void runMtiqUnitTests() {
+  echo 'Running partition: MTIQ Unit and Integration Tests'
+  String args = '-pl com.sonatype.insight.brain:nexus-mtiq-server'
+  args += ' -DexcludedGroups=SlowTest'
+  args += ' -DdetectTestEntityLeaks'
+  args += ' -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5'
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += ' --threads 4 --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:prepare-agent initialize surefire:test failsafe:integration-test failsafe:verify'
+  timeout(time: 90, unit: 'MINUTES') {
+    mvn testPartitionMavenConfig(), args
+  }
+}
+
+/** Frontend Jest tests. Single thread to prevent Jest parallelization timeouts. */
+private void runFrontendTests() {
+  echo 'Running partition: Frontend Tests (Jest)'
+  String args = "-pl com.sonatype.insight.brain:insight-brain-frontend"
+  args += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+  args += ' --threads 1 --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' com.github.eirslett:frontend-maven-plugin:yarn@jest'
+  mvn testPartitionMavenConfig(), args
+}
+
+/**
+ * Generate per-module jacoco.xml after all partitions. Must run once at the
+ * end: jacoco.exec accumulates across forks, but jacoco:report overwrites
+ * the XML — running it per-partition would keep only the last slice's coverage.
+ */
+private void runJacocoReport() {
+  echo 'Aggregating JaCoCo coverage across all partitions'
+  String args = "-pl '!insight-brain-java-functional-test,!insight-brain-playwright-test'"
+  args += ' --no-transfer-progress'
+  args += ' -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  args += ' jacoco:report'
+  mvn testPartitionMavenConfig(), args
+}
+
+/** mavenCommon config for test partition invocations. */
+private Map<String, ?> testPartitionMavenConfig() {
   return mavenCommon(
       javaVersion: 'OpenJDK 25',
       mavenVersion: 'Maven 3.9.x',
@@ -289,34 +309,36 @@ private Map<String, ?> jreleaserConfig() {
 
 private String buildOptions() {
   def opts = []
-  // --- Test scope ---------------------------------------------------------
-  // Run Surefire (unit) tests across all modules, including MTIQ. Skip the
-  // Failsafe integration-test phase — those are the slow tests currently fanned
-  // out across distributed agents by Jenkinsfile.main's getParallelTests().
-  // opts << '-DskipITs'
-  // Exclude any tests annotated with the SlowTest category. Matches the
-  // "proper unit tests" definition already used by
-  // Jenkinsfile.feature#buildDistributedSurefireTestMavenOptions.
-  //
-  // NOTE: -DexcludedGroups is a Surefire/Failsafe property. If any module in
-  // this project overrides <excludedGroups> in its POM, this CLI value will
-  // replace that configuration. If you need to *add* to per-module exclusions,
-  // switch to the `!SlowTest` groups expression via JUnit 5 or use profiles.
-  opts << '-DexcludedGroups=SlowTest'
-  // Skip Java functional tests (the insight-brain-java-functional-test module
-  // only runs when this flag is absent).
-  opts << '-D skip-functional-test'
 
-  // --- Build behavior -----------------------------------------------------
+  def excludedModules = [
+      'insight-brain-java-functional-test',
+      'insight-brain-playwright-test'
+  ]
+  opts << "-pl '${excludedModules.collect { "!${it}" }.join(',')}'"
+
+  // Tests run in per-partition mvn invocations (see runUnitTestPartitions).
+  opts << '-DskipTests'
+  opts << '-DskipITs'
+
   opts << "-D build.number=${env.BUILD_NUMBER}"
   opts << '--threads 4'
   opts << '--no-transfer-progress'
-  // Match the quiet-resolution setting used by nexus-internal's Jenkinsfile.build.
   opts << '-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
   return opts.join(' ')
 }
 
 private boolean shouldNotify() {
-  // Slack/chat notifications temporarily disabled.
   return false
+}
+
+/** Archive Playwright failure artifacts (screenshots, traces, diagnostics, heap dumps). */
+private void capturePlaywrightArtifacts() {
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/heap-dumps/*.hprof',
+                   allowEmptyArchive: true)
 }

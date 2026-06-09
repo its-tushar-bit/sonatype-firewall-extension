@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.options.LoadState;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -108,7 +107,6 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
     // When: the user clicks "Add a Policy" and fills the editor with a valid policy.
     ownerSummary.addPolicyButton().click();
-    page.waitForLoadState(LoadState.NETWORKIDLE);
     assertThat(editorPage.firstConstraintName()).isVisible();
     editorPage.policyName().fill(CREATED_ROOT_POLICY_NAME);
     editorPage.selectThreatLevel(
@@ -149,14 +147,15 @@ public class RootOrganizationPolicyEditorPlaywrightTest
     assertThat(ownerSummary.policiesTile()).isVisible();
 
     // Then: an "Inherited from Root Organization" section exists with a row for the parent
-    // policy.
+    // policy (tile data is loaded asynchronously after the nav-pill scroll).
     Locator inheritedSection = ownerSummary.policiesTileInheritedSectionFor(rootOrganization.getName());
     assertThat(inheritedSection).isVisible();
     assertThat(ownerSummary.policiesTileRowByName(INHERITED_POLICY_NAME)).isVisible();
 
     // When: click the inherited policy row to open the editor at the child-org level.
     ownerSummary.policiesTileRowByName(INHERITED_POLICY_NAME).click();
-    page.waitForLoadState(LoadState.NETWORKIDLE);
+    // Inherited policies render ReadOnlyConstraint (not EditableConstraint), so there is no
+    // "Constraint Name" input — wait for the editor shell instead.
     assertThat(editorPage.container()).isVisible();
 
     // Then: the editor renders in inherited / read-only mode (heading "Policy Settings", policy name

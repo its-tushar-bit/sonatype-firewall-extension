@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.regex.Pattern;
 
-import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
@@ -118,8 +118,10 @@ public class OrganizationPolicyEditorPlaywrightTest
 
     // Then: both the editor container and the inheritance section render.
     PolicyEditorPage editorPage = new PolicyEditorPage();
-    assertThat(editorPage.container()).isVisible();
-    assertThat(editorPage.inheritanceSection()).isVisible();
+    LocatorAssertions.IsVisibleOptions visibleTimeout =
+        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS);
+    assertThat(editorPage.container()).isVisible(visibleTimeout);
+    assertThat(editorPage.inheritanceSection()).isVisible(visibleTimeout);
   }
 
   /**
@@ -147,7 +149,8 @@ public class OrganizationPolicyEditorPlaywrightTest
     // currentPolicy gets re-seeded and blows away anything we typed).
     ownerSummary.openPoliciesSectionFromNavPills();
     ownerSummary.addPolicyButton().click();
-    page.waitForLoadState(LoadState.NETWORKIDLE);
+    assertThat(editorPage.firstConstraintName()).isVisible(
+        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
 
     // Then: the new-policy form renders with all four editor sections (Summary, Inheritance,
     // Constraints, Actions, Notifications) and the heading reads "Policy Settings". Wait for the

@@ -178,8 +178,10 @@ void configureBranchJob() {
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
           name: 'mtiqImagePushEnabled'),
 
-      // Functional Test Skip Parameters
-      booleanParam(name: 'skipFunctionalTests', defaultValue: false, description: 'Skip: Java Functional Tests'),
+      booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
+          description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+      choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
+          description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.'),
 
       // Unit/Integration Test Skip Parameters
       booleanParam(name: 'skipUnitA', defaultValue: false, description: 'Skip: Unit and Integration Tests A'),
@@ -322,7 +324,8 @@ void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId,
 
 
   def zips = [workspaceZip]
-  def parallelSteps = new HashMap<String, Closure>(getParallelTests(zips))
+  // LinkedHashMap (not HashMap) so the Jenkins Stage View renders columns in insertion order.
+  def parallelSteps = new LinkedHashMap<String, Closure>(getParallelTests(zips))
   parallelSteps.putAll(getDockerSteps(zips))
   parallel(parallelSteps)
 
@@ -355,8 +358,8 @@ Map<String, Closure> getDockerSteps(List<String> zipFiles) {
 Map<String, Closure> getParallelTests(List <String> zips) {
   Map<String, Closure> testStages = [:]
 
-  if (isFunctionalTestsEnabled() && !params.skipFunctionalTests) {
-    testStages << createFunctionalTests('Java Functional Tests', '.*Test.class', zips)
+  if (!params.skipPlaywrightTests) {
+    testStages << createPlaywrightTests('Playwright Functional Tests', '.*Test.class', zips)
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
@@ -396,12 +399,12 @@ Map<String, Closure> getParallelTests(List <String> zips) {
   return testStages
 }
 
-Map<String, Closure> createFunctionalTests(
+Map<String, Closure> createPlaywrightTests(
   String stageName,
   String regex,
   List<String> zipFiles
 ) {
-  String mavenModule = 'insight-brain-java-functional-test'
+  String mavenModule = 'insight-brain-playwright-test'
 
   return ["${stageName}": {
     node('iq-large') {
@@ -409,19 +412,18 @@ Map<String, Closure> createFunctionalTests(
         try {
           copyRepo(zipFiles)
           String mavenOptions = "'-Dit.test=%regex[${regex}]'"
-          mavenOptions += " -Dbrowser=chrome"
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -DdetectTestEntityLeaks"
           mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
           mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
           mavenOptions += " --threads 4"
-          mavenOptions += getRunRefPolicyImportIntTestMavenOption()
+          mavenOptions += " -Psanity"
+          mavenOptions += " -Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
           Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
-          // We just want to execute tests so directly invoke goals.
           mvn testConfig, 'failsafe:integration-test failsafe:verify'
         }
         finally {
-          captureResultsAndCleanup()
+          capturePlaywrightResultsAndCleanup()
         }
       }
     }
@@ -542,9 +544,28 @@ void captureResultsAndCleanup() {
   deleteDir()
 }
 
-boolean isFunctionalTestsEnabled() {
-  // Always enabled for main-style builds (Jenkinsfile.main)
-  return true
+/** Cleanup for the Playwright stage. Archives failure artifacts + test reports. */
+void capturePlaywrightResultsAndCleanup() {
+  archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: '**/target/heap-dumps/*.hprof', allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/failsafe-reports/*.txt',
+                   allowEmptyArchive: true)
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/surefire-reports/*.txt',
+                   allowEmptyArchive: true)
+  try {
+    collectTestResults(['**/target/*-reports/*.xml'])
+  }
+  catch (Throwable t) {
+    echo "WARNING: collectTestResults failed (Junit/Failsafe XML may be missing or invalid): ${t.getMessage()}"
+  }
+  deleteDir()
 }
 
 boolean isDynamicPolicyEvaluationEnabled() {

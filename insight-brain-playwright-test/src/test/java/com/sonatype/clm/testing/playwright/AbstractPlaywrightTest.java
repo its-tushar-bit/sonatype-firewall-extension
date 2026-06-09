@@ -251,7 +251,7 @@ public abstract class AbstractPlaywrightTest
     if (RECORD_VIDEO && recordedVideo != null) {
       saveVideo(testKey, recordedVideo);
     }
-    log.info("Playwright test complete: {} (passed={})", description.getDisplayName(), failure == null);
+    log.info("=== PLAYWRIGHT END {} | passed={}", description.getDisplayName(), failure == null);
     if (failure != null) {
       throw failure;
     }
@@ -349,7 +349,7 @@ public abstract class AbstractPlaywrightTest
   @Before
   public void setupPlaywrightTest() {
     String currentTest = testName.getMethodName();
-    log.info("Starting Playwright test: {}", currentTest);
+    log.info("=== PLAYWRIGHT START {}.{} | server={}", getClass().getName(), currentTest, baseUrlFromTest);
 
     initializePlaywright();
 
@@ -382,34 +382,66 @@ public abstract class AbstractPlaywrightTest
 
     page = context.newPage();
     BasePage.setCurrent(page);
-    registerPlaywrightFailureListeners();
+    registerPlaywrightLifecycleListeners();
   }
 
   /**
-   * Captures browser-side problems so failures in CI logs explain "what the UI saw", not only the Java stack trace.
+   * Hooks Playwright page events to (a) log the browser's navigation and console activity so the
+   * test's journey is visible in the build console, and (b) capture browser-side warnings/errors
+   * into {@link #browserConsoleWarningsAndErrors} and {@link #browserPageErrors} for the failure
+   * diagnostics file.
+   *
+   * <p>
+   * Listeners are detached automatically when {@link Page#close()} runs in the lifecycle rule's
+   * {@code finally} block — no manual cleanup is needed.
    */
-  private void registerPlaywrightFailureListeners() {
+  private void registerPlaywrightLifecycleListeners() {
     browserConsoleWarningsAndErrors.clear();
     browserPageErrors.clear();
+    // Top-frame navigations only — iframed widgets (Slack feedback, embedded help, etc.) generate
+    // sub-frame navigations that are noise for the test-level journey.
+    page.onFrameNavigated(frame -> {
+      if (frame == page.mainFrame()) {
+        log.info("[playwright][nav] {}", frame.url());
+      }
+    });
     page.onConsoleMessage(msg -> {
       String type = msg.type();
       if ("error".equals(type) || "warning".equals(type)) {
-        appendDiagnosticLine(browserConsoleWarningsAndErrors, "[" + type + "] " + msg.text());
+        // Record into the diagnostics list AND, if still under the per-test cap, log so the
+        // event is visible in the build console even on passing builds. A misbehaving page that
+        // emits many console events stops growing both the .diag.txt file and the build log at
+        // the same threshold (MAX_BROWSER_DIAGNOSTIC_LINES).
+        if (appendDiagnosticLine(browserConsoleWarningsAndErrors, "[" + type + "] " + msg.text())) {
+          log.warn("[playwright][browser-{}] {}", type, msg.text());
+        }
       }
     });
-    page.onPageError(error -> appendDiagnosticLine(browserPageErrors, error));
+    page.onPageError(error -> {
+      if (appendDiagnosticLine(browserPageErrors, error)) {
+        log.error("[playwright][browser-pageError] {}", error);
+      }
+    });
   }
 
-  private static void appendDiagnosticLine(List<String> lines, String line) {
+  /**
+   * Records a single browser-side diagnostic line into {@code lines}, applying the per-test cap
+   * and the per-line length cap. Returns {@code true} if the line was actually added, or
+   * {@code false} if the cap was already reached. Callers use the return value to decide whether
+   * to also emit the line to the build log — so a flood of console events from a misbehaving
+   * page stops growing both the in-memory diagnostics list and the build log at the same point.
+   */
+  private static boolean appendDiagnosticLine(List<String> lines, String line) {
     synchronized (lines) {
       if (lines.size() >= MAX_BROWSER_DIAGNOSTIC_LINES) {
-        return;
+        return false;
       }
       String oneLine = line.replace('\n', ' ').replace('\r', ' ');
       if (oneLine.length() > 500) {
         oneLine = oneLine.substring(0, 500) + "...";
       }
       lines.add(oneLine);
+      return true;
     }
   }
 

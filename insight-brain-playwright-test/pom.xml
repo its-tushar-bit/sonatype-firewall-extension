@@ -20,7 +20,8 @@
     <skip.functional.tests>false</skip.functional.tests>
     <clm.skip>true</clm.skip>
     <it.includes>**/*Test.*</it.includes>
-    <failsafe.forkCount>1C</failsafe.forkCount>
+    <!-- 0.5C caps parallel forks to avoid overwhelming Docker with concurrent Postgres startups. -->
+    <failsafe.forkCount>0.5C</failsafe.forkCount>
     <playwright.version>1.49.0</playwright.version>
     <!-- Playwright defaults (override with -Dplaywright.headless=false for headed mode) -->
     <playwright.headless>true</playwright.headless>
@@ -70,14 +71,25 @@
           <groups>${failsafe.groups}</groups>
           <excludedGroups>${failsafe.excludedGroups}</excludedGroups>
           <trimStackTrace>false</trimStackTrace>
-          <!-- Stream test JVM stdout/stderr to the Maven console instead of only target/failsafe-reports/*-output.txt -->
-          <redirectTestOutputToFile>false</redirectTestOutputToFile>
           <skip>false</skip>
           <skipITs>${skip.functional.tests}</skipITs>
           <reuseForks>true</reuseForks>
           <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
           <forkCount>${failsafe.forkCount}</forkCount>
-          <argLine></argLine>
+          <!--
+            Inline add-opens from jvm.options (omit enable-native-access: crashes JDK 25 forks).
+            No @{argLine}: Playwright forks are excluded from JaCoCo coverage.
+          -->
+          <argLine>
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+            --add-opens=java.base/java.security=ALL-UNNAMED
+            --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+            --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+            --add-opens=java.base/sun.security.util=ALL-UNNAMED
+            --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+            --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+          </argLine>
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
             <test.forkId>#${surefire.forkNumber}</test.forkId>
@@ -193,6 +205,11 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-service</artifactId>
       <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -325,7 +342,18 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <argLine>@{argLine} -Duser.timezone=UTC</argLine>
+              <!-- Profile replaces base argLine (child-wins merge); repeat add-opens + UTC. -->
+              <argLine>
+                --add-opens=java.base/java.lang=ALL-UNNAMED
+                --add-opens=java.base/java.util=ALL-UNNAMED
+                --add-opens=java.base/java.security=ALL-UNNAMED
+                --add-opens=java.base/sun.security.rsa=ALL-UNNAMED
+                --add-opens=java.base/sun.security.x509=ALL-UNNAMED
+                --add-opens=java.base/sun.security.util=ALL-UNNAMED
+                --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
+                --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+                -Duser.timezone=UTC
+              </argLine>
             </configuration>
           </plugin>
         </plugins>

@@ -12,15 +12,13 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.clm.dto.model.SecurityVulnerability;
-import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
 import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.sonatype.clm.testing.playwright.utils.FirewallComponentDetailsHdsStub;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
-import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -60,8 +58,6 @@ public class FirewallComponentDetailsPlaywrightTest
   private static final String COMPONENT_HASH = "pwfwcmpdetailshash01";
 
   private static final String COMPONENT_PATHNAME = "g/a/v/g-a-v.jar";
-
-  private static final String PROJECT_WEBSITE = "http://www.example.com";
 
   private static final String MAVEN_FORMAT = "maven";
 
@@ -272,6 +268,8 @@ public class FirewallComponentDetailsPlaywrightTest
         HIGH_SEVERITY_POLICY_CONSTRAINT_NAME, HIGH_SEVERITY_POLICY_CONSTRAINT_REASON);
     newSecurityViolation(component, securityLowPolicy, WarnActionType.ID, LOW_SEVERITY_POLICY_THREAT_LEVEL,
         LOW_SEVERITY_POLICY_CONSTRAINT_NAME, LOW_SEVERITY_POLICY_CONSTRAINT_REASON);
+    FirewallComponentDetailsHdsStub.stubRepositoryComponentDetails(
+        testCLMServer.getHdsServer(), component);
     return component;
   }
 
@@ -301,20 +299,15 @@ public class FirewallComponentDetailsPlaywrightTest
   }
 
   private void stubComponentDetailsHds(RepositoryComponent component, boolean withVulnerabilities) {
-    ComponentDetails componentDetails = new ComponentDetails(component.getComponentIdentifier());
-    componentDetails.setHash(component.getHash());
-    componentDetails.setMatchState(MatchState.EXACT.getId());
-    componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
-    componentDetails.setCatalogDate(new Date().getTime());
-    componentDetails.setWebsite(PROJECT_WEBSITE);
-
     if (withVulnerabilities) {
-      componentDetails.addSecurityVulnerability(securityVulnerability(HIGH_SEVERITY_CVE_ID, HIGH_SEVERITY));
-      componentDetails.addSecurityVulnerability(securityVulnerability(LOW_SEVERITY_CVE_ID, LOW_SEVERITY));
+      FirewallComponentDetailsHdsStub.stubRepositoryComponentDetailsWithVulnerabilities(
+          testCLMServer.getHdsServer(), component,
+          HIGH_SEVERITY_CVE_ID, HIGH_SEVERITY, LOW_SEVERITY_CVE_ID, LOW_SEVERITY);
     }
-
-    // Used by IQ when proxying `/rest/ci/componentDetails/repository/{ownerId}` to HDS.
-    testCLMServer.getHdsServer().respondWith(componentDetails).atUri("rest/ci/componentDetails");
+    else {
+      FirewallComponentDetailsHdsStub.stubRepositoryComponentDetails(
+          testCLMServer.getHdsServer(), component);
+    }
   }
 
   private Repository newRepositoryForSecurityScenario() {
@@ -350,14 +343,6 @@ public class FirewallComponentDetailsPlaywrightTest
     violation.setActionTypeId(actionId);
     tempEntity.newRepositoryPolicyViolation(violation);
     return violation;
-  }
-
-  private SecurityVulnerability securityVulnerability(String refId, float severity) {
-    SecurityVulnerability vuln = new SecurityVulnerability();
-    vuln.setRefId(refId);
-    vuln.setSeverity(severity);
-    vuln.setSource("cve");
-    return vuln;
   }
 
   private String uuid() {

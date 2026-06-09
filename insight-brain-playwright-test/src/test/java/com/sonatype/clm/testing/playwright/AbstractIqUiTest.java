@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import java.util.Date;
 import java.util.EnumSet;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.proxy.ReverseProxyServer;
@@ -72,7 +74,14 @@ import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.QuartzTriggerListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
+import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -99,9 +108,11 @@ import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
 import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static org.mockito.ArgumentMatchers.any;
@@ -385,6 +396,7 @@ public abstract class AbstractIqUiTest
     }
   }
 
+  @Configuration
   static class PlaywrightTestConfiguration
   {
     @Bean
@@ -415,6 +427,37 @@ public abstract class AbstractIqUiTest
       return () -> FIPSModeDetector.isEnabled()
           ? new TestFipsEncryptionKeyStore().getKey()
           : new TestEncryptionKeyStore().getKey();
+    }
+
+    @Bean
+    @Primary
+    public QuartzJobStoreTX quartzJobStoreTX(
+        ProductLicense productLicense,
+        InsightConfig insightConfig,
+        OperationalDataStore operationalDataStore) throws Exception
+    {
+      return new TestQuartzJobStoreTx(productLicense, insightConfig, operationalDataStore);
+    }
+
+    @Bean
+    @Primary
+    public TaskScheduler taskScheduler(
+        QuartzJobStoreTX quartzJobStoreTX,
+        JobFactory jobFactory,
+        QuartzTriggerListener quartzTriggerListener,
+        QuartzConcurrencyListener quartzConcurrencyListener,
+        OperationalDataStore operationalDataStore,
+        ShutdownHandler shutdownHandler,
+        QuartzJobSchedulingService quartzJobSchedulingService)
+    {
+      return new TestTaskScheduler(
+          quartzJobStoreTX,
+          jobFactory,
+          quartzTriggerListener,
+          quartzConcurrencyListener,
+          operationalDataStore,
+          shutdownHandler,
+          quartzJobSchedulingService);
     }
   }
 
@@ -506,11 +549,44 @@ public abstract class AbstractIqUiTest
    * Login with the given credentials via the IQ login modal.
    * Does NOT navigate — the caller must have already navigated to a page
    * where the login modal will appear (matching the Selenide {@code login()} behavior).
+   *
+   * <p>
+   * Waits for the authenticated header before returning — see
+   * {@link #waitForAuthenticatedHeader} for the race condition this guards against.
    */
   protected void playwrightLogin(String username, String password) {
     log.debug("Logging in as '{}' on current page (url='{}')", username, page.url());
     new LoginPage().loginAs(username, password);
+    waitForAuthenticatedHeader();
     log.debug("Login successful for user: {}", username);
+  }
+
+  /**
+   * Wait for the authenticated header (specifically the user menu) to be visible.
+   *
+   * <p>
+   * After {@link LoginPage#loginAs} returns, the modal is gone and the submit mask has been
+   * dismissed — but the Redux auth slice may not yet be hydrated and the header may not have
+   * re-rendered into its authenticated layout. Tests that immediately call
+   * {@link AbstractPlaywrightTest#playwrightRefreshOrOpen} would race the SPA: a same-document
+   * hash change (e.g. {@code #/management/view/...} → {@code #/management/edit/...}) does not
+   * trigger a document load, so the navigate returns instantly while route guards run async.
+   * If a guard fires before {@code isLoggedIn} is true, it issues a 401 and redirects back to
+   * a safe landing page — surfacing later as "{@code #policy-editor-summary} not visible".
+   *
+   * <p>
+   * Waiting for the {@code #user-menu} element ({@code MenuBar.jsx} only mounts {@code
+   * <UserMenu />} when {@code isLoggedIn === true}) gives a single, cheap signal that the
+   * authenticated header has actually rendered.
+   *
+   * <p>
+   * Call this from every login helper that returns control to a test, so subsequent
+   * navigations are not racing async auth hydration.
+   */
+  private void waitForAuthenticatedHeader() {
+    assertThat(new HeaderComponent().userMenu())
+        .isVisible(new LocatorAssertions.IsVisibleOptions()
+            .setTimeout(PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS));
   }
 
   /**
@@ -531,14 +607,20 @@ public abstract class AbstractIqUiTest
 
   /**
    * Login with a non-admin user at the specified page.
+   *
+   * <p>
+   * Waits for the authenticated header before returning — see
+   * {@link #waitForAuthenticatedHeader} for the race condition this guards against.
    */
   protected void playwrightLoginAt(String path, String username, String password) {
     playwrightRefreshOrOpen(path);
     new LoginPage().loginAs(username, password);
+    waitForAuthenticatedHeader();
   }
 
   /**
-   * Login as admin at a specific page URL.
+   * Login as admin at a specific page URL. Delegates to {@link #playwrightLoginAt} so the
+   * authenticated-header guard applies transitively.
    */
   protected void playwrightLoginAdminAt(String path) {
     playwrightLoginAt(path, TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);

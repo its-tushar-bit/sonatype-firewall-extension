@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.sonatype.clm.testing.playwright.utils.FirewallComponentDetailsHdsStub;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
@@ -150,6 +151,8 @@ public class FirewallPolicyViolationsPlaywrightTest
     newPolicyViolation(component, lowPolicy, WarnActionType.ID, LOW_POLICY_THREAT_LEVEL,
         LOW_POLICY_CONSTRAINT_NAME, LOW_POLICY_CONSTRAINT_REASON);
 
+    FirewallComponentDetailsHdsStub.stubRepositoryComponentDetails(
+        testCLMServer.getHdsServer(), component);
     return component;
   }
 

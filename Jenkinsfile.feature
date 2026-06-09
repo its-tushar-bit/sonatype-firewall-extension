@@ -49,10 +49,10 @@
  │  • Jest                 │  • Spotless Check     │                                           │
  │                         │  • License Check      │                                           │
  ├──────────────┬──────────┬──────────┬──────────┬──────────┬──────────┬────────────────────┤
- │  Postgres    │  Surefire│  Failsafe│  Failsafe│  Failsafe│  Failsafe│  Functional        │
- │  Tests       │  ────────│  1 (A)   │  2 (B-L) │  3 (M-R) │  4 (S-Z) │  Tests             │
+ │  Postgres    │  Surefire│  Failsafe│  Failsafe│  Failsafe│  Failsafe│  Playwright        │
+ │  Tests       │  ────────│  1 (A)   │  2 (B-L) │  3 (M-R) │  4 (S-Z) │  Functional Tests  │
  │  • main      │  • main  │  • iq    │  • iq    │  • iq    │  • iq    │  • iq              │
- │  • Postgres  │  • test  │  27%     │  25%     │  25%     │  21%     │  • 45 UI tests     │
+ │  • Postgres  │  • test  │  27%     │  25%     │  25%     │  21%     │  • -Psanity        │
  ├──────────────┴──────────┴──────────┴──────────┴──────────┴──────────┴────────────────────┤
  │  MTIQ Tests • main agent • surefire+failsafe                                            │
  └──────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -349,19 +349,28 @@ pipeline {
           }
         }
 
-        stage('Functional Tests') {
+        stage('Playwright Functional Tests') {
+          when {
+            expression { !params.skipPlaywrightTests }
+          }
           agent { label DISTRIBUTED_TEST_AGENT }
           options {
-            timeout(time: 90, unit: 'MINUTES')
+            timeout(time: 45, unit: 'MINUTES')
           }
           steps {
             script {
-              runDistributedFunctionalTests()
+              runDistributedPlaywrightTests()
             }
           }
           post {
             always {
               junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
+                               allowEmptyArchive: true)
+              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',
+                               allowEmptyArchive: true)
+              archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
+                               allowEmptyArchive: true)
               script {
                 String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
                 stash name: stashName, includes: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmpty: true
@@ -427,7 +436,7 @@ pipeline {
                 'Failsafe Tests 2 (B-L)',
                 'Failsafe Tests 3 (M-R)',
                 'Failsafe Tests 4 (S-Z)',
-                'Functional Tests'
+                'Playwright Functional Tests'
             ]
             distributedStages.each { stageName ->
               String stashName = "jacoco-${stageName.replaceAll('[^a-zA-Z0-9]', '-')}"
@@ -525,8 +534,9 @@ void configureBranchJob() {
       choice(
           name: 'buildMode',
           choices: ['FEATURE', 'MAIN'],
-          description: 'Build mode: FEATURE excludes functional tests and SlowTest, uses build caching. ' +
-              'MAIN runs all tests including functional tests, no caching. ' +
+          description: 'Build mode: FEATURE excludes SlowTest and uses build caching. ' +
+              'MAIN runs all tests including SlowTest, no caching. ' +
+              'Both modes run the Playwright functional/UI sanity suite. ' +
               'Changing this requires a new build to take effect.'
       ),
       booleanParam(defaultValue: false,
@@ -545,7 +555,12 @@ void configureBranchJob() {
           name: 'bundlingEnabled'),
       booleanParam(defaultValue: false,
           description: 'If checked will include slow tests (tests taking >100 seconds)',
-          name: 'includeSlowTests')
+          name: 'includeSlowTests'),
+
+      booleanParam(name: 'skipPlaywrightTests', defaultValue: false,
+          description: 'Skip: Playwright Functional Tests (insight-brain-playwright-test)'),
+      choice(name: 'playwrightTraceMode', choices: ['on-failure', 'always', 'off'],
+          description: 'Playwright trace: on-failure (routine CI); always when debugging flakes; off to disable.')
   ]
 
   def propertyList = [copyArtifactPermission("/${projName}"), parameters(params)]
@@ -835,7 +850,7 @@ void stashTestArtifacts() {
     pids=""
     for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
                   insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server \\
-                  insight-brain-java-functional-test; do
+                  insight-brain-playwright-test; do
       mkdir -p "${stashDir}/test-classes/\$module/target"
       if [ -d "\$module/target/test-classes" ]; then
         cp -r "\$module/target/test-classes" "${stashDir}/test-classes/\$module/target/" &
@@ -1309,14 +1324,11 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
 }
 
 /**
- * Run functional tests (Selenium UI tests) on a distributed agent.
- *
- * This runs the curated set of high-value functional tests in the
- * insight-brain-java-functional-test module. Unlike other test stages,
- * this does NOT pass -D skip-functional-test.
+ * Run the Playwright UI sanity suite (insight-brain-playwright-test) on a distributed agent.
+ * Runs only tests tagged with @Category(SanityTest) via the -Psanity profile.
  */
-void runDistributedFunctionalTests() {
-  echo "Running distributed functional tests..."
+void runDistributedPlaywrightTests() {
+  echo "Running distributed Playwright tests..."
   echo "  Workspace: ${env.WORKSPACE}"
 
   // Restore stashed artifacts
@@ -1326,30 +1338,30 @@ void runDistributedFunctionalTests() {
     withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
              "TESTCONTAINERS_RYUK_DISABLED=true"]) {
 
-      def opts = buildFunctionalTestMavenOptions()
+      def opts = buildPlaywrightTestMavenOptions()
       mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
     }
   }
 }
 
-/**
- * Build Maven options for functional test execution.
- *
- * Does NOT include -D skip-functional-test so the functional test module is active.
- * Runs all remaining functional tests in the module.
- */
-String buildFunctionalTestMavenOptions() {
+/** Build Maven options for Playwright sanity test execution. */
+String buildPlaywrightTestMavenOptions() {
   def opts = []
 
   opts << "--no-transfer-progress"
   opts << "-T 1"
-  opts << "-pl 'insight-brain-java-functional-test'"
+  opts << "-pl 'insight-brain-playwright-test'"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 
-  // Test configuration
+  opts << "-Psanity"
+  opts << "-Dit.test='%regex[.*Test.class]'"
+  opts << "-DdetectTestEntityLeaks"
+
   opts << "-Dfailsafe.runOrder=alphabetical"
   opts << "-Dfailsafe.rerunFailingTestsCount=2"
   opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  opts << "-Dplaywright.trace=${params.playwrightTraceMode ?: 'on-failure'}"
 
   // Docker registry
   opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"

@@ -9,9 +9,6 @@ import com.microsoft.playwright.Locator;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link ComponentLegalOverviewPage}.
- */
 public class ComponentLegalOverviewPageAssertions
 {
   private final ComponentLegalOverviewPage page;
@@ -45,5 +42,13 @@ public class ComponentLegalOverviewPageAssertions
       assertThat(accordion).hasAttribute("aria-expanded", "true");
       assertThat(accordion).hasAttribute("open", "");
     }
+  }
+
+  public void shouldShowLicenseObligationsTile() {
+    assertThat(page.licenseObligationsTile()).isVisible();
+  }
+
+  public void shouldShowAttributionSummaryTile() {
+    assertThat(page.attributionSummaryTile()).isVisible();
   }
 }

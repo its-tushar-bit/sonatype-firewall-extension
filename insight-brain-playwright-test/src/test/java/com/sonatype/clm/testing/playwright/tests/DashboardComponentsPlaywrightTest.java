@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardComponentsComponent;
 import com.sonatype.clm.testing.playwright.pages.DashboardComponentsComponentAssertions;
@@ -20,24 +21,10 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright tests for the Dashboard <strong>Components</strong> tab.
- *
- * <p>
- * Split out of the legacy kitchen-sink {@code DashboardPlaywrightTest} so each dashboard tab has
- * its own dedicated test class — matching the pattern set by
- * {@code DashboardApplicationsPlaywrightTest}, {@code DashboardWaiversPlaywrightTest}, and
- * {@code DashboardWaiverRequestsPlaywrightTest}. {@code DashboardPlaywrightTest} itself now owns
- * only tab navigation (page chrome, tab switching, filter/export visibility).
- *
- * <p>
- * Test data lives in {@code src/test/resources/test-data/dashboard-violations.json} (shared with
- * {@link DashboardViolationsPlaywrightTest} — the components-tab assertions reuse the same seeded
- * org/app/policy/violation shape and only differ in which tab they assert against).
- */
 public class DashboardComponentsPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -85,10 +72,22 @@ public class DashboardComponentsPlaywrightTest
     playwrightWaitUntilUrlContains("/component/");
   }
 
-  /**
-   * Typed view of {@code src/test/resources/test-data/dashboard-violations.json}. Shared with
-   * {@link DashboardViolationsPlaywrightTest}; includes keys used by both tests.
-   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testComponentRisk_detailViewRendersWithoutDashboardContainer() {
+    seedViolationWithComponent();
+    playwrightRefreshOrOpen(DashboardPage.urlToComponents());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardComponentsComponent table = new DashboardComponentsComponent();
+    new DashboardComponentsComponentAssertions(table).shouldHaveCount(1);
+
+    table.clickComponent(0);
+    playwrightWaitUntilUrlContains("/component/");
+
+    new DashboardComponentsComponentAssertions(table).shouldShowComponentRiskDetail(DATA.componentArtifactId());
+  }
+
   public record Data(
       String noDataMessage,
       String noDataMessageComponents,
@@ -101,7 +100,34 @@ public class DashboardComponentsPlaywrightTest
       String componentArtifactId,
       String componentVersion,
       String componentHash,
-      String cveId)
+      String cveId,
+      String scanId,
+      String dashboardViolationsUrlFragment,
+      String violationUrlPattern,
+      int navigationTimeoutMs,
+      int dirtyFilterMin,
+      int dirtyFilterMax,
+      String hashSuffixHigh,
+      String hashSuffixMid,
+      String hashSuffixLow,
+      String paginationScanId,
+      int paginationViolationCount,
+      int paginationWaitForResultsMs,
+      String sortScanIdPrefix,
+      String sortHashFormat,
+      String sortAppAlphaName,
+      String sortAppAlphaId,
+      String sortAppBetaName,
+      String sortAppBetaId,
+      String sortHighPolicyName,
+      int sortHighThreatLevel,
+      String sortMidPolicyName,
+      int sortMidThreatLevel,
+      String sortLowPolicyName,
+      int sortLowThreatLevel,
+      String sortComponentArtifactA,
+      String sortComponentArtifactB,
+      String sortComponentArtifactC)
   {
   }
 
@@ -118,5 +144,13 @@ public class DashboardComponentsPlaywrightTest
     tempEntity.newPolicyViolation(evaluation, securityPolicy,
         DATA.componentGroupId(), DATA.componentArtifactId(), DATA.componentVersion(),
         DATA.componentHash(), DATA.cveId());
+  }
+
+  private void seedViolationWithComponent() {
+    seedViolation();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        DATA.componentGroupId(), DATA.componentArtifactId(), DATA.componentVersion());
+    tempEntity.newApplicationComponent(
+        application.getId(), StageTypes.BUILD.getId(), DATA.componentHash(), componentIdentifier);
   }
 }

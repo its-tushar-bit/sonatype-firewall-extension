@@ -6,21 +6,21 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Locator.WaitForOptions;
+import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.WaitForSelectorState;
+import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 import com.sonatype.insight.brain.model.Application;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright page object for the Legal Application Details page
- * ({@code legal.applicationDetails} route).
- * <p>
- * Route: {@code /legal/application/{applicationPublicId}/stage/{stageTypeId}}
- * Root element: {@code #legal-application-details-container}
- */
 public class LegalApplicationDetailsPage
     extends BasePage
 {
   private static final String ROOT = "#legal-application-details-container";
+
+  private static final Locator.GetByRoleOptions CREATE_ATTRIBUTION_REPORT_OPTS =
+      new Locator.GetByRoleOptions().setName("Create Attribution Report");
 
   public LegalApplicationDetailsPage() {
     super();
@@ -28,6 +28,10 @@ public class LegalApplicationDetailsPage
 
   public static String url(Application app, String stageTypeId) {
     return "/assets/index.html#/legal/application/" + app.getPublicId() + "/stage/" + stageTypeId;
+  }
+
+  public Locator container() {
+    return locator(ROOT);
   }
 
   public Locator pageTitle() {
@@ -38,10 +42,6 @@ public class LegalApplicationDetailsPage
     return locator("#legal-application-details-table");
   }
 
-  /**
-   * Data rows in the components table — excludes the inline filter row
-   * (which contains NxFilterInput elements, not component data).
-   */
   public Locator tableDataRows() {
     return locator("#legal-application-details-table tbody tr")
         .filter(new Locator.FilterOptions().setHasNot(locator(".nx-filter-input")));
@@ -55,7 +55,6 @@ public class LegalApplicationDetailsPage
     return locator("#filter-toggle-dirty-asterisk");
   }
 
-  /** Root div of the filter sidebar (rendered inside IqPopover when open). */
   public Locator filterSidebar() {
     return locator(".legal-application-details-filter");
   }
@@ -68,22 +67,10 @@ public class LegalApplicationDetailsPage
     return locator("#legal-license-threat-groups-filter");
   }
 
-  /**
-   * Expands the Review Status collapsible group so its checkboxes become visible.
-   * NxStatefulTreeViewMultiSelect renders as NxCollapsibleItems — the toggle is
-   * {@code button.nx-collapsible-items__trigger}.
-   */
   public void expandReviewStatusFilter() {
     reviewStatusFilterGroup().locator("button.nx-collapsible-items__trigger").click();
   }
 
-  /**
-   * Selects a checkbox inside the Review Status filter group by its visible label text.
-   * NxCollapsibleMultiSelect renders each option as NxCheckbox: the {@code <input>} has
-   * {@code role="menuitemcheckbox"} (not the implicit "checkbox" role), so
-   * {@code getByRole(CHECKBOX)} will not find it. Instead we click the {@code <label>}
-   * element whose text matches, which triggers the checkbox via its {@code for} binding.
-   */
   public void selectReviewStatusOption(String label) {
     reviewStatusFilterGroup()
         .locator("label.nx-radio-checkbox")
@@ -94,5 +81,76 @@ public class LegalApplicationDetailsPage
   public void openFilterSidebar() {
     filterButton().click();
     assertThat(filterSidebar()).isVisible();
+  }
+
+  public Locator stageSubtitle() {
+    return container().getByText("Stage");
+  }
+
+  public Locator backButton() {
+    return container().getByRole(AriaRole.LINK, CommonButtonOptions.BACK_BUTTON_OPTS);
+  }
+
+  public Locator createAttributionReportButton() {
+    return container().getByRole(AriaRole.BUTTON, CREATE_ATTRIBUTION_REPORT_OPTS);
+  }
+
+  public Locator componentColumnHeader() {
+    return table().locator("th").filter(new Locator.FilterOptions().setHasText("Component"));
+  }
+
+  public Locator licensesColumnHeader() {
+    return table().locator("th").filter(new Locator.FilterOptions().setHasText("Licenses"));
+  }
+
+  public Locator completedObligationsColumnHeader() {
+    return table().locator("th").filter(new Locator.FilterOptions().setHasText("Completed Obligations"));
+  }
+
+  public Locator componentFilterInput() {
+    return container().getByPlaceholder("Filter components");
+  }
+
+  public Locator licenseFilterInput() {
+    return container().getByPlaceholder("Filter licenses");
+  }
+
+  public void clickBackButton() {
+    backButton().click();
+  }
+
+  public void filterByComponent(String term) {
+    componentFilterInput().waitFor(new WaitForOptions()
+        .setState(WaitForSelectorState.VISIBLE));
+    componentFilterInput().fill(term);
+  }
+
+  public void clearComponentFilter() {
+    componentFilterInput().fill("");
+  }
+
+  public void filterByLicense(String term) {
+    licenseFilterInput().fill(term);
+  }
+
+  public void clickComponentSort() {
+    table().waitFor();
+    componentColumnHeader().click();
+  }
+
+  public void clickLicensesSort() {
+    licensesColumnHeader().click();
+  }
+
+  public void clickCompletedObligationsSort() {
+    completedObligationsColumnHeader().click();
+  }
+
+  public void clickCreateAttributionReport() {
+    createAttributionReportButton().click();
+  }
+
+  public void waitForAttributionReportNavigation() {
+    PlaywrightWaitUtils.waitForUrl(page, "attributionReport");
   }
 }

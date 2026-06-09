@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link RequestWaiverUpdatePage}.
- */
 public class RequestWaiverUpdatePageAssertions
 {
   private final RequestWaiverUpdatePage page;
@@ -37,5 +34,10 @@ public class RequestWaiverUpdatePageAssertions
   public void shouldShowSavedCommentAndNote(String expectedComment, String expectedNoteToReviewer) {
     assertThat(page.comments()).hasValue(expectedComment);
     assertThat(page.noteToReviewer()).hasValue(expectedNoteToReviewer);
+  }
+
+  public void shouldShowApprovedReadOnlyState() {
+    assertThat(page.comments()).isDisabled();
+    assertThat(page.submitButton()).isDisabled();
   }
 }

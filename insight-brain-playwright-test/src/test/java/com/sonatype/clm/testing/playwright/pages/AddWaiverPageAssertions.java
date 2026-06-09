@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link AddWaiverPage}.
- */
 public class AddWaiverPageAssertions
 {
   private final AddWaiverPage page;
@@ -66,5 +63,29 @@ public class AddWaiverPageAssertions
 
   public void shouldShowSubmitError() {
     assertThat(page.submitError()).isVisible();
+  }
+
+  public void shouldShowCustomExpiryDateInput() {
+    assertThat(page.customExpiryTime()).isVisible();
+  }
+
+  public void shouldNotShowVulnerabilityDetailsLink() {
+    assertThat(page.vulnerabilityDetailsLink()).hasCount(0);
+  }
+
+  public void shouldShowScopeAsRequired() {
+    assertThat(page.scopeFieldset()).isVisible();
+    assertThat(page.scopeFieldsetLabel()).isVisible();
+    assertThat(page.scopeFieldsetLabel()).not().containsText("Optional");
+    assertThat(page.scopesDropdown()).isEnabled();
+  }
+
+  public void shouldHaveScopePreSelected() {
+    assertThat(page.scopesDropdown()).not().hasValue("");
+  }
+
+  public void shouldShowAllVersionsRadioDisabled() {
+    assertThat(page.allVersionsRadio()).isVisible();
+    assertThat(page.allVersionsRadioInput()).isDisabled();
   }
 }

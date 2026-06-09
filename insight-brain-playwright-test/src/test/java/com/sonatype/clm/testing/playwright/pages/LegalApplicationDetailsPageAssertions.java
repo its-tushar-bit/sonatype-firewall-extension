@@ -9,9 +9,6 @@ import com.microsoft.playwright.Locator;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link LegalApplicationDetailsPage}.
- */
 public class LegalApplicationDetailsPageAssertions
 {
   private final LegalApplicationDetailsPage page;
@@ -37,5 +34,25 @@ public class LegalApplicationDetailsPageAssertions
 
   public void shouldShowFilterSidebarClosed() {
     assertThat(page.filterSidebar()).not().isVisible();
+  }
+
+  public void shouldShowStageSubtitle(String expectedText) {
+    assertThat(page.stageSubtitle()).containsText(expectedText);
+  }
+
+  public void shouldShowBackButton() {
+    assertThat(page.backButton()).isVisible();
+  }
+
+  public void shouldHaveComponentSortDir(String direction) {
+    assertThat(page.componentColumnHeader()).hasAttribute("aria-sort", direction);
+  }
+
+  public void shouldHaveLicensesSortDir(String direction) {
+    assertThat(page.licensesColumnHeader()).hasAttribute("aria-sort", direction);
+  }
+
+  public void shouldHaveCompletedObligationsSortDir(String direction) {
+    assertThat(page.completedObligationsColumnHeader()).hasAttribute("aria-sort", direction);
   }
 }

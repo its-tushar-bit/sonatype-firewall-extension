@@ -5,102 +5,81 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.net.URI;
+import java.util.Date;
+import java.util.List;
+
+import jakarta.ws.rs.core.UriBuilder;
+
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.AddWaiverPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.assertions.LocatorAssertions.IsVisibleOptions;
+import com.microsoft.playwright.options.WaitForSelectorState;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 
 import org.junit.Before;
 import org.junit.Test;
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright test for the Violation Details page.
- * <p>
- * Each test follows a Given/When/Then shape:
- * <ul>
- * <li>{@link #seedViolationAndOpenAsAdmin()} seeds a per-test {@link Organization} +
- * {@link Application} (names UUID-suffixed for parallel-fork safety), a security
- * {@link Policy} on the root organization, a {@link PolicyEvaluation} for the seeded app
- * at BUILD stage, and a single {@link PolicyViolation} referencing a CVE so the
- * Vulnerability Details tab is guaranteed to render.</li>
- * <li>The test body navigates straight to {@link ViolationDetailsPage#url(String)} and
- * exercises the page via {@link ViolationDetailsPage} locators.</li>
- * </ul>
- *
- * <p>
- * Selectors live in {@link ViolationDetailsPage} (and {@link AddWaiverPage} for the destination
- * page reached by clicking "Add Waiver").
- */
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 public class ViolationDetailsPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String ORGANIZATION_NAME_PREFIX = "ViolationDetailsOrg";
-
-  private static final String APPLICATION_NAME_PREFIX = "ViolationDetailsApp";
-
-  private static final String APPLICATION_PUBLIC_ID_PREFIX = "violationDetailsApp";
-
-  private static final String POLICY_NAME = "Security Policy";
-
-  private static final int POLICY_THREAT_LEVEL = 8;
-
-  private static final String SCAN_ID = "scan1";
-
-  private static final String COMPONENT_GROUP = "com.example";
-
-  private static final String COMPONENT_ARTIFACT = "test-lib";
-
-  private static final String COMPONENT_VERSION = "1.0.0";
-
-  private static final String COMPONENT_HASH = "hash123";
-
-  private static final String VULNERABILITY_REF_ID = "sonatype-2017-0507";
-
-  private static final String EXPECTED_COMPONENT_DISPLAY =
-      COMPONENT_GROUP + " : " + COMPONENT_ARTIFACT + " : " + COMPONENT_VERSION;
+  private static final ViolationDetailsData DATA =
+      TestDataManager.load("violation-details", ViolationDetailsData.class);
 
   private PolicyViolation policyViolation;
 
-  // --------------- @Before ---------------
-
   @Before
   public void seedViolationAndOpenAsAdmin() {
-    seedOrgAppAndViolation();
+    seedOrgAppAndViolation(DATA);
+    stubHdsVulnerabilityDetails();
 
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLogin();
   }
 
-  // --------------- @Test methods ---------------
-
   @Test
   @Category(SanityTest.class)
   public void testDetails() {
-    // Given: navigate directly to the seeded violation's details page.
     ViolationDetailsPage detailsPage = openViolationDetails();
 
-    // Then: the details tile renders the seeded component coordinates and policy name.
-    assertThat(detailsPage.componentName()).containsText(EXPECTED_COMPONENT_DISPLAY);
-    assertThat(detailsPage.policyName()).containsText(POLICY_NAME);
+    assertThat(detailsPage.componentName()).containsText(DATA.expectedComponentDisplay());
+    assertThat(detailsPage.policyName()).containsText(DATA.policyName());
   }
 
   @Test
   @Category(SanityTest.class)
   public void testPolicyViolationInfo() {
-    // Given: navigate directly to the seeded violation's details page.
     ViolationDetailsPage detailsPage = openViolationDetails();
 
-    // Then: the constraint info tile and its conditions list render.
     assertThat(detailsPage.constraintSection()).isVisible();
     assertThat(detailsPage.conditionsSection()).isVisible();
   }
@@ -108,60 +87,302 @@ public class ViolationDetailsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testGoDirectlyToAddWaiver() {
-    // Given: admin user on the seeded violation's details page — Add Waiver MUST be available.
     ViolationDetailsPage detailsPage = openViolationDetails();
     assertThat(detailsPage.addWaiverButton()).isVisible();
 
-    // When: click Add Waiver.
     detailsPage.addWaiverButton().click();
 
-    // Then: navigation lands on the Add Waiver page for the seeded violation.
     playwrightWaitUntilUrlContains("/addWaiver/" + violationId());
     assertThat(new AddWaiverPage().container()).isVisible();
   }
 
-  // --------------- Helpers ---------------
-
-  private ViolationDetailsPage openViolationDetails() {
-    String url = ViolationDetailsPage.url(violationId());
-    // Hash-only deep links can race the SPA router on a freshly logged-in page; a reload is the
-    // same defensive pattern AddWaiverPlaywrightTest.testOpenPageDirectly... uses.
-    playwrightRefreshOrOpen(url);
+  @Test
+  @Category(RegressionTest.class)
+  public void testInvalidViolationGuard_warningWhenViolationIdMissing() {
+    playwrightRefreshOrOpen(DATA.violationPageUrlPrefix());
     playwrightRefresh();
     ViolationDetailsPage detailsPage = new ViolationDetailsPage();
     assertThat(detailsPage.container()).isVisible();
+    assertThat(detailsPage.warningAlert()).isVisible();
+    assertThat(detailsPage.warningAlert()).containsText(DATA.missingViolationIdMessage());
+    assertThat(detailsPage.detailsTile()).not().isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testVulnerabilityDetailsTab_hiddenWhenNoVulnerabilityDetails() {
+    String licenseViolationId = seedLicenseViolation();
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(licenseViolationId));
+    playwrightRefresh();
+
+    ViolationDetailsPage detailsPage = new ViolationDetailsPage();
+    assertThat(detailsPage.container()).isVisible();
+    assertThat(detailsPage.securityTab()).not().isVisible();
+    assertThat(detailsPage.applicableWaiversTab()).isVisible();
+    assertThat(detailsPage.similarWaiversTab()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testVulnerabilityDetailsTab_presentWhenDetailsLoaded() {
+    ViolationDetailsPage detailsPage = openViolationDetails();
+    assertThat(detailsPage.applicableWaiversTab()).isVisible();
+    assertThat(detailsPage.similarWaiversTab()).isVisible();
+    assertThat(detailsPage.securityTab()).isVisible(
+        new IsVisibleOptions().setTimeout(DATA.hdsWaitTimeoutMs()));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testWaiverCounterBadge_onApplicableWaiversTab() {
+    String waiverViolationId = seedViolationWithWaivers();
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(waiverViolationId));
+    playwrightRefresh();
+
+    ViolationDetailsPage detailsPage = new ViolationDetailsPage();
+    detailsPage.container()
+        .waitFor(new Locator.WaitForOptions().setTimeout(DATA.hdsWaitTimeoutMs()));
+    assertThat(detailsPage.container()).isVisible();
+    assertThat(detailsPage.applicableWaiversBadge()).isVisible();
+    assertThat(detailsPage.applicableWaiversBadge())
+        .containsText(String.valueOf(DATA.waiverCount()));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSimilarWaiversFilterDropdown_threeOptions() {
+    ViolationDetailsPage detailsPage = openViolationDetails();
+    detailsPage.openSimilarWaiversTab();
+
+    assertThat(detailsPage.similarWaiversFilterDropdown()).isVisible();
+    detailsPage.similarWaiversFilterToggle().click();
+    assertThat(detailsPage.similarWaiversFilterOptions()).hasCount(DATA.similarWaiversFilterOptions().size());
+    for (String option : DATA.similarWaiversFilterOptions()) {
+      assertThat(detailsPage.similarWaiversFilterOptions()
+          .filter(new Locator.FilterOptions().setHasText(option))).hasCount(1);
+    }
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSimilarWaiversSubtitle_variesByVulnerability() {
+    String licenseViolationId = seedLicenseViolation();
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(licenseViolationId));
+    playwrightRefresh();
+    playwrightWaitUntilUrlContains("/violation/" + licenseViolationId);
+
+    ViolationDetailsPage detailsPage = new ViolationDetailsPage();
+    assertThat(detailsPage.container()).isVisible();
+    detailsPage.openSimilarWaiversTab();
+    assertThat(detailsPage.similarWaiversSubtitle())
+        .hasText(DATA.similarWaiversSubtitleNonSecurity());
+
+    playwrightRefreshOrOpen(ViolationDetailsPage.url(violationId()));
+    playwrightRefresh();
+    playwrightWaitUntilUrlContains("/violation/" + violationId());
+
+    detailsPage = new ViolationDetailsPage();
+    assertThat(detailsPage.container()).isVisible();
+    detailsPage.openSimilarWaiversTab();
+    assertThat(detailsPage.similarWaiversSubtitle())
+        .containsText(DATA.similarWaiversSubtitleSecurityPrefix());
+    assertThat(detailsPage.similarWaiversSubtitle())
+        .containsText(DATA.vulnerabilityRefId());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testFirewallContext_constraintViolationsRender() {
+    setFeatures(
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_READ_ONLY,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.DASHBOARD);
+
+    RepositoryComponent component = seedFirewallViolation();
+    playwrightRefreshOrOpen(
+        FirewallComponentDetailsPage.urlViolationsTab(component));
+    playwrightRefresh();
+
+    FirewallComponentDetailsPage fwPage =
+        new FirewallComponentDetailsPage();
+    fwPage.container().waitFor();
+    assertThat(fwPage.policyViolationsTable()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStandaloneMode_backButtonPresent() {
+    ViolationDetailsPage detailsPage = openViolationDetails();
+    assertThat(detailsPage.backButton()).isVisible();
+    assertThat(detailsPage.popoverSection()).not().isVisible();
+  }
+
+  private ViolationDetailsPage openViolationDetails() {
+    String url = ViolationDetailsPage.url(violationId());
+    playwrightRefreshOrOpen(url);
+    playwrightRefresh();
+    ViolationDetailsPage detailsPage = new ViolationDetailsPage();
+    detailsPage.container()
+        .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
     return detailsPage;
   }
 
-  // --------------- Backend seed methods ---------------
+  private void stubHdsVulnerabilityDetails() {
+    URI uri = UriBuilder.fromPath("rest/vulnerability/details/json/{refId}").build(DATA.vulnerabilityRefId());
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"))
+        .atUri(uri);
+  }
 
-  private void seedOrgAppAndViolation() {
+  private void seedOrgAppAndViolation(ViolationDetailsData data) {
     String suffix = TemporaryEntity.uuid();
-    String orgName = ORGANIZATION_NAME_PREFIX + "-" + suffix;
-    String appName = APPLICATION_NAME_PREFIX + "-" + suffix;
-    String appPublicId = APPLICATION_PUBLIC_ID_PREFIX + "-" + suffix;
+    String orgName = data.organizationNamePrefix() + "-" + suffix;
+    String appName = data.applicationNamePrefix() + "-" + suffix;
+    String appPublicId = data.applicationPublicIdPrefix() + "-" + suffix;
 
     Organization organization = tempEntity.newOrganization(orgName);
     Application application = tempEntity.newApplication(appName, appPublicId, organization.getId());
 
-    // Policy is created on the root org so it's visible to any descendant application.
     Policy securityPolicy = tempEntity.newPolicy(
-        Organization.ROOT_ORGANIZATION_ID, POLICY_NAME, POLICY_THREAT_LEVEL);
+        Organization.ROOT_ORGANIZATION_ID, data.policyName(), data.policyThreatLevel());
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
-        application.getId(), StageTypes.BUILD.getId(), SCAN_ID);
+        application.getId(), StageTypes.BUILD.getId(), data.scanId());
 
     policyViolation = tempEntity.newPolicyViolation(
         policyEvaluation,
         securityPolicy,
-        COMPONENT_GROUP,
-        COMPONENT_ARTIFACT,
-        COMPONENT_VERSION,
-        COMPONENT_HASH,
-        VULNERABILITY_REF_ID);
+        data.componentGroup(),
+        data.componentArtifact(),
+        data.componentVersion(),
+        data.componentHash(),
+        data.vulnerabilityRefId());
   }
 
   private String violationId() {
     return policyViolation.getId();
+  }
+
+  private String seedLicenseViolation() {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization(DATA.organizationNamePrefix() + "-lic-" + suffix);
+    Application app = tempEntity.newApplication(
+        DATA.applicationNamePrefix() + "-lic-" + suffix,
+        DATA.applicationPublicIdPrefix() + "-lic-" + suffix,
+        org.getId());
+
+    Policy licensePolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.licensePolicyName(), DATA.licensePolicyThreatLevel());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), DATA.licenseScanIdPrefix() + "-" + suffix);
+
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, licensePolicy, DATA.licensePolicyThreatLevel(), PolicyThreatCategory.LICENSE,
+        DATA.componentGroup(), DATA.componentArtifact(), DATA.componentVersion(),
+        DATA.componentHash(), null);
+    return violation.getId();
+  }
+
+  private String seedViolationWithWaivers() {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization(DATA.organizationNamePrefix() + "-wv-" + suffix);
+    Application app = tempEntity.newApplication(
+        DATA.applicationNamePrefix() + "-wv-" + suffix,
+        DATA.applicationPublicIdPrefix() + "-wv-" + suffix,
+        org.getId());
+
+    Policy policy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.policyName() + "-wv", DATA.policyThreatLevel());
+
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(), StageTypes.BUILD.getId(), DATA.scanId() + "-wv-" + suffix);
+
+    PolicyViolation violation = tempEntity.newPolicyViolation(
+        eval, policy,
+        DATA.componentGroup(), DATA.componentArtifact(), DATA.componentVersion(),
+        DATA.componentHash(), DATA.vulnerabilityRefId());
+
+    List<ConstraintFact> violationConstraints = violation.getConstraintFacts();
+    String[] ownerIds = {org.getId(), app.getId(), Organization.ROOT_ORGANIZATION_ID};
+    for (int i = 0; i < DATA.waiverCount(); i++) {
+      tempEntity.newWaiver(
+          DATA.componentHash(),
+          violation.getPolicyId(),
+          ownerIds[i % ownerIds.length],
+          violationConstraints,
+          DATA.waiverComment() + "-" + i);
+    }
+    return violation.getId();
+  }
+
+  private RepositoryComponent seedFirewallViolation() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager(DATA.firewallRepositoryManagerInstanceId());
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, DATA.firewallRepositoryPublicId(), true, false);
+
+    RepositoryComponent component = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT,
+        DATA.firewallComponentPathname(), DATA.componentHash(),
+        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates(
+            DATA.componentGroup(), DATA.componentArtifact(), DATA.componentVersion()),
+        new Date(), new Date());
+
+    Policy fwPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, "FW-Policy", DATA.firewallPolicyThreatLevel());
+
+    ConstraintFact constraintFact = new ConstraintFact(
+        TemporaryEntity.uuid(), DATA.firewallConstraintName(), LogicalOperator.AND.name());
+    constraintFact.addConditionFact(
+        new ConditionFact(MatchStateConditionType.ID, 0, "summary", DATA.firewallConstraintReason()));
+
+    RepositoryPolicyViolation violation = new RepositoryPolicyViolation(
+        component.getRepositoryId(), component.getPathname(), new Date(),
+        fwPolicy.getId(), fwPolicy.getName(), DATA.firewallPolicyThreatLevel(),
+        PolicyThreatCategory.SECURITY, component.getHash(), component.getComponentIdentifier(),
+        List.of(constraintFact));
+    violation.setActionTypeId(FailActionType.ID);
+    tempEntity.newRepositoryPolicyViolation(violation);
+    return component;
+  }
+
+  private record ViolationDetailsData(
+      String organizationNamePrefix,
+      String applicationNamePrefix,
+      String applicationPublicIdPrefix,
+      String policyName,
+      int policyThreatLevel,
+      String scanId,
+      String componentGroup,
+      String componentArtifact,
+      String componentVersion,
+      String componentHash,
+      String vulnerabilityRefId,
+      String expectedComponentDisplay,
+      String missingViolationIdMessage,
+      String licensePolicyName,
+      int licensePolicyThreatLevel,
+      String licenseScanIdPrefix,
+      String waiverComment,
+      int waiverCount,
+      List<String> similarWaiversFilterOptions,
+      String similarWaiversSubtitleNonSecurity,
+      String similarWaiversSubtitleSecurityPrefix,
+      String firewallRepositoryManagerInstanceId,
+      String firewallRepositoryPublicId,
+      String firewallComponentPathname,
+      int firewallPolicyThreatLevel,
+      String firewallConstraintName,
+      String firewallConstraintReason,
+      String violationPageUrlPrefix,
+      String addWaiverUrlFragment,
+      long hdsWaitTimeoutMs,
+      String conditionFactSummary)
+  {
   }
 }

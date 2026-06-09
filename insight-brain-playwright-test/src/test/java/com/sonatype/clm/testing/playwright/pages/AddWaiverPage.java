@@ -7,22 +7,25 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
+
+import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright page object for the Add Waiver page.
- *
- * <p>
- * Extends {@link WaiverFormBasePage} for the cross-form NxForm building blocks (expiry select,
- * reason select, cancel button) so the same locators don't drift between this class and
- * {@link RequestWaiverPage}.
- */
 public class AddWaiverPage
     extends WaiverFormBasePage
 {
   private static final String ROOT = "#add-waiver-page";
+
+  private static final Pattern ALL_VERSIONS_PATTERN = Pattern.compile("all versions", Pattern.CASE_INSENSITIVE);
+
+  private static final Locator.FilterOptions ALL_VERSIONS_FILTER =
+      new Locator.FilterOptions().setHasText(ALL_VERSIONS_PATTERN);
+
+  private static final Locator.GetByRoleOptions SCOPE_GROUP_OPTS =
+      new Locator.GetByRoleOptions().setName("Scope");
 
   public AddWaiverPage() {
     super();
@@ -84,22 +87,32 @@ public class AddWaiverPage
     return componentRadios().nth(index).locator(".nx-radio__content");
   }
 
-  // Shared NxForm building blocks (expiryTimeSelect, expiryTimeOptions, waiverReasonSelect,
-  // waiverReasonOptions, cancelButton) are inherited from WaiverFormBasePage so they stay in
-  // sync with RequestWaiverPage.
-
   public Locator comments() {
-    // NxFieldset renders <fieldset>+<legend>, not <label>, so byLabel() cannot match.
     return locator(ROOT + " .iq-add-waiver-form__comments .nx-text-input__input");
   }
 
   public Locator saveButton() {
-    // The AddWaiver form's submit button uses a custom CSS class — stable and unique.
     return locator(".add-waiver-submit");
   }
 
   public Locator submitError() {
     return locator(ROOT + " .nx-footer .nx-alert");
+  }
+
+  public Locator scopeFieldset() {
+    return container().getByRole(AriaRole.GROUP, SCOPE_GROUP_OPTS);
+  }
+
+  public Locator scopeFieldsetLabel() {
+    return scopeFieldset().getByText("Scope");
+  }
+
+  public Locator allVersionsRadio() {
+    return container().locator(".nx-radio").filter(ALL_VERSIONS_FILTER);
+  }
+
+  public Locator allVersionsRadioInput() {
+    return container().getByLabel(ALL_VERSIONS_PATTERN);
   }
 
   public Locator customExpiryTime() {
@@ -109,8 +122,6 @@ public class AddWaiverPage
   public Locator expiryTimeMessage() {
     return locator(ROOT + " .iq-add-waiver-form__expiration-days-diff");
   }
-
-  // --------------- Actions ---------------
 
   public void selectScope(String scopeLabel) {
     assertThat(container())
@@ -130,6 +141,18 @@ public class AddWaiverPage
 
   public void fillComment(String text) {
     comments().fill(text);
+  }
+
+  public void selectExpiryTime(String label) {
+    expiryTimeSelect().selectOption(label);
+  }
+
+  public void fillCustomExpiryDate(String date) {
+    customExpiryTime().fill(date);
+  }
+
+  public void clickCancel() {
+    cancelButton().click();
   }
 
   public void submit() {

@@ -7,26 +7,38 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
-import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Route;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
+import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,71 +47,23 @@ import org.junit.experimental.categories.Category;
 public class ApplicationReportPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
-
-  private static final String REPORT_DIR = "/canned-reports/large-report";
-
-  private static final String ORGANIZATION_NAME_PREFIX = "AppReportTestOrg";
-
-  private static final String APPLICATION_NAME_PREFIX = "AppReportTest";
-
-  private static final String EXPECTED_THREAT_CRITICAL = "22";
-
-  private static final String EXPECTED_THREAT_SEVERE = "39";
-
-  private static final String EXPECTED_THREAT_MODERATE = "4";
-
-  private static final String EXPECTED_VIOLATIONS_CAPTION = "65 VIOLATIONS";
-
-  private static final String EXPECTED_VIOLATIONS_SUB_CAPTION = "Affecting 27 components";
-
-  private static final String EXPECTED_COVERAGE_CAPTION = "64 COMPONENTS";
-
-  private static final String EXPECTED_COVERAGE_SUB_CAPTION = "98% of all components identified";
-
-  private static final int EXPECTED_VIOLATION_ROW_COUNT = 65;
-
-  private static final int EXPECTED_TOTAL_ROW_COUNT = 103;
-
-  private static final String COMPONENT_FILTER_TERM = "commons-fileupload";
-
-  private static final int EXPECTED_FILTERED_VIOLATION_ROW_COUNT = 1;
-
-  private static final int EXPECTED_FILTERED_TOTAL_ROW_COUNT = 6;
+  private static final AppReportData DATA =
+      TestDataManager.load("application-report", AppReportData.class);
 
   private Application app;
 
   private String appName;
 
+  private TestReportEvaluator evaluator;
+
   @Before
-  public void seedAndOpen() throws IOException {
-    seedOrgAppAndPolicies();
-    evaluateCannedReport();
-    openReportAndLogin();
-  }
+  public void seedReportAndOpen() throws IOException {
+    seedDb();
 
-  private void seedOrgAppAndPolicies() throws IOException {
-    PolicyExportResult referencePolicies = JsonUtils.parse(
-        getClass().getResource("/reference-policies-v3.json").openStream(),
-        PolicyExportResult.class);
-    String suffix = TemporaryEntity.uuid();
-    appName = APPLICATION_NAME_PREFIX + "-" + suffix;
-    Organization org = tempEntity.newOrganization(ORGANIZATION_NAME_PREFIX + "-" + suffix);
-    lookup(PolicyImportExport.class).importOrganization(org, referencePolicies);
-    app = tempEntity.newApplication(appName, appName, org.getId());
-  }
-
-  private void evaluateCannedReport() throws IOException {
-    URL zippedReport = ReportHelper.zipReport(REPORT_DIR, tempDir);
-    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work)
-        .evaluatePolicy();
-  }
-
-  private void openReportAndLogin() {
-    playwrightRefreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
     playwrightLogin();
-    new ApplicationReportPageAssertions(new ApplicationReportPage()).shouldShowReportHeaderContaining(appName);
+    new ApplicationReportPageAssertions(new ApplicationReportPage())
+        .shouldShowReportHeaderContaining(appName);
   }
 
   @Test
@@ -110,14 +74,14 @@ public class ApplicationReportPlaywrightTest
 
     reportAssert.shouldShowReportHeaderContaining("Build Report");
 
-    assertThat(report.threatIndicatorsCritical()).containsText(EXPECTED_THREAT_CRITICAL);
-    assertThat(report.threatIndicatorsSevere()).containsText(EXPECTED_THREAT_SEVERE);
-    assertThat(report.threatIndicatorsModerate()).containsText(EXPECTED_THREAT_MODERATE);
-    assertThat(report.threatIndicatorsCaption()).containsText(EXPECTED_VIOLATIONS_CAPTION);
-    assertThat(report.threatIndicatorsSubCaption()).containsText(EXPECTED_VIOLATIONS_SUB_CAPTION);
+    assertThat(report.threatIndicatorsCritical()).containsText(DATA.expectedThreatCritical());
+    assertThat(report.threatIndicatorsSevere()).containsText(DATA.expectedThreatSevere());
+    assertThat(report.threatIndicatorsModerate()).containsText(DATA.expectedThreatModerate());
+    assertThat(report.threatIndicatorsCaption()).containsText(DATA.expectedViolationsCaption());
+    assertThat(report.threatIndicatorsSubCaption()).containsText(DATA.expectedViolationsSubCaption());
 
-    assertThat(report.coverageCaption()).containsText(EXPECTED_COVERAGE_CAPTION);
-    assertThat(report.coverageSubCaption()).containsText(EXPECTED_COVERAGE_SUB_CAPTION);
+    assertThat(report.coverageCaption()).containsText(DATA.expectedCoverageCaption());
+    assertThat(report.coverageSubCaption()).containsText(DATA.expectedCoverageSubCaption());
   }
 
   @Test
@@ -126,16 +90,16 @@ public class ApplicationReportPlaywrightTest
     ApplicationReportPage report = new ApplicationReportPage();
     new ApplicationReportPageAssertions(report).shouldBeVisible();
 
-    assertThat(report.violationRows()).hasCount(EXPECTED_VIOLATION_ROW_COUNT);
+    assertThat(report.violationRows()).hasCount(DATA.expectedViolationRowCount());
 
-    report.componentFilter().fill(COMPONENT_FILTER_TERM);
-    assertThat(report.violationRows()).hasCount(EXPECTED_FILTERED_VIOLATION_ROW_COUNT);
+    report.componentFilter().fill(DATA.componentFilterTerm());
+    assertThat(report.violationRows()).hasCount(DATA.expectedFilteredViolationRowCount());
 
     report.aggregateByComponentToggle().click();
-    assertThat(report.violationRows()).hasCount(EXPECTED_FILTERED_TOTAL_ROW_COUNT);
+    assertThat(report.violationRows()).hasCount(DATA.expectedFilteredTotalRowCount());
 
     report.componentFilter().fill("");
-    assertThat(report.violationRows()).hasCount(EXPECTED_TOTAL_ROW_COUNT);
+    assertThat(report.violationRows()).hasCount(DATA.expectedTotalRowCount());
   }
 
   @Test
@@ -145,7 +109,7 @@ public class ApplicationReportPlaywrightTest
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
     stubReevaluationEndpoint();
 
-    playwrightRefreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
 
     ApplicationReportPage report = new ApplicationReportPage();
     new ApplicationReportPageAssertions(report).shouldBeVisible();
@@ -172,10 +136,296 @@ public class ApplicationReportPlaywrightTest
     assertThat(new ReportListPage().container()).isVisible();
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_rendersTabsAndPolicyViolationTable() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+    reportAssertions.shouldShowNavigationControls();
+    reportAssertions.shouldShowOptionsDropdownLinks();
+    page.keyboard().press("Escape");
+
+    Locator violationRows = reportPage.violationRows();
+    assertThat(violationRows).not().hasCount(0);
+
+    Locator firstRow = violationRows.first();
+    assertThat(reportPage.violationRowThreatNumber(firstRow)).isVisible();
+    assertThat(reportPage.violationRowThreatNumber(firstRow)).hasText(Pattern.compile("\\d+"));
+    assertThat(reportPage.violationRowPolicyName(firstRow)).isVisible();
+    assertThat(reportPage.violationRowComponentName(firstRow)).isVisible();
+
+    reportAssertions.shouldShowViolationsSortedByThreatDescending();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_otherTabsRenderContent() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+
+    reportPage.navigateToDependencyTree();
+    playwrightWaitUntilUrlContains(DATA.dependencyTreeUrlFragment());
+    assertThat(reportPage.dependencyTreeContainer()).isVisible();
+
+    page.goBack();
+    reportAssertions.shouldBeVisible();
+
+    reportPage.navigateToVulnerabilities();
+    playwrightWaitUntilUrlContains(DATA.vulnerabilitiesUrlFragment());
+    assertThat(reportPage.vulnerabilitiesContainer()).isVisible();
+
+    page.goBack();
+    reportAssertions.shouldBeVisible();
+
+    reportPage.navigateToRawData();
+    playwrightWaitUntilUrlContains(DATA.rawDataUrlFragment());
+    assertThat(reportPage.rawDataContainer()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_viewExistingWaiversForViolation() throws IOException {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+    reportAssertions.shouldShowViolationRows();
+
+    seedWaiverForFirstViolationAndReevaluate();
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
+    reportAssertions.shouldBeVisible();
+    reportAssertions.shouldShowViolationRows();
+    reportAssertions.shouldShowWaivedViolationsIndicator();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_vulnerabilityCustomizeNavigation() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+
+    reportPage.navigateToVulnerabilities();
+    playwrightWaitUntilUrlContains(DATA.vulnerabilitiesUrlFragment());
+    assertThat(reportPage.vulnerabilitiesContainer()).isVisible();
+
+    assertThat(reportPage.vulnerabilityRows().first()).isVisible();
+
+    Locator refIdLink = reportPage.vulnerabilityRefIdLink();
+    assertThat(refIdLink).isVisible();
+    refIdLink.click();
+    page.waitForURL(url -> url.contains("/vulnerabilities/") && !url.contains("/applicationReport/"));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_unscannableComponentsAlertAndModal() throws IOException {
+    seedReportWithUnscannableComponent();
+
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.unscannableScanId()));
+    reportAssertions.shouldBeVisible();
+
+    reportPage.waitForLoadingSpinnerHidden();
+    reportAssertions.shouldShowUnscannableAlert(DATA.unscannableAlertText());
+
+    reportPage.unscannableViewButton().click();
+    reportAssertions.shouldShowUnscannedComponentsModal(DATA.unscannableModalHeaderText());
+
+    reportPage.unscannedComponentsModalCloseButton().click();
+    assertThat(reportPage.unscannedComponentsModal()).not().isVisible();
+  }
+
+  private void seedReportWithUnscannableComponent() throws IOException {
+    URL zippedReport = ReportHelper.zipReport(DATA.unscannableReportDir(), tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    new TestReportEvaluator(app, DATA.unscannableScanId(), zippedReport, baseUrlFromTest, work, Stage.ID_BUILD)
+        .evaluatePolicy();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_compatibilityWarnings() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+
+    page.navigate("about:blank");
+
+    page.route("**/browseReport/**", route -> {
+      String url = route.request().url();
+      if (url.contains("/policythreats.json")) {
+        route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("{\"version\": 2, \"aaData\": []}"));
+      }
+      else if (url.contains("/dependencies.json")) {
+        route.fulfill(new Route.FulfillOptions()
+            .setStatus(200)
+            .setContentType("application/json")
+            .setBody("{\"dependencyTree\": null}"));
+      }
+      else {
+        route.resume();
+      }
+    });
+
+    playwrightRefreshOrOpen(ApplicationReportPage.url(app, DATA.scanId()));
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+    reportAssertions.shouldBeVisible();
+
+    reportPage.waitForLoadingSpinnerHidden();
+
+    assertThat(reportPage.policyTypeFilterWarning()).isVisible();
+    assertThat(reportPage.policyTypeFilterWarning()).containsText(DATA.policyTypeFilterWarningText());
+
+    assertThat(reportPage.oldReportWarning()).isVisible();
+    assertThat(reportPage.oldReportWarning()).containsText(DATA.oldReportWarningText());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_reevaluationErrors() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+
+    page.route("**/rest/report/**/reevaluatePolicy**", route -> {
+      route.fulfill(new Route.FulfillOptions()
+          .setStatus(403)
+          .setContentType("application/json")
+          .setBody("{\"message\": \"Insufficient permissions\"}"));
+    });
+
+    assertThat(reportPage.reevaluateButton()).isVisible();
+    reportPage.reevaluateButton().click();
+
+    assertThat(reportPage.reevaluationOptionsModal()).isVisible();
+    reportPage.fullReevaluateButton().click();
+
+    reportAssertions.shouldShowReevaluationErrorWithoutModal(DATA.insufficientPermissionsError());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApplicationReport_backButtonContextDependentLabel() {
+    ApplicationReportPage reportPage = new ApplicationReportPage();
+    ApplicationReportPageAssertions reportAssertions = new ApplicationReportPageAssertions(reportPage);
+
+    reportAssertions.shouldBeVisible();
+    reportAssertions.shouldShowBackButtonWithText(DATA.backButtonDefaultText());
+
+    String prioritiesUrl = "/assets/index.html#/applicationReport/" + app.getPublicId() +
+        "/" + DATA.scanId() + "/policy?origin=prioritiesPage";
+    playwrightRefreshOrOpen(prioritiesUrl);
+    reportAssertions.shouldBeVisible();
+    assertThat(reportPage.backButton()).isVisible();
+  }
+
   private void stubReevaluationEndpoint() throws IOException {
-    URL zippedReport = ReportHelper.zipReport(REPORT_DIR, tempDir);
+    URL zippedReport = ReportHelper.zipReport(DATA.reportDir(), tempDir);
     testCLMServer.getHdsServer()
         .respondWith(zippedReport)
         .atUri("rest/application/analysis/" + HdsMockServer.RestServlet.SCAN_ID);
+  }
+
+  private void seedDb() throws IOException {
+    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    PolicyExportResult referencePolicies =
+        JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+
+    String suffix = TemporaryEntity.uuid();
+    String orgName = DATA.organizationNamePrefix() + "-" + suffix;
+    appName = DATA.applicationNamePrefix() + "-" + suffix;
+    String username = DATA.userPrefix() + "-" + suffix;
+    String email = username + "@" + DATA.userEmailDomain();
+
+    Organization org = tempEntity.newOrganization(orgName);
+    lookup(PolicyImportExport.class).importOrganization(org, referencePolicies);
+    tempEntity.newUser(username, DATA.userFirstName(), DATA.userLastName(), email);
+    app = tempEntity.newApplication(appName, appName, org.getId(), username);
+
+    URL zippedReport = ReportHelper.zipReport(DATA.reportDir(), tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    evaluator = new TestReportEvaluator(app, DATA.scanId(), zippedReport, baseUrlFromTest,
+        work, Stage.ID_BUILD);
+    evaluator.evaluatePolicy();
+  }
+
+  private PolicyViolation seedWaiverForFirstViolationAndReevaluate() throws IOException {
+    PolicyViolationDAO dao = lookup(PolicyViolationDAO.class);
+    List<PolicyViolation> violations = dao.getByApplicationId(app.getId());
+    PolicyViolation target = violations.stream()
+        .filter(v -> v.getHash() != null && v.getPolicyId() != null)
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException(
+            "No suitable PolicyViolation found after canned-report evaluation for app="
+                + app.getId()));
+    dao.loadConstraintFacts(Collections.singletonList(target));
+
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash(target.getHash())
+        .setPolicyId(target.getPolicyId())
+        .setOwnerId(app.getId())
+        .setConstraintFacts(target.getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("Seeded for testApplicationReport_viewExistingWaiversForViolation"));
+
+    evaluator.reevaluatePolicy();
+    return target;
+  }
+
+  private record AppReportData(
+      String organizationNamePrefix,
+      String applicationNamePrefix,
+      String userPrefix,
+      String userFirstName,
+      String userLastName,
+      String userEmailDomain,
+      String scanId,
+      String reportDir,
+      String unscannableScanId,
+      String unscannableReportDir,
+      String expectedThreatCritical,
+      String expectedThreatSevere,
+      String expectedThreatModerate,
+      String expectedViolationsCaption,
+      String expectedViolationsSubCaption,
+      String expectedCoverageCaption,
+      String expectedCoverageSubCaption,
+      int expectedViolationRowCount,
+      int expectedTotalRowCount,
+      String componentFilterTerm,
+      int expectedFilteredViolationRowCount,
+      int expectedFilteredTotalRowCount,
+      String policyTabLabel,
+      String dependencyTreeTabLabel,
+      String vulnerabilitiesTabLabel,
+      String rawDataTabLabel,
+      String backButtonDefaultText,
+      String unscannableAlertText,
+      String unscannableModalHeaderText,
+      String policyTypeFilterWarningText,
+      String oldReportWarningText,
+      String insufficientPermissionsError,
+      String genericReevaluationError,
+      String backButtonFromPriorities,
+      String backButtonFromFirewallDashboard,
+      String backButtonFromRepositoryResults,
+      String dependencyTreeUrlFragment,
+      String vulnerabilitiesUrlFragment,
+      String rawDataUrlFragment,
+      String vulnerabilityCustomizeUrlFragment,
+      String reportMetadataRestPattern,
+      String reevaluateRestPath)
+  {
   }
 }

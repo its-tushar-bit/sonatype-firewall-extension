@@ -1,0 +1,33 @@
+{
+  "orgName": "Org 1",
+  "appName": "App 1",
+  "appId": "app1",
+  "policyName": "Policy 1",
+  "policyThreatLevel": 7,
+  "componentGroupId": "Group1",
+  "componentArtifactId": "Artifact1",
+  "componentVersion": "Version1",
+  "componentHash": "hash1",
+  "componentCveId": "sonatype-2017-0507",
+
+  "scanId": "scan1",
+  "pageTitle": "Request Waiver",
+  "constraintText": "Test Constraint",
+  "expectedScopeOptionCount": 3,
+  "expectedComponentRadioCount": 3,
+  "expectedExpiryOptionCount": 8,
+  "expectedWaiverReasonOptionCount": 9,
+  "waiverReason": "Acknowledged violation",
+  "comment": "Some comments",
+  "noteToReviewer": "Some note to reviewer",
+  "duplicateComment": "Other comments",
+  "duplicateNoteToReviewer": "Other note to reviewer",
+  "duplicateErrorText": "This policy waiver request already exists",
+
+  "enterpriseAlertText": "This is an Enterprise feature. Changes can't be saved.",
+  "enterpriseGoBackLinkText": "Component Details",
+
+  "noteToReviewerLabel": "Note to Reviewer",
+  "noteToReviewerSublabel": "This note will only be visible on the waiver request. It will not be visible on the waiver if it is approved.",
+  "noteToReviewerMaxLength": "1000"
+}

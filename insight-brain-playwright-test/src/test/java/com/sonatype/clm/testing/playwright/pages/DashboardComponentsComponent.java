@@ -6,10 +6,9 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
-/**
- * Playwright page object for the Dashboard Components tab.
- */
 public class DashboardComponentsComponent
     extends BasePage
 {
@@ -18,8 +17,6 @@ public class DashboardComponentsComponent
   public DashboardComponentsComponent() {
     super();
   }
-
-  // --------------- Row locators ---------------
 
   public Locator components() {
     return locator(ROOT + " .iq-dashboard-component-row");
@@ -33,8 +30,6 @@ public class DashboardComponentsComponent
     return locator(ROOT + " tbody .nx-table-row:last-child");
   }
 
-  // --------------- Cell accessors ---------------
-
   public Locator componentName(int index) {
     return component(index).locator("td:nth-child(1) .nx-truncate-ellipsis");
   }
@@ -43,7 +38,17 @@ public class DashboardComponentsComponent
     return component(index).locator("td:nth-child(2)");
   }
 
-  // --------------- Actions ---------------
+  public Locator dashboardContainer() {
+    return locator("#dashboard-container");
+  }
+
+  public Locator componentRiskHeading() {
+    return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(1));
+  }
+
+  public Locator componentRiskRoot() {
+    return page.getByRole(AriaRole.MAIN);
+  }
 
   public void clickComponent(int index) {
     component(index).click();

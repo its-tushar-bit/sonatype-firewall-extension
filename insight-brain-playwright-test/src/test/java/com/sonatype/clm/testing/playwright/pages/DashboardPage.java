@@ -13,10 +13,6 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright page object for the IQ Server dashboard.
- * {@code DashboardTab}, {@code DashboardViolations}, etc.
- */
 public class DashboardPage
     extends BasePage
 {
@@ -25,8 +21,6 @@ public class DashboardPage
   public DashboardPage() {
     super();
   }
-
-  // --------------- URL helpers (relative paths) ---------------
 
   public static String url() {
     return "/assets/index.html#/dashboard/violations";
@@ -52,25 +46,13 @@ public class DashboardPage
     return "/assets/index.html#/dashboard/waiverRequests";
   }
 
-  // --------------- Container ---------------
-
   public Locator dashboardContainer() {
     return locator(ROOT);
   }
 
-  /**
-   * Spinner for the dashboard. Intentionally unscoped so it matches whichever spinner the page
-   * paints first (dashboard body or filter drawer). Strict-mode safety is provided in
-   * {@link #waitUntilSpinnersGone()} via {@code .first()}.
-   */
   public Locator pageLoadSpinner() {
     return locator(".nx-loading-spinner");
   }
-
-  // --------------- Tabs ---------------
-  // Tab labels are stable English strings in the current frontend (no localization). Selecting
-  // via WAI-ARIA tab role + accessible name survives both DOM-order changes and CSS-class
-  // renames in the underlying RSC NxTabs component (see test-authoring skill §4a).
 
   public Locator violationsTab() {
     return byRole(AriaRole.TAB, "Violations");
@@ -88,8 +70,6 @@ public class DashboardPage
     return byRole(AriaRole.TAB, "Waivers");
   }
 
-  // --------------- Filters ---------------
-
   public Locator filterToggle() {
     return locator("#filter-toggle");
   }
@@ -102,6 +82,34 @@ public class DashboardPage
     return locator("#filter-toggle-dirty-asterisk");
   }
 
+  public Locator formMask() {
+    return locator(".iq-dashboard-form-mask");
+  }
+
+  public Locator categoryFilter() {
+    return locator("#category-filter");
+  }
+
+  public Locator categoryFilterTrigger() {
+    return categoryFilter().getByRole(AriaRole.BUTTON);
+  }
+
+  public Locator categoryFilterFirstCheckbox() {
+    return categoryFilter().locator("label").first();
+  }
+
+  public Locator policyTypeFilter() {
+    return locator("#policy-type-filter");
+  }
+
+  public Locator policyTypeFilterTrigger() {
+    return policyTypeFilter().getByRole(AriaRole.BUTTON);
+  }
+
+  public Locator policyTypeFilterFirstCheckbox() {
+    return policyTypeFilter().locator("label").first();
+  }
+
   public Locator exportResultsLink() {
     return locator("#export-results");
   }
@@ -110,16 +118,9 @@ public class DashboardPage
     return locator(ROOT + " #needs-acknowledgement");
   }
 
-  /**
-   * Banner shown when the Dashboard feature has been disabled by an administrator.
-   * Used by {@code UserCreationPlaywrightTest} to confirm a freshly-created user lands on a
-   * functional dashboard rather than the disabled-feature page.
-   */
   public Locator dashboardDisabledMessage() {
-    return locator("text=The Dashboard feature has been disabled by your administrator.");
+    return byText("The Dashboard feature has been disabled by your administrator.");
   }
-
-  // --------------- Actions ---------------
 
   public void expandFilter() {
     assertThat(filterContainer()).isHidden(

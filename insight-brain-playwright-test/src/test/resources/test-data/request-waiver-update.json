@@ -1,0 +1,24 @@
+{
+  "orgName": "Org 1",
+  "appName": "App 1",
+  "appId": "app1",
+  "policyName": "Policy 1",
+  "policyThreatLevel": 7,
+  "componentGroupId": "Group1",
+  "componentArtifactId": "Artifact1",
+  "componentVersion": "Version1",
+  "componentHash": "hash1",
+  "componentCveId": "sonatype-2017-0507",
+
+  "scanId": "scan1",
+  "waiverReasonIdAcknowledgedViolation": "9b704ef5bc064fc29d7fe08a251ee9a6",
+  "initialComment": "Comment 1",
+  "initialNoteToReviewer": "Note to Reviewer 1",
+  "pageTitle": "Request Waiver",
+  "updatedComment": "Updated comments for testing",
+  "updatedNoteToReviewer": "Updated note to reviewer",
+  "rejectionReason": "This component violates security policies",
+  "rejectionAlertText": "This Waiver Request was rejected",
+  "reviewerId": "admin",
+  "reviewerName": "Admin Reviewer"
+}

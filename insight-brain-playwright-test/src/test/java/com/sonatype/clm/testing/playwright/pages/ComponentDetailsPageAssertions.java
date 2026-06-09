@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertions companion for {@link ComponentDetailsPage}.
- */
 public class ComponentDetailsPageAssertions
 {
   private final ComponentDetailsPage page;
@@ -78,5 +75,45 @@ public class ComponentDetailsPageAssertions
 
   public void shouldShowRecommendedVersionsList() {
     assertThat(page.recommendedVersionsList()).isVisible();
+  }
+
+  public void shouldShowComponentInformationTileWithHeader() {
+    assertThat(page.overviewComponentInformationTile()).isVisible();
+    assertThat(page.componentInformationTileHeader()).containsText("Component Information");
+  }
+
+  public void shouldShowMatchState(String expectedMatchState) {
+    assertThat(page.componentInformationMatchState()).containsText(expectedMatchState);
+  }
+
+  public void shouldShowPolicyViolationsTableWithRows() {
+    assertThat(page.policyViolationsTable()).isVisible();
+    assertThat(page.policyViolationRows().first()).isVisible();
+  }
+
+  public void shouldShowAuditLogTableHeaders() {
+    assertThat(page.auditLogTable()).isVisible();
+    assertThat(page.auditLogTableHeaderCells()).hasCount(5);
+  }
+
+  public void shouldShowAuditLogEmptyMessage() {
+    assertThat(page.auditLogTable()).isVisible();
+    assertThat(page.auditLogEmptyMessage()).containsText("No changes were found");
+  }
+
+  public void shouldShowPaginationFooter() {
+    assertThat(page.paginationFooter()).isVisible();
+    assertThat(page.paginationCounter()).isVisible();
+  }
+
+  public void shouldShowPaginationCounterText(String expectedText) {
+    assertThat(page.paginationCounter()).containsText(expectedText);
+  }
+
+  public void shouldShowPopoverInEmbeddedMode() {
+    assertThat(page.policyViolationDetailsPopover()).isVisible();
+    assertThat(page.popoverViolationPage()).isVisible();
+    assertThat(page.popoverBackButton()).not().isVisible();
+    assertThat(page.popoverSection()).isVisible();
   }
 }

@@ -6,9 +6,7 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.AriaRole;
-import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import java.util.regex.Pattern;
 
@@ -172,8 +170,7 @@ public class OwnerSummaryPageAssertions
   }
 
   public void shouldBeVisible() {
-    assertThat(page.container()).isVisible(
-        new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
+    assertThat(page.container()).isVisible();
   }
 
   public void shouldShowLocalAccessRoleMember(String roleName, String memberDisplayName) {

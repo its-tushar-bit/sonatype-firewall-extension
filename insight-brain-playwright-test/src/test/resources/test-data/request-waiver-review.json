@@ -1,0 +1,41 @@
+{
+
+  "orgName": "ReviewOrg1",
+  "appName": "ReviewApp1",
+  "appId": "reviewApp1",
+
+  "policyName": "Review Policy",
+  "policyThreatLevel": 8,
+
+  "componentGroupId": "com.example",
+  "componentArtifactId": "review-artifact",
+  "componentVersion": "1.0.0",
+  "componentHash": "reviewhash1",
+  "componentCveId": "sonatype-2018-0101",
+
+  "scanId": "scan1",
+  "constraintName": "Test Constraint",
+
+  "waiverReasonId": "9b704ef5bc064fc29d7fe08a251ee9a6",
+  "initialComment": "Review test comment",
+  "noteToReviewer": "Please review this waiver request carefully",
+
+  "pageTitle": "Review Requested Waiver",
+  "requesterName": "Test Developer",
+
+  "rejectionModalTitle": "Reject Waiver Request",
+  "rejectionReason": "Component has known critical vulnerabilities",
+  "rejectionAlertTextPrefix": "This Waiver Request was rejected by",
+  "defaultRejectionReason": "No reason provided.",
+
+  "expiryNeverOptionValue": "never",
+  "reviewerId": "admin",
+  "reviewerName": "Admin User",
+
+  "scopeOptionTextPrefix": "Application",
+
+  "rejectionTextareaPlaceholder": "Enter the reason the waiver request was rejected here",
+  "rejectionTextareaMaxLength": "1000",
+  "rejectionSendButtonLabel": "Send",
+  "allVersionsDisabledTooltip": "Claim this component to apply all versions waiver"
+}

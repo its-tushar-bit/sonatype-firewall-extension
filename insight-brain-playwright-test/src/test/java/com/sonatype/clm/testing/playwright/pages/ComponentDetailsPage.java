@@ -12,15 +12,20 @@ import com.sonatype.insight.brain.model.Application;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright page object for the Component Details page.
- */
 public class ComponentDetailsPage
     extends BasePage
 {
   private static final String ROOT = ".nx-page-main.iq-component-details-page";
 
   private static final String BASE_URL = "/assets/index.html#/applicationReport/";
+
+  public static final String URL_FRAGMENT = "/componentDetails/";
+
+  private static final Locator.GetByRoleOptions CLAIM_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Claim");
+
+  private static final Locator.GetByRoleOptions REVOKE_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Revoke");
 
   public ComponentDetailsPage() {
     super();
@@ -58,6 +63,10 @@ public class ComponentDetailsPage
     return locator(ROOT);
   }
 
+  public void waitForReady() {
+    container().waitFor();
+  }
+
   public Locator title() {
     return locator("#component-details-title");
   }
@@ -86,7 +95,6 @@ public class ComponentDetailsPage
     return locator(ROOT + " .component-details-header__tags");
   }
 
-  // Footer pagination
   public Locator footer() {
     return locator(ROOT + " .iq-page-footer");
   }
@@ -103,7 +111,6 @@ public class ComponentDetailsPage
     return locator(ROOT + " .iq-page-footer .iq-page-counter");
   }
 
-  // Tab content
   public Locator violationsTabContent() {
     return locator("#component-details-violations-tab-content");
   }
@@ -120,7 +127,6 @@ public class ComponentDetailsPage
     return locator("#component-details-audit-tab-content");
   }
 
-  // Vulnerabilities
   public Locator vulnerabilitiesTable() {
     return locator(ROOT + " .iq-policy-vulnerability-table");
   }
@@ -129,23 +135,10 @@ public class ComponentDetailsPage
     return locator(ROOT + " .iq-policy-vulnerability-table .iq-vulnerabilities-row");
   }
 
-  /**
-   * Visible header title on component details (overview).
-   * <p>
-   * Markup (see {@code componentDetails/ComponentDetails.jsx}):
-   * {@code <Title id="component-details-title">{componentDetails.name}</Title>}.
-   */
   public Locator headerTitle() {
     return locator("#component-details-title");
   }
 
-  /**
-   * Tab buttons in the component details chrome (Violations, Security, Legal, …).
-   * <p>
-   * Scoped to {@code role=tablist[name="Component detail tabs"]} so we don't pick up other
-   * tab lists on the page (NxTabList renders {@code aria-label="Component detail tabs"} —
-   * see {@code componentDetails/ComponentDetailsTabs.jsx}).
-   */
   public Locator componentDetailsTabs() {
     return page.getByRole(AriaRole.TABLIST,
         new Page.GetByRoleOptions().setName("Component detail tabs"))
@@ -161,12 +154,10 @@ public class ComponentDetailsPage
     return locator(".nx-back-button");
   }
 
-  /** Security tab panel root rendered by NxTabPanel for tabId="security". */
   public Locator securityTabPanel() {
     return locator("#component-details-security-tab-content");
   }
 
-  /** Vulnerability table on the Security tab (matches frontend markup in VulnerabilitiesTable.jsx). */
   public Locator iqVulnerabilityTable() {
     return locator(".iq-policy-vulnerability-table");
   }
@@ -175,42 +166,30 @@ public class ComponentDetailsPage
     return locator(".iq-policy-vulnerability-table tbody tr");
   }
 
-  /** Legal tab panel root rendered by NxTabPanel for tabId="legal". */
   public Locator legalTabPanel() {
     return locator("#component-details-legal-tab-content");
   }
 
-  /** Root section for license detections on the Legal tab (see LicenseDetectionsTile.jsx). */
   public Locator licenseDetectionsTile() {
     return locator("#component-details-legal-license-detections-tile");
   }
 
-  /** Title element rendered inside the Violations tab tile. */
   public Locator violationsTileTitle() {
     return locator("#violations__tile__title");
   }
 
-  /** Title element rendered inside the Vulnerabilities tile on the Security tab. */
   public Locator vulnerabilitiesTileTitle() {
     return locator("#component-details-vulnerabilities-title");
   }
 
-  /** Alias for {@link #licenseDetectionsTile()} (tab navigation assertions). */
   public Locator legalLicenseDetectionsTile() {
     return licenseDetectionsTile();
   }
 
-  /** Component information tile rendered on the Overview tab. */
   public Locator overviewComponentInformationTile() {
     return locator("#overview-component-information-tile");
   }
 
-  /**
-   * Risk Remediation / Version Explorer tile on the Overview tab (see
-   * {@code componentDetails/overview/riskRemediation/RiskRemediation.jsx}). Renders only when
-   * the Version Explorer fetch returned a usable componentidentifier — components without one
-   * (e.g. unknown / proprietary matches) intentionally suppress this tile.
-   */
   public Locator versionExplorerTile() {
     return locator("#overview-component-risk-remediation-tile");
   }
@@ -224,39 +203,220 @@ public class ComponentDetailsPage
     return locator("#overview-component-risk-remediation-tile .nx-tile-header__title .nx-h2");
   }
 
-  /**
-   * Recommended-versions list inside the Risk Remediation tile
-   * ({@code .iq-recommended-version}).
-   */
   public Locator recommendedVersionsList() {
     return locator("#overview-component-risk-remediation-tile .iq-recommended-version .nx-list");
   }
 
-  /**
-   * Action buttons (Select / Compare) for the recommendation at {@code index} (0-based).
-   */
   public Locator recommendationActionButtons(int index) {
     return recommendedVersionsList().locator(".nx-list__item").nth(index).locator(".nx-list__actions .nx-btn");
   }
 
-  /** Compare Versions table that appears after clicking the Compare button. */
   public Locator compareVersionsTable() {
     return locator("#compare-versions-table");
   }
 
-  /** Row of version cells (current version, recommended version) in the Compare Versions table. */
   public Locator compareVersionsVersionRowCells() {
     return compareVersionsTable().locator("#version .nx-cell");
   }
 
-  /** Manage labels tile title rendered on the Labels tab. */
   public Locator labelsTileTitle() {
     return locator("#iq-manage-labels__tile__title");
   }
 
-  /** Audit log table rendered on the Audit Log tab. */
   public Locator auditLogTable() {
     return locator("#audit-log-table");
+  }
+
+  public Locator componentInformationTileHeader() {
+    return overviewComponentInformationTile().getByRole(AriaRole.HEADING);
+  }
+
+  public Locator componentInformationMatchState() {
+    return overviewComponentInformationTile().getByText("Match State")
+        .locator("xpath=following-sibling::dd");
+  }
+
+  public Locator componentInformationWebsite() {
+    return overviewComponentInformationTile().getByRole(AriaRole.LINK)
+        .filter(
+            new Locator.FilterOptions().setHasText("http"));
+  }
+
+  public Locator viewCoordinatesButton() {
+    return overviewComponentInformationTile().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("View Coordinates"));
+  }
+
+  public Locator auditLogTableRows() {
+    return auditLogTable().locator("tbody").getByRole(AriaRole.ROW);
+  }
+
+  public Locator auditLogTableHeaderCells() {
+    return auditLogTable().locator("thead th");
+  }
+
+  public Locator auditLogEmptyMessage() {
+    return auditLogTable().getByRole(AriaRole.CELL)
+        .filter(
+            new Locator.FilterOptions().setHasText("No data"));
+  }
+
+  public Locator paginationFooter() {
+    return locator("#component-details-footer");
+  }
+
+  public Locator paginationPrevLink() {
+    return paginationFooter().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Previous"));
+  }
+
+  public Locator paginationNextLink() {
+    return paginationFooter().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Next"));
+  }
+
+  public Locator paginationCounter() {
+    return paginationFooter().locator(".iq-page-counter");
+  }
+
+  public Locator policyViolationsTable() {
+    return locator("#iq-policy-violations-table");
+  }
+
+  public Locator policyViolationRows() {
+    return policyViolationsTable().locator("tbody tr.iq-policy-violation-row");
+  }
+
+  public Locator policyViolationDetailsPopover() {
+    return locator("#component-details-policy-violations-popover");
+  }
+
+  public Locator popoverViolationPage() {
+    return policyViolationDetailsPopover().locator("#violation-page");
+  }
+
+  public Locator popoverBackButton() {
+    return policyViolationDetailsPopover().locator(".nx-back-button").getByRole(AriaRole.LINK);
+  }
+
+  public Locator popoverSection() {
+    return policyViolationDetailsPopover().locator(".iq-violation-details-popover-section").first();
+  }
+
+  public Locator popoverAddWaiverButton() {
+    return policyViolationDetailsPopover().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Add Waiver"));
+  }
+
+  public Locator popoverRequestWaiverDropdownToggle() {
+    return policyViolationDetailsPopover().locator(".nx-segmented-btn__dropdown-btn");
+  }
+
+  public Locator popoverRequestWaiverMenuItem() {
+    return policyViolationDetailsPopover().getByRole(AriaRole.BUTTON)
+        .filter(
+            new Locator.FilterOptions().setHasText("Request Waiver"));
+  }
+
+  public Locator vulnerabilityDetailsPopover() {
+    return locator("#component-details-vulnerability-details-popover");
+  }
+
+  public Locator securityVulnerabilityOverrideForm() {
+    return vulnerabilityDetailsPopover().locator(".iq-security-vulnerability-override-form");
+  }
+
+  public Locator vulnerabilityStatusDropdown() {
+    return vulnerabilityDetailsPopover().getByRole(AriaRole.COMBOBOX);
+  }
+
+  public Locator vulnerabilityOverrideCommentsInput() {
+    return vulnerabilityDetailsPopover().getByRole(AriaRole.TEXTBOX);
+  }
+
+  public Locator vulnerabilityOverrideSaveButton() {
+    return vulnerabilityDetailsPopover()
+        .getByRole(AriaRole.BUTTON, CommonButtonOptions.SAVE_BUTTON_OPTS);
+  }
+
+  public Locator availableLabelTags() {
+    return locator(".iq-transfer-list .iq-transfer-list__half").first()
+        .locator("label");
+  }
+
+  public Locator appliedLabelTags() {
+    return locator(".iq-transfer-list .iq-transfer-list__half").last()
+        .locator("label");
+  }
+
+  public Locator applyLabelModal() {
+    return locator("#iq-apply-label-modal");
+  }
+
+  public Locator applyLabelModalHeading() {
+    return applyLabelModal().getByRole(AriaRole.HEADING);
+  }
+
+  public Locator applyLabelScopeDropdown() {
+    return applyLabelModal().getByRole(AriaRole.COMBOBOX);
+  }
+
+  public Locator applyLabelModalCancelButton() {
+    return applyLabelModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
+  }
+
+  public Locator removeLabelModal() {
+    return page.getByRole(AriaRole.DIALOG)
+        .filter(
+            new Locator.FilterOptions().setHasText("Remove Label"));
+  }
+
+  public Locator removeLabelModalCancelButton() {
+    return removeLabelModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
+  }
+
+  public Locator claimForm() {
+    return locator("#component-details-claim");
+  }
+
+  public Locator claimGroupIdField() {
+    return claimForm().getByLabel("Group ID");
+  }
+
+  public Locator claimArtifactIdField() {
+    return claimForm().getByLabel("Artifact ID");
+  }
+
+  public Locator claimVersionField() {
+    return claimForm().getByLabel("Version");
+  }
+
+  public Locator claimExtensionField() {
+    return claimForm().getByLabel("Extension");
+  }
+
+  public Locator claimSubmitButton() {
+    return claimForm().getByRole(AriaRole.BUTTON, CLAIM_BUTTON_OPTS);
+  }
+
+  public Locator claimCancelButton() {
+    return claimForm().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
+  }
+
+  public Locator claimRevokeButton() {
+    return claimForm().getByRole(AriaRole.BUTTON, REVOKE_BUTTON_OPTS);
+  }
+
+  public Locator revokeClaimModal() {
+    return page.getByRole(AriaRole.DIALOG)
+        .filter(
+            new Locator.FilterOptions().setHasText("Revoke"));
+  }
+
+  public Locator revokeClaimModalConfirmButton() {
+    return revokeClaimModal().getByRole(AriaRole.BUTTON, REVOKE_BUTTON_OPTS);
+  }
+
+  public static String urlToClaim(Application app, String scanId, String hash) {
+    return BASE_URL + app.getPublicId() + "/" + scanId + "/componentDetails/" + hash + "/claim";
   }
 
   public void clickComponentDetailsTab(String tabLabel) {
@@ -270,12 +430,6 @@ public class ComponentDetailsPage
     }
   }
 
-  /**
-   * Clicks the Compare button (last action of the first recommendation) and asserts the
-   * Compare Versions table renders with the given current and recommended version cells.
-   * Mirrors the legacy Selenide
-   * {@code VersionGraphTest#testVersionGraph_debugComponent_CompareVersionButton}.
-   */
   public void compareRecommendationAndAssertVersions(String currentVersion, String recommendedVersion) {
     assertThat(recommendedVersionsList()).isVisible();
     Locator actions = recommendationActionButtons(0);

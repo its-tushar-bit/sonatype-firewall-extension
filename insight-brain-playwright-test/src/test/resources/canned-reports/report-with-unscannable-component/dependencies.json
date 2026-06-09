@@ -1,0 +1,16 @@
+{
+  "dependencyGraph": [{
+    "children": [{
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "scannable-lib",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "1.0.0"
+        }
+      }
+    }]
+  }]
+}

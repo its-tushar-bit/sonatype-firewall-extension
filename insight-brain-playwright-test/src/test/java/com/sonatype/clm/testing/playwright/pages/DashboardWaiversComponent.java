@@ -6,78 +6,98 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
 
-/**
- * Playwright page object for the Dashboard Waivers tab.
- */
 public class DashboardWaiversComponent
     extends BasePage
 {
   private static final String ROOT = "#dashboard-waivers";
 
-  private static final String ENTRIES = ROOT + " .iq-dashboard-waivers-entries";
+  private static final Locator.GetByRoleOptions EXISTING_WAIVERS_TAB_OPTS =
+      new Locator.GetByRoleOptions().setName("Existing Waivers");
+
+  private static final Locator.GetByRoleOptions REQUESTED_WAIVERS_TAB_OPTS =
+      new Locator.GetByRoleOptions().setName("Requested Waivers");
+
+  private static final Locator.GetByRoleOptions NEXT_PAGE_OPTS =
+      new Locator.GetByRoleOptions().setName("next page");
+
+  private static final Locator.GetByRoleOptions PREVIOUS_PAGE_OPTS =
+      new Locator.GetByRoleOptions().setName("previous page");
 
   public DashboardWaiversComponent() {
     super();
   }
 
+  public Locator container() {
+    return locator(ROOT);
+  }
+
   public Locator waivers() {
-    return locator(ENTRIES + " .iq-dashboard-waiver");
+    return container().getByRole(AriaRole.TABLE).locator("tbody").getByRole(AriaRole.ROW);
   }
 
   public Locator firstWaiver() {
-    return locator(ENTRIES + " .iq-dashboard-waiver:first-child");
+    return waivers().first();
   }
 
   public Locator waiver(int index) {
-    return locator(ENTRIES + " .iq-dashboard-waiver:nth-child(" + (index + 1) + ")");
+    return waivers().nth(index);
   }
 
   public Locator noDataMessage() {
-    return locator(ENTRIES + " .nx-table-row:last-child");
+    return container().getByRole(AriaRole.TABLE).locator("tbody").getByRole(AriaRole.ROW).last();
   }
 
-  // --------------- Waiver tile cell accessors ---------------
-
   public Locator threatIndicator(int index) {
-    return waiver(index).locator(".iq-threat-cell .nx-threat-indicator");
+    return waiver(index).getByRole(AriaRole.CELL).nth(0);
   }
 
   public Locator threatNumber(int index) {
-    return waiver(index).locator(".iq-threat-cell .nx-threat-number");
+    return waiver(index).getByRole(AriaRole.CELL).nth(0).locator(".nx-threat-number");
   }
 
   public Locator createTime(int index) {
-    return waiver(index).locator(".nx-cell:nth-child(2)");
+    return waiver(index).getByRole(AriaRole.CELL).nth(1);
   }
 
   public Locator expiryTime(int index) {
-    return waiver(index).locator(".nx-cell:nth-child(3)");
+    return waiver(index).getByRole(AriaRole.CELL).nth(2);
   }
 
   public Locator policy(int index) {
-    return waiver(index).locator(".nx-cell:nth-child(4)");
+    return waiver(index).getByRole(AriaRole.CELL).nth(3);
   }
 
   public Locator scope(int index) {
-    return waiver(index).locator(".nx-cell:nth-child(5)");
+    return waiver(index).getByRole(AriaRole.CELL).nth(4);
   }
 
   public Locator component(int index) {
-    return waiver(index).locator(".nx-cell:nth-child(6)");
+    return waiver(index).getByRole(AriaRole.CELL).nth(5);
   }
 
   public Locator upgradeAvailable(int index) {
-    return waiver(index).locator(".iq-upgrade-cell");
+    return waiver(index).getByRole(AriaRole.CELL).nth(6);
   }
 
-  // --------------- Pagination ---------------
+  public Locator existingWaiversTab() {
+    return container().getByRole(AriaRole.TAB, EXISTING_WAIVERS_TAB_OPTS);
+  }
+
+  public Locator requestedWaiversTab() {
+    return container().getByRole(AriaRole.TAB, REQUESTED_WAIVERS_TAB_OPTS);
+  }
+
+  public Locator waiverRequestsTable() {
+    return container().getByRole(AriaRole.TABLE).last();
+  }
 
   public Locator paginatorNextButton() {
-    return locator(ROOT + " .nx-table-container__footer >> xpath=//button[@aria-label='next page']");
+    return container().getByRole(AriaRole.BUTTON, NEXT_PAGE_OPTS);
   }
 
   public Locator paginatorPreviousButton() {
-    return locator(ROOT + " .nx-table-container__footer >> xpath=//button[@aria-label='previous page']");
+    return container().getByRole(AriaRole.BUTTON, PREVIOUS_PAGE_OPTS);
   }
 }

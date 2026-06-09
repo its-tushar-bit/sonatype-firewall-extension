@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <li>The fixture is <b>data-driven</b> (e.g. a list of scenarios for a {@code for}-loop); or</li>
  * <li>The fixture is <b>reused across multiple test classes</b> so a single file keeps them in sync; or</li>
  * <li>Non-engineers need to edit the data without a Java toolchain; or</li>
- * <li>The fixture holds structured HDS mock payloads that are forwarded as raw JSON.</li>
+ * <li>The fixture holds structured HDS mock payloads that are forwarded as raw JSON; or</li>
+ * <li>The data set is <b>large</b> (rough threshold: more than ~15 fields), where an inline
+ * constants block in the test class would dominate the file and obscure the test logic.</li>
  * </ol>
  * </li>
  * </ul>

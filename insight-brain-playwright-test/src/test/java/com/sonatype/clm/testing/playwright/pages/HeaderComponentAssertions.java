@@ -5,9 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
-import com.microsoft.playwright.assertions.LocatorAssertions;
-import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
-
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -22,8 +19,7 @@ public class HeaderComponentAssertions
   }
 
   public void shouldBeLoggedIn() {
-    assertThat(page.menuBar())
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
+    assertThat(page.menuBar()).isVisible();
   }
 
   public void shouldShowUserName(String expectedName) {

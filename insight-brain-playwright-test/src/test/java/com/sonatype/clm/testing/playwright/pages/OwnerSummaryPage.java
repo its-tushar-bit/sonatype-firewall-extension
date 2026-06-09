@@ -18,6 +18,9 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 public class OwnerSummaryPage
     extends BasePage
 {
+  /** {@code NxDropdown} root for the owner-summary "Actions" menu ({@code ActionDropdown.jsx}). */
+  private static final String OWNER_ACTIONS_DROPDOWN_ID = "iq-owner-actions-dropdown";
+
   /** Owner summary horizontal nav / tile id — Legacy Violations ({@code LegacyViolationsTile.jsx}). */
   public static final String OWNER_PILL_LEGACY_VIOLATIONS = "owner-pill-legacy-violations";
 
@@ -45,12 +48,6 @@ public class OwnerSummaryPage
   /** Access tile ({@code AccessTile.jsx}, pill target {@code access-tile-pill-access}). */
   public static final String OWNER_PILL_ACCESS = "access-tile-pill-access";
 
-  /** Public Data Sources tile ({@code data-testid="owner-pill-public-data-sources"}). */
-  public static final String OWNER_PILL_PUBLIC_DATA_SOURCES = "owner-pill-public-data-sources";
-
-  /** {@code NxDropdown} root for the owner-summary "Actions" menu ({@code ActionDropdown.jsx}). */
-  public static final String OWNER_ACTIONS_DROPDOWN_ID = "iq-owner-actions-dropdown";
-
   public OwnerSummaryPage() {
     super();
   }
@@ -77,6 +74,16 @@ public class OwnerSummaryPage
     return "/assets/index.html#/management/view/application/" + appId;
   }
 
+  /** SBOM Manager owner-summary route. */
+  public static String sbomUrl(String ownerId) {
+    return "/assets/index.html#/sbomManager/management/view/organization/" + ownerId;
+  }
+
+  /** Firewall owner-summary route. */
+  public static String firewallUrl(String ownerId) {
+    return "/assets/index.html#/firewall/management/view/organization/" + ownerId;
+  }
+
   public Locator container() {
     return locator("#owner-summary");
   }
@@ -91,14 +98,6 @@ public class OwnerSummaryPage
    */
   public Locator addPolicyButton() {
     return locator("#add-policy-button");
-  }
-
-  public Locator policyList() {
-    return locator("#policy-list");
-  }
-
-  public Locator policyListItems() {
-    return locator("#policy-list .nx-list__item");
   }
 
   /**
@@ -126,16 +125,6 @@ public class OwnerSummaryPage
     // because data-testid attributes may be stripped in the production bundle, whereas the
     // id attribute is always preserved in the DOM.
     locator("#" + pillTargetId + "-button").click();
-  }
-
-  /**
-   * The "Local to {ownerName}" tbody section of the Policies tile (PoliciesTable.jsx,
-   * {@code className="iq-policy-table iq-policy-table-local-section"}). Note: when the owner has
-   * no local policies, PoliciesTile.jsx renders an {@code NxList} "No local policies defined"
-   * empty state instead of a {@code PoliciesTable}, so this locator's count is zero.
-   */
-  public Locator policiesTileLocalSection() {
-    return policiesTile().locator("tbody.iq-policy-table-local-section");
   }
 
   /**
@@ -207,6 +196,10 @@ public class OwnerSummaryPage
     return byTestId("owner-pill-public-data-sources");
   }
 
+  public Locator accessTileLocalAccessList() {
+    return locator("#iq-access-tile-local-access-list");
+  }
+
   /** Owner-summary "Actions" {@code NxDropdown} container ({@code ActionDropdown.jsx}). */
   public Locator ownerActionsDropdown() {
     return locator("#" + OWNER_ACTIONS_DROPDOWN_ID);
@@ -227,39 +220,7 @@ public class OwnerSummaryPage
     assertThat(ownerActionsMenu()).isVisible();
   }
 
-  public Locator addApplicationButton() {
-    return locator("#create-application");
-  }
-
-  public Locator applicationList() {
-    return locator("#application-list");
-  }
-
-  public Locator organizationList() {
-    return locator("#organization-list");
-  }
-
-  /** Access tile "Add a Role" action button. */
-  public Locator accessTileAddRoleButton() {
-    return locator("#add-role-button");
-  }
-
-  public Locator accessTileLocalAccessList() {
-    return locator("#iq-access-tile-local-access-list");
-  }
-
   public static String urlToRootOrg() {
     return url(Organization.ROOT_ORGANIZATION_ID);
-  }
-
-  /**
-   * Deep-link into the organization and policies edit shell (left sidebar + main content). Paths
-   * match OrgsAndPolicies route config and the Owner Detail sidebar links.
-   *
-   * @param organizationId internal organization id (e.g. {@link Organization#ROOT_ORGANIZATION_ID})
-   * @param pathSuffix path after the org id, starting with {@code /} (e.g. {@code "/legacyViolations"}).
-   */
-  public static String editOrganizationUrl(String organizationId, String pathSuffix) {
-    return "/assets/index.html#/management/edit/organization/" + organizationId + pathSuffix;
   }
 }

@@ -7,14 +7,19 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
-import com.sonatype.clm.testing.functional.utils.NameSupplierDictionary;
+import com.microsoft.playwright.Route;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
+import com.sonatype.clm.testing.playwright.utils.TestCredentials;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponent;
+import com.sonatype.clm.testing.playwright.pages.OrgsAndPoliciesSidebarComponentAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePage;
 import com.sonatype.clm.testing.playwright.pages.OwnersTreePageAssertions;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,46 +29,41 @@ import com.sonatype.insight.brain.model.security.User;
 import org.junit.Before;
 import org.junit.Test;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright migration of the Selenide {@code OrgsAndPoliciesTreeViewLimitedPermissionTest}.
- *
- * <p>
- * Each test follows a Given / When / Then shape:
- * <ul>
- * <li>{@link #seedHierarchyAndLoginAsDeveloper()} seeds a per-test org tree
- * ({@link #ORGS_PER_LEVEL} orgs × {@link #TREE_DEPTH} levels × {@link #APPS_PER_ORG} apps),
- * grants a fresh developer user the developer role on every app that lives directly under a
- * top-level org, and lands on the dashboard logged in as that developer.</li>
- * <li>The test body navigates to the inheritance tree-view and asserts the page renders the
- * permitted subtree, then clicks into the first clickable owner.</li>
- * </ul>
- *
- * <p>
- * Selectors live in {@link OwnersTreePage} (and {@link OwnerSummaryPage} for the destination
- * owner-summary). See {@code PLAYWRIGHT_TEST_AUTHORING_GUIDE.md}.
- */
 public class OrgsAndPoliciesTreeViewPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final int ORGS_PER_LEVEL = 2;
-
-  private static final int TREE_DEPTH = 3;
-
   private static final int APPS_PER_ORG = 3;
 
   private static final String EXPECTED_PAGE_HEADING = "Inheritance Hierarchy";
 
+  private static final String SIDEBAR_REST_PATH = "/rest/sidebar";
+
+  private OwnersTreePage treePage;
+
+  private OwnersTreePageAssertions treeAssertions;
+
+  private OwnerSummaryPage ownerSummary;
+
+  private OrgsAndPoliciesSidebarComponent sidebar;
+
+  private OrgsAndPoliciesSidebarComponentAssertions sidebarAssertions;
+
   private User developerUser;
+
+  private Application adminTreeApp;
 
   private final List<Application> applicationsWithPermission = new ArrayList<>();
 
-  // --------------- @Before ---------------
-
   @Before
   public void seedHierarchyAndLoginAsDeveloper() {
+    treePage = new OwnersTreePage();
+    treeAssertions = new OwnersTreePageAssertions(treePage);
+    ownerSummary = new OwnerSummaryPage();
+    sidebar = new OrgsAndPoliciesSidebarComponent();
+    sidebarAssertions = new OrgsAndPoliciesSidebarComponentAssertions(sidebar);
+
     seedHierarchyAndDeveloperPermissions();
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLoginAt(DashboardPage.url(),
@@ -71,50 +71,142 @@ public class OrgsAndPoliciesTreeViewPlaywrightTest
         TemporaryEntity.USER_PASSWORD_CLEAR);
   }
 
-  // --------------- @Test methods ---------------
-
-  /**
-   * A developer with permission on a subset of applications can navigate to the inheritance
-   * tree-view, see at least one owner row, and click into the first clickable owner to land on
-   * its owner-summary page.
-   */
   @Test
   @Category(SanityTest.class)
   public void testOwnerTree_limitedPermission() {
-    OwnersTreePage treePage = new OwnersTreePage();
-    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
-
-    // Given: developer is authenticated and lands on the inheritance tree-view.
     playwrightRefreshOrOpen(OwnersTreePage.url());
 
-    // Then: the page header and at least one tree row render for the permitted subtree.
-    new OwnersTreePageAssertions(treePage).shouldBeVisibleWithAtLeastOneItem();
+    treeAssertions.shouldBeVisibleWithAtLeastOneItem();
     assertThat(treePage.pageHeading()).hasText(EXPECTED_PAGE_HEADING);
 
-    // When: the user clicks the first clickable owner in the tree.
     treePage.clickFirstClickableOwner();
 
-    // Then: the owner-summary container for that owner is rendered.
     assertThat(ownerSummary.container()).isVisible();
   }
 
-  // --------------- Backend seed methods ---------------
+  @Test
+  @Category(RegressionTest.class)
+  public void testTreeView_expandCollapseAndNavigateAsAdmin() {
+    seedAdminTree();
+
+    playwrightLogout();
+    playwrightLoginAdminAt(OwnersTreePage.url());
+
+    treeAssertions.shouldBeVisibleWithAtLeastOneItem();
+
+    assertThat(treePage.expandedCollapsibleNodes()).not().hasCount(0);
+
+    treePage.collapseAllButton().click();
+    assertThat(treePage.collapsedNodes()).not().hasCount(0);
+
+    treePage.expandAllButton().click();
+    assertThat(treePage.collapsedNodes()).hasCount(0);
+
+    treePage.clickFirstOrganizationNode();
+    assertThat(ownerSummary.container()).isVisible();
+
+    page.goBack();
+    treeAssertions.shouldBeVisibleWithAtLeastOneItem();
+    treePage.expandAllButton().click();
+    treePage.clickFirstApplicationNode();
+    assertThat(ownerSummary.container()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testTreeView_backButtonText_dynamicFromOrgAndFallback() {
+    Organization adminOrg = seedAdminTree();
+
+    String orgPublicId = adminOrg.getPublicId();
+    String orgName = adminOrg.getName();
+
+    playwrightLogout();
+    playwrightLoginAdminAt(OwnerSummaryPage.url(orgPublicId));
+    sidebarAssertions.shouldBeVisibleWithSelectedOwner();
+    sidebar.openTreeView();
+
+    treeAssertions.shouldBeVisibleWithAtLeastOneItem();
+    assertThat(treePage.backButton()).isVisible();
+    assertThat(treePage.backButton()).containsText(orgName);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testTreeView_backButtonDestination_fromApplicationPage() {
+    seedAdminTree();
+
+    String appPublicId = adminTreeApp.getPublicId();
+
+    playwrightLogout();
+    playwrightLoginAdminAt(OwnerSummaryPage.applicationUrl(appPublicId));
+    sidebarAssertions.shouldBeVisibleWithSelectedOwner();
+    sidebar.openTreeView();
+
+    treeAssertions.shouldBeVisibleWithAtLeastOneItem();
+    assertThat(treePage.backButton()).isVisible();
+    treePage.backButton().click();
+    playwrightWaitUntilUrlContains(OwnerSummaryPage.applicationUrl(appPublicId));
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testTreeView_backButtonDestination_sbomAndFirewallContexts() {
+    Organization adminOrg = seedAdminTree();
+
+    String orgPublicId = adminOrg.getPublicId();
+
+    playwrightLogout();
+    playwrightLoginAdminAt(OwnerSummaryPage.sbomUrl(orgPublicId));
+    if (sidebar.container().isVisible() && sidebar.isTreeViewLinkVisible()) {
+      sidebar.openTreeView();
+      assertThat(treePage.backButton()).isVisible();
+      treePage.backButton().click();
+      playwrightWaitUntilUrlContains(OwnerSummaryPage.sbomUrl(orgPublicId));
+    }
+
+    playwrightRefreshOrOpen(OwnerSummaryPage.firewallUrl(orgPublicId));
+    if (sidebar.container().isVisible() && sidebar.isTreeViewLinkVisible()) {
+      sidebar.openTreeView();
+      assertThat(treePage.backButton()).isVisible();
+      treePage.backButton().click();
+      playwrightWaitUntilUrlContains(OwnerSummaryPage.firewallUrl(orgPublicId));
+    }
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testTreeView_loadError_retryReloadsTree() {
+    playwrightLogout();
+    page.route(Pattern.compile(".*" + SIDEBAR_REST_PATH + ".*"),
+        route -> route.fulfill(new Route.FulfillOptions().setStatus(500)));
+    playwrightLoginAt(OwnersTreePage.url(),
+        TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);
+
+    treeAssertions.shouldShowLoadError();
+
+    page.unrouteAll();
+    treePage.retryButton().click();
+    treeAssertions.shouldShowTreeContent();
+  }
 
   private void seedHierarchyAndDeveloperPermissions() {
-    ApplicationDAO applicationDAO = lookup(ApplicationDAO.class);
-    List<Organization> organizations = tempEntity.newRelatedOrganizationsAsList(
-        ORGS_PER_LEVEL,
-        TREE_DEPTH,
-        APPS_PER_ORG,
-        new NameSupplierDictionary());
-
-    organizations.stream()
-        .filter(org -> Organization.ROOT_ORGANIZATION_ID.equals(org.getParentOrganizationId()))
-        .forEach(
-            rootChild -> applicationsWithPermission.addAll(applicationDAO.getByOrganizationId(rootChild.getId())));
+    String suffix = TemporaryEntity.uuid();
     developerUser = tempEntity.newUser();
-    applicationsWithPermission.forEach(
-        app -> tempEntity.newMembershipMapping(app.getId(), Role.DEVELOPER_ROLE_ID, developerUser.getUsername()));
+    Organization topOrg = tempEntity.newOrganization("TreeTestOrg-" + suffix);
+    for (int i = 0; i < APPS_PER_ORG; i++) {
+      Application app = tempEntity.newApplication(
+          "TreeApp-" + suffix + "-" + i, "tree-app-" + suffix + "-" + i, topOrg.getId());
+      applicationsWithPermission.add(app);
+      tempEntity.newMembershipMapping(
+          app.getId(), Role.DEVELOPER_ROLE_ID, developerUser.getUsername());
+    }
+  }
+
+  private Organization seedAdminTree() {
+    String suffix = TemporaryEntity.uuid();
+    Organization org = tempEntity.newOrganization("AdminTreeOrg-" + suffix);
+    adminTreeApp = tempEntity.newApplication("AdminTreeApp-" + suffix, "admin-tree-app-" + suffix, org.getId());
+    return org;
   }
 
 }

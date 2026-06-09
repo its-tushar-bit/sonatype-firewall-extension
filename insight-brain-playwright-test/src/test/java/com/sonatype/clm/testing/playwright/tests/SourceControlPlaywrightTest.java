@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import java.util.List;
 
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
@@ -18,7 +17,6 @@ import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.SourceControlConfigurationPageAssertions;
-import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import org.junit.Assume;
 import org.junit.Before;
@@ -76,8 +74,7 @@ public class SourceControlPlaywrightTest
    */
   private void assumeOwnerSummaryFeaturePillVisible(String pillTargetId, String featureLabel) {
     try {
-      page.getByTestId(pillTargetId + "-button")
-          .waitFor(new Locator.WaitForOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
+      page.getByTestId(pillTargetId + "-button").waitFor();
     }
     catch (PlaywrightException e) {
       Assume.assumeTrue(featureLabel + " is not available for this license or configuration", false);

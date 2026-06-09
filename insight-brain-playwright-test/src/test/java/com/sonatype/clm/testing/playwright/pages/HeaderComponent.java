@@ -114,8 +114,7 @@ public class HeaderComponent
     manageUserTokenButton().click();
     // NxModal does not set aria-labelledby in this RSC version, so the dialog has no accessible
     // name and getByRole(DIALOG,"Manage User Token") never resolves. Use the stable id.
-    assertThat(locator("#user-token-modal"))
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
+    assertThat(locator("#user-token-modal")).isVisible();
   }
 
   // --------------- System Config Menu ---------------

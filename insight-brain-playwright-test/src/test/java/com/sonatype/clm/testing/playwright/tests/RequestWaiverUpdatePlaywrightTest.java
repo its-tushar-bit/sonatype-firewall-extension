@@ -10,10 +10,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.RequestWaiverUpdatePage;
 import com.sonatype.clm.testing.playwright.pages.RequestWaiverUpdatePageAssertions;
+
+import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -34,61 +38,46 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright test for the Request Waiver Update page.
- */
 public class RequestWaiverUpdatePlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String ORG_NAME = "Org 1";
 
-  private static final String APP_NAME = "App 1";
+  private record RequestWaiverUpdateData(
+      String orgName,
+      String appName,
+      String appId,
+      String policyName,
+      int policyThreatLevel,
+      String componentGroupId,
+      String componentArtifactId,
+      String componentVersion,
+      String componentHash,
+      String componentCveId,
+      String scanId,
+      String waiverReasonIdAcknowledgedViolation,
+      String initialComment,
+      String initialNoteToReviewer,
+      String pageTitle,
+      String updatedComment,
+      String updatedNoteToReviewer,
+      String rejectionReason,
+      String rejectionAlertText,
+      String reviewerId,
+      String reviewerName)
+  {
+    String componentCoords() {
+      return componentGroupId + " : " + componentArtifactId + " : " + componentVersion;
+    }
+  }
 
-  private static final String APP_ID = "app1";
-
-  private static final String POLICY_NAME = "Policy 1";
-
-  private static final int POLICY_THREAT_LEVEL = 7;
-
-  private static final String COMPONENT_GROUP_ID = "Group1";
-
-  private static final String COMPONENT_ARTIFACT_ID = "Artifact1";
-
-  private static final String COMPONENT_VERSION = "Version1";
-
-  private static final String COMPONENT_HASH = "hash1";
-
-  private static final String COMPONENT_CVE_ID = "sonatype-2017-0507";
-
-  private static final String COMPONENT_COORDS =
-      COMPONENT_GROUP_ID + " : " + COMPONENT_ARTIFACT_ID + " : " + COMPONENT_VERSION;
-
-  private static final String WAIVER_REASON_ID_ACKNOWLEDGED_VIOLATION = "9b704ef5bc064fc29d7fe08a251ee9a6";
-
-  private static final String INITIAL_COMMENT = "Comment 1";
-
-  private static final String INITIAL_NOTE_TO_REVIEWER = "Note to Reviewer 1";
-
-  private static final String PAGE_TITLE = "Request Waiver";
-
-  private static final String UPDATED_COMMENT = "Updated comments for testing";
-
-  private static final String UPDATED_NOTE_TO_REVIEWER = "Updated note to reviewer";
-
-  private static final String REJECTION_REASON = "This component violates security policies";
-
-  private static final String REJECTION_ALERT_TEXT = "This Waiver Request was rejected";
-
-  private static final String REVIEWER_ID = "admin";
-
-  private static final String REVIEWER_NAME = "Admin Reviewer";
-
-  private PolicyWaiverRequest policyWaiverRequest;
+  private static final RequestWaiverUpdateData DATA =
+      TestDataManager.load("request-waiver-update", RequestWaiverUpdateData.class);
 
   private PolicyWaiverRequestDAO policyWaiverRequestDAO;
+
+  private PolicyWaiverRequest policyWaiverRequest;
 
   @Before
   public void seedWaiverRequestAndLoginAsDeveloper() {
@@ -104,32 +93,32 @@ public class RequestWaiverUpdatePlaywrightTest
         Role.DEVELOPER_ROLE_ID,
         developerUser.getUsername());
 
-    Organization organization = tempEntity.newOrganization(ORG_NAME);
-    Application application = tempEntity.newApplication(APP_NAME, APP_ID, organization.getId());
+    Organization organization = tempEntity.newOrganization(DATA.orgName());
+    Application application = tempEntity.newApplication(DATA.appName(), DATA.appId(), organization.getId());
     Policy policy =
-        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, POLICY_NAME, POLICY_THREAT_LEVEL);
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, DATA.policyName(), DATA.policyThreatLevel());
 
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
         application.getId(), StageTypes.BUILD.getId(), "scan1", false, false, twoDaysAgo);
 
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates(
-            COMPONENT_GROUP_ID, COMPONENT_ARTIFACT_ID, COMPONENT_VERSION, "", "jar");
+            DATA.componentGroupId(), DATA.componentArtifactId(), DATA.componentVersion(), "", "jar");
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
     PolicyViolation violation = tempEntity.newPolicyViolation(
-        evaluation, policy, componentIdentifier, COMPONENT_HASH, COMPONENT_CVE_ID);
+        evaluation, policy, componentIdentifier, DATA.componentHash(), DATA.componentCveId());
 
     policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
-        .setHash(COMPONENT_HASH)
+        .setHash(DATA.componentHash())
         .setPolicyId(policy.getId())
         .setPolicyViolationId(violation.getId())
         .setOwnerId(application.getId())
         .setAssociatedPackageUrl(purl)
         .setComponentMatchStrategy(EXACT_COMPONENT)
-        .setWaiverReasonId(WAIVER_REASON_ID_ACKNOWLEDGED_VIOLATION)
-        .setComment(INITIAL_COMMENT)
-        .setNoteToReviewer(INITIAL_NOTE_TO_REVIEWER)
+        .setWaiverReasonId(DATA.waiverReasonIdAcknowledgedViolation())
+        .setComment(DATA.initialComment())
+        .setNoteToReviewer(DATA.initialNoteToReviewer())
         .setRequestTime(twoDaysAgo)
         .setExpiryTime(threeDaysFromNow)
         .setRequesterId(developerUser.getUsername())
@@ -142,7 +131,6 @@ public class RequestWaiverUpdatePlaywrightTest
   @After
   public void logoutDeveloper() {
     playwrightLogout();
-
   }
 
   @Test
@@ -158,7 +146,8 @@ public class RequestWaiverUpdatePlaywrightTest
         PlaywrightTiming.POLL_INTERVAL_MS);
 
     updateAssertions.shouldBeVisible();
-    updateAssertions.shouldShowUpdateLayout(PAGE_TITLE, COMPONENT_COORDS, POLICY_NAME);
+    updateAssertions.shouldShowUpdateLayout(
+        DATA.pageTitle(), DATA.componentCoords(), DATA.policyName());
   }
 
   @Test
@@ -174,8 +163,8 @@ public class RequestWaiverUpdatePlaywrightTest
         PlaywrightTiming.POLL_INTERVAL_MS);
 
     updateAssertions.shouldBeVisible();
-    updatePage.fillComment(UPDATED_COMMENT);
-    updatePage.fillNoteToReviewer(UPDATED_NOTE_TO_REVIEWER);
+    updatePage.fillComment(DATA.updatedComment());
+    updatePage.fillNoteToReviewer(DATA.updatedNoteToReviewer());
     updatePage.submit();
     waitForSubmitMask();
 
@@ -184,16 +173,16 @@ public class RequestWaiverUpdatePlaywrightTest
     PlaywrightWaitUtils.clickAndWaitForVisible(
         updatePage.firstWaiverRequestTile(), updatePage.container(), PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS,
         PlaywrightTiming.POLL_INTERVAL_MS);
-    updateAssertions.shouldShowSavedCommentAndNote(UPDATED_COMMENT, UPDATED_NOTE_TO_REVIEWER);
+    updateAssertions.shouldShowSavedCommentAndNote(DATA.updatedComment(), DATA.updatedNoteToReviewer());
   }
 
   @Test
   @Category(SanityTest.class)
   public void testErrorAlertWhenWaiverRequestIsRejected() {
     policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.REJECTED);
-    policyWaiverRequest.setRejectionReason(REJECTION_REASON);
-    policyWaiverRequest.setReviewerId(REVIEWER_ID);
-    policyWaiverRequest.setReviewerName(REVIEWER_NAME);
+    policyWaiverRequest.setRejectionReason(DATA.rejectionReason());
+    policyWaiverRequest.setReviewerId(DATA.reviewerId());
+    policyWaiverRequest.setReviewerName(DATA.reviewerName());
     policyWaiverRequestDAO.update(policyWaiverRequest);
 
     RequestWaiverUpdatePage updatePage = new RequestWaiverUpdatePage();
@@ -206,6 +195,27 @@ public class RequestWaiverUpdatePlaywrightTest
         PlaywrightTiming.POLL_INTERVAL_MS);
 
     updateAssertions.shouldBeVisible();
-    updateAssertions.shouldShowRejectionAlert(REJECTION_ALERT_TEXT, REJECTION_REASON);
+    updateAssertions.shouldShowRejectionAlert(DATA.rejectionAlertText(), DATA.rejectionReason());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testApprovedStatusMakesFormReadOnly() {
+    policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
+    policyWaiverRequest.setReviewerId(DATA.reviewerId());
+    policyWaiverRequest.setReviewerName(DATA.reviewerName());
+    policyWaiverRequestDAO.update(policyWaiverRequest);
+
+    RequestWaiverUpdatePage updatePage = new RequestWaiverUpdatePage();
+    RequestWaiverUpdatePageAssertions updateAssertions = new RequestWaiverUpdatePageAssertions(updatePage);
+    playwrightRefreshOrOpen(RequestWaiverUpdatePage.url());
+    updatePage.waitUntilSpinnersGone();
+
+    PlaywrightWaitUtils.clickAndWaitForVisible(
+        updatePage.firstWaiverRequestTile(), updatePage.container(),
+        PlaywrightTiming.MODAL_OR_LOGIN_TIMEOUT_MS, PlaywrightTiming.POLL_INTERVAL_MS);
+
+    updateAssertions.shouldBeVisible();
+    updateAssertions.shouldShowApprovedReadOnlyState();
   }
 }

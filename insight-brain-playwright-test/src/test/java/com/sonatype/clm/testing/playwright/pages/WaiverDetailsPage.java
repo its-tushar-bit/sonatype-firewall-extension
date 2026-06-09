@@ -8,10 +8,6 @@ package com.sonatype.clm.testing.playwright.pages;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
-/**
- * Playwright page object for the Waiver Details page.
- * Mirrors the Selenide {@code WaiverDetailsPage}.
- */
 public class WaiverDetailsPage
     extends BasePage
 {
@@ -75,7 +71,6 @@ public class WaiverDetailsPage
   }
 
   public Locator vulnerabilityDetailsModal() {
-    // NxModal does not set aria-labelledby in this RSC version — use the stable id.
     return locator("#vulnerability-details-modal");
   }
 
@@ -123,7 +118,6 @@ public class WaiverDetailsPage
     return locator(ROOT + " .iq-upgrade-available-indicator");
   }
 
-  // Sidebar navigation
   public Locator sidebarNavTitle() {
     return locator("#sidebar-nav-list .nx-h4");
   }
@@ -152,9 +146,7 @@ public class WaiverDetailsPage
     return sidebarNavItem(index).locator(".nx-list__subtext .nx-truncate-ellipsis:nth-child(2)");
   }
 
-  // Delete waiver modal
   public Locator deleteWaiverModal() {
-    // NxModal does not set aria-labelledby in this RSC version — use the stable id.
     return locator("#delete-waiver-modal");
   }
 
@@ -166,8 +158,6 @@ public class WaiverDetailsPage
     return deleteWaiverModal().getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Cancel"));
   }
 
-  // --------------- Actions ---------------
-
   public void clickVulnerabilityDetailsButton() {
     vulnerabilityDetailsButton().click();
   }
@@ -178,6 +168,13 @@ public class WaiverDetailsPage
 
   public void clickDeleteWaiverModalYesButton() {
     deleteWaiverModalYesButton().click();
+  }
+
+  public void deleteWaiverAndConfirm() {
+    detailsPolicy().waitFor();
+    clickDeleteWaiverButton();
+    deleteWaiverModal().waitFor();
+    clickDeleteWaiverModalYesButton();
   }
 
   public void clickVulnerabilityDetailsModalCloseButton() {

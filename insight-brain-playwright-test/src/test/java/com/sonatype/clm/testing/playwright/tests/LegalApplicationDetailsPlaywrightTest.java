@@ -23,16 +23,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright tests for TC-55 (Legal Application Details display) and
- * TC-56 (Components table filter button).
- * <p>
- * Authoring rules: {@code TestAuthourskill.md}. Backend setup is encapsulated in the nested
- * {@link LegalApplicationDetailsSeeder} (§3c).
- */
 public class LegalApplicationDetailsPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -40,8 +34,18 @@ public class LegalApplicationDetailsPlaywrightTest
 
   private static final int EXPECTED_COMPONENT_COUNT = 3;
 
-  private static final List<String> TABLE_COLUMNS = List.of(
-      "Component", "Licenses", "Completed Obligations", "Review Status");
+  private static final List<String> TABLE_COLUMNS =
+      List.of("Component", "Licenses", "Completed Obligations", "Review Status");
+
+  private static final String STAGE_SUBTITLE_TEXT = "Build";
+
+  private static final String COMPONENT_FILTER_TERM = "component1";
+
+  private static final int COMPONENT_FILTER_EXPECTED_COUNT = 2;
+
+  private static final String LICENSE_FILTER_TERM = "Apache";
+
+  private static final int LICENSE_FILTER_EXPECTED_COUNT = 1;
 
   private Application app;
 
@@ -53,9 +57,6 @@ public class LegalApplicationDetailsPlaywrightTest
     playwrightLogin();
   }
 
-  /**
-   * TC-55: Verify the Legal Application Details page title and components table display.
-   */
   @Test
   @Category(SanityTest.class)
   public void testLegalApplicationDetailsDisplay() {
@@ -70,10 +71,6 @@ public class LegalApplicationDetailsPlaywrightTest
 
   }
 
-  /**
-   * TC-56: Verify the filter button opens the filter sidebar and applying a
-   * Review Status filter narrows the components table.
-   */
   @Test
   @Category(SanityTest.class)
   public void testFilterButtonAndFilterSidebar() {
@@ -93,9 +90,67 @@ public class LegalApplicationDetailsPlaywrightTest
     legalPage.expandReviewStatusFilter();
     legalPage.selectReviewStatusOption("Flagged");
 
-    // Only the FLAGGED component (review status "Flagged") should remain after filtering.
     legalAssertions.shouldShowTableWithRowCount(1);
 
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testLegalApplicationDetailsPageRenders() {
+    LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
+    LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
+
+    assertions.shouldShowTitle(app.getName());
+    assertions.shouldShowStageSubtitle(STAGE_SUBTITLE_TEXT);
+    assertions.shouldShowBackButton();
+    legalPage.clickBackButton();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testFilterByComponentAndLicenseName() {
+    LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
+    LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
+
+    assertions.shouldShowTableWithRowCount(EXPECTED_COMPONENT_COUNT);
+
+    legalPage.filterByComponent(COMPONENT_FILTER_TERM);
+    assertions.shouldShowTableWithRowCount(COMPONENT_FILTER_EXPECTED_COUNT);
+
+    legalPage.clearComponentFilter();
+    assertions.shouldShowTableWithRowCount(EXPECTED_COMPONENT_COUNT);
+
+    legalPage.filterByLicense(LICENSE_FILTER_TERM);
+    assertions.shouldShowTableWithRowCount(LICENSE_FILTER_EXPECTED_COUNT);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSortByColumnHeaders() {
+    LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
+    LegalApplicationDetailsPageAssertions assertions = new LegalApplicationDetailsPageAssertions(legalPage);
+
+    legalPage.clickComponentSort();
+    assertions.shouldHaveComponentSortDir("ascending");
+
+    legalPage.clickComponentSort();
+    assertions.shouldHaveComponentSortDir("descending");
+
+    legalPage.clickLicensesSort();
+    assertions.shouldHaveLicensesSortDir("ascending");
+
+    legalPage.clickCompletedObligationsSort();
+    assertions.shouldHaveCompletedObligationsSortDir("ascending");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testCreateAttributionReportNavigation() {
+    LegalApplicationDetailsPage legalPage = new LegalApplicationDetailsPage();
+
+    assertThat(legalPage.createAttributionReportButton()).isVisible();
+    legalPage.clickCreateAttributionReport();
+    legalPage.waitForAttributionReportNavigation();
   }
 
   private Application seed() {

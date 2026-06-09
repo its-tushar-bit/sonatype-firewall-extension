@@ -5,11 +5,11 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.WaitForSelectorState;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link DashboardComponentsComponent}.
- */
 public class DashboardComponentsComponentAssertions
 {
   private final DashboardComponentsComponent page;
@@ -28,5 +28,13 @@ public class DashboardComponentsComponentAssertions
 
   public void shouldShowComponentRow(int index, String componentName) {
     assertThat(page.componentName(index)).containsText(componentName);
+  }
+
+  public void shouldShowComponentRiskDetail(String componentName) {
+    assertThat(page.dashboardContainer()).isHidden();
+    assertThat(page.componentRiskRoot()).isVisible();
+    page.componentRiskHeading()
+        .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+    assertThat(page.componentRiskHeading()).containsText(componentName);
   }
 }

@@ -1,0 +1,68 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "scannable-lib",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "1.0.0"
+        }
+      },
+      "groupId": "com.example",
+      "artifactId": "scannable-lib",
+      "version": "1.0.0",
+      "filenames": ["scannable-lib-1.0.0.jar"],
+      "pathnames": ["scannable-lib-1.0.0.jar"],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "scannable11111111111",
+      "relativePopularity": 0.0,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "com.example"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "scannable-lib"},
+          {"value": " : "},
+          {"field": "Version", "value": "1.0.0"}
+        ]
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "unscannable",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.example",
+          "version": "1.0"
+        }
+      },
+      "groupId": "com.example",
+      "artifactId": "unscannable",
+      "version": "1.0",
+      "filenames": ["unscannable-1.0.jar"],
+      "pathnames": ["/unscannable-1.0.jar"],
+      "matchState": "exact",
+      "scanError": true,
+      "proprietary": false,
+      "hash": "unscannable000000000",
+      "relativePopularity": null,
+      "createTime": 1587400833527,
+      "displayName": {
+        "parts": [
+          {"field": "Group", "value": "com.example"},
+          {"value": " : "},
+          {"field": "Artifact", "value": "unscannable"},
+          {"value": " : "},
+          {"field": "Version", "value": "1.0"}
+        ]
+      }
+    }
+  ]
+}

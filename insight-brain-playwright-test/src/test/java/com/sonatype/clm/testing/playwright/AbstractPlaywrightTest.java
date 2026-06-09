@@ -568,8 +568,6 @@ public abstract class AbstractPlaywrightTest
     }
   }
 
-  // --------------- Common Playwright helpers ---------------
-
   /**
    * When {@code -Dplaywright.manualPause=true}, opens the Playwright Inspector and blocks until you
    * resume. Lets you drive the same browser tab manually after automated steps (e.g. login).
@@ -720,7 +718,7 @@ public abstract class AbstractPlaywrightTest
    * we proceed. Replaces Selenide's {@code NxSubmitMask.seeAndWaitForDismissal()}.
    */
   protected void waitForSubmitMask() {
-    Locator submitMask = page.locator(".nx-submit-mask");
+    Locator submitMask = page.locator(".nx-submit-mask").first();
     try {
       submitMask.waitFor(new Locator.WaitForOptions()
           .setState(WaitForSelectorState.VISIBLE)
@@ -730,8 +728,8 @@ public abstract class AbstractPlaywrightTest
           .setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
     }
     catch (TimeoutError e) {
-      // Fast submission: the mask flickered faster than Playwright could observe it. Anything
-      // other than a TimeoutError (browser crash, page closed, etc.) should propagate.
+      // The mask flickered faster than Playwright could observe — only TimeoutError
+      // is caught; any other exception (browser crash, etc.) propagates normally.
       log.debug("Submit mask not detected in waitForSubmitMask (fast submission or transient DOM): {}",
           e.getMessage());
     }

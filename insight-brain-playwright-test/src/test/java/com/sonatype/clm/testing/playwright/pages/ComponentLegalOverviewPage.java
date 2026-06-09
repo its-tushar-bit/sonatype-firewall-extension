@@ -7,10 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
 
-/**
- * Playwright page object for the Component Legal Overview page.
- * Root element is {@code #component-legal-overview-details}.
- */
 public class ComponentLegalOverviewPage
     extends BasePage
 {
@@ -27,8 +23,6 @@ public class ComponentLegalOverviewPage
   public static String url(String publicAppId, String componentHash) {
     return "/assets/index.html#/legal/application/" + publicAppId + "/component/" + componentHash;
   }
-
-  // --------------- Locators ---------------
 
   public Locator container() {
     return locator(ROOT);
@@ -52,11 +46,16 @@ public class ComponentLegalOverviewPage
     return locator(ATTRIBUTION_TILE + " .nx-accordion");
   }
 
-  // --------------- Actions ---------------
-
   public EditAllObligationsModal clickResolveAllObligations() {
     resolveAllButton().click();
     return new EditAllObligationsModal();
   }
 
+  public Locator licenseObligationsTile() {
+    return locator(OBLIGATIONS_TILE);
+  }
+
+  public Locator attributionSummaryTile() {
+    return locator(ATTRIBUTION_TILE);
+  }
 }

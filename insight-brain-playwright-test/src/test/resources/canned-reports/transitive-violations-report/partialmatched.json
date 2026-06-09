@@ -1,0 +1,62 @@
+{
+  "aaData" : [ {
+    "hash" : "47b6857af4a1cc50875a",
+    "matchDetails" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-access",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "0.6-a"
+        }
+      },
+      "groupId" : "ch.qos.logback",
+      "artifactId" : "logback-access",
+      "version" : "0.6-a",
+      "hash" : "f0776db1593e215146d2",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "No Sources" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 1,
+        "Severe" : 2,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : 7.5,
+      "catalogDate" : 1453427378000
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-access",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "0.6-b"
+        }
+      },
+      "groupId" : "ch.qos.logback",
+      "artifactId" : "logback-access",
+      "version" : "0.6-b",
+      "hash" : "f0776db1593e215146d3",
+      "declaredLicenses" : [ "Apache-2.0" ],
+      "observedLicenses" : [ "No Sources" ],
+      "effectiveLicenses" : [ "Apache-2.0" ],
+      "securityCounters" : {
+        "Critical" : 1,
+        "Severe" : 2,
+        "Moderate" : 0
+      },
+      "effectiveLicenseThreat" : null,
+      "matchState" : null,
+      "proprietary" : null,
+      "securityThreatLevel" : 7.5,
+      "catalogDate" : 1453427378000
+    } ]
+  }  ]
+}

@@ -293,6 +293,11 @@
       <version>${playwright.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -349,6 +354,13 @@
       </activation>
       <properties>
         <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>regression</id>
+      <properties>
+        <failsafe.groups>com.sonatype.clm.testing.playwright.categories.RegressionTest</failsafe.groups>
       </properties>
     </profile>
   </profiles>

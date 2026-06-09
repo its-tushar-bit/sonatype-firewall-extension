@@ -17,10 +17,8 @@ package com.sonatype.clm.testing.playwright.categories;
  * {@code @Category(RegressionTest.class)} for edge cases, error paths, slow data setup,
  * permutation matrices, and feature-flag combinations that do not need to gate every PR.
  * <p>
- * <b>Status.</b> Reserved for the nightly partition under development. No tests are tagged with
- * this category yet &mdash; every existing {@code @Test} is on the sanity partition. The split
- * will be populated as soon as the nightly job is wired up; no Maven {@code regression}
- * profile is shipped in the meantime to keep the build behaviour predictable.
+ * <b>Running.</b> Use the Maven {@code -Pregression} profile to run only regression-tagged
+ * tests: {@code mvn verify -pl insight-brain-playwright-test -Pregression}.
  *
  * @see SanityTest
  */

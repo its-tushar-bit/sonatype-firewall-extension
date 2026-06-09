@@ -5,12 +5,15 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.util.List;
+
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent;
 import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponentAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -20,25 +23,13 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import com.sonatype.clm.testing.playwright.pages.DashboardViolationsComponent.SortableColumn;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright tests for the Dashboard <strong>Violations</strong> tab.
- *
- * <p>
- * Split out of the legacy kitchen-sink {@code DashboardPlaywrightTest} so each dashboard tab has
- * its own dedicated test class — matching the pattern set by
- * {@code DashboardApplicationsPlaywrightTest}, {@code DashboardWaiversPlaywrightTest}, and
- * {@code DashboardWaiverRequestsPlaywrightTest}. {@code DashboardPlaywrightTest} itself now owns
- * only tab navigation (page chrome, tab switching, filter/export visibility).
- *
- * <p>
- * Test data lives in {@code src/test/resources/test-data/dashboard-violations.json} and is
- * loaded once via {@link TestDataManager}. Backend setup is encapsulated in the private
- * {@link #seedBaseEntities()} / {@link #seedViolation()} helpers so DB writes are visible at
- * one call-site and don't leak across parallel forks (skill §3c).
- */
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 public class DashboardViolationsPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -86,10 +77,102 @@ public class DashboardViolationsPlaywrightTest
     playwrightWaitUntilUrlContains("/violation/");
   }
 
-  /**
-   * Typed view of {@code src/test/resources/test-data/dashboard-violations.json}. Shared with
-   * {@link DashboardComponentsPlaywrightTest}; includes keys used by both tests.
-   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_columnsAndSortToggles() {
+    seedThreeViolationsWithMixedThreats();
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardViolationsComponent table = new DashboardViolationsComponent();
+    DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
+    table.waitForResults(10000);
+    tableAssertions.shouldShowExpectedColumns();
+
+    tableAssertions.shouldHaveSortState(SortableColumn.AGE, "ascending");
+    tableAssertions.shouldHaveSortState(SortableColumn.THREAT, "none");
+
+    table.clickHeader(SortableColumn.THREAT);
+    tableAssertions.shouldHaveSortState(SortableColumn.THREAT, "descending");
+    table.clickHeader(SortableColumn.THREAT);
+    tableAssertions.shouldHaveSortState(SortableColumn.THREAT, "ascending");
+
+    table.clickHeader(SortableColumn.POLICY);
+    tableAssertions.shouldHaveSortState(SortableColumn.POLICY, "ascending");
+    table.clickHeader(SortableColumn.POLICY);
+    tableAssertions.shouldHaveSortState(SortableColumn.POLICY, "descending");
+
+    table.clickHeader(SortableColumn.APPLICATION);
+    tableAssertions.shouldHaveSortState(SortableColumn.APPLICATION, "ascending");
+    table.clickHeader(SortableColumn.APPLICATION);
+    tableAssertions.shouldHaveSortState(SortableColumn.APPLICATION, "descending");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_applicationSecondarySort() {
+    seedViolationsAcrossTwoApps();
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardViolationsComponent table = new DashboardViolationsComponent();
+    DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
+    table.waitForResults(10000);
+
+    table.clickHeader(SortableColumn.APPLICATION);
+    tableAssertions.shouldHaveSortState(SortableColumn.APPLICATION, "ascending");
+
+    assertThat(table.applicationName(0)).containsText(DATA.sortAppAlphaName());
+    assertThat(table.applicationName(1)).containsText(DATA.sortAppAlphaName());
+    assertThat(table.applicationName(2)).containsText(DATA.sortAppBetaName());
+    assertThat(table.applicationName(3)).containsText(DATA.sortAppBetaName());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_paginationNextPrevious() {
+    seedNViolations(DATA.paginationViolationCount());
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardViolationsComponent table = new DashboardViolationsComponent();
+    DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
+    table.waitForResults(DATA.paginationWaitForResultsMs());
+
+    tableAssertions.assertPaginationFirstPageState();
+    table.goToNextPage();
+    tableAssertions.assertPaginationAfterNextClick();
+    table.goToPreviousPage();
+    tableAssertions.assertPaginationReturnedToFirstPageState();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_filterMaskAppearsWhenDirty() {
+    seedViolation();
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage dashboard = new DashboardPage();
+    new DashboardPageAssertions(dashboard).shouldBeLoaded();
+
+    dashboard.expandFilter();
+    dashboard.policyTypeFilterTrigger().click();
+    dashboard.policyTypeFilterFirstCheckbox().click();
+    assertThat(dashboard.formMask()).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testViolationsTable_paginationHiddenWhenSinglePage() {
+    seedViolation();
+    playwrightRefreshOrOpen(DashboardPage.urlToViolations());
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardViolationsComponent table = new DashboardViolationsComponent();
+    DashboardViolationsComponentAssertions tableAssertions = new DashboardViolationsComponentAssertions(table);
+    tableAssertions.shouldHaveCount(1);
+    tableAssertions.assertNoPaginator();
+  }
+
   public record Data(
       String noDataMessage,
       String noDataMessageComponents,
@@ -102,15 +185,46 @@ public class DashboardViolationsPlaywrightTest
       String componentArtifactId,
       String componentVersion,
       String componentHash,
-      String cveId)
+      String cveId,
+      String scanId,
+      String dashboardViolationsUrlFragment,
+      String violationUrlPattern,
+      int navigationTimeoutMs,
+      int dirtyFilterMin,
+      int dirtyFilterMax,
+      String hashSuffixHigh,
+      String hashSuffixMid,
+      String hashSuffixLow,
+      String sortScanIdPrefix,
+      String sortHashFormat,
+      String sortHighPolicyName,
+      int sortHighThreatLevel,
+      String sortMidPolicyName,
+      int sortMidThreatLevel,
+      String sortLowPolicyName,
+      int sortLowThreatLevel,
+      String sortAppAlphaName,
+      String sortAppAlphaId,
+      String sortAppBetaName,
+      String sortAppBetaId,
+      String sortComponentArtifactA,
+      String sortComponentArtifactB,
+      String sortComponentArtifactC,
+      String paginationScanId,
+      int paginationViolationCount,
+      long paginationWaitForResultsMs)
   {
   }
 
+  private Organization organization;
+
   private void seedBaseEntities() {
-    Organization organization = tempEntity.newOrganization(DATA.orgName());
-    application = tempEntity.newApplication(DATA.appName(), DATA.appId(), organization.getId());
+    String suffix = TemporaryEntity.uuid();
+    organization = tempEntity.newOrganization(DATA.orgName() + "-" + suffix);
+    application = tempEntity.newApplication(DATA.appName() + "-" + suffix, DATA.appId() + "-" + suffix,
+        organization.getId());
     securityPolicy = tempEntity.newPolicy(
-        Organization.ROOT_ORGANIZATION_ID, DATA.policyName(), DATA.policyThreatLevel());
+        Organization.ROOT_ORGANIZATION_ID, DATA.policyName() + "-" + suffix, DATA.policyThreatLevel());
   }
 
   private void seedViolation() {
@@ -119,5 +233,65 @@ public class DashboardViolationsPlaywrightTest
     tempEntity.newPolicyViolation(evaluation, securityPolicy,
         DATA.componentGroupId(), DATA.componentArtifactId(), DATA.componentVersion(),
         DATA.componentHash(), DATA.cveId());
+  }
+
+  private void seedNViolations(int count) {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), StageTypes.BUILD.getId(), "pagination-scan");
+    for (int i = 0; i < count; i++) {
+      tempEntity.newPolicyViolation(evaluation, securityPolicy,
+          DATA.componentGroupId(),
+          DATA.componentArtifactId() + "-" + i,
+          DATA.componentVersion(),
+          DATA.componentHash() + "-" + i,
+          DATA.cveId());
+    }
+  }
+
+  private void seedThreeViolationsWithMixedThreats() {
+    Policy highPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.sortHighPolicyName(), DATA.sortHighThreatLevel());
+    Policy midPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.sortMidPolicyName(), DATA.sortMidThreatLevel());
+    Policy lowPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.sortLowPolicyName(), DATA.sortLowThreatLevel());
+
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), StageTypes.BUILD.getId(), "sort-scan");
+    tempEntity.newPolicyViolation(evaluation, highPolicy,
+        DATA.componentGroupId(), DATA.sortComponentArtifactA(), DATA.componentVersion(),
+        DATA.componentHash() + "-high", DATA.cveId());
+    tempEntity.newPolicyViolation(evaluation, midPolicy,
+        DATA.componentGroupId(), DATA.sortComponentArtifactB(), DATA.componentVersion(),
+        DATA.componentHash() + "-mid", DATA.cveId());
+    tempEntity.newPolicyViolation(evaluation, lowPolicy,
+        DATA.componentGroupId(), DATA.sortComponentArtifactC(), DATA.componentVersion(),
+        DATA.componentHash() + "-low", DATA.cveId());
+  }
+
+  private void seedViolationsAcrossTwoApps() {
+    String sortSuffix = TemporaryEntity.uuid();
+    Application alphaApp = tempEntity.newApplication(
+        DATA.sortAppAlphaName() + "-" + sortSuffix, DATA.sortAppAlphaId() + "-" + sortSuffix, organization.getId());
+    Application betaApp = tempEntity.newApplication(
+        DATA.sortAppBetaName() + "-" + sortSuffix, DATA.sortAppBetaId() + "-" + sortSuffix, organization.getId());
+
+    Policy highPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.sortHighPolicyName(), DATA.sortHighThreatLevel());
+    Policy lowPolicy = tempEntity.newPolicy(
+        Organization.ROOT_ORGANIZATION_ID, DATA.sortLowPolicyName(), DATA.sortLowThreatLevel());
+
+    int scanIndex = 1;
+    for (Application app : List.of(alphaApp, betaApp)) {
+      PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+          app.getId(), StageTypes.BUILD.getId(), "sort-app-scan-" + scanIndex);
+      tempEntity.newPolicyViolation(eval, highPolicy,
+          DATA.componentGroupId(), DATA.sortComponentArtifactA(), DATA.componentVersion(),
+          DATA.componentHash() + "-" + scanIndex + "-high", DATA.cveId());
+      tempEntity.newPolicyViolation(eval, lowPolicy,
+          DATA.componentGroupId(), DATA.sortComponentArtifactB(), DATA.componentVersion(),
+          DATA.componentHash() + "-" + scanIndex + "-low", DATA.cveId());
+      scanIndex++;
+    }
   }
 }

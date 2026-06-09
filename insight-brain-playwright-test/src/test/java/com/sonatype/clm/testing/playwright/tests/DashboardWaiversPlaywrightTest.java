@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.DashboardPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponent;
+import com.sonatype.clm.testing.playwright.pages.DashboardWaiversComponentAssertions;
 import com.sonatype.clm.testing.playwright.testdatamanager.TestDataManager;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,17 +40,12 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPage;
+import com.sonatype.clm.testing.playwright.pages.WaiverDetailsPageAssertions;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
-/**
- * Playwright tests for the Dashboard Waivers tab.
- *
- * <p>
- * Test-data lives in {@code src/test/resources/test-data/dashboard-waivers.json}, exposed via the
- * private {@link Data} record. DB seeding and row-level expectations are private methods on this
- * class (no nested Seeder/RowAssertions — see authoring guide §3).
- */
 public class DashboardWaiversPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -60,8 +56,6 @@ public class DashboardWaiversPlaywrightTest
       DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
   private final Instant now = Instant.now();
-
-  // --------------- Seeder state ---------------
 
   private Organization rootOrg;
 
@@ -79,8 +73,6 @@ public class DashboardWaiversPlaywrightTest
 
   private String componentPurl;
 
-  // --------------- @Before / @After ---------------
-
   @Before
   public void openDashboardWaiversAsAdmin() {
     rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
@@ -94,13 +86,11 @@ public class DashboardWaiversPlaywrightTest
     reverseProxyServer.reset();
   }
 
-  // --------------- @Test methods ---------------
-
   @Test
   @Category(SanityTest.class)
   public void testWaiversTable_noDataMessage() {
     DashboardWaiversComponent table = new DashboardWaiversComponent();
-    assertThat(table.noDataMessage()).containsText(DATA.noDataMessage());
+    new DashboardWaiversComponentAssertions(table).shouldShowNoDataMessage(DATA.noDataMessage());
   }
 
   @Test
@@ -113,7 +103,7 @@ public class DashboardWaiversPlaywrightTest
     new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
 
     DashboardWaiversComponent table = new DashboardWaiversComponent();
-    assertThat(table.waivers()).hasCount(DATA.expectedWaiversCount());
+    new DashboardWaiversComponentAssertions(table).shouldHaveWaiverCount(DATA.expectedWaiversCount());
     assertAllWaiverRows(table);
   }
 
@@ -126,16 +116,77 @@ public class DashboardWaiversPlaywrightTest
     assertClickNavigatesToWaiverDetail(DATA.waivers().get(1).rowIndex());
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testWaiversTab_showsSubTabsAndNavigatesToWaiverRequests() {
+    DashboardWaiversComponent table = new DashboardWaiversComponent();
+    DashboardWaiversComponentAssertions assertions = new DashboardWaiversComponentAssertions(table);
+    assertions.shouldShowExistingWaiversTab();
+    assertions.shouldShowRequestedWaiversTab();
+
+    table.requestedWaiversTab().click();
+    playwrightWaitUntilUrlContains("/dashboard/waiverRequests");
+    assertions.shouldShowWaiverRequestsTable();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testAutoWaiver_expiryColumnShowsAutoLabel() {
+    seed();
+    seedAutoWaiver();
+
+    playwrightRefresh();
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardWaiversComponent table = new DashboardWaiversComponent();
+    DashboardWaiversComponentAssertions assertions = new DashboardWaiversComponentAssertions(table);
+    int expectedCount = DATA.expectedWaiversCount() + 1;
+    assertions.shouldHaveWaiverCount(expectedCount);
+
+    assertions.shouldShowExpiryTime(expectedCount - 1, DATA.autoWaiverExpiryLabel());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testDeleteWaiver_fromDashboardWaiverList() {
+    seed();
+
+    playwrightRefresh();
+    new DashboardPageAssertions(new DashboardPage()).shouldBeLoaded();
+
+    DashboardWaiversComponent table = new DashboardWaiversComponent();
+    DashboardWaiversComponentAssertions assertions = new DashboardWaiversComponentAssertions(table);
+    assertions.shouldHaveWaiverCount(DATA.expectedWaiversCount());
+    table.waiver(0).click();
+    playwrightWaitUntilUrlContains("/waiver/");
+
+    WaiverDetailsPage detailsPage = new WaiverDetailsPage();
+    assertThat(detailsPage.container()).isVisible();
+    new WaiverDetailsPageAssertions(detailsPage).shouldHideDeleteWaiverModal();
+    detailsPage.deleteWaiverAndConfirm();
+
+    playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
+    new DashboardPage().waitUntilSpinnersGone();
+    DashboardWaiversComponent tableAfterDelete = new DashboardWaiversComponent();
+    DashboardWaiversComponentAssertions afterDeleteAssertions =
+        new DashboardWaiversComponentAssertions(tableAfterDelete);
+    tableAfterDelete.waivers()
+        .first()
+        .waitFor();
+    afterDeleteAssertions.shouldHaveWaiverCount(DATA.expectedWaiversCount() - 1);
+  }
+
   private void assertClickNavigatesToWaiverDetail(int rowIndex) {
     playwrightRefreshOrOpen(DashboardPage.urlToWaivers());
     new DashboardPage().waitUntilSpinnersGone();
     DashboardWaiversComponent table = new DashboardWaiversComponent();
-    assertThat(table.waivers()).hasCount(DATA.expectedWaiversCount());
+    table.waivers()
+        .first()
+        .waitFor();
+    new DashboardWaiversComponentAssertions(table).shouldHaveWaiverCount(DATA.expectedWaiversCount());
     table.waiver(rowIndex).click();
     playwrightWaitUntilUrlContains("/waiver/");
   }
-
-  // --------------- Seeder methods ---------------
 
   private void seed() {
     seedOrgsAppsAndRepo();
@@ -226,24 +277,23 @@ public class DashboardWaiversPlaywrightTest
     };
   }
 
-  // --------------- Row assertion methods ---------------
-
   private void assertAllWaiverRows(DashboardWaiversComponent table) {
+    DashboardWaiversComponentAssertions assertions = new DashboardWaiversComponentAssertions(table);
     for (Data.WaiverData w : DATA.waivers()) {
       int row = w.rowIndex();
-      Data.PolicyData policy = DATA.policies().get(w.policyIndex());
+      Data.PolicyData policyData = DATA.policies().get(w.policyIndex());
 
-      assertThat(table.threatNumber(row)).containsText(String.valueOf(policy.threatLevel()));
-      assertThat(table.createTime(row)).containsText(DATE_FMT.format(now.minus(w.createDaysAgo(), ChronoUnit.DAYS)));
+      assertions.shouldShowThreatLevel(row, String.valueOf(policyData.threatLevel()));
+      assertions.shouldShowCreateTime(row, DATE_FMT.format(now.minus(w.createDaysAgo(), ChronoUnit.DAYS)));
       String expectedExpiry = w.expiryDaysFromNow() != null
           ? DATE_FMT.format(now.plus(w.expiryDaysFromNow(), ChronoUnit.DAYS))
           : DATA.neverExpiryText();
-      assertThat(table.expiryTime(row)).containsText(expectedExpiry);
-      assertThat(table.policy(row)).containsText(policy.name());
-      assertThat(table.scope(row)).containsText(scopeFor(w));
-      assertThat(table.component(row)).containsText(componentFor(w));
+      assertions.shouldShowExpiryTime(row, expectedExpiry);
+      assertions.shouldShowPolicy(row, policyData.name());
+      assertions.shouldShowScope(row, scopeFor(w));
+      assertions.shouldShowComponent(row, componentFor(w));
       if (w.upgradeAvailable()) {
-        assertThat(table.upgradeAvailable(row)).containsText(DATA.upgradeAvailableText());
+        assertions.shouldShowUpgradeAvailable(row, DATA.upgradeAvailableText());
       }
     }
   }
@@ -271,7 +321,9 @@ public class DashboardWaiversPlaywrightTest
     };
   }
 
-  // --------------- Date helpers ---------------
+  private void seedAutoWaiver() {
+    tempEntity.newAutoPolicyWaiver(application.getId());
+  }
 
   private Date daysAgo(int days) {
     return Date.from(now.minus(days, ChronoUnit.DAYS));
@@ -281,12 +333,6 @@ public class DashboardWaiversPlaywrightTest
     return Date.from(now.plus(days, ChronoUnit.DAYS));
   }
 
-  // --------------- Test data record ---------------
-
-  /**
-   * Typed view of {@code src/test/resources/test-data/dashboard-waivers.json}.
-   * Loaded once via {@link TestDataManager}.
-   */
   public record Data(
       String noDataMessage,
       String parentOrgName,
@@ -301,15 +347,39 @@ public class DashboardWaiversPlaywrightTest
       String componentGroupId,
       String componentArtifactId,
       String componentVersion,
+      String componentExtension,
+      String componentSeparator,
       String creatorId,
       String creatorName,
       String allComponentsLabel,
       String upgradeAvailableText,
       String neverExpiryText,
+      String autoWaiverExpiryLabel,
+      int autoWaiverThreatLevel,
       int expectedWaiversCount,
+      String scanId,
+      String dateFormat,
+      String allVersionsSuffix,
+      String applicationScopePrefix,
+      String organizationScopePrefix,
+      String repositoryScopePrefix,
+      String existingWaiversTabLabel,
+      String requestedWaiversTabLabel,
+      List<ViolationData> violations,
       List<WaiverData> waivers)
   {
     public record PolicyData(String name, int threatLevel)
+    {
+    }
+
+    public record ViolationData(
+        String groupId,
+        String artifactId,
+        String version,
+        String hash,
+        String refId,
+        int policyIndex,
+        int evaluationIndex)
     {
     }
 

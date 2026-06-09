@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link RequestWaiverPage}.
- */
 public class RequestWaiverPageAssertions
 {
   private final RequestWaiverPage page;
@@ -56,5 +53,17 @@ public class RequestWaiverPageAssertions
 
   public void shouldBeHidden() {
     assertThat(page.container()).isHidden();
+  }
+
+  public void shouldShowEnterprisePreviewMode(String alertText, String goBackLinkText) {
+    assertThat(page.enterprisePreviewAlert()).isVisible();
+    assertThat(page.enterprisePreviewAlert()).containsText(alertText);
+    assertThat(page.enterpriseGoBackLink()).containsText(goBackLinkText);
+  }
+
+  public void shouldShowNoteToReviewerField(String label, String sublabel, String maxLength) {
+    assertThat(page.noteToReviewerLabel()).containsText(label);
+    assertThat(page.noteToReviewerSublabel()).containsText(sublabel);
+    assertThat(page.noteToReviewer()).hasAttribute("maxlength", maxLength);
   }
 }

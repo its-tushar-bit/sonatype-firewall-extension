@@ -6,20 +6,45 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
-/**
- * Playwright page object for the Dashboard Violations tab.
- */
 public class DashboardViolationsComponent
     extends BasePage
 {
   private static final String ROOT = "#dashboard-violations";
 
+  private static final Locator.GetByRoleOptions NEXT_PAGE_OPTS =
+      new Locator.GetByRoleOptions().setName("next page");
+
+  private static final Locator.GetByRoleOptions PREVIOUS_PAGE_OPTS =
+      new Locator.GetByRoleOptions().setName("previous page");
+
   public DashboardViolationsComponent() {
     super();
   }
 
-  // --------------- Row locators ---------------
+  public Locator container() {
+    return locator(ROOT);
+  }
+
+  public enum SortableColumn
+  {
+    THREAT("Threat"),
+    POLICY("Policy"),
+    APPLICATION("Application"),
+    AGE("Age");
+
+    private final String label;
+
+    SortableColumn(String label) {
+      this.label = label;
+    }
+
+    public String label() {
+      return label;
+    }
+  }
 
   public Locator violations() {
     return locator(ROOT + " .iq-dashboard-violation");
@@ -32,9 +57,6 @@ public class DashboardViolationsComponent
   public Locator noDataMessage() {
     return locator(ROOT + " .iq-dashboard-violation-entries .nx-table-row:last-child");
   }
-
-  // --------------- Cell accessors ---------------
-  // Column order: Threat(1), Policy(2), Application(3), Component(4), Age(5), chevron(6)
 
   public Locator threatNumber(int index) {
     return violation(index).locator(".nx-threat-number");
@@ -56,19 +78,52 @@ public class DashboardViolationsComponent
     return violation(index).locator("td:nth-child(5)");
   }
 
-  // --------------- Pagination ---------------
+  public Locator headerCell(SortableColumn column) {
+    return container().locator("thead th")
+        .filter(
+            new Locator.FilterOptions().setHasText(column.label()));
+  }
+
+  public Locator headerButton(SortableColumn column) {
+    return headerCell(column).getByRole(AriaRole.BUTTON);
+  }
+
+  public Locator allHeaders() {
+    return container().locator("thead th");
+  }
+
+  public Locator paginatorBar() {
+    return container().getByRole(AriaRole.NAVIGATION);
+  }
 
   public Locator paginatorNextButton() {
-    return locator(ROOT + " .nx-table-container__footer >> xpath=//button[@aria-label='next page']");
+    return container().getByRole(AriaRole.BUTTON, NEXT_PAGE_OPTS);
   }
 
   public Locator paginatorPreviousButton() {
-    return locator(ROOT + " .nx-table-container__footer >> xpath=//button[@aria-label='previous page']");
+    return container().getByRole(AriaRole.BUTTON, PREVIOUS_PAGE_OPTS);
   }
 
-  // --------------- Actions ---------------
+  public void goToNextPage() {
+    paginatorNextButton().click();
+  }
+
+  public void goToPreviousPage() {
+    paginatorPreviousButton().click();
+  }
 
   public void clickViolation(int index) {
     violation(index).click();
+  }
+
+  public void clickHeader(SortableColumn column) {
+    headerButton(column).click();
+  }
+
+  public void waitForResults(long timeoutMs) {
+    violations().first()
+        .waitFor(new Locator.WaitForOptions()
+            .setState(WaitForSelectorState.VISIBLE)
+            .setTimeout(timeoutMs));
   }
 }

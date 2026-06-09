@@ -276,7 +276,7 @@ public class WaiverDetailsPlaywrightTest
     waiverPage.clickDeleteWaiverButton();
     PlaywrightWaitUtils.clickAndWaitForHidden(
         waiverPage.deleteWaiverModalYesButton(), waiverPage.deleteWaiverModal(),
-        PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS, PlaywrightTiming.POLL_INTERVAL_MS);
+        PlaywrightTiming.ELEMENT_TIMEOUT_MS, PlaywrightTiming.POLL_INTERVAL_MS);
 
     playwrightRefreshOrOpen(WaiverDetailsPage.urlWithQueryParams(
         ownerType, application.getId(), policyWaivers.get(1).getId(), "waiver", "filter"));

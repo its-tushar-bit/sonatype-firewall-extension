@@ -29,11 +29,30 @@
   "componentGroupId": "Group1",
   "componentArtifactId": "Artifact1",
   "componentVersion": "1.2.3",
+  "componentExtension": "jar",
+
+  "scanId": "scan1",
+  "dateFormat": "yyyy-MM-dd",
+
+  "violations": [
+    {"groupId": "Group1", "artifactId": "Artifact1", "version": "Version1", "hash": "hash1", "refId": "sonatype-2017-0507", "policyIndex": 0, "evaluationIndex": 0},
+    {"groupId": "Group2", "artifactId": "Artifact2", "version": "Version2", "hash": "hash2", "refId": "sonatype-2017-8912", "policyIndex": 1, "evaluationIndex": 0},
+    {"groupId": "Group3", "artifactId": "Artifact3", "version": "Version3", "hash": "hash3", "refId": "sonatype-2017-7848", "policyIndex": 2, "evaluationIndex": 1}
+  ],
   "creatorId": "testuser",
   "creatorName": "Test User",
+  "organizationScopePrefix": "Organization - ",
+  "applicationScopePrefix": "Application - ",
+  "repositoryScopePrefix": "Repository - ",
+  "componentSeparator": " : ",
+  "allVersionsSuffix": " (all versions)",
   "allComponentsLabel": "All Components",
   "upgradeAvailableText": "Available",
   "neverExpiryText": "Never",
+  "autoWaiverExpiryLabel": "Auto",
+  "autoWaiverThreatLevel": 5,
+  "existingWaiversTabLabel": "Existing Waivers",
+  "requestedWaiversTabLabel": "Requested Waivers",
   "expectedWaiversCount": 9,
   "waivers": [
     {

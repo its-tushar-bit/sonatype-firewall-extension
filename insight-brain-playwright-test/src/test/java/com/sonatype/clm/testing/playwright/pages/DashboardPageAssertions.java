@@ -7,9 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Assertion helpers for {@link DashboardPage}.
- */
 public class DashboardPageAssertions
 {
   private final DashboardPage page;

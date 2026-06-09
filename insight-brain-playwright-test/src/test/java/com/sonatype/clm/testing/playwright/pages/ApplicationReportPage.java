@@ -5,25 +5,70 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sonatype.insight.brain.model.Application;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.microsoft.playwright.options.WaitForSelectorState.HIDDEN;
 import static com.microsoft.playwright.options.WaitForSelectorState.VISIBLE;
 
-/**
- * Playwright page object for the Application Report page.
- */
 public class ApplicationReportPage
     extends BasePage
 {
-  private static final String APP_REPORT = "#app-report";
+  private static final Pattern BACK_BUTTON_PATTERN = Pattern.compile("Back to |All Reports");
 
-  private static final String THREAT_INDICATORS = APP_REPORT + " .iq-threat-indicators";
+  private static final Pattern REEVALUATE_BUTTON_PATTERN =
+      Pattern.compile("Re-Evaluate Report|Re-Evaluate Container");
 
-  private static final String COVERAGE_INDICATOR = APP_REPORT + " .iq-coverage-indicator";
+  private static final Pattern VIOLATION_CAPTION_PATTERN = Pattern.compile("VIOLATION");
+
+  private static final Pattern VIOLATION_SUBCAPTION_PATTERN = Pattern.compile("Affecting .+ component");
+
+  private static final Pattern COMPONENT_CAPTION_PATTERN = Pattern.compile("COMPONENT");
+
+  private static final Pattern COVERAGE_SUBCAPTION_PATTERN = Pattern.compile("% of all components");
+
+  private static final Pattern WAIVER_INDICATOR_PATTERN =
+      Pattern.compile("Active Waiver|Waived Violation|Unapplied Waiver");
+
+  private static final Pattern THREAT_NUMBER_PATTERN = Pattern.compile("^\\d+$");
+
+  private static final Locator.GetByRoleOptions OPTIONS_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Options");
+
+  private static final Locator.GetByRoleOptions VIEW_DEPENDENCY_TREE_OPTS =
+      new Locator.GetByRoleOptions().setName("View Dependency Tree");
+
+  private static final Locator.GetByRoleOptions VIEW_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("View");
+
+  private static final Locator.GetByRoleOptions CUSTOMIZE_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Customize");
+
+  private static final Locator.GetByRoleOptions BACK_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName(BACK_BUTTON_PATTERN);
+
+  private static final Locator.GetByRoleOptions REEVALUATE_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName(REEVALUATE_BUTTON_PATTERN);
+
+  private static final Locator.GetByRoleOptions FULL_REEVALUATE_BUTTON_OPTS =
+      new Locator.GetByRoleOptions().setName("Re-Evaluate").setExact(true);
+
+  private static final Locator.GetByRoleOptions VIOLATION_CAPTION_OPTS =
+      new Locator.GetByRoleOptions().setLevel(3).setName(VIOLATION_CAPTION_PATTERN);
+
+  private static final Locator.GetByRoleOptions COMPONENT_CAPTION_OPTS =
+      new Locator.GetByRoleOptions().setLevel(3).setName(COMPONENT_CAPTION_PATTERN);
+
+  private static final Locator.GetByRoleOptions H1_OPTS =
+      new Locator.GetByRoleOptions().setLevel(1);
+
+  private static final Locator.GetByRoleOptions UNSCANNABLE_HEADING_OPTS =
+      new Locator.GetByRoleOptions().setName("Unscannable Components");
 
   public ApplicationReportPage() {
     super();
@@ -41,57 +86,32 @@ public class ApplicationReportPage
     return locator("#iq-report-container");
   }
 
-  public Locator title() {
-    return container().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(1));
-  }
-
-  public Locator policyViolationsTable() {
-    return locator("#iq-report-container #iq-violation-table");
-  }
-
   public Locator violationRows() {
-    return locator("#app-report .nx-table-container tbody tr");
+    return appReportMain().getByRole(AriaRole.TABLE).locator("tbody").getByRole(AriaRole.ROW);
   }
 
   public Locator componentFilter() {
-    return locator("#report-component-name-filter");
+    return appReportMain().getByPlaceholder("component name");
   }
 
   public Locator loadButton() {
     return byRole(AriaRole.BUTTON, "Load More Results");
   }
 
-  /**
-   * Application report main container ({@code <main id="app-report">}). Use as a readiness
-   * gate before asserting on the report header / table — those render asynchronously after
-   * report data is fetched.
-   */
   public Locator appReportMain() {
     return locator("#app-report");
   }
 
-  /**
-   * Title shown in the application report header (policy tab).
-   * <p>
-   * Markup (see {@code applicationReport/ReportTitle.jsx}):
-   * {@code <main id="app-report"> ... <div class="nx-page-title">
-   * <h1 class="nx-h1">{appName} {reportTitle}</h1>}.
-   * Scoped to {@code #app-report} so we don't accidentally match other {@code .nx-h1} on the page
-   * (e.g. modal headings, banners).
-   */
   public Locator reportHeaderTitle() {
-    return locator("#app-report .nx-page-title h1.nx-h1");
+    return appReportMain().getByRole(AriaRole.HEADING, H1_OPTS);
   }
 
-  /** First row in the application report result list (opens component details). */
   public Locator firstApplicationReportResultRow() {
     return applicationReportResultRows().first();
   }
 
-  /** Result rows in the application report table (each row opens component details). */
   public Locator applicationReportResultRows() {
-    // Current app report table rows are rendered in NxTable tbody under #app-report.
-    return locator("#app-report .nx-table-container tbody tr");
+    return appReportMain().getByRole(AriaRole.TABLE).locator("tbody").getByRole(AriaRole.ROW);
   }
 
   public void openFirstComponentFromReport() {
@@ -102,58 +122,40 @@ public class ApplicationReportPage
     applicationReportResultRows().nth(rowIndex).click();
   }
 
-  // --------------- Threat indicators ---------------
-
   public Locator threatIndicatorsCritical() {
-    return locator(THREAT_INDICATORS + " .nx-small-threat-counter--critical");
+    return appReportMain().getByTitle("Critical");
   }
 
   public Locator threatIndicatorsSevere() {
-    return locator(THREAT_INDICATORS + " .nx-small-threat-counter--severe");
+    return appReportMain().getByTitle("Severe");
   }
 
   public Locator threatIndicatorsModerate() {
-    return locator(THREAT_INDICATORS + " .nx-small-threat-counter--moderate");
+    return appReportMain().getByTitle("Moderate");
   }
 
-  /** "N VIOLATIONS" caption below the threat counters. */
   public Locator threatIndicatorsCaption() {
-    return locator(THREAT_INDICATORS + " .iq-caption__text");
+    return appReportMain().getByRole(AriaRole.HEADING, VIOLATION_CAPTION_OPTS);
   }
 
-  /** "Affecting N components" sub-caption. */
   public Locator threatIndicatorsSubCaption() {
-    return locator(THREAT_INDICATORS + " .iq-caption__sub-text");
+    return appReportMain().getByText(VIOLATION_SUBCAPTION_PATTERN);
   }
-
-  // --------------- Coverage indicator ---------------
 
   public Locator coverageCaption() {
-    return locator(COVERAGE_INDICATOR + " .iq-caption__text");
+    return appReportMain().getByRole(AriaRole.HEADING, COMPONENT_CAPTION_OPTS);
   }
 
   public Locator coverageSubCaption() {
-    return locator(COVERAGE_INDICATOR + " .iq-caption__sub-text");
-  }
-
-  // --------------- Table header controls ---------------
-
-  public Locator componentNameFilter() {
-    return locator("#report-component-name-filter");
-  }
-
-  // --------------- Actions / navigation ---------------
-
-  public Locator backButton() {
-    return locator(".nx-back-button a");
+    return appReportMain().getByText(COVERAGE_SUBCAPTION_PATTERN);
   }
 
   public Locator reevaluateButton() {
-    return locator("#reevaluate-report-button");
+    return appReportMain().getByRole(AriaRole.BUTTON, REEVALUATE_BUTTON_OPTS);
   }
 
   public Locator fullReevaluateButton() {
-    return locator("#full-reevaluate-report-button");
+    return reevaluationOptionsModal().getByRole(AriaRole.BUTTON, FULL_REEVALUATE_BUTTON_OPTS);
   }
 
   public Locator reevaluationStatusModal() {
@@ -161,17 +163,14 @@ public class ApplicationReportPage
   }
 
   public Locator reevaluationOptionsModal() {
-    return locator("#iq-reevaluation-options-modal");
+    return byRole(AriaRole.DIALOG).filter(
+        new Locator.FilterOptions().setHasText("Re-Evaluate Report"));
   }
 
   public Locator aggregateByComponentToggle() {
-    return locator("#report-aggregate-by-component-toggle");
+    return appReportMain().getByText("Aggregate by component");
   }
 
-  /**
-   * Clicks reevaluate, waits for the options modal, clicks Full Re-evaluate,
-   * then waits for the status modal to appear and dismiss.
-   */
   public void triggerFullReevaluationAndWait() {
     assertThat(reevaluateButton()).isVisible();
     reevaluateButton().click();
@@ -181,5 +180,141 @@ public class ApplicationReportPage
     reevaluationOptionsModal().waitFor(new Locator.WaitForOptions().setState(HIDDEN));
     reevaluationStatusModal().waitFor(new Locator.WaitForOptions().setState(VISIBLE));
     reevaluationStatusModal().waitFor(new Locator.WaitForOptions().setState(HIDDEN));
+  }
+
+  public Locator optionsDropdown() {
+    return appReportMain().getByRole(AriaRole.BUTTON, OPTIONS_BUTTON_OPTS);
+  }
+
+  public Locator viewVulnerabilitiesLink() {
+    return byRole(AriaRole.LINK, "View vulnerabilities");
+  }
+
+  public Locator viewRawDataLink() {
+    return byRole(AriaRole.LINK, "View raw data");
+  }
+
+  public Locator viewDependencyTreeButton() {
+    return appReportMain().getByRole(AriaRole.BUTTON, VIEW_DEPENDENCY_TREE_OPTS);
+  }
+
+  public void navigateToDependencyTree() {
+    viewDependencyTreeButton().click();
+  }
+
+  public void navigateToVulnerabilities() {
+    optionsDropdown().click();
+    viewVulnerabilitiesLink().click();
+  }
+
+  public void navigateToRawData() {
+    optionsDropdown().click();
+    viewRawDataLink().click();
+  }
+
+  public Locator backButton() {
+    return appReportMain().getByRole(AriaRole.LINK, BACK_BUTTON_OPTS);
+  }
+
+  public Locator unscannableComponentsAlert() {
+    return appReportMain().getByRole(AriaRole.ALERT)
+        .filter(
+            new Locator.FilterOptions().setHasText("unscannable components"));
+  }
+
+  public Locator unscannableViewButton() {
+    return unscannableComponentsAlert().getByRole(AriaRole.BUTTON, VIEW_BUTTON_OPTS);
+  }
+
+  public Locator unscannedComponentsModal() {
+    return page.getByRole(AriaRole.DIALOG)
+        .filter(
+            new Locator.FilterOptions().setHasText("Unscannable Components"));
+  }
+
+  public Locator unscannedComponentsModalHeader() {
+    return unscannedComponentsModal().getByRole(AriaRole.HEADING, UNSCANNABLE_HEADING_OPTS);
+  }
+
+  public Locator unscannedComponentsModalCloseButton() {
+    return unscannedComponentsModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CLOSE_BUTTON_OPTS);
+  }
+
+  public Locator policyTypeFilterWarning() {
+    return appReportMain().getByText("Policy Types filter introduced in release 61");
+  }
+
+  public Locator oldReportWarning() {
+    return appReportMain().getByText("generated with an older version of IQ");
+  }
+
+  public Locator reevaluationErrorAlert() {
+    return appReportMain().getByRole(AriaRole.ALERT);
+  }
+
+  public Locator dependencyTreeContainer() {
+    return byRole(AriaRole.MAIN).filter(
+        new Locator.FilterOptions().setHas(byRole(AriaRole.HEADING, "Dependency Tree")));
+  }
+
+  public Locator vulnerabilitiesContainer() {
+    return locator("#application-report-vulnerabilities");
+  }
+
+  public Locator vulnerabilityRows() {
+    return vulnerabilitiesContainer().getByRole(AriaRole.TABLE)
+        .locator("tbody")
+        .getByRole(AriaRole.ROW);
+  }
+
+  public Locator vulnerabilityCustomizeButton() {
+    return vulnerabilityRows().first().getByRole(AriaRole.BUTTON, CUSTOMIZE_BUTTON_OPTS);
+  }
+
+  public Locator vulnerabilityRefIdLink() {
+    return vulnerabilityRows().first().getByRole(AriaRole.LINK).first();
+  }
+
+  public Locator violationRowThreatNumber(Locator row) {
+    return row.getByRole(AriaRole.CELL).nth(0).getByText(THREAT_NUMBER_PATTERN);
+  }
+
+  public Locator violationRowPolicyName(Locator row) {
+    return row.getByRole(AriaRole.CELL).nth(1);
+  }
+
+  public Locator violationRowComponentName(Locator row) {
+    return row.getByRole(AriaRole.CELL).nth(2);
+  }
+
+  public void waitForLoadingSpinnerHidden() {
+    appReportMain().getByRole(AriaRole.STATUS)
+        .waitFor(
+            new Locator.WaitForOptions().setState(WaitForSelectorState.HIDDEN));
+  }
+
+  public Locator rawDataContainer() {
+    return locator("#application-report-raw-data");
+  }
+
+  public Locator policyViolationGroupHeaders() {
+    return locator("#app-report .iq-violation-table-category-header," +
+        " #app-report .iq-policy-violation-group-header");
+  }
+
+  public Locator waivedViolationsIndicator() {
+    return appReportMain().getByText(WAIVER_INDICATOR_PATTERN);
+  }
+
+  public Locator firstWaivedViolationsIndicator() {
+    return waivedViolationsIndicator().first();
+  }
+
+  public Locator violationRowForComponent(String componentNameSubstring) {
+    return appReportMain().getByRole(AriaRole.TABLE)
+        .locator("tbody")
+        .getByRole(AriaRole.ROW)
+        .filter(
+            new Locator.FilterOptions().setHasText(componentNameSubstring));
   }
 }

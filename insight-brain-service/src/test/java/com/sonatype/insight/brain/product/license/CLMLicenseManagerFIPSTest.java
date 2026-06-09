@@ -10,6 +10,7 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastl
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ public class CLMLicenseManagerFIPSTest
   public void before() throws Exception {
     testProductLicense.reset();
     testProductLicenseDetailsCache.resetToDefaults();
+    SystemConfigurationPropertyDAO.invalidateEntireCache();
 
     try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.bcfks")) {
       assert in != null;

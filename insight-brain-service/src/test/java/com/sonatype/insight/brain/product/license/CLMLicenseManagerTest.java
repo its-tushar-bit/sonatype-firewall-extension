@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -117,6 +118,8 @@ public class CLMLicenseManagerTest
     testProductLicense.reset();
     testProductLicenseDetailsCache.resetToDefaults();
     licenseFingerprinter.setDummyLicenseFingerprint("1234");
+    // Tests insert LIFECYCLE_TIER via the DAO; clear the property cache so each test reads fresh.
+    SystemConfigurationPropertyDAO.invalidateEntireCache();
     config.setDatabase(null);
 
     try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12")) {

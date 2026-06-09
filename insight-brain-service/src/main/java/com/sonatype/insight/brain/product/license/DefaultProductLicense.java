@@ -12,9 +12,12 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -33,23 +36,37 @@ public class DefaultProductLicense
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultProductLicense.class);
 
-  // Use @Lazy to break circular dependency with DeveloperEnablementService
+  private static final Set<LicensedFeature> TIER_CONTROLLED_FEATURES = Collections.unmodifiableSet(EnumSet.of(
+      LicensedFeature.CUSTOM_POLICIES,
+      LicensedFeature.CUSTOM_APPLICATION_CATEGORIES,
+      LicensedFeature.CUSTOM_COMPONENT_LABELS,
+      LicensedFeature.CUSTOM_LICENSE_THREAT_GROUPS,
+      LicensedFeature.AUTO_WAIVER_MANAGEMENT,
+      LicensedFeature.WAIVER_REQUEST_WORKFLOW,
+      LicensedFeature.BULK_WAIVERS));
+
+  // @Lazy breaks a circular dependency with DeveloperEnablementService.
   @Inject
   @Lazy
   private DeveloperEnablementService developerEnablementService;
 
-  /**
-   * Default constructor for Spring injection.
-   */
+  @Inject
+  @Lazy
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   public DefaultProductLicense() {
-    // Field injection will populate developerEnablementService
   }
 
-  /**
-   * Constructor for test injection.
-   */
   protected DefaultProductLicense(DeveloperEnablementService developerEnablementService) {
     this.developerEnablementService = developerEnablementService;
+  }
+
+  protected DefaultProductLicense(
+      DeveloperEnablementService developerEnablementService,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+  {
+    this.developerEnablementService = developerEnablementService;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   static class ProductLicenseData
@@ -201,7 +218,16 @@ public class DefaultProductLicense
 
   @Override
   public Set<LicensedFeature> getFeatures() {
-    return getProductLicenseData().features;
+    Set<LicensedFeature> cached = getProductLicenseData().features;
+    Set<String> products = getProductLicenseData().products;
+    if (products == null || !CLMLicenseManager.hasAnyLifecycleProduct(products) || isProTier()) {
+      return cached;
+    }
+    EnumSet<LicensedFeature> reconciled = cached.isEmpty()
+        ? EnumSet.noneOf(LicensedFeature.class)
+        : EnumSet.copyOf(cached);
+    reconciled.addAll(TIER_CONTROLLED_FEATURES);
+    return Collections.unmodifiableSet(reconciled);
   }
 
   @Override
@@ -209,7 +235,24 @@ public class DefaultProductLicense
     if (LicensedFeature.DEVELOPER_DASHBOARD.equals(feature)) {
       return developerEnablementService.shouldEnableDeveloperProduct();
     }
+    // Delegates so TestProductLicense overrides of getFeatures() are honored.
     return getFeatures().contains(feature);
+  }
+
+  private boolean isProTier() {
+    if (systemConfigurationPropertyDAO == null) {
+      return false;
+    }
+    try {
+      SystemConfigurationProperty prop =
+          systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.LIFECYCLE_TIER);
+      String tier = prop != null ? prop.getValue() : null;
+      return CLMLicenseManager.TIER_PRO.equalsIgnoreCase(tier == null ? null : tier.trim());
+    }
+    catch (Exception e) {
+      log.warn("Could not read LifecycleTier config, defaulting to Legacy", e);
+      return false;
+    }
   }
 
   @Override

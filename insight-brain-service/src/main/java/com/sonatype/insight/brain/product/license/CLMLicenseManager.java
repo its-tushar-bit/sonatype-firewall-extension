@@ -129,7 +129,7 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_LIFECYCLE_ENTERPRISE = "Lifecycle Enterprise";
 
-  private static final String TIER_PRO = "Pro";
+  static final String TIER_PRO = "Pro";
 
   private static final String TIER_ENTERPRISE = "Enterprise";
 
@@ -625,7 +625,7 @@ public class CLMLicenseManager
     return LIFECYCLE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
-  private static boolean hasAnyLifecycleProduct(Set<String> products) {
+  static boolean hasAnyLifecycleProduct(Set<String> products) {
     return !Collections.disjoint(LIFECYCLE_PRODUCTS, products);
   }
 
@@ -1089,15 +1089,8 @@ public class CLMLicenseManager
       stageTypes.addAll(allClassicStageTypes);
     }
 
-    // Lifecycle tiering (CLM-39600): Enterprise-only features (custom policies, labels, categories,
-    // license threat groups, auto-waivers, waiver requests, bulk waivers) are granted based on the
-    // license tier property. Pro gets base Lifecycle features only. Enterprise and Legacy (including
-    // all pre-tiering SKUs) get the full set. HDS can override individual features for Pro customers.
-    if (hasAnyLifecycleProduct(products)) {
-      String tier = getLifecycleTier();
-      applyTierFeatures(tier, features);
-    }
-
+    // Tier-controlled features are reconciled at read time in DefaultProductLicense. They remain
+    // in this HDS overlay so HDS-granted entries land in the cache and survive the tier check.
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //

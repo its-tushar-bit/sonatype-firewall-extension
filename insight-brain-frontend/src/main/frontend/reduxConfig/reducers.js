@@ -147,11 +147,13 @@ import gitHubAppConfigurationSlice from '../configuration/githubApp/gitHubAppCon
 import usageReducer from '../usage/usageSlice';
 import hostedReposSlice from '../hostedRepos/hostedReposSlice';
 import repositoryComponentsSlice from '../hostedRepos/repositoryComponentsSlice';
+import previewDashboardNewestRisksReducer from '../nosc/dashboard/previewDashboardNewestRisksSlice';
 
 export default combineReducers({
   stages: stagesReducer,
   router: routerStateReducer,
   dashboard: dashboardReducer,
+  previewDashboardNewestRisks: previewDashboardNewestRisksReducer,
   manageFilters: manageFiltersReducer,
   dashboardFilter: dashboardFilterReducer,
   sidebarNavList: sidebarNavListReducer,

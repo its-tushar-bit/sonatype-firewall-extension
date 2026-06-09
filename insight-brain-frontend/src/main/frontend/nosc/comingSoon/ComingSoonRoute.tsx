@@ -32,9 +32,15 @@ import {
 function readSlugFromHash(): string | null {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash || '';
-  const match = hash.match(/^#?\/coming-soon\/([a-z0-9-]+)$/i);
-  if (!match) return null;
-  return match[1];
+  const path = hash.startsWith('#') ? hash.slice(1) : hash;
+
+  const comingSoon = path.match(/^\/coming-soon\/([a-z0-9-]+)$/i);
+  if (comingSoon) return comingSoon[1];
+
+  if (/^\/applications(?:\/.*)?$/i.test(path)) return 'applications';
+  if (/^\/waivers(?:\/.*)?$/i.test(path)) return 'waivers';
+
+  return null;
 }
 
 export function ComingSoonRoute(): JSX.Element {

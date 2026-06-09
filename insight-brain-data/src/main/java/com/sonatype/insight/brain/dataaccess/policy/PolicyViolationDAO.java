@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViol
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyOpenViolationSummary;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
@@ -1570,6 +1572,7 @@ public class PolicyViolationDAO
             )
             pv.application_id,
             pv.policy_name,
+            pv.policy_id,
             pv.threat_level,
             pv.hash,
             pv.component_id_format,
@@ -1640,6 +1643,7 @@ public class PolicyViolationDAO
             organization.name organization_name,
             apv.policy_violation_id,
             apv.policy_name,
+            apv.policy_id,
             apv.threat_level,
             apv.hash,
             apv.filename,
@@ -1695,14 +1699,15 @@ public class PolicyViolationDAO
               record.get(2, String.class), // organizationName
               record.get(3, String.class), // policyViolationId
               record.get(4, String.class), // policyName
-              record.get(5, Integer.class), // threatLevel
-              record.get(6, String.class), // hash
-              record.get(7, String.class), // filename
-              record.get(8, String.class), // componentIdFormat
-              record.get(9, String.class), // componentIdCoordinatesJson
-              record.get(10, String.class), // constraintFactsId
-              toEpochMillisFromTimestampOrLocalDateTime(record.get(11)), // firstOccurrenceTime
-              record.get(12, String.class) // autoPolicyWaiverId
+              record.get(5, String.class), // policyId
+              record.get(6, Integer.class), // threatLevel
+              record.get(7, String.class), // hash
+              record.get(8, String.class), // filename
+              record.get(9, String.class), // componentIdFormat
+              record.get(10, String.class), // componentIdCoordinatesJson
+              record.get(11, String.class), // constraintFactsId
+              toEpochMillisFromTimestampOrLocalDateTime(record.get(12)), // firstOccurrenceTime
+              record.get(13, String.class) // autoPolicyWaiverId
           ))
           .toList();
 
@@ -2142,5 +2147,97 @@ public class PolicyViolationDAO
           MAX_AUDIT_VIOLATIONS_PER_RUN);
     }
     return results;
+  }
+
+  /**
+   * Returns the top {@code limit} policies (by open-violation count, ties broken by policy_name ASC) within the
+   * given threat category across the supplied application IDs. Drives the non-ALP variant of the Legal Obligations
+   * dashboard tile (CLM-39604 / P1.5-D-2).
+   *
+   * <p>
+   * An open violation here matches the same definition used by {@code getCountsByOwner}: {@code fix_time IS NULL
+   * AND waive_time IS NULL}. {@code applicationIds} is the user's already-authorized scope set; an empty set is
+   * returned eagerly without a DB round-trip so callers can branch on "no scope" cleanly. The {@code LIMIT} is
+   * applied at the SQL boundary so the result set is bounded by {@code limit} regardless of how many distinct
+   * policies the tenant has.
+   *
+   * <p>
+   * Not yet called in production: {@code LegalObligationsDashboardService.buildTopViolationsResponse} uses
+   * {@code DashboardViolationRiskService} so the non-ALP tile matches the Violations tab data path. This method is
+   * kept for a future direct-SQL optimization if that service path proves too heavy.
+   *
+   * @since 1.205
+   */
+  public List<PolicyOpenViolationSummary> getTopOpenByCategory(
+      final Collection<String> applicationIds,
+      final PolicyThreatCategory threatCategory,
+      final int limit)
+  {
+    if (applicationIds == null || applicationIds.isEmpty() || limit <= 0) {
+      return Collections.emptyList();
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var violationCount = DSL.count(POLICY_VIOLATION.POLICY_VIOLATION_ID).as("violations");
+      return tx.dsl()
+          .select(POLICY_VIOLATION.POLICY_ID, POLICY_VIOLATION.POLICY_NAME, violationCount)
+          .from(POLICY_VIOLATION)
+          .where(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds))
+          .and(POLICY_VIOLATION.THREAT_CATEGORY.eq(threatCategory.getName()))
+          .and(POLICY_VIOLATION.FIX_TIME.isNull())
+          .and(POLICY_VIOLATION.WAIVE_TIME.isNull())
+          .groupBy(POLICY_VIOLATION.POLICY_ID, POLICY_VIOLATION.POLICY_NAME)
+          .orderBy(violationCount.desc(), POLICY_VIOLATION.POLICY_NAME.asc())
+          .limit(limit)
+          .fetch(r -> new PolicyOpenViolationSummary(
+              r.get(POLICY_VIOLATION.POLICY_ID),
+              r.get(POLICY_VIOLATION.POLICY_NAME),
+              r.get(violationCount).longValue()));
+    }
+  }
+
+  /**
+   * Counts open policy violations within the given threat category across {@code applicationIds} that were opened
+   * during the half-open window {@code [from, to)}. Used by the ALP variant of the Legal Obligations tile
+   * (CLM-39604 / P1.5-D-2) to compute the 30-day-over-prior-30-day trend per license-threat-group.
+   *
+   * <p>
+   * An empty {@code applicationIds} short-circuits with zero (no DB round-trip).
+   *
+   * @since 1.205
+   */
+  public long countOpenInWindowByCategory(
+      final Collection<String> applicationIds,
+      final PolicyThreatCategory threatCategory,
+      final Date from,
+      final Date to)
+  {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return 0L;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      return getStreamWithSqlInClause(
+          new ArrayList<>(applicationIds),
+          chunk -> Stream.of(countOpenInWindowByCategoryChunk(tx, chunk, threatCategory, from, to)))
+              .mapToLong(Long::longValue)
+              .sum();
+    }
+  }
+
+  private long countOpenInWindowByCategoryChunk(
+      final TransactionContext tx,
+      final Collection<String> applicationIds,
+      final PolicyThreatCategory threatCategory,
+      final Date from,
+      final Date to)
+  {
+    Integer count = tx.dsl()
+        .selectCount()
+        .from(POLICY_VIOLATION)
+        .where(POLICY_VIOLATION.APPLICATION_ID.in(applicationIds))
+        .and(POLICY_VIOLATION.THREAT_CATEGORY.eq(threatCategory.getName()))
+        .and(POLICY_VIOLATION.OPEN_TIME.greaterOrEqual(from))
+        .and(POLICY_VIOLATION.OPEN_TIME.lessThan(to))
+        .fetchOne(0, Integer.class);
+    return count == null ? 0L : count.longValue();
   }
 }

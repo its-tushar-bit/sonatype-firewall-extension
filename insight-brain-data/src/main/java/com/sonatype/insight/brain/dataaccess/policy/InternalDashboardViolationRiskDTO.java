@@ -20,6 +20,8 @@ public class InternalDashboardViolationRiskDTO
 
   public final String policyName;
 
+  public final String policyId;
+
   public final int threatLevel;
 
   public final String hash;
@@ -42,6 +44,7 @@ public class InternalDashboardViolationRiskDTO
       String organizationName,
       String policyViolationId,
       String policyName,
+      String policyId,
       int threatLevel,
       String hash,
       String filename,
@@ -56,6 +59,7 @@ public class InternalDashboardViolationRiskDTO
     this.organizationName = organizationName;
     this.policyViolationId = policyViolationId;
     this.policyName = policyName;
+    this.policyId = policyId;
     this.threatLevel = threatLevel;
     this.hash = hash;
     this.filename = filename;

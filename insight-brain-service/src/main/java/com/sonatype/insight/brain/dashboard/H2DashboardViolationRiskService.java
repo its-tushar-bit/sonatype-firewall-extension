@@ -209,6 +209,7 @@ public class H2DashboardViolationRiskService
     violationRiskDTO.threatLevel = policyViolation.getThreatLevel();
     violationRiskDTO.firstOccurrenceTime = policyViolation.getOpenTime().getTime();
     violationRiskDTO.policyName = policyViolation.getPolicyName();
+    violationRiskDTO.policyId = policyViolation.getPolicyId();
     violationRiskDTO.policyViolationId = policyViolation.getId();
     violationRiskDTO.hash = policyViolation.getHash();
     violationRiskDTO.displayName = ComponentDisplayNameUtil.fromPolicyViolation(policyViolation);

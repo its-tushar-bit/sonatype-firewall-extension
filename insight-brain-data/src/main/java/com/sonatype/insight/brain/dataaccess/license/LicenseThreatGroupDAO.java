@@ -462,11 +462,6 @@ public class LicenseThreatGroupDAO
       final OwnerType ownerType,
       final String ownerId)
   {
-    var applicationIdsSubquery = tx.dsl()
-        .select(APPLICATION_ANCESTOR.APPLICATION_ID)
-        .from(APPLICATION_ANCESTOR)
-        .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(ownerId));
-
     var hierarchyOwnerIdsSubquery = tx.dsl()
         .select(OWNER_ANCESTOR.ANCESTOR_ID)
         .from(OWNER_ANCESTOR)
@@ -493,7 +488,10 @@ public class LicenseThreatGroupDAO
             .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
             .and(ownerType == OwnerType.APPLICATION
                 ? APPLICATION_COMPONENT.APPLICATION_ID.eq(ownerId)
-                : APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIdsSubquery)))
+                : APPLICATION_COMPONENT.APPLICATION_ID.in(tx.dsl()
+                    .select(APPLICATION_ANCESTOR.APPLICATION_ID)
+                    .from(APPLICATION_ANCESTOR)
+                    .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(ownerId)))))
         .where(LICENSE_THREAT_GROUP.OWNER_ID.in(hierarchyOwnerIdsSubquery))
         .and(APPLICATION_COMPONENT.HASH.isNotNull())
         .fetch(this::toComponentCandidate);

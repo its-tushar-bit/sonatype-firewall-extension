@@ -644,6 +644,20 @@ export function getLicenseThreatGroupCountsUrl(ownerType, ownerId) {
   return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/counts`;
 }
 
+/**
+ * CLM-39604 (P1.5-D-2): tenant-cached, ALP-aware aggregate that powers the
+ * Preview Dashboard Legal Obligations tile.
+ *
+ * Returns one of four discriminated payloads:
+ *   { variant: 'ALP', groups: [...] }
+ *   { variant: 'TOP_LEGAL_VIOLATIONS', violations: [...] }
+ *   { permissionDenied: true }
+ *   { empty: true }
+ */
+export function getDashboardLegalObligationsUrl() {
+  return uriTemplate`/rest/dashboard/legalObligations`;
+}
+
 export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }

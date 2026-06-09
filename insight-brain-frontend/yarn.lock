@@ -9239,6 +9239,11 @@ react-dom@^19.1.0:
   dependencies:
     scheduler "^0.27.0"
 
+react-error-boundary@6.1.1:
+  version "6.1.1"
+  resolved "https://sonatype.repo.sonatype.app/repository/npm-all/react-error-boundary/-/react-error-boundary-6.1.1.tgz#491d655e86c32434ede852755bb649119fdddd89"
+  integrity sha512-BrYwPOdXi5mqkk5lw+Uvt0ThHx32rCt3BkukS4X23A2AIWDPSGX6iaWTc0y9TU/mHDA/6qOSGel+B2ERkOvD1w==
+
 react-immutable-proptypes@2.2.0:
   version "2.2.0"
   resolved "https://sonatype.repo.sonatype.app/repository/npm-all/react-immutable-proptypes/-/react-immutable-proptypes-2.2.0.tgz"

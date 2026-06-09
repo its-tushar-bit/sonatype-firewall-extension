@@ -60,25 +60,39 @@ public class LicenseThreatGroupUnreviewedComponentCounter
     this.legalDashboardsService = legalDashboardsService;
   }
 
-  public List<LicenseThreatGroupCount> countByOwner(final OwnerType ownerType, final String ownerId) {
-    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
-      List<LicenseThreatGroupComponentCandidate> candidates =
-          licenseThreatGroupDAO.listComponentCandidatesByOwner(tx, ownerType, ownerId);
-      List<LicenseThreatGroup> visibleLtgs =
-          licenseThreatGroupDAO.listVisibleLicenseThreatGroupsForOwner(tx, ownerId);
-      return aggregate(tx, candidates, visibleLtgs, true);
-    }
+  /**
+   * Counts unreviewed components per LTG for the given owner, participating in the caller-provided
+   * {@code tx}. The caller owns the transaction boundary: this aggregation must not open a connection of
+   * its own, otherwise a caller that already holds a transaction (and therefore a pooled connection) would
+   * force this method to acquire a second connection — a deadlock risk under connection-pool exhaustion.
+   */
+  public List<LicenseThreatGroupCount> countByOwner(
+      final TransactionContext tx,
+      final OwnerType ownerType,
+      final String ownerId)
+  {
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByOwner(tx, ownerType, ownerId);
+    List<LicenseThreatGroup> visibleLtgs =
+        licenseThreatGroupDAO.listVisibleLicenseThreatGroupsForOwner(tx, ownerId);
+    return aggregate(tx, candidates, visibleLtgs, true);
   }
 
-  public List<LicenseThreatGroupCount> countByApplicationIds(final Collection<String> applicationIds) {
+  /**
+   * Counts unreviewed components per LTG across the supplied applications, participating in the
+   * caller-provided {@code tx}. See {@link #countByOwner} for why the transaction is supplied by the caller
+   * rather than opened here.
+   */
+  public List<LicenseThreatGroupCount> countByApplicationIds(
+      final TransactionContext tx,
+      final Collection<String> applicationIds)
+  {
     if (applicationIds == null || applicationIds.isEmpty()) {
       return Collections.emptyList();
     }
-    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
-      List<LicenseThreatGroupComponentCandidate> candidates =
-          licenseThreatGroupDAO.listComponentCandidatesByApplicationIds(tx, applicationIds);
-      return aggregate(tx, candidates, List.of(), false);
-    }
+    List<LicenseThreatGroupComponentCandidate> candidates =
+        licenseThreatGroupDAO.listComponentCandidatesByApplicationIds(tx, applicationIds);
+    return aggregate(tx, candidates, List.of(), false);
   }
 
   private List<LicenseThreatGroupCount> aggregate(
@@ -117,6 +131,19 @@ public class LicenseThreatGroupUnreviewedComponentCounter
     Map<String, Set<String>> obligationNamesByLicenseId =
         legalDashboardsService.getLicenseObligationsFromHds(allLicenseIds);
 
+    Set<String> allObligationNamesUnion = licenseIdsByComponent.values()
+        .stream()
+        .flatMap(licenseIds -> licenseIds.stream()
+            .filter(obligationNamesByLicenseId::containsKey)
+            .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream()))
+        .collect(Collectors.toSet());
+
+    // Root-org obligation scope matches ApiLicenseLegalService.fillReviewProgress and classic Legal tile semantics.
+    List<String> obligationOwnerIds = List.of(Organization.ROOT_ORGANIZATION_ID);
+    Map<ComponentIdentifier, List<ComponentObligation>> obligationsByComponent =
+        componentObligationDAO.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
+            obligationOwnerIds, componentIdentifierByKey.values(), allObligationNamesUnion);
+
     Map<String, Long> unreviewedCountByLtgId = new HashMap<>();
     for (Map.Entry<ComponentKey, Set<String>> entry : licenseIdsByComponent.entrySet()) {
       ComponentKey key = entry.getKey();
@@ -128,9 +155,10 @@ public class LicenseThreatGroupUnreviewedComponentCounter
           .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream())
           .collect(Collectors.toSet());
 
-      List<ComponentObligation> componentObligations =
-          componentObligationDAO.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx,
-              List.of(Organization.ROOT_ORGANIZATION_ID), componentIdentifier, allObligationNames);
+      List<ComponentObligation> componentObligations = ComponentObligationDAO.resolveObligationsForOwnerOrder(
+          obligationOwnerIds,
+          obligationsByComponent.getOrDefault(componentIdentifier, List.of()),
+          allObligationNames);
 
       Map<String, Integer> obligationCounts =
           legalDashboardsService.countObligations(componentObligations, allObligationNames);

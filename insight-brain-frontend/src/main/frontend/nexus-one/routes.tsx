@@ -15,6 +15,7 @@ import {
 import { PreviewPagePlaceholder } from 'MainRoot/nosc/shell/PreviewPagePlaceholder';
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
+import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 
 function readHashPath(): string {
@@ -59,16 +60,32 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
-const PLACEHOLDER_ROUTES: ReadonlyArray<{ readonly name: string; readonly url: string }> = [
-  { name: 'nexusOneDashboard', url: '/dashboard' },
-  { name: 'nexusOneDashboardViolations', url: '/dashboard/violations' },
-  { name: 'nexusOneDashboardComponents', url: '/dashboard/components' },
-  { name: 'nexusOneDashboardApplications', url: '/dashboard/applications' },
-  { name: 'nexusOneDashboardWaivers', url: '/dashboard/waivers' },
+// Dashboard: an abstract parent shell (tab strip + nested <UIView>) with one child state per tab.
+// UI-Router owns tab navigation now — the page no longer hand-rolls hash parsing / pushState. The
+// state declarations are shared with the jest router harness via `nexusOneDashboardStates()`.
+nexusOneDashboardStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
+
+const COMING_SOON_ENTITY_ROUTES: ReadonlyArray<{ readonly name: string; readonly url: string }> = [
   { name: 'nexusOneApplications', url: '/applications' },
   { name: 'nexusOneApplicationsDetail', url: '/applications/{publicId}' },
-  { name: 'nexusOneSearch', url: '/search' },
   { name: 'nexusOneWaivers', url: '/waivers' },
+];
+
+COMING_SOON_ENTITY_ROUTES.forEach(({ name, url }) => {
+  router.stateRegistry.register({
+    name,
+    url,
+    component: ComingSoonRoute,
+    data: {
+      title: 'Nexus One',
+    },
+  } as ReactStateDeclaration);
+});
+
+const PLACEHOLDER_ROUTES: ReadonlyArray<{ readonly name: string; readonly url: string }> = [
+  { name: 'nexusOneSearch', url: '/search' },
 ];
 
 PLACEHOLDER_ROUTES.forEach(({ name, url }) => {

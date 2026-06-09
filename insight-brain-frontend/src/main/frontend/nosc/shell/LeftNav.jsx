@@ -214,51 +214,16 @@ function buildNavItems(flags) {
   const items = [];
 
   if (isDashboardAvailable) {
+    // Single Dashboard entry. The 4 tabs (Overview / Violations /
+    // Components / Applications / Waivers) are reached via the
+    // in-page tab strip on /preview/dashboard. LeftNav sub-entries
+    // were removed per design feedback — they were redundant with the
+    // tab strip and added vertical noise to the rail.
     items.push({
       id: 'dashboard',
       label: 'Dashboard',
       Icon: DomainIcons.Home,
       href: '/dashboard',
-    });
-    // CLM-39992 / S2-PR-D-1: Dashboard-tab sub-entries. Always-visible
-    // (no expand/collapse twirly) — the tabs are also reachable from
-    // the in-page tab strip on /preview/dashboard, but always-visible
-    // sub-entries make the four hunt-mode lists discoverable from
-    // anywhere in the Preview shell. Gated on the same selector as the
-    // parent Dashboard entry so an unlicensed/SBOM-only/Firewall-only
-    // tenant sees neither.
-    //
-    // Per spec §3.2 & 3.3 — Violations icon uses DomainIcons.Vulnerability
-    // (an AlertTriangle glyph; the "AlertTriangle" alias requested in
-    // the spec doesn't exist as its own DomainIcons name today and the
-    // icon catalog is out of scope for this PR).
-    items.push({
-      id: 'dashboard-violations',
-      label: 'Violations',
-      Icon: DomainIcons.Vulnerability,
-      href: '/dashboard/violations',
-      isSubEntry: true,
-    });
-    items.push({
-      id: 'dashboard-components',
-      label: 'Components',
-      Icon: DomainIcons.Component,
-      href: '/dashboard/components',
-      isSubEntry: true,
-    });
-    items.push({
-      id: 'dashboard-applications',
-      label: 'Applications',
-      Icon: DomainIcons.Applications,
-      href: '/dashboard/applications',
-      isSubEntry: true,
-    });
-    items.push({
-      id: 'dashboard-waivers',
-      label: 'Waivers',
-      Icon: DomainIcons.Waivers,
-      href: '/dashboard/waivers',
-      isSubEntry: true,
     });
   }
   if (isLicensed) {

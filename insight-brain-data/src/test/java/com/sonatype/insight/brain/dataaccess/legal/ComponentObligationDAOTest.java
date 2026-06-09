@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ComponentObligationDAOTest
     extends AbstractDbDAOTest
@@ -373,6 +374,75 @@ public class ComponentObligationDAOTest
     assertThat(result).hasSize(2);
     assertThat(result.get(componentIdentifier1)).containsExactlyInAnyOrder("name2", "name4");
     assertThat(result.get(componentIdentifier2)).containsExactly("name5");
+  }
+
+  // ---- Batch owner-id obligation tests (LTG unreviewed counter path) ----
+
+  @Test
+  public void testBatchGetByOwnerIdsAndComponentIdentifiersAndObligationNames_multipleComponents() {
+    ComponentIdentifier ci1 =
+        ComponentIdentifier.createMavenCoordinates("com.sonatype.batch-obligation", "component-one", "1.0");
+    ComponentIdentifier ci2 =
+        ComponentIdentifier.createMavenCoordinates("com.sonatype.batch-obligation", "component-two", "1.0");
+
+    ComponentObligation ob1 = tempEntity.newComponentObligation(ci1, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "comment1", ObligationStatus.OPEN, "hash-batch-1");
+    ComponentObligation ob2 = tempEntity.newComponentObligation(ci2, Organization.ROOT_ORGANIZATION_ID,
+        "SOURCE", "comment2", ObligationStatus.FLAGGED, "hash-batch-2");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<ComponentIdentifier, List<ComponentObligation>> raw =
+          dao.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
+              List.of(Organization.ROOT_ORGANIZATION_ID),
+              List.of(ci1, ci2),
+              Set.of("NOTICE", "SOURCE"));
+
+      assertThat(raw.get(ci1)).extracting(ComponentObligation::getId).containsExactly(ob1.getId());
+      assertThat(raw.get(ci2)).extracting(ComponentObligation::getId).containsExactly(ob2.getId());
+
+      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
+          List.of(Organization.ROOT_ORGANIZATION_ID), raw.get(ci1), Set.of("NOTICE")))
+              .extracting(ComponentObligation::getId)
+              .containsExactly(ob1.getId());
+    }
+  }
+
+  @Test
+  public void testResolveObligationsForOwnerOrder_closestOwnerWinsPerObligationName() {
+    ComponentIdentifier ci =
+        ComponentIdentifier.createMavenCoordinates("com.sonatype.owner-order", "component", "1.0");
+
+    tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root notice", ObligationStatus.OPEN, "hash-root-notice");
+    tempEntity.newComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID,
+        "SOURCE", "root source", ObligationStatus.OPEN, "hash-root-source");
+    tempEntity.newComponentObligation(ci, organization.getId(),
+        "NOTICE", "org notice", ObligationStatus.FULFILLED, "hash-org-notice");
+    ComponentObligation orgSource = tempEntity.newComponentObligation(ci, organization.getId(),
+        "SOURCE", "org source", ObligationStatus.FLAGGED, "hash-org-source");
+    ComponentObligation appNotice = tempEntity.newComponentObligation(ci, application.getId(),
+        "NOTICE", "app notice", ObligationStatus.IGNORED, "hash-app-notice");
+
+    List<String> ownerIds =
+        List.of(application.getId(), organization.getId(), Organization.ROOT_ORGANIZATION_ID);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<ComponentIdentifier, List<ComponentObligation>> raw =
+          dao.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
+              ownerIds, List.of(ci), Set.of("NOTICE", "SOURCE"));
+
+      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
+          ownerIds, raw.get(ci), Set.of("NOTICE", "SOURCE")))
+              .extracting(ComponentObligation::getObligationName, ComponentObligation::getOwnerId,
+                  ComponentObligation::getComment)
+              .containsExactly(
+                  tuple("NOTICE", application.getId(), "app notice"),
+                  tuple("SOURCE", organization.getId(), "org source"));
+      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
+          ownerIds, raw.get(ci), Set.of("NOTICE", "SOURCE")))
+              .extracting(ComponentObligation::getId)
+              .containsExactly(appNotice.getId(), orgSource.getId());
+    }
   }
 
   // ---- Batch hierarchy tests ----

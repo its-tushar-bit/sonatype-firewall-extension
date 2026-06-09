@@ -19,10 +19,16 @@ describe('comingSoonModules registry', () => {
     expect(COMING_SOON_MODULE_ORDER.length).toBeGreaterThan(0);
   });
 
-  it('COMING_SOON_MODULE_ORDER is consistent with COMING_SOON_MODULES keys', () => {
-    const orderSet = new Set(COMING_SOON_MODULE_ORDER);
+  it('every slug in COMING_SOON_MODULE_ORDER has a registry entry', () => {
+    // ORDER is a subset of KEYS: every LeftNav-rendered slug must have
+    // its metadata in the registry. KEYS may legitimately contain extras
+    // (e.g. Epic 10 placeholders `applications` / `waivers` that have a
+    // /preview/<slug> route + ComingSoonPage but are NOT rendered in the
+    // LeftNav — the LeftNav has its own native Applications entry).
     const keysSet = new Set(Object.keys(COMING_SOON_MODULES));
-    expect(orderSet).toEqual(keysSet);
+    for (const slug of COMING_SOON_MODULE_ORDER) {
+      expect(keysSet.has(slug)).toBe(true);
+    }
   });
 
   it('COMING_SOON_MODULE_ORDER has no duplicates', () => {

@@ -172,6 +172,7 @@ public class PostgresDashboardViolationRiskService
     result.organizationName = internalDTO.organizationName;
     result.threatLevel = internalDTO.threatLevel;
     result.policyName = internalDTO.policyName;
+    result.policyId = internalDTO.policyId;
     result.policyViolationId = internalDTO.policyViolationId;
     result.hash = internalDTO.hash;
     result.filename = internalDTO.filename;

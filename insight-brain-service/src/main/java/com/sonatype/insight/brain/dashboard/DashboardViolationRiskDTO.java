@@ -34,6 +34,8 @@ public class DashboardViolationRiskDTO
 
   public String policyName;
 
+  public String policyId;
+
   public String policyViolationId;
 
   public String hash;

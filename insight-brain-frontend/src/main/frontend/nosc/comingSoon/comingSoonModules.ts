@@ -155,6 +155,18 @@ export const COMING_SOON_MODULES = {
     description: 'Automate software compliance and reporting.',
     classicHref: '/assets/#/dashboard/violations',
   },
+  // Epic 10 placeholders — not in COMING_SOON_MODULE_ORDER (LeftNav has native
+  // Applications). Bound in nexus-one/routes.tsx until Epic 10 ships.
+  applications: {
+    label: 'Applications',
+    description: 'Browse, search, and drill into all applications scanned by IQ. Standalone entity browser separate from the Dashboard Applications tab.',
+    classicHref: '/assets/#/management/view/application',
+  },
+  waivers: {
+    label: 'Waivers',
+    description: 'Browse and manage all policy violation waivers across applications.',
+    classicHref: '/assets/#/dashboard/waivers',
+  },
 } as const;
 
 export type ComingSoonModuleSlug = keyof typeof COMING_SOON_MODULES;

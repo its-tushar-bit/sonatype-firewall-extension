@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -139,9 +140,11 @@ public class LicenseThreatGroupService
     Map.Entry<OwnerType, String> key = new AbstractMap.SimpleImmutableEntry<>(ownerType, internalOwnerId);
     try {
       return countsCaches.get().get(key, () -> {
-        List<LicenseThreatGroupCount> counts =
-            unreviewedComponentCounter.countByOwner(ownerType, internalOwnerId);
-        return defensiveCopy(counts);
+        // Own the transaction here so the counter participates in a single connection rather than opening
+        // its own (which would risk a nested-connection deadlock under pool exhaustion).
+        try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+          return defensiveCopy(unreviewedComponentCounter.countByOwner(tx, ownerType, internalOwnerId));
+        }
       });
     }
     catch (ExecutionException e) {
@@ -163,7 +166,14 @@ public class LicenseThreatGroupService
   public List<LicenseThreatGroupCount> getUnreviewedComponentCountsByApplicationIds(
       final Collection<String> applicationIds)
   {
-    return defensiveCopy(unreviewedComponentCounter.countByApplicationIds(applicationIds));
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return new ArrayList<>();
+    }
+    // Own the transaction here so the counter participates in a single connection rather than opening its
+    // own (which would risk a nested-connection deadlock under pool exhaustion).
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      return defensiveCopy(unreviewedComponentCounter.countByApplicationIds(tx, applicationIds));
+    }
   }
 
   /**

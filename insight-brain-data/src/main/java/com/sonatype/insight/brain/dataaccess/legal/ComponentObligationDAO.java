@@ -49,6 +49,16 @@ import static java.util.stream.Collectors.toList;
 public class ComponentObligationDAO
     extends AbstractOperationalSqlDAO<ComponentObligation>
 {
+  /**
+   * Bind parameters contributed by each component identifier in a row-value {@code IN} clause (format +
+   * coordinates JSON). Not the partition/chunk size — {@link AbstractOperationalSqlDAO#getListWithSqlInClause}
+   * computes that from the database IN-operator threshold (well above 100 elements per chunk).
+   */
+  private static final int COMPONENT_IDENTIFIER_PARAMS_PER_ELEMENT = 2;
+
+  /** Extra bind parameters outside the row-value {@code IN} clause (e.g. {@code owner_id} filter). */
+  private static final int COMPONENT_IDENTIFIER_EXTRA_PARAMS = 1;
+
   private final OwnerDAO ownerDAO;
 
   @Inject
@@ -128,6 +138,10 @@ public class ComponentObligationDAO
       ComponentIdentifier componentIdentifier,
       Set<String> obligationNames)
   {
+    if (CollectionUtils.isEmpty(obligationNames)) {
+      return Collections.emptyList();
+    }
+
     List<ComponentObligation> componentObligationsFromDb = tx.dsl()
         .selectFrom(COMPONENT_OBLIGATION)
         .where(COMPONENT_OBLIGATION.OWNER_ID.in(ownerIds))
@@ -137,6 +151,65 @@ public class ComponentObligationDAO
         .and(COMPONENT_OBLIGATION.OBLIGATION_NAME.in(obligationNames))
         .fetch(super::toEntity);
 
+    return resolveObligationsForOwnerOrder(ownerIds, componentObligationsFromDb, obligationNames);
+  }
+
+  /**
+   * Batch-fetches component obligations for many components in chunked {@code IN} queries. Used by
+   * {@code LicenseThreatGroupUnreviewedComponentCounter} to avoid N+1 round-trips on dashboard cache misses. Callers
+   * apply owner-order precedence per component via {@link #resolveObligationsForOwnerOrder}.
+   *
+   * @param obligationNames union of obligation names to include in the SQL filter; callers apply per-component
+   *          subsets via {@link #resolveObligationsForOwnerOrder}
+   * @return raw obligations grouped by component identifier (not owner-order-resolved); components with no rows are
+   *         omitted
+   * @since 1.205
+   */
+  public Map<ComponentIdentifier, List<ComponentObligation>> batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(
+      final TransactionContext tx,
+      final List<String> ownerIds,
+      final Collection<ComponentIdentifier> componentIdentifiers,
+      final Set<String> obligationNames)
+  {
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(componentIdentifiers)
+        || CollectionUtils.isEmpty(obligationNames))
+    {
+      return Collections.emptyMap();
+    }
+
+    List<ComponentObligation> allRows = getListWithSqlInClause(
+        new ArrayList<>(componentIdentifiers),
+        chunk -> {
+          List<Row2<String, String>> componentRows = chunk.stream()
+              .map(ComponentIdentifierAdapter::toComponentRow)
+              .toList();
+          return tx.dsl()
+              .selectFrom(COMPONENT_OBLIGATION)
+              .where(COMPONENT_OBLIGATION.OWNER_ID.in(ownerIds))
+              .and(DSL.row(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT,
+                  COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON)
+                  .in(componentRows))
+              .and(COMPONENT_OBLIGATION.OBLIGATION_NAME.in(obligationNames))
+              .fetch(super::toEntity);
+        },
+        COMPONENT_IDENTIFIER_PARAMS_PER_ELEMENT,
+        COMPONENT_IDENTIFIER_EXTRA_PARAMS);
+
+    return allRows.stream()
+        .filter(o -> o.getComponentIdentifier() != null)
+        .collect(groupingBy(ComponentObligation::getComponentIdentifier));
+  }
+
+  /**
+   * Picks the effective obligation row per name using {@code ownerIds} precedence (first owner wins). Callers must pass
+   * {@code ownerIds} in the same most-specific-first order as
+   * {@link #getByOwnerIdsAndComponentIdentifierAndObligationNames}; a misordered list silently returns wrong results.
+   */
+  public static List<ComponentObligation> resolveObligationsForOwnerOrder(
+      final List<String> ownerIds,
+      final List<ComponentObligation> componentObligationsFromDb,
+      final Set<String> obligationNames)
+  {
     Map<String, List<ComponentObligation>> ownerIdAndComponentObligation =
         componentObligationsFromDb.stream().collect(groupingBy(ComponentObligation::getOwnerId, toList()));
 
@@ -256,7 +329,7 @@ public class ComponentObligationDAO
             .and(DSL.row(co.COMPONENT_ID_FORMAT, co.COMPONENT_ID_COORDINATES_JSON).in(componentRows))
             .fetch());
       }
-    }, 2, 1);
+    }, COMPONENT_IDENTIFIER_PARAMS_PER_ELEMENT, COMPONENT_IDENTIFIER_EXTRA_PARAMS);
 
     // Group by component, then deduplicate by obligation_name keeping the closest ancestor.
     // Unlike LegalFileOverrideDAO (which accumulates all rows at the closest level), obligations are

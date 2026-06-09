@@ -19,6 +19,7 @@ import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupCount;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 
@@ -43,8 +45,23 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
   @Inject
   private LicenseThreatGroupUnreviewedComponentCounter counter;
 
+  @Inject
+  private LicenseThreatGroupDAO licenseThreatGroupDAO;
+
   @Mock
   private ApiLicenseLegalHdsService mockApiLicenseLegalHdsService;
+
+  private List<LicenseThreatGroupCount> countByOwner(final OwnerType ownerType, final String ownerId) {
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      return counter.countByOwner(tx, ownerType, ownerId);
+    }
+  }
+
+  private List<LicenseThreatGroupCount> countByApplicationIds(final Collection<String> applicationIds) {
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      return counter.countByApplicationIds(tx, applicationIds);
+    }
+  }
 
   @Test
   public void testCountByOwner_countsOnlyUnreviewedComponents() {
@@ -66,7 +83,7 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
         ObligationStatus.FULFILLED, "hash-reviewed");
 
     List<LicenseThreatGroupCount> counts =
-        counter.countByOwner(OwnerType.ORGANIZATION, organization.getId());
+        countByOwner(OwnerType.ORGANIZATION, organization.getId());
 
     LicenseThreatGroupCount banned = firstByName(counts, "CLM-39702-Unreviewed-Banned");
     assertThat(banned.getUnreviewedComponentCount()).isEqualTo(2L);
@@ -78,7 +95,7 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
     tempEntity.newLicenseThreatGroup(organization.getId(), "CLM-39702-Unreviewed-Banned", 10, "GPL-2.0");
 
     List<LicenseThreatGroupCount> counts =
-        counter.countByOwner(OwnerType.ORGANIZATION, organization.getId());
+        countByOwner(OwnerType.ORGANIZATION, organization.getId());
 
     LicenseThreatGroupCount banned = firstByName(counts, "CLM-39702-Unreviewed-Banned");
     assertThat(banned.getUnreviewedComponentCount()).isZero();
@@ -104,7 +121,7 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
     seedComponent(application, "hash-lowb", "BSD-2-Clause");
 
     List<LicenseThreatGroupCount> counts =
-        counter.countByOwner(OwnerType.ORGANIZATION, organization.getId());
+        countByOwner(OwnerType.ORGANIZATION, organization.getId());
 
     List<String> ourNames = counts.stream()
         .map(LicenseThreatGroupCount::getLicenseThreatGroupName)
@@ -131,7 +148,7 @@ public class LicenseThreatGroupUnreviewedComponentCounterTest
     seedComponent(application, "h-one", "GPL-2.0");
 
     List<LicenseThreatGroupCount> counts =
-        counter.countByApplicationIds(Set.of(application.getId()));
+        countByApplicationIds(Set.of(application.getId()));
 
     assertThat(counts.stream()
         .filter(c -> c.getLicenseThreatGroupName().startsWith("CLM-39702"))

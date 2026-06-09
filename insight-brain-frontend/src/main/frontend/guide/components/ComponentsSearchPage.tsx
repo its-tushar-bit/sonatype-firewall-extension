@@ -56,6 +56,15 @@ export function ComponentsSearchPage() {
     if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
+    const query = params.get('query') ?? '';
+    const sortField = params.get('sortField') ?? '';
+    const sortOrder = params.get('sortOrder') ?? '';
+    const effectiveSortField = sortField === '_score' && !query
+      ? 'trending'
+      : sortField || (query ? '_score' : 'trending');
+    params.set('sortField', effectiveSortField);
+    params.set('sortOrder', sortOrder || 'desc');
+
     Promise.all([
       searchComponents(params),
       fetchComponentBrowseAggregations(),

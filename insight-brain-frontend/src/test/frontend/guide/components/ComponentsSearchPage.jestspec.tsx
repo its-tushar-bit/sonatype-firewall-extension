@@ -305,6 +305,62 @@ describe('ComponentsSearchPage', () => {
     });
   });
 
+  describe('sort params sent to API', () => {
+    it('sends trending:desc by default when no sort and no query in URL', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, { routerOptions: { initialEntries: ['/components'] } });
+
+      await screen.findByText('Results: 3');
+
+      const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+      expect(callArg.get('sortField')).toBe('trending');
+      expect(callArg.get('sortOrder')).toBe('desc');
+    });
+
+    it('sends _score:desc when query is present but no explicit sort', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?query=lodash'] },
+      });
+
+      await screen.findByText('Results: 3');
+
+      const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+      expect(callArg.get('sortField')).toBe('_score');
+      expect(callArg.get('sortOrder')).toBe('desc');
+    });
+
+    it('sends trending:desc when sort is _score but query is absent (cleared query)', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?sortField=_score&sortOrder=desc'] },
+      });
+
+      await screen.findByText('Results: 3');
+
+      const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+      expect(callArg.get('sortField')).toBe('trending');
+      expect(callArg.get('sortOrder')).toBe('desc');
+    });
+
+    it('preserves explicit non-_score sort from URL', async () => {
+      mockSearchComponents.mockResolvedValue(makeMockResponse(3, 3));
+
+      render(<ComponentsSearchPage />, {
+        routerOptions: { initialEntries: ['/components?sortField=publishedDate&sortOrder=asc'] },
+      });
+
+      await screen.findByText('Results: 3');
+
+      const callArg = mockSearchComponents.mock.calls[0][0] as URLSearchParams;
+      expect(callArg.get('sortField')).toBe('publishedDate');
+      expect(callArg.get('sortOrder')).toBe('asc');
+    });
+  });
+
   it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
     mockSearchComponents.mockResolvedValue(makeMockResponse(0, 0));

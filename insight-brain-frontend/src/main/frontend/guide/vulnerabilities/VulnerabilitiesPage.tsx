@@ -51,6 +51,9 @@ export function VulnerabilitiesPage() {
     if (!isFeatureEnabled(FEATURE_FLAGS.GUIDE_SEARCH)) params.delete('query');
     if (!params.has('limit')) params.set('limit', String(LIMIT));
 
+    if (!params.has('sortField')) params.set('sortField', 'publishedDate');
+    if (!params.has('sortOrder')) params.set('sortOrder', 'desc');
+
     setError(null);
     setIsPending(true);
 

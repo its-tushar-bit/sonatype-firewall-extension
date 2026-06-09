@@ -343,6 +343,34 @@ describe('VulnerabilitiesPage', () => {
       expect(callArgs.get('sort')).toBe('publishedDate:desc');
     });
 
+    it('sends publishedDate:desc by default when no sort in URL', async () => {
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/'] },
+      });
+
+      await waitFor(() => {
+        expect(mockSearchVulnerabilities).toHaveBeenCalled();
+      });
+
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('sortField')).toBe('publishedDate');
+      expect(callArgs.get('sortOrder')).toBe('desc');
+    });
+
+    it('preserves explicit sortField and sortOrder from URL', async () => {
+      render(<VulnerabilitiesPage />, {
+        routerOptions: { initialEntries: ['/?sortField=sonatypeCvssSeverity&sortOrder=desc'] },
+      });
+
+      await waitFor(() => {
+        expect(mockSearchVulnerabilities).toHaveBeenCalled();
+      });
+
+      const callArgs = mockSearchVulnerabilities.mock.calls[0][0] as URLSearchParams;
+      expect(callArgs.get('sortField')).toBe('sonatypeCvssSeverity');
+      expect(callArgs.get('sortOrder')).toBe('desc');
+    });
+
     it('strips query from API call when GUIDE_SEARCH is disabled', async () => {
       jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
 

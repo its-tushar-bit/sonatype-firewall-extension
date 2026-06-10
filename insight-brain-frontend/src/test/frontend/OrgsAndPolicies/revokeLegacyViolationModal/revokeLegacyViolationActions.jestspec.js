@@ -62,10 +62,10 @@ describe('revokeLegacyViolationActions', () => {
     });
 
     it('handles revoke', (done) => {
-      axiosMock.onPut(`/rest/legacyViolations/revoke/organizationTwoID`).reply(200, {});
+      axiosMock.onPost(`/api/v2/legacyViolations/application/organizationTwoID/revoke`).reply(200, {});
 
       store.dispatch(actions.revokeLegacyViolation()).then(() => {
-        expect(axiosMock.history.put.length).toBe(1);
+        expect(axiosMock.history.post.length).toBe(1);
 
         const actions = store.getActions();
         expect(actions.length).toBe(2);

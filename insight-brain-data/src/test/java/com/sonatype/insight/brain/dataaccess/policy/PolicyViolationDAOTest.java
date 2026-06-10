@@ -1721,6 +1721,13 @@ public class PolicyViolationDAOTest
       assertThat(violations2).extracting(PolicyViolation::getId)
           .containsExactly(unfixedLegacyViolation2.getId());
     }
+
+    assertThat(dao.getUnfixedLegacyViolationByApplicationId(application.getId()))
+        .extracting(PolicyViolation::getId)
+        .containsExactly(unfixedLegacyViolation1.getId());
+    assertThat(dao.getUnfixedLegacyViolationByApplicationId(application2.getId()))
+        .extracting(PolicyViolation::getId)
+        .containsExactly(unfixedLegacyViolation2.getId());
   }
 
   @Test

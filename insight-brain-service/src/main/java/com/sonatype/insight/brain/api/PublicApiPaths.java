@@ -35,6 +35,10 @@ public class PublicApiPaths
 
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
+  public static final String LEGACY_VIOLATIONS_PATH_V2 = API_VERSION_PATH_V2 + "legacyViolations";
+
+  public static final String LEGACY_VIOLATIONS_CONFIG_PATH_V2 = API_VERSION_PATH_V2 + "config/legacyViolations";
+
   public static final String AUTO_POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "autoPolicyWaivers";
 
   public static final String AUTO_POLICY_WAIVER_EXCLUSION_PATH = API_VERSION_PATH_V2 +

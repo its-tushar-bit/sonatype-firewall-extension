@@ -166,7 +166,10 @@ describe('legacViolationActions', () => {
       store.dispatch(actions.saveLegacyViolation()).then(() => {
         jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(mock.history.put.length).toBe(1);
-        expect(mock.history.put[0].url).toBe('/rest/legacyViolations/organization/ROOT_ORGANIZATION_ID', putData);
+        expect(mock.history.put[0].url).toBe(
+          '/api/v2/config/legacyViolations/organization/ROOT_ORGANIZATION_ID',
+          putData
+        );
         expect(mock.history.put[0].data).toEqual(JSON.stringify(putData));
         const actions = store.getActions();
         expect(actions.length).toBe(3);
@@ -192,7 +195,10 @@ describe('legacViolationActions', () => {
 
       store.dispatch(actions.saveLegacyViolation()).then(() => {
         expect(mock.history.put.length).toBe(1);
-        expect(mock.history.put[0].url).toBe('/rest/legacyViolations/organization/ROOT_ORGANIZATION_ID', putData);
+        expect(mock.history.put[0].url).toBe(
+          '/api/v2/config/legacyViolations/organization/ROOT_ORGANIZATION_ID',
+          putData
+        );
 
         const actions = store.getActions();
 

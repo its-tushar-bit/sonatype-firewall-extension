@@ -85,7 +85,7 @@ public class LegacyViolationService
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void revokeLegacyViolationStatus(
+  public int revokeLegacyViolationStatus(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     validateLegacyViolationIsLicensed();
@@ -115,11 +115,12 @@ public class LegacyViolationService
 
       policyViolationLogger.log();
       auditChangedPolicyViolationCount(legacyViolations.size());
+      return legacyViolations.size();
     }
   }
 
   @Authorize(permission = Permission.WRITE)
-  public void grantLegacyViolationStatus(
+  public int grantLegacyViolationStatus(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId)
   {
     validateLegacyViolationIsLicensed();
@@ -164,6 +165,7 @@ public class LegacyViolationService
 
       policyViolationLogger.log();
       auditChangedPolicyViolationCount(changedPolicyViolationCount);
+      return changedPolicyViolationCount;
     }
   }
 
@@ -172,6 +174,10 @@ public class LegacyViolationService
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
+    return computeLegacyViolationsStatus(ownerType, ownerId);
+  }
+
+  private LegacyViolationStatusDTO computeLegacyViolationsStatus(OwnerType ownerType, String ownerId) {
     LegacyViolationStatusDTO legacyViolationStatusDTO = new LegacyViolationStatusDTO();
     legacyViolationStatusDTO.allowChange = true;
 
@@ -246,7 +252,7 @@ public class LegacyViolationService
                 ? "inherit"
                 : legacyViolationStatusDTO.enabled ? "enable" : "disable");
 
-    return legacyViolationStatusDTO;
+    return computeLegacyViolationsStatus(ownerType, ownerId);
   }
 
   private void auditChangedPolicyViolationCount(int changedPolicyViolationCount) {

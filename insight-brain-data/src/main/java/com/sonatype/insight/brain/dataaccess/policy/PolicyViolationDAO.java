@@ -1148,6 +1148,12 @@ public class PolicyViolationDAO
         .fetchInto(PolicyViolation.class);
   }
 
+  public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(String appId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getUnfixedLegacyViolationByApplicationId(tx, appId);
+    }
+  }
+
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {
     try (TransactionContext tx = createTransactionContext()) {
       return tx.dsl()

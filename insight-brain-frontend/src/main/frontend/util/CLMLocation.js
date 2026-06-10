@@ -1552,7 +1552,7 @@ export const getAuditReportSummary = function (repositoryId) {
 };
 
 export const getLegacyViolationURL = (ownerType, ownerId) =>
-  uriTemplate`/rest/legacyViolations/${ownerType}/${ownerId}`;
+  uriTemplate`/api/v2/config/legacyViolations/${ownerType}/${ownerId}`;
 
 export const getApplicableAutoWaiversURL = (ownerType, ownerId) => {
   return uriTemplate`/api/v2/autoPolicyWaivers/v2/${ownerType}/${ownerId}/applicableAutoWaivers`;
@@ -1592,11 +1592,11 @@ export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
 };
 
 export const getRevokeLegacyViolationUrl = (applicationPublicId) =>
-  uriTemplate`/rest/legacyViolations/revoke/${applicationPublicId}`;
+  uriTemplate`/api/v2/legacyViolations/application/${applicationPublicId}/revoke`;
 
 export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
 
-export const getLegacyViolationModalUrl = (appId) => uriTemplate`/rest/legacyViolations/grant/${appId}`;
+export const getLegacyViolationModalUrl = (appId) => uriTemplate`/api/v2/legacyViolations/application/${appId}/grant`;
 
 export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organization/${appId}/import`;
 

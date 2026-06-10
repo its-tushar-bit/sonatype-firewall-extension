@@ -101,8 +101,8 @@ describe('RevokeLegacyViolationModal', () => {
     expect(submitButton).toBeVisible();
     expect(submitButton).not.toHaveClass('disabled');
     fireEvent.click(submitButton);
-    expect(axiosMock.history.put.length).toBe(1);
-    expect(axiosMock.history.put[0].url).toBe(getRevokeLegacyViolationUrl('123123'));
+    expect(axiosMock.history.post.length).toBe(1);
+    expect(axiosMock.history.post[0].url).toBe(getRevokeLegacyViolationUrl('123123'));
   });
 
   it('close modal on cancel', () => {

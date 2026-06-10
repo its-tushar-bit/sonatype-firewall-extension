@@ -46,7 +46,7 @@ const revokeLegacyViolationModal = createAsyncThunk(
     const url = getRevokeLegacyViolationUrl(owner.publicId);
 
     return axios
-      .put(url)
+      .post(url)
       .then(() => {
         startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
           dispatch(

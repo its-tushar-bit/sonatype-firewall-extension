@@ -44,7 +44,7 @@ const legacyViolation = createAsyncThunk(REDUCER_NAME, (_, { getState, dispatch,
   const url = getLegacyViolationModalUrl(owner.publicId);
 
   return axios
-    .put(url)
+    .post(url)
     .then(() => {
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
         dispatch(

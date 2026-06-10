@@ -324,8 +324,9 @@ void runBuildAndParallelSteps(Map<String, ?> mavenCommon, String keystoreCredId,
 
 
   def zips = [workspaceZip]
-  // LinkedHashMap (not HashMap) so the Jenkins Stage View renders columns in insertion order.
-  def parallelSteps = new LinkedHashMap<String, Closure>(getParallelTests(zips))
+  // Ordered map so Jenkins Stage View renders columns in insertion order.
+  def parallelSteps = [:]
+  parallelSteps.putAll(getParallelTests(zips))
   parallelSteps.putAll(getDockerSteps(zips))
   parallel(parallelSteps)
 

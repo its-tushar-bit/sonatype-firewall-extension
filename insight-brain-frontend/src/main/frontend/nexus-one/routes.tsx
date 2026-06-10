@@ -16,6 +16,7 @@ import { PreviewPagePlaceholder } from 'MainRoot/nosc/shell/PreviewPagePlacehold
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
+import { AdvancedSearchComingSoon } from 'MainRoot/nosc/searchResults/AdvancedSearchComingSoon';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 
 function readHashPath(): string {
@@ -84,17 +85,16 @@ COMING_SOON_ENTITY_ROUTES.forEach(({ name, url }) => {
   } as ReactStateDeclaration);
 });
 
-const PLACEHOLDER_ROUTES: ReadonlyArray<{ readonly name: string; readonly url: string }> = [
-  { name: 'nexusOneSearch', url: '/search' },
-];
-
-PLACEHOLDER_ROUTES.forEach(({ name, url }) => {
-  router.stateRegistry.register({
-    name,
-    url,
-    component: NexusOneRoutePlaceholder,
-  } as ReactStateDeclaration);
-});
+router.stateRegistry.register({
+  name: 'nexusOneSearch',
+  // `?q` carries the omnibar query so the destination (and the Classic escape
+  // hatch) can read the user's term instead of dropping it.
+  url: '/search?q',
+  component: AdvancedSearchComingSoon,
+  data: {
+    title: 'Nexus One — Search',
+  },
+} as ReactStateDeclaration);
 
 function slugToStateName(slug: string): string {
   const pascal = slug

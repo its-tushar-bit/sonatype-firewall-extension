@@ -16,8 +16,7 @@ import {
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { nexusOneToClassicUrl } from 'MainRoot/nexus-one/nexusOneToClassicUrl';
 import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
-// Epic 9 ships the SearchOmnibar component at MainRoot/nosc/search/SearchOmnibar.
-// Until then the slot stays empty (TopNav has the visual real estate reserved).
+import { SearchOmnibar } from 'MainRoot/nosc/search/SearchOmnibar';
 import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import PreviewSolutionSwitcher from 'MainRoot/nosc/shell/PreviewSolutionSwitcher';
@@ -147,8 +146,12 @@ export function TopNav(): JSX.Element {
             />
           </button>
 
-          {/* ─── Center: global search omnibar (filled in by Epic 9). ─── */}
-          <Box flexGrow="1" data-testid="nexus-one-top-nav-search-slot" />
+          {/* ─── Center: global search omnibar. ─── */}
+          <Box flexGrow="1" data-testid="nexus-one-top-nav-search-slot">
+            <Flex justify="center">
+              <SearchOmnibar />
+            </Flex>
+          </Box>
 
 
           {/* ─── Right cluster ─── */}

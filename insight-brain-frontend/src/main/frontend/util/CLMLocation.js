@@ -658,6 +658,21 @@ export function getDashboardLegalObligationsUrl() {
   return uriTemplate`/rest/dashboard/legalObligations`;
 }
 
+// CLM-39549 / P1-F13: Preview global search.
+// Multi-entity typeahead — searches applications, components, vulnerabilities,
+// policies, organizations, and SBOM metadata. Backed by the Classic
+// /api/v2/search/advanced endpoint with Nexus-One-specific per-bucket
+// queries.
+export function getNoscGlobalSearchUrl(query, page, pageSize) {
+  const params = toURIParams({
+    query,
+    page: page ?? 0,
+    pageSize: pageSize ?? 10,
+    allComponents: true,
+  });
+  return uriTemplate`/api/v2/search/advanced?` + params;
+}
+
 export function getEnableUnauthenticatedPages() {
   return uriTemplate`/rest/product/features/enableUnauthenticatedPages`;
 }

@@ -28,6 +28,7 @@ import {
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
+import { setShowLimitedFirewallAccessAlert } from 'MainRoot/firewall/firewallActions';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
 export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
@@ -64,6 +65,14 @@ export function loadResults(resultsType) {
         dispatch(loadResultsFulfilled(resultsType, results, hasNextPage, classyBrew));
       })
       .catch((error) => {
+        if (resultsType === WAIVERS_RESULTS_TYPE && error?.response?.status === 403) {
+          dispatch(setShowLimitedFirewallAccessAlert(true));
+          dispatch(loadResultsFulfilled(resultsType, [], false, null));
+          return;
+        }
+        if (resultsType === WAIVERS_RESULTS_TYPE) {
+          dispatch(setShowLimitedFirewallAccessAlert(false));
+        }
         dispatch(loadResultsFailed(resultsType, error));
       });
   };

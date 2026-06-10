@@ -13,6 +13,7 @@ import {
   getReviewPolicyWaiverRequestUrl,
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
+import { setShowLimitedFirewallAccessAlert } from 'MainRoot/firewall/firewallActions';
 
 const ROOT_ORG_OWNER_TYPE = 'organization';
 const ROOT_ORG_OWNER_ID = 'ROOT_ORGANIZATION_ID';
@@ -36,14 +37,22 @@ export const initialState = Object.freeze({
 
 // Thunks
 
-const loadWaiverRequests = createAsyncThunk(`${REDUCER_NAME}/loadWaiverRequests`, async (_, { rejectWithValue }) => {
-  try {
-    const response = await axios.get(getListPolicyWaiverRequestsUrl(ROOT_ORG_OWNER_TYPE, ROOT_ORG_OWNER_ID));
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(error);
+const loadWaiverRequests = createAsyncThunk(
+  `${REDUCER_NAME}/loadWaiverRequests`,
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.get(getListPolicyWaiverRequestsUrl(ROOT_ORG_OWNER_TYPE, ROOT_ORG_OWNER_ID));
+      return response.data;
+    } catch (error) {
+      if (error?.response?.status === 403) {
+        dispatch(setShowLimitedFirewallAccessAlert(true));
+        return rejectWithValue({ limitedAccess: true });
+      }
+      dispatch(setShowLimitedFirewallAccessAlert(false));
+      return rejectWithValue(error);
+    }
   }
-});
+);
 
 const loadWaiverRequestForReview = createAsyncThunk(
   `${REDUCER_NAME}/loadWaiverRequestForReview`,
@@ -122,7 +131,7 @@ const loadWaiverRequestsFulfilled = (state, { payload }) => {
 
 const loadWaiverRequestsFailed = (state, { payload }) => {
   state.loading = false;
-  state.error = Messages.getHttpErrorMessage(payload);
+  state.error = payload?.limitedAccess ? null : Messages.getHttpErrorMessage(payload);
 };
 
 const loadWaiverRequestForReviewRequested = (state) => {

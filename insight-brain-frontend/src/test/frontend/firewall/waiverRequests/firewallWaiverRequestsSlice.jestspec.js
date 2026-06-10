@@ -136,5 +136,28 @@ describe('firewallWaiverRequestsSlice', () => {
       expect(state.loading).toBe(false);
       expect(state.error).toBeTruthy();
     });
+
+    it('on 403 leaves error null and emits FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT with true', async () => {
+      axiosMock.onGet(LIST_URL).reply(403, { message: 'Forbidden' });
+      const dispatched = [];
+      const captureMiddleware = () => (next) => (action) => {
+        dispatched.push(action);
+        return next(action);
+      };
+      const store = configureStore({
+        reducer: { firewallWaiverRequests: reducer },
+        preloadedState: { firewallWaiverRequests: { ...initialState } },
+        middleware: (getDefault) => getDefault().concat(captureMiddleware),
+      });
+      await store.dispatch(actions.loadWaiverRequests());
+      const state = store.getState().firewallWaiverRequests;
+      expect(state.loading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(
+        dispatched.some(
+          (a) => a?.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT' && a.payload === true
+        )
+      ).toBe(true);
+    });
   });
 });

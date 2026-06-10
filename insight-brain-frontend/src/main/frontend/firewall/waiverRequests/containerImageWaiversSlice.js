@@ -7,6 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { getContainerImageAllRepositoriesWaiversUrl } from 'MainRoot/util/CLMLocation';
+import { setShowLimitedFirewallAccessAlert } from 'MainRoot/firewall/firewallActions';
 
 const REDUCER_NAME = 'containerImageWaivers';
 
@@ -18,11 +19,16 @@ export const initialState = {
 
 const loadContainerImageWaivers = createAsyncThunk(
   `${REDUCER_NAME}/loadContainerImageWaivers`,
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const response = await axios.get(getContainerImageAllRepositoriesWaiversUrl());
       return response.data;
     } catch (error) {
+      if (error?.response?.status === 403) {
+        dispatch(setShowLimitedFirewallAccessAlert(true));
+        return rejectWithValue({ limitedAccess: true });
+      }
+      dispatch(setShowLimitedFirewallAccessAlert(false));
       return rejectWithValue(error);
     }
   }
@@ -44,7 +50,7 @@ const containerImageWaiversSlice = createSlice({
       })
       .addCase(loadContainerImageWaivers.rejected, (state, { payload }) => {
         state.loading = false;
-        state.error = Messages.getHttpErrorMessage(payload);
+        state.error = payload?.limitedAccess ? null : Messages.getHttpErrorMessage(payload);
       });
   },
 });

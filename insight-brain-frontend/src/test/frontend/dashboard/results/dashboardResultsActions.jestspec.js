@@ -137,14 +137,29 @@ describe('dashboardResultsActions', () => {
         tab.serviceMethod.mockImplementation(() => mockRejection);
 
         store.dispatch(loadResults(tab.resultsType)).then(() => {
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1]).toEqual({
-            type: 'LOAD_RESULTS_FAILED',
-            payload: {
-              resultsType: tab.resultsType,
-              error: 'load results error',
-            },
-          });
+          const actions = store.getActions();
+          // Waivers tab additionally dispatches setShowLimitedFirewallAccessAlert(false) on non-403 errors
+          // so the limited-access banner clears when a real load error happens.
+          if (tab.resultsType === 'waivers') {
+            expect(actions.length).toBe(3);
+            expect(actions[1]).toEqual({
+              type: 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT',
+              payload: false,
+            });
+            expect(actions[2]).toEqual({
+              type: 'LOAD_RESULTS_FAILED',
+              payload: { resultsType: 'waivers', error: 'load results error' },
+            });
+          } else {
+            expect(actions.length).toBe(2);
+            expect(actions[1]).toEqual({
+              type: 'LOAD_RESULTS_FAILED',
+              payload: {
+                resultsType: tab.resultsType,
+                error: 'load results error',
+              },
+            });
+          }
           done();
         });
 
@@ -158,6 +173,56 @@ describe('dashboardResultsActions', () => {
   };
 
   tabs.forEach(testLoadResultsAction);
+
+  describe('loadResults 403 limited-access handling', () => {
+    const make403 = () => {
+      const err = new Error('Forbidden');
+      err.response = { status: 403 };
+      return err;
+    };
+
+    it('on WAIVERS 403, dispatches setShowLimitedFirewallAccessAlert(true) and an empty fulfilled, not failed', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      dashboardDataServices.getWaivers.mockImplementation(() => Promise.reject(make403()));
+
+      store.dispatch(loadResults('waivers')).then(() => {
+        const types = store.getActions().map((a) => a.type);
+        expect(types).toContain('FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT');
+        const flag = store.getActions().find((a) => a.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT');
+        expect(flag.payload).toBe(true);
+        expect(types).toContain('LOAD_RESULTS_FULFILLED');
+        expect(types).not.toContain('LOAD_RESULTS_FAILED');
+        done();
+      });
+    });
+
+    it('on non-WAIVERS 403, behaves as before (LOAD_RESULTS_FAILED, no firewall flag)', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      dashboardDataServices.getNewestRisks.mockImplementation(() => Promise.reject(make403()));
+
+      store.dispatch(loadResults('violations')).then(() => {
+        const types = store.getActions().map((a) => a.type);
+        expect(types).toContain('LOAD_RESULTS_FAILED');
+        expect(types).not.toContain('FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT');
+        done();
+      });
+    });
+
+    it('on WAIVERS non-403 error, clears the firewall flag and dispatches LOAD_RESULTS_FAILED', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      const err = new Error('Server error');
+      err.response = { status: 500 };
+      dashboardDataServices.getWaivers.mockImplementation(() => Promise.reject(err));
+
+      store.dispatch(loadResults('waivers')).then(() => {
+        const flagActions = store.getActions().filter((a) => a.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT');
+        expect(flagActions).toHaveLength(1);
+        expect(flagActions[0].payload).toBe(false);
+        expect(store.getActions().some((a) => a.type === 'LOAD_RESULTS_FAILED')).toBe(true);
+        done();
+      });
+    });
+  });
 
   const testSetPageAction = (tab) => {
     describe('setPage for ' + tab.resultsType, () => {

@@ -204,4 +204,47 @@ describe('FirewallWaiversPage', () => {
       expect(topLevelTabs[0]).toHaveAttribute('aria-selected', 'true');
     });
   });
+
+  describe('limited firewall access', () => {
+    const limitedAccessState = {
+      ...componentSubTabState,
+      firewall: { showLimitedFirewallAccessAlert: true },
+    };
+
+    it('renders the LimitedFirewallAccessAlert banner under the title', () => {
+      render(<FirewallWaiversPage />, { preloadedState: limitedAccessState });
+      expect(
+        screen.getByText(/You have limited access to Repository Firewall based on your current permissions/i)
+      ).toBeInTheDocument();
+    });
+
+    it('shows the required-access error inside the Components tab and hides sub-tabs/tables', () => {
+      render(<FirewallWaiversPage />, { preloadedState: limitedAccessState });
+      expect(
+        screen.getByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /existing waivers/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /requested waivers/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+
+    it('shows the required-access error inside the Containers tab and hides sub-tabs/tables', () => {
+      render(<FirewallWaiversPage />, {
+        preloadedState: { ...containerExistingTabState, firewall: { showLimitedFirewallAccessAlert: true } },
+      });
+      expect(
+        screen.getByText(/An error occurred loading data\. Don.t have required access to access waivers\./i)
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /existing waivers/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+
+    it('still shows top-level Components and Containers tabs', () => {
+      render(<FirewallWaiversPage />, { preloadedState: limitedAccessState });
+      const tabList = screen.getAllByRole('tablist')[0];
+      const tabs = within(tabList).getAllByRole('tab');
+      expect(tabs[0]).toHaveTextContent('Components');
+      expect(tabs[1]).toHaveTextContent('Containers');
+    });
+  });
 });

@@ -81,7 +81,17 @@ export default function FirewallSidebar(props) {
             isSelected={isSelected(firewallWaiversState)}
             id="sonatype-firewall-waivers-navigation-button"
             icon={faFileCheck}
-            text="Waivers"
+            text={
+              <>
+                <span>Waivers</span>
+                <span className="iq-api-nav-link__navigation-badge">
+                  {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                  <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                  NEW
+                  <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                </span>
+              </>
+            }
             href={firewallWaiversHref}
           />
           {isFirewallEnterpriseReportingEnabled && (
@@ -103,12 +113,6 @@ export default function FirewallSidebar(props) {
               text={
                 <>
                   <span>API</span>
-                  <span className="iq-api-nav-link__navigation-badge">
-                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                    <span className="iq-api-nav-link__tooltip-only-text"> (</span>
-                    NEW
-                    <span className="iq-api-nav-link__tooltip-only-text">)</span>
-                  </span>
                 </>
               }
               href={apiHref}

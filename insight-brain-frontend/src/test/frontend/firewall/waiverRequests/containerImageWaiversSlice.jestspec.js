@@ -33,6 +33,7 @@ describe('containerImageWaiversSlice', () => {
   });
 
   beforeEach(() => {
+    axiosMock.reset();
     store = configureStore({
       reducer: { containerImageWaivers: containerImageWaiversReducer },
     });
@@ -118,6 +119,31 @@ describe('containerImageWaiversSlice', () => {
         (req) => req.url === getContainerImageAllRepositoriesWaiversUrl()
       );
       expect(getRequests).toHaveLength(1);
+    });
+
+    it('on 403 leaves error null and emits FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT with true', async () => {
+      axiosMock.onGet(getContainerImageAllRepositoriesWaiversUrl()).reply(403, { message: 'Forbidden' });
+      const dispatched = [];
+      const captureMiddleware = () => (next) => (action) => {
+        dispatched.push(action);
+        return next(action);
+      };
+      const localStore = configureStore({
+        reducer: { containerImageWaivers: containerImageWaiversReducer },
+        middleware: (getDefault) => getDefault().concat(captureMiddleware),
+      });
+
+      await localStore.dispatch(actions.loadContainerImageWaivers());
+
+      const state = localStore.getState().containerImageWaivers;
+      expect(state.loading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(state.waivers).toEqual([]);
+      expect(
+        dispatched.some(
+          (a) => a?.type === 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT' && a.payload === true
+        )
+      ).toBe(true);
     });
 
     it('clears previous error on retry', async () => {

@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.enterprise.reporting;
 
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
-import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +43,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.solution.Solution;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.enterprisereporting.IerDashboardGroupMetadataDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataListDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardVersionDTO;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -74,12 +75,16 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
+import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
+
 public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
 {
   private final String embedDomain = "http%3A%2F%2Flocalhost%3A8070";
 
-  private static final List<DashboardGroupMetadataDTO> DASHBOARD_GROUP_METADATA = Collections.emptyList();
+  private static final List<IerDashboardGroupMetadataDTO> DASHBOARD_GROUP_METADATA = Collections.emptyList();
 
   @Mock
   private HdsClient mockHdsClient;
@@ -173,34 +178,36 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testDashboardMetadata() {
-    DashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    IerDashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new IerDashboardVersionDTO(1));
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected);
 
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
-        .hasSameElementsAs(expected.dashboardMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
-        .hasSameElementsAs(expected.dashboardGroupMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata())
+        .hasSameElementsAs(expected.dashboardMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata())
+        .hasSameElementsAs(expected.dashboardGroupMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().version()).isEqualTo(expected.version());
 
-    verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-    verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
 
     verifyScheduledTaskVersionCache(1);
     Mockito.clearInvocations(mockHdsClient);
     Mockito.clearInvocations(mockTaskScheduler);
 
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
-        .hasSameElementsAs(expected.dashboardMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
-        .hasSameElementsAs(expected.dashboardGroupMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata())
+        .hasSameElementsAs(expected.dashboardMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata())
+        .hasSameElementsAs(expected.dashboardGroupMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().version()).isEqualTo(expected.version());
 
-    verify(mockHdsClient, never()).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-    verify(mockHdsClient, never()).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(mockHdsClient, never()).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verify(mockHdsClient, never()).get(IerDashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
 
     verify(mockTaskScheduler, times(0)).scheduleOneTimeTaskForAllOtherNodes(any(), any());
@@ -208,33 +215,35 @@ public class EnterpriseReportingServiceTest
     Mockito.clearInvocations(mockTaskScheduler);
 
     enterpriseReportingService.currentDashboardsVersionSupplier.reset();
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(2));
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
-        .hasSameElementsAs(expected.dashboardMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
-        .hasSameElementsAs(expected.dashboardGroupMetadata);
-    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new IerDashboardVersionDTO(2));
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata())
+        .hasSameElementsAs(expected.dashboardMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata())
+        .hasSameElementsAs(expected.dashboardGroupMetadata());
+    assertThat(enterpriseReportingService.getDashboardMetadata().version()).isEqualTo(expected.version());
 
-    verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-    verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
     verifyScheduledTaskVersionCache(2);
   }
 
   @Test
   public void testGetDashboardMetadata_Error() {
-    DashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    IerDashboardMetadataListDTO expected = mockGetLookerDashboardMetadata();
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(expected);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new IerDashboardVersionDTO(1));
 
     enterpriseReportingService.getDashboardMetadata();
 
     assertThat(enterpriseReportingService.currentDashboardsVersionSupplier.get()).isEqualTo(1);
-    verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-    verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
 
     Mockito.clearInvocations(mockHdsClient);
@@ -242,8 +251,9 @@ public class EnterpriseReportingServiceTest
     enterpriseReportingService.currentDashboardsVersionSupplier.reset();
     when(mockHdsClient.get(any(), any())).thenThrow(new NotFoundException("Not found"));
     assertThatThrownBy(() -> enterpriseReportingService.getDashboardMetadata()).hasMessageContaining("Not found");
-    verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-    verify(mockHdsClient, never()).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+    verify(mockHdsClient, times(1)).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+    verify(mockHdsClient, never()).get(IerDashboardMetadataListDTO.class,
+        ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
     verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
   }
 
@@ -252,7 +262,7 @@ public class EnterpriseReportingServiceTest
     when(mockHdsClient.get(any(), anyString())).thenAnswer(invocationOnMock -> {
       String path = invocationOnMock.getArgument(1);
       if (ENTERPRISE_REPORTING_CURRENT_VERSION_PATH.equals(path)) {
-        return new DashboardsVersionDTO(1);
+        return new IerDashboardVersionDTO(1);
       }
       else {
         throw new BadGatewayException("error");
@@ -273,15 +283,15 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
         .toURI()));
-    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version,
+    IerDashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataListDTO firstDashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version,
             Collections.singletonList(firstDashboardMetadataDTO),
             DASHBOARD_GROUP_METADATA);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
@@ -300,20 +310,20 @@ public class EnterpriseReportingServiceTest
     byte[] iconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icons.zip")
         .toURI()));
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName)
         .toURI()));
-    DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
-    DashboardMetadataListDTO dashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version,
-            Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO),
+    IerDashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
+    IerDashboardMetadataListDTO dashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version,
+            List.of(firstDashboardMetadataDTO, secondDashboardMetadataDTO),
             DASHBOARD_GROUP_METADATA);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(iconsZipFile));
@@ -334,15 +344,15 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
         .toURI()));
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
-    DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version,
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
+    IerDashboardMetadataListDTO firstDashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version,
             Collections.singletonList(firstDashboardMetadataDTO),
             DASHBOARD_GROUP_METADATA);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
@@ -363,16 +373,16 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
         .toURI()));
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
-    DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version,
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
+    IerDashboardMetadataListDTO firstDashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version,
             Collections.singletonList(firstDashboardMetadataDTO),
             DASHBOARD_GROUP_METADATA);
 
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(firstIconZipFile));
@@ -388,17 +398,17 @@ public class EnterpriseReportingServiceTest
     byte[] secondIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-2.zip")
         .toURI()));
-    DashboardsVersionDTO secondVersion = new DashboardsVersionDTO(2);
-    DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
-    DashboardMetadataListDTO secondDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(secondVersion,
+    IerDashboardVersionDTO secondVersion = new IerDashboardVersionDTO(2);
+    IerDashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
+    IerDashboardMetadataListDTO secondDashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(secondVersion,
             Collections.singletonList(secondDashboardMetadataDTO),
             DASHBOARD_GROUP_METADATA);
 
     enterpriseReportingService.currentDashboardsVersionSupplier.reset();
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(secondVersion);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(secondDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
         .thenReturn(new ByteArrayInputStream(secondIconZipFile));
@@ -412,7 +422,7 @@ public class EnterpriseReportingServiceTest
     return TemporaryEntity.uuid().substring(0, 8);
   }
 
-  private static DashboardMetadataDTO createDashboardMetadata(String iconImage) {
+  private static IerDashboardMetadataDTO createDashboardMetadata(String iconImage) {
     final var dashboardId = generateRandomString();
     final var groupId = generateRandomString();
     final var title = generateRandomString();
@@ -426,27 +436,30 @@ public class EnterpriseReportingServiceTest
     final var spotlight = false;
     final var dashboardPath = "dashboards/rolling_recap::rolling_recap";
     final String spotlightColor = null;
+    final String sinceIQVersion = null;
     final String spotlightText = null;
-    return new DashboardMetadataDTO(dashboardId, groupId, title, category, description, features, accessButtonText,
-        previewImage, previewImageIcon, priority, spotlight, dashboardPath, spotlightColor, spotlightText);
+    return new IerDashboardMetadataDTO(dashboardId, groupId, title, description, features, accessButtonText,
+        previewImage, priority, spotlight, dashboardPath, spotlightColor, sinceIQVersion, spotlightText,
+        category, previewImageIcon);
   }
 
-  private static DashboardGroupMetadataDTO createDashboardGroupMetadata() {
+  private static IerDashboardGroupMetadataDTO createDashboardGroupMetadata() {
     final var groupId = generateRandomString();
     final var description = generateRandomString();
     final var features = Collections.singletonList(generateRandomString());
     final var previewImageIcon = generateRandomString();
+    final String sinceIQVersion = null;
     final var spotlight = false;
     final String spotlightColor = null;
     final String spotlightText = null;
     final var title = generateRandomString();
-    return new DashboardGroupMetadataDTO(groupId, description, features, previewImageIcon, spotlight,
-        spotlightColor, spotlightText, title);
+    return new IerDashboardGroupMetadataDTO(groupId, description, features, previewImageIcon, sinceIQVersion,
+        spotlight, spotlightColor, spotlightText, title);
   }
 
-  private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
-    var version = new DashboardsVersionDTO(1);
-    return new DashboardMetadataListDTO(version, Arrays.asList(createDashboardMetadata("icon-1.png"),
+  private static IerDashboardMetadataListDTO mockGetLookerDashboardMetadata() {
+    var version = new IerDashboardVersionDTO(1);
+    return new IerDashboardMetadataListDTO(version, Arrays.asList(createDashboardMetadata("icon-1.png"),
         createDashboardMetadata("icon-2.png"), createDashboardMetadata("icon-3.png")),
         Arrays.asList(createDashboardGroupMetadata()));
   }
@@ -466,13 +479,13 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_valid_onlyRequestedOnce() throws Exception {
     String iconName = "icon-1.png";
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataListDTO dashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataListDTO dashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
             DASHBOARD_GROUP_METADATA);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
@@ -485,8 +498,8 @@ public class EnterpriseReportingServiceTest
       byte[] iconImage = enterpriseReportingService.getIcon(iconName);
       assertThat(iconImage).isNotNull();
       t1IconImage.set(iconImage);
-      verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-      verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class,
+      verify(mockHdsClient, times(1)).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+      verify(mockHdsClient, times(1)).get(IerDashboardMetadataListDTO.class,
           ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
       verify(mockHdsClient, times(1)).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
       verifyScheduledTaskVersionCache(1);
@@ -500,8 +513,9 @@ public class EnterpriseReportingServiceTest
       byte[] iconImage = enterpriseReportingService.getIcon(iconName);
       assertThat(iconImage).isNotNull();
       t2IconImage.set(iconImage);
-      verify(mockHdsClient, never()).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
-      verify(mockHdsClient, never()).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+      verify(mockHdsClient, never()).get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+      verify(mockHdsClient, never()).get(IerDashboardMetadataListDTO.class,
+          ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
       verify(mockHdsClient, never()).get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
       verify(mockTaskScheduler, never()).scheduleOneTimeTaskForAllOtherNodes(eq(enterpriseReportingService), any());
     });
@@ -511,13 +525,13 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testGetIcon_notFound() {
-    final List<DashboardMetadataDTO> emptyDashboardMetadata = Collections.emptyList();
-    var version = new DashboardsVersionDTO(1);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    final List<IerDashboardMetadataDTO> emptyDashboardMetadata = Collections.emptyList();
+    var version = new IerDashboardVersionDTO(1);
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(
-            new DashboardMetadataListDTO(version, emptyDashboardMetadata, DASHBOARD_GROUP_METADATA));
+            new IerDashboardMetadataListDTO(version, emptyDashboardMetadata, DASHBOARD_GROUP_METADATA));
 
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);
@@ -526,13 +540,13 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_badRequest() throws Exception {
     String iconName = "icon-1.png";
-    var version = new DashboardsVersionDTO(1);
-    DashboardMetadataListDTO dashboardMetadataListDTO =
-        new DashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
+    var version = new IerDashboardVersionDTO(1);
+    IerDashboardMetadataListDTO dashboardMetadataListDTO =
+        new IerDashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
             DASHBOARD_GROUP_METADATA);
-    when(mockHdsClient.get(DashboardsVersionDTO.class,
+    when(mockHdsClient.get(IerDashboardVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
-    when(mockHdsClient.get(DashboardMetadataListDTO.class,
+    when(mockHdsClient.get(IerDashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip")
@@ -732,14 +746,14 @@ public class EnterpriseReportingServiceTest
 
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.FIREWALL));
-    List<DashboardMetadataDTO> allDashboards = List.of(
+    List<IerDashboardMetadataDTO> allDashboards = List.of(
         createDashboard("firewall-1", "firewall"),
         createDashboard("enterprise-1", "enterprise"));
 
-    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+    List<IerDashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).dashboardId).isEqualTo("firewall-1");
+    assertThat(result.get(0).dashboardId()).isEqualTo("firewall-1");
   }
 
   @Test
@@ -749,10 +763,10 @@ public class EnterpriseReportingServiceTest
 
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.FIREWALL));
-    List<DashboardMetadataDTO> allDashboards = List.of(
+    List<IerDashboardMetadataDTO> allDashboards = List.of(
         createDashboard("firewall-1", "firewall"));
 
-    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+    List<IerDashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
     assertThat(result).isEmpty();
   }
@@ -761,15 +775,16 @@ public class EnterpriseReportingServiceTest
   public void testFilterByLicenseAndFeatureFlags_LifecycleLicense_ReturnsEnterpriseAndDataInsight() {
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE));
-    List<DashboardMetadataDTO> allDashboards = List.of(
+    List<IerDashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("datainsight-1", "dataInsight"),
         createDashboard("firewall-1", "firewall"));
 
-    List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
+    List<IerDashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
 
     assertThat(result).hasSize(2);
-    assertThat(result).extracting("category").containsExactlyInAnyOrder("enterprise", "dataInsight");
+    assertThat(result).extracting(IerDashboardMetadataDTO::category)
+        .containsExactlyInAnyOrder("enterprise", "dataInsight");
   }
 
   @Test
@@ -780,12 +795,12 @@ public class EnterpriseReportingServiceTest
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE,
             Solution.FIREWALL));
-    List<DashboardMetadataDTO> allDashboards = List.of(
+    List<IerDashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("firewall-1", "firewall"),
         createDashboard("datainsight-1", "dataInsight"));
 
-    List<DashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
+    List<IerDashboardMetadataDTO> result = spy.filterByLicenseAndFeatureFlags(allDashboards);
 
     assertThat(result).hasSize(3);
   }
@@ -793,36 +808,36 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testFilterByLicenseAndFeatureFlags_NoLicense_ReturnsOnlyPartner() {
     when(mockSolutionResolver.getLicensedSolutions()).thenReturn(Collections.emptySet());
-    List<DashboardMetadataDTO> allDashboards = List.of(
+    List<IerDashboardMetadataDTO> allDashboards = List.of(
         createDashboard("enterprise-1", "enterprise"),
         createDashboard("partner-1", "partner"),
         createDashboard("firewall-1", "firewall"));
 
-    List<DashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
+    List<IerDashboardMetadataDTO> result = enterpriseReportingService.filterByLicenseAndFeatureFlags(allDashboards);
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).category).isEqualTo("partner");
+    assertThat(result.get(0).category()).isEqualTo("partner");
   }
 
   @Test
   public void testFilterByLicenseAndFeatureFlags_RapidResponseCategory_AllowedWithLifecycleLicense() {
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE));
-    DashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
+    IerDashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
 
-    List<DashboardMetadataDTO> result =
+    List<IerDashboardMetadataDTO> result =
         enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(rapidDashboard));
 
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).dashboardId).isEqualTo("mythos_report");
+    assertThat(result.get(0).dashboardId()).isEqualTo("mythos_report");
   }
 
   @Test
   public void testFilterByLicenseAndFeatureFlags_RapidResponseCategory_DeniedWithoutLifecycleLicense() {
     when(mockSolutionResolver.getLicensedSolutions()).thenReturn(Collections.emptySet());
-    DashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
+    IerDashboardMetadataDTO rapidDashboard = createDashboard("mythos_report", "rapidResponse");
 
-    List<DashboardMetadataDTO> result =
+    List<IerDashboardMetadataDTO> result =
         enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(rapidDashboard));
 
     assertThat(result).isEmpty();
@@ -832,9 +847,9 @@ public class EnterpriseReportingServiceTest
   public void testFilterByLicenseAndFeatureFlags_UnknownCategory_DeniesAccess() {
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE));
-    DashboardMetadataDTO unknownDashboard = createDashboard("unknown-1", "new-category");
+    IerDashboardMetadataDTO unknownDashboard = createDashboard("unknown-1", "new-category");
 
-    List<DashboardMetadataDTO> result =
+    List<IerDashboardMetadataDTO> result =
         enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(unknownDashboard));
 
     assertThat(result).isEmpty();
@@ -844,28 +859,32 @@ public class EnterpriseReportingServiceTest
   public void testFilterByLicenseAndFeatureFlags_NullCategory_DeniesAccess() {
     when(mockSolutionResolver.getLicensedSolutions())
         .thenReturn(Set.of(Solution.LIFECYCLE));
-    DashboardMetadataDTO nullCategoryDashboard = createDashboard("null-1", null);
+    IerDashboardMetadataDTO nullCategoryDashboard = createDashboard("null-1", null);
 
-    List<DashboardMetadataDTO> result =
+    List<IerDashboardMetadataDTO> result =
         enterpriseReportingService.filterByLicenseAndFeatureFlags(List.of(nullCategoryDashboard));
 
     assertThat(result).isEmpty();
   }
 
-  private DashboardMetadataDTO createDashboard(String id, String category) {
-    DashboardMetadataDTO dashboard = new DashboardMetadataDTO();
-    dashboard.dashboardId = id;
-    dashboard.category = category;
-    dashboard.title = "Test Dashboard";
-    dashboard.description = "Test Description";
-    dashboard.features = Collections.singletonList("feature1");
-    dashboard.accessButtonText = "Access";
-    dashboard.previewImage = "image.png";
-    dashboard.previewImageIcon = "icon.png";
-    dashboard.priority = 1;
-    dashboard.spotlight = false;
-    dashboard.dashboardPath = "dashboards/test::test";
-    return dashboard;
+  private IerDashboardMetadataDTO createDashboard(String id, String category) {
+    return new IerDashboardMetadataDTO(
+        id, // dashboardId
+        null, // groupId
+        "Test Dashboard", // title
+        "Test Description", // description
+        Collections.singletonList("feature1"), // features
+        "Access", // accessButtonText
+        "image.png", // previewImage
+        1, // priority
+        false, // spotlight
+        "dashboards/test::test", // dashboardPath
+        null, // spotlightColor
+        null, // sinceIQVersion
+        null, // spotlightText
+        category, // category
+        "icon.png" // previewImageIcon
+    );
   }
 
   private void verifyScheduledTaskVersionCache(Integer latestVersion) {

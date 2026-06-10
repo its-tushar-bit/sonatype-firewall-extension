@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataListDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -79,7 +80,7 @@ public class EnterpriseReportingResource
   @GET
   @Path(DASHBOARDS_METADATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public DashboardMetadataListDTO getDashboardMetadata() {
+  public IerDashboardMetadataListDTO getDashboardMetadata() {
     return enterpriseReportingService.getDashboardMetadata();
   }
 

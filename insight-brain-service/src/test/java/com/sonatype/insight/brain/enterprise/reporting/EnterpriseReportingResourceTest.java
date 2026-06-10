@@ -15,6 +15,9 @@ import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.db.IdUtil;
+import com.sonatype.insight.enterprisereporting.IerDashboardGroupMetadataDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataListDTO;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -77,32 +80,32 @@ public class EnterpriseReportingResourceTest
     hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons/rolling-recap.svg");
     HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(200, response);
-    DashboardMetadataListDTO responseList =
-        response.getBody(DashboardMetadataListDTO.class);
+    IerDashboardMetadataListDTO responseList =
+        response.getBody(IerDashboardMetadataListDTO.class);
     assertThat(responseList).isNotNull();
-    assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
-    assertThat(responseList.dashboardGroupMetadata.size()).isEqualTo(1);
-    assertThat(responseList.version).isNotNull();
+    assertThat(responseList.dashboardMetadata().size()).isEqualTo(1);
+    assertThat(responseList.dashboardGroupMetadata().size()).isEqualTo(1);
+    assertThat(responseList.version()).isNotNull();
 
-    DashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata.get(0);
-    assertThat(dashboardMetadataDTO.dashboardId).isEqualTo("sbom-scorecard");
-    assertThat(dashboardMetadataDTO.title).isEqualTo("Sbom Report Overview");
-    assertThat(dashboardMetadataDTO.category).isEqualTo("enterprise");
-    assertThat(dashboardMetadataDTO.description).isEqualTo("A comprehensive view of monthly sboms");
-    assertThat(dashboardMetadataDTO.features.size()).isEqualTo(2);
-    assertThat(dashboardMetadataDTO.accessButtonText).isEqualTo("Open Dashboard");
-    assertThat(dashboardMetadataDTO.previewImage).isEqualTo("rolling-recap.svg");
-    assertThat(dashboardMetadataDTO.previewImageIcon).isEqualTo("faCalendar");
-    assertThat(dashboardMetadataDTO.priority).isEqualTo(1);
-    assertThat(dashboardMetadataDTO.spotlight).isTrue();
+    IerDashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata().get(0);
+    assertThat(dashboardMetadataDTO.dashboardId()).isEqualTo("sbom-scorecard");
+    assertThat(dashboardMetadataDTO.title()).isEqualTo("Sbom Report Overview");
+    assertThat(dashboardMetadataDTO.category()).isEqualTo("enterprise");
+    assertThat(dashboardMetadataDTO.description()).isEqualTo("A comprehensive view of monthly sboms");
+    assertThat(dashboardMetadataDTO.features().size()).isEqualTo(2);
+    assertThat(dashboardMetadataDTO.accessButtonText()).isEqualTo("Open Dashboard");
+    assertThat(dashboardMetadataDTO.previewImage()).isEqualTo("rolling-recap.svg");
+    assertThat(dashboardMetadataDTO.previewImageIcon()).isEqualTo("faCalendar");
+    assertThat(dashboardMetadataDTO.priority()).isEqualTo(1);
+    assertThat(dashboardMetadataDTO.spotlight()).isTrue();
 
-    DashboardGroupMetadataDTO dashboardGroupMetadataDTO = responseList.dashboardGroupMetadata.get(0);
-    assertThat(dashboardGroupMetadataDTO.groupId).isEqualTo("security");
-    assertThat(dashboardGroupMetadataDTO.description).isEqualTo("A group of security dashboards");
-    assertThat(dashboardGroupMetadataDTO.features.size()).isEqualTo(2);
-    assertThat(dashboardGroupMetadataDTO.previewImageIcon).isEqualTo("faShield");
-    assertThat(dashboardGroupMetadataDTO.spotlight).isFalse();
-    assertThat(dashboardGroupMetadataDTO.title).isEqualTo("Security Risk");
+    IerDashboardGroupMetadataDTO dashboardGroupMetadataDTO = responseList.dashboardGroupMetadata().get(0);
+    assertThat(dashboardGroupMetadataDTO.groupId()).isEqualTo("security");
+    assertThat(dashboardGroupMetadataDTO.description()).isEqualTo("A group of security dashboards");
+    assertThat(dashboardGroupMetadataDTO.features().size()).isEqualTo(2);
+    assertThat(dashboardGroupMetadataDTO.previewImageIcon()).isEqualTo("faShield");
+    assertThat(dashboardGroupMetadataDTO.spotlight()).isFalse();
+    assertThat(dashboardGroupMetadataDTO.title()).isEqualTo("Security Risk");
   }
 
   @Test
@@ -113,10 +116,10 @@ public class EnterpriseReportingResourceTest
     hdsMockServer.respondWith(new byte[0]).atUri("rest/enterpriseReporting/icons/rolling-recap.svg");
     HttpResponse response = restRequest().path(EnterpriseReportingResource.DASHBOARDS_METADATA_PATH).get();
     assertResponseStatus(200, response);
-    DashboardMetadataListDTO responseList =
-        response.getBody(DashboardMetadataListDTO.class);
+    IerDashboardMetadataListDTO responseList =
+        response.getBody(IerDashboardMetadataListDTO.class);
     assertThat(responseList).isNotNull();
-    assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
+    assertThat(responseList.dashboardMetadata().size()).isEqualTo(1);
   }
 
   @Test
@@ -255,35 +258,37 @@ public class EnterpriseReportingResourceTest
   private String createDashboardMetadataJsonList() {
     return """
         {
-          "version": 100,
+          "version": {"version": 100},
           "dashboardMetadata": [
             {
               "dashboardId": "sbom-scorecard",
+              "groupId": null,
               "title": "Sbom Report Overview",
-              "category": "enterprise",
               "description": "A comprehensive view of monthly sboms",
-              "features": [
-                "Graphs",
-                "Tables"
-              ],
+              "features": ["Graphs", "Tables"],
               "accessButtonText": "Open Dashboard",
               "previewImage": "rolling-recap.svg",
-              "previewImageIcon": "faCalendar",
               "priority": 1,
-              "spotlight": true
+              "spotlight": true,
+              "dashboardPath": null,
+              "spotlightColor": null,
+              "sinceIQVersion": null,
+              "spotlightText": null,
+              "category": "enterprise",
+              "previewImageIcon": "faCalendar"
             }
           ],
           "dashboardGroupMetadata": [
             {
               "groupId": "security",
-              "title": "Security Risk",
               "description": "A group of security dashboards",
-              "features": [
-                "Trends",
-                "Breakdowns"
-              ],
+              "features": ["Trends", "Breakdowns"],
               "previewImageIcon": "faShield",
-              "spotlight": false
+              "sinceIQVersion": null,
+              "spotlight": false,
+              "spotlightColor": null,
+              "spotlightText": null,
+              "title": "Security Risk"
             }
           ]
         }
@@ -293,22 +298,24 @@ public class EnterpriseReportingResourceTest
   private String createDashboardMetadataAdditionalAttrJsonList() {
     return """
         {
-          "version": 101,
+          "version": {"version": 101},
           "dashboardMetadata": [
             {
               "dashboardId": "sbom-scorecard",
+              "groupId": null,
               "title": "Sbom Report Overview",
-              "category": "enterprise",
               "description": "A comprehensive view of monthly sboms",
-              "features": [
-                "Graphs",
-                "Tables"
-              ],
+              "features": ["Graphs", "Tables"],
               "accessButtonText": "Open Dashboard",
               "previewImage": "rolling-recap.svg",
-              "previewImageIcon": "faBrain",
               "priority": 1,
               "spotlight": true,
+              "dashboardPath": null,
+              "spotlightColor": null,
+              "sinceIQVersion": null,
+              "spotlightText": null,
+              "category": "enterprise",
+              "previewImageIcon": "faBrain",
               "unexpectedAttr": "what is this"
             }
           ],

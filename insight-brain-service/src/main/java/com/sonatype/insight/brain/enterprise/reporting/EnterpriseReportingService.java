@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -56,6 +57,9 @@ import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.utils.MostRecentMemoizingFunction;
 import com.sonatype.insight.brain.common.cache.ResettableExpiringMemoizingSupplier;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardMetadataListDTO;
+import com.sonatype.insight.enterprisereporting.IerDashboardVersionDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -111,7 +115,7 @@ public class EnterpriseReportingService
 
   private final TenantReference<ResettableExpiringMemoizingSupplier<String>> enterpriseReportingConfigDTOBaseUrlSupplier;
 
-  private final MostRecentMemoizingFunction<Integer, DashboardMetadataListDTO> dashboardMetadataGetter =
+  private final MostRecentMemoizingFunction<Integer, IerDashboardMetadataListDTO> dashboardMetadataGetter =
       new MostRecentMemoizingFunction<>(version -> getDashboardMetadataListDTOFromHds());
 
   private final MostRecentMemoizingFunction<Integer, Function<String, Supplier<byte[]>>> iconGetter =
@@ -184,7 +188,7 @@ public class EnterpriseReportingService
 
   private ResettableExpiringMemoizingSupplier<Integer> createDashboardsCurrentVersionSupplier() {
     return new ResettableExpiringMemoizingSupplier<>(
-        () -> getDashboardsVersionDTOFromHds().version,
+        () -> getDashboardsVersionDTOFromHds().version(),
         Duration.ofMinutes(configuration.getEnterpriseReportingVersionCacheExpirationInMinutes()),
         value -> taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this,
             Collections.singletonMap(TASK_PARAM_CURRENT_VERSION, String.valueOf(value))));
@@ -195,17 +199,26 @@ public class EnterpriseReportingService
         Duration.ofHours(1));
   }
 
-  public DashboardMetadataListDTO getDashboardMetadata() {
-    DashboardMetadataListDTO allDashboards =
+  public IerDashboardMetadataListDTO getDashboardMetadata() {
+    IerDashboardMetadataListDTO allDashboards =
         dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
 
-    List<DashboardMetadataDTO> authorizedDashboards = filterByLicenseAndFeatureFlags(
-        allDashboards.dashboardMetadata);
+    if (allDashboards == null) {
+      throw new InternalServerException("Dashboard metadata could not be retrieved from HDS");
+    }
 
-    return new DashboardMetadataListDTO(
-        allDashboards.version,
+    IerDashboardVersionDTO version = allDashboards.version();
+    if (version == null) {
+      throw new InternalServerException("Dashboard version could not be retrieved from HDS");
+    }
+
+    List<IerDashboardMetadataDTO> authorizedDashboards = filterByLicenseAndFeatureFlags(
+        allDashboards.dashboardMetadata());
+
+    return new IerDashboardMetadataListDTO(
+        version,
         authorizedDashboards,
-        allDashboards.dashboardGroupMetadata);
+        Objects.requireNonNullElse(allDashboards.dashboardGroupMetadata(), List.of()));
   }
 
   public EmbedCookielessSessionAcquire acquireEmbedSession(
@@ -350,10 +363,20 @@ public class EnterpriseReportingService
   }
 
   private void validateIconName(final String iconName) {
-    DashboardMetadataListDTO dashboardMetadataListDTO =
+    IerDashboardMetadataListDTO dashboardMetadataListDTO =
         dashboardMetadataGetter.apply(currentDashboardsVersionSupplier.get());
-    boolean iconNameNotFound = dashboardMetadataListDTO.dashboardMetadata.stream()
-        .noneMatch(dashboardMetadataDTO -> iconName.equals(dashboardMetadataDTO.previewImage));
+
+    if (dashboardMetadataListDTO == null) {
+      throw new InternalServerException("Dashboard metadata could not be retrieved from HDS");
+    }
+
+    List<IerDashboardMetadataDTO> dashboardMetadata = dashboardMetadataListDTO.dashboardMetadata();
+    if (dashboardMetadata == null) {
+      throw new InternalServerException("Dashboard metadata could not be retrieved from HDS");
+    }
+
+    boolean iconNameNotFound = dashboardMetadata.stream()
+        .noneMatch(dashboardMetadataDTO -> iconName.equals(dashboardMetadataDTO.previewImage()));
     if (iconNameNotFound) {
       throw new NotFoundException("Icon named " + iconName + " was not found");
     }
@@ -419,16 +442,16 @@ public class EnterpriseReportingService
     return hdsClient.get(EnterpriseReportingConfigDTO.class, ENTERPRISE_REPORTING_CONFIG_PATH);
   }
 
-  private DashboardsVersionDTO getDashboardsVersionDTOFromHds() {
-    return hdsClient.get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
+  private IerDashboardVersionDTO getDashboardsVersionDTOFromHds() {
+    return hdsClient.get(IerDashboardVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
   }
 
-  private DashboardMetadataListDTO getDashboardMetadataListDTOFromHds() {
-    return hdsClient.get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
+  private IerDashboardMetadataListDTO getDashboardMetadataListDTOFromHds() {
+    return hdsClient.get(IerDashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
   }
 
   @VisibleForTesting
-  List<DashboardMetadataDTO> filterByLicenseAndFeatureFlags(List<DashboardMetadataDTO> allDashboards) {
+  List<IerDashboardMetadataDTO> filterByLicenseAndFeatureFlags(List<IerDashboardMetadataDTO> allDashboards) {
     if (allDashboards == null || allDashboards.isEmpty()) {
       return Collections.emptyList();
     }
@@ -446,16 +469,16 @@ public class EnterpriseReportingService
 
   @VisibleForTesting
   boolean isDashboardAccessible(
-      DashboardMetadataDTO dashboard,
+      IerDashboardMetadataDTO dashboard,
       Set<Solution> licensedSolutions,
       boolean isFirewallReportingEnabled)
   {
-    String category = dashboard.category;
+    String category = dashboard.category();
 
     // Security: Deny access for null or missing categories (fail-closed approach)
     // Note: HDS contract guarantees category is always present, but we validate defensively
     if (category == null) {
-      log.warn("Dashboard '{}' has null category, denying access for security", dashboard.dashboardId);
+      log.warn("Dashboard '{}' has null category, denying access for security", dashboard.dashboardId());
       return false;
     }
 
@@ -474,7 +497,7 @@ public class EnterpriseReportingService
 
       default:
         log.warn("Unknown dashboard category '{}' for dashboard '{}', denying access",
-            category, dashboard.dashboardId);
+            category, dashboard.dashboardId());
         return false;
     }
   }

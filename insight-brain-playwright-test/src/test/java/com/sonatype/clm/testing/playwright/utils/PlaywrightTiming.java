@@ -48,7 +48,4 @@ public final class PlaywrightTiming
 
   /** Operations that may legitimately take longer (large tables, heavy dashboard). */
   public static final long LONG_OPERATION_TIMEOUT_MS = 60_000L;
-
-  /** Async evaluation or file-import operations that may exceed {@link #LONG_OPERATION_TIMEOUT_MS}. */
-  public static final long ASYNC_EVALUATION_TIMEOUT_MS = 90_000L;
 }

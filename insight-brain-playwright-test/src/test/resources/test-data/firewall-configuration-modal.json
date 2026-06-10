@@ -1,9 +1,0 @@
-{
-  "expected": {
-    "infoAlertText": "Components will only auto-release from quarantine if its status changes within the 14 day window.",
-    "readMoreHref": "https://links.sonatype.com/products/firewall/doc/automatic-quarantine-release",
-    "readMoreTarget": "_blank",
-    "statusInactive": "Inactive",
-    "statusActive": "Active"
-  }
-}

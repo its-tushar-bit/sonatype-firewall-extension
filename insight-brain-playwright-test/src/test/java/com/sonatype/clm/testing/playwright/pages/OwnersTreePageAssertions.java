@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
-import com.microsoft.playwright.Locator;
-
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 public class OwnersTreePageAssertions
@@ -28,15 +26,5 @@ public class OwnersTreePageAssertions
 
   public void shouldShowTreeContent() {
     assertThat(page.tree()).isVisible();
-  }
-
-  public void shouldContainItemWithText(String name) {
-    page.filterInput().fill(name);
-    assertThat(page.itemLabels().filter(new Locator.FilterOptions().setHasText(name))).not().hasCount(0);
-  }
-
-  public void shouldNotContainItemWithText(String name) {
-    page.filterInput().fill(name);
-    assertThat(page.itemLabels().filter(new Locator.FilterOptions().setHasText(name))).hasCount(0);
   }
 }

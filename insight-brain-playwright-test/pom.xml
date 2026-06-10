@@ -247,6 +247,12 @@
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Applitools removed: visual regression testing replaced by Playwright screenshots/traces -->
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>keycloak-server</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.icegreen</groupId>
       <artifactId>greenmail-junit4</artifactId>
@@ -295,12 +301,6 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Required by ExplicitTestConfigurationSupport in insight-brain-service tests jar -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-test</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- Playwright for browser automation -->

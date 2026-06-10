@@ -168,9 +168,7 @@ public class ViolationDetailsPage
   }
 
   public Locator similarWaiversFilterOptions() {
-    // RSC filter dropdown renders its checkbox options in a floating overlay outside
-    // #similar-waivers-tile, so scope to the full page container rather than the tile.
-    return container().getByRole(AriaRole.CHECKBOX).locator("..");
+    return similarWaiversTile().getByRole(AriaRole.CHECKBOX).locator("..");
   }
 
   public Locator backButton() {

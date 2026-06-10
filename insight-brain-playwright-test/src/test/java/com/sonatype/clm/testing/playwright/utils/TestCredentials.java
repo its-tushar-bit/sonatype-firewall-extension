@@ -29,9 +29,6 @@ public final class TestCredentials
 
   public static final String ADMIN_PASSWORD = System.getProperty("IQ_ADMIN_PASSWORD", "admin123");
 
-  /** Display name of the built-in admin account (first_name + last_name from schema.sql). */
-  public static final String ADMIN_DISPLAY_NAME = "Admin BuiltIn";
-
   private TestCredentials() {
   }
 

@@ -170,46 +170,6 @@ mvn verify -pl insight-brain-playwright-test \
 Apply the marker at **method level** so a single class can carry tests from both
 partitions side by side:
 
-> **Decision guide** — ask these questions in order:
->
-> 1. **Would a failure block you from merging a trivial backend fix?**
->    If yes → Sanity. A test that only catches a specific edge case does not need to gate every PR.
->
-> 2. **Is this the first thing you would check after a deployment?**
->    Login, top-level navigation, and the happy path of each feature area belong in Sanity.
->    Detailed validation paths, error messages, and secondary interactions belong in Regression.
->
-> 3. **Is this an error path, "what if" scenario, or a secondary interaction?**
->    Error/validation/edge-case paths → Regression. Happy paths → Sanity.
->
-> 4. **Does the test require slow data setup, multi-org hierarchies, or a page reload to verify persistence?**
->    Slow / multi-step tests → Regression, to avoid bloating the PR-blocking run.
->
-> **Still unsure?** Default to `RegressionTest`. The nightly run catches bugs too.
-
-##### Sanity examples — tests that gate PR merge
-
-| Test | Why Sanity |
-| --- | --- |
-| `OrganizationPlaywrightTest.testOrgPolicies` | Verifies the Policies tile loads on a child org — the most basic check that policy management is functional. |
-| `OrganizationPlaywrightTest.testOrgAccess` | Verifies the Access tile renders — simple navigation / page-load check. |
-| `OrganizationPlaywrightTest.testCreateOrganizationWithTemporaryEntity` | Core CRUD happy path: create an org and verify it appears. |
-| `RootOrganizationPolicyEditorPlaywrightTest.testRootOrgHasNoInheritedPolicies_andCreatePolicyAppearsInList` | Create a policy at the root org and verify it appears in the tile — happy path of the policy editor. |
-| `RootOrganizationPolicyEditorPlaywrightTest.testPolicyAtRootIsInheritedByChildOrg_andIsReadOnlyThere` | Policy created at root appears read-only in a child org — the fundamental inheritance contract. |
-
-##### Regression examples — tests that run nightly
-
-| Test | Why Regression |
-| --- | --- |
-| `OrganizationRegressionPlaywrightTest.testCreateOrganization_emptyNameShowsValidation` | Error / validation path (empty name shows a required-field error). Happy-path org creation is already covered in Sanity. |
-| `OrganizationRegressionPlaywrightTest.testChildOrgActionsDropdownOptions` | Verifies the exact set of items in the Actions dropdown — brittle to minor UI copy changes; not a PR blocker if it fails. |
-| `OrganizationRegressionPlaywrightTest.testEditComponentLabel_updatedValuesPersistInLabelsTile` | Full edit-then-reload CRUD cycle. Slow (seed + edit + navigate back); the tile-load level is already covered in Sanity. |
-| `OrganizationRegressionPlaywrightTest.testLegacyViolationsLicenseGate_errorAlertShownWhenNotSupported` | Feature-flag combination test — strips a license feature via route interception. Edge case, not a happy path. |
-| `RootOrganizationPolicyEditorPlaywrightTest.testInheritedPolicyWithActionsOverride_updatePersistsOverride` | Edge case: child org saves an actions override and the selection persists after a page reload. Multi-step; requires reload to verify persistence. |
-| `AccessEditorPlaywrightTest.testDeleteRoleAssignment_confirmationModalAndNavigatesAway` | Full modal confirmation flow (cancel + confirm paths). Secondary interaction on an already-tested feature area. |
-| `AccessEditorPlaywrightTest.testEditMode_noChangesMade_submitShowsValidationError` | Validation error path (no-changes-to-save message). Error path, not a happy path. |
-| `AdvancedSearchQueryBuilderPlaywrightTest.testQueryBuilder_ClearAllTermsResetsQueryAndDisablesSearch` | Edge-case builder state (all rows removed → empty state + disabled Search button). |
-
 ```java
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;

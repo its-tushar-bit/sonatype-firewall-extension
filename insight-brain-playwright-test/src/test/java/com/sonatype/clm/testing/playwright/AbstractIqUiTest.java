@@ -93,7 +93,6 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -112,8 +111,6 @@ import org.mockito.Mockito;
 import org.quartz.spi.JobFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
@@ -539,6 +536,8 @@ public abstract class AbstractIqUiTest
         .atUri("rest/application/analysis/" + scanId);
   }
 
+  // --------------- IQ-aware login / logout helpers ---------------
+
   /**
    * Login as admin using default credentials.
    */
@@ -626,5 +625,4 @@ public abstract class AbstractIqUiTest
   protected void playwrightLoginAdminAt(String path) {
     playwrightLoginAt(path, TestCredentials.ADMIN_USERNAME, TestCredentials.ADMIN_PASSWORD);
   }
-
 }

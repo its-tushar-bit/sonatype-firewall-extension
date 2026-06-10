@@ -5,15 +5,10 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
-import java.util.regex.Pattern;
-
-import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
-import com.sonatype.clm.testing.playwright.utils.PlaywrightUrlAssertions;
-
 import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.AriaRole;
-import org.assertj.core.api.Assertions;
+
+import java.util.regex.Pattern;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -136,18 +131,6 @@ public class OwnerSummaryPageAssertions
     assertThat(tableRegion.getByText("NAME", new Locator.GetByTextOptions().setExact(true))).isVisible();
   }
 
-  public void shouldShowApplicationCategoriesTile() {
-    Locator tile = page.categoriesTile();
-    assertThat(tile).isVisible();
-    assertThat(
-        tile.getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setName("Application Categories")))
-            .isVisible();
-    assertThat(tile.getByText(Pattern.compile("available to apps in .+")))
-        .isVisible();
-    assertThat(tile.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Add a Category")))
-        .isVisible();
-  }
-
   public void shouldShowSourceControlTile() {
     Locator tile = page.sourceControlTile();
     assertThat(tile).isVisible();
@@ -193,185 +176,5 @@ public class OwnerSummaryPageAssertions
   public void shouldShowLocalAccessRoleMember(String roleName, String memberDisplayName) {
     assertThat(page.accessTileLocalAccessList()).containsText(roleName);
     assertThat(page.accessTileLocalAccessList()).containsText(memberDisplayName);
-  }
-
-  public void shouldNotHaveLocalAccessRole(String roleName) {
-    Locator list = page.accessTileLocalAccessList();
-    assertThat(list)
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
-    assertThat(list).not().containsText(roleName);
-  }
-
-  public void shouldShowRepositoryUrl(String expectedUrl) {
-    assertThat(page.repositoryUrlBlock()).isVisible();
-    assertThat(page.repositoryUrlBlock()).containsText(expectedUrl);
-  }
-
-  public void shouldShowChildOrganizationActionsMenu() {
-    Locator menu = page.ownerActionsMenu();
-    assertThat(menu).isVisible();
-    assertThat(menu.locator("#delete-owner-link")).isVisible();
-    assertThat(menu.locator("#owner-move-link")).isVisible();
-    assertThat(menu.locator("#copy-org-id-link")).isVisible();
-    assertThat(menu.locator("#app-org-link")).isVisible();
-    assertThat(menu.locator("#import-policies-link")).isVisible();
-  }
-
-  public void shouldShowApplicationActionsMenu() {
-    Locator menu = page.ownerActionsMenu();
-    assertThat(menu).isVisible();
-    assertThat(menu.locator("#select-contact-link")).isVisible();
-    assertThat(menu.locator("#eval-file-link")).isVisible();
-    assertThat(menu.locator("#change-app-id-link")).isVisible();
-    assertThat(menu.locator("#delete-owner-link")).isVisible();
-    assertThat(menu.locator("#owner-move-link")).isVisible();
-  }
-
-  public void shouldShowNewApplicationModal() {
-    Locator modal = page.editOwnerModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setName("New Application")))
-        .isVisible();
-  }
-
-  public void shouldShowNewOrganizationModal() {
-    Locator modal = page.editOwnerModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setName("New Organization")))
-        .isVisible();
-  }
-
-  public void shouldShowNewOwnerModalNameRequiredError() {
-    assertThat(page.editOwnerModal().locator(".nx-form__validation-errors")).isVisible();
-  }
-
-  public void shouldShowCreateApplicationDuplicateIdError() {
-    assertThat(page.editOwnerModal().locator("#editor-new-id .nx-text-input.invalid")).isVisible();
-  }
-
-  public void shouldShowEditOwnerModal() {
-    Locator modal = page.editOwnerModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Update"))).isVisible();
-  }
-
-  public void shouldShowOwnerName(String expectedName) {
-    assertThat(page.ownerName()).containsText(expectedName);
-  }
-
-  public void shouldShowImportPoliciesMenuItemAsPreview() {
-    Locator item = page.ownerActionsMenu().locator("#import-policies-link");
-    assertThat(item).isVisible();
-    assertThat(item).containsText("Preview");
-  }
-
-  public void shouldShowDeleteOwnerModal() {
-    Locator modal = page.deleteOwnerModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Delete"))).isVisible();
-  }
-
-  public void shouldShowMoveOwnerModal() {
-    Locator modal = page.moveOwnerModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByLabel("New Parent Organization")).isVisible();
-  }
-
-  public void shouldShowChangeAppIdModal() {
-    Locator modal = page.changeAppIdModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.locator("#editor-new-id input")).isVisible();
-  }
-
-  public void shouldShowChangeAppIdValidationError() {
-    assertThat(page.changeAppIdModal().locator("#editor-new-id .nx-text-input.invalid")).isVisible();
-  }
-
-  public void shouldShowEvaluateFileModal() {
-    Locator modal = page.evaluateFileModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.locator("select")).isVisible();
-    assertThat(modal.locator(".nx-file-upload__select-btn")).isVisible();
-  }
-
-  public void shouldShowEvaluationStatusModal() {
-    assertThat(page.evaluationStatusModal())
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.SLOW_ELEMENT_TIMEOUT_MS));
-    assertThat(page.evaluationStatusModal().locator(".nx-progress-bar"))
-        .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ASYNC_EVALUATION_TIMEOUT_MS));
-  }
-
-  public void shouldShowImportPolicyModal() {
-    Locator modal = page.importPolicyModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.locator(".nx-file-upload__select-btn")).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Import"))).isVisible();
-  }
-
-  public void shouldShowImportPoliciesFileSelected(String filename) {
-    assertThat(page.importPolicyModal().locator(".nx-selected-file__name")).containsText(filename);
-  }
-
-  public void shouldShowImportPoliciesPreviewModal() {
-    Locator modal = page.importPolicyModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Close"))).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Import")))
-        .not()
-        .isVisible();
-  }
-
-  public void shouldShowSelectContactModal() {
-    Locator modal = page.selectContactModal();
-    assertThat(modal).isVisible();
-    assertThat(modal.locator(".nx-combobox input")).isVisible();
-    assertThat(modal.getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Save"))).isVisible();
-  }
-
-  public void shouldShowContactName(String displayName) {
-    assertThat(page.container()).containsText(displayName);
-  }
-
-  public void shouldShowInsufficientPermissionTree(String expectedDescription) {
-    assertThat(page.insufficientPermissionTreeFilterInput()).isVisible();
-    assertThat(page.insufficientPermissionTreeDescription()).containsText(expectedDescription);
-  }
-
-  public void shouldShowOnlySbomTiles() {
-    assertThat(page.policiesTile()).isVisible();
-    assertThat(page.continuousMonitoringTile()).isVisible();
-    assertThat(page.accessTile()).isVisible();
-    assertThat(page.sbomsTile()).not().isVisible();
-    assertThat(page.legacyViolationsTile()).not().isVisible();
-    assertThat(page.proprietaryComponentsTile()).not().isVisible();
-    assertThat(page.componentLabelsTile()).not().isVisible();
-    assertThat(page.licenseThreatGroupsTile()).not().isVisible();
-    assertThat(page.sourceControlTile()).not().isVisible();
-    assertThat(page.autoWaiversTile()).not().isVisible();
-    assertThat(page.innerSourceRepositoryTile()).not().isVisible();
-  }
-
-  public void shouldShowOnlySbomAppTiles() {
-    assertThat(page.policiesTile()).isVisible();
-    assertThat(page.continuousMonitoringTile()).isVisible();
-    assertThat(page.accessTile()).isVisible();
-    assertThat(page.sbomsTile()).isVisible();
-    assertThat(page.legacyViolationsTile()).not().isVisible();
-    assertThat(page.proprietaryComponentsTile()).not().isVisible();
-    assertThat(page.componentLabelsTile()).not().isVisible();
-    assertThat(page.licenseThreatGroupsTile()).not().isVisible();
-    assertThat(page.sourceControlTile()).not().isVisible();
-    assertThat(page.autoWaiversTile()).not().isVisible();
-    assertThat(page.innerSourceRepositoryTile()).not().isVisible();
-  }
-
-  /** Asserts navigation landed on a URL containing {@code urlFragment} (SPA hash routes). */
-  public void shouldHaveUrlContaining(String urlFragment) {
-    PlaywrightUrlAssertions.assertUrlContaining(page.playwrightPage(), urlFragment);
-  }
-
-  /** Asserts the system clipboard contains {@code expected} after a copy action. */
-  public void shouldHaveClipboardText(String expected) {
-    Assertions.assertThat(page.readClipboardText()).isEqualTo(expected);
   }
 }

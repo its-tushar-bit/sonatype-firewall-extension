@@ -19,7 +19,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedDeploymentBlockDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
-import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
 import com.sonatype.insight.brain.model.repository.HostedDeploymentBlock;
 import com.sonatype.insight.brain.model.repository.HostedDeploymentBlockViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -141,7 +140,7 @@ public class HostedComponentEvaluationServiceSyncTest
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("hds-scan-001");
-    when(scanUploader.uploadForRepository(eq(scanEntity), eq(REPO_ID), eq(HostedStageType.ID), anyString(), eq(false)))
+    when(scanUploader.uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("release"), anyString(), eq(false)))
         .thenReturn(receipt);
   }
 
@@ -149,9 +148,9 @@ public class HostedComponentEvaluationServiceSyncTest
   public void evaluateSynchronously_allowPath_persistsViaEvaluator_doesNotPersistBlock() throws Exception {
     // First evaluator call (persist=false): returns allow.
     // Second evaluator call (persist=true): no-op mock, but we verify it was called.
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq("release")))
         .thenReturn(allowedEvaluation());
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq("release")))
         .thenReturn(allowedEvaluation());
 
     HostedEvaluationResult result = service.evaluateSynchronously(
@@ -165,9 +164,9 @@ public class HostedComponentEvaluationServiceSyncTest
 
     // Evaluator called twice: verdict check (persist=false), then persisted (persist=true).
     verify(evaluator).evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(),
-        eq(HostedStageType.ID));
+        eq("release"));
     verify(evaluator).evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(),
-        eq(HostedStageType.ID));
+        eq("release"));
     // Block must NOT be persisted on allow.
     verify(blockDAO, never()).insertWithViolations(any(), any(), any());
     // Scan file cleaned up.
@@ -176,7 +175,7 @@ public class HostedComponentEvaluationServiceSyncTest
 
   @Test
   public void evaluateSynchronously_blockPath_persistsToBlockTables_andDoesNotReRunEvaluatorForPersistence() throws Exception {
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq("release")))
         .thenReturn(blockedEvaluation());
 
     HostedEvaluationResult result = service.evaluateSynchronously(
@@ -189,10 +188,10 @@ public class HostedComponentEvaluationServiceSyncTest
 
     // First (and only) evaluator call: verdict only, persist=false.
     verify(evaluator, times(1)).evaluateForHostedEnforcement(
-        eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID));
+        eq(repository), any(), eq(false), anyString(), eq("release"));
     // Never called with persist=true on block path (would pollute repository_component).
     verify(evaluator, never()).evaluateForHostedEnforcement(
-        eq(repository), any(), eq(true), anyString(), eq(HostedStageType.ID));
+        eq(repository), any(), eq(true), anyString(), eq("release"));
 
     // Block + violations persisted to dedicated tables.
     ArgumentCaptor<HostedDeploymentBlock> blockCaptor = ArgumentCaptor.forClass(HostedDeploymentBlock.class);
@@ -227,9 +226,9 @@ public class HostedComponentEvaluationServiceSyncTest
     // throws, NXRM must still receive the already-computed allow verdict. CM will recompute
     // on its next scan; an HTTP 500 here would risk NXRM rejecting a deployment that was
     // policy-allowed.
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq("release")))
         .thenReturn(allowedEvaluation());
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq("release")))
         .thenThrow(new RuntimeException("HDS unreachable on persist round-trip"));
 
     HostedEvaluationResult result = service.evaluateSynchronously(
@@ -246,7 +245,7 @@ public class HostedComponentEvaluationServiceSyncTest
     // CLM-39870 PR-2 review fix: a DataAccessException during persistBlock must NOT propagate
     // as HTTP 500. The verdict (BLOCK) is already correct; failing on a bookkeeping write would
     // turn a policy-blocked deployment into an allow if NXRM treats 500 as fail-open.
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq("release")))
         .thenReturn(blockedEvaluation());
     org.mockito.Mockito.doThrow(new RuntimeException("Aurora failover in progress"))
         .when(blockDAO)
@@ -307,9 +306,9 @@ public class HostedComponentEvaluationServiceSyncTest
 
   @Test
   public void evaluateSynchronously_scanCleanupFailure_doesNotMaskEvaluationResult() throws Exception {
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(false), anyString(), eq("release")))
         .thenReturn(allowedEvaluation());
-    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq(HostedStageType.ID)))
+    when(evaluator.evaluateForHostedEnforcement(eq(repository), any(), eq(true), anyString(), eq("release")))
         .thenReturn(allowedEvaluation());
     doThrowOnDelete();
 
@@ -343,17 +342,52 @@ public class HostedComponentEvaluationServiceSyncTest
   }
 
   @Test
-  public void evaluateSynchronously_usesHostedStageTypeForUploadAndEvaluation() throws Exception {
+  public void evaluateSynchronously_honoursIncomingStage() throws Exception {
     when(evaluator.evaluateForHostedEnforcement(any(), any(), anyBoolean(), anyString(), anyString()))
         .thenReturn(allowedEvaluation());
 
     service.evaluateSynchronously(
-        repository, COMPONENT_ID, PURL, "ignored-stage-from-caller", inboundScanFile,
+        repository, COMPONENT_ID, PURL, "stage-release", inboundScanFile,
         CORRELATION_ID, REQUESTED_BY, CLIENT);
 
-    verify(scanUploader).uploadForRepository(eq(scanEntity), eq(REPO_ID), eq(HostedStageType.ID), eq(CLIENT),
+    verify(scanUploader).uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("stage-release"), eq(CLIENT),
         eq(false));
-    verify(evaluator).evaluateForHostedEnforcement(any(), any(), eq(false), eq(CLIENT), eq(HostedStageType.ID));
+    verify(evaluator).evaluateForHostedEnforcement(any(), any(), eq(false), eq(CLIENT), eq("stage-release"));
+  }
+
+  @Test
+  public void evaluateSynchronously_blankIncomingStage_fallsBackToRelease() throws Exception {
+    when(evaluator.evaluateForHostedEnforcement(any(), any(), anyBoolean(), anyString(), anyString()))
+        .thenReturn(allowedEvaluation());
+
+    service.evaluateSynchronously(
+        repository, COMPONENT_ID, PURL, "  " /* blank */, inboundScanFile,
+        CORRELATION_ID, REQUESTED_BY, CLIENT);
+
+    verify(scanUploader).uploadForRepository(eq(scanEntity), eq(REPO_ID), eq("release"), eq(CLIENT),
+        eq(false));
+    verify(evaluator).evaluateForHostedEnforcement(any(), any(), eq(false), eq(CLIENT), eq("release"));
+  }
+
+  @Test
+  public void evaluateSynchronously_unknownIncomingStage_throws400() {
+    assertThatThrownBy(() -> service.evaluateSynchronously(
+        repository, COMPONENT_ID, PURL, "not-a-real-stage", inboundScanFile,
+        CORRELATION_ID, REQUESTED_BY, CLIENT))
+            .isInstanceOf(com.sonatype.insight.error.exception.BadRequestException.class)
+            .hasMessageContaining("not-a-real-stage");
+  }
+
+  @Test
+  public void evaluateSynchronously_nonEnforceableStage_throws400() {
+    for (String stageId : List.of("proxy", "develop", "compliance")) {
+      assertThatThrownBy(() -> service.evaluateSynchronously(
+          repository, COMPONENT_ID, PURL, stageId, inboundScanFile,
+          CORRELATION_ID, REQUESTED_BY, CLIENT))
+              .as("stage id '%s' must not be accepted for upload enforcement", stageId)
+              .isInstanceOf(com.sonatype.insight.error.exception.BadRequestException.class)
+              .hasMessageContaining(stageId);
+    }
   }
 
   // --- test fixture helpers ---

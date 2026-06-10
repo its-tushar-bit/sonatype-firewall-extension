@@ -41,7 +41,7 @@ public record HostedEvaluationResult(
     String policyAction,
     int highestThreatLevel,
     String evaluationUrl,
-    List<HostedBlockingViolation> blockingViolations,
+    @JsonProperty("policyViolations") List<HostedBlockingViolation> blockingViolations,
     String correlationId,
     String componentId)
 {

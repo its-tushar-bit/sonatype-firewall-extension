@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -55,7 +54,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -1145,45 +1143,6 @@ public class CLMLicenseManagerTest
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.COMPLIANCE, StageTypes.PROXY);
-  }
-
-  /**
-   * With HOSTED_REPOSITORY_EVALUATION OFF, HOSTED is filtered out of the classic stage set even
-   * when the license itself includes the HOSTED stage. This preserves pre-CLM-39870 behavior for
-   * customers who have not opted into synchronous hosted-repository enforcement.
-   */
-  @Test
-  public void testGetStageTypes_Lifecycle_HostedExcluded_WhenFeatureFlagOff() throws Exception {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    mockHdsProductLicenseDetails(withStages(StageTypes.HOSTED));
-    installLicense();
-
-    assertThat(productLicense.getStageTypes())
-        .as("HOSTED must be filtered out when feature flag off")
-        .doesNotContain(StageTypes.HOSTED);
-  }
-
-  /**
-   * With HOSTED_REPOSITORY_EVALUATION ON, HOSTED is admitted into the classic stage set when the
-   * license includes it, so customers who enable synchronous hosted-repository enforcement
-   * (CLM-39870) see HOSTED alongside the classic stages.
-   */
-  @Test
-  public void testGetStageTypes_Lifecycle_HostedIncluded_WhenFeatureFlagOn() throws Exception {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-    mockHdsProductLicenseDetails(withStages(StageTypes.HOSTED));
-    installLicense();
-
-    assertThat(productLicense.getStageTypes())
-        .as("HOSTED must be included when feature flag on and license grants HOSTED")
-        .contains(StageTypes.HOSTED);
-  }
-
-  @After
-  public void resetHostedFeatureFlag() {
-    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
   }
 
   @Test

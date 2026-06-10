@@ -236,8 +236,9 @@ public class RepositoryPolicyEvaluator
    * @param persistEvaluationResults whether to persist allow-path results into repository_component and
    *          repository_policy_violation
    * @param clientUserAgent client user-agent (typically the NXRM user-agent propagated from the request)
-   * @param stageTypeId the stage to evaluate against; enforcement uses
-   *          {@link com.sonatype.insight.brain.model.policy.stages.HostedStageType#ID}
+   * @param stageTypeId the stage to evaluate against; per CLM-40149 this is the stage NXRM
+   *          configured for the repository (per-repo override → global default → release fallback)
+   *          rather than a dedicated hosted stage
    * @return the evaluation result, with policyAlerts populated per component
    */
   public RepositoryComponentEvaluationDataList evaluateForHostedEnforcement(

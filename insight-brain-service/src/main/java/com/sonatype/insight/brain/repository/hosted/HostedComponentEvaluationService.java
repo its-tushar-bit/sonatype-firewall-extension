@@ -24,7 +24,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedDeploymentBlockDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
-import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.repository.HostedDeploymentBlock;
 import com.sonatype.insight.brain.model.repository.HostedDeploymentBlockViolation;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,8 @@ import org.slf4j.LoggerFactory;
 public class HostedComponentEvaluationService
 {
   private static final Logger log = LoggerFactory.getLogger(HostedComponentEvaluationService.class);
+
+  private static final String DEFAULT_ENFORCEMENT_FALLBACK_STAGE = StageTypes.RELEASE.getId();
 
   private final HostedComponentScanStorageService hostedComponentScanStorageService;
 
@@ -136,8 +140,10 @@ public class HostedComponentEvaluationService
    * <li>Store the scan file to local staging (reuses existing storage service).</li>
    * <li>Parse {@code scan.xml} to recover the component coordinates + hash.</li>
    * <li>Upload the scan to HDS via {@link ScanUploader}.</li>
-   * <li>Call {@link RepositoryPolicyEvaluator#evaluateForHostedEnforcement} with
-   * {@link HostedStageType#ID}.</li>
+   * <li>Call {@link RepositoryPolicyEvaluator#evaluateForHostedEnforcement} with the
+   * stage NXRM resolved (per-repo override → global default → release fallback). Per CLM-40149
+   * the dedicated HOSTED stage was removed; uploads evaluate against the stage the customer
+   * picked for this repository, the same one used by monitoring + continuous evaluation.</li>
    * <li>Map the evaluator output to a {@link HostedEvaluationResult}.</li>
    * <li>If blocked, persist a {@link HostedDeploymentBlock} row (and child violations) so a
    * future UI can render the details. Allowed-path persistence is handled by the
@@ -157,14 +163,18 @@ public class HostedComponentEvaluationService
    *          second DB round-trip on the synchronous hot path)
    * @param componentId the IQ-side component identifier (same field async path uses)
    * @param purl the package URL; may be null if unknown
-   * @param policyEvaluationStage unused today — kept for API parity with {@link #queueScan};
-   *          enforcement always evaluates at {@link HostedStageType#ID}
+   * @param policyEvaluationStage the stage configured in NXRM (per-repo override → global default).
+   *          When blank, falls back to {@link #DEFAULT_ENFORCEMENT_FALLBACK_STAGE} so a
+   *          misconfigured tenant fails with defined behaviour rather than rejecting the upload.
+   *          Unknown stage ids result in {@link BadRequestException} (CLM-40149).
    * @param scanFile the scan.xml.gz uploaded by NXRM
    * @param correlationId the per-deploy UUID NXRM generated; echoed back
    * @param requestedBy the authenticated NXRM user-agent principal; audited
    * @param clientUserAgent the client tool identifier
    * @return the enforcement verdict for NXRM to relay to the developer
    * @throws IOException if scan storage, parsing, or HDS upload fails
+   * @throws BadRequestException if {@code policyEvaluationStage} is non-blank but not a known
+   *           stage id (e.g. NXRM ↔ IQ schema drift)
    */
   public HostedEvaluationResult evaluateSynchronously(
       final Repository repository,
@@ -180,9 +190,13 @@ public class HostedComponentEvaluationService
       throw new IllegalArgumentException("repository must not be null");
     }
     String repositoryId = repository.getId();
+
+    String effectiveStage = resolveAndValidateStage(policyEvaluationStage);
+
     log.debug(
-        "Synchronous enforcement evaluation: repositoryId={}, componentId={}, purl={}, correlationId={}",
-        repositoryId, componentId, purl, correlationId);
+        "Synchronous enforcement evaluation: repositoryId={}, componentId={}, purl={}, "
+            + "policyEvaluationStage={} (resolved={}), correlationId={}",
+        repositoryId, componentId, purl, policyEvaluationStage, effectiveStage, correlationId);
 
     ScanEntity scanEntity = hostedComponentScanStorageService.storeScanFile(repositoryId, scanFile);
     try {
@@ -196,9 +210,8 @@ public class HostedComponentEvaluationService
             "Could not extract component info from scan file for sync evaluation: componentId=" + componentId);
       }
 
-      // Upload to HDS at the hosted stage so downstream correlation in HDS/IQ is consistent.
       ScanReceipt scanReceipt = scanUploaderProvider.get()
-          .uploadForRepository(scanEntity, repositoryId, HostedStageType.ID, clientUserAgent, false);
+          .uploadForRepository(scanEntity, repositoryId, effectiveStage, clientUserAgent, false);
       log.debug("HDS upload completed for sync enforcement: scanId={}, correlationId={}",
           scanReceipt != null ? scanReceipt.getScanId() : null, correlationId);
 
@@ -215,7 +228,7 @@ public class HostedComponentEvaluationService
       RepositoryComponentEvaluationDataList evaluation =
           repositoryPolicyEvaluatorProvider.get()
               .evaluateForHostedEnforcement(repository, request, false /* persistEvaluationResults */,
-                  clientUserAgent, HostedStageType.ID);
+                  clientUserAgent, effectiveStage);
 
       String evaluationUrl = urlBuilder.build(repository);
       HostedEvaluationResult verdict = resultMapper.map(evaluation, evaluationUrl, correlationId, componentId);
@@ -252,7 +265,7 @@ public class HostedComponentEvaluationService
         try {
           repositoryPolicyEvaluatorProvider.get()
               .evaluateForHostedEnforcement(repository, request, true /* persistEvaluationResults */,
-                  clientUserAgent, HostedStageType.ID);
+                  clientUserAgent, effectiveStage);
         }
         catch (RuntimeException persistEx) {
           log.error(
@@ -273,6 +286,29 @@ public class HostedComponentEvaluationService
             componentId, correlationId, deleteEx);
       }
     }
+  }
+
+  /**
+   * Resolve the stage id NXRM sent against the known {@link StageTypes}. Empty/null inputs
+   * fall back to {@link #DEFAULT_ENFORCEMENT_FALLBACK_STAGE}; non-blank inputs that don't map
+   * to a known stage type result in {@link BadRequestException} (HTTP 400) — a typo or
+   * NXRM↔IQ schema drift would otherwise route the upload to the wrong policy set silently.
+   */
+  static String resolveAndValidateStage(final String policyEvaluationStage) {
+    if (policyEvaluationStage == null || policyEvaluationStage.isBlank()) {
+      return DEFAULT_ENFORCEMENT_FALLBACK_STAGE;
+    }
+    StageType stageType = StageTypes.getById(policyEvaluationStage);
+    // PROXY, DEVELOP, and COMPLIANCE are registered StageTypes but are not valid for upload
+    // enforcement — accepting them would route the upload to a stage where no enforcement
+    // policies are configured, silently allowing everything. Reject them with the same 400
+    // we use for unknown stage ids.
+    if (stageType == null || StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
+      throw new BadRequestException(
+          "Unknown policyEvaluationStage: '" + policyEvaluationStage + "'. "
+              + "Expected one of the configured stage ids (e.g. build, release, stage-release).");
+    }
+    return stageType.getId();
   }
 
   private void persistBlock(

@@ -5,11 +5,8 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import com.sonatype.insight.brain.model.policy.stages.HostedStageType;
-
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PolicyMonitoringTest
@@ -30,18 +27,11 @@ public class PolicyMonitoringTest
   }
 
   @Test
-  public void testHostedStageTypeId_Constructor_Accepted() {
-    // Positive coverage for the OR-branch added in CLM-39870 that accepts HostedStageType.ID.
-    // The existing tests cover the rejection path only; this guards against regressions if
-    // the OR-branch is dropped during a merge conflict.
-    PolicyMonitoring policyMonitoring = new PolicyMonitoring("ownerId", HostedStageType.ID);
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(HostedStageType.ID);
-  }
-
-  @Test
-  public void testHostedStageTypeId_Setter_Accepted() {
+  public void testHostedStageTypeId_Rejected() {
+    assertThatThrownBy(() -> new PolicyMonitoring("ownerId", "hosted"))
+        .isInstanceOf(InvalidStageException.class);
     PolicyMonitoring policyMonitoring = new PolicyMonitoring();
-    policyMonitoring.setStageTypeId(HostedStageType.ID);
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(HostedStageType.ID);
+    assertThatThrownBy(() -> policyMonitoring.setStageTypeId("hosted"))
+        .isInstanceOf(InvalidStageException.class);
   }
 }

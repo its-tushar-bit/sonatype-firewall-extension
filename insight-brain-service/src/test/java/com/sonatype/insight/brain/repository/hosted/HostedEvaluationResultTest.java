@@ -27,6 +27,25 @@ public class HostedEvaluationResultTest
   }
 
   @Test
+  public void serialisedJson_usesWireNamePolicyViolations() throws Exception {
+    HostedEvaluationResult result = new HostedEvaluationResult(
+        true,
+        "FAIL",
+        9,
+        "https://iq.example.com/report/1",
+        List.of(new HostedBlockingViolation("Critical Security Policy", "Critical CVSS",
+            "Component contains a critical security vulnerability.",
+            "pkg:maven/com.acme/internal-lib@1.2.3")),
+        "corr-1",
+        "comp-1");
+
+    String json = objectMapper.writeValueAsString(result);
+
+    assertThat(json).contains("\"policyViolations\":");
+    assertThat(json).doesNotContain("\"blockingViolations\":");
+  }
+
+  @Test
   public void jsonRoundTrip_blockedResult_preservesAllFields() throws Exception {
     HostedEvaluationResult original = new HostedEvaluationResult(
         true,

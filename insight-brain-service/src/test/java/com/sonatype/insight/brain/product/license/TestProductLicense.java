@@ -25,7 +25,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 @Named
@@ -95,15 +94,7 @@ public class TestProductLicense
       maxSboms = null;
       ProductLicenseKey productLicenseKey =
           testProductLicenseManager.getLicenseDetails(new ByteArrayInputStream(new byte[1]));
-      // Default test license excludes HOSTED stage from the licensed set: hosted-repository
-      // synchronous enforcement (CLM-39870) is gated by the HOSTED_REPOSITORY_EVALUATION
-      // feature flag, and behaves the same way real licenses do today (HOSTED is not auto-
-      // included in any product tier yet). Tests that explicitly need HOSTED licensed should
-      // call setStageTypes(...) themselves.
-      Set<StageType> defaultStageTypes = StageTypes.getAll()
-          .stream()
-          .filter(stageType -> !StageTypes.HOSTED.equals(stageType))
-          .collect(Collectors.toCollection(HashSet::new));
+      Set<StageType> defaultStageTypes = new HashSet<>(StageTypes.getAll());
       set(productLicenseKey, "1234",
           new HashSet<>(
               Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,

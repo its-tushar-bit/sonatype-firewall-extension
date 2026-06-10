@@ -45,23 +45,14 @@ public class StageTypesTest
 
   @Test
   public void testGetAll_ChronologicalOrdering() {
-    assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.HOSTED, StageTypes.DEVELOP,
+    assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP,
         StageTypes.SOURCE, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE,
         StageTypes.COMPLIANCE);
   }
 
   @Test
-  public void testHostedStageTypeRegistered() {
-    assertThat(StageTypes.getById(HostedStageType.ID)).isSameAs(StageTypes.HOSTED);
-    assertThat(StageTypes.HOSTED.getId()).isEqualTo("hosted");
-    assertThat(StageTypes.HOSTED.getName()).isEqualTo("Hosted");
-  }
-
-  @Test
-  public void testHostedStageTypeNotIgnoredByDefault() {
-    // Hosted enforcement violations appear on dashboards and aggregations by default.
-    // If product requirements later change this, adjust both StageTypes and this assertion.
-    assertThat(StageTypes.isIgnoredForDashboard(HostedStageType.ID)).isFalse();
-    assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(HostedStageType.ID)).isFalse();
+  public void testHostedStageTypeIsNotRegistered() {
+    assertThat(StageTypes.getById("hosted")).isNull();
+    assertThat(StageTypes.getAll()).extracting(StageType::getId).doesNotContain("hosted");
   }
 }

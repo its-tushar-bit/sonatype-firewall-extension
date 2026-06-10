@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
+import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -210,6 +211,8 @@ public class ReportService
 
   private final ApplicationReportPersistenceService applicationReportPersistenceService;
 
+  private final InnerSourceCleanupPendingService innerSourceCleanupPendingService;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -243,7 +246,8 @@ public class ReportService
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final RepositoryDAO repositoryDAO,
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
-      final ApplicationReportPersistenceService applicationReportPersistenceService)
+      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final InnerSourceCleanupPendingService innerSourceCleanupPendingService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -277,6 +281,7 @@ public class ReportService
     this.repositoryDAO = repositoryDAO;
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
   }
 
   @Trace
@@ -910,6 +915,8 @@ public class ReportService
     // now apply any data edits (e.g. modified flag)
     augmentDependenciesGraph(dependenciesJsonData);
     applicationReport.saveReportEntry(DEPENDENCIES_JSON.getName(), dependenciesJsonData);
+
+    innerSourceCleanupPendingService.cleanupRecordsIfPending(application.getId(), scanId);
 
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, application,

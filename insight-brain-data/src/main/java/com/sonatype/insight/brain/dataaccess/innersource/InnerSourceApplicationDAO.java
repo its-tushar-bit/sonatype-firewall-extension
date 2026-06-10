@@ -85,6 +85,21 @@ public class InnerSourceApplicationDAO
     }
   }
 
+  public void deleteByApplicationId(TransactionContext tx, String applicationId) {
+    tx.dsl()
+        .deleteFrom(INNER_SOURCE_APPLICATION)
+        .where(INNER_SOURCE_APPLICATION.APPLICATION_ID.eq(applicationId))
+        .execute();
+  }
+
+  public void deleteByApplicationId(String applicationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByApplicationId(tx, applicationId);
+      tx.commit();
+    }
+  }
+
   @Override
   public Table<?> getJooqTable() {
     return INNER_SOURCE_APPLICATION;

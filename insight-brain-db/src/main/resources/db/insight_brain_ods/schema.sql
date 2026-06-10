@@ -1188,6 +1188,14 @@ CREATE TABLE inner_source_version (
   CONSTRAINT inner_source_version_inner_source_application_fk FOREIGN KEY (inner_source_application_id) REFERENCES inner_source_application (inner_source_application_id) ON DELETE CASCADE
 );
 
+CREATE TABLE innersource_cleanup_pending (
+  application_id varchar(50) NOT NULL,
+  last_scan_id varchar(50),
+  CONSTRAINT innersource_cleanup_pending_pk PRIMARY KEY (application_id),
+  CONSTRAINT innersource_cleanup_pending_app_fk FOREIGN KEY (application_id)
+      REFERENCES application (application_id) ON DELETE CASCADE
+);
+
 -- Since 1.98
 CREATE TABLE persisted_scan_ticket (
   persisted_scan_ticket_id varchar(50) NOT NULL,

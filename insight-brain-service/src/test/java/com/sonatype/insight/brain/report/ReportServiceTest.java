@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.innersource.InnerSourceCleanupPendingService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.hds.ScanUploadService;
@@ -389,6 +390,9 @@ public class ReportServiceTest
   @Mock
   private RepositoryComponentDAO repositoryComponentDAO;
 
+  @Mock
+  private InnerSourceCleanupPendingService innerSourceCleanupPendingService;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = createThirdPartyDataServiceSpy();
@@ -443,7 +447,8 @@ public class ReportServiceTest
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
-        scanPersistenceService, repositoryComponentDAO, null, null, null, null);
+        scanPersistenceService, repositoryComponentDAO, null, null, null, null,
+        innerSourceCleanupPendingService);
   }
 
   @Test

@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceCleanupPendingDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -431,6 +432,11 @@ public class TestDAOFactory
   @Override
   public InnerSourceApplicationDAO createInnerSourceApplicationDAO() {
     return new InnerSourceApplicationDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public InnerSourceCleanupPendingDAO createInnerSourceCleanupPendingDAO() {
+    return new InnerSourceCleanupPendingDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

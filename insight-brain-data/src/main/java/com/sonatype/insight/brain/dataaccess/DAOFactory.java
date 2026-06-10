@@ -53,6 +53,7 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceCleanupPendingDAO;
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -243,6 +244,8 @@ public interface DAOFactory
   UserIdePolicyEvaluationDAO createUserIdePolicyEvaluationDAO();
 
   InnerSourceApplicationDAO createInnerSourceApplicationDAO();
+
+  InnerSourceCleanupPendingDAO createInnerSourceCleanupPendingDAO();
 
   InnerSourceVersionDAO createInnerSourceVersionDAO();
 

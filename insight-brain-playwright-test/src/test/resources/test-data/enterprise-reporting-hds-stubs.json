@@ -3,12 +3,12 @@
     "version": 1
   },
   "dashboards": {
-    "version": 100,
+    "version": {"version": 100},
     "dashboardMetadata": [
       {
         "dashboardId": "sbom-scorecard",
+        "groupId": null,
         "title": "Sbom Report Overview",
-        "category": "enterprise",
         "description": "A comprehensive view of monthly sboms",
         "features": [
           "Graphs",
@@ -16,22 +16,30 @@
         ],
         "accessButtonText": "Open Dashboard",
         "previewImage": "rolling-recap.svg",
-        "previewImageIcon": "faCalendar",
         "priority": 1,
-        "spotlight": true
+        "spotlight": true,
+        "dashboardPath": null,
+        "spotlightColor": null,
+        "sinceIQVersion": null,
+        "spotlightText": null,
+        "category": "enterprise",
+        "previewImageIcon": "faCalendar"
       }
     ],
     "dashboardGroupMetadata": [
       {
         "groupId": "security",
-        "title": "Security Risk",
         "description": "A group of security dashboards",
         "features": [
           "Trends",
           "Breakdowns"
         ],
         "previewImageIcon": "faShield",
-        "spotlight": false
+        "sinceIQVersion": null,
+        "spotlight": false,
+        "spotlightColor": null,
+        "spotlightText": null,
+        "title": "Security Risk"
       }
     ]
   }

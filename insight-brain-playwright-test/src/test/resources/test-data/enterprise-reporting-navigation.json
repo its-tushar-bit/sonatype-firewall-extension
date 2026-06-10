@@ -1,9 +1,0 @@
-{
-    "expectedHeading": "Enterprise Reporting",
-    "expectedSidebarLinkText": "Enterprise Reporting",
-    "expectedUrlFragment": "/enterpriseReportingLandingPage",
-    "expectedPageTabTitle": "Enterprise Data Insights - Lifecycle",
-    "expectedEnterpriseDashboardsSectionTitle": "Enterprise Dashboards",
-    "expectedMockDashboardId": "sbom-scorecard",
-    "expectedMockDashboardTitle": "Sbom Report Overview"
-  }

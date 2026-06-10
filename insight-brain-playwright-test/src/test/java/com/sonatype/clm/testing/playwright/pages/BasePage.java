@@ -63,6 +63,10 @@ public abstract class BasePage
 
   protected final Page page;
 
+  public Page playwrightPage() {
+    return page;
+  }
+
   /**
    * Constructs a page object using the thread-local current page.
    *
@@ -133,8 +137,6 @@ public abstract class BasePage
     return page.getByTitle(title);
   }
 
-  // --------------- Navigation ---------------
-
   protected void navigateTo(String url) {
     page.navigate(url);
   }
@@ -146,8 +148,6 @@ public abstract class BasePage
   protected void waitForDomReady() {
     page.waitForLoadState(LoadState.DOMCONTENTLOADED);
   }
-
-  // --------------- Visibility helpers ---------------
 
   protected void waitForVisible(String selector) {
     page.locator(selector)
@@ -197,8 +197,6 @@ public abstract class BasePage
       // closed, etc. — should propagate so the test fails loudly.
     }
   }
-
-  // --------------- Assertion helpers ---------------
 
   protected void shouldBeVisible(String selector) {
     assertThat(page.locator(selector)).isVisible();

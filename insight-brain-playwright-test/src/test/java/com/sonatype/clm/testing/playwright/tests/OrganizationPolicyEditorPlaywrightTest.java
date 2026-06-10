@@ -9,19 +9,26 @@ import java.util.regex.Pattern;
 
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
+import com.sonatype.clm.testing.playwright.pages.OwnersTreePage;
+import com.sonatype.clm.testing.playwright.pages.OwnersTreePageAssertions;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UnsavedChangesModalComponent;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -43,7 +50,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 public class OrganizationPolicyEditorPlaywrightTest
     extends AbstractIqUiTest
 {
-  private static final String ORGANIZATION_NAME_PREFIX = "Ye Ole Organization";
+  private static final String ORG_NAME_PREFIX = "Ye Ole Organization";
 
   private static final String POLICY_NAME = "Test Policy";
 
@@ -63,20 +70,24 @@ public class OrganizationPolicyEditorPlaywrightTest
 
   private static final String NEW_POLICY_HEADING = "Policy Settings";
 
-  private Organization organization;
+  private static final String UPDATED_POLICY_SUFFIX = " Updated";
 
-  // --------------- @Before ---------------
+  private static final String DELETE_WRONG_INPUT = "WRONG";
+
+  private static final String DELETE_CONFIRMATION_KEYWORD = "DELETE";
+
+  private static final String DELETE_VALIDATION_MESSAGE = "Must type DELETE to confirm";
+
+  private Organization organization;
 
   @Before
   public void seedOrgAndOpenAsAdmin() {
-    String orgName = ORGANIZATION_NAME_PREFIX + "-" + TemporaryEntity.uuid();
+    String orgName = ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid();
     organization = tempEntity.newOrganization(orgName);
 
-    playwrightRefreshOrOpen(OwnerSummaryPage.url(organization));
+    navigateAndWaitForUrl(OwnerSummaryPage.url(organization), OwnerSummaryPage.ORG_URL_FRAGMENT);
     playwrightLogin();
   }
-
-  // --------------- @Test methods ---------------
 
   @Test
   @Category(SanityTest.class)
@@ -85,7 +96,7 @@ public class OrganizationPolicyEditorPlaywrightTest
     Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
 
     // When: the editor URL for that policy is opened.
-    playwrightRefreshOrOpen(PolicyEditorPage.url(organization, policy));
+    navigateAndWaitForUrl(PolicyEditorPage.url(organization, policy), PolicyEditorPage.EDIT_URL_FRAGMENT);
 
     // Then: the editor renders and pre-fills the policy name.
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -97,7 +108,7 @@ public class OrganizationPolicyEditorPlaywrightTest
   @Category(SanityTest.class)
   public void testNewPolicyCreation() {
     // Given/When: the new-policy editor URL for the seeded org is opened.
-    playwrightRefreshOrOpen(PolicyEditorPage.newPolicyUrl(organization));
+    navigateAndWaitForUrl(PolicyEditorPage.newPolicyUrl(organization), PolicyEditorPage.EDIT_URL_FRAGMENT);
 
     // Then: the editor renders empty with the threat-level dropdown ready for input.
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -114,7 +125,7 @@ public class OrganizationPolicyEditorPlaywrightTest
     Policy policy =
         tempEntity.newPolicy(organization.getId(), INHERITANCE_POLICY_NAME, POLICY_THREAT_LEVEL);
     // When: the editor URL is opened.
-    playwrightRefreshOrOpen(PolicyEditorPage.url(organization, policy));
+    navigateAndWaitForUrl(PolicyEditorPage.url(organization, policy), PolicyEditorPage.EDIT_URL_FRAGMENT);
 
     // Then: both the editor container and the inheritance section render.
     PolicyEditorPage editorPage = new PolicyEditorPage();
@@ -144,9 +155,9 @@ public class OrganizationPolicyEditorPlaywrightTest
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
     // Given: the user is on the owner summary and clicks "Add a Policy" on the Policies tile.
-    // After the SPA route change we wait for network-idle so the policy + constraint slices
-    // finish their initial loads before our subsequent fills (otherwise the redux store's
-    // currentPolicy gets re-seeded and blows away anything we typed).
+    // waitForNewPolicyFormReady() waits for network-idle + firstConstraintName, ensuring the
+    // Redux policy + constraint slices finish loading before fills (prevents currentPolicy
+    // being re-seeded and blowing away typed values).
     ownerSummary.openPoliciesSectionFromNavPills();
     ownerSummary.addPolicyButton().click();
     assertThat(editorPage.firstConstraintName()).isVisible(
@@ -254,18 +265,166 @@ public class OrganizationPolicyEditorPlaywrightTest
     editorPage.clickSubmit();
     waitForSubmitMask();
 
-    // Case 2 — Then: the form did not redirect (still on /policy) and the validation summary
-    // is visible. After refreshing the owner summary, exactly one row for the duplicate name
-    // appears in the policies tile (the seeded policy — no second row was created).
     assertThat(page).hasURL(Pattern.compile(".*/policy$"));
     assertThat(editorPage.validationErrors()).isVisible();
     playwrightRefreshOrOpen(OwnerSummaryPage.url(organization));
-    // Filled fields (name + threat level + constraint) create "unsaved changes". Dismiss the
-    // "Unsaved Changes" modal if the SPA router raises it before continuing.
     new UnsavedChangesModalComponent().dismissIfAppearsWithin(PlaywrightTiming.BRIEF_UI_TRANSITION_MS);
     new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
     ownerSummary.openPoliciesSectionFromNavPills();
     assertThat(ownerSummary.policiesTileRowByName(duplicateName)).hasCount(1);
   }
 
+  @Test
+  @Category(RegressionTest.class)
+  public void testCreatePolicy_submitMaskSuccessAndPoliciesTileUpdate() {
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    ownerSummary.openPoliciesSectionFromNavPills();
+    ownerSummary.addPolicyButton().click();
+    editorPage.waitForNewPolicyFormReady();
+
+    editorPage.policyName().fill(CREATED_POLICY_NAME);
+    editorPage.selectThreatLevel(CREATED_POLICY_THREAT_LEVEL, CREATED_POLICY_THREAT_LABEL);
+    editorPage.fillDefaultConstraint(CREATED_POLICY_CONSTRAINT_NAME, CREATED_POLICY_AGE_IN_DAYS);
+    editorPage.clickSubmit();
+
+    new PolicyEditorPageAssertions(editorPage).shouldShowSaveSuccessMask();
+    navigateAndWaitForUrl(OwnerSummaryPage.url(organization), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openPoliciesSectionFromNavPills();
+    assertThat(ownerSummary.policiesTileRowByName(CREATED_POLICY_NAME)).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testEditPolicy_updateFlowFromPoliciesTile() {
+    OwnersTreePage treePage = new OwnersTreePage();
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
+    navigateAndWaitForUrl(OwnersTreePage.url(), OwnersTreePage.TREE_URL_FRAGMENT);
+    new OwnersTreePageAssertions(treePage).shouldBeVisibleWithAtLeastOneItem();
+    treePage.clickItemWithText(organization.getName());
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openPoliciesSectionFromNavPills();
+    ownerSummary.policiesTileRowByName(POLICY_NAME).click();
+    new PolicyEditorPageAssertions(editorPage).shouldBeInEditModeWithExpectedName(POLICY_NAME);
+
+    String updatedName = POLICY_NAME + UPDATED_POLICY_SUFFIX;
+    editorPage.policyName().fill(updatedName);
+    editorPage.clickSubmit();
+
+    new PolicyEditorPageAssertions(editorPage).shouldShowSaveSuccessMask();
+    assertThat(editorPage.policyName()).hasValue(updatedName);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testDeletePolicy_cancelAndConfirmFlow() {
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
+    navigateAndWaitForUrl(PolicyEditorPage.url(organization, policy), PolicyEditorPage.EDIT_URL_FRAGMENT);
+    assertThat(editorPage.container()).isVisible();
+
+    editorPage.deletePolicyButton().click();
+    new PolicyEditorPageAssertions(editorPage).shouldShowDeleteModal();
+    editorPage.deleteModalInput().fill(DELETE_WRONG_INPUT);
+    assertThat(editorPage.deleteModalValidation()).hasText(DELETE_VALIDATION_MESSAGE);
+    editorPage.cancelDeleteAndWaitForModalClose();
+
+    assertThat(editorPage.container()).isVisible();
+    assertThat(editorPage.deletePolicyButton()).isVisible();
+
+    editorPage.deletePolicyButton().click();
+    new PolicyEditorPageAssertions(editorPage).shouldShowDeleteModal();
+    editorPage.deleteModalInput().fill(DELETE_CONFIRMATION_KEYWORD);
+    assertThat(editorPage.deleteModalValidation()).isHidden();
+    editorPage.confirmDeleteAndWaitForModalClose();
+
+    navigateAndWaitForUrl(OwnerSummaryPage.url(organization), OwnerSummaryPage.ORG_URL_FRAGMENT);
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    new OwnerSummaryPageAssertions(ownerSummary).shouldBeVisible();
+    ownerSummary.openPoliciesSectionFromNavPills();
+    assertThat(ownerSummary.policiesTileRowByName(POLICY_NAME)).hasCount(0);
+  }
+
+  /**
+   * Enterprise feature gate: Default/Custom toggle and save blocked in preview.
+   *
+   * <p>
+   * When {@code CUSTOM_POLICIES} is not in the license, PolicyEditor shows a "Default" /
+   * "Custom" toggle for existing policies. Default mode is active initially. Clicking "Custom"
+   * enters enterprise-preview mode: the NxInfoAlert "This is an Enterprise feature. Changes
+   * can't be saved." renders and the form short-circuits submission without saving.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testEnterpriseFeatureGate_defaultCustomToggleAndSaveBlocked() {
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
+    setMissingFeature(LicensedFeature.CUSTOM_POLICIES);
+    playwrightRefreshOrOpen(PolicyEditorPage.url(organization, policy));
+    // The reload is intentional: installLicense() updates the server-side license state, but the
+    // SPA fetches product features asynchronously on page load. In headless Chromium the first load
+    // completes before the features response is processed, so the enterprise toggle does not render.
+    // A second load guarantees the SPA re-fetches and reflects the updated license state.
+    playwrightRefresh();
+
+    assertThat(editorPage.defaultModeButton()).isVisible();
+    assertThat(editorPage.customModeButton()).isVisible();
+    assertThat(editorPage.customModeButtonLockIcon()).isVisible();
+    assertThat(editorPage.enterprisePreviewAlert()).isHidden();
+
+    editorPage.customModeButton().hover();
+    assertThat(editorPage.enterpriseFeatureTooltip()).isVisible();
+
+    editorPage.customModeButton().click();
+
+    assertThat(editorPage.enterprisePreviewAlert()).isVisible();
+    assertThat(editorPage.saveButton()).isHidden();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSbomManagerPolicy_noDeleteButtonAndInfoAlert() {
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    Policy policy = tempEntity.newPolicy(organization.getId(), POLICY_NAME, POLICY_THREAT_LEVEL);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.POLICY_MONITORING);
+    playwrightHardresetToBlank();
+
+    playwrightRefreshOrOpen(OwnerSummaryPage.sbomManagerUrl(organization.getId()));
+    playwrightLogin();
+    playwrightWaitUntilUrlContains(OwnerSummaryPage.SBOM_ORG_URL_FRAGMENT);
+    String sbomPolicyUrl = PolicyEditorPage.sbomManagerUrl(organization, policy);
+    playwrightSpaNavigateToHashFragment(sbomPolicyUrl.substring(sbomPolicyUrl.indexOf('#')));
+    playwrightWaitUntilUrlContains(PolicyEditorPage.SBOM_MANAGER_EDIT_URL_FRAGMENT);
+    assertThat(editorPage.container()).isVisible();
+
+    new PolicyEditorPageAssertions(editorPage).shouldBeInSbomManagerReadOnlyMode();
+  }
+
+  /**
+   * Back button on new policy creation: clicking "Back" on the new-policy form returns the
+   * browser to the owner summary without creating a policy.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testBackButtonOnNewPolicy_returnsToOwnerSummary() {
+    OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    ownerSummary.openPoliciesSectionFromNavPills();
+    ownerSummary.addPolicyButton().click();
+    editorPage.waitForNewPolicyFormReady();
+
+    editorPage.backButton().click();
+
+    assertThat(ownerSummary.container()).isVisible();
+  }
 }

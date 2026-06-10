@@ -1,0 +1,12 @@
+{
+    "expectedHeading": "Success Metrics",
+    "expectedSidebarLinkText": "Success Metrics",
+    "expectedDescriptionSubstring": "Success Metrics is an experimental feature providing high-level statistics on the past performance of Sonatype Lifecycle.",
+    "expectedReportsTileHeading": "Reports",
+    "expectedReportsTileSubtitleSubstring": "Success Metrics data is also accessible via the",
+    "expectedDataApiLinkText": "Success Metrics Data API.",
+    "expectedAddReportButtonLabelSubstring": "Add a Report",
+    "expectedEmptyReportsMessage": "No reports have been created.",
+    "expectedUrlFragment": "/labs/successMetrics",
+    "expectedPageTabTitle": "Success Metrics - Lifecycle"
+  }

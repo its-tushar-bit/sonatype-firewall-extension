@@ -11,18 +11,20 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.playwright.pages.FirewallPage;
-import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.sonatype.clm.testing.playwright.utils.FirewallComponentDetailsHdsStub;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -35,13 +37,13 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
-import org.junit.experimental.categories.Category;
 
 public class FirewallComponentDetailsPlaywrightTest
     extends AbstractIqUiTest
@@ -256,8 +258,6 @@ public class FirewallComponentDetailsPlaywrightTest
     assertThat(detailsPage.vulnerabilityDetailsPopoverTitle()).containsText(HIGH_SEVERITY_CVE_ID);
   }
 
-  // --------------- Backend seed / HDS stub helpers ---------------
-
   private RepositoryComponent seedComponentWithSecurityViolations() {
     Repository repository = newRepositoryForSecurityScenario();
     Policy securityHighPolicy = tempEntity.newPolicy();
@@ -320,7 +320,7 @@ public class FirewallComponentDetailsPlaywrightTest
     Date evalTime = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
     return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         COMPONENT_PATHNAME, COMPONENT_HASH,
-        com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates(
+        ComponentIdentifier.createMavenCoordinates(
             MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID, MAVEN_VERSION),
         evalTime, evalTime);
   }
@@ -346,6 +346,6 @@ public class FirewallComponentDetailsPlaywrightTest
   }
 
   private String uuid() {
-    return java.util.UUID.randomUUID().toString();
+    return UUID.randomUUID().toString();
   }
 }

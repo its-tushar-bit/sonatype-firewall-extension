@@ -1,0 +1,54 @@
+{
+  "orgName": "Org 1",
+  "appName": "App 1",
+  "appId": "app1",
+  "policies": [
+    {"name": "Policy 1", "threatLevel": 7},
+    {"name": "Policy 2", "threatLevel": 9},
+    {"name": "Policy 3", "threatLevel": 3},
+    {"name": "Policy 4", "threatLevel": 8}
+  ],
+  "components": [
+    {
+      "groupId": "Group1",
+      "artifactId": "Artifact1",
+      "version": "Version1",
+      "hash": "hash1",
+      "cveId": "sonatype-2017-0507",
+      "purlVersion": "1.2.3"
+    },
+    {
+      "groupId": "Group2",
+      "artifactId": "Artifact2",
+      "version": "Version2",
+      "hash": "hash2",
+      "cveId": "sonatype-2017-8912",
+      "purlVersion": null
+    },
+    {
+      "groupId": "Group3",
+      "artifactId": "Artifact3",
+      "version": "Version3",
+      "hash": "hash3",
+      "cveId": "sonatype-2017-7848",
+      "purlVersion": null
+    },
+    {
+      "groupId": "Group4",
+      "artifactId": "Artifact4",
+      "version": "Version4",
+      "hash": null,
+      "cveId": "sonatype-2017-7859",
+      "purlVersion": null
+    }
+  ],
+  "waiverReasonName": "Reason type",
+  "waiverReasonText": "some reason text",
+  "comment": "comment",
+  "creatorName": "Test User",
+  "noReasonText": "--",
+  "vulnerabilityDetailsButtonText": "Vulnerability Details",
+  "detailsTileHeader": "Waiver Detail View",
+  "constraintText": "Test Constraint is in violation for:",
+  "sidebarNavTitle": "waivers"
+}

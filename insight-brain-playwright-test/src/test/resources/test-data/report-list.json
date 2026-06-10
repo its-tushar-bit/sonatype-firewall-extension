@@ -1,0 +1,21 @@
+{
+  "organizationNamePrefix": "ApplicationReportTestOrg",
+  "applicationNamePrefix": "ApplicationReportTest",
+  "userPrefix": "reportListUser",
+  "userFirstName": "reallylongfirst",
+  "userLastName": "even longer last name junior senior",
+  "userEmailDomain": "example.com",
+  "buildScanId": "BUILD_SCAN_ID",
+  "stageScanId": "STAGE_SCAN_ID",
+  "buildReportDir": "/canned-reports/large-report",
+  "stageReportDir": "/canned-reports/small-report",
+  "expectedHeaders": [
+    "APPLICATION",
+    "ORGANIZATION",
+    "SOURCE",
+    "BUILD",
+    "STAGE RELEASE",
+    "RELEASE"
+  ],
+  "expectedFirstRowBuildThreatCategory": "Critical"
+}

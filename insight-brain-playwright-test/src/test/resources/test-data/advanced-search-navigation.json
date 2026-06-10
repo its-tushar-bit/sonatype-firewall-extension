@@ -1,0 +1,8 @@
+{
+    "expectedSidebarLinkText": "Advanced Search",
+    "expectedPageHeading": "Advanced Search",
+    "expectedUrlFragment": "/advancedSearch",
+    "expectedPageTabTitle": "Advanced Search - Lifecycle",
+    "sampleKeyword": "log4j",
+    "expectedResultsLabelPrefix": "Results:"
+ }

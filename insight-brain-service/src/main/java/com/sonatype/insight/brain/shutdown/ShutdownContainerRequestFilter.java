@@ -17,6 +17,8 @@ import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+
 @Named
 @Provider
 @Priority(ShutdownContainerRequestFilter.PRIORITY)
@@ -34,6 +36,7 @@ public class ShutdownContainerRequestFilter
   }
 
   @Trace
+  @WithSpan
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
     if (shutdownHandler.isAfterGracePeriod()) {

@@ -161,3 +161,4 @@ logging:
 
 # Sample data is created for new installs.
 createSampleData: true
+

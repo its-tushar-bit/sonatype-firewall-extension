@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -268,6 +269,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
       final String applicationId,
       final String scanId) throws IOException
@@ -287,6 +289,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
       final String applicationId,
       final String scanId) throws IOException
@@ -296,6 +299,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void saveOriginalReport(
       final String applicationId,
       final String scanId,
@@ -333,6 +337,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void saveOriginalReportEntities(
       final String applicationId,
       final String scanId,
@@ -367,6 +372,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void moveReport(
       final String appId,
       final String sourceScanId,
@@ -408,12 +414,14 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
     return new FileReportPdfEntity(getReportDirPath(applicationId, scanId));
   }
 
   @Override
   @Trace
+  @WithSpan
   public BaseReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
     Path reportDirPath = getReportDirPath(applicationId, scanId);
     return new FileReportEntity(reportDirPath, reportDirPath.resolve(VULNERABILITY_SIGNATURE_FILENAME));
@@ -426,6 +434,7 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public boolean reportExists(final String applicationId, final String scanId) {
     if (Files.exists(getAdditionalFilesPath(applicationId, scanId).resolve(CopyStorageService.COPY_MARKER))) {
       return false;
@@ -435,18 +444,21 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReport(final String applicationId, final String scanId) throws IOException {
     fileCleaner.delete(getReportDirPath(applicationId, scanId).toFile());
   }
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReports(final String applicationId) throws IOException {
     fileCleaner.delete(getReportsForApplicationPath(applicationId).toFile());
   }
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
     FileReportEntity fileReportEntity = (FileReportEntity) reportEntity;
     Files.deleteIfExists(fileReportEntity.entityPath);

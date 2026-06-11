@@ -519,6 +519,10 @@
       <artifactId>dd-trace-ot</artifactId>
       <version>${datadog.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.awaitility</groupId>

@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import jakarta.inject.Inject;
@@ -117,6 +118,12 @@ public class TenantManager
       span.setTag("tenant", tenant.tenantSlug);
     }
 
+    // OpenTelemetry equivalent for setting tenant tag (no-op when OTel agent is inactive)
+    io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
+    if (otelSpan.getSpanContext().isValid()) {
+      otelSpan.setAttribute("tenant", tenant.tenantSlug);
+    }
+
     validateAndRegisterTenant(tenant);
   }
 
@@ -204,6 +211,7 @@ public class TenantManager
    * Perform all registration for a tenant: database init (not migration), tenant jobs, and app lifecycle boot
    */
   @Trace // 2025-06-24 - trace on a per-tenant level to benchmark registration cost (CLM-34837)
+  @WithSpan // OTel agent instruments private methods via bytecode manipulation (verified in CLM-39873)
   private void performRegistration() {
     databaseProvisioner.initializeDatabaseWithoutMigration();
     setupTenantJobs();
@@ -215,6 +223,7 @@ public class TenantManager
    * is used for tenant deletion, where the tenant should not be registered as this causes the Quartz jobs to run.
    */
   @Trace
+  @WithSpan
   protected <T> T performDatabaseRegistrationAndRunAs(final String tenantSlug, final Supplier<T> supplier) {
     if (StringUtils.isBlank(tenantSlug)) {
       throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
@@ -230,6 +239,12 @@ public class TenantManager
       final Span span = GlobalTracer.get().activeSpan();
       if (span != null) {
         span.setTag("tenant", tenant.tenantSlug);
+      }
+
+      // OpenTelemetry equivalent for setting tenant tag (no-op when OTel agent is inactive)
+      io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
+      if (otelSpan.getSpanContext().isValid()) {
+        otelSpan.setAttribute("tenant", tenant.tenantSlug);
       }
 
       log.info("Registering DB for tenant {}", tenant.tenantSlug);
@@ -294,6 +309,7 @@ public class TenantManager
   }
 
   @Trace
+  @WithSpan
   public void deregisterTenant(String tenantSlug) {
     if (StringUtils.isBlank(tenantSlug)) {
       log.warn("There was an attempt to deregister a tenant with blank slug");

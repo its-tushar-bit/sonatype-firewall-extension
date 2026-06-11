@@ -125,6 +125,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -372,6 +373,7 @@ public class ScanPolicyEvaluator
    * that captures metrics during a load test; the agent cannot instrument overloaded methods
    */
   @Trace
+  @WithSpan // OTel agent instruments private methods via bytecode manipulation (verified in CLM-39873)
   private ScanPolicyEvaluatorResults doEvaluate(
       final Application application,
       final String scanId,

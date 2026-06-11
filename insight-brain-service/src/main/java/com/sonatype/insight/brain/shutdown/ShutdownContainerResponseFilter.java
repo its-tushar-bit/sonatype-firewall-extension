@@ -16,6 +16,8 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+
 @Named
 @Provider
 @Priority(ShutdownContainerResponseFilter.PRIORITY)
@@ -32,6 +34,7 @@ public class ShutdownContainerResponseFilter
   }
 
   @Trace
+  @WithSpan
   @Override
   public void filter(
       final ContainerRequestContext containerRequestContext,

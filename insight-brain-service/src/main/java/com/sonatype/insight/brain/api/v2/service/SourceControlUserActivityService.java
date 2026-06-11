@@ -34,6 +34,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class SourceControlUserActivityService
   }
 
   @Trace
+  @WithSpan
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   void saveRepoUserList(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicApplicationId,

@@ -25,6 +25,7 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 public class DatabaseUtil
 {
@@ -45,6 +46,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
@@ -63,6 +65,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static boolean schemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
@@ -80,6 +83,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static boolean databaseSchemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
@@ -98,6 +102,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static boolean tableExistsWithColumn(
       final DataSource dataSource,
       final String databaseSchema,
@@ -124,6 +129,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static int getLegacyDatabaseSchemaVersion(
       final DataSource dataSource,
       final String dataStoreId,
@@ -161,6 +167,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static Long getLastCheckinTime(final DataSource dataSource, final String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement();
@@ -217,6 +224,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static Map<String, Integer> getDatabaseSchemaVersions(DataSource dataSource, String databaseSchema) {
     String sql = setSchema("SELECT * FROM %s.schema_version", databaseSchema);
     Map<String, Integer> schemaVersions = new HashMap<>();
@@ -240,6 +248,7 @@ public class DatabaseUtil
   }
 
   @Trace
+  @WithSpan
   public static List<String> getTenantSchemas(DataSource dataSource) {
     final List<String> schemas = new ArrayList<>();
     try (

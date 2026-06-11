@@ -12,6 +12,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 public class TelemetryAccumulator
 {
@@ -55,6 +56,7 @@ public class TelemetryAccumulator
    * @return the number of telemetry data entries sent
    */
   @Trace
+  @WithSpan
   public int flush() {
     int sendCount = 0;
 

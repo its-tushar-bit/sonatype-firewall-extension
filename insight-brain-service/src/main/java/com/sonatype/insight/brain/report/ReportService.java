@@ -128,6 +128,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -285,6 +286,7 @@ public class ReportService
   }
 
   @Trace
+  @WithSpan
   public ApplicationReport fetchReport(
       final Application app,
       final String scanId,
@@ -294,6 +296,7 @@ public class ReportService
   }
 
   @Trace
+  @WithSpan
   public ApplicationReport fetchReport(
       final Application app,
       final String scanId,
@@ -509,6 +512,7 @@ public class ReportService
   }
 
   @Trace
+  @WithSpan
   public ApplicationReport getReport(final String appId, final String scanId) {
     return getReport(applicationDAO.getByIdNotNull(appId), scanId);
   }
@@ -1599,6 +1603,7 @@ public class ReportService
   }
 
   @Trace
+  @WithSpan
   public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent) throws IOException {
     // First call to ensure the scanId is audited even on failure.
     AuditData.get().setScanId(scanId);

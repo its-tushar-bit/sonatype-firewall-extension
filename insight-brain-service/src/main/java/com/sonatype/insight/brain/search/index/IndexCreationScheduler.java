@@ -66,5 +66,11 @@ public class IndexCreationScheduler
     if (span != null) {
       span.setTag(DDTags.RESOURCE_NAME, "class com.sonatype.insight.brain.search.index.IndexCreationScheduler");
     }
+
+    // OpenTelemetry equivalent for setting resource name (no-op when OTel agent is inactive)
+    io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.current();
+    if (otelSpan.getSpanContext().isValid()) {
+      otelSpan.updateName("class com.sonatype.insight.brain.search.index.IndexCreationScheduler");
+    }
   }
 }

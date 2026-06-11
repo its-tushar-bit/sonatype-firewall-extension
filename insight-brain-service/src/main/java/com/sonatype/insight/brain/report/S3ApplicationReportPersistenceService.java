@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import datadog.trace.api.Trace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,6 +303,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public Stream<ReportEntity> getAllReportEntities(
       final String applicationId,
       final String scanId) throws IOException
@@ -321,6 +323,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void saveOriginalReport(
       final String applicationId,
       final String scanId,
@@ -357,6 +360,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void saveOriginalReportEntities(
       final String applicationId,
       final String scanId,
@@ -418,6 +422,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId)))
@@ -433,6 +438,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReport(final String applicationId, final String scanId) throws IOException {
     log.debug("Deleting report files in S3 for applicationId '{}' scanId '{}'", applicationId, scanId);
     deleteAllWithPrefix(String.format(BASE_FORMAT, applicationId, scanId));
@@ -440,6 +446,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReports(final String applicationId) throws IOException {
     log.debug("Deleting ALL report files in S3 for applicationId '{}'", applicationId);
     deleteAllWithPrefix(String.format(APP_WIDE_BASE_FORMAT, applicationId));
@@ -452,6 +459,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
     S3ReportEntity s3ReportEntity = (S3ReportEntity) reportEntity;
     deleteByKey(s3ReportEntity.key);
@@ -603,6 +611,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public void moveReport(
       final String appId,
       final String sourceScanId,
@@ -669,6 +678,7 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   @Trace
+  @WithSpan
   public Stream<ReportEntity> getOriginalReportEntities(
       final String applicationId,
       final String scanId) throws IOException

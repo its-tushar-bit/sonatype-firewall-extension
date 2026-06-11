@@ -54,6 +54,13 @@ public class MultiTenantInsightConfig
     this.mtiqHealth = mtiqHealth;
   }
 
+  /**
+   * Whether to submit metrics to an OpenTelemetry protocol endpoint.
+   * Both StatsD and OTLP can be active simultaneously (dual-shipping).
+   */
+  @JsonProperty
+  private boolean otlpMetricsEnabled = false;
+
   @JsonProperty
   private Path jemallocProfileDir = Path.of(".");
 
@@ -152,6 +159,14 @@ public class MultiTenantInsightConfig
 
   public void setStatsdMetricsConfig(final StatsdMetricsConfig metricsConfig) {
     this.statsdMetricsConfig = metricsConfig;
+  }
+
+  public boolean isOtlpMetricsEnabled() {
+    return otlpMetricsEnabled;
+  }
+
+  public void setOtlpMetricsEnabled(final boolean otlpMetricsEnabled) {
+    this.otlpMetricsEnabled = otlpMetricsEnabled;
   }
 
   public Path getJemallocProfileDir() {

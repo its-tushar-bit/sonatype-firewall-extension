@@ -111,6 +111,7 @@
     <test.group>all</test.group>
 
     <datadog.version>1.60.3</datadog.version>
+    <opentelemetry.version>2.27.0</opentelemetry.version>
     <!--
      Runtime add-opens flags live in jvm.options at the repo root (the single source of truth).
      @argfile syntax (JEP 293) tells the JVM to read flags from that file.
@@ -1316,6 +1317,30 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-statsd</artifactId>
         <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-otlp</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <!-- OpenTelemetry Java agent for auto-instrumentation -->
+      <dependency>
+        <groupId>io.opentelemetry.javaagent</groupId>
+        <artifactId>opentelemetry-javaagent</artifactId>
+        <version>${opentelemetry.version}</version>
+      </dependency>
+      <!-- OpenTelemetry instrumentation annotations for @WithSpan -->
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+        <version>${opentelemetry.version}</version>
+      </dependency>
+
+      <!-- Force opentelemetry-api to 1.62.0 to resolve CVE-2026-45292 (transitive from annotations brings 1.55.0) -->
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-api</artifactId>
+        <version>1.62.0</version>
       </dependency>
 
       <!-- Dropwizard Jackson compatibility pieces retained for legacy IQ JSON behavior -->

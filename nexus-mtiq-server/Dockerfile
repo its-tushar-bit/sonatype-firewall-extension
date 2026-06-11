@@ -49,8 +49,9 @@ RUN apt-get update && apt-get install -y \
 # Copy assembly from builder
 COPY --from=builder /opt/sonatype/nexus-iq-server /opt/sonatype/nexus-iq-server
 
-# Copy Datadog jar
+# Copy telemetry jars (Datadog and OpenTelemetry)
 COPY target/dd-java-agent.jar /opt/datadog/dd-java-agent.jar
+COPY target/otel-java-agent.jar /opt/otel/otel-java-agent.jar
 
 # This is where we will store persistent data
 VOLUME /sonatype-work
@@ -61,10 +62,15 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
+ENV JAVA_OPTS="-javaagent:/opt/datadog/dd-java-agent.jar -Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
 ENV LD_PRELOAD="libjemalloc.so.2"
 
+# Copy entrypoint script for APM agent selection
+COPY docker-entrypoint.sh /opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh
+RUN chmod +x /opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh
+
 # Use tini init in order to get proper orphaned process reaping
-ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]
+# Entry point script handles APM agent selection before executing the server
+ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]
 
 CMD ["server", "/etc/mtiq-server/config.yaml"]

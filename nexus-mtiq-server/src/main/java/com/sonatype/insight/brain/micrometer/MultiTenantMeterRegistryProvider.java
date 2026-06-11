@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.micrometer.statsd.StatsdConfig;
 import io.micrometer.statsd.StatsdFlavor;
 import io.micrometer.statsd.StatsdMeterRegistry;
@@ -43,14 +44,33 @@ public class MultiTenantMeterRegistryProvider
     MultiTenantInsightConfig config = MtiqConfigSupport.requireMultiTenantInsightConfig(
         insightConfig,
         "MultiTenantMeterRegistryProvider.get");
-    if (config.getStatsdMetricsConfig() == null || !config.getStatsdMetricsConfig().isEnabled()) {
-      log.info("StatsdMetrics is disabled, cannot provide a MeterRegistry for Micrometer.");
+
+    boolean statsdEnabled = config.getStatsdMetricsConfig() != null && config.getStatsdMetricsConfig().isEnabled();
+    boolean otlpEnabled = config.isOtlpMetricsEnabled();
+
+    if (!statsdEnabled && !otlpEnabled) {
+      log.info("Both StatsdMetrics and OTLP metrics are disabled, cannot provide a MeterRegistry for Micrometer.");
       return null;
     }
 
-    log.info("Creating MultiTenant MeterRegistry for Micrometer.");
+    log.info("Creating MultiTenant MeterRegistry for Micrometer (StatsD: {}, OTLP: {}).", statsdEnabled, otlpEnabled);
     CompositeMeterRegistry registry = new CompositeMeterRegistry();
-    registry.add(getStatsdMeterRegistry(config.getStatsdMetricsConfig()));
+
+    if (statsdEnabled) {
+      registry.add(getStatsdMeterRegistry(config.getStatsdMetricsConfig()));
+    }
+
+    if (otlpEnabled) {
+      MeterRegistry otlpRegistry = getOtlpMeterRegistry();
+      if (otlpRegistry != null) {
+        registry.add(otlpRegistry);
+      }
+    }
+
+    if (registry.getRegistries().isEmpty()) {
+      log.info("No metrics registries were successfully configured; returning null.");
+      return null;
+    }
 
     return registry;
   }
@@ -63,12 +83,50 @@ public class MultiTenantMeterRegistryProvider
 
     statsdMeterRegistry.config()
         .namingConvention((name, type, baseUnit) -> statsdMetricsConfig.getMetricsPrefix() + "." + name)
-        .commonTags(buildCommonTags(statsdMetricsConfig.getMetricsTeam()));
+        .commonTags(buildStatsdCommonTags(statsdMetricsConfig.getMetricsTeam()));
 
     return statsdMeterRegistry;
   }
 
-  private static Iterable<Tag> buildCommonTags(final String team) {
+  /**
+   * Creates an OTLP MeterRegistry that sends metrics to an OpenTelemetry collector.
+   * <p>
+   * The default OtlpConfig reads standard OTEL_* environment variables for endpoint,
+   * authentication, and resource attributes:
+   * <ul>
+   * <li>OTEL_EXPORTER_OTLP_ENDPOINT - Base OTLP endpoint URL</li>
+   * <li>OTEL_EXPORTER_OTLP_HEADERS - Headers for authentication</li>
+   * <li>OTEL_RESOURCE_ATTRIBUTES - Resource-level attributes (service.name, deployment.environment,
+   * service.version, etc.) automatically attached to all exported metrics</li>
+   * </ul>
+   * <p>
+   * Unlike the StatsD registry, no metric-level commonTags for env/service/version are needed here.
+   * OTEL_RESOURCE_ATTRIBUTES provides these as OTLP resource attributes, which is the standard
+   * mechanism for service identification in OTel backends.
+   */
+  private MeterRegistry getOtlpMeterRegistry() {
+    if (!isOtlpEndpointConfigured()) {
+      log.warn("OTLP metrics enabled but no OTLP endpoint configured (checked OTEL_EXPORTER_OTLP_ENDPOINT, "
+          + "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT env vars and otel.exporter.otlp.* system properties); "
+          + "skipping OTLP registry creation");
+      return null;
+    }
+    return new OtlpMeterRegistry();
+  }
+
+  /**
+   * Checks whether an OTLP endpoint is configured via environment variables or system properties.
+   * OTel supports both configuration mechanisms; system properties use the dot-notation equivalent
+   * of the env var names (e.g., otel.exporter.otlp.endpoint).
+   */
+  boolean isOtlpEndpointConfigured() {
+    return System.getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != null
+        || System.getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") != null
+        || System.getProperty("otel.exporter.otlp.endpoint") != null
+        || System.getProperty("otel.exporter.otlp.metrics.endpoint") != null;
+  }
+
+  private static Iterable<Tag> buildStatsdCommonTags(final String team) {
     Tags tags = Tags.of("team", team);
 
     if (System.getenv().get("DD_ENV") != null) {

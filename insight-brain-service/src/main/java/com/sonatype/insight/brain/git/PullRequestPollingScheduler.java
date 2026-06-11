@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import datadog.trace.api.Trace;
 import java.util.concurrent.atomic.AtomicBoolean;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,6 +156,7 @@ public class PullRequestPollingScheduler
 
   // Visible to tests so they can spy it and count the number of times it runs
   @Trace
+  @WithSpan
   @VisibleForTesting
   void discoverPullRequestsForCommenting() {
     if (suppressed.get().get()) {

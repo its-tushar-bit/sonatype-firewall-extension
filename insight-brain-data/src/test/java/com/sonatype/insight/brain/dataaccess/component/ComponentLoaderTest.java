@@ -1297,6 +1297,37 @@ public class ComponentLoaderTest
         .containsExactlyInAnyOrder("CVE-2023-0001");
   }
 
+  @Test
+  public void testGetComponent_unknownLicenseNameIsSkippedAndKnownNameResolved() {
+    // CLM-35969: when licenses.json contains an unrecognized alias (e.g. "LGPL-2.1-or-later") alongside
+    // "Not Provided", the alias must be silently skipped rather than throwing NotFoundException, and the
+    // known "Not Provided" sentinel must still resolve to UNSPECIFIED so policy can fire.
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode licenseJsonNode = objectMapper.createObjectNode();
+    licenseJsonNode.put("format", "rpm");
+    ObjectNode coords = objectMapper.createObjectNode();
+    coords.put("name", "sles/crypto-policies");
+    coords.put("version", "1.0");
+    ObjectNode componentIdentifierNode = objectMapper.createObjectNode();
+    componentIdentifierNode.put("format", "rpm");
+    componentIdentifierNode.set("coordinates", coords);
+    licenseJsonNode.set("componentIdentifier", componentIdentifierNode);
+    licenseJsonNode.put("hash", "abc123");
+    licenseJsonNode.put("matchState", "exact");
+
+    ArrayNode declared = objectMapper.createArrayNode();
+    declared.add("Not Provided"); // known — maps to UNSPECIFIED
+    declared.add("LGPL-2.1-or-later"); // unknown alias — must be skipped gracefully
+    licenseJsonNode.set("declaredLicenses", declared);
+    licenseJsonNode.set("observedLicenses", objectMapper.createArrayNode());
+
+    // multiLicenseDAO is a real DAO backed by the test DB (seeded with "Not Provided" → UNSPECIFIED).
+    Component component = componentLoader.getComponent(licenseJsonNode);
+
+    assertThat(component.getDeclaredLicenseIds()).containsExactlyInAnyOrder(License.UNSPECIFIED_ID);
+    assertThat(component.getObservedLicenseIds()).isEmpty();
+  }
+
   private void assertLicenseOverrideIsTheExpected(MatchedComponent matchedComponent, String licenseOverrideId) {
     // We need a new instance so the inserted LicenseOverrides are loaded. The LicenseOverride is only loaded
     // one time on first call to getComponent. This is aligned with the intentional design for the ComponentDAO

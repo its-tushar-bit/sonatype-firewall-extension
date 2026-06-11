@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -308,12 +309,19 @@ public class ComponentLoader
   }
 
   private Set<String> getMultiLicenseIdsByNames(List<String> multiLicenseNames) {
-    return multiLicenseNames == null
-        ? Collections.emptySet()
-        : multiLicenseNames.stream()
-            .map(multiLicenseDAO::getByNameNotNull)
-            .map(MultiLicense::getId)
-            .collect(Collectors.toSet());
+    if (multiLicenseNames == null) {
+      return Collections.emptySet();
+    }
+    // getByName triggers LicenseDataUpdater.update() on each cache miss — that does an HDS HTTP call,
+    // a DB transaction, and a broadcast to other cluster nodes. Dedupe names so a single component with
+    // multiple unknown aliases (e.g. LGPL-2.1-or-later, GPL-2.0-or-later) doesn't fan out to N refreshes;
+    // after the first reload the cache is hot, so subsequent unknowns won't re-trigger update().
+    Set<String> uniqueNames = new HashSet<>(multiLicenseNames);
+    return uniqueNames.stream()
+        .map(multiLicenseDAO::getByName)
+        .filter(Objects::nonNull)
+        .map(MultiLicense::getId)
+        .collect(Collectors.toSet());
   }
 
   private void loadLicenseOverride(Component component, boolean useLicensesJsonOverriddenLicenses) {

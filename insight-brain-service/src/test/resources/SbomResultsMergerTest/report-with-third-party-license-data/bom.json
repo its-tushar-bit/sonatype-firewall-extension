@@ -135,5 +135,37 @@
       "hasSecurity" : false,
       "manifestContentType" : "SBOM"
     }
+  }, {
+    "componentIdentifier" : {
+      "format" : "rpm",
+      "coordinates" : {
+        "architecture" : "noarch",
+        "name" : "sles/crypto-policies",
+        "version" : "20230920"
+      }
+    },
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9255ac9fe7070a2d0000",
+    "relativePopularity" : null,
+    "createTime" : 1453445378786,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : true,
+      "hasSecurity" : false,
+      "manifestContentType" : null
+    }
   } ]
 }

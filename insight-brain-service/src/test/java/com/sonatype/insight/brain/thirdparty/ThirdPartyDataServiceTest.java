@@ -275,6 +275,25 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
+  public void testGetScanData_allUnrecognizedLicenseIdsTreatedAsNotProvided() {
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartyFileCoordinate coord1 =
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", ComponentIdentifier.FORMAT_MAVEN, "n1", "v1", "hash1",
+            "pkg:maven/ns1/n1@v1?type=jar");
+
+    // Store a license whose ID is not present in the multi_license table (unrecognized alias).
+    // addLicense() catches NotFoundException, so declaredLicenses stays empty and the fallback
+    // licenseNotProvided() path is exercised.
+    tempEntity.newThirdPartyCoordinateLicense(coord1, "LGPL-2.1-or-later", "LGPL-2.1-or-later", null);
+
+    final ThirdPartyApplicationReportDTO scanData = handler.getScanData(SCAN_ID);
+
+    assertThat(scanData.billOfMaterials).hasSize(1);
+    assertLicenseNotProvided(scanData.licenseRows, coord1);
+  }
+
+  @Test
   public void testGetScanData_doesNotStampWallClockCreateTime() {
     // CLM-39739: third-party (CycloneDX) scans must not stamp the scan upload time as createTime.
     // Doing so caused the policy engine to read an HDS-miss component's catalogDate as "now",

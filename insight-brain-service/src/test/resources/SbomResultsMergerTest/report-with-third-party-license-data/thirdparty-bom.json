@@ -53,5 +53,33 @@
     "hygieneRating" : null,
     "analyzerFeatures" : null,
     "packageUrl" : "pkg:pypi/altgraph@0.10.2"
+  }, {
+    "componentIdentifier" : {
+      "format" : "rpm",
+      "coordinates" : {
+        "architecture" : "noarch",
+        "name" : "sles/crypto-policies",
+        "version" : "20230920"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9255ac9fe7070a2d0000",
+    "relativePopularity" : null,
+    "createTime" : 1589291885089,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "cyclonedx",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "packageUrl" : null
   } ]
 }

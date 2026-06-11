@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
@@ -159,6 +160,10 @@ public class ThirdPartyComponentLicenseResolutionService
 
     if (!thirdPartyLicenses.isEmpty()) {
       return thirdPartyLicenses.stream()
+          // CLM-35969: UNSPECIFIED is a policy-fact sentinel injected by SbomResultsMerger so the
+          // License-None policy fires for components with no resolvable license; it is not a real
+          // license and must not appear in exported SBOMs.
+          .filter(license -> !License.UNSPECIFIED_ID.equals(license.getLicenseId()))
           .map(license -> new ResolvedLicenseDTO(
               license.getLicenseId(),
               license.getName(),

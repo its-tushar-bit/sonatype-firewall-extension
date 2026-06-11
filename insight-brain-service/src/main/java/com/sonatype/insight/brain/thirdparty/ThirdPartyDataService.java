@@ -319,6 +319,12 @@ public class ThirdPartyDataService
     final ThirdPartyLicenseRowDTO dto = new ThirdPartyLicenseRowDTO(componentIdentifier, coord.getHash());
     if (!licenses.isEmpty()) {
       licenses.forEach(thirdPartyCoordinateLicense -> addLicense(thirdPartyCoordinateLicense, dto));
+      if (dto.declaredLicenses.isEmpty()) {
+        // addLicense only populates dto.declaredLicenses, so checking declaredLicenses.isEmpty() is sufficient
+        // to detect the case where all DB license IDs were unrecognized (e.g. LGPL-2.1-or-later alias not in
+        // multiLicenseDAO). observedLicenses is not checked because addLicense does not write to it.
+        licenseNotProvided(dto);
+      }
     }
     else {
       licenseNotProvided(dto);
@@ -326,6 +332,8 @@ public class ThirdPartyDataService
     thirdPartyApplicationReportDTO.licenseRows.add(dto);
   }
 
+  // Contract: writes only to dto.declaredLicenses. populateLicenseInformation relies on this — if you
+  // extend this method to also write dto.observedLicenses, update the empty-check there as well.
   private void addLicense(
       final ThirdPartyCoordinateLicense thirdPartyCoordinateLicense,
       final ThirdPartyLicenseRowDTO dto)

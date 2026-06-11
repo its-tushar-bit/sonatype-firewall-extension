@@ -152,6 +152,13 @@ public class SbomResultsMerger
 
   public static final String FIELD_FILENAMES = "filenames";
 
+  // Display names from multi_license table that map to license_ids UNSPECIFIED and Not-Declared respectively.
+  // Injected into licenses.json so the License-None policy's "UNSPECIFIED AND Not-Declared" constraint fires
+  // for SBOM components with no resolvable license information (CLM-35969).
+  static final String LICENSE_NAME_NOT_PROVIDED = "Not Provided";
+
+  static final String LICENSE_NAME_NOT_DECLARED = "Not Declared";
+
   private final DuplicateAwareThirdPartyFileCoordinatePersister thirdPartyFileCoordinatePersister;
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -787,16 +794,36 @@ public class SbomResultsMerger
     ContainerNode<?> licensesJsonData =
         JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON.getName())).buf);
     ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
+    boolean licenseJsonModified = false;
     for (JsonNode licenseJsonNode : licenseJsonArray) {
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);
       List<String> licenseIds = JsonUtils.getStringListFromArray(licenseJsonNode.get(FIELD_EFFECTIVE_LICENSES));
-      // later we may need to fall back to declared licenses if effective licenses is empty
       if (CollectionUtils.isNotEmpty(licenseIds)) {
         for (String licenseId : licenseIds) {
           hdsLicenseResults.computeIfAbsent(componentIdentifier, identifier -> new HashMap<>())
               .put(licenseId, licenseJsonNode);
         }
       }
+      else {
+        // No effective license data from HDS — inject "Not Provided" and "Not Declared" into
+        // declaredLicenses/observedLicenses so the default License-None policy constraint
+        // ("License is UNSPECIFIED" AND "License is Not-Declared") fires for SBOM components
+        // with no resolvable license information (CLM-35969). Persist the mutation so the
+        // ComponentLoader path (which re-reads licenses.json) sees the sentinels too.
+        hdsLicenseResults.computeIfAbsent(componentIdentifier, identifier -> new HashMap<>())
+            .put(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID, licenseJsonNode);
+        ObjectNode mutableNode = (ObjectNode) licenseJsonNode;
+        ArrayNode declared = mutableNode.putArray("declaredLicenses");
+        declared.add(LICENSE_NAME_NOT_PROVIDED);
+        declared.add(LICENSE_NAME_NOT_DECLARED);
+        ArrayNode observed = mutableNode.putArray("observedLicenses");
+        observed.add(LICENSE_NAME_NOT_PROVIDED);
+        observed.add(LICENSE_NAME_NOT_DECLARED);
+        licenseJsonModified = true;
+      }
+    }
+    if (licenseJsonModified) {
+      applicationReport.saveReportEntry(LICENSES_JSON.getName(), licensesJsonData);
     }
   }
 

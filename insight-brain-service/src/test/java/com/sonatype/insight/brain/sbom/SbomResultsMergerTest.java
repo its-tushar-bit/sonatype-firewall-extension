@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -1115,6 +1116,35 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_componentWithNoLicenseDataGetsUnspecifiedSentinel() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    // Matches the rpm/sles/crypto-policies entry in licenses.json which has empty effectiveLicenses,
+    // declaredLicenses, and observedLicenses — triggering the CLM-35969 sentinel injection.
+    // The purl for pkg:rpm/sles/crypto-policies@20230920 gives getName()="crypto-policies" (namespace=sles),
+    // which is what getByFormatNameVersionAndScanID uses to match the coordinate.
+    ThirdPartyFileCoordinate rpmCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "cyclonedx", "rpm", "crypto-policies", "20230920",
+            "9255ac9fe7070a2d0000", null);
+
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(application.getId(), "1", file, PENDING);
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/SbomResultsMergerTest/report-with-third-party-license-data",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
+
+    ThirdPartyCoordinateLicense unspecifiedLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(rpmCoordinate.getId(), License.UNSPECIFIED_ID);
+    assertThat(unspecifiedLicense).isNotNull();
+    assertThat(unspecifiedLicense.getLicenseId()).isEqualTo(License.UNSPECIFIED_ID);
   }
 
   @Test

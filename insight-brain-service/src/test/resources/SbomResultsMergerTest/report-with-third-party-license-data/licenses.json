@@ -72,5 +72,25 @@
       "securityThreatLevel": 7.5,
       "catalogDate": 1453445378786
     }
+  ,{
+      "componentIdentifier": {
+        "format": "rpm",
+        "coordinates": {
+          "architecture": "noarch",
+          "name": "sles/crypto-policies",
+          "version": "20230920"
+        }
+      },
+      "hash": "9255ac9fe7070a2d0000",
+      "declaredLicenses": [],
+      "observedLicenses": [],
+      "effectiveLicenses": [],
+      "securityCounters": {},
+      "effectiveLicenseThreat": null,
+      "matchState": "exact",
+      "proprietary": false,
+      "securityThreatLevel": 0,
+      "catalogDate": 1453445378786
+    }
   ]
 }

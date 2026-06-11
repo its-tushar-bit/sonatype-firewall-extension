@@ -67,6 +67,7 @@ export default function BulkWaiveButton({
     <NxButton
       variant="tertiary"
       id="fw-bulk-waive"
+      data-analytics-id="fw-bulk-waive-open-button"
       disabled={isButtonDisabled}
       className={className}
       onClick={handleClick}

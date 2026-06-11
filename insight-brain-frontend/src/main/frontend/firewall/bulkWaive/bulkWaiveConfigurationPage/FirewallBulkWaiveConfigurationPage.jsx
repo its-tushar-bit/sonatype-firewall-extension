@@ -325,14 +325,19 @@ export default function FirewallBulkWaiveConfigurationPage() {
               </NxFieldset>
 
               <NxButtonBar>
-                <NxButton variant="tertiary" onClick={handleCancel}>
+                <NxButton
+                  variant="tertiary"
+                  data-analytics-id="fw-bulk-waive-step2-cancel-button"
+                  onClick={handleCancel}
+                >
                   Cancel
                 </NxButton>
-                <NxButton variant="secondary" onClick={handleBack}>
+                <NxButton variant="secondary" data-analytics-id="fw-bulk-waive-step2-back-button" onClick={handleBack}>
                   Back
                 </NxButton>
                 <NxButton
                   variant="primary"
+                  data-analytics-id="fw-bulk-waive-step2-next-button"
                   disabled={
                     !selectedWaiverScope ||
                     !expiryTime ||

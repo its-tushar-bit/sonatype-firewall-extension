@@ -582,7 +582,12 @@ export default function FirewallBulkWaivePage() {
                   </div>
                   <div className="fw-bulk-waive-page__actions">
                     {source !== 'component-details' && (
-                      <NxButton onClick={openFilterPopover} variant="tertiary" id="fw-bulk-waive-filter-button">
+                      <NxButton
+                        onClick={openFilterPopover}
+                        variant="tertiary"
+                        id="fw-bulk-waive-filter-button"
+                        data-analytics-id="fw-bulk-waive-filter-button"
+                      >
                         <NxFontAwesomeIcon icon={faFilter} />
                         <span>Filter</span>
                       </NxButton>
@@ -591,6 +596,7 @@ export default function FirewallBulkWaivePage() {
                       <NxButton
                         variant="tertiary"
                         id="fw-bulk-waive-select-all-filtered"
+                        data-analytics-id="fw-bulk-waive-select-all-violations"
                         onClick={selectAllMode ? handleClearAllFilteredViolations : handleSelectAllFilteredViolations}
                       >
                         {selectAllMode ? 'Unselect all violations' : `Select all ${totalVisibleCount} violations`}
@@ -704,10 +710,19 @@ export default function FirewallBulkWaivePage() {
 
               <div className="fw-bulk-waive-page__footer">
                 <div className="fw-bulk-waive-page__footer-actions">
-                  <NxButton variant="tertiary" onClick={handleCancel}>
+                  <NxButton
+                    variant="tertiary"
+                    data-analytics-id="fw-bulk-waive-step1-cancel-button"
+                    onClick={handleCancel}
+                  >
                     Cancel
                   </NxButton>
-                  <NxButton variant="primary" disabled={selectedCount === 0} onClick={handleNext}>
+                  <NxButton
+                    variant="primary"
+                    data-analytics-id="fw-bulk-waive-step1-next-button"
+                    disabled={selectedCount === 0}
+                    onClick={handleNext}
+                  >
                     Next
                   </NxButton>
                 </div>

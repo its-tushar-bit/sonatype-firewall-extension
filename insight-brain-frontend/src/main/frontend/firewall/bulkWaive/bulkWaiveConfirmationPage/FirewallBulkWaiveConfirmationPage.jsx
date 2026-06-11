@@ -406,14 +406,25 @@ export default function FirewallBulkWaiveConfirmationPage() {
           </NxFieldset>
 
           <NxButtonBar>
-            <NxButton variant="tertiary" onClick={handleCancel} disabled={submitting}>
+            <NxButton
+              variant="tertiary"
+              data-analytics-id="fw-bulk-waive-step3-cancel-button"
+              onClick={handleCancel}
+              disabled={submitting}
+            >
               Cancel
             </NxButton>
-            <NxButton variant="secondary" onClick={handleBack} disabled={submitting}>
+            <NxButton
+              variant="secondary"
+              data-analytics-id="fw-bulk-waive-step3-back-button"
+              onClick={handleBack}
+              disabled={submitting}
+            >
               Back
             </NxButton>
             <NxButton
               variant="primary"
+              data-analytics-id="fw-bulk-waive-step3-submit-button"
               onClick={handleSubmit}
               disabled={
                 submitting ||

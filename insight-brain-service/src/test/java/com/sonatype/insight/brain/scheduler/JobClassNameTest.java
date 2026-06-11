@@ -39,6 +39,9 @@ public class JobClassNameTest
         "RepositoryIdentifiedComponentPurger");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestCommentPurger",
         "PullRequestCommentPurger");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.sourcecontrol.SourceControlStaleEventResetJob",
+        "SourceControlStaleEventResetJob");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.git.PullRequestMonitor", "PullRequestMonitor");
     insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.hds.ComponentCategoryUpdater",
         "LoadComponentCategories");

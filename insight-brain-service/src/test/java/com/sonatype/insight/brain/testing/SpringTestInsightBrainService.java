@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlStaleEventResetJob;
 import com.sonatype.insight.brain.spring.DropwizardConfigBootstrap;
 import com.sonatype.insight.brain.spring.config.AdminCompatibilityConfiguration;
 import com.sonatype.insight.brain.spring.config.DatabaseConfiguration;
@@ -609,6 +610,15 @@ public class SpringTestInsightBrainService
     }
     catch (Exception e) {
       log.warn("Unexpected error disabling PullRequestCommentPurger: {}", e.getMessage());
+    }
+    try {
+      getInstance(SourceControlStaleEventResetJob.class).disableForTesting = true;
+    }
+    catch (NullPointerException e) {
+      log.debug("Not in context, skipping disable of SourceControlStaleEventResetJob: {}", e.getMessage());
+    }
+    catch (Exception e) {
+      log.warn("Unexpected error disabling SourceControlStaleEventResetJob: {}", e.getMessage());
     }
     try {
       getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;

@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.security.SecurityAopConfiguration;
 import com.sonatype.insight.brain.security.ShiroAuthenticatorConfiguration;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlStaleEventResetJob;
 import com.sonatype.insight.brain.spring.DropwizardConfigBootstrap;
 import com.sonatype.insight.brain.spring.config.CoreConfiguration;
 import com.sonatype.insight.brain.spring.config.DatabaseConfiguration;
@@ -517,6 +518,12 @@ public class SpringMultiTenantTestInsightBrainService
     }
     catch (Exception e) {
       log.debug("Could not disable PullRequestCommentPurger: {}", e.getMessage());
+    }
+    try {
+      getInstance(SourceControlStaleEventResetJob.class).disableForTesting = true;
+    }
+    catch (Exception e) {
+      log.debug("Could not disable SourceControlStaleEventResetJob: {}", e.getMessage());
     }
     try {
       getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;

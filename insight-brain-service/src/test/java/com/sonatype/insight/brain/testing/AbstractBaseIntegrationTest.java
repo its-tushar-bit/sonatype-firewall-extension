@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
-import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
@@ -45,7 +44,6 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
-import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -65,7 +63,6 @@ import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -488,7 +485,6 @@ public abstract class AbstractBaseIntegrationTest
             SystemConfigurationProperty.API_ACCESS_ALLOW_LIST);
       }
     }
-    releaseScmPerpetualLock();
     new ProxyServerConfigurationDAO(databaseContainerRule.getOperationalDataStore()).delete();
     if (isTestIqServerRunning()) {
       ApiProxyServerConfigurationService proxyServerConfigurationService =
@@ -514,15 +510,6 @@ public abstract class AbstractBaseIntegrationTest
     if (taskScheduler != null) {
       taskScheduler.standby();
       taskScheduler.clear();
-    }
-  }
-
-  private void releaseScmPerpetualLock() {
-    final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO(databaseContainerRule.getOperationalDataStore());
-    String perpetualLockId = SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK;
-    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
-    if (perpetualLock != null) {
-      perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());
     }
   }
 

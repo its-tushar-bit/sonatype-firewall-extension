@@ -22,12 +22,10 @@ import com.sonatype.insight.brain.scale.SelfThrottlingLoadBalancer;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shiro.util.CollectionUtils;
 
 import static com.sonatype.insight.brain.git.PullRequestPollingScheduler.PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS;
-import static com.sonatype.insight.brain.scale.PartitionHelper.DEFAULT_PARTITION_ANALYSIS_INTERVAL_SECONDS;
 
 @Named
 @Singleton
@@ -36,18 +34,13 @@ public class SourceControlLoadBalancer
 {
   public static final int SOURCE_CONTROL_INSTANCE_RESERVATION_SECONDS = PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS + 5;
 
-  @VisibleForTesting
-  public static final String SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK = "source-control-event-maintenance";
-
   public static final int SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS = 15;
 
-  // arbitrarily picking 2 minutes to detect when another instance of IQ server has gone down/offline and is no longer
-  // processing events
-  private static final int STALE_EVENT_CUTOFF_SECONDS = DEFAULT_PARTITION_ANALYSIS_INTERVAL_SECONDS * 2;
-
-  private static final String LOAD_BALANCER_CATEGORY_FOR_SCM = "source-control";
-
-  private static final String SOURCE_CONTROL_MAINTENANCE_CATEGORY = "source-control-maintenance";
+  // Public so callers (e.g. SourceControlStaleEventResetJob) can read this category to compute the
+  // active-instance-id set. The load balancer is the writer of these heartbeat / partition-reservation
+  // rows; the cleanup job is a reader. Sharing one constant prevents silent drift if the literal ever
+  // changes (CLAUDE.md §15).
+  public static final String LOAD_BALANCER_CATEGORY_FOR_SCM = "source-control";
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
@@ -71,8 +64,6 @@ public class SourceControlLoadBalancer
    * @return
    */
   public List<SourceControlEvent> acquireEventsToProcess() {
-    resetStaleEvents();
-
     List<SourceControlEvent> result = new ArrayList<>();
     List<SourceControlEvent> availableEvents = sourceControlEventDAO.getUnassignedEventsToProcess();
     if (!CollectionUtils.isEmpty(availableEvents)) {
@@ -147,28 +138,7 @@ public class SourceControlLoadBalancer
     }
   }
 
-  // a stale event is an event that is 'new' or 'in progress' and is assigned to an instance that is no longer active
-  private void resetStaleEvents() {
-    // we only need one instance to be resetting stale events
-    if (tryGetMaintenanceLock()) {
-      sourceControlEventDAO.resetStaleEvents(getActiveInstanceIds(), STALE_EVENT_CUTOFF_SECONDS);
-    }
-  }
-
   private String toPartitionKey(String scmUsername) {
     return DigestUtils.sha256Hex(String.format("%s:%s", TenantThreadLocal.getTenant().tenantSlug, scmUsername));
-  }
-
-  // The maintenance lock coordinates stale-event cleanup across all mtiq-batch instances, so it
-  // must live in the shared global schema just like the heartbeat and partition-reservation locks.
-  // Without the runAsGlobal wrapper this call writes into whatever tenant schema happens to be on
-  // the calling thread, which silently breaks cross-tenant coordination and pollutes per-tenant
-  // perpetual_lock tables.
-  private boolean tryGetMaintenanceLock() {
-    return TenantThreadLocal.runAsGlobal(() -> perpetualLockManager.tryAcquireLock(
-        SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK,
-        SOURCE_CONTROL_MAINTENANCE_CATEGORY,
-        getInstanceId(),
-        SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS));
   }
 }

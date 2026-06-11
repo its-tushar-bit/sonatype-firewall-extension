@@ -21,13 +21,11 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
-import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -49,7 +47,6 @@ import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 import com.sonatype.insight.brain.service.config.StorageConfig;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -191,7 +188,6 @@ public class AbstractComponentTest
   @After
   public void afterTest() {
     log.info("After: {}", testName.getMethodName());
-    runCleanupStep("release SCM perpetual lock", this::releaseScmPerpetualLock);
     runCleanupStep("stop disposable components", this::stopDisposableComponents);
     runCleanupStep("tear down security", this::tearDownSecurity);
     runCleanupStep("reset base URL", this::resetBaseUrl);
@@ -259,18 +255,6 @@ public class AbstractComponentTest
     Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED);
     service.deleteConfigurationInDatabaseNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
-  }
-
-  private void releaseScmPerpetualLock() {
-    PerpetualLockDAO perpetualLockDAO = lookupIfAvailable(PerpetualLockDAO.class);
-    if (perpetualLockDAO == null) {
-      return;
-    }
-    String perpetualLockId = SourceControlLoadBalancer.SOURCE_CONTROL_EVENT_MAINTENANCE_LOCK;
-    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
-    if (perpetualLock != null) {
-      perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());
-    }
   }
 
   protected void setUpTestLicenseThreatGroups() {

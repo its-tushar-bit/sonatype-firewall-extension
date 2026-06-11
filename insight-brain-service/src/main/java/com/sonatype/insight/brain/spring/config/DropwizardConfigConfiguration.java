@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -390,7 +391,7 @@ public class DropwizardConfigConfiguration
     }
   }
 
-  private void validateConnectorCount(List<Map<String, Object>> connectors, String propertyName) {
+  private void validateConnectorCount(List<DropwizardConnectorConfig> connectors, String propertyName) {
     if (connectors != null && connectors.size() > 1) {
       throw new IllegalStateException(
           "Dropwizard-to-Spring compatibility: multiple connectors are not supported for " + propertyName
@@ -399,29 +400,32 @@ public class DropwizardConfigConfiguration
   }
 
   private void applyConnectorPorts(InsightConfig config, DropwizardServerConfig serverConfig) {
-    String ports = extractConnectorField(serverConfig.applicationConnectors, "port");
+    String ports = extractConnectorField(serverConfig.applicationConnectors, connector -> connector.port);
     if (ports != null) {
       config.setApplicationConnectorPorts(ports);
     }
   }
 
   private void applyConnectorTypes(InsightConfig config, DropwizardServerConfig serverConfig) {
-    String appTypes = extractConnectorField(serverConfig.applicationConnectors, "type");
+    String appTypes = extractConnectorField(serverConfig.applicationConnectors, connector -> connector.type);
     if (appTypes != null) {
       config.setApplicationConnectorTypes(appTypes);
     }
-    String adminTypes = extractConnectorField(serverConfig.adminConnectors, "type");
+    String adminTypes = extractConnectorField(serverConfig.adminConnectors, connector -> connector.type);
     if (adminTypes != null) {
       config.setAdminConnectorTypes(adminTypes);
     }
   }
 
-  private String extractConnectorField(List<Map<String, Object>> connectors, String field) {
+  private String extractConnectorField(
+      List<DropwizardConnectorConfig> connectors,
+      Function<DropwizardConnectorConfig, Object> accessor)
+  {
     if (connectors == null || connectors.isEmpty()) {
       return null;
     }
     return connectors.stream()
-        .map(connector -> connector.get(field))
+        .map(accessor)
         .filter(value -> value != null)
         .map(String::valueOf)
         .map(String::trim)
@@ -442,8 +446,7 @@ public class DropwizardConfigConfiguration
           extractLoggerFilename(loggingConfig, "com.sonatype.insight.policy.violation"));
     }
     if (serverConfig != null && serverConfig.requestLog != null) {
-      Object requestAppenders = serverConfig.requestLog.get("appenders");
-      config.setRequestLogFilename(extractFirstFilename(requestAppenders));
+      config.setRequestLogFilename(extractFirstFilename(serverConfig.requestLog.appenders));
     }
   }
 

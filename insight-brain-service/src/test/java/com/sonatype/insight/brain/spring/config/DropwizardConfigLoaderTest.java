@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.spring.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,58 @@ public class DropwizardConfigLoaderTest
 {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
+
+  @Test
+  public void loadConfig_legacyHttpSection_throwsUpgradeGuidance() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), "http:\n  port: 8070\n  adminPort: 8071\n");
+
+    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(configFile, new StandardEnvironment()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Nexus IQ Server version 1.42")
+        .hasMessageContaining("updating-your-configuration");
+  }
+
+  @Test
+  public void loadConfig_legacyLoggingConsoleSection_throwsUpgradeGuidance() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), "logging:\n  console:\n    threshold: INFO\n");
+
+    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(configFile, new StandardEnvironment()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("version 1.42 and lower");
+  }
+
+  @Test
+  public void loadConfig_legacyLoggingFileSection_throwsUpgradeGuidance() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), "logging:\n  file:\n    currentLogFilename: ./log/clm-server.log\n");
+
+    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(configFile, new StandardEnvironment()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("version 1.42 and lower");
+  }
+
+  @Test
+  public void loadConfig_legacyLoggingSyslogSection_throwsUpgradeGuidance() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), "logging:\n  syslog:\n    host: localhost\n");
+
+    assertThatThrownBy(() -> new DropwizardConfigLoader().loadConfig(configFile, new StandardEnvironment()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("version 1.42 and lower");
+  }
+
+  @Test
+  public void loadConfig_modernLoggingAppenders_isAccepted() throws IOException {
+    File configFile = tempFolder.newFile("config.yml");
+    Files.writeString(configFile.toPath(), "logging:\n  level: INFO\n  appenders:\n    - type: console\n");
+
+    StandardEnvironment environment = new StandardEnvironment();
+    new DropwizardConfigLoader().loadConfig(configFile, environment);
+
+    assertThat(environment.getProperty("logging.level.root")).isEqualTo("INFO");
+  }
 
   @Test
   public void flattenMap_convertsScalarListToIndexedProperties() throws IOException {

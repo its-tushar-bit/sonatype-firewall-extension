@@ -21,6 +21,12 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.spi.FilterReply;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.KeyStore;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -137,11 +143,90 @@ public class DropwizardAppenderFactoryTest
 
   @Test
   public void testCreateTlsAppender_returnsSSLSocketAppender() {
-    var appender = DropwizardAppenderFactory.createTlsAppender(
-        context, "tls", "logserver.example.com", 6514, false);
+    DropwizardAppenderConfig.Tls config = new DropwizardAppenderConfig.Tls();
+    config.host = "logserver.example.com";
+    config.port = 6514;
+
+    var appender = DropwizardAppenderFactory.createTlsAppender(context, "tls", config);
 
     assertThat(appender).isInstanceOf(SSLSocketAppender.class);
     assertThat(appender.getName()).isEqualTo("tls");
+    // No keystore configured -> the appender keeps its default SSL context (no key store wired in).
+    assertThat(((SSLSocketAppender) appender).getSsl().getKeyStore()).isNull();
+  }
+
+  @Test
+  public void testCreateTlsAppender_appliesKeyStoreConfiguration() {
+    DropwizardAppenderConfig.Tls config = new DropwizardAppenderConfig.Tls();
+    config.host = "logserver.example.com";
+    config.port = 6514;
+    config.keyStorePath = "/etc/ssl/client.p12";
+    config.keyStorePassword = "secret";
+    config.keyStoreType = "PKCS12";
+    config.trustStorePath = "/etc/ssl/truststore.p12";
+
+    var appender = (SSLSocketAppender) DropwizardAppenderFactory.createTlsAppender(context, "tls", config);
+
+    // Bare filesystem paths (the form Dropwizard/Jetty accepted) must become file: URLs - logback's
+    // KeyStoreFactoryBean resolves a scheme-less location as a classpath resource and the appender fails to start.
+    assertThat(appender.getSsl()).isNotNull();
+    assertThat(appender.getSsl().getKeyStore().getLocation()).isEqualTo("file:/etc/ssl/client.p12");
+    assertThat(appender.getSsl().getKeyStore().getType()).isEqualTo("PKCS12");
+    assertThat(appender.getSsl().getTrustStore().getLocation()).isEqualTo("file:/etc/ssl/truststore.p12");
+  }
+
+  @Test
+  public void testCreateTlsAppender_bareTrustStorePath_startsWithRealKeyStore() throws Exception {
+    // End-to-end proof for the file: mapping: a real PKCS12 file referenced by bare path must yield a started
+    // appender (start() builds the SSL context; with the classpath misresolution it fails and never starts).
+    File trustStore = File.createTempFile("truststore", ".p12");
+    trustStore.deleteOnExit();
+    KeyStore cacerts = KeyStore.getInstance(KeyStore.getDefaultType());
+    try (InputStream in = Files.newInputStream(Path.of(System.getProperty("java.home"), "lib", "security",
+        "cacerts")))
+    {
+      cacerts.load(in, null);
+    }
+    KeyStore keyStore = KeyStore.getInstance("PKCS12");
+    keyStore.load(null, null);
+    // JSSE rejects an empty trust store ("trustAnchors parameter must be non-empty"), so seed it with any CA cert.
+    String alias = cacerts.aliases().nextElement();
+    keyStore.setCertificateEntry("test-ca", cacerts.getCertificate(alias));
+    try (FileOutputStream out = new FileOutputStream(trustStore)) {
+      keyStore.store(out, "changeit".toCharArray());
+    }
+    DropwizardAppenderConfig.Tls config = new DropwizardAppenderConfig.Tls();
+    // start() resolves the host (it does not connect), so it must be resolvable for the appender to start.
+    config.host = "localhost";
+    config.port = 6514;
+    config.trustStorePath = trustStore.getAbsolutePath();
+    config.trustStorePassword = "changeit";
+    config.trustStoreType = "PKCS12";
+
+    var appender = DropwizardAppenderFactory.createTlsAppender(context, "tls", config);
+
+    assertThat(appender.isStarted()).isTrue();
+  }
+
+  @Test
+  public void testToKeyStoreLocation_preservesExplicitSchemes() {
+    assertThat(DropwizardAppenderFactory.toKeyStoreLocation("/etc/ssl/ts.p12")).isEqualTo("file:/etc/ssl/ts.p12");
+    assertThat(DropwizardAppenderFactory.toKeyStoreLocation("file:/etc/ssl/ts.p12"))
+        .isEqualTo("file:/etc/ssl/ts.p12");
+    assertThat(DropwizardAppenderFactory.toKeyStoreLocation("classpath:ssl/ts.p12"))
+        .isEqualTo("classpath:ssl/ts.p12");
+  }
+
+  @Test
+  public void testCreateTlsAppender_appliesConnectionTimeout() {
+    DropwizardAppenderConfig.Tls config = new DropwizardAppenderConfig.Tls();
+    config.host = "logserver.example.com";
+    config.port = 6514;
+    config.connectionTimeout = "10 seconds";
+
+    var appender = (SSLSocketAppender) DropwizardAppenderFactory.createTlsAppender(context, "tls", config);
+
+    assertThat(appender.getReconnectionDelay().getMilliseconds()).isEqualTo(10_000L);
   }
 
   @SuppressWarnings("unchecked")
@@ -226,5 +311,18 @@ public class DropwizardAppenderFactoryTest
     var result = DropwizardAppenderFactory.wrapAsync(context, inner, 0, -1, false);
 
     assertThat(result).isSameAs(inner);
+  }
+
+  @Test
+  public void testToLevel_booleanAndStringValues() {
+    // Bare YAML OFF/ON parse as Boolean (and strict conversion coerces them to "false"/"true"); both, plus explicit
+    // OFF/INFO strings, must map like pre-Spring Dropwizard's DefaultLoggingFactory.toLevel.
+    assertThat(DropwizardAppenderFactory.toLevel(Boolean.FALSE, Level.ALL)).isEqualTo(Level.OFF);
+    assertThat(DropwizardAppenderFactory.toLevel("false", Level.ALL)).isEqualTo(Level.OFF);
+    assertThat(DropwizardAppenderFactory.toLevel("OFF", Level.ALL)).isEqualTo(Level.OFF);
+    assertThat(DropwizardAppenderFactory.toLevel(Boolean.TRUE, Level.OFF)).isEqualTo(Level.ALL);
+    assertThat(DropwizardAppenderFactory.toLevel("INFO", Level.ALL)).isEqualTo(Level.INFO);
+    assertThat(DropwizardAppenderFactory.toLevel(null, Level.ALL)).isEqualTo(Level.ALL);
+    assertThat(DropwizardAppenderFactory.toLevel("   ", Level.ALL)).isEqualTo(Level.ALL);
   }
 }

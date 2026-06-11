@@ -12,16 +12,26 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.Layout;
-import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
+import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.Jackson;
-import io.dropwizard.logging.json.AccessJsonLayoutBaseFactory;
+import io.dropwizard.logging.common.AppenderFactory;
+import io.dropwizard.logging.common.FileAppenderFactory;
+import io.dropwizard.logging.common.async.AsyncAppenderFactory;
+import io.dropwizard.logging.common.filter.LevelFilterFactory;
+import io.dropwizard.logging.common.filter.NullLevelFilterFactory;
+import io.dropwizard.logging.common.layout.LayoutFactory;
+import io.dropwizard.request.logging.async.AsyncAccessEventAppenderFactory;
+import io.dropwizard.request.logging.layout.LogbackAccessRequestLayoutFactory;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.RequestLog;
@@ -30,9 +40,6 @@ import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
 
 @Configuration
 public class RequestLoggingConfiguration
@@ -41,13 +48,29 @@ public class RequestLoggingConfiguration
 
   static final String DEFAULT_REQUEST_LOG_TIME_ZONE = "UTC";
 
+  // Jetty's %t wraps the date in [brackets] itself (no literal brackets here, or the line gets [[date]]), and %D is
+  // microseconds, so elapsed time uses %{ms}T - both so the rendered line matches pre-migration logback-access output
+  // ("[%date]" single-bracketed, "%elapsedTime" in milliseconds).
   static final String DEFAULT_REQUEST_LOG_FORMAT =
-      "%{client}a - %u [%{dd/MMM/yyyy:HH:mm:ss Z|__TIME_ZONE__}t] \"%r\" %s %O %D \"%{User-Agent}i\"";
+      "%{client}a - %u %{dd/MMM/yyyy:HH:mm:ss Z|__TIME_ZONE__}t \"%r\" %s %O %{ms}T \"%{User-Agent}i\"";
 
-  private static final String LEGACY_REQUEST_LOG_FORMAT =
+  static final String LEGACY_REQUEST_LOG_FORMAT =
       "%clientHost %l %user [%date] \"%requestURL\" %statusCode %bytesSent %elapsedTime \"%header{User-Agent}\"";
 
-  private static final String REQUEST_LOGGER_NAME_PREFIX = "com.sonatype.insight.requestlog.";
+  static final String REQUEST_LOGGER_NAME_PREFIX = "com.sonatype.insight.requestlog.";
+
+  // Application name passed to Dropwizard's access AppenderFactory.build (used only to name the appenders).
+  private static final String ACCESS_LOG_APPLICATION_NAME = "insight-brain";
+
+  // Request-log lines are pre-formatted by Jetty's CustomRequestLog, so every appender emits the raw message only.
+  private static final String REQUEST_LOG_MESSAGE_FORMAT = "%msg%n";
+
+  // Request-log appender types Dropwizard's request log supported (same AppenderFactory set as general logging).
+  // udp is recognized but ignored, matching DropwizardLoggingAppenderConfiguration.
+  private static final Set<String> SUPPORTED_REQUEST_LOG_TYPES = Set.of("console", "file", "syslog", "tcp", "tls",
+      "udp");
+
+  private final DropwizardConfigSourceReader configSourceReader = new DropwizardConfigSourceReader();
 
   @Bean
   UserTelemetryRequestLoggingFilter userTelemetryRequestLoggingFilter() {
@@ -57,78 +80,111 @@ public class RequestLoggingConfiguration
   @Bean
   WebServerFactoryCustomizer<JettyServletWebServerFactory> requestLoggingCustomizer(
       final InsightConfig insightConfig,
-      final UserTelemetryRequestLoggingFilter userTelemetryRequestLoggingFilter,
-      final Environment environment)
+      final UserTelemetryRequestLoggingFilter userTelemetryRequestLoggingFilter)
   {
     return factory -> {
-      Object appendersValue = getDropwizardConfigProperty(environment, "server.requestLog.appenders");
-      if (!(appendersValue instanceof List<?> appenders) || appenders.isEmpty()) {
+      RequestLogConfig requestLogConfig =
+          insightConfig.getServer() == null ? null : insightConfig.getServer().requestLog;
+      if (requestLogConfig == null) {
+        // No server.requestLog section: pre-Spring defaulted to logback-access with a single console appender, i.e.
+        // request logging on. Reproduce that default so omitting the section does not silently disable it.
+        installRequestLog(factory,
+            createAccessRequestLog(List.of(Map.of("type", "console")), userTelemetryRequestLoggingFilter));
+        return;
+      }
+      String type = requestLogConfig.type;
+      if ("external".equalsIgnoreCase(type)) {
+        // Pre-Spring routed 'external' request logs through SLF4J; that is not supported here. Warn rather than fail
+        // (the config still parses) so an operator who set REQUEST_LOG_TYPE=external knows no request log is emitted.
+        log.warn("server.requestLog 'type: external' is not supported and installs no request log;"
+            + " use 'classic', 'logback-access', or an access-json appender instead.");
+        return;
+      }
+      List<Map<String, Object>> appenders = requestLogConfig.appenders;
+      if (appenders == null || appenders.isEmpty()) {
+        // requestLog present but with no appenders (an explicitly empty list): nothing to install.
         return;
       }
 
-      Map<String, Object> accessJsonLayout = findAccessJsonLayout(appenders);
-      if (accessJsonLayout != null) {
-        factory.addServerCustomizers(server -> server.setRequestLog(
-            createAccessJsonRequestLog(accessJsonLayout, userTelemetryRequestLoggingFilter)));
+      boolean accessJson = hasAccessJsonAppender(appenders);
+      if (!accessJson && isUnsupportedRequestLogType(type)) {
+        log.warn("server.requestLog 'type: {}' is not supported; request logging is disabled.", type);
         return;
       }
 
-      RequestLogSettings requestLogSettings = requestLogSettings(environment, appenders);
-      String requestLogFilename = insightConfig.getRequestLogFilename();
-      if (!requestLogSettings.enabled() || requestLogFilename == null || requestLogFilename.isBlank()) {
-        return;
+      // Route by type, matching pre-Spring: 'classic' uses the single-format Jetty CustomRequestLog (NCSA) path;
+      // an unset type, 'logback-access', or any access-json layout uses the logback-access IAccessEvent path, where
+      // every appender formats its own line (per-appender logFormat / access-json layout).
+      if ("classic".equalsIgnoreCase(type) && !accessJson) {
+        RequestLogSettings requestLogSettings = requestLogSettings(requestLogConfig);
+        if (!requestLogSettings.enabled()) {
+          return;
+        }
+        String requestLogFilename = insightConfig.getRequestLogFilename();
+        RequestLog.Writer requestLogWriter = requestLogWriter(requestLogFilename, resolveActiveAppenders(appenders));
+        if (requestLogWriter == null) {
+          return;
+        }
+        installRequestLog(factory, requestLog(requestLogWriter, userTelemetryRequestLoggingFilter, requestLogSettings));
       }
-
-      factory.addServerCustomizers(server -> server.setRequestLog(requestLog(
-          requestLogWriter(requestLogFilename, requestLogSettings),
-          userTelemetryRequestLoggingFilter,
-          requestLogSettings)));
+      else {
+        installRequestLog(factory, createAccessRequestLog(appenders, userTelemetryRequestLoggingFilter));
+      }
     };
   }
 
-  @SuppressWarnings("unchecked")
-  private Map<String, Object> findAccessJsonLayout(List<?> appenders) {
-    for (Object appender : appenders) {
-      if (!(appender instanceof Map<?, ?> appenderMap)) {
-        continue;
-      }
-      Object layout = ((Map<String, Object>) appenderMap).get("layout");
-      if (layout instanceof Map<?, ?> layoutMap
-          && "access-json".equals(((Map<String, Object>) layoutMap).get("type")))
-      {
-        return (Map<String, Object>) layoutMap;
-      }
+  private void installRequestLog(final JettyServletWebServerFactory factory, final RequestLog requestLog) {
+    if (requestLog != null) {
+      factory.addServerCustomizers(server -> server.setRequestLog(requestLog));
     }
-    return null;
   }
 
-  private RequestLog createAccessJsonRequestLog(
-      Map<String, Object> layoutMap,
-      UserTelemetryRequestLoggingFilter telemetryFilter)
+  private boolean isUnsupportedRequestLogType(final String type) {
+    return type != null && !type.isBlank()
+        && !"classic".equalsIgnoreCase(type) && !"logback-access".equalsIgnoreCase(type);
+  }
+
+  private boolean hasAccessJsonAppender(final List<?> appenders) {
+    return appenderMaps(appenders).anyMatch(this::isAccessJsonAppender);
+  }
+
+  private boolean isAccessJsonAppender(final Map<String, Object> appender) {
+    return appender.get("layout") instanceof Map<?, ?> layout && "access-json".equals(asMap(layout).get("type"));
+  }
+
+  /**
+   * Builds the logback-access ({@link IAccessEvent}) request log. Every configured appender is built through
+   * Dropwizard's own {@link AppenderFactory} - the same machinery the pre-Spring InsightConfigurationFactory used - so
+   * all appender types and multiple appenders are honoured, and each appender formats its own line: an explicit
+   * {@code access-json} layout or {@code logFormat} is kept, and an appender with neither gets the IQ default request
+   * log format (matching pre-Spring, which injected it into appenders without a logFormat). Appenders whose
+   * {@code threshold} resolves to OFF are dropped first - pre-Spring ignored request-log thresholds entirely, but the
+   * classic path now honours OFF (so {@code REQUEST_LOG_FILE_THRESHOLD=OFF} works); applying it here too keeps the two
+   * paths consistent. Returns {@code null} (install nothing) when no appender remains. Async wrapping is taken from
+   * each appender's config and is lossless by default (access events have no level, so they are never discardable,
+   * and {@code neverBlock} defaults to blocking).
+   */
+  RequestLog createAccessRequestLog(
+      final List<Map<String, Object>> appenders,
+      final UserTelemetryRequestLoggingFilter telemetryFilter)
   {
-    log.info("Configuring access-json request log layout");
+    List<AppenderFactory<IAccessEvent>> appenderFactories = accessAppenderFactories(appenders);
+    if (appenderFactories.isEmpty()) {
+      return null;
+    }
+    log.info("Configuring access-event request log with {} appender(s)", appenderFactories.size());
     LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-
-    AccessJsonLayoutBaseFactory factory =
-        Jackson.newObjectMapper().convertValue(layoutMap, AccessJsonLayoutBaseFactory.class);
-    Layout<IAccessEvent> layout = factory.build(loggerContext, TimeZone.getTimeZone("UTC"));
-    layout.setContext(loggerContext);
-    layout.start();
-
-    LayoutWrappingEncoder<IAccessEvent> encoder = new LayoutWrappingEncoder<>();
-    encoder.setContext(loggerContext);
-    encoder.setLayout(layout);
-    encoder.start();
-
-    ConsoleAppender<IAccessEvent> consoleAppender = new ConsoleAppender<>();
-    consoleAppender.setName("access-json-console");
-    consoleAppender.setContext(loggerContext);
-    consoleAppender.setEncoder(encoder);
-    consoleAppender.start();
 
     RequestLogImpl requestLog = new RequestLogImpl();
     requestLog.setQuiet(true);
-    requestLog.addAppender(consoleAppender);
+
+    LayoutFactory<IAccessEvent> layoutFactory = new LogbackAccessRequestLayoutFactory();
+    LevelFilterFactory<IAccessEvent> levelFilterFactory = new NullLevelFilterFactory<>();
+    AsyncAppenderFactory<IAccessEvent> asyncAppenderFactory = new AsyncAccessEventAppenderFactory();
+    for (AppenderFactory<IAccessEvent> appenderFactory : appenderFactories) {
+      requestLog.addAppender(appenderFactory.build(
+          loggerContext, ACCESS_LOG_APPLICATION_NAME, layoutFactory, levelFilterFactory, asyncAppenderFactory));
+    }
     requestLog.start();
 
     return (request, response) -> {
@@ -138,34 +194,154 @@ public class RequestLoggingConfiguration
     };
   }
 
-  RequestLog.Writer requestLogWriter(final String requestLogFilename, final RequestLogSettings requestLogSettings) {
+  private boolean warnAndExcludeUdp(final Map<String, Object> appender) {
+    if ("udp".equals(stringProperty(appender.get("type")))) {
+      log.warn("UDP request-log appenders are not supported and will be ignored");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Gives an access appender that sets neither an {@code access-json} layout nor a {@code logFormat} the IQ default
+   * request log format, so logback-access renders it through a {@link ch.qos.logback.access.common.PatternLayout} with
+   * the same pattern pre-Spring used. Appenders that already specify a layout or logFormat are returned unchanged.
+   */
+  private Map<String, Object> withDefaultAccessLogFormat(final Map<String, Object> appender) {
+    if (isAccessJsonAppender(appender) || appender.get("logFormat") != null) {
+      return appender;
+    }
+    Map<String, Object> withFormat = new LinkedHashMap<>(appender);
+    withFormat.put("logFormat", LEGACY_REQUEST_LOG_FORMAT);
+    return withFormat;
+  }
+
+  List<AppenderFactory<IAccessEvent>> accessAppenderFactories(final List<Map<String, Object>> appenders) {
+    // Drop OFF appenders and warn-and-skip udp (both consistent with the classic path), then give layout/logFormat-less
+    // appenders the IQ default format and deserialize into Dropwizard's per-appender access factories.
+    List<Map<String, Object>> activeAppenders = appenders.stream()
+        .filter(appender -> !isOff(appender.get("threshold")))
+        .filter(this::warnAndExcludeUdp)
+        .map(this::withDefaultAccessLogFormat)
+        .toList();
+    ObjectMapper mapper = Jackson.newObjectMapper();
+    // Reject unknown appender keys, matching the classic path and pre-Spring (Dropwizard's YamlConfigurationFactory
+    // parsed config strictly), so a typo'd key fails the same way under logback-access as it does under classic.
+    mapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    mapper.setSubtypeResolver(new DiscoverableSubtypeResolver());
+    // Async (queue size, neverBlock) comes from each appender's own config via Dropwizard's deserialization; the
+    // default is lossless for access events (never discardable, neverBlock defaults to blocking).
+    return mapper.convertValue(activeAppenders, new TypeReference<List<AppenderFactory<IAccessEvent>>>()
+    {
+    })
+        .stream()
+        .filter(this::completeFileAppenderOrSkip)
+        .toList();
+  }
+
+  /**
+   * Completes or drops an incomplete file appender factory the way the classic path does, since {@code convertValue}
+   * does not run the bean validation pre-Spring Dropwizard enforced on these factories: a missing
+   * {@code archivedLogFilenamePattern} (required when {@code archive} is on, the default) is derived from
+   * {@code currentLogFilename}, and an appender with no target file at all is skipped with a warning rather than
+   * silently failing to start.
+   */
+  private boolean completeFileAppenderOrSkip(final AppenderFactory<IAccessEvent> factory) {
+    if (!(factory instanceof FileAppenderFactory<IAccessEvent> file)) {
+      return true;
+    }
+    boolean hasFilename = file.getCurrentLogFilename() != null && !file.getCurrentLogFilename().isBlank();
+    if (!hasFilename && (!file.isArchive() || file.getArchivedLogFilenamePattern() == null)) {
+      log.warn("Request log file appender has no currentLogFilename (or archivedLogFilenamePattern) and will be"
+          + " skipped.");
+      return false;
+    }
+    if (file.isArchive() && file.getArchivedLogFilenamePattern() == null) {
+      file.setArchivedLogFilenamePattern(DropwizardAppenderFactory.deriveArchivePattern(file.getCurrentLogFilename()));
+    }
+    return true;
+  }
+
+  RequestLog.Writer requestLogWriter(
+      final String requestLogFilename,
+      final List<Map<String, Object>> activeAppenders)
+  {
     LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-    String loggerName = REQUEST_LOGGER_NAME_PREFIX + Integer.toHexString(requestLogFilename.hashCode());
+    String identity = requestLogFilename == null || requestLogFilename.isBlank()
+        ? "console"
+        : Integer.toHexString(requestLogFilename.hashCode());
+    String loggerName = REQUEST_LOGGER_NAME_PREFIX + identity;
     Logger logger = loggerContext.getLogger(loggerName);
 
     logger.detachAndStopAllAppenders();
     logger.setAdditive(false);
     logger.setLevel(Level.INFO);
-    logger.addAppender(requestLogAppender(loggerContext, loggerName, requestLogFilename, requestLogSettings));
 
+    // Restore the pre-Spring-migration behaviour: attach every active request-log appender, each gated by its own
+    // threshold and handed to its own no-loss background thread so request logging never blocks the request thread on
+    // I/O. Appenders are built and finished through the same DropwizardAppenderFactory dispatch as regular loggers; the
+    // Jetty CustomRequestLog pre-formats the line, so each appender emits it raw (logFormat forced to %msg%n).
+    int appenderIndex = 0;
+    for (Map<String, Object> appenderConfig : activeAppenders) {
+      String type = stringProperty(appenderConfig.get("type"));
+      // Index the name so multiple appenders of the same type (e.g. two file appenders) get distinct names rather
+      // than colliding on loggerName.type (and loggerName.type.async).
+      String appenderName = loggerName + "." + type + "." + appenderIndex++;
+      DropwizardAppenderConfig config = requestLogAppenderConfig(appenderConfig, type, requestLogFilename);
+      if (config == null) {
+        continue;
+      }
+      Appender<ILoggingEvent> appender = DropwizardAppenderFactory.createAppender(loggerContext, appenderName, type,
+          config);
+      if (appender == null) {
+        continue;
+      }
+      DropwizardAppenderFactory.applyThresholdFilter(appender, config.threshold);
+      logger.addAppender(DropwizardAppenderFactory.wrapAsync(
+          loggerContext, appender, DropwizardAppenderFactory.asyncSettings(config)));
+    }
+
+    if (!logger.iteratorForAppenders().hasNext()) {
+      log.warn("Request logging is enabled but no usable appenders were configured (e.g. a file appender with no"
+          + " currentLogFilename); request logging is disabled.");
+      return null;
+    }
     return new LogbackRequestLogWriter(logger);
   }
 
-  Appender<ILoggingEvent> requestLogAppender(
-      final LoggerContext loggerContext,
-      final String loggerName,
-      final String requestLogFilename,
-      final RequestLogSettings requestLogSettings)
+  /**
+   * Converts a raw request-log appender map to the typed config the shared {@link DropwizardAppenderFactory} dispatch
+   * expects, applying the request-log specific rule that the message is emitted raw ({@code %msg%n}) since Jetty
+   * already formats the line. A file appender keeps its own {@code currentLogFilename} (pre-Spring wrote a file per
+   * appender) and only falls back to the single resolved request-log filename when it sets none. Returns {@code null}
+   * for an unrecognized type or a file with no filename at all.
+   */
+  private DropwizardAppenderConfig requestLogAppenderConfig(
+      final Map<String, Object> appenderConfig,
+      final String type,
+      final String requestLogFilename)
   {
-    String archivePattern = resolveArchiveFileNamePattern(requestLogFilename, requestLogSettings);
-    return DropwizardAppenderFactory.createFileAppender(
-        loggerContext,
-        loggerName + ".appender",
-        requestLogFilename,
-        archivePattern,
-        requestLogSettings.retainDays(),
-        "%msg%n",
-        requestLogSettings.archiveEnabled());
+    // Strict conversion (fail on unknown keys), matching pre-Spring Dropwizard config parsing and the application
+    // logging path, via the shared DropwizardAppenderFactory dispatch so a typo'd/unsupported field is surfaced
+    // rather than silently ignored. access-json appenders never reach here - they are handled by the access-json
+    // path; udp is recognized by the shared converter but unsupported for request logging, so it is skipped too.
+    DropwizardAppenderConfig config = DropwizardAppenderFactory.convertConfig(configSourceReader, type, appenderConfig);
+    if (config == null || config instanceof DropwizardAppenderConfig.Udp) {
+      return null;
+    }
+    DropwizardConfigCompat.warnOnDeprecatedFields(config, "request log appender '" + type + "'");
+    config.logFormat = REQUEST_LOG_MESSAGE_FORMAT;
+    if (config instanceof DropwizardAppenderConfig.File fileConfig) {
+      if (fileConfig.currentLogFilename == null || fileConfig.currentLogFilename.isBlank()) {
+        fileConfig.currentLogFilename = requestLogFilename;
+      }
+      if (fileConfig.currentLogFilename == null || fileConfig.currentLogFilename.isBlank()) {
+        log.warn("Request log file appender has no currentLogFilename and no request log filename is set;"
+            + " skipping file request logging.");
+        return null;
+      }
+    }
+    return config;
   }
 
   CustomRequestLog requestLog(
@@ -179,147 +355,144 @@ public class RequestLoggingConfiguration
     return requestLog;
   }
 
-  RequestLogSettings requestLogSettings(final Environment environment) {
-    Object appendersValue = getDropwizardConfigProperty(environment, "server.requestLog.appenders");
-    if (!(appendersValue instanceof List<?> appenders)) {
+  RequestLogSettings requestLogSettings(final RequestLogConfig requestLogConfig) {
+    List<Map<String, Object>> appenders = requestLogConfig.appenders == null ? List.of() : requestLogConfig.appenders;
+
+    // Pre-Spring honoured whichever request-log factory the configured type selected (InsightConfigurationFactory
+    // handled both LogbackClassicRequestLogFactory and the default LogbackAccessRequestLogFactory). Both produce NCSA
+    // request logs, so 'classic', 'logback-access' and an unset type all map to this NCSA path; an access-json layout
+    // is routed to the access-json path earlier, regardless of type. Any other type (e.g. 'external') is unsupported.
+    String requestLogType = requestLogConfig.type;
+    if (requestLogType != null && !requestLogType.isBlank()
+        && !"classic".equalsIgnoreCase(requestLogType) && !"logback-access".equalsIgnoreCase(requestLogType))
+    {
       return RequestLogSettings.disabled();
     }
-    return requestLogSettings(environment, appenders);
-  }
 
-  RequestLogSettings requestLogSettings(final Environment environment, List<?> appenders) {
-    Map<String, Object> fileAppender = appenders.stream()
-        .filter(Map.class::isInstance)
-        .map(Map.class::cast)
-        .map(this::asMap)
-        .filter(appender -> "file".equals(stringProperty(appender.get("type"))))
+    if (appenderMaps(appenders).anyMatch(appender -> !isSupportedRequestLogAppender(appender))) {
+      log.warn("Request log appenders with unsupported configuration (e.g. filterFactories, or a missing or"
+          + " unrecognized type) are not supported. Request logging is disabled."
+          + " Correct the entries under server.requestLog.appenders to re-enable request logging.");
+      return RequestLogSettings.disabled();
+    }
+    appenderMaps(appenders)
+        .filter(appender -> "udp".equals(stringProperty(appender.get("type"))))
         .findFirst()
-        .orElse(Map.of());
-
-    String requestLogType = stringProperty(getDropwizardConfigProperty(environment, "server.requestLog.type"));
-    if (requestLogType != null && !requestLogType.isBlank() && !"classic".equalsIgnoreCase(requestLogType)) {
+        .ifPresent(appender -> log.warn(
+            "UDP request-log appenders are not supported and will be ignored"));
+    if (resolveActiveAppenders(appenders).isEmpty()) {
       return RequestLogSettings.disabled();
     }
 
-    boolean unsupportedAppenderShape = appenders.stream()
-        .filter(Map.class::isInstance)
-        .map(Map.class::cast)
-        .map(this::asMap)
-        .anyMatch(appender -> !isSupportedRequestLogAppender(appender));
-    if (unsupportedAppenderShape) {
-      log.warn("Request log appenders with unsupported configuration (e.g. filterFactories) are not supported"
-          + " and are no longer supported. Request logging is disabled."
-          + " Remove unsupported keys from server.requestLog.appenders to re-enable request logging.");
-      return RequestLogSettings.disabled();
-    }
-    if (fileAppender.isEmpty() || isOff(fileAppender.get("threshold"))) {
-      return RequestLogSettings.disabled();
-    }
-
-    String timeZone = stringProperty(getDropwizardConfigProperty(environment, "server.requestLog.timeZone"));
+    String timeZone = requestLogConfig.timeZone;
     if (timeZone == null || timeZone.isBlank()) {
       timeZone = DEFAULT_REQUEST_LOG_TIME_ZONE;
     }
 
-    String configuredFormat = stringProperty(fileAppender.get("logFormat"));
-    Integer retainDays = integerProperty(fileAppender.get("archivedFileCount"));
-    boolean archiveEnabled = !Boolean.FALSE.equals(booleanProperty(fileAppender.get("archive")));
-    String archivedLogFilenamePattern = stringProperty(fileAppender.get("archivedLogFilenamePattern"));
+    // The Jetty CustomRequestLog format is taken from the first ACTIVE appender that sets a logFormat, regardless of
+    // type (the shipped config puts REQUEST_LOG_FORMAT on the console appender); per-appender logFormat is otherwise
+    // unused in classic mode. OFF appenders are skipped so a disabled appender cannot dictate the format,
+    // consistent with resolveActiveAppenders.
+    String configuredFormat = appenderMaps(appenders)
+        .filter(appender -> !isOff(appender.get("threshold")))
+        .map(appender -> stringProperty(appender.get("logFormat")))
+        .filter(format -> format != null && !format.isBlank())
+        .findFirst()
+        .orElse(null);
 
-    return new RequestLogSettings(
-        true,
-        toJettyRequestLogFormat(configuredFormat, timeZone),
-        timeZone,
-        retainDays,
-        archiveEnabled,
-        archivedLogFilenamePattern);
+    return new RequestLogSettings(true, toJettyRequestLogFormat(configuredFormat, timeZone));
   }
 
-  private Object getDropwizardConfigProperty(final Environment environment, final String propertyName) {
-    if (!(environment instanceof ConfigurableEnvironment configurableEnvironment)) {
-      return null;
-    }
+  private Stream<Map<String, Object>> appenderMaps(final List<?> appenders) {
+    return appenders.stream()
+        .filter(Map.class::isInstance)
+        .map(Map.class::cast)
+        .map(this::asMap);
+  }
 
-    for (PropertySource<?> propertySource : configurableEnvironment.getPropertySources()) {
-      if ("dropwizardConfig".equals(propertySource.getName())) {
-        return propertySource.getProperty(propertyName);
-      }
-    }
-    return null;
+  /**
+   * The supported, active request-log appenders in config order: console/file/syslog/tcp/tls entries whose threshold
+   * is not OFF. Mirrors the pre-Spring-migration behaviour where every configured appender was attached to the request
+   * log. access-json appenders (handled by the access-json path) and udp (recognized but unsupported) are excluded.
+   */
+  private List<Map<String, Object>> resolveActiveAppenders(final List<?> appenders) {
+    return appenderMaps(appenders).filter(this::isActiveRequestLogAppender).toList();
+  }
+
+  private boolean isActiveRequestLogAppender(final Map<String, Object> appender) {
+    return isSupportedRequestLogAppender(appender)
+        && !isAccessJsonAppender(appender)
+        && !"udp".equals(stringProperty(appender.get("type")))
+        && !isOff(appender.get("threshold"));
   }
 
   private String toJettyRequestLogFormat(final String configuredFormat, final String timeZone) {
+    String defaultFormat = DEFAULT_REQUEST_LOG_FORMAT.replace("__TIME_ZONE__", timeZone);
     String legacyOrDefaultFormat = configuredFormat;
     if (legacyOrDefaultFormat == null || legacyOrDefaultFormat.isBlank()) {
       legacyOrDefaultFormat = LEGACY_REQUEST_LOG_FORMAT;
     }
 
     if (LEGACY_REQUEST_LOG_FORMAT.equals(legacyOrDefaultFormat)) {
-      return DEFAULT_REQUEST_LOG_FORMAT.replace("__TIME_ZONE__", timeZone);
+      return defaultFormat;
     }
 
-    return legacyOrDefaultFormat
-        .replace("%header{User-Agent}", "%{User-Agent}i")
+    // %elapsedTime was milliseconds in logback-access; Jetty's %D is microseconds, so map to %{ms}T. Jetty's %t
+    // brackets the date itself, so "[%date]" maps to a bare %t (a rare unbracketed %date still gains brackets -
+    // Jetty offers no unbracketed time code).
+    String jettyDate = "%{dd/MMM/yyyy:HH:mm:ss Z|" + timeZone + "}t";
+    // %header{NAME} -> %{NAME}i generically (not just User-Agent): the help docs tell reverse-proxy users to add
+    // e.g. %header{REMOTE_USER} or %header{x-forwarded-*}, which logback-access understood natively pre-migration.
+    // A quote in NAME means env substitution displaced the brace (the shipped default's failure mode) - leave it
+    // unconverted so the leftover %header makes the format invalid and it falls back to the default below.
+    String converted = legacyOrDefaultFormat
+        .replaceAll("%header\\{([^}\"]+)\\}", "%{$1}i")
         .replace("%clientHost", "%{client}a")
         .replace("%requestURL", "%r")
         .replace("%statusCode", "%s")
-        .replace("%elapsedTime", "%D")
+        .replace("%elapsedTime", "%{ms}T")
         .replace("%bytesSent", "%O")
-        .replace("%date", "%{dd/MMM/yyyy:HH:mm:ss Z|" + timeZone + "}t")
+        .replace("[%date]", jettyDate)
+        .replace("%date", jettyDate)
         .replace("%user", "%u")
         .replaceAll("%l(?![a-zA-Z])", "-");
+
+    // Jetty's CustomRequestLog rejects unknown '%' codes at construction. A configured logFormat can reach here in a
+    // form that does not convert cleanly - e.g. the shipped REQUEST_LOG_FORMAT default contains "%header{User-Agent}"
+    // and env-var substitution displaces the closing brace, leaving an unconverted "%header" (read as "%h"). Rather
+    // than crash the server, fall back to the default format.
+    if (!isValidJettyRequestLogFormat(converted)) {
+      log.warn("Configured request log format is not a valid Jetty format; using the default request log format."
+          + " Configured value: {}", legacyOrDefaultFormat);
+      return defaultFormat;
+    }
+    return converted;
   }
 
-  private String resolveArchiveFileNamePattern(
-      final String requestLogFilename,
-      final RequestLogSettings requestLogSettings)
-  {
-    if (requestLogSettings.archivedLogFilenamePattern() != null
-        && !requestLogSettings.archivedLogFilenamePattern().isBlank())
-    {
-      return requestLogSettings.archivedLogFilenamePattern();
+  private boolean isValidJettyRequestLogFormat(final String format) {
+    try {
+      new CustomRequestLog(message -> {
+      }, format);
+      return true;
     }
-    return DropwizardAppenderFactory.deriveArchivePattern(requestLogFilename);
+    catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   private boolean isSupportedRequestLogAppender(final Map<String, Object> appender) {
     String type = stringProperty(appender.get("type"));
-    Object filterFactories = appender.get("filterFactories");
-    return ("console".equals(type) || "file".equals(type)) && filterFactories == null;
+    return type != null && SUPPORTED_REQUEST_LOG_TYPES.contains(type)
+        && appender.get("filterFactories") == null;
   }
 
   private boolean isOff(final Object thresholdValue) {
-    String threshold = stringProperty(thresholdValue);
-    return threshold != null && "OFF".equalsIgnoreCase(threshold);
+    // thresholdValue is the raw config value: a bare YAML 'OFF' arrives as Boolean false, an explicit one as "OFF".
+    return DropwizardAppenderFactory.toLevel(thresholdValue, Level.ALL) == Level.OFF;
   }
 
   private String stringProperty(final Object value) {
     return value instanceof String ? (String) value : null;
-  }
-
-  private Integer integerProperty(final Object value) {
-    if (value instanceof Number number) {
-      return number.intValue();
-    }
-    if (value instanceof String stringValue && !stringValue.isBlank()) {
-      try {
-        return Integer.parseInt(stringValue);
-      }
-      catch (NumberFormatException e) {
-        throw new IllegalStateException("Invalid integer value '" + stringValue + "'", e);
-      }
-    }
-    return null;
-  }
-
-  private Boolean booleanProperty(final Object value) {
-    if (value instanceof Boolean booleanValue) {
-      return booleanValue;
-    }
-    if (value instanceof String stringValue && !stringValue.isBlank()) {
-      return Boolean.parseBoolean(stringValue);
-    }
-    return null;
   }
 
   @SuppressWarnings("unchecked")
@@ -338,14 +511,10 @@ public class RequestLoggingConfiguration
 
   record RequestLogSettings(
       boolean enabled,
-      String format,
-      String timeZone,
-      Integer retainDays,
-      boolean archiveEnabled,
-      String archivedLogFilenamePattern)
+      String format)
   {
     static RequestLogSettings disabled() {
-      return new RequestLogSettings(false, null, DEFAULT_REQUEST_LOG_TIME_ZONE, null, false, null);
+      return new RequestLogSettings(false, null);
     }
   }
 }

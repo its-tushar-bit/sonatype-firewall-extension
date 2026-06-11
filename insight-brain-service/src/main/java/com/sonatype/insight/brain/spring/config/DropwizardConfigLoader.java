@@ -25,6 +25,15 @@ public class DropwizardConfigLoader
 {
   public static final String MTIQ_AUDIT_LOG_APPENDER_TYPE = "mtiq-audit-log";
 
+  private static final String LEGACY_CONFIG_MESSAGE =
+      "\n================================================================================================================="
+          + "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42"
+          + " and lower."
+          + "\nUpdate your configuration file to be compatible with this version of Nexus IQ Server."
+          + "\nRefer to our configuration update guide at:"
+          + "\nhttps://links.sonatype.com/products/nxiq/doc/updating-your-configuration"
+          + "\n=================================================================================================================";
+
   private static final Logger log = LoggerFactory.getLogger(DropwizardConfigLoader.class);
 
   private final DropwizardConfigSourceReader configSourceReader;
@@ -51,6 +60,8 @@ public class DropwizardConfigLoader
           "Config file is empty or contains no valid YAML mapping: " + configFile.getAbsolutePath());
     }
 
+    rejectLegacyConfig(configMap);
+
     applyDropwizardSystemPropertyOverrides(configMap);
 
     Map<String, Object> flatProperties = new HashMap<>();
@@ -60,6 +71,25 @@ public class DropwizardConfigLoader
 
     MutablePropertySources propertySources = environment.getPropertySources();
     propertySources.addFirst(new MapPropertySource("dropwizardConfig", flatProperties));
+  }
+
+  /**
+   * Rejects config files written for the Dropwizard 0.6.2 format used by Nexus IQ Server 1.42 and earlier, where
+   * the server lived under {@code http} and logging appenders under {@code logging.console/file/syslog}. These keys
+   * do not exist in any supported config, so their presence means the file predates the supported format. We fail
+   * with upgrade guidance instead of silently ignoring the unrecognized sections.
+   */
+  private void rejectLegacyConfig(Map<String, Object> configMap) {
+    if (configMap.containsKey("http") || hasLegacyLoggingKey(configMap)) {
+      throw new IllegalStateException(LEGACY_CONFIG_MESSAGE);
+    }
+  }
+
+  private boolean hasLegacyLoggingKey(Map<String, Object> configMap) {
+    if (configMap.get("logging") instanceof Map<?, ?> logging) {
+      return logging.containsKey("console") || logging.containsKey("file") || logging.containsKey("syslog");
+    }
+    return false;
   }
 
   @SuppressWarnings("unchecked")
@@ -191,7 +221,7 @@ public class DropwizardConfigLoader
   }
 
   private void translateConnector(
-      List<Map<String, Object>> connectors,
+      List<DropwizardConnectorConfig> connectors,
       String connectorListName,
       String portProperty,
       String addressProperty,
@@ -203,8 +233,7 @@ public class DropwizardConfigLoader
       return;
     }
 
-    DropwizardConnectorConfig connector =
-        configSourceReader.convertValueStrict(connectors.get(0), DropwizardConnectorConfig.class);
+    DropwizardConnectorConfig connector = connectors.get(0);
     DropwizardConfigCompat.warnOnDeprecatedFields(connector, "server." + connectorListName);
 
     putIfNotNull(connector.port, portProperty, flatProperties);
@@ -247,7 +276,7 @@ public class DropwizardConfigLoader
     Map<String, Object> logging = asMap(configMap.get("logging"));
     if (!logging.isEmpty()) {
       DropwizardLoggingConfig loggingConfig =
-          configSourceReader.convertValue(logging, DropwizardLoggingConfig.class);
+          configSourceReader.convertValueStrict(logging, DropwizardLoggingConfig.class);
       DropwizardConfigCompat.warnOnDeprecatedFields(loggingConfig, "logging");
     }
     Object rootLevel = logging.get("level");
@@ -285,7 +314,7 @@ public class DropwizardConfigLoader
         .ifPresent(path -> springProps.put("auditLogBasePath", path));
   }
 
-  private void validateConnectorCount(List<Map<String, Object>> connectors, String propertyName) {
+  private void validateConnectorCount(List<DropwizardConnectorConfig> connectors, String propertyName) {
     if (connectors != null && connectors.size() > 1) {
       throw new IllegalStateException(
           "Dropwizard-to-Spring compatibility: multiple connectors are not supported for " + propertyName

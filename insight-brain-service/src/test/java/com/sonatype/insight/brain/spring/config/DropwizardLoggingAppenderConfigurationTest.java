@@ -13,6 +13,7 @@ import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.net.SSLSocketAppender;
 import ch.qos.logback.classic.net.SocketAppender;
 import ch.qos.logback.classic.net.SyslogAppender;
@@ -20,6 +21,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.OutputStreamAppender;
+import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.sonatype.insight.brain.service.InsightConfig;
 import java.io.File;
@@ -200,6 +203,27 @@ public class DropwizardLoggingAppenderConfigurationTest
         "    - type: tls",
         "      host: logserver.example.com",
         "      port: 6514",
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger(Logger.ROOT_LOGGER_NAME, "tls");
+    assertThat(appender).isInstanceOf(SSLSocketAppender.class);
+  }
+
+  @Test
+  public void testTlsAppender_validateCertsAndValidatePeers_parseButAreIgnored() throws IOException {
+    // Pre-Spring Dropwizard accepted these and passed them to Jetty's SslContextFactory; logback's stock SSL
+    // appender has no equivalent, so they must still parse under strict conversion (warned as ignored) rather
+    // than fail startup.
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  appenders:",
+        "    - type: tls",
+        "      host: logserver.example.com",
+        "      port: 6514",
+        "      validateCerts: true",
+        "      validatePeers: true",
         ""));
 
     initializeAppenders(env);
@@ -679,6 +703,148 @@ public class DropwizardLoggingAppenderConfigurationTest
       Appender<ILoggingEvent> appender = iter.next();
       if (appenderName.equals(appender.getName())) {
         return appender;
+      }
+    }
+    return null;
+  }
+
+  @Test
+  public void testAuditLogger_fileAppenderWithoutLogFormat_defaultsToMessageOnly() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    \"com.sonatype.insight.audit\":",
+        "      appenders:",
+        "        - type: file",
+        "          currentLogFilename: " + tempFile("audit.log"),
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger("com.sonatype.insight.audit", "file");
+    assertThat(patternOf(appender)).isEqualTo("%message%n");
+  }
+
+  @Test
+  public void testAuditLogger_consoleAppenderWithoutLogFormat_defaultsToMessageOnly() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    \"com.sonatype.insight.audit\":",
+        "      appenders:",
+        "        - type: console",
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger("com.sonatype.insight.audit", "console");
+    assertThat(patternOf(appender)).isEqualTo("%message%n");
+  }
+
+  @Test
+  public void testPolicyViolationLogger_fileAppenderWithoutLogFormat_defaultsToMessageOnly() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    \"com.sonatype.insight.policy.violation\":",
+        "      appenders:",
+        "        - type: file",
+        "          currentLogFilename: " + tempFile("policy-violation.log"),
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger("com.sonatype.insight.policy.violation", "file");
+    assertThat(patternOf(appender)).isEqualTo("%message%n");
+  }
+
+  @Test
+  public void testAuditLogger_explicitLogFormat_isRespected() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    \"com.sonatype.insight.audit\":",
+        "      appenders:",
+        "        - type: file",
+        "          currentLogFilename: " + tempFile("audit.log"),
+        "          logFormat: \"%level %msg%n\"",
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger("com.sonatype.insight.audit", "file");
+    assertThat(patternOf(appender)).isEqualTo("%level %msg%n");
+  }
+
+  @Test
+  public void testNonIndependentLogger_fileAppenderWithoutLogFormat_usesDefaultFormat() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  loggers:",
+        "    com.example.custom:",
+        "      appenders:",
+        "        - type: file",
+        "          currentLogFilename: " + tempFile("custom.log"),
+        ""));
+
+    initializeAppenders(env);
+
+    Appender<ILoggingEvent> appender = findAppenderOnLogger("com.example.custom", "file");
+    assertThat(patternOf(appender)).isEqualTo(DropwizardAppenderFactory.DEFAULT_LOG_FORMAT);
+  }
+
+  private String patternOf(Appender<ILoggingEvent> appender) {
+    assertThat(appender).isInstanceOf(OutputStreamAppender.class);
+    LayoutWrappingEncoder<ILoggingEvent> encoder =
+        (LayoutWrappingEncoder<ILoggingEvent>) ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
+    assertThat(encoder.getLayout()).isInstanceOf(PatternLayout.class);
+    return ((PatternLayout) encoder.getLayout()).getPattern();
+  }
+
+  @Test
+  public void testFileAppender_withoutDiscardingThreshold_defaultsToNoLoss() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  appenders:",
+        "    - type: file",
+        "      currentLogFilename: " + tempFile("server.log"),
+        ""));
+
+    initializeAppenders(env);
+
+    AsyncAppender async = findAsyncAppenderOnLogger(Logger.ROOT_LOGGER_NAME, "file");
+    assertThat(async).isNotNull();
+    assertThat(async.getDiscardingThreshold()).isEqualTo(0);
+    assertThat(async.isNeverBlock()).isFalse();
+  }
+
+  @Test
+  public void testFileAppender_explicitDiscardingThreshold_isHonored() throws IOException {
+    StandardEnvironment env = loadConfig(String.join("\n",
+        "logging:",
+        "  appenders:",
+        "    - type: file",
+        "      currentLogFilename: " + tempFile("server.log"),
+        "      discardingThreshold: 10",
+        ""));
+
+    initializeAppenders(env);
+
+    AsyncAppender async = findAsyncAppenderOnLogger(Logger.ROOT_LOGGER_NAME, "file");
+    assertThat(async.getDiscardingThreshold()).isEqualTo(10);
+  }
+
+  private AsyncAppender findAsyncAppenderOnLogger(String loggerName, String typeSubstring) {
+    cleanupLoggerNames.add(loggerName);
+    Logger logger = loggerContext.getLogger(loggerName);
+    Iterator<Appender<ILoggingEvent>> iter = logger.iteratorForAppenders();
+    while (iter.hasNext()) {
+      Appender<ILoggingEvent> appender = iter.next();
+      if (appender instanceof AsyncAppender async
+          && async.getName() != null
+          && async.getName().contains("." + typeSubstring + "."))
+      {
+        return async;
       }
     }
     return null;

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.spring.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import java.util.Map;
 
 public class DropwizardServerConfig
 {
@@ -25,16 +24,16 @@ public class DropwizardServerConfig
   Integer minThreads;
 
   @JsonProperty
-  List<Map<String, Object>> applicationConnectors;
+  List<DropwizardConnectorConfig> applicationConnectors;
 
   @JsonProperty
-  List<Map<String, Object>> adminConnectors;
+  List<DropwizardConnectorConfig> adminConnectors;
 
   @JsonProperty
   DropwizardGzipConfig gzip;
 
   @JsonProperty
-  Map<String, Object> requestLog;
+  RequestLogConfig requestLog;
 
   @JsonProperty
   String shutdownGracePeriod;

@@ -127,13 +127,58 @@ class DropwizardAppenderConfig
   }
 
   static class Tls
-      extends DropwizardAppenderConfig
+      extends Tcp
   {
     @JsonProperty
-    String host;
+    String keyStorePath;
 
     @JsonProperty
-    Integer port;
+    String keyStorePassword;
+
+    @JsonProperty
+    String keyStoreType;
+
+    @JsonProperty
+    String keyStoreProvider;
+
+    @JsonProperty
+    String trustStorePath;
+
+    @JsonProperty
+    String trustStorePassword;
+
+    @JsonProperty
+    String trustStoreType;
+
+    @JsonProperty
+    String trustStoreProvider;
+
+    @JsonProperty
+    String jceProvider;
+
+    @JsonProperty
+    List<String> supportedProtocols;
+
+    @JsonProperty
+    List<String> excludedProtocols;
+
+    @JsonProperty
+    List<String> supportedCipherSuites;
+
+    @JsonProperty
+    List<String> excludedCipherSuites;
+
+    // Pre-Spring, Dropwizard's TlsSocketAppenderFactory passed these to Jetty's SslContextFactory (validateCerts
+    // checks the local key-store certificates, validatePeers adds extra peer-certificate validation). Logback's stock
+    // SSL appender has no equivalent, so they parse but are ignored - @Deprecated makes warnOnDeprecatedFields say so
+    // at startup. Both default to false, and the server certificate is still validated against the trust store.
+    @Deprecated
+    @JsonProperty
+    Boolean validateCerts;
+
+    @Deprecated
+    @JsonProperty
+    Boolean validatePeers;
   }
 
   static class Udp

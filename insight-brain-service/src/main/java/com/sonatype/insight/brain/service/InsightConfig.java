@@ -379,6 +379,10 @@ public class InsightConfig
     return server;
   }
 
+  public void setServer(DropwizardServerConfig server) {
+    this.server = server;
+  }
+
   public DropwizardLoggingConfig getLogging() {
     return logging;
   }

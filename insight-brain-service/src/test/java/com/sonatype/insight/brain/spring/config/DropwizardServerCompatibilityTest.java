@@ -756,9 +756,12 @@ public class DropwizardServerCompatibilityTest
 
     assertThat(environment.getProperty("server.port")).isEqualTo("8070");
 
+    // An access-json layout appender is handled by the access-json path, so the classic requestLogSettings disables.
     RequestLoggingConfiguration requestLoggingConfiguration = new RequestLoggingConfiguration();
+    RequestLogConfig requestLog = new RequestLogConfig();
+    requestLog.appenders = List.of(Map.of("type", "console", "layout", Map.of("type", "access-json")));
     RequestLoggingConfiguration.RequestLogSettings settings =
-        requestLoggingConfiguration.requestLogSettings(environment);
+        requestLoggingConfiguration.requestLogSettings(requestLog);
     assertThat(settings.enabled()).isFalse();
   }
 

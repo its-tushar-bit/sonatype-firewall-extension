@@ -64,10 +64,6 @@ WORKDIR /opt/sonatype/nexus-iq-server
 
 ENV JAVA_OPTS="-javaagent:/opt/datadog/dd-java-agent.jar -Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
 ENV LD_PRELOAD="libjemalloc.so.2"
-# Enable jemalloc heap profiling support so JemallocHeapProfileTask can activate it on demand,
-# but do not actually start profiling at process start (prof_active:false). Without prof:true at
-# init time, jemalloc's prof.active mallctl returns EINVAL.
-ENV MALLOC_CONF="prof:true,prof_active:false"
 
 # Copy entrypoint script for APM agent selection
 COPY docker-entrypoint.sh /opt/sonatype/nexus-iq-server/bin/docker-entrypoint.sh

@@ -142,30 +142,42 @@ describe('ReportFilterPopover', () => {
       expect(matchStateOptions[1]).not.toBeChecked();
       expect(matchStateOptions[2]).not.toBeChecked();
       expect(matchStateOptions[3]).not.toBeChecked();
+      expect(matchStateOptions[4]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[1]);
       expect(matchStateOptions[0]).not.toBeChecked();
       expect(matchStateOptions[1]).toBeChecked();
       expect(matchStateOptions[2]).not.toBeChecked();
       expect(matchStateOptions[3]).not.toBeChecked();
+      expect(matchStateOptions[4]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[2]);
       expect(matchStateOptions[0]).not.toBeChecked();
       expect(matchStateOptions[1]).toBeChecked();
       expect(matchStateOptions[2]).toBeChecked();
       expect(matchStateOptions[3]).not.toBeChecked();
+      expect(matchStateOptions[4]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[3]);
+      expect(matchStateOptions[0]).not.toBeChecked();
+      expect(matchStateOptions[1]).toBeChecked();
+      expect(matchStateOptions[2]).toBeChecked();
+      expect(matchStateOptions[3]).toBeChecked();
+      expect(matchStateOptions[4]).not.toBeChecked();
+
+      fireEvent.click(matchStateOptions[4]);
       expect(matchStateOptions[0]).toBeChecked();
       expect(matchStateOptions[1]).toBeChecked();
       expect(matchStateOptions[2]).toBeChecked();
       expect(matchStateOptions[3]).toBeChecked();
+      expect(matchStateOptions[4]).toBeChecked();
 
       fireEvent.click(matchStateOptions[0]);
       expect(matchStateOptions[0]).not.toBeChecked();
       expect(matchStateOptions[1]).not.toBeChecked();
       expect(matchStateOptions[2]).not.toBeChecked();
       expect(matchStateOptions[3]).not.toBeChecked();
+      expect(matchStateOptions[4]).not.toBeChecked();
     });
 
     it('Handles the click in the violation state items', async () => {

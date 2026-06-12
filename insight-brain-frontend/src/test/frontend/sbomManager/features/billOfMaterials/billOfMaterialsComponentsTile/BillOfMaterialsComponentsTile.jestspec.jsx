@@ -6,6 +6,7 @@
 import React from 'react';
 import { update } from 'ramda';
 
+import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
@@ -64,6 +65,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     licenses,
     releaseStatusPercentage,
     policyViolationCount,
+    filenames,
   }) =>
     Object.freeze({
       hash,
@@ -71,7 +73,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       name,
       version: '1.2.3',
       dependencyType,
-      filenames: [`pkg:maven/com.package.${name}/artifact-id@1.2.3?type=jar`],
+      filenames: filenames || [`pkg:maven/com.package.${name}/artifact-id@1.2.3?type=jar`],
       matchStateId,
       componentIdentifier: {
         format: 'maven',
@@ -332,6 +334,40 @@ describe('BillOfMaterialsComponentsTile', () => {
         'Original Component Name: pkg:maven/com.package.alice/artifact-id@1.2.3?type=jar.' +
           'Similar component match: This component is similar to a known open source component' +
           ' within your application based on its attributes.'
+      );
+    });
+
+    it('renders embedded match icon with tooltip', async () => {
+      jest.useFakeTimers();
+
+      const embeddedComponentParams = {
+        hash: 'hash-embedded',
+        name: 'uber-lib',
+        dependencyType: 'direct',
+        matchStateId: 'embedded',
+        vulnerabilities: [0, 0, 0, 0, 0],
+        licenses: [],
+        releaseStatusPercentage: 0,
+        policyViolationCount: 0,
+        filenames: ['app-uber.jar'],
+      };
+
+      axiosMock
+        .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
+        .reply(200, generateResponse([embeddedComponentParams]));
+
+      renderComponent(initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      const embeddedMatchIcon = await screen.findByRole('img', { name: 'Embedded match state' });
+      expect(embeddedMatchIcon).toBeInTheDocument();
+
+      await userEvent.hover(embeddedMatchIcon);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent(
+        'Embedded component match: This component was identified as an OSS constituent inside an uber JAR (app-uber.jar).'
       );
     });
 

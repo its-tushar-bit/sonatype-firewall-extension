@@ -215,6 +215,23 @@ describe('ComponentDetails', () => {
     });
   });
 
+  describe('Embedded component', () => {
+    const matchStateLens = lensPath(['aaData', 1, 'matchState']);
+    const embeddedBomData = set(matchStateLens, 'embedded', bomData);
+
+    beforeEach(() => {
+      axiosMock.onGet(getReportBomUrl(publicId, scanId)).reply(200, embeddedBomData);
+    });
+
+    it('does not show claim tab for embedded component', async () => {
+      renderComponent();
+      await screen.findAllByText('org.seleniumhq.selenium : selenium-chrome-driver : 3.141.59');
+      const tabs = screen.getAllByRole('tab');
+      const tabLabels = tabs.map((t) => t.textContent);
+      expect(tabLabels).not.toContain('Claim');
+    });
+  });
+
   describe('Tabs', () => {
     it('renders the tabs', async () => {
       renderComponent();

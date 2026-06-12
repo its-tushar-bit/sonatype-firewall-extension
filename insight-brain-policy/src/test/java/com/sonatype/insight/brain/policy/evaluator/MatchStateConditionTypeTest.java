@@ -72,6 +72,39 @@ public class MatchStateConditionTypeTest
   }
 
   @Test
+  public void testEvaluateIs_Embedded() {
+    Constraint constraint = createConstraint("is", "embedded");
+    List<Constraint> constraints = new ArrayList<>();
+    constraints.add(constraint);
+
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
+    components.add(component1);
+    Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EMBEDDED);
+    components.add(component2);
+
+    List<PolicyAlert> alerts = evaluate(policy, components);
+    assertThat(alerts).hasSize(1);
+    assertFactCounts(1, 1, alerts.get(0));
+    assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, MatchStateConditionType.ID, alerts);
+
+    String actualReason = alerts.get(0)
+        .getTrigger()
+        .getComponentFacts()
+        .get(0)
+        .getConstraintFacts()
+        .get(0)
+        .getConditionFacts()
+        .get(0)
+        .getReason();
+    assertThat(actualReason).isEqualTo("Match state was 'Embedded'");
+  }
+
+  @Test
   public void testEvaluateIsNot() {
     // Create policy constraints
     Constraint constraint = createConstraint("is not", "similar");
@@ -91,15 +124,17 @@ public class MatchStateConditionTypeTest
     Component component3 = new Component();
     component3.setMatchState(MatchState.UNKNOWN);
     components.add(component3);
+    Component component4 = ComponentFactory.forGav("g3", "a3", "v3", MatchState.EMBEDDED);
+    components.add(component4);
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertThat(policyAlerts).hasSize(2);
-    assertFactCounts(1, 1, policyAlerts.get(0));
-    assertFactCounts(1, 1, policyAlerts.get(1));
+    assertThat(policyAlerts).hasSize(3);
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
         policyAlerts);
     assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
+        policyAlerts);
+    assertContainsPolicyAlert(component4, policy, constraint, FailActionType.ID, MatchStateConditionType.ID,
         policyAlerts);
 
     String actualReason = policyAlerts.get(0)

@@ -586,6 +586,25 @@ public class ReportServiceTest
         .isEqualTo(JsonUtils.asTree(new int[]{1, 1, 0, 0, 0, 1, 0, 0, 0, 0}));
   }
 
+  @Test
+  public void testFetchReport_EmbeddedComponentCountedAsPartial() throws Exception {
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-embedded-component");
+    ReportService reportService = createReportService();
+
+    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+
+    ReportEntry dataReportEntry = reportZip.getEntry(DATA_JSON.getName());
+    JsonNode dataJsonNode = JsonUtils.parse(dataReportEntry.buf);
+    assertThat(dataJsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(1);
+    assertThat(dataJsonNode.path("partiallyMatchedComponentCount").asInt()).isEqualTo(2); // EMBEDDED + SIMILAR both
+                                                                                          // partial
+    assertThat(dataJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
+
+    ReportEntry summaryReportEntry = reportZip.getEntry(SUMMARY_JSON.getName());
+    JsonNode summaryJsonNode = JsonUtils.parse(summaryReportEntry.buf);
+    assertThat(summaryJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
+  }
+
   private void assertLicenses(
       Component component,
       Set<String> declaredLicenseIds,

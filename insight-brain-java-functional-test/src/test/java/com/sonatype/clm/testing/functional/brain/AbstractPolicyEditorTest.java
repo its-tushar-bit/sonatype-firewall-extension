@@ -1414,7 +1414,7 @@ public abstract class AbstractPolicyEditorTest
     matchState.operator().shouldHave(text("is")).click();
     matchState.operator().listItem(1).shouldHave(text("is not")).click();
     matchState.value().shouldHave(text(MatchState.EXACT.getName())).click();
-    matchState.value().listItem(2).shouldHave(text(MatchState.UNKNOWN.getName())).click();
+    matchState.value().listItem(3).shouldHave(text(MatchState.UNKNOWN.getName())).click();
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(13);

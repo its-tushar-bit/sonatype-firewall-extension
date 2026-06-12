@@ -24,6 +24,8 @@ public class MatchState
 
   public static final MatchState SIMILAR = new MatchState("similar", "Similar");
 
+  public static final MatchState EMBEDDED = new MatchState("embedded", "Embedded");
+
   public static final MatchState UNKNOWN = new MatchState("unknown", "Unknown");
 
   private final String id;

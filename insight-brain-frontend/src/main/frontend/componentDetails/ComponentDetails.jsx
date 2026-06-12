@@ -43,11 +43,12 @@ import {
   createTabConfiguration,
   isExactComponent,
   isClaimedComponent,
+  isEmbeddedComponent,
 } from './componentDetailsUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectIsStandaloneDeveloper, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
+export function getTabsConfiguration(isUnknown, isExact, isClaimed, isEmbedded) {
   let tabsConfiguration = [
     createTabConfiguration('overview', 'Overview', <OverviewContainer />),
     createTabConfiguration('violations', 'Policy Violations', <PolicyViolations />),
@@ -62,7 +63,7 @@ export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
     ];
   }
 
-  if (!(isExact && !isClaimed)) {
+  if (!(isExact && !isClaimed) && !isEmbedded) {
     tabsConfiguration = [...tabsConfiguration, createTabConfiguration('claim', 'Claim', <ClaimContainer />)];
   }
 
@@ -117,7 +118,8 @@ export default function ComponentDetails() {
   const tabsConfiguration = getTabsConfiguration(
     isUnknown,
     isExactComponent(componentDetails),
-    isClaimedComponent(componentDetails)
+    isClaimedComponent(componentDetails),
+    isEmbeddedComponent(componentDetails)
   );
 
   const getClasses = () =>

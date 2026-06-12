@@ -180,7 +180,7 @@ export default function BillOfMaterialsComponentsTile() {
   const hasComponents = !isNilOrEmpty(components);
   const componentRows = hasComponents
     ? components.map((component) => {
-        const originalComponent = component.filenames ? component.filenames[0] : null;
+        const originalComponent = component.filenames?.[0] ?? '';
         const licenseString = licenseListToString(component.licenses);
         const licenseOverriddenStatus = getLicenseOverriddenStatus(component.licenses);
         const tagColor = licenseOverriddenStatus ? statusTagPropsMap[licenseOverriddenStatus] : null;
@@ -221,6 +221,18 @@ export default function BillOfMaterialsComponentsTile() {
                       icon={faInfoCircle}
                       className="sbom-manager-bill-of-materials-components-tile__info-icon"
                     />
+                  </NxTooltip>
+                ) : includes(component.matchStateId, ['embedded']) ? (
+                  <NxTooltip
+                    title={`Embedded component match: This component was identified as an OSS constituent inside an uber JAR (${originalComponent}).`}
+                    className="sbom-manager-bill-of-materials-components-tile__tooltip--embedded-match"
+                  >
+                    <span tabIndex={0} role="img" aria-label="Embedded match state">
+                      <NxFontAwesomeIcon
+                        icon={faInfoCircle}
+                        className="sbom-manager-bill-of-materials-components-tile__info-icon"
+                      />
+                    </span>
                   </NxTooltip>
                 ) : null}
               </span>

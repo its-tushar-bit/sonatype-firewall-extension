@@ -770,9 +770,7 @@ public class PdfGenerator
       // Add components summary
       int totalComponents = pdfData.components.size();
       int totalMatched = (int) pdfData.components.stream()
-          .filter(
-              component -> MatchState.EXACT.getName().equalsIgnoreCase(component.matchState) ||
-                  MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState))
+          .filter(component -> !MatchState.UNKNOWN.getName().equalsIgnoreCase(component.matchState))
           .count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
       float donutChartStartX = MARGIN;

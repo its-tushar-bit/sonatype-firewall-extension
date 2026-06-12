@@ -1142,13 +1142,13 @@ public class ReportService
       String matchStateString = bomObjectNode.get("matchState").asText();
       MatchState matchState = MatchState.getById(matchStateString);
 
-      if (!matchState.equals(MatchState.UNKNOWN)) {
+      if (!MatchState.UNKNOWN.equals(matchState)) {
         knownArtifactCount++;
-        if (matchState.equals(MatchState.SIMILAR)) {
-          partiallyMatchedComponentCount++;
+        if (MatchState.EXACT.equals(matchState)) {
+          exactlyMatchedComponentCount++;
         }
         else {
-          exactlyMatchedComponentCount++;
+          partiallyMatchedComponentCount++;
         }
       }
     }

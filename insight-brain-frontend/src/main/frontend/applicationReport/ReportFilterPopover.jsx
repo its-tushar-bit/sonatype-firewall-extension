@@ -28,6 +28,7 @@ const proprietaryFilterOptions = [
 const matchStateFilterOptions = [
   { id: 'exact', name: 'Exact' },
   { id: 'similar', name: 'Similar' },
+  { id: 'embedded', name: 'Embedded' },
   { id: 'unknown', name: 'Unknown' },
 ];
 

@@ -25,14 +25,12 @@ import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testing.LogbackStateRule;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,25 +42,12 @@ public class DropwizardLoggingAppenderConfigurationTest
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
 
+  @Rule
+  public LogbackStateRule logbackState = new LogbackStateRule();
+
   private LoggerContext loggerContext;
 
   private String lastConfigYaml;
-
-  private final List<String> cleanupLoggerNames = new ArrayList<>();
-
-  @After
-  public void tearDown() {
-    if (loggerContext != null) {
-      for (String name : cleanupLoggerNames) {
-        Logger logger = loggerContext.getLogger(name);
-        logger.detachAndStopAllAppenders();
-        if (!Logger.ROOT_LOGGER_NAME.equals(name)) {
-          logger.setLevel(null);
-        }
-        logger.setAdditive(true);
-      }
-    }
-  }
 
   @Test
   public void testRootFileAppender_createsRollingFileAppender() throws IOException {
@@ -114,7 +99,6 @@ public class DropwizardLoggingAppenderConfigurationTest
     initializeAppenders(env);
 
     Logger auditLogger = loggerContext.getLogger("com.sonatype.insight.audit");
-    cleanupLoggerNames.add("com.sonatype.insight.audit");
     assertThat(auditLogger.isAdditive()).isFalse();
     Appender<ILoggingEvent> appender = findAppenderOnLogger("com.sonatype.insight.audit", "file");
     assertThat(appender).isInstanceOf(RollingFileAppender.class);
@@ -136,7 +120,6 @@ public class DropwizardLoggingAppenderConfigurationTest
     assertThat(env.getProperty("logging.level.com.example.custom")).isEqualTo("DEBUG");
 
     initializeAppenders(env);
-    cleanupLoggerNames.add("com.example.custom");
 
     Appender<ILoggingEvent> appender = findAppenderOnLogger("com.example.custom", "file");
     assertThat(appender).isNotNull();
@@ -312,7 +295,6 @@ public class DropwizardLoggingAppenderConfigurationTest
   }
 
   private Appender<ILoggingEvent> findAppenderOnLogger(String loggerName, String typeSubstring) {
-    cleanupLoggerNames.add(loggerName);
     Logger logger = loggerContext.getLogger(loggerName);
     Iterator<Appender<ILoggingEvent>> iter = logger.iteratorForAppenders();
     while (iter.hasNext()) {
@@ -357,7 +339,6 @@ public class DropwizardLoggingAppenderConfigurationTest
   public void testRootAppenders_replacesExistingAppenders() throws IOException {
     loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
     Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
-    cleanupLoggerNames.add(Logger.ROOT_LOGGER_NAME);
 
     ConsoleAppender<ILoggingEvent> existingAppender = new ConsoleAppender<>();
     existingAppender.setName("pre-existing-console");
@@ -514,7 +495,6 @@ public class DropwizardLoggingAppenderConfigurationTest
   }
 
   private Appender<ILoggingEvent> findRawAppenderOnLogger(String loggerName, String typeSubstring) {
-    cleanupLoggerNames.add(loggerName);
     Logger logger = loggerContext.getLogger(loggerName);
     Iterator<Appender<ILoggingEvent>> iter = logger.iteratorForAppenders();
     while (iter.hasNext()) {
@@ -549,7 +529,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add(Logger.ROOT_LOGGER_NAME);
     assertThat(loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).getLevel()).isEqualTo(Level.WARN);
   }
 
@@ -563,7 +542,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add("org.example.test");
     assertThat(loggerContext.getLogger("org.example.test").getLevel()).isEqualTo(Level.ERROR);
   }
 
@@ -580,7 +558,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add("org.example.test");
     Logger logger = loggerContext.getLogger("org.example.test");
     assertThat(logger.getLevel()).isEqualTo(Level.WARN);
     assertThat(logger.isAdditive()).isFalse();
@@ -599,7 +576,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add("org.example.test");
     assertThat(loggerContext.getLogger("org.example.test").getLevel()).isNull();
   }
 
@@ -616,7 +592,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add("org.example.test");
     assertThat(loggerContext.getLogger("org.example.test").isAdditive()).isTrue();
   }
 
@@ -631,7 +606,6 @@ public class DropwizardLoggingAppenderConfigurationTest
 
     initializeAppenders(env);
 
-    cleanupLoggerNames.add("org.example.test");
     assertThat(loggerContext.getLogger("org.example.test").getLevel()).isEqualTo(Level.DEBUG);
   }
 
@@ -687,7 +661,6 @@ public class DropwizardLoggingAppenderConfigurationTest
     DropwizardLoggingAppenderConfiguration config = new DropwizardLoggingAppenderConfiguration(provider);
     config.dropwizardLoggingAppenderInitializer(insightConfig).afterSingletonsInstantiated();
 
-    cleanupLoggerNames.add("com.sonatype.insight.audit");
     Logger auditLogger = loggerContext.getLogger("com.sonatype.insight.audit");
     Appender<ILoggingEvent> topAppender = auditLogger.iteratorForAppenders().next();
     assertThat(topAppender).isInstanceOf(ch.qos.logback.classic.AsyncAppender.class);
@@ -835,7 +808,6 @@ public class DropwizardLoggingAppenderConfigurationTest
   }
 
   private AsyncAppender findAsyncAppenderOnLogger(String loggerName, String typeSubstring) {
-    cleanupLoggerNames.add(loggerName);
     Logger logger = loggerContext.getLogger(loggerName);
     Iterator<Appender<ILoggingEvent>> iter = logger.iteratorForAppenders();
     while (iter.hasNext()) {

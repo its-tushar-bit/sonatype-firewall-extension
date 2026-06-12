@@ -25,6 +25,7 @@ import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
+import com.sonatype.insight.brain.testing.LogbackStateRule;
 import io.dropwizard.logging.common.AbstractAppenderFactory;
 import io.dropwizard.logging.common.AppenderFactory;
 import io.dropwizard.logging.common.ConsoleAppenderFactory;
@@ -56,6 +57,9 @@ public class RequestLoggingConfigurationTest
 {
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
+
+  @Rule
+  public LogbackStateRule logbackState = new LogbackStateRule();
 
   @Test
   public void shouldFilterTelemetryRequestsOutOfRequestLog() throws Exception {

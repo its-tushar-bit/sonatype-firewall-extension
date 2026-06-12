@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,15 +37,36 @@ public class DropwizardAppenderFactoryTest
 {
   private LoggerContext context;
 
+  private final Map<String, String> savedSslProperties = new HashMap<>();
+
   @Before
   public void setUp() {
     context = new LoggerContext();
     context.start();
+    // logback's default SSLConfiguration lazily derives a key/trust store from these JVM-wide system properties
+    // (SSLContextFactoryBean#getKeyStore). Clear them so assertions about the absence of a configured store are
+    // deterministic regardless of what an earlier test left set in the shared surefire fork (reuseForks=true).
+    clearAndSave("javax.net.ssl.keyStore");
+    clearAndSave("javax.net.ssl.trustStore");
   }
 
   @After
   public void tearDown() {
     context.stop();
+    savedSslProperties.forEach((key, value) -> {
+      if (value == null) {
+        System.clearProperty(key);
+      }
+      else {
+        System.setProperty(key, value);
+      }
+    });
+    savedSslProperties.clear();
+  }
+
+  private void clearAndSave(final String key) {
+    savedSslProperties.put(key, System.getProperty(key));
+    System.clearProperty(key);
   }
 
   @Test

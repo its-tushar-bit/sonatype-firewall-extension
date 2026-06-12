@@ -36,13 +36,18 @@ public class MtiqComponentScanExclusionFilterTest
   private static final String MTIQ_TENANT_MANAGED_INITIALIZER =
       "com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer";
 
+  // Single-tenant-only; admitted by component scan via matchIfMissing unless the exclusion filter removes it.
+  private static final String SINGLE_TENANT_METRICS_CONFIGURATION =
+      "com.sonatype.insight.brain.spring.config.MetricsConfiguration";
+
   @Test
   public void shouldExcludeSingleTenantDefaultsFromProductionMtiqCandidates() throws ClassNotFoundException {
     Set<String> candidateClassNames = findCandidates(MultiTenantInsightBrainService.class);
 
     assertThat(candidateClassNames)
         .contains(MTIQ_INSIGHT_MAIL, MTIQ_TENANT_MANAGED_INITIALIZER)
-        .doesNotContain(DEFAULT_INSIGHT_MAIL, DEFAULT_TENANT_MANAGED_INITIALIZER);
+        .doesNotContain(DEFAULT_INSIGHT_MAIL, DEFAULT_TENANT_MANAGED_INITIALIZER,
+            SINGLE_TENANT_METRICS_CONFIGURATION);
   }
 
   @Test
@@ -51,7 +56,8 @@ public class MtiqComponentScanExclusionFilterTest
 
     assertThat(candidateClassNames)
         .contains(MTIQ_INSIGHT_MAIL, MTIQ_TENANT_MANAGED_INITIALIZER)
-        .doesNotContain(DEFAULT_INSIGHT_MAIL, DEFAULT_TENANT_MANAGED_INITIALIZER);
+        .doesNotContain(DEFAULT_INSIGHT_MAIL, DEFAULT_TENANT_MANAGED_INITIALIZER,
+            SINGLE_TENANT_METRICS_CONFIGURATION);
   }
 
   private Set<String> findCandidates(final Class<?> applicationClass) throws ClassNotFoundException {

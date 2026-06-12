@@ -109,6 +109,25 @@ public class MeteredThreadPoolExecutorTest
   }
 
   @Test
+  public void testMonitoredThreadPoolExecutor_ExecutorRejectedWithEmptyTags() {
+    // With a non-null registry but empty tags, meters are off and registeredMeterIds is immutable;
+    // a rejection must still surface as RejectedExecutionException, not UnsupportedOperationException.
+    MeterRegistry meterRegistry = new SimpleMeterRegistry();
+    executor = new MeteredThreadPoolExecutor(0, 1, 0, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(1), Executors.defaultThreadFactory(), new AbortPolicy(), meterRegistry,
+        Tags.empty());
+
+    ManagedRunnable managedRunnable = new ManagedRunnable();
+    executor.submit(managedRunnable);
+    managedRunnable.waitUntilStarted();
+    executor.submit(() -> {
+    });
+    assertThatExceptionOfType(RejectedExecutionException.class).isThrownBy(() -> executor.submit(() -> {
+    }));
+    assertThat(meterRegistry.find("executor.rejected").counter()).isNull();
+  }
+
+  @Test
   public void testMonitoredThreadPoolExecutor_ExecutorCompleted() {
     MeterRegistry meterRegistry = new SimpleMeterRegistry();
     executor = new MeteredThreadPoolExecutor(0, 1, 0, TimeUnit.SECONDS,

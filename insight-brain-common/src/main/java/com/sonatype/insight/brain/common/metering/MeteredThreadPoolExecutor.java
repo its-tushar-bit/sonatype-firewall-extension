@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import jakarta.annotation.Nullable;
-import jakarta.inject.Inject;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
@@ -33,9 +32,16 @@ import io.micrometer.core.instrument.binder.BaseUnits;
 public class MeteredThreadPoolExecutor
     extends ThreadPoolExecutor
 {
-  @Inject
   @Nullable
-  private static MeterRegistry injectedMeterRegistry;
+  private static volatile MeterRegistry injectedMeterRegistry;
+
+  /**
+   * Sets the registry used by executors created without an explicit {@link MeterRegistry}. Spring
+   * does not inject static members, so the owning configuration must call this explicitly.
+   */
+  public static void injectMeterRegistry(@Nullable final MeterRegistry meterRegistry) {
+    injectedMeterRegistry = meterRegistry;
+  }
 
   public static final String KIND_TAG = "kind";
 
@@ -47,6 +53,15 @@ public class MeteredThreadPoolExecutor
 
   private final Set<Id> registeredMeterIds;
 
+  /**
+   * Creates an executor using the registry from {@link #injectMeterRegistry}. The static field is
+   * read <em>once, at construction time</em>, and bound for the life of the executor; an executor
+   * built before the registry is injected captures {@code null} permanently and never reports
+   * {@code executor.*} metrics. Callers relying on the injected registry must therefore be
+   * constructed after it is set (in MTIQ this is wired by {@code MultiTenantMetricsConfiguration};
+   * single-tenant never injects, by design). Use the explicit-registry constructor to avoid the
+   * ordering dependency entirely.
+   */
   public MeteredThreadPoolExecutor(
       final int corePoolSize,
       final int maximumPoolSize,
@@ -171,7 +186,10 @@ public class MeteredThreadPoolExecutor
       super.execute(new TimedRunnable(runnable, tags));
     }
     catch (RejectedExecutionException e) {
-      Optional.ofNullable(meterRegistry).ifPresent(meterRegistry -> {
+      // Only register the rejected-task counter when meters are active for this executor; the same
+      // guard used elsewhere. When tags are empty, registeredMeterIds is an immutable empty set, so
+      // adding to it would throw UnsupportedOperationException.
+      if (meterRegistry != null && !Tags.empty().equals(this.tags)) {
         Counter rejectedTaskCounter = Counter.builder("executor.rejected")
             .tags(tags)
             .description("The total number of tasks that have been rejected by the executor")
@@ -179,7 +197,7 @@ public class MeteredThreadPoolExecutor
             .register(meterRegistry);
         registeredMeterIds.add(rejectedTaskCounter.getId());
         rejectedTaskCounter.increment();
-      });
+      }
       throw e;
     }
   }

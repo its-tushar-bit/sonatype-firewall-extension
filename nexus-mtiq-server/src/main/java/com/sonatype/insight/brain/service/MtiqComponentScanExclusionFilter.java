@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.spring.config.DatabaseConfiguration;
 import com.sonatype.insight.brain.spring.config.DropwizardManagementConnectorConfiguration;
 import com.sonatype.insight.brain.spring.config.InsightBrainConfiguration;
 import com.sonatype.insight.brain.spring.config.JerseyConfiguration;
+import com.sonatype.insight.brain.spring.config.MetricsConfiguration;
 import com.sonatype.insight.brain.spring.config.ScheduledConfiguration;
 import com.sonatype.insight.brain.spring.config.SingleTenantAdminFilterConfiguration;
 import com.sonatype.insight.brain.spring.config.SingleTenantMainFilterConfiguration;
@@ -37,6 +38,7 @@ public final class MtiqComponentScanExclusionFilter
   private static final Set<String> EXCLUDED_CLASS_NAMES = Set.of(
       FeaturesService.class.getName(),
       JerseyConfiguration.class.getName(),
+      MetricsConfiguration.class.getName(),
       AdminCompatibilityConfiguration.class.getName(),
       InsightBrainSpringApplication.class.getName(),
       InsightBrainConfiguration.class.getName(),

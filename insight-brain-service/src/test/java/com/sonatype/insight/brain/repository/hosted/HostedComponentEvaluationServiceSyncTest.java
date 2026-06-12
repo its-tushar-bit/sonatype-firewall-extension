@@ -169,6 +169,10 @@ public class HostedComponentEvaluationServiceSyncTest
         eq("release"));
     // Block must NOT be persisted on allow.
     verify(blockDAO, never()).insertWithViolations(any(), any(), any());
+    // Application-linked persistence must run on allow path so the UI Report link becomes
+    // clickable (the bug this PR fixes — without this, applicationPublicId is null).
+    verify(queueConsumer).persistApplicationForSyncAllowPath(
+        eq(REPO_ID), eq(scanEntity), any(ScanComponentInfo.class), eq("release"));
     // Scan file cleaned up.
     verify(scanPersistenceService).deleteScan(scanEntity);
   }
@@ -215,6 +219,11 @@ public class HostedComponentEvaluationServiceSyncTest
     List<HostedDeploymentBlockViolation> persistedViolations = violationsCaptor.getValue();
     assertThat(persistedViolations).hasSize(1);
     assertThat(persistedViolations.get(0).getPolicyName()).isEqualTo("Critical Security Policy");
+
+    // Block path must NOT create a synthetic application row — that would surface a phantom
+    // entry in the components list for an artifact that never entered the repository.
+    verify(queueConsumer, never()).persistApplicationForSyncAllowPath(
+        anyString(), any(), any(), anyString());
 
     // Scan file cleaned up.
     verify(scanPersistenceService).deleteScan(scanEntity);

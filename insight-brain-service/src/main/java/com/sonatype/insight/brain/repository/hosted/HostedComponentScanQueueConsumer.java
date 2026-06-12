@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
@@ -226,6 +227,38 @@ public class HostedComponentScanQueueConsumer
     }
     evaluatePolicies(job, componentInfo, stage);
     stampStage(repositoryId, componentInfo.pathname(), stage.toLowerCase());
+    persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
+  }
+
+  /**
+   * Persists the synthetic-application linkage and the HDS report files for an evaluated component.
+   * <p>
+   * Extracted from {@link #executeJob} so the synchronous enforcement allow path
+   * ({@code HostedComponentEvaluationService.evaluateSynchronously}) can keep parity: stamp
+   * {@code scanId} on {@code repository_component}, persist the policy_evaluation row, and download
+   * the HDS report bundle so the report link is clickable in the UI.
+   * <p>
+   * Called by both paths (async queue consumer + sync enforcement) so a fix here applies to both.
+   * <p>
+   * Public so {@link #persistApplicationForSyncAllowPath} (same package) and
+   * {@code HostedComponentEvaluationService} (different package, sync allow path entry) can both
+   * delegate here. Not part of any external API contract.
+   *
+   * @param scanReceipt non-null receipt produced by a successful
+   *          {@link com.sonatype.insight.brain.hds.ScanUploader} upload — the upload either returns
+   *          a receipt or throws, so callers don't need to null-guard
+   */
+  public void persistApplicationLinkedReportFiles(
+      final String repositoryId,
+      final ScanEntity scanEntity,
+      final ScanComponentInfo componentInfo,
+      final com.sonatype.insight.brain.model.Application application,
+      @Nonnull final ScanReceipt scanReceipt,
+      final String stage)
+  {
+    if (componentInfo == null) {
+      return;
+    }
     if (application != null) {
       stampScanId(repositoryId, componentInfo.pathname(), scanReceipt.getScanId());
       storeScanForReEvaluate(scanEntity, application.getId(), scanReceipt.getScanId());
@@ -236,6 +269,58 @@ public class HostedComponentScanQueueConsumer
       log.warn(
           "Could not get/create synthetic application for repositoryId={} pathname={}, report navigation will not be available",
           repositoryId, componentInfo.pathname());
+    }
+  }
+
+  /**
+   * Sync-enforcement entry point that mirrors the async queue consumer's application-linked persistence.
+   * <p>
+   * Called by {@code HostedComponentEvaluationService.evaluateSynchronously} after an allow verdict
+   * has been computed and {@code repository_component}/{@code repository_policy_violation} rows have
+   * been persisted by the evaluator. This step ensures a synthetic {@code application} row exists,
+   * re-uploads the scan via the application pipeline so HDS regenerates per-application report files,
+   * and stamps the {@code scanId} so the UI Report link becomes clickable.
+   * <p>
+   * <b>Note on the double HDS upload:</b> the sync enforcement path already uploaded the scan via
+   * {@code uploadForRepository} before the evaluation. This method performs a second upload via
+   * {@code upload(scanEntity, application, ...)} so HDS keys the report bundle to the synthetic
+   * application's id (not the repository id) — that's what makes the per-component Report link
+   * resolvable in the UI. The duplicate upload is acceptable because HDS de-dupes identical scan
+   * payloads; the marginal latency on the sync path is small compared to the initial upload + dual
+   * evaluation. Collapsing the two uploads would require restructuring the sync block-path
+   * semantics (block must NOT create an application row), so we keep them separate intentionally.
+   * <p>
+   * Failures here are logged but not rethrown — the enforcement verdict has already been returned
+   * to NXRM and must not be invalidated by an audit-only persistence hiccup.
+   */
+  public void persistApplicationForSyncAllowPath(
+      final String repositoryId,
+      final ScanEntity scanEntity,
+      final ScanComponentInfo componentInfo,
+      final String stage)
+  {
+    if (componentInfo == null) {
+      return;
+    }
+    try {
+      com.sonatype.insight.brain.model.Application application = applicationForHostedComponentService
+          .getOrCreateApplication(repositoryId, componentInfo.pathname());
+      if (application == null) {
+        log.warn(
+            "Could not get/create synthetic application for repositoryId={} pathname={} (sync allow path), report navigation will not be available",
+            repositoryId, componentInfo.pathname());
+        return;
+      }
+      ScanReceipt scanReceipt = scanUploaderProvider.get()
+          .upload(scanEntity, application, stage, null, null, true);
+      log.debug("Re-uploaded scan via application pipeline (sync allow path), scanId={}, appPublicId={}",
+          scanReceipt.getScanId(), application.getPublicId());
+      persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
+    }
+    catch (Exception e) {
+      // componentInfo is guaranteed non-null by the early-return guard at the top of this method.
+      log.warn("Failed to persist application linkage for sync allow path repositoryId={} pathname={}: {}",
+          repositoryId, componentInfo.pathname(), e.getMessage(), e);
     }
   }
 

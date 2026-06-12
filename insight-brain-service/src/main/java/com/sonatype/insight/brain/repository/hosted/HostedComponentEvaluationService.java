@@ -266,6 +266,11 @@ public class HostedComponentEvaluationService
           repositoryPolicyEvaluatorProvider.get()
               .evaluateForHostedEnforcement(repository, request, true /* persistEvaluationResults */,
                   clientUserAgent, effectiveStage);
+          // Mirror the async queue consumer's application-linked persistence so the synthetic
+          // application row, scanId stamp, and HDS report files exist — without these the UI
+          // Report link is disabled (applicationPublicId null) even though violations are present.
+          hostedComponentScanQueueConsumer.persistApplicationForSyncAllowPath(
+              repository.getId(), scanEntity, componentInfo, effectiveStage);
         }
         catch (RuntimeException persistEx) {
           log.error(

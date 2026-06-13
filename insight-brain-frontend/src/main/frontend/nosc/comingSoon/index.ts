@@ -11,6 +11,7 @@ export {
   COMING_SOON_MODULES,
   COMING_SOON_MODULE_ORDER,
   comingSoonHref,
+  comingSoonStateName,
 } from 'MainRoot/nosc/comingSoon/comingSoonModules';
 export type {
   ComingSoonModule,

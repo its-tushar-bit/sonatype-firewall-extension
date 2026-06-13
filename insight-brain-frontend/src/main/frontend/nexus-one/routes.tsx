@@ -3,30 +3,26 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
 import { ReactStateDeclaration } from '@uirouter/react';
 import router from 'MainRoot/router/routerInstance';
 import { PlatformHome } from 'MainRoot/nosc/platformHome/PlatformHome';
 import {
   COMING_SOON_MODULE_ORDER,
   comingSoonHref,
+  comingSoonStateName,
   ComingSoonRoute,
 } from 'MainRoot/nosc/comingSoon';
-import { PreviewPagePlaceholder } from 'MainRoot/nosc/shell/PreviewPagePlaceholder';
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 import { AdvancedSearchComingSoon } from 'MainRoot/nosc/searchResults/AdvancedSearchComingSoon';
+import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
+import PreviewApplicationDetail from 'MainRoot/nosc/applications/ApplicationDetail';
+import {
+  WaiversListPage as PreviewWaiversList,
+  WaiverDetailPage as PreviewWaiverDetail,
+} from 'MainRoot/nosc/waivers';
 import { isAuthorized } from 'MainRoot/util/permissionService';
-
-function readHashPath(): string {
-  const rawHash = typeof window !== 'undefined' ? window.location.hash : '';
-  return rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
-}
-
-function NexusOneRoutePlaceholder(): JSX.Element {
-  return <PreviewPagePlaceholder route={readHashPath()} />;
-}
 
 router.stateRegistry.register({
   name: 'root',
@@ -68,22 +64,52 @@ nexusOneDashboardStates().forEach((state) => {
   router.stateRegistry.register(state);
 });
 
-const COMING_SOON_ENTITY_ROUTES: ReadonlyArray<{ readonly name: string; readonly url: string }> = [
-  { name: 'nexusOneApplications', url: '/applications' },
-  { name: 'nexusOneApplicationsDetail', url: '/applications/{publicId}' },
-  { name: 'nexusOneWaivers', url: '/waivers' },
-];
+router.stateRegistry.register({
+  name: 'nexusOneApplications',
+  url: '/applications',
+  component: PreviewApplicationsList,
+  data: {
+    title: 'Nexus One — Applications',
+  },
+} as ReactStateDeclaration);
 
-COMING_SOON_ENTITY_ROUTES.forEach(({ name, url }) => {
-  router.stateRegistry.register({
-    name,
-    url,
-    component: ComingSoonRoute,
-    data: {
-      title: 'Nexus One',
-    },
-  } as ReactStateDeclaration);
-});
+router.stateRegistry.register({
+  name: 'nexusOneApplicationsDetail',
+  url: '/applications/{publicId}',
+  component: PreviewApplicationDetail,
+  data: {
+    title: 'Nexus One — Application',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneApplicationsDetailTab',
+  url: '/applications/{publicId}/{tab}',
+  component: PreviewApplicationDetail,
+  data: {
+    title: 'Nexus One — Application',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneWaivers',
+  url: '/waivers',
+  component: PreviewWaiversList,
+  data: {
+    title: 'Nexus One — Waivers',
+  },
+} as ReactStateDeclaration);
+
+router.stateRegistry.register({
+  name: 'nexusOneWaiverDetail',
+  // `?from` lets a caller (e.g. the Dashboard waivers tab) tell the detail page
+  // where its back-link should return to.
+  url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from',
+  component: PreviewWaiverDetail,
+  data: {
+    title: 'Nexus One — Waiver Detail',
+  },
+} as ReactStateDeclaration);
 
 router.stateRegistry.register({
   name: 'nexusOneSearch',
@@ -96,17 +122,9 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
-function slugToStateName(slug: string): string {
-  const pascal = slug
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('');
-  return 'nexusOneComingSoon' + pascal;
-}
-
 COMING_SOON_MODULE_ORDER.forEach((slug) => {
   router.stateRegistry.register({
-    name: slugToStateName(slug),
+    name: comingSoonStateName(slug),
     url: comingSoonHref(slug),
     component: ComingSoonRoute,
     data: {

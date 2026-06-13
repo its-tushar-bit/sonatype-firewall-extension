@@ -23,6 +23,20 @@ export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
   return moment(date).format(format);
 };
 
+/**
+ * Format a date as a UTC calendar day (YYYY-MM-DD), returning an em dash for
+ * null/empty/invalid input. UTC (not local) so the rendered day is stable
+ * regardless of viewer/test timezone — used where only the calendar day matters
+ * (e.g. waiver created/expiry dates).
+ */
+export const formatDateUtcYYYYMMDD = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return '—';
+  }
+  const m = moment.utc(value);
+  return m.isValid() ? m.format('YYYY-MM-DD') : '—';
+};
+
 // Copied from our time utilities library
 export const formatTimeAgo = (date, isTruncated = false, now = new Date()) => {
   if (!date) {

@@ -9,6 +9,9 @@ import { createRoot } from 'react-dom/client';
 import ClassyBrew from 'classybrew/src/classybrew';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 import { actions as displayThemeActions } from 'MainRoot/configuration/displayTheme/displayThemeSlice';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
+import { fetchUser } from 'MainRoot/user/userSessionUtils';
 import store from 'MainRoot/reduxConfig/store';
 import router from 'MainRoot/router/routerInstance';
 import App from './App';
@@ -28,6 +31,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   attachAxiosInterceptors();
   store.dispatch(displayThemeActions.initialize());
+
+  // Hydrate the Redux slices the shared shell (LeftNav, TopNav menus) depends
+  // on. Classic does this in main.js; the Nexus One bundle has its own store,
+  // so without these the session/feature/license selectors stay at their empty
+  // defaults and the LeftNav rail renders no items. `ensureNexusOneShellAccess`
+  // already confirmed auth + the preview flag above. These are fire-and-forget
+  // (idempotent) — the shell reactively renders as each resolves.
+  fetchUser(false);
+  store.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
+  store.dispatch(loadProductLicense());
+
   router.start();
   const container = document.getElementById('nexus-one-root');
   if (container) {

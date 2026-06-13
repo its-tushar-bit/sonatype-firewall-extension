@@ -4,45 +4,66 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { Box, Flex } from '@radix-ui/themes';
+import { Box, Flex, Text } from '@radix-ui/themes';
 
-import DashboardWaiversTable from 'MainRoot/dashboard/results/waivers/DashboardWaiversTable';
-import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilter';
-
-import './previewDashboardTabLayout.css';
+import { useWaiversList } from 'MainRoot/nosc/waivers/useWaivers';
+import WaiversTable from 'MainRoot/nosc/waivers/WaiversTable';
 
 /**
  * S2-PR-D-3 (CLM-39992): Waivers tab — Preview port.
  *
- * Wraps the Classic `DashboardWaiversTable` (already self-connected to
- * the `dashboard.waivers` Redux slice via internal useSelector/useDispatch)
- * so the columns, sort defaults, chips, CSV export, and pagination match
- * Classic exactly.
+ * Renders the **native Nexus One** WaiversTable (NOT the Classic
+ * DashboardWaiversTable). Reading the same `/rest/dashboard/policy/
+ * policyWaivers` endpoint as the standalone /waivers page, so
+ * rows are clickable and navigate to /waivers/{ownerType}/
+ * {ownerId}/{waiverId} — staying inside the Nexus One shell.
  *
- * URL-query parity note (D-3 spec asked about `?status={…}`): Classic's
- * waivers table does NOT expose an active/expired/expiringSoon filter —
- * the closest first-class facet is the Expiration Date radio
- * (`expirationDate` slice key, options ALL/AUTO/IN_24_HOURS/IN_7_DAYS/
- * IN_30_DAYS/IN_90_DAYS/IN_OVER_90_DAYS — see `staticFilterEntries.js`).
- * Per D-3 spec ("If no such filter exists, just port without query
- * support and document"), the Waivers tab does NOT consume a `?status=`
- * query in this PR. D-5 (tile→tab IA wiring) can add a Waivers-tab URL
- * contract if/when a destination tile needs one.
+ * **Design note:** the Classic DashboardWaiversTable was used in the
+ * initial port (S2-PR-D-3) but its rows dispatch a ui-router state
+ * change to Classic's `waiver.details`, which drops the user out of
+ * the Preview shell. Per design feedback, this PR replaces that wrap
+ * with the native nosc table.
  *
- * Same shell rules as `PreviewViolationsTab`: NO Theme wrapper, NO
- * `position: fixed`, NO tab-isolation boundary (parent owns those).
+ * **Filter rail trade-off:** the shared filter rail
+ * (`DashboardFilter`) is intentionally NOT mounted on this tab. The
+ * rail is wired to the Classic `dashboard.waivers` Redux slice, but
+ * the nosc table reads from `useWaiversList` — a different code path
+ * with no Redux filter integration. Showing a non-functional filter
+ * sidebar would be more confusing than helpful; the Phase-2 plan adds
+ * native filter chips to the nosc WaiversTable itself.
+ *
+ * Open-in-Classic escape hatch ships in the standalone
+ * /waivers page (see WaiversListPage.tsx), so users who need
+ * Classic's full filter chrome have a one-click path.
  */
 export default function PreviewWaiversTab(): JSX.Element {
+  const { loading, error, waivers, hasNextPage, refetch } = useWaiversList({
+    includeAutoWaivers: true,
+  });
+
   return (
     <Box mt="4" data-testid="nosc-dashboard-waivers-tab">
-      <Flex gap="4" align="start" data-testid="nosc-dashboard-waivers-layout">
-        <Box data-testid="nosc-dashboard-waivers-filter-slot">
-          <DashboardFilter />
-        </Box>
-        <Box className="preview-dashboard-tab__table-slot" data-testid="nosc-dashboard-waivers-table-slot">
-          <DashboardWaiversTable />
-        </Box>
-      </Flex>
+      <Box>
+        <WaiversTable
+          waivers={waivers}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          testId="nosc-dashboard-waivers-table"
+          // Mark row links as originating in the Dashboard tab so the
+          // detail page's back-link routes back here, not to the
+          // standalone /waivers page.
+          linkFrom="dashboard"
+        />
+        {!loading && !error && hasNextPage && (
+          <Flex justify="center" mt="4">
+            <Text size="2" color="gray" data-testid="nosc-dashboard-waivers-truncated">
+              Showing first {waivers.length} waivers. Open the standalone Waivers
+              page (LeftNav → Waivers) or Classic for full pagination.
+            </Text>
+          </Flex>
+        )}
+      </Box>
     </Box>
   );
 }

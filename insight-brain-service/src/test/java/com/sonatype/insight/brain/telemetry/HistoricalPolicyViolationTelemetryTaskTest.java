@@ -5,14 +5,17 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.io.PrintWriter;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -20,19 +23,23 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Map;
+
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.quartz.JobExecutionContext;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HistoricalPolicyViolationTelemetryTaskTest
@@ -53,18 +60,14 @@ public class HistoricalPolicyViolationTelemetryTaskTest
   @Mock
   private TenantUtil tenantUtil;
 
-  @Mock
+  @Inject
   private Configuration configuration;
 
   private HistoricalPolicyViolationTelemetryTask task;
 
   @Before
   public void setup() {
-    task = newTask(configuration);
-  }
-
-  private HistoricalPolicyViolationTelemetryTask newTask(final Configuration taskConfiguration) {
-    return new HistoricalPolicyViolationTelemetryTask(taskConfiguration, historicalPolicyViolationTelemetryService,
+    task = new HistoricalPolicyViolationTelemetryTask(configuration, historicalPolicyViolationTelemetryService,
         taskScheduler, tenantUtil, migrationTrackerDAO);
   }
 
@@ -101,30 +104,39 @@ public class HistoricalPolicyViolationTelemetryTaskTest
   }
 
   @Test
-  public void testExecute_AdminTask() throws Exception {
+  public void testExecute() throws Exception {
+    Map<String, List<String>> parameters = Map.of();
+    PrintWriter printWriter = new PrintWriter(System.out);
+
     when(tenantUtil.isSingleTenant()).thenReturn(true);
     when(historicalPolicyViolationTelemetryService.isTelemetryCollectionComplete()).thenReturn(false);
 
-    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
+    task.execute(parameters, printWriter);
 
     verify(taskScheduler).scheduleOneTimeTask(any());
   }
 
   @Test
-  public void testExecute_AdminTask_telemetryCollectionIsComplete() throws Exception {
+  public void testExecute_telemetryCollectionIsComplete() throws Exception {
+    Map<String, List<String>> parameters = Map.of();
+    PrintWriter printWriter = new PrintWriter(System.out);
+
     when(tenantUtil.isSingleTenant()).thenReturn(true);
     when(historicalPolicyViolationTelemetryService.isTelemetryCollectionComplete()).thenReturn(true);
 
-    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
+    task.execute(parameters, printWriter);
 
     verify(taskScheduler, never()).scheduleOneTimeTask(any());
   }
 
   @Test
-  public void testExecute_AdminTask_multiTenant() throws Exception {
+  public void testExecute_telemetryCollectionIsComplete_multiTenant() throws Exception {
+    Map<String, List<String>> parameters = Map.of();
+    PrintWriter printWriter = new PrintWriter(System.out);
+
     when(tenantUtil.isSingleTenant()).thenReturn(false);
 
-    task.execute(Map.of(), new PrintWriter(OutputStream.nullOutputStream()));
+    task.execute(parameters, printWriter);
 
     verify(taskScheduler).scheduleOneTimeTask(any());
   }
@@ -149,46 +161,65 @@ public class HistoricalPolicyViolationTelemetryTaskTest
 
   @Test
   public void testGetStartTime_nowFixed_plus15() {
-    LocalDateTime now = LocalDateTime.of(2025, 1, 20, 1, 13, 35);
-    LocalDateTime expectedStartTime = now.plusMinutes(15);
-    Configuration taskConfiguration = mock(Configuration.class);
-    when(taskConfiguration.getHistoricalPolicyViolationTelemetryHour()).thenReturn(null);
-    HistoricalPolicyViolationTelemetryTask taskUnderTest = newTask(taskConfiguration);
+    // Clock frozen at Mon Jan 20 2025 01:13:35 Z
+    final long nowMs = 1737335615000L;
+    final long taskStartUpDelayMinutes = 15L;
+    final Clock fixedClock = Clock.fixed(Instant.ofEpochMilli(nowMs), ZoneId.systemDefault());
+    ZonedDateTime expectedStartTime = fixedClock.instant()
+        .atZone(ZoneId.systemDefault())
+        .plusMinutes(taskStartUpDelayMinutes);
 
-    Date startTime = taskUnderTest.getStartTime(now);
+    Date startTime = task.getStartTime(fixedClock.instant().atZone(ZoneId.systemDefault()).toLocalDateTime());
 
-    assertThat(startTime).isEqualTo(Date.from(expectedStartTime.atZone(ZoneId.systemDefault()).toInstant()));
+    assertThat(startTime).isEqualTo(Date.from(expectedStartTime.toInstant()));
   }
 
   @Test
-  public void testGetStartTime_nowFixedBefore_HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR_3am() {
+  public void testGetStartTime_nowFixedBefore_HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR_3AM() {
+    // Clock frozen at Mon Jan 20 2025 01:13:35 Z
+    final long frozenNowMs = 1737335615000L;
+    final ZoneId zone = ZoneId.systemDefault();
+    final LocalDateTime now = Instant.ofEpochMilli(frozenNowMs).atZone(zone).toLocalDateTime();
     int startHour = 3;
-    LocalDateTime now = LocalDateTime.of(2025, 1, 20, 1, 13, 35);
-    LocalDateTime expectedStartTime = now.withHour(startHour).withMinute(0).withSecond(0).withNano(0);
-    Configuration taskConfiguration = mock(Configuration.class);
-    when(taskConfiguration.getHistoricalPolicyViolationTelemetryHour()).thenReturn(startHour);
-    HistoricalPolicyViolationTelemetryTask taskUnderTest = newTask(taskConfiguration);
 
-    Date startTime = taskUnderTest.getStartTime(now);
+    tempEntity.newSystemConfigurationProperty(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, String.valueOf(startHour));
+    configuration.configurationChanged(Sets.newHashSet(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
 
-    assertThat(startTime).isEqualTo(Date.from(expectedStartTime.atZone(ZoneId.systemDefault()).toInstant()));
+    Date startTime = task.getStartTime(now);
+
+    assertThat(startTime).isEqualTo(Date.from(nextScheduledStartFromHour(now, startHour, zone).toInstant()));
   }
 
   @Test
-  public void testGetStartTime_nowFixedAfter_HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR_3am() {
+  public void testGetStartTime_nowFixedAfter_HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR_3AM() {
+    // Clock frozen at Mon Jan 20 2025 14:13:35 Z
+    final long frozenNowMs = 1737382415000L;
+    final ZoneId zone = ZoneId.systemDefault();
+    final LocalDateTime now = Instant.ofEpochMilli(frozenNowMs).atZone(zone).toLocalDateTime();
     int startHour = 3;
-    LocalDateTime now = LocalDateTime.of(2025, 1, 20, 14, 13, 35);
-    LocalDateTime expectedStartTime = now.plusDays(1)
-        .withHour(startHour)
+
+    tempEntity.newSystemConfigurationProperty(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, String.valueOf(startHour));
+    configuration.configurationChanged(Sets.newHashSet(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR));
+
+    Date startTime = task.getStartTime(now);
+
+    assertThat(startTime).isEqualTo(Date.from(nextScheduledStartFromHour(now, startHour, zone).toInstant()));
+  }
+
+  /** Mirrors {@link HistoricalPolicyViolationTelemetryTask#getNextStartTimeFromHour}. */
+  private static ZonedDateTime nextScheduledStartFromHour(
+      final LocalDateTime now,
+      final int startHour,
+      final ZoneId zone)
+  {
+    ZonedDateTime zonedStartTime = now.withHour(startHour)
         .withMinute(0)
         .withSecond(0)
-        .withNano(0);
-    Configuration taskConfiguration = mock(Configuration.class);
-    when(taskConfiguration.getHistoricalPolicyViolationTelemetryHour()).thenReturn(startHour);
-    HistoricalPolicyViolationTelemetryTask taskUnderTest = newTask(taskConfiguration);
-
-    Date startTime = taskUnderTest.getStartTime(now);
-
-    assertThat(startTime).isEqualTo(Date.from(expectedStartTime.atZone(ZoneId.systemDefault()).toInstant()));
+        .withNano(0)
+        .atZone(zone);
+    if (!zonedStartTime.isAfter(now.atZone(zone))) {
+      zonedStartTime = zonedStartTime.plusDays(1);
+    }
+    return zonedStartTime;
   }
 }

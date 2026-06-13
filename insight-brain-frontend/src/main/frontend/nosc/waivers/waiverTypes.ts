@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/**
+ * Phase 1 / CLM-39545 (P1-F7d): Native Nexus One Waivers list & detail pages.
+ *
+ * These types model the `PolicyWaiverDTO` returned by two endpoints we use:
+ *
+ *   POST /rest/dashboard/policy/policyWaivers?includeAutoWaivers=true
+ *     Body: createDashboardDataRequestPayload({...filter, pageSize, page})
+ *     Response: { dashboardResults: PolicyWaiverDTO[]; hasNextPage: boolean }
+ *
+ *   GET  /api/v2/policyWaivers/{ownerType}/{ownerId}/{waiverId}
+ *     Response: PolicyWaiverDetailDTO (superset of the dashboard row).
+ *
+ * Field set was hard-ported from the Classic implementation:
+ *   - dashboard/results/waivers/DashboardWaiversTableRow.jsx (list shape)
+ *   - waivers/waiverDetails/WaiverDetails.jsx + util/waiverUtils.js
+ *     (detail shape; see formatWaiverDetails for the raw fields).
+ *
+ * We deliberately stay nominal about optional vs required: only `id`,
+ * `ownerId`, `ownerType`, `scope`, and `threatLevel` are guaranteed by
+ * the backend. Everything else (policyName, expiryTime, createTime,
+ * componentIdentifier, ...) can legitimately be missing on auto-waivers
+ * or pre-migration rows.
+ */
+
+/**
+ * Raw waiver row as returned in `dashboardResults` from
+ * /rest/dashboard/policy/policyWaivers.
+ */
+export interface PolicyWaiverDTO {
+  id: string;
+  threatLevel: number;
+  createTime?: string | number | null;
+  expiryTime?: string | number | null;
+  policyName?: string | null;
+  policyId?: string | null;
+  ownerId: string;
+  ownerName?: string | null;
+  ownerType: string;
+  scope: string;
+  componentMatchStrategy?: string | null;
+  componentUpgradeAvailable?: boolean | null;
+  isAutoWaiver?: boolean;
+  isExpireWhenRemediationAvailable?: boolean;
+  componentIdentifier?: ComponentIdentifier | null;
+  displayName?: { parts?: ReadonlyArray<{ value?: string }> } | string | null;
+  matcherStrategy?: string | null;
+}
+
+export interface ComponentIdentifier {
+  format?: string;
+  coordinates?: Record<string, string>;
+}
+
+export interface PolicyWaiverConditionFact {
+  reason?: string | null;
+}
+
+export interface PolicyWaiverConstraintFact {
+  constraintName?: string | null;
+  conditionFacts?: ReadonlyArray<PolicyWaiverConditionFact> | null;
+}
+
+/**
+ * Detailed waiver, returned by /api/v2/policyWaivers/{type}/{ownerId}/{id}.
+ * Adds reason text, comments, creator name, scope hierarchy details, and
+ * the constraint-conditions structure used to render "what was waived".
+ */
+export interface PolicyWaiverDetailDTO extends PolicyWaiverDTO {
+  comment?: string | null;
+  creatorName?: string | null;
+  reasonText?: string | null;
+  vulnerabilityId?: string | null;
+  associatedPackageUrl?: string | null;
+  scopeOwnerType?: string | null;
+  scopeOwnerName?: string | null;
+  forContainerImage?: boolean;
+  constraintFacts?: ReadonlyArray<PolicyWaiverConstraintFact> | null;
+}
+
+export type WaiversListResponse = {
+  dashboardResults: ReadonlyArray<PolicyWaiverDTO>;
+  hasNextPage: boolean;
+};

@@ -15,7 +15,7 @@
  *
  * Single source of truth — consumed by:
  *   - nosc/shell/LeftNav.jsx to render the nav entries
- *   - configuration/route.js to register the routes
+ *   - nexus-one/routes.tsx to register the routes
  *   - nosc/routing/classicPreviewMap.ts to round-trip the symmetric toggle
  *   - tests in src/test/frontend/nosc/comingSoon/
  *
@@ -38,7 +38,7 @@ export interface ComingSoonModule {
 }
 
 /**
- * Slug → module metadata. Slug becomes the URL segment under `/preview/`.
+ * Slug → module metadata. Slug becomes the URL segment under `/coming-soon/`.
  *
  * Ordering matches the desired LeftNav render order (after the native
  * modules — Home, Dashboard, Applications, Search, Settings).
@@ -155,18 +155,6 @@ export const COMING_SOON_MODULES = {
     description: 'Automate software compliance and reporting.',
     classicHref: '/assets/#/dashboard/violations',
   },
-  // Epic 10 placeholders — not in COMING_SOON_MODULE_ORDER (LeftNav has native
-  // Applications). Bound in nexus-one/routes.tsx until Epic 10 ships.
-  applications: {
-    label: 'Applications',
-    description: 'Browse, search, and drill into all applications scanned by IQ. Standalone entity browser separate from the Dashboard Applications tab.',
-    classicHref: '/assets/#/management/view/application',
-  },
-  waivers: {
-    label: 'Waivers',
-    description: 'Browse and manage all policy violation waivers across applications.',
-    classicHref: '/assets/#/dashboard/waivers',
-  },
 } as const;
 
 export type ComingSoonModuleSlug = keyof typeof COMING_SOON_MODULES;
@@ -195,4 +183,14 @@ export const COMING_SOON_MODULE_ORDER: readonly ComingSoonModuleSlug[] = [
 /** In-hash path for a Coming Soon stub in the nexus-one bundle. */
 export function comingSoonHref(slug: ComingSoonModuleSlug): string {
   return `/coming-soon/${slug}`;
+}
+
+/** UI-Router state name for a Coming Soon stub (single source of truth, shared
+ *  by route registration and any code navigating to a stub). */
+export function comingSoonStateName(slug: ComingSoonModuleSlug): string {
+  const pascal = slug
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+  return 'nexusOneComingSoon' + pascal;
 }

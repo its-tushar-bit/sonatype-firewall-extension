@@ -53,32 +53,39 @@ import PreviewDashboardApplicationsRow from 'MainRoot/nosc/dashboard/tabs/Previe
 
 const SKELETON_ROW_COUNT = 5;
 
+interface DashboardFilterLike {
+  loading?: boolean;
+  needsAcknowledgement?: boolean;
+}
+
+interface RootStateWithFilter {
+  dashboardFilter?: DashboardFilterLike;
+}
+
 export default function PreviewDashboardApplicationsTable(): JSX.Element {
   const dispatch = useDispatch();
   const apps = useSelector(selectPreviewApplications);
   const loading = useSelector(selectPreviewApplicationsLoading);
   const error = useSelector(selectPreviewApplicationsError);
-  // Re-fetching on every mount would race the Classic
-  // `LOAD_RESULTS_REQUESTED` reducer which clears `results` back to
-  // null, momentarily flashing the Skeleton over already-loaded
-  // rows (and re-fetching after an error or after an explicit empty
-  // result is already a user action, not a mount side effect).
-  // Dispatch only when the slice has not been populated yet — i.e.
-  // the loading-flag selector is true (results===null && error===null).
-  const shouldFetch = loading;
+  const filterLoading = useSelector(
+    (s: RootStateWithFilter): boolean => s.dashboardFilter?.loading ?? false,
+  );
+  const needsAcknowledgement = useSelector(
+    (s: RootStateWithFilter): boolean =>
+      s.dashboardFilter?.needsAcknowledgement ?? false,
+  );
 
   useEffect(() => {
-    if (shouldFetch) {
+    // Wait for the Classic dashboardFilter rail to finish loading. Firing
+    // pre-filter sends a malformed payload to /rest/dashboard/policy/
+    // applicationRisks and the backend returns 400 → "Failed to load".
+    // Filter-driven refetches go through the rail's own dispatch chain
+    // (LOAD_FILTER_REQUESTED → RESET_ALL_TABS → loadApplicationResults).
+    if (!filterLoading && !needsAcknowledgement && loading) {
       dispatch(loadApplicationResults());
     }
-    // Captured at mount only, intentionally: filter-driven refetches are
-    // handled by the filter rail's own dispatch chain
-    // (LOAD_FILTER_REQUESTED → RESET_ALL_TABS → loadApplicationResults).
-    // Re-running this effect when `shouldFetch` flips true post-mount
-    // would double-fire the thunk (once from filter middleware, once
-    // here) and stomp on in-flight results.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [dispatch, filterLoading, needsAcknowledgement]);
 
   return (
     <Box data-testid="nosc-dashboard-applications-table">

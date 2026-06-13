@@ -148,12 +148,14 @@ import usageReducer from '../usage/usageSlice';
 import hostedReposSlice from '../hostedRepos/hostedReposSlice';
 import repositoryComponentsSlice from '../hostedRepos/repositoryComponentsSlice';
 import previewDashboardNewestRisksReducer from '../nosc/dashboard/previewDashboardNewestRisksSlice';
+import applicationDetailReducer from '../nosc/applications/applicationDetailSlice';
 
 export default combineReducers({
   stages: stagesReducer,
   router: routerStateReducer,
   dashboard: dashboardReducer,
   previewDashboardNewestRisks: previewDashboardNewestRisksReducer,
+  applicationDetail: applicationDetailReducer,
   manageFilters: manageFiltersReducer,
   dashboardFilter: dashboardFilterReducer,
   sidebarNavList: sidebarNavListReducer,

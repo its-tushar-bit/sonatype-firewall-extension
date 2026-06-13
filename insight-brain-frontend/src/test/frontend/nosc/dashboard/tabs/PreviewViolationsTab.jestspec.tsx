@@ -10,6 +10,7 @@ import { axiosMockAdapter, render, setupPortalContainer } from 'TestRoot/SpecUti
 import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
 import { parseViolationsTabQuery } from 'MainRoot/nosc/dashboard/tabs/previewDashboardTabQuery';
 import PreviewWaiversTab from 'MainRoot/nosc/dashboard/tabs/PreviewWaiversTab';
+import { NexusOneRouterProvider } from 'TestRoot/nosc/renderNexusOneRoute';
 
 /**
  * S2-PR-D-3 (CLM-39992) tests for the Violations Preview tab.
@@ -23,7 +24,11 @@ import PreviewWaiversTab from 'MainRoot/nosc/dashboard/tabs/PreviewWaiversTab';
  */
 
 function renderWithTheme(ui: JSX.Element) {
-  return render(<Theme>{ui}</Theme>);
+  return render(
+    <NexusOneRouterProvider>
+      <Theme>{ui}</Theme>
+    </NexusOneRouterProvider>,
+  );
 }
 
 describe('PreviewViolationsTab (CLM-39992 / S2-PR-D-3)', () => {
@@ -174,9 +179,11 @@ describe('PreviewViolationsTab (CLM-39992 / S2-PR-D-3)', () => {
         </>,
       );
       expect(screen.getByTestId('violations-isolation-fallback')).toBeInTheDocument();
-      // The waivers tab's wrapper + slots are still in the DOM.
+      // The waivers tab's wrapper is still in the DOM. Per the post-D-3
+      // redesign, the waivers tab no longer wraps a Classic table-slot;
+      // it renders the native nosc WaiversTable, which mounts a loading
+      // skeleton while the in-flight axios request resolves.
       expect(screen.getByTestId('nosc-dashboard-waivers-tab')).toBeInTheDocument();
-      expect(screen.getByTestId('nosc-dashboard-waivers-table-slot')).toBeInTheDocument();
     });
   });
 });

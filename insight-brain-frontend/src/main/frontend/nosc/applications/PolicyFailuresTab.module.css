@@ -1,0 +1,22 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+/* Reset the native <fieldset> chrome so the grouped filters keep their flat
+ * sidebar look while gaining fieldset/legend semantics (CLM-39709 review #5). */
+.filterGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filterLegend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-12);
+}

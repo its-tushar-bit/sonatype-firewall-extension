@@ -9,6 +9,7 @@ import { screen } from '@testing-library/react';
 import { axiosMockAdapter, render, setupPortalContainer } from 'TestRoot/SpecUtil';
 import PreviewWaiversTab from 'MainRoot/nosc/dashboard/tabs/PreviewWaiversTab';
 import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolationsTab';
+import { NexusOneRouterProvider } from 'TestRoot/nosc/renderNexusOneRoute';
 
 /**
  * S2-PR-D-3 (CLM-39992) tests for the Waivers Preview tab.
@@ -22,7 +23,11 @@ import PreviewViolationsTab from 'MainRoot/nosc/dashboard/tabs/PreviewViolations
  */
 
 function renderWithTheme(ui: JSX.Element) {
-  return render(<Theme>{ui}</Theme>);
+  return render(
+    <NexusOneRouterProvider>
+      <Theme>{ui}</Theme>
+    </NexusOneRouterProvider>,
+  );
 }
 
 describe('PreviewWaiversTab (CLM-39992 / S2-PR-D-3)', () => {
@@ -44,25 +49,34 @@ describe('PreviewWaiversTab (CLM-39992 / S2-PR-D-3)', () => {
   });
 
   describe('rendering', () => {
-    it('renders the tab shell, filter-rail slot, and the wrapped table slot without crashing', () => {
+    it('renders the tab shell + native nosc WaiversTable without crashing', () => {
       renderWithTheme(<PreviewWaiversTab />);
       expect(screen.getByTestId('nosc-dashboard-waivers-tab')).toBeInTheDocument();
-      expect(screen.getByTestId('nosc-dashboard-waivers-filter-slot')).toBeInTheDocument();
-      expect(screen.getByTestId('nosc-dashboard-waivers-table-slot')).toBeInTheDocument();
+      // The native nosc WaiversTable mounts a loading skeleton while the
+      // axios request is in flight; the test-id is suffixed with -loading.
+      // Its presence proves the Classic-table → native-table swap landed.
+      expect(
+        screen.getByTestId('nosc-dashboard-waivers-table-loading'),
+      ).toBeInTheDocument();
+    });
+
+    it('does NOT render the Classic filter-rail (intentional UX choice — see component doc-comment)', () => {
+      renderWithTheme(<PreviewWaiversTab />);
+      // The Classic DashboardFilter is intentionally absent from this tab.
+      // The previous implementation mounted it next to the Classic
+      // DashboardWaiversTable; this implementation drops it because the
+      // native nosc WaiversTable reads from a different code path and
+      // the filter rail would be visible but non-functional.
+      expect(
+        screen.queryByTestId('nosc-dashboard-waivers-filter-slot'),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('URL query handling (no D-3 contract)', () => {
-    it('does NOT mutate the dashboardFilter slice on mount when the hash has a ?status query (no D-3 contract)', () => {
+    it('preserves ?status= in the hash on mount because the waivers tab has no URL filter contract', () => {
       window.history.replaceState(null, '', '#/dashboard/waivers?status=active');
-      const { store } = renderWithTheme(<PreviewWaiversTab />);
-      // Default selected.expirationDate is unchanged because Waivers
-      // does not (yet) honor a `?status=` URL contract.
-      const before = store.getState().dashboardFilter.selected.expirationDate;
-      expect(store.getState().dashboardFilter.selected.expirationDate).toEqual(before);
-      // Hash is unchanged — the tab does not strip queries it does not
-      // understand. (D-5 may add stripping if it adds a Waivers URL
-      // contract.)
+      renderWithTheme(<PreviewWaiversTab />);
       expect(window.location.hash).toBe('#/dashboard/waivers?status=active');
     });
   });

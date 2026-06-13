@@ -401,6 +401,13 @@ export function getApplicationReportsUrl(applicationId) {
   return uriTemplate`/api/v2/reports/applications/${applicationId}`;
 }
 
+// CLM-39709 / P1-F7c: raw scan-report payload for the Preview Application
+// Detail page to list scanned components, violations, and waivers without
+// dropping into Classic chrome.
+export function getApplicationReportRawUrl(publicId, scanId) {
+  return uriTemplate`/api/v2/applications/${publicId}/reports/${scanId}/raw`;
+}
+
 function getBaseReportUrl(applicationPublicId, scanId) {
   return uriTemplate`/rest/report/${applicationPublicId}/${scanId}`;
 }

@@ -64,7 +64,7 @@
       This is intentionally pinned to the Sonatype-published milestone build.
       https://github.com/sonatype/insight-brain/pull/10613/files#r1394208485
     -->
-    <clm.dto.model.version>2.1.31-01</clm.dto.model.version>
+    <clm.dto.model.version>2.1.33-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version -->
 
     <jetty.version>12.1.7</jetty.version>

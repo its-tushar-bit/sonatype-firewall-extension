@@ -89,6 +89,8 @@
             --add-opens=java.base/sun.security.util=ALL-UNNAMED
             --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
             --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=${project.build.directory}/
           </argLine>
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
@@ -353,6 +355,8 @@
                 --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
                 --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
                 -Duser.timezone=UTC
+                -XX:+HeapDumpOnOutOfMemoryError
+                -XX:HeapDumpPath=${project.build.directory}/
               </argLine>
             </configuration>
           </plugin>

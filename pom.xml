@@ -120,6 +120,8 @@
     <argLine>
       @${maven.multiModuleProjectDirectory}/jvm.options
       --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+      -XX:+HeapDumpOnOutOfMemoryError
+      -XX:HeapDumpPath=${project.build.directory}/
       ${jfr.args}
     </argLine>
     <jreleaser.version>1.23.0</jreleaser.version>

@@ -537,7 +537,7 @@ void captureResultsAndCleanup() {
   // Archive JaCoCo coverage data files for offline analysis
   archiveArtifacts(artifacts: '**/target/jacoco.exec, **/target/site/jacoco/jacoco.xml', allowEmptyArchive: true)
   // Archive heap dumps if OOM occurred
-  archiveArtifacts(artifacts: '**/target/heap-dumps/*.hprof', allowEmptyArchive: true)
+  archiveArtifacts(artifacts: '**/target/*.hprof', allowEmptyArchive: true)
   collectTestResults(['**/target/*-reports/*.xml'])
   // Stash JaCoCo coverage data (exec + XML) for collection after all parallel stages complete
   String stashName = "jacoco-${env.STAGE_NAME.replaceAll('[^a-zA-Z0-9]', '-')}"
@@ -549,7 +549,7 @@ void captureResultsAndCleanup() {
 void capturePlaywrightResultsAndCleanup() {
   archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: '**/target/heap-dumps/*.hprof', allowEmptyArchive: true)
+  archiveArtifacts(artifacts: '**/target/*.hprof', allowEmptyArchive: true)
   archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-screenshots/**',
                    allowEmptyArchive: true)
   archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-traces/**',

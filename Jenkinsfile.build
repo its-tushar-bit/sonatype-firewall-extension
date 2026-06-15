@@ -339,6 +339,6 @@ private void capturePlaywrightArtifacts() {
                    allowEmptyArchive: true)
   archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/playwright-diagnostics/**',
                    allowEmptyArchive: true)
-  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/heap-dumps/*.hprof',
+  archiveArtifacts(artifacts: 'insight-brain-playwright-test/target/*.hprof',
                    allowEmptyArchive: true)
 }

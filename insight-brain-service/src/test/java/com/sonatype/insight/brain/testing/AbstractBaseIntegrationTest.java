@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.relay.RelayClientDeferredCloseDisabler;
 import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.SearchIndexRule;
@@ -63,6 +64,8 @@ import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
+import com.sonatype.insight.brain.shutdown.TestShutdownTrigger;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -90,6 +93,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -116,6 +120,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -592,7 +597,25 @@ public abstract class AbstractBaseIntegrationTest
     @Bean
     @Primary
     public ShutdownHandler shutdownHandler() {
-      return mock(ShutdownHandler.class);
+      // Real handler (TestShutdownHandler overrides exit() to a no-op), not a mock, so shutdownTrigger() below can run
+      // the existing production ordered shutdown to tear down registered executors/threads when a reused-fork test
+      // context closes (CLM-40425). Without this the registered background threads outlive each closed context and
+      // accumulate across the reused fork until the heap is exhausted. The mtiq base also uses a real
+      // TestShutdownHandler, but does not yet add the shutdown-on-close trigger or the relay disabler below.
+      return new TestShutdownHandler();
+    }
+
+    @Bean
+    public DisposableBean shutdownTrigger(final ShutdownHandler shutdownHandler) {
+      // On context close, run the same ordered shutdown that production runs via ShutdownTask (minus System.exit).
+      return () -> TestShutdownTrigger.triggerForTest(shutdownHandler, Duration.ofSeconds(30));
+    }
+
+    @Bean
+    public RelayClientDeferredCloseDisabler relayClientDeferredCloseDisabler() {
+      // RelayClient's 15-minute deferred HTTP-client close runs on its own non-ShutdownHandler thread; disable it in
+      // tests so that thread does not outlive the closed context (CLM-40425).
+      return new RelayClientDeferredCloseDisabler();
     }
 
     @Bean

@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
@@ -1215,15 +1216,32 @@ public abstract class AbstractRepositoryService
       ConfigureRepositoriesRequest configureRepositoriesRequest,
       String clientUserAgent)
   {
+    configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest, clientUserAgent, null);
+  }
+
+  void configureRepositories(
+      String repositoryManagerInstanceId,
+      ConfigureRepositoriesRequest configureRepositoriesRequest,
+      String clientUserAgent,
+      String instanceName)
+  {
     AuditData.get().setRepositoryManagerInstanceId(repositoryManagerInstanceId);
 
     checkLicenseFeature();
+
+    if (instanceName != null && instanceName.trim().length() > NameHelper.MAX_NAME_LENGTH_APP_ORG) {
+      throw new BadRequestException(
+          "Repository manager name must not exceed " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters.");
+    }
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(repositoryManagerInstanceId);
     if (repositoryManager == null) {
       checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
 
       repositoryManager = new RepositoryManager(repositoryManagerInstanceId);
+      if (instanceName != null) {
+        repositoryManager.setName(StringUtils.trimToNull(instanceName));
+      }
       repositoryManagerDAO.insert(repositoryManager);
     }
     else {
@@ -1246,6 +1264,16 @@ public abstract class AbstractRepositoryService
     if (!Objects.equals(repositoryManager.getBaseUrl(), configureRepositoriesRequest.baseUrl)) {
       repositoryManager.setBaseUrl(configureRepositoriesRequest.baseUrl);
       repositoryManagerUpdated = true;
+    }
+
+    // For a new RM the name was already set before insert(); getRawName() equals newName so no update is triggered.
+    // For an existing RM this propagates a changed instanceName from the request.
+    if (instanceName != null) {
+      String newName = StringUtils.trimToNull(instanceName);
+      if (!Objects.equals(newName, repositoryManager.getRawName())) {
+        repositoryManager.setName(newName);
+        repositoryManagerUpdated = true;
+      }
     }
 
     if (!repositoryManager.isConfigured()) {
@@ -1293,7 +1321,7 @@ public abstract class AbstractRepositoryService
           repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
           repository.setMonitoringEnabled(repositoryDTO.monitoringEnabled);
 
-          if (updateLastManualConfigureTime) {
+          if (updateLastManualConfigureTime || repositoryDTO.monitoringEnabled) {
             repository.setLastManualConfigureTime(new Date());
           }
 
@@ -1341,14 +1369,15 @@ public abstract class AbstractRepositoryService
             repository.setNamespaceConfusionProtectionEnabled(repositoryDTO.namespaceConfusionProtectionEnabled);
             updated = true;
           }
-          if (repositoryDTO.monitoringEnabled != repository.isMonitoringEnabled()) {
+          boolean monitoringChanged = repositoryDTO.monitoringEnabled != repository.isMonitoringEnabled();
+          if (monitoringChanged) {
             repository.setMonitoringEnabled(repositoryDTO.monitoringEnabled);
             updated = true;
           }
 
           if (updated) {
             try {
-              if (updateLastManualConfigureTime) {
+              if (updateLastManualConfigureTime || monitoringChanged) {
                 repository.setLastManualConfigureTime(new Date());
               }
               repositoryDAO.update(repository);

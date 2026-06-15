@@ -115,6 +115,23 @@ describe('hostedReposList slice', () => {
       expect(newState.totalCount).toBe(1);
       expect(newState.managerInstanceId).toBe('nxrm-1');
       expect(newState.managerBaseUrl).toBe('https://nxrm.example.com');
+      expect(newState.managerName).toBeNull();
+    });
+
+    it('sets managerName when manager payload includes a name', () => {
+      const state = { ...initialState, loading: true };
+      const payload = {
+        repositories: [],
+        totalCount: 0,
+        manager: { instanceId: 'nxrm-1', baseUrl: 'https://nxrm.example.com', name: 'My Local NXRM' },
+      };
+
+      const newState = reducer(state, {
+        type: 'hostedReposList/loadRepositories/fulfilled',
+        payload,
+      });
+
+      expect(newState.managerName).toBe('My Local NXRM');
     });
 
     it('defaults repositories to empty array when payload repositories is falsy', () => {

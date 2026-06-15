@@ -14,3 +14,7 @@ export const selectRepositoryManagers = createSelector(selectHostedReposSlice, p
 export const selectLoading = createSelector(selectHostedReposSlice, prop('loading'));
 
 export const selectError = createSelector(selectHostedReposSlice, prop('error'));
+
+export const selectRenaming = createSelector(selectHostedReposSlice, prop('renaming'));
+
+export const selectRenameError = createSelector(selectHostedReposSlice, prop('renameError'));

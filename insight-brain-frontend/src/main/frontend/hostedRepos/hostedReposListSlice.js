@@ -28,6 +28,7 @@ export const initialState = {
   availableFormatsLoading: false,
   managerInstanceId: null,
   managerBaseUrl: null,
+  managerName: null,
 };
 
 const getNextDir = (currentDir) => (currentDir === 'asc' ? 'desc' : 'asc');
@@ -62,6 +63,12 @@ const setSearchText = (state, { payload }) => {
   state.searchText = payload;
 };
 
+const setManagerInfo = (state, { payload }) => {
+  state.managerInstanceId = payload.instanceId;
+  state.managerBaseUrl = payload.baseUrl ?? null;
+  state.managerName = payload.name ?? null;
+};
+
 const loadRepositoriesRequested = (state) => {
   state.loading = true;
   state.loadError = null;
@@ -76,6 +83,7 @@ const loadRepositoriesFulfilled = (state, { payload }) => {
   if (manager) {
     state.managerInstanceId = manager.instanceId;
     state.managerBaseUrl = manager.baseUrl;
+    state.managerName = manager.name ?? null;
   }
 };
 
@@ -134,6 +142,7 @@ const hostedReposListSlice = createSlice({
     sortRepositories,
     setRepositoryFormatsFilter,
     setSearchText,
+    setManagerInfo,
   },
   extraReducers: (builder) => {
     builder

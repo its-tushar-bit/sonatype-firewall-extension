@@ -19,15 +19,17 @@ export const selectRepositoryFormatsFilter = createSelector(
 
 export const selectManagerInstanceId = createSelector(selectHostedRepositoriesListSlice, prop('managerInstanceId'));
 export const selectManagerBaseUrl = createSelector(selectHostedRepositoriesListSlice, prop('managerBaseUrl'));
+export const selectManagerName = createSelector(selectHostedRepositoriesListSlice, prop('managerName'));
 
 export const selectRepositoryManager = createSelector(
   selectManagerInstanceId,
   selectManagerBaseUrl,
-  (instanceId, baseUrl) => {
+  selectManagerName,
+  (instanceId, baseUrl, name) => {
     if (!instanceId) {
       return null;
     }
-    return { instanceId, baseUrl: baseUrl || null };
+    return { instanceId, baseUrl: baseUrl || null, name: name || null };
   }
 );
 

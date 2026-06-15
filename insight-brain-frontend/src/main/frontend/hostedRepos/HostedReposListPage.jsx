@@ -135,7 +135,10 @@ function HostedRepositoriesListPage() {
   };
 
   const breadcrumbs = repositoryManager?.instanceId
-    ? [{ name: 'Repository Managers', href: uiRouterState.href('hostedRepos') }, { name: repositoryManager.instanceId }]
+    ? [
+        { name: 'Repository Managers', href: uiRouterState.href('hostedRepos') },
+        { name: repositoryManager.name || repositoryManager.instanceId },
+      ]
     : [];
 
   if (!isFeatureEnabled) {
@@ -148,7 +151,7 @@ function HostedRepositoriesListPage() {
 
       <NxPageTitle>
         <NxH1 className="iq-hosted-repos-list-page__title">
-          {repositoryManager?.instanceId || 'Repository Manager'}
+          {repositoryManager?.name || repositoryManager?.instanceId || 'Repository Manager'}
         </NxH1>
         {repositoryManager?.baseUrl && <NxPageTitle.Description>{repositoryManager.baseUrl}</NxPageTitle.Description>}
       </NxPageTitle>

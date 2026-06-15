@@ -5,6 +5,10 @@
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
+.iq-hosted-repos-edit-modal {
+  text-align: left;
+}
+
 .iq-hosted-repos {
   padding: var(--nx-spacing-4x);
 

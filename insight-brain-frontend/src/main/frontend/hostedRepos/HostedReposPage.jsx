@@ -4,25 +4,43 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxLoadWrapper,
   NxPageTitle,
   NxH1,
+  NxH2,
   NxH4,
   NxP,
   NxTextLink,
   NxTile,
   NxButton,
   NxFontAwesomeIcon,
+  NxStatefulIconDropdown,
+  NxModal,
+  NxFormGroup,
+  NxTextInput,
+  NxStatefulForm,
+  NxErrorAlert,
+  nxTextInputStateHelpers,
 } from '@sonatype/react-shared-components';
 import { faEllipsisVertical, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { faDatabase } from '@fortawesome/pro-regular-svg-icons';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from './hostedReposSlice';
-import { selectRepositoryManagers, selectLoading, selectError } from './hostedReposSelectors';
+import { actions as hostedReposListActions } from './hostedReposListSlice';
+import {
+  selectRepositoryManagers,
+  selectLoading,
+  selectError,
+  selectRenaming,
+  selectRenameError,
+} from './hostedReposSelectors';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+
+const NXRM_IQ_CONNECTED_PATH = '#admin/iq/connected';
 
 function getActivityIndicator(lastActivityTime) {
   if (lastActivityTime == null) {
@@ -46,6 +64,116 @@ function getActivityIndicator(lastActivityTime) {
     className: isStale ? 'iq-hosted-repos__status--stale' : 'iq-hosted-repos__status--active',
   };
 }
+
+function EditNameModal({ rm, onClose }) {
+  const dispatch = useDispatch();
+  const renaming = useSelector(selectRenaming);
+  const renameError = useSelector(selectRenameError);
+  const [nameState, setNameState] = useState(() => nxTextInputStateHelpers.initialState(rm.name || ''));
+
+  useEffect(() => {
+    dispatch(actions.clearRenameError());
+  }, [dispatch]);
+
+  const validateName = (value) => {
+    if (!value.trim()) return 'Name is required';
+    if (value.length > 200) return 'Name must be 200 characters or less';
+    return null;
+  };
+
+  const handleNameChange = (value) => {
+    setNameState(nxTextInputStateHelpers.userInput(validateName, value));
+  };
+
+  const handleSave = async () => {
+    const trimmed = nameState.value.trim();
+    const result = await dispatch(
+      actions.renameRepositoryManager({ id: rm.id, instanceId: rm.instanceId, newName: trimmed })
+    );
+    if (result.type.endsWith('/fulfilled')) {
+      onClose();
+    }
+  };
+
+  return (
+    <NxModal
+      variant="narrow"
+      className="iq-hosted-repos-edit-modal"
+      onCancel={onClose}
+      aria-labelledby="edit-name-modal-title"
+    >
+      <NxStatefulForm
+        onSubmit={handleSave}
+        submitBtnText="Update"
+        submitMaskState={renaming ? false : null}
+        validationErrors={nameState.validationErrors}
+        additionalFooterBtns={
+          <NxButton variant="tertiary" type="button" onClick={onClose}>
+            Cancel
+          </NxButton>
+        }
+      >
+        <NxModal.Header id="edit-name-modal-title">
+          <NxH2>Edit Repository Manager</NxH2>
+        </NxModal.Header>
+        <NxModal.Content>
+          {renameError && <NxErrorAlert>{renameError}</NxErrorAlert>}
+          <NxFormGroup label="Repository Manager Name" isRequired>
+            <NxTextInput {...nameState} onChange={handleNameChange} disabled={renaming} />
+          </NxFormGroup>
+        </NxModal.Content>
+      </NxStatefulForm>
+    </NxModal>
+  );
+}
+
+EditNameModal.propTypes = {
+  rm: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    instanceId: PropTypes.string.isRequired,
+    name: PropTypes.string,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+function RepoManagerCardActions({ rm }) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const openEditModal = (e) => {
+    e.stopPropagation();
+    setIsEditModalOpen(true);
+  };
+
+  const handleGoToConfiguration = (e) => {
+    e.stopPropagation();
+    if (rm.baseUrl) {
+      window.open(`${rm.baseUrl}/${NXRM_IQ_CONNECTED_PATH}`, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <>
+      <NxStatefulIconDropdown className="iq-hosted-repos__card-dropdown" icon={faEllipsisVertical} title="More options">
+        <button className="nx-dropdown-button" onClick={openEditModal}>
+          Edit Name
+        </button>
+        <button className="nx-dropdown-button" onClick={handleGoToConfiguration}>
+          Go to Configuration
+        </button>
+      </NxStatefulIconDropdown>
+      {isEditModalOpen && <EditNameModal rm={rm} onClose={() => setIsEditModalOpen(false)} />}
+    </>
+  );
+}
+
+RepoManagerCardActions.propTypes = {
+  rm: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    instanceId: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    baseUrl: PropTypes.string,
+  }).isRequired,
+};
 
 export default function HostedReposPage() {
   const dispatch = useDispatch();
@@ -80,6 +208,7 @@ export default function HostedReposPage() {
   };
 
   const handleCardClick = (rm) => {
+    dispatch(hostedReposListActions.setManagerInfo({ instanceId: rm.instanceId, baseUrl: rm.baseUrl, name: rm.name }));
     dispatch(stateGo('hostedRepositories', { repositoryManagerId: rm.instanceId }));
   };
 
@@ -105,15 +234,13 @@ export default function HostedReposPage() {
                   <div className="iq-hosted-repos__card-header">
                     <NxFontAwesomeIcon icon={faDatabase} className="iq-hosted-repos__card-icon" />
                     <div className="iq-hosted-repos__card-header-text">
-                      <span className="iq-hosted-repos__card-title">{rm.instanceId}</span>
+                      <span className="iq-hosted-repos__card-title">{rm.name || rm.instanceId}</span>
                       {rm.baseUrl && <span className="iq-hosted-repos__card-url">{rm.baseUrl}</span>}
                     </div>
                   </div>
                 </NxTile.HeaderTitle>
                 <NxTile.HeaderActions className="iq-hosted-repos__card-actions">
-                  <NxButton variant="icon-only" title="More options">
-                    <NxFontAwesomeIcon icon={faEllipsisVertical} />
-                  </NxButton>
+                  <RepoManagerCardActions rm={rm} />
                 </NxTile.HeaderActions>
               </NxTile.Header>
               <NxTile.Content>

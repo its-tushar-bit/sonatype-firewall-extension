@@ -17,6 +17,8 @@ public class HostedRepositoryListDTO
 
   public static class ManagerInfo
   {
+    public String name;
+
     public String instanceId;
 
     public String baseUrl;

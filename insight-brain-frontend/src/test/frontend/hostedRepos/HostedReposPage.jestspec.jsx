@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { act } from 'react';
 import { screen, waitFor } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
@@ -31,14 +31,18 @@ describe('HostedReposPage', () => {
 
   const mockRepositoryManagers = [
     {
+      id: 'rm-db-id-1',
       instanceId: 'nxrm-prod',
+      name: null,
       baseUrl: 'http://nxrm-prod:8081',
       hostedRepositoryCount: 5,
       connectionStatus: 'CONNECTED',
       lastActivityTime: recentActivityTime,
     },
     {
+      id: 'rm-db-id-2',
       instanceId: 'nxrm-dev',
+      name: null,
       baseUrl: 'http://nxrm-dev:8081',
       hostedRepositoryCount: 0,
       connectionStatus: 'DISCONNECTED',
@@ -160,6 +164,41 @@ describe('HostedReposPage', () => {
     });
   });
 
+  it('should display friendly name as card title when name is set', async () => {
+    const namedManager = { ...mockRepositoryManagers[0], name: 'My Local NXRM' };
+    axiosMock.reset();
+    axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
+      repositoryManagers: [namedManager],
+    });
+    const namedState = {
+      ...defaultPreloadedState,
+      hostedRepos: { ...defaultPreloadedState.hostedRepos, repositoryManagers: [namedManager] },
+    };
+
+    renderComponent(namedState);
+
+    await waitFor(() => {
+      expect(screen.getByText('My Local NXRM')).toBeInTheDocument();
+      expect(screen.queryByText('nxrm-prod')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should fall back to instanceId as card title when name is not set', async () => {
+    const connectedState = {
+      ...defaultPreloadedState,
+      hostedRepos: {
+        ...defaultPreloadedState.hostedRepos,
+        repositoryManagers: [mockRepositoryManagers[0]],
+      },
+    };
+
+    renderComponent(connectedState);
+
+    await waitFor(() => {
+      expect(screen.getByText('nxrm-prod')).toBeInTheDocument();
+    });
+  });
+
   it('should render repository manager card with recent activity', async () => {
     const connectedState = {
       ...defaultPreloadedState,
@@ -265,7 +304,7 @@ describe('HostedReposPage', () => {
       },
     };
 
-    renderComponent(connectedState);
+    const { store } = renderComponent(connectedState);
 
     // Wait for component's useEffect fetch to complete
     await waitFor(() => {
@@ -282,6 +321,12 @@ describe('HostedReposPage', () => {
 
     expect(stateGoSpy).toHaveBeenCalledWith('hostedRepositories', { repositoryManagerId: 'nxrm-prod' });
     stateGoSpy.mockRestore();
+
+    // Manager info should be pre-populated in hostedReposList so the breadcrumb renders immediately
+    const { hostedReposList } = store.getState();
+    expect(hostedReposList.managerInstanceId).toBe('nxrm-prod');
+    expect(hostedReposList.managerBaseUrl).toBe('http://nxrm-prod:8081');
+    expect(hostedReposList.managerName).toBeNull();
   });
 
   it('should display base URL for both connected and disconnected states', async () => {
@@ -333,6 +378,127 @@ describe('HostedReposPage', () => {
     await waitFor(() => {
       expect(screen.getByText('nxrm-no-url')).toBeInTheDocument();
       expect(screen.queryByText(/http/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('EditNameModal', () => {
+    const managerWithName = {
+      id: 'rm-db-id-1',
+      instanceId: 'nxrm-prod',
+      name: 'Production NXRM',
+      baseUrl: 'http://nxrm-prod:8081',
+      hostedRepositoryCount: 5,
+      connectionStatus: 'CONNECTED',
+      lastActivityTime: recentActivityTime,
+    };
+
+    const stateWithManager = (manager) => ({
+      ...defaultPreloadedState,
+      hostedRepos: {
+        ...defaultPreloadedState.hostedRepos,
+        repositoryManagers: [manager],
+      },
+    });
+
+    const renderWithManager = () => {
+      axiosMock.reset();
+      axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
+        repositoryManagers: [managerWithName],
+      });
+      return renderComponent(stateWithManager(managerWithName));
+    };
+
+    const openEditModal = async (user, container) => {
+      await waitFor(() => expect(screen.getByText('Production NXRM')).toBeInTheDocument());
+      const dropdownToggle = container.querySelector('.nx-icon-dropdown__toggle');
+      await user.click(dropdownToggle);
+      await user.click(screen.getByRole('button', { name: /Edit Name/i }));
+    };
+
+    it('should open edit modal when Edit Name is clicked', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+
+      await openEditModal(user, container);
+
+      expect(screen.getByRole('heading', { name: /Edit Repository Manager/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/Repository Manager Name/i)).toBeInTheDocument();
+    });
+
+    it('should pre-fill input with current name', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+
+      await openEditModal(user, container);
+
+      expect(screen.getByLabelText(/Repository Manager Name/i)).toHaveValue('Production NXRM');
+    });
+
+    it('should close modal when Cancel is clicked', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+
+      await openEditModal(user, container);
+      await user.click(screen.getByRole('button', { name: /Cancel/i }));
+
+      expect(screen.queryByRole('heading', { name: /Edit Repository Manager/i })).not.toBeInTheDocument();
+    });
+
+    it('should rename successfully, close modal and update card title', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+      axiosMock.onPut().reply(200);
+
+      await openEditModal(user, container);
+
+      const input = screen.getByLabelText(/Repository Manager Name/i);
+      await user.clear(input);
+      await user.type(input, 'New Name');
+      await user.click(screen.getByRole('button', { name: /Update/i }));
+
+      await waitFor(() => {
+        expect(axiosMock.history.put.length).toBe(1);
+      });
+
+      await act(async () => {});
+
+      expect(screen.queryByRole('heading', { name: /Edit Repository Manager/i })).not.toBeInTheDocument();
+      expect(screen.getByText('New Name')).toBeInTheDocument();
+    });
+
+    it('should show error message when rename fails', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+      axiosMock.onPut().reply(500, { message: 'Name already in use' });
+
+      await openEditModal(user, container);
+
+      const input = screen.getByLabelText(/Repository Manager Name/i);
+      await user.clear(input);
+      await user.type(input, 'Duplicate Name');
+      await user.click(screen.getByRole('button', { name: /Update/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /Edit Repository Manager/i })).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+    });
+
+    it('should show validation error and not submit when input is blank', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager();
+
+      await openEditModal(user, container);
+
+      const input = screen.getByLabelText(/Repository Manager Name/i);
+      await user.clear(input);
+      await user.click(screen.getByRole('button', { name: /Update/i }));
+
+      await waitFor(() => {
+        expect(axiosMock.history.put.length).toBe(0);
+        expect(screen.getByRole('heading', { name: /Edit Repository Manager/i })).toBeInTheDocument();
+        expect(screen.getByRole('alert', { name: /form validation errors/i })).toBeInTheDocument();
+      });
     });
   });
 

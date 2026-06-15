@@ -257,8 +257,9 @@ public class ArtifactoryRepositoryResource
       ConfigureRepositoriesRequest configureRepositoriesRequest,
       @Context HttpServletRequest request)
   {
+    String instanceName = request.getHeader(RepositoryResource.INSTANCE_NAME_HEADER);
     repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest,
-        HdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request), instanceName);
   }
 
   /**

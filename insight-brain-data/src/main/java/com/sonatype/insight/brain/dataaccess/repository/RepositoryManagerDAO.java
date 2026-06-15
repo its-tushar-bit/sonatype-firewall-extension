@@ -91,7 +91,16 @@ public class RepositoryManagerDAO
     // So we need to accept any instance ID as name, and only validate the name if it is set to something different from
     // the instance ID.
     if (!Objects.equals(repositoryManager.getInstanceId(), repositoryManager.getName())) {
-      NameHelper.validate("Name", repositoryManager.getName(), NameHelper.MAX_NAME_LENGTH_APP_ORG);
+      // The display name is a user-facing friendly label — only enforce non-blank and length;
+      // character-set restrictions (NameHelper.validate) are intentionally skipped here so that
+      // names like "My NXRM (Production)" or "Dev & QA" are accepted.
+      String name = repositoryManager.getName();
+      if (name.trim().isEmpty()) {
+        throw new InvalidNameException("Name is required.");
+      }
+      if (name.length() > NameHelper.MAX_NAME_LENGTH_APP_ORG) {
+        throw new InvalidNameException("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
+      }
     }
   }
 
@@ -153,9 +162,9 @@ public class RepositoryManagerDAO
           + repositoryManager.getInstanceId() + ".");
     }
 
-    if (repositoryManager.getName() != null) {
+    if (repositoryManager.getRawName() != null) {
       RepositoryManager foundByNameRepositoryManager = getByName(tx,
-          repositoryManager.getName());
+          repositoryManager.getRawName());
       if (foundByNameRepositoryManager != null && !repositoryManager.getId()
           .equals(foundByNameRepositoryManager.getId()))
       {

@@ -273,6 +273,7 @@ public class RepositoryService
     }
 
     HostedRepositoryListDTO.ManagerInfo managerInfo = new HostedRepositoryListDTO.ManagerInfo();
+    managerInfo.name = repositoryManager.getRawName();
     managerInfo.instanceId = repositoryManager.getInstanceId();
     managerInfo.baseUrl = repositoryManager.getBaseUrl();
 

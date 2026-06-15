@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
@@ -3458,6 +3459,187 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryManager.getProductName()).isEqualTo(configureRepositoriesRequest.repositoryManagerProductName);
     assertThat(repositoryManager.getProductVersion())
         .isEqualTo(configureRepositoriesRequest.repositoryManagerProductVersion);
+  }
+
+  @Test
+  public void testConfigureRepositories_WithInstanceName_PersistsNameOnNewRepositoryManager() {
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+
+    getRepositoryService().configureRepositories(MANUAL_REPO_MAN_INSTANCE_ID, configureRepositoriesRequest,
+        getUserAgent(), "My NXRM Instance");
+
+    RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
+    assertThat(repositoryManager.getRawName()).isEqualTo("My NXRM Instance");
+  }
+
+  @Test
+  public void testConfigureRepositories_WithInstanceName_UpdatesNameOnExistingRepositoryManager() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent(), "Updated Name");
+
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(repositoryManager.getRawName()).isEqualTo("Updated Name");
+  }
+
+  @Test
+  public void testConfigureRepositories_WithBlankInstanceName_ClearsName() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setName("Original Name");
+    repositoryManagerDAO.update(repositoryManager);
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent(), "   ");
+
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(repositoryManager.getRawName()).isNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_WithEmptyInstanceName_ClearsName() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setName("Original Name");
+    repositoryManagerDAO.update(repositoryManager);
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent(), "");
+
+    repositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(repositoryManager.getRawName()).isNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_WithInstanceNameTooLong_ThrowsBadRequest() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String tooLongName = "a".repeat(201);
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().configureRepositories(repositoryManager.getInstanceId(),
+            configureRepositoriesRequest,
+            getUserAgent(), tooLongName))
+        .withMessage("Repository manager name must not exceed 200 characters.");
+  }
+
+  @Test
+  public void testConfigureRepositories_WithDuplicateInstanceName_ThrowsInvalidNameException() {
+    RepositoryManager rm1 = tempEntity.newRepositoryManager();
+    rm1.setName("Shared Name");
+    repositoryManagerDAO.update(rm1);
+
+    RepositoryManager rm2 = tempEntity.newRepositoryManager();
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(
+            () -> getRepositoryService().configureRepositories(rm2.getInstanceId(), configureRepositoriesRequest,
+                getUserAgent(), "Shared Name"))
+        .withMessageContaining("already used as a name");
+  }
+
+  @Test
+  public void testConfigureRepositories_WithDuplicateInstanceName_NewManager_ThrowsInvalidNameException() {
+    RepositoryManager rm1 = tempEntity.newRepositoryManager();
+    rm1.setName("Shared Name");
+    repositoryManagerDAO.update(rm1);
+
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.emptyList());
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(
+            () -> getRepositoryService().configureRepositories("brand-new-instance-id", configureRepositoriesRequest,
+                getUserAgent(), "Shared Name"))
+        .withMessageContaining("already used as a name");
+  }
+
+  @Test
+  public void testConfigureRepositories_NewRepo_WithMonitoringEnabled_SetsLastManualConfigureTime() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "monitored-repo";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.hosted;
+    repositoryDTO.monitoringEnabled = true;
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
+
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getLastManualConfigureTime()).isNotNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_NewRepo_WithMonitoringDisabled_DoesNotSetLastManualConfigureTime() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = "unmonitored-repo";
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.hosted;
+    repositoryDTO.monitoringEnabled = false;
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
+
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+
+    List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getLastManualConfigureTime()).isNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepo_MonitoringChanged_SetsLastManualConfigureTime() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository existing = tempEntity.newRepository(repositoryManager, "monitored-repo");
+    assertThat(existing.getLastManualConfigureTime()).isNull();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = existing.getName();
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.monitoringEnabled = true;
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
+
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+
+    Repository updated = repositoryDAO.getById(existing.getId());
+    assertThat(updated.getLastManualConfigureTime()).isNotNull();
+  }
+
+  @Test
+  public void testConfigureRepositories_ExistingRepo_NoMonitoringChange_DoesNotSetLastManualConfigureTime() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository existing = tempEntity.newRepository(repositoryManager, "unmonitored-repo");
+    assertThat(existing.getLastManualConfigureTime()).isNull();
+
+    RepositoryDTO repositoryDTO = new RepositoryDTO();
+    repositoryDTO.name = existing.getName();
+    repositoryDTO.format = "npm";
+    repositoryDTO.type = RepositoryType.proxy;
+    repositoryDTO.monitoringEnabled = false;
+    ConfigureRepositoriesRequest configureRepositoriesRequest =
+        createConfigureRepositoriesRequest(Collections.singletonList(repositoryDTO));
+
+    getRepositoryService().configureRepositories(repositoryManager.getInstanceId(), configureRepositoriesRequest,
+        getUserAgent());
+
+    Repository updated = repositoryDAO.getById(existing.getId());
+    assertThat(updated.getLastManualConfigureTime()).isNull();
   }
 
   @Test

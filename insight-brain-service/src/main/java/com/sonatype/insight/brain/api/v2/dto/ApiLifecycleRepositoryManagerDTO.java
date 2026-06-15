@@ -23,6 +23,12 @@ public class ApiLifecycleRepositoryManagerDTO
     DISCONNECTED
   }
 
+  /** Internal database ID for this repository manager */
+  public String id;
+
+  /** Display name for this repository manager instance */
+  public String name;
+
   /** NXRM deployment instance ID */
   public String instanceId;
 

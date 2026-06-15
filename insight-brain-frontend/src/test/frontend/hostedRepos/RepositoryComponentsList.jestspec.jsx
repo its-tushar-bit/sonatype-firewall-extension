@@ -298,4 +298,38 @@ describe('RepositoryComponentsList', () => {
     expect(mockRouterState.href).toHaveBeenCalledWith('hostedRepos');
     expect(mockRouterState.href).toHaveBeenCalledWith('hostedRepositories', { repositoryManagerId: 'local-nexus' });
   });
+
+  it('shows friendly name in breadcrumb when managerName is loaded in hostedReposList state', async () => {
+    const stateWithManagerName = {
+      ...defaultPreloadedState,
+      hostedReposList: {
+        managerInstanceId: 'local-nexus',
+        managerBaseUrl: 'http://localhost:8081',
+        managerName: 'My Local NXRM',
+      },
+    };
+
+    renderComponent(stateWithManagerName);
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'maven-hosted' })).toBeInTheDocument());
+
+    expect(screen.getByText('My Local NXRM')).toBeInTheDocument();
+  });
+
+  it('falls back to repositoryManagerId in breadcrumb when managerName is null', async () => {
+    const stateWithoutManagerName = {
+      ...defaultPreloadedState,
+      hostedReposList: {
+        managerInstanceId: 'local-nexus',
+        managerBaseUrl: null,
+        managerName: null,
+      },
+    };
+
+    renderComponent(stateWithoutManagerName);
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'maven-hosted' })).toBeInTheDocument());
+
+    expect(screen.getByText('local-nexus')).toBeInTheDocument();
+  });
 });

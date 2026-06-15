@@ -329,9 +329,11 @@ public class ArtifactoryRepositoryServiceWrapper
   void configureRepositories(
       String repositoryManagerInstanceId,
       ConfigureRepositoriesRequest configureRepositoriesRequest,
-      String clientUserAgent)
+      String clientUserAgent,
+      String instanceName)
   {
-    repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest, clientUserAgent);
+    repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest, clientUserAgent,
+        instanceName);
   }
 
   void removeRepository(String repositoryManagerInstanceId, String repositoryPublicId) {

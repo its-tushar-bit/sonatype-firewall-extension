@@ -33,6 +33,7 @@ import {
   selectError,
   selectHasQueuedScans,
 } from './repositoryComponentsSelectors';
+import { selectRepositoryManager } from './hostedReposListSelectors';
 import { loadComponents, setFilter, reset } from './repositoryComponentsSlice';
 
 export default function RepositoryComponentsList() {
@@ -48,6 +49,7 @@ export default function RepositoryComponentsList() {
   const error = useSelector(selectError);
   const hasQueuedScans = useSelector(selectHasQueuedScans);
 
+  const repositoryManager = useSelector(selectRepositoryManager);
   const { repositoryId, repositoryManagerId, repositoryPublicId } = params;
   const [inputValue, setInputValue] = useState('');
   const debounceTimer = useRef(null);
@@ -84,7 +86,10 @@ export default function RepositoryComponentsList() {
 
   const breadcrumbs = [
     { name: 'Repository Managers', href: uiRouterState.href('hostedRepos') },
-    { name: repositoryManagerId, href: uiRouterState.href('hostedRepositories', { repositoryManagerId }) },
+    {
+      name: repositoryManager?.name || repositoryManagerId,
+      href: uiRouterState.href('hostedRepositories', { repositoryManagerId }),
+    },
     { name: repositoryPublicId || repositoryId, href: '' },
   ];
 

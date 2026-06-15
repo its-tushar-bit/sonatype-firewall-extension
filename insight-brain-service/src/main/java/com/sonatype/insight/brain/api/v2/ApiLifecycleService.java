@@ -65,14 +65,16 @@ public class ApiLifecycleService
         .filter(r -> r.getRepositoryManagerId() != null)
         .collect(Collectors.groupingBy(Repository::getRepositoryManagerId, Collectors.counting()));
 
-    // Group all monitored hosted repos by RM ID for last-activity computation
+    // Group monitored hosted repos by RM ID for last-activity computation
     Map<String, List<Repository>> reposByRmId = allHostedRepositories.stream()
         .filter(Repository::isMonitoringEnabled)
         .filter(r -> r.getRepositoryManagerId() != null)
         .collect(Collectors.groupingBy(Repository::getRepositoryManagerId));
 
-    // Fetch last scan times for all hosted repo IDs in one query
-    List<String> allRepoIds = allHostedRepositories.stream()
+    // Fetch last scan times for monitored repo IDs in one query
+    List<String> allRepoIds = reposByRmId.values()
+        .stream()
+        .flatMap(List::stream)
         .map(Repository::getId)
         .filter(id -> id != null)
         .collect(Collectors.toList());
@@ -115,6 +117,8 @@ public class ApiLifecycleService
   {
     ApiLifecycleRepositoryManagerDTO dto = new ApiLifecycleRepositoryManagerDTO();
 
+    dto.id = rm.getId();
+    dto.name = rm.getRawName();
     dto.instanceId = rm.getInstanceId();
     dto.baseUrl = rm.getBaseUrl();
     dto.hostedRepositoryCount = hostedRepoCount;

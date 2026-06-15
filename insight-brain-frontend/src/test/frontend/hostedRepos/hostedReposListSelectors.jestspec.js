@@ -12,6 +12,7 @@ import {
   selectRepositoryFormatsFilter,
   selectManagerInstanceId,
   selectManagerBaseUrl,
+  selectManagerName,
   selectRepositoryManager,
   selectAvailableFormats,
 } from 'MainRoot/hostedRepos/hostedReposListSelectors';
@@ -31,6 +32,7 @@ describe('hostedReposListSelectors', () => {
         availableFormatsLoading: false,
         managerInstanceId: 'nxrm-1',
         managerBaseUrl: 'https://nxrm.example.com',
+        managerName: null,
       },
     };
   });
@@ -93,11 +95,23 @@ describe('hostedReposListSelectors', () => {
     });
   });
 
+  describe('selectManagerName', () => {
+    it('returns null when managerName is not set', () => {
+      expect(selectManagerName(mockState)).toBeNull();
+    });
+
+    it('returns the manager name when set', () => {
+      mockState.hostedReposList.managerName = 'My Local NXRM';
+      expect(selectManagerName(mockState)).toBe('My Local NXRM');
+    });
+  });
+
   describe('selectRepositoryManager', () => {
     it('returns combined manager object when instanceId is set', () => {
       expect(selectRepositoryManager(mockState)).toEqual({
         instanceId: 'nxrm-1',
         baseUrl: 'https://nxrm.example.com',
+        name: null,
       });
     });
 
@@ -111,6 +125,16 @@ describe('hostedReposListSelectors', () => {
       expect(selectRepositoryManager(mockState)).toEqual({
         instanceId: 'nxrm-1',
         baseUrl: null,
+        name: null,
+      });
+    });
+
+    it('returns the manager name when managerName is set', () => {
+      mockState.hostedReposList.managerName = 'My Local NXRM';
+      expect(selectRepositoryManager(mockState)).toEqual({
+        instanceId: 'nxrm-1',
+        baseUrl: 'https://nxrm.example.com',
+        name: 'My Local NXRM',
       });
     });
   });

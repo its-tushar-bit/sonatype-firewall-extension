@@ -266,6 +266,50 @@ public class RepositoryManagerDAOTest
   }
 
   @Test
+  @Override
+  public void testInsert_ValidateNameInvalidChars() {
+    // RepositoryManager accepts arbitrary display name characters (e.g. "My NXRM (Production)", "Dev & QA")
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      RepositoryManager repositoryManager = createNameable(name);
+      assertThat(dao.getById(repositoryManager.getId()).getName()).isEqualTo(name);
+    }
+  }
+
+  @Test
+  @Override
+  public void testInsert_ValidateNameSpaces() {
+    // RepositoryManager accepts display names with leading/trailing/double spaces
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      RepositoryManager repositoryManager = createNameable(name);
+      assertThat(dao.getById(repositoryManager.getId()).getName()).isEqualTo(name);
+    }
+  }
+
+  @Test
+  @Override
+  public void testUpdate_ValidateNameInvalidChars() {
+    // RepositoryManager accepts arbitrary display name characters (e.g. "My NXRM (Production)", "Dev & QA")
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    for (String name : NameHelperTest.INVALID_CHARACTERS) {
+      repositoryManager.setName(name);
+      dao.update(repositoryManager);
+      assertThat(dao.getById(repositoryManager.getId()).getName()).isEqualTo(name);
+    }
+  }
+
+  @Test
+  @Override
+  public void testUpdate_ValidateNameSpaces() {
+    // RepositoryManager accepts display names with leading/trailing/double spaces
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
+      repositoryManager.setName(name);
+      dao.update(repositoryManager);
+      assertThat(dao.getById(repositoryManager.getId()).getName()).isEqualTo(name);
+    }
+  }
+
+  @Test
   public void testInsert_InstanceIdWithInvalidNameChars() {
     for (String invalidChar : NameHelperTest.INVALID_CHARACTERS) {
       RepositoryManager repositoryManager = tempEntity.newRepositoryManager("a" + invalidChar + "b");

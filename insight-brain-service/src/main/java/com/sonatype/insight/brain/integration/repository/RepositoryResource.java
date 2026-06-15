@@ -55,6 +55,8 @@ public class RepositoryResource
 {
   public static final String RESOURCE_PATH = "rest/integration/repositories";
 
+  static final String INSTANCE_NAME_HEADER = "X-Repository-Manager-Name";
+
   static final String EVALUATE_COMPONENTS_ADHOC_PATH = REPOSITORY_PATH + "evaluate/adhoc";
 
   static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
@@ -365,8 +367,9 @@ public class RepositoryResource
       ConfigureRepositoriesRequest configureRepositoriesRequest,
       @Context HttpServletRequest request)
   {
+    String instanceName = request.getHeader(INSTANCE_NAME_HEADER);
     repositoryService.configureRepositories(repositoryManagerInstanceId, configureRepositoriesRequest,
-        HdsClient.getClientUserAgent(request));
+        HdsClient.getClientUserAgent(request), instanceName);
   }
 
   /**

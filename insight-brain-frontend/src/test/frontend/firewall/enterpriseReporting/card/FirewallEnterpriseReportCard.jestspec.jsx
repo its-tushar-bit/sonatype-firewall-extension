@@ -44,6 +44,14 @@ describe('FirewallEnterpriseReportCard', () => {
     return render(<FirewallEnterpriseReportCard {...defaultProps} {...props} />);
   };
 
+  it('renders the card with no intermediate div wrapper', () => {
+    const { container } = renderComponent();
+
+    // NxCard is a direct child of container — no wrapping div
+    const card = container.firstElementChild;
+    expect(card).toHaveAttribute('id', 'fw-enterprise-reporting-dashboard-malware-insights');
+  });
+
   it('should render dashboard card with title and description', () => {
     renderComponent();
 

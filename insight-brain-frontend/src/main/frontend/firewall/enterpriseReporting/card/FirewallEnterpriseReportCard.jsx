@@ -45,54 +45,52 @@ export default function FirewallEnterpriseReportCard(props) {
   const spotlightColor = smallTagColors.includes(dashboard.spotlightColor) ? dashboard.spotlightColor : 'teal';
 
   return (
-    <div>
-      <NxCard id={`fw-enterprise-reporting-dashboard-${dashboard.dashboardId}`} className={cardClassNames}>
-        {dashboard.spotlight || dashboard.spotlightText ? (
-          <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
-            {spotlightText}
-          </NxSmallTag>
-        ) : null}
-        <NxCard.Header className="iq-enterprise-reporting-card__header">
-          <hgroup>
-            <NxH3>{dashboard.title}</NxH3>
-          </hgroup>
-        </NxCard.Header>
+    <NxCard id={`fw-enterprise-reporting-dashboard-${dashboard.dashboardId}`} className={cardClassNames}>
+      {dashboard.spotlight || dashboard.spotlightText ? (
+        <NxSmallTag color={spotlightColor} className="iq-enterprise-reporting-card__spotlight">
+          {spotlightText}
+        </NxSmallTag>
+      ) : null}
+      <NxCard.Header className="iq-enterprise-reporting-card__header">
+        <hgroup>
+          <NxH3>{dashboard.title}</NxH3>
+        </hgroup>
+      </NxCard.Header>
 
-        <NxCard.Content>
-          <NxCard.CallOut className={classNames('fw-enterprise-report-card__icon', { firewall: isFirewallCategory })}>
-            <NxFontAwesomeIcon icon={icon} />
-          </NxCard.CallOut>
-          <NxCard.Text>{dashboard.description}</NxCard.Text>
-          <NxList bulleted className="iq-enterprise-reporting-card__features">
-            {dashboard.features.map((f, idx) => (
-              <NxList.Item key={idx}>
-                <NxFontAwesomeIcon className={classNames({ firewall: isFirewallCategory })} icon={fas.faCheck} />
-                <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
-              </NxList.Item>
-            ))}
-          </NxList>
-        </NxCard.Content>
-        <NxCard.Footer className="iq-enterprise-reporting-card__footer">
-          <NxTooltip
-            title={buttonDisabled ? `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight` : null}
-          >
-            <span>
-              <NxButton
-                variant="tertiary"
-                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
-                disabled={buttonDisabled}
-                data-analytics-id={`fw-reporting-${dashboard.dashboardId}-view-cta`}
-                onClick={() => {
-                  dispatch(stateGo('firewall.enterpriseReportingDashboard', { id: dashboard.dashboardId }));
-                }}
-              >
-                {dashboard.accessButtonText}
-              </NxButton>
-            </span>
-          </NxTooltip>
-        </NxCard.Footer>
-      </NxCard>
-    </div>
+      <NxCard.Content>
+        <NxCard.CallOut className={classNames('fw-enterprise-report-card__icon', { firewall: isFirewallCategory })}>
+          <NxFontAwesomeIcon icon={icon} />
+        </NxCard.CallOut>
+        <NxCard.Text>{dashboard.description}</NxCard.Text>
+        <NxList bulleted className="iq-enterprise-reporting-card__features">
+          {dashboard.features.map((f, idx) => (
+            <NxList.Item key={idx}>
+              <NxFontAwesomeIcon className={classNames({ firewall: isFirewallCategory })} icon={fas.faCheck} />
+              <NxList.Text className="iq-enterprise-reporting-card__feature-item">{f}</NxList.Text>
+            </NxList.Item>
+          ))}
+        </NxList>
+      </NxCard.Content>
+      <NxCard.Footer className="iq-enterprise-reporting-card__footer">
+        <NxTooltip
+          title={buttonDisabled ? `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight` : null}
+        >
+          <span>
+            <NxButton
+              variant="tertiary"
+              className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
+              disabled={buttonDisabled}
+              data-analytics-id={`fw-reporting-${dashboard.dashboardId}-view-cta`}
+              onClick={() => {
+                dispatch(stateGo('firewall.enterpriseReportingDashboard', { id: dashboard.dashboardId }));
+              }}
+            >
+              {dashboard.accessButtonText}
+            </NxButton>
+          </span>
+        </NxTooltip>
+      </NxCard.Footer>
+    </NxCard>
   );
 }
 

@@ -153,6 +153,11 @@ public final class RepositoryPathnameSerializer
         String version = componentIdentifier.get(ComponentIdentifier.VERSION);
         return String.join("/", "crates", name, version, "download");
       }
+      case ComponentIdentifier.FORMAT_SWIFT: {
+        String name = componentIdentifier.get(ComponentIdentifier.SWIFT_NAME);
+        String version = componentIdentifier.get(ComponentIdentifier.VERSION);
+        return String.join("/", name, version) + ".zip";
+      }
       case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO: {
         String repoId = componentIdentifier.get(ComponentIdentifier.HUGGING_FACE_REPO_ID);
         String version = componentIdentifier.get(ComponentIdentifier.VERSION);

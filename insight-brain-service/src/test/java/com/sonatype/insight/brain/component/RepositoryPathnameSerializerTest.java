@@ -159,6 +159,13 @@ public class RepositoryPathnameSerializerTest
             .isEqualTo("org/name/resolve/version1/model.extension");
   }
 
+  @Test
+  public void testToPathname_Swift() {
+    assertThat(toPathname(
+        ComponentIdentifier.createSwiftCoordinates("github.com/apple/swift-nio", "2.42.0")))
+            .isEqualTo("github.com/apple/swift-nio/2.42.0.zip");
+  }
+
   private Map<String, String> createMap(String... keysAndValues) {
     Map<String, String> result = new HashMap<>();
     for (int i = 0; i < keysAndValues.length; i += 2) {

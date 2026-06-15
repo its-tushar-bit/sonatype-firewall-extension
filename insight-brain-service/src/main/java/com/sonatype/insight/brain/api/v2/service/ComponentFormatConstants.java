@@ -44,6 +44,7 @@ public final class ComponentFormatConstants
       "golang",
       "conan",
       "cargo",
+      "swift",
       "cocoapods",
       "cran",
       "conda",

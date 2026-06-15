@@ -39,6 +39,12 @@ public class RepositoryPathnameParser
     if (pathname.startsWith("/")) {
       pathname = pathname.substring(1);
     }
-    return format.equals(NPM_FORMAT) ? npmPathnameParser.parsePathname(pathname) : null;
+    if (NPM_FORMAT.equals(format)) {
+      return npmPathnameParser.parsePathname(pathname);
+    }
+    if (ComponentIdentifier.FORMAT_SWIFT.equals(format)) {
+      return ComponentIdentifier.parseSwiftPathname(pathname);
+    }
+    return null;
   }
 }

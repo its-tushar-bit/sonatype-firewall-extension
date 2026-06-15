@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -84,6 +85,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -214,6 +216,8 @@ public class ReportService
 
   private final InnerSourceCleanupPendingService innerSourceCleanupPendingService;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -248,7 +252,8 @@ public class ReportService
       final RepositoryDAO repositoryDAO,
       final Provider<RepositoryPolicyEvaluator> repositoryPolicyEvaluatorProvider,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
-      final InnerSourceCleanupPendingService innerSourceCleanupPendingService)
+      final InnerSourceCleanupPendingService innerSourceCleanupPendingService,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -283,6 +288,7 @@ public class ReportService
     this.repositoryPolicyEvaluatorProvider = repositoryPolicyEvaluatorProvider;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.innerSourceCleanupPendingService = innerSourceCleanupPendingService;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   @Trace
@@ -1622,8 +1628,17 @@ public class ReportService
     final SbomSpecification sbomSpecification = scanTriggerType == ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API
         ? SbomSpecification.CYCLONEDX
         : null;
-    final ScanContext scanContext =
-        new ScanContext.Builder().containerImageSbomSpecification(sbomSpecification).build();
+    // Propagate the original SBOM's validation state so SbomResultHandler.parseBom takes the correct branch.
+    // Defaulting to true for non-SBOM scans (no metadata) and metadata with no recorded validation state
+    // restores the dependency-graph processing path so "View Dependency Tree" stays enabled after
+    // re-evaluation (CLM-37563). For SBOMs that originally failed validation under SKIP_SBOM_IMPORT_VALIDATION,
+    // propagating false avoids re-running validation that would throw on a known-invalid SBOM.
+    final ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
+    final boolean isValid = sbomMetadata == null || sbomMetadata.getIsValid();
+    final ScanContext scanContext = new ScanContext.Builder()
+        .containerImageSbomSpecification(sbomSpecification)
+        .isValid(isValid)
+        .build();
 
     ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, application, stage.getStageTypeId(),
         clientScanType,

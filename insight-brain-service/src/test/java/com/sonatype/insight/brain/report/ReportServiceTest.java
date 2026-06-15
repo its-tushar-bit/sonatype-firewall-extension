@@ -393,6 +393,9 @@ public class ReportServiceTest
   @Mock
   private InnerSourceCleanupPendingService innerSourceCleanupPendingService;
 
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = createThirdPartyDataServiceSpy();
@@ -448,7 +451,7 @@ public class ReportServiceTest
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
         mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
         scanPersistenceService, repositoryComponentDAO, null, null, null, null,
-        innerSourceCleanupPendingService);
+        innerSourceCleanupPendingService, thirdPartySbomMetadataDAO);
   }
 
   @Test
@@ -1598,6 +1601,86 @@ public class ReportServiceTest
         any(),
         argThat(scanContext -> scanContext != null &&
             scanContext.containerImageSbomSpecification() == null),
+        eq(true));
+  }
+
+  /**
+   * Regression test for CLM-37563. The ScanContext passed to scanUploadService.upload during re-evaluation
+   * must have isValid=true when the original scan has no SBOM metadata (or the SBOM was valid), so that
+   * SbomResultHandler.parseBom validates the SBOM and processSbom invokes processDependencyGraph. Without
+   * this, the dependency graph is not written into the scan file sent to HDS, the resulting dependencies.json
+   * has no dependencyTree, and "View Dependency Tree" is greyed out on the report.
+   */
+  @Test
+  public void testReUploadScanReport_setsIsValidTrueOnScanContextWhenNoSbomMetadata() throws IOException {
+    runReUploadAndVerifyScanContextIsValid(true);
+  }
+
+  /**
+   * For SBOMs that originally failed CycloneDX schema validation (only possible under
+   * SKIP_SBOM_IMPORT_VALIDATION), re-evaluation must propagate isValid=false so SbomResultHandler.parseBom
+   * takes the no-validation branch. Hardcoding isValid=true would route through parseAndValidateCycloneDx,
+   * which has no SbomValidationException fallback, breaking re-evaluation for these customers.
+   */
+  @Test
+  public void testReUploadScanReport_propagatesIsValidFalseFromSbomMetadata() throws IOException {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
+    sbomMetadata.setIsValid(false);
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    runReUploadAndVerifyScanContextIsValid(false);
+  }
+
+  /**
+   * SBOM metadata exists in the database with isValid=true: re-evaluation must propagate isValid=true so the
+   * dependency-graph processing path is taken. Complements the null-metadata and isValid=false cases above.
+   */
+  @Test
+  public void testReUploadScanReport_propagatesIsValidTrueFromSbomMetadata() throws IOException {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, PENDING);
+    sbomMetadata.setIsValid(true);
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    runReUploadAndVerifyScanContextIsValid(true);
+  }
+
+  private void runReUploadAndVerifyScanContextIsValid(boolean expectedIsValid) throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(
+            any(),
+            any(),
+            eq(StageTypes.BUILD.getId()),
+            any(),
+            eq(clientUserAgent),
+            any(),
+            any(),
+            any(),
+            eq(true));
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    verify(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any(),
+        argThat(scanContext -> scanContext != null && scanContext.isValid() == expectedIsValid),
         eq(true));
   }
 

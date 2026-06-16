@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -15,17 +16,25 @@ import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApiOrganizationServiceTest
     extends AbstractComponentTest
@@ -263,6 +272,33 @@ public class ApiOrganizationServiceTest
 
     assertThat(apiOrganizationListDTO).isNotNull();
     assertThat(apiOrganizationListDTO.organizations).isEmpty();
+  }
+
+  /**
+   * Unit test to verify getOrganizations uses batch query for tags (not N+1).
+   */
+  @Test
+  public void testGetOrganizations_UsesBatchQueryForTags() {
+    OrganizationDAO mockOrgDAO = mock(OrganizationDAO.class);
+    TagDAO mockTagDAO = mock(TagDAO.class);
+    OrganizationService mockOrgService = mock(OrganizationService.class);
+
+    Organization org1 = new Organization("org1");
+    org1.setId("org-id-1");
+    Organization org2 = new Organization("org2");
+    org2.setId("org-id-2");
+
+    when(mockOrgService.getAllWithoutRelatedRepositories()).thenReturn(Arrays.asList(org1, org2));
+    when(mockTagDAO.getByOrganizationIds(any())).thenReturn(Collections.emptyList());
+
+    ApiOrganizationService service = new ApiOrganizationService(mockOrgDAO, mockTagDAO, mockOrgService);
+    service.getOrganizations(Collections.emptySet());
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Set<String>> orgIdsCaptor = ArgumentCaptor.forClass(Set.class);
+    verify(mockTagDAO).getByOrganizationIds(orgIdsCaptor.capture());
+    assertThat(orgIdsCaptor.getValue()).containsExactlyInAnyOrder("org-id-1", "org-id-2");
+    verify(mockTagDAO, never()).getByOrganizationId(any());
   }
 
   private void assertOrganizationData(

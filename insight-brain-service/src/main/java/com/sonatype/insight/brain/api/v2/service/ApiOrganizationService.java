@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -55,14 +55,17 @@ public class ApiOrganizationService
   }
 
   public ApiOrganizationListDTO getOrganizations(Set<String> orgNames) {
-    Map<String, List<Tag>> orgTagMap = new HashMap<>();
     List<Organization> organizations = orgNames.isEmpty()
         ? organizationService.getAllWithoutRelatedRepositories()
         : getOrganizationsByNames(orgNames);
-    for (Organization organization : organizations) {
-      List<Tag> tags = tagDAO.getByOrganizationId(organization.getId());
-      orgTagMap.put(organization.getId(), tags);
-    }
+
+    Set<String> orgIds = organizations.stream()
+        .map(Organization::getId)
+        .collect(Collectors.toSet());
+
+    Map<String, List<Tag>> orgTagMap = tagDAO.getByOrganizationIds(orgIds)
+        .stream()
+        .collect(Collectors.groupingBy(Tag::getOrganizationId));
 
     return ApiOrganizationAdapter.convert(organizations, orgTagMap);
   }

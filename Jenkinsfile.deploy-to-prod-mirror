@@ -111,7 +111,7 @@ pipeline {
       steps {
         script {
           def tfc = load 'jenkins/tfc-helpers.groovy'
-          tfc.deployCells('prod-mirror', PROD_MIRROR_CELL_WORKSPACES, PROD_MIRROR_GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+          tfc.deployCells('prod-mirror', PROD_MIRROR_CELL_WORKSPACES, PROD_MIRROR_GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4, gateEnabled: true])
         }
       }
     }

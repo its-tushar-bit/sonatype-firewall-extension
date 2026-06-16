@@ -131,7 +131,7 @@ pipeline {
             // Parse comma-separated workspaces into a list
             def workspaces = params.CELL_WORKSPACES.split(',').collect { it.trim() }
 
-            tfc.deployCells("production-${params.CELL_WORKSPACES}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4])
+            tfc.deployCells("production-${params.CELL_WORKSPACES}", workspaces, params.GLOBAL_WORKSPACE, params.IMAGE_TAG, [maxDestructions: 4, maxAdditions: 4, maxChanges: 4, gateEnabled: true])
           }
         }
       }

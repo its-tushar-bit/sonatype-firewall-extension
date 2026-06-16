@@ -282,6 +282,13 @@ tfc.deployCells('env', workspaces, globalWorkspace, imageTag, [maxDestructions: 
 tfc.deployCells('env', workspaces, globalWorkspace, imageTag, [gateEnabled: true])
 ```
 
+**Current usage in this repo:**
+
+| Job | Mode | Rationale |
+|-----|------|-----------|
+| `deploy-to-shared-dev`, `deploy-to-staging`, `deploy-to-prod-internal` | Fail fast (`gateEnabled: false`, the default) | Automatic flow — unexpected drift should halt the pipeline so it can be investigated before the change reaches the next stage. |
+| `deploy-to-prod-mirror`, `deploy-to-prod-region` | Pause for approval (`gateEnabled: true`) | Manual production jobs — expected drift (DB minor versions, SSM Bastion image, Cloudconexxa image) routinely exceeds the 4/4/4 thresholds, so the operator reviews and approves rather than restarting the job. |
+
 ### When the build fails due to exceeded thresholds
 
 1. Open the TFC UI link from the failure message.

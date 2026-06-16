@@ -118,10 +118,26 @@ public class ApplicationEvaluationResourceTest
       boolean withFile,
       String path) throws IOException, URISyntaxException
   {
+    return makeRequest(integrationType, applicationPublicId, stageId, scanType, withFile, path, null);
+  }
+
+  private HttpRequest makeRequest(
+      IntegrationType integrationType,
+      String applicationPublicId,
+      String stageId,
+      ClientScanType scanType,
+      boolean withFile,
+      String path,
+      String sbomVersion) throws IOException, URISyntaxException
+  {
     HttpRequest request = restRequest()
         .path(path)
         .query("scanType", scanType)
         .parameter(applicationPublicId, integrationType, stageId);
+
+    if (sbomVersion != null) {
+      request.query("sbomVersion", sbomVersion);
+    }
 
     if (withFile) {
       URL resource = getClass().getResource("/ApplicationEvaluationResourceTest/container-scan.xml");
@@ -927,6 +943,100 @@ public class ApplicationEvaluationResourceTest
     assertResponseStatus(402, response);
     assertThat(response.getBodyText()).isEqualTo(
         String.format("You have exceeded the licensed limit of %s sboms.", testProductLicense.getMaxSboms()));
+  }
+
+  @Test
+  public void testEvaluateWithPolling_acceptsSbomVersion_forCliCompliance() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(ComplianceStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    // evaluate policy with sbomVersion
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH, "1.2.3") //
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
+  }
+
+  @Test
+  public void testEvaluateWithPolling_rejectsSbomVersion_forCiIntegration() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, false, EVALUATE_PATH, "1.2.3") //
+                .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("sbomVersion is only supported for CLI integration");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_rejectsSbomVersion_forProxyStage() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, false, EVALUATE_PATH, "1.2.3") //
+                .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("sbomVersion is not supported for the proxy stage");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_rejectsInvalidSbomVersion_returns400WithRule() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ComplianceStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, false, EVALUATE_PATH, "v1<bad>") //
+                .post();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("HTML metacharacters");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_omitsSbomVersion_isAlwaysAccepted() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(BuildStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    // evaluate policy without sbomVersion (null)
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE, false, EVALUATE_PATH, null) //
+                .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
   }
 
   private VulnerabilitySignatureAnalysisDTO getVulnerabilitySignatureAnalysisDTO(Application app) throws Exception {

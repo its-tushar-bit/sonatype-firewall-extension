@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisServ
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.sbom.utils.ApplicationVersionValidator;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -92,16 +94,31 @@ public class ApplicationEvaluationResource
       @PathParam("integrationType") final IntegrationType integrationType,
       @PathParam("stageId") final Stage stage,
       @QueryParam("scanType") ClientScanType clientScanType,
+      @QueryParam("sbomVersion") String sbomVersion,
       @Context HttpServletRequest req) throws IOException
   {
+    String validatedSbomVersion = validateSbomVersionScope(sbomVersion, integrationType, stage);
     if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
       return evaluateWithPollingForContainerImageEvaluation(
           applicationPublicId, integrationType, stage, clientScanType, req);
     }
     else {
       return evaluateWithPollingForApplicationEvaluation(
-          applicationPublicId, integrationType, stage, clientScanType, req);
+          applicationPublicId, integrationType, stage, clientScanType, req, validatedSbomVersion);
     }
+  }
+
+  private String validateSbomVersionScope(String sbomVersion, IntegrationType integrationType, Stage stage) {
+    if (sbomVersion == null) {
+      return null;
+    }
+    if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
+      throw new BadRequestException("sbomVersion is not supported for the proxy stage");
+    }
+    if (integrationType != IntegrationType.CLI) {
+      throw new BadRequestException("sbomVersion is only supported for CLI integration");
+    }
+    return ApplicationVersionValidator.validate(sbomVersion);
   }
 
   @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
@@ -122,9 +139,11 @@ public class ApplicationEvaluationResource
       IntegrationType integrationType,
       Stage stage,
       ClientScanType clientScanType,
-      HttpServletRequest req) throws IOException
+      HttpServletRequest req,
+      String sbomVersion) throws IOException
   {
-    return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
+    return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage,
+        sbomVersion);
   }
 
   /**
@@ -195,7 +214,8 @@ public class ApplicationEvaluationResource
 
   /**
    * Retrieve the {@link PolicyEvaluationPollingResult} for an existing request, made
-   * through the {@link #evaluateWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)} or
+   * through the
+   * {@link #evaluateWithPolling(String, IntegrationType, Stage, ClientScanType, String, HttpServletRequest)} or
    * {@link #analyzeComponentsWithPolling(String, IntegrationType, Stage, ClientScanType, HttpServletRequest)}.
    *
    * @param applicationPublicId public shared id

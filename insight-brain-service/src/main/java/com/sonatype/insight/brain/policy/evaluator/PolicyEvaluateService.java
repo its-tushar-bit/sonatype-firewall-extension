@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisServ
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.generation.ScanResultsSbomPersister;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
@@ -56,6 +57,7 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -118,6 +120,8 @@ public class PolicyEvaluateService
 
   private final ProductLicense productLicense;
 
+  private final ScanResultsSbomPersister scanResultsSbomPersister;
+
   private final ScanPersistenceService scanPersistenceService;
 
   public boolean disablePollingIntervalForTesting = false;
@@ -151,6 +155,7 @@ public class PolicyEvaluateService
       PolicyEvaluationUtil policyEvaluationUtil,
       SbomMetadataUtils sbomMetadataUtils,
       ProductLicense productLicense,
+      ScanResultsSbomPersister scanResultsSbomPersister,
       ScanPersistenceService scanPersistenceService,
       OrganizationDAO organizationDAO,
       RepositoryDAO repositoryDAO,
@@ -170,6 +175,7 @@ public class PolicyEvaluateService
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.productLicense = productLicense;
+    this.scanResultsSbomPersister = scanResultsSbomPersister;
     this.scanPersistenceService = scanPersistenceService;
     this.meterRegistry = meterRegistry;
     this.executor = buildExecutorService();
@@ -283,17 +289,21 @@ public class PolicyEvaluateService
    * @param clientScanType {@link ClientScanType}
    * @param req {@link HttpServletRequest}
    * @param stage {@link Stage}
+   * @param sbomVersion optional user-supplied SBOM version string; when non-null it is propagated to
+   *          {@link ScanContext#applicationVersion()} so downstream persistence uses this value instead of
+   *          the version extracted from the SBOM metadata
    * @return PolicyEvaluationReceipt
    * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
    *
-   * @since 1.69
+   * @since 1.205.0
    */
   public PolicyEvaluationReceipt evaluateWithPolling(
       IntegrationType integrationType,
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
       ClientScanType clientScanType,
       HttpServletRequest req,
-      Stage stage) throws IOException
+      Stage stage,
+      String sbomVersion) throws IOException
   {
     policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
 
@@ -313,14 +323,43 @@ public class PolicyEvaluateService
 
     validateLicenseLimits(stage);
 
+    ScanContext scanContext = (sbomVersion == null)
+        ? null
+        : new ScanContext.Builder().applicationVersion(sbomVersion).build();
+
     evaluateWithPolling(statusId, app, clientScanType, stage,
         EvaluationUtils.getScanTriggerType(integrationType), tempScanEntity, thirdPartyScanType,
-        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), (ScanContext) null);
+        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), scanContext);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
+  }
+
+  /**
+   * Starts the evaluation of an application, integration, type and stage. After starting will
+   * return a {@link PolicyEvaluationReceipt} for the requester to use to check on results
+   * via {@link #pollEvaluationResult(String, String)}
+   *
+   * @param integrationType {@link IntegrationType}
+   * @param applicationPublicId public shared id
+   * @param clientScanType {@link ClientScanType}
+   * @param req {@link HttpServletRequest}
+   * @param stage {@link Stage}
+   * @return PolicyEvaluationReceipt
+   * @throws IOException when the scan file, uploaded via the request, is unable to be read or processed
+   *
+   * @since 1.69
+   */
+  public PolicyEvaluationReceipt evaluateWithPolling(
+      IntegrationType integrationType,
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ClientScanType clientScanType,
+      HttpServletRequest req,
+      Stage stage) throws IOException
+  {
+    return evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage, null);
   }
 
   private void checkEvaluationPermissions(Application app, Stage stage) {
@@ -855,6 +894,52 @@ public class PolicyEvaluateService
 
       PolicyEvaluationResult policyEvaluationResult = evaluate(
           app, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId, clientScanType);
+
+      // CLM-40060: derive and persist a CycloneDX SBOM for CLI compliance scans.
+      // -av is now optional: when omitted the version falls back to ThirdPartyPersistenceService's
+      // timestamp chain (trySaveInLoop lines 717-721). The user-visible scan and policy evaluation
+      // are already complete; SBOM persistence is best-effort.
+      // CLI-only: non-CLI THIRD_PARTY uploads (Jenkins/CI, RM) at compliance stage already have an
+      // SBOM in the scan stream that ThirdPartyScanResultsProcessor saves; deriving here too
+      // would produce a duplicate SBOM with a timestamp-based version. scanTriggerType is set
+      // from integrationType via EvaluationUtils.getScanTriggerType (line 409 above).
+      if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)
+          && Stage.ID_COMPLIANCE.equals(stage.getStageTypeId())
+          && ScanTriggerType.CLI.equals(scanTriggerType)
+          && productLicense.hasFeature(LicensedFeature.SBOM_MANAGER))
+      {
+        if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+          log.warn("SBOM cap reached for application {} (license max={}); skipping SBOM persistence for this scan.",
+              app.getId(), productLicense.getMaxSboms());
+          // ScanUploader.augmentScanReceipt already set forward-reference BoM URLs based on the
+          // requested -av; clear them so the CLI doesn't advertise a URL the user can't reach.
+          scanReceipt.setSbomVersion(null);
+          scanReceipt.setReportUrl(null);
+          scanReceipt.setPdfUrl(null);
+          updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+        }
+        else {
+          String requestedVersion = (scanContext != null) ? scanContext.applicationVersion() : null;
+          String actualSbomVersion =
+              scanResultsSbomPersister.persist(app, scanId, requestedVersion);
+          if (actualSbomVersion != null) {
+            scanReceipt.setSbomVersion(actualSbomVersion);
+            String bomPath = UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), actualSbomVersion);
+            scanReceipt.setReportUrl(bomPath);
+            scanReceipt.setPdfUrl(bomPath + "/pdf");
+            // Re-persist so the CLI poller sees the corrected receipt.
+            updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+          }
+          else {
+            // Persister failed (best-effort): clear any forward-reference BoM URL fields so the
+            // CLI doesn't advertise a URL the user can't reach.
+            scanReceipt.setSbomVersion(null);
+            scanReceipt.setReportUrl(null);
+            scanReceipt.setPdfUrl(null);
+            updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+          }
+        }
+      }
 
       PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
       result.setScanReceipt(scanReceipt);

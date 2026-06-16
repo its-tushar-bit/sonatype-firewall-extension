@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -334,6 +335,34 @@ public class ThirdPartyScanResultsProcessorTest
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
 
     assertExistingSbomFiles();
+  }
+
+  @Test
+  public void process_passesScanContextApplicationVersionToPersistenceService() throws Exception {
+    mockValidSbomManagerLicense();
+
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
+    String scanId = TemporaryEntity.uuid();
+    File tempScanFile = tempDir.newFile();
+    Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
+
+    ThirdPartyScanContext scanContext =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM,
+            new FileScanEntity(scanFile.toPath()),
+            StageTypes.COMPLIANCE.getName());
+    scanContext.setApplicationVersion("user.requested.1.2.3");
+
+    String scanRequestId = thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+        new FileScanEntity(tempScanFile.toPath()), scanContext, null);
+    thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
+
+    var sbomMetadatas = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    assertThat(sbomMetadatas).hasSize(1);
+    // The user-preferred version must be the one persisted (the pre-save value, not the post-save overwrite)
+    assertThat(sbomMetadatas.get(0).getSbomVersion()).isEqualTo("user.requested.1.2.3");
+    assertExistingSbomFiles("%s/%s".formatted(application.getId(), sbomMetadatas.get(0).getFilename()));
   }
 
   @Test
@@ -905,6 +934,27 @@ public class ThirdPartyScanResultsProcessorTest
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
 
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testHandle_sbomManagerEnabled_maxSbom_reached_logsWarn() throws Exception {
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(0);
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
+    File tempScan = tempDir.newFile();
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM,
+            new FileScanEntity(scanFile.toPath()),
+            ComplianceStageType.ID);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(new FileScanEntity(scanFile.toPath()),
+        new FileScanEntity(tempScan.toPath()),
+        context, null);
+
+    assertThat(logOutput.getWarnMessages(loggerName))
+        .anyMatch(msg -> msg.contains(application.getId()) && msg.contains("SBOM cap reached"));
     assertExistingSbomFiles();
   }
 

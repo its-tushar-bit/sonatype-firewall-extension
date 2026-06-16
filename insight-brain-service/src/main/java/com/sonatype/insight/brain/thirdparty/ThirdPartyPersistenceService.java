@@ -272,12 +272,15 @@ public class ThirdPartyPersistenceService
    * provided as a String instead of a Path. This method stores the basename of the "path" value from the scan.xml,
    * which must be a valid, safe file path.
    *
+   * @param userPreferredVersion user-supplied version preference; null falls back to the version detected in the SBOM,
+   *          then to a timestamp
    * @throws CheckedIllegalArgumentException if the basename of scanPath is empty, `.`, or `..`
    */
   public ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerSbomFromScan(
       String sbomContents,
       String scanPath,
       String applicationId,
+      String userPreferredVersion,
       SbomDetectionResult detectionResult) throws IOException, CheckedIllegalArgumentException
   {
     if (!detectionResult.isSbom) {
@@ -288,7 +291,7 @@ public class ThirdPartyPersistenceService
         () -> IOUtils.toInputStream(sbomContents, Charset.defaultCharset()),
         new PersistencePath.SanitizedSbomScanPath(scanPath),
         applicationId,
-        null,
+        userPreferredVersion,
         detectionResult);
   }
 
@@ -297,11 +300,15 @@ public class ThirdPartyPersistenceService
    * location as this method is intended to be called during processing of an already-existing scan file, in which there
    * is no need for such temporary storage. This method stores the full "path" value from the scan.xml without sanity
    * checking that it is a safe file path. No actual files are saved using any part of that value.
+   *
+   * @param userPreferredVersion user-supplied version preference; null falls back to the version detected in the SBOM,
+   *          then to a timestamp
    */
   public ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerBinaryFromScan(
       String sbomContents,
       String scanPath,
       String applicationId,
+      String userPreferredVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
     if (detectionResult.isSbom) {
@@ -311,7 +318,7 @@ public class ThirdPartyPersistenceService
     return saveSbomManagerBinaryFromScan(
         new PersistencePath.UnsafePath(scanPath),
         applicationId,
-        null,
+        userPreferredVersion,
         detectionResult);
   }
 

@@ -184,6 +184,7 @@ public class ScanUploader
         thirdPartyScanContext.getApplicationVersion());
     receipt.setReportUrl(bomPath);
     receipt.setPdfUrl(bomPath + "/pdf");
+    receipt.setSbomVersion(thirdPartyScanContext.getApplicationVersion());
   }
 
   /**

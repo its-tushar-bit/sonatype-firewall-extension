@@ -383,11 +383,16 @@ public class ThirdPartyScanResultsProcessor
               sbomFileDetector.getSbomDetectionResult(sbomContent, filename, true);
           ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> entities;
 
+          // Capture the user-preferred version before the save, because line 409 overwrites
+          // scanContext.applicationVersion with the persisted (possibly collision-suffixed) version.
+          String userPreferredVersion = scanContext.getApplicationVersion();
+
           if (sbomDetectionResult.isSbom) {
             entities = thirdPartyPersistenceService.saveSbomManagerSbomFromScan(
                 sbomContent,
                 filename,
                 scanContext.getApplicationId(),
+                userPreferredVersion,
                 sbomDetectionResult);
           }
           else {
@@ -395,6 +400,7 @@ public class ThirdPartyScanResultsProcessor
                 sbomContent,
                 filename,
                 scanContext.getApplicationId(),
+                userPreferredVersion,
                 sbomDetectionResult);
           }
 
@@ -454,9 +460,15 @@ public class ThirdPartyScanResultsProcessor
    *         scan.
    */
   private boolean shouldStoreAsSbom(ThirdPartyScanContext scanContext) {
-    return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)
-        && !sbomMetadataUtils.hasMaxSbomLimitBeenReached()
-        && isStageTypeSupported(scanContext);
+    if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
+      return false;
+    }
+    if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
+      log.warn("SBOM cap reached for application {} (license max={}); skipping SBOM persistence for this scan.",
+          scanContext.getApplicationId(), productLicense.getMaxSboms());
+      return false;
+    }
+    return isStageTypeSupported(scanContext);
   }
 
   private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {

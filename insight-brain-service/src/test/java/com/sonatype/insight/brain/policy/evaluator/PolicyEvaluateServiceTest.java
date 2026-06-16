@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -96,6 +97,7 @@ import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.generation.ScanResultsSbomPersister;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
@@ -226,6 +228,9 @@ public class PolicyEvaluateServiceTest
 
   @Mock
   private ScanHandler mockScanHandler;
+
+  @Mock
+  private ScanResultsSbomPersister mockScanResultsSbomPersister;
 
   @Mock
   private TelemetrySender mockTelemetrySender;
@@ -1564,5 +1569,294 @@ public class PolicyEvaluateServiceTest
     policyEvaluationHelper.awaitComponentAnalysisCompleted(app.getId(), receipt.getStatusId());
 
     return receipt;
+  }
+
+  @Test
+  public void evaluateWithPolling_propagatesSbomVersionToScanContext() throws IOException {
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
+
+    PolicyEvaluateService spyService = spy(policyEvaluateService);
+
+    ArgumentCaptor<ScanContext> scanContextCaptor = ArgumentCaptor.forClass(ScanContext.class);
+
+    spyService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(Stage.ID_BUILD), "user.requested.1.2.3");
+
+    verify(spyService).evaluateWithPolling(
+        anyString(),
+        any(Application.class),
+        any(ClientScanType.class),
+        any(Stage.class),
+        any(ScanTriggerType.class),
+        any(ScanEntity.class),
+        eq(null),
+        eq(null),
+        eq(null),
+        scanContextCaptor.capture());
+
+    assertThat(scanContextCaptor.getValue()).isNotNull();
+    assertThat(scanContextCaptor.getValue().applicationVersion()).isEqualTo("user.requested.1.2.3");
+  }
+
+  @Test
+  public void evaluateWithPolling_nullSbomVersion_passesNullScanContext() throws IOException {
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
+
+    PolicyEvaluateService spyService = spy(policyEvaluateService);
+
+    ArgumentCaptor<ScanContext> scanContextCaptor = ArgumentCaptor.forClass(ScanContext.class);
+
+    spyService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+        new Stage(Stage.ID_BUILD));
+
+    verify(spyService).evaluateWithPolling(
+        anyString(),
+        any(Application.class),
+        any(ClientScanType.class),
+        any(Stage.class),
+        any(ScanTriggerType.class),
+        any(ScanEntity.class),
+        eq(null),
+        eq(null),
+        eq(null),
+        scanContextCaptor.capture());
+
+    assertThat(scanContextCaptor.getValue()).isNull();
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_invokesSbomPersister_whenAllConditionsMet() throws Exception {
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String suffixedVersion = "user.requested.1.2.3_20260604182554724";
+    when(mockScanResultsSbomPersister.persist(eq(app), eq(scanId), eq("user.requested.1.2.3")))
+        .thenReturn(suffixedVersion);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    PolicyEvaluationPollingResult pollingResult =
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verify(mockScanResultsSbomPersister).persist(eq(app), eq(scanId), eq("user.requested.1.2.3"));
+
+    ScanReceipt persistedReceipt = pollingResult.getScanReceipt();
+    assertThat(persistedReceipt.getSbomVersion()).isEqualTo(suffixedVersion);
+    String expectedBomPath =
+        UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), suffixedVersion);
+    assertThat(persistedReceipt.getReportUrl()).isEqualTo(expectedBomPath);
+    assertThat(persistedReceipt.getPdfUrl()).isEqualTo(expectedBomPath + "/pdf");
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_clearsReceiptBomUrl_whenPersisterReturnsNull() throws Exception {
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    when(mockScanResultsSbomPersister.persist(eq(app), eq(scanId), eq("user.requested.1.2.3")))
+        .thenReturn(null);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    PolicyEvaluationPollingResult pollingResult =
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    // Persister returned null (best-effort failure): receipt BoM URL fields must be cleared so
+    // the CLI doesn't advertise a URL the user can't reach.
+    ScanReceipt persistedReceipt = pollingResult.getScanReceipt();
+    assertThat(persistedReceipt.getSbomVersion()).isNull();
+    assertThat(persistedReceipt.getReportUrl()).isNull();
+    assertThat(persistedReceipt.getPdfUrl()).isNull();
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_skipsSbomPersister_whenClientScanTypeIsSonatype() throws Exception {
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        null, null, null, scanContext);
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verifyNoInteractions(mockScanResultsSbomPersister);
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_skipsSbomPersister_whenIntegrationIsNotCli() throws Exception {
+    // Non-CLI THIRD_PARTY uploads (Jenkins, RM) at compliance stage already have an SBOM in the
+    // scan stream that ThirdPartyScanResultsProcessor saves; we must not derive again here or
+    // the application would end up with a duplicate SBOM at a timestamp version.
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CONTINUOUS_INTEGRATION, mock(ScanEntity.class),
+        IntegrationType.CI.toString(), null, null, scanContext);
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verifyNoInteractions(mockScanResultsSbomPersister);
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_skipsSbomPersister_whenStageIsBuild() throws Exception {
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verifyNoInteractions(mockScanResultsSbomPersister);
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_invokesSbomPersister_whenScanContextNull() throws Exception {
+    // Gate relaxed in Task 20: -av is optional. When scanContext is null the persister
+    // should be called with applicationVersion=null so trySaveInLoop falls back to a timestamp.
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String timestampVersion = "20260605120000000";
+    when(mockScanResultsSbomPersister.persist(eq(app), eq(scanId), isNull()))
+        .thenReturn(timestampVersion);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, null);
+
+    PolicyEvaluationPollingResult pollingResult =
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verify(mockScanResultsSbomPersister).persist(eq(app), eq(scanId), isNull());
+
+    ScanReceipt persistedReceipt = pollingResult.getScanReceipt();
+    assertThat(persistedReceipt.getSbomVersion()).isEqualTo(timestampVersion);
+    String expectedBomPath =
+        UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), timestampVersion);
+    assertThat(persistedReceipt.getReportUrl()).isEqualTo(expectedBomPath);
+    assertThat(persistedReceipt.getPdfUrl()).isEqualTo(expectedBomPath + "/pdf");
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_invokesSbomPersister_whenApplicationVersionNull() throws Exception {
+    // Gate relaxed in Task 20: -av is optional. When scanContext is present but applicationVersion
+    // is null the persister should still be called with applicationVersion=null.
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String timestampVersion = "20260605120000001";
+    when(mockScanResultsSbomPersister.persist(eq(app), eq(scanId), isNull()))
+        .thenReturn(timestampVersion);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    PolicyEvaluationPollingResult pollingResult =
+        policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verify(mockScanResultsSbomPersister).persist(eq(app), eq(scanId), isNull());
+
+    ScanReceipt persistedReceipt = pollingResult.getScanReceipt();
+    assertThat(persistedReceipt.getSbomVersion()).isEqualTo(timestampVersion);
+    String expectedBomPath =
+        UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), timestampVersion);
+    assertThat(persistedReceipt.getReportUrl()).isEqualTo(expectedBomPath);
+    assertThat(persistedReceipt.getPdfUrl()).isEqualTo(expectedBomPath + "/pdf");
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_skipsSbomPersister_whenSbomManagerLicenseMissing() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
+
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verifyNoInteractions(mockScanResultsSbomPersister);
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  public void scanAndEvaluate_logsCapReachedWarn_andSkipsPersister_whenCapReached() throws Exception {
+    // Set max sboms to 0 so the cap is immediately reached
+    testProductLicense.setMaxSbom(0);
+
+    String scanId = simulateReportIsAvailable();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    // Simulate ScanUploader.augmentScanReceipt having set forward-reference BoM URLs from -av
+    scanReceipt.setSbomVersion("user.requested.1.2.3");
+    scanReceipt.setReportUrl("/rest/sbom/applications/app/versions/user.requested.1.2.3");
+    scanReceipt.setPdfUrl("/rest/sbom/applications/app/versions/user.requested.1.2.3/pdf");
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
+
+    String statusId = UUID.randomUUID().toString().replace("-", "");
+    ScanContext scanContext = new ScanContext.Builder().applicationVersion("user.requested.1.2.3").build();
+    policyEvaluateService.evaluateWithPolling(statusId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_COMPLIANCE), ScanTriggerType.CLI, mock(ScanEntity.class),
+        IntegrationType.CLI.toString(), null, null, scanContext);
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), statusId);
+
+    verifyNoInteractions(mockScanResultsSbomPersister);
+    // Receipt URLs that augmentScanReceipt set must be cleared so the CLI doesn't advertise
+    // a SBOM URL that was never persisted.
+    assertThat(scanReceipt.getSbomVersion()).isNull();
+    assertThat(scanReceipt.getReportUrl()).isNull();
+    assertThat(scanReceipt.getPdfUrl()).isNull();
   }
 }

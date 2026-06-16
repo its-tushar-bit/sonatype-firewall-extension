@@ -108,6 +108,7 @@ public class ScanUploaderTest
     assertThat(receipt.getIntegrationsPrioritiesUrl()).isNull();
     assertThat(receipt.getDataUrl()).isNull();
     assertThat(receipt.getReportTimeoutInSeconds()).isNull();
+    assertThat(receipt.getSbomVersion()).isEqualTo("version");
   }
 
   @Test

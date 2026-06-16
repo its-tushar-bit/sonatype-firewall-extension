@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
 import com.sonatype.insight.brain.sbom.ingestion.SbomScanEvaluator;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
+import com.sonatype.insight.brain.sbom.utils.ApplicationVersionValidator;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -537,9 +538,8 @@ public class ApiSbomService
       throw new PaymentRequiredException(
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
-    if (applicationVersion != null && (StringUtils.isBlank(applicationVersion) || applicationVersion.length() > 200)) {
-      throw new BadRequestException("applicationVersion cannot be blank and must be between 1 and 200 characters.");
-    }
+    String validatedApplicationVersion =
+        applicationVersion != null ? ApplicationVersionValidator.validate(applicationVersion) : null;
 
     SbomEntity transientSbomEntity = null;
     try {
@@ -552,7 +552,7 @@ public class ApiSbomService
             transientSbomEntity,
             fileName,
             applicationId,
-            applicationVersion,
+            validatedApplicationVersion,
             sbomDetectionResult).getLeft();
 
         return scanAndEvaluateSbomFile(sbomMetadata, clientUserAgent);
@@ -565,7 +565,7 @@ public class ApiSbomService
               transientSbomEntity,
               fileName,
               applicationId,
-              applicationVersion,
+              validatedApplicationVersion,
               sbomDetectionResult);
 
           return scanAndEvaluateBinaryFile(entities.getLeft(), entities.getRight(), clientUserAgent);

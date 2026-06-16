@@ -1482,7 +1482,7 @@ public class ApiSbomServiceTest
           "third-party-simple-bom.xml",
           true,
           DUMMY_USER_AGENT,
-          "", false)).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          "", false)).withMessageContaining("between 1 and 200");
     }
 
     assertExistingSbomFiles();
@@ -1500,7 +1500,7 @@ public class ApiSbomServiceTest
           "third-party-simple-bom.xml",
           true,
           DUMMY_USER_AGENT,
-          " ", false)).withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          " ", false)).withMessageContaining("between 1 and 200");
     }
 
     assertExistingSbomFiles();
@@ -1519,7 +1519,7 @@ public class ApiSbomServiceTest
           true,
           DUMMY_USER_AGENT,
           StringUtils.repeat('a', 201), false))
-          .withMessage("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+          .withMessageContaining("between 1 and 200");
     }
 
     assertExistingSbomFiles();

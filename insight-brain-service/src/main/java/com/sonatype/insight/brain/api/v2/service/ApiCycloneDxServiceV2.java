@@ -194,47 +194,64 @@ public class ApiCycloneDxServiceV2
     }
 
     try {
-      ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
-
-      Bom bom = new Bom();
-      bom.setSerialNumber(toUuid(scanId));
-
-      String url;
-      try {
-        url = baseUrl.get() + UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
-      }
-      catch (Exception e) {
-        log.debug("Failed to locate baseUrl", e);
-        url = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
-      }
-      bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
-      if (linkedSpdxUrl != null) {
-        bom.addExternalReference(createExternalReference(linkedSpdxUrl, "SPDX BOM", ExternalReference.Type.BOM));
-      }
-
-      Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
-
-      // New vulnerability information is available from CycloneDx 1.4
-      if (CollectionUtils.isNotEmpty(bom.getComponents()) && version.compareTo(Version.VERSION_14) >= 0) {
-        bom.setVulnerabilities(getVulnerabilityInformation(data.components, components, version));
-      }
-
-      if (version.compareTo(Version.VERSION_12) >= 0) {
-        PolicyEvaluation policyEvaluation =
-            policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
-        ApiDependencyTreeNodeDTO dependenciesData =
-            apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
-        addMetadata(policyEvaluation, dependenciesData, bom, version, components, data);
-        if (hasDependenciesData(components, dependenciesData)) {
-          addDependencyTree(dependenciesData, bom, components);
-        }
-      }
-
+      Bom bom = buildBom(application, scanId, version, linkedSpdxUrl);
       return generateResponse(version, application, acceptType, bom);
     }
     catch (IOException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  /**
+   * Builds a CycloneDX {@link Bom} from the given scan's evaluation results.
+   * Public to allow cross-package callers (such as
+   * {@link com.sonatype.insight.brain.sbom.generation.ScanResultsSbomPersister}) to derive
+   * an SBOM for CLI compliance scans without invoking the full HTTP response generator.
+   */
+  public Bom buildBom(
+      Application application,
+      String scanId,
+      Version version,
+      String linkedSpdxUrl) throws IOException
+  {
+    AuditData.get().setReportId(scanId);
+    ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
+
+    Bom bom = new Bom();
+    bom.setSerialNumber(toUuid(scanId));
+
+    String url;
+    try {
+      url = baseUrl.get() + UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
+    }
+    catch (Exception e) {
+      log.debug("Failed to locate baseUrl", e);
+      url = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), scanId);
+    }
+    bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
+    if (linkedSpdxUrl != null) {
+      bom.addExternalReference(createExternalReference(linkedSpdxUrl, "SPDX BOM", ExternalReference.Type.BOM));
+    }
+
+    Map<String, Map<String, String>> components = createBomComponents(version, data.components, bom);
+
+    // New vulnerability information is available from CycloneDx 1.4
+    if (CollectionUtils.isNotEmpty(bom.getComponents()) && version.compareTo(Version.VERSION_14) >= 0) {
+      bom.setVulnerabilities(getVulnerabilityInformation(data.components, components, version));
+    }
+
+    if (version.compareTo(Version.VERSION_12) >= 0) {
+      PolicyEvaluation policyEvaluation =
+          policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+      ApiDependencyTreeNodeDTO dependenciesData =
+          apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+      addMetadata(policyEvaluation, dependenciesData, bom, version, components, data);
+      if (hasDependenciesData(components, dependenciesData)) {
+        addDependencyTree(dependenciesData, bom, components);
+      }
+    }
+
+    return bom;
   }
 
   private boolean hasDependenciesData(

@@ -1,0 +1,31 @@
+{
+  "policyAdminRoleId": "b9646757e98e486da7d730025f5245f8",
+  "policyAdminRoleName": "Policy Administrator",
+  "policyAdminRoleDescription": "Manages all organizations, applications, policies, and policy violations.",
+  "systemAdminRoleName": "System Administrator",
+  "expectedDefaultRoleCount": 2,
+  "builtinAdminListLabel": "Admin BuiltIn",
+  "builtinAdminMemberItem": "Admin BuiltIn (admin)",
+  "seedUsers": [
+    {
+      "username": "test-a",
+      "password": "secret",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john@doe.net"
+    },
+    {
+      "username": "test-b",
+      "password": "secret",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@doe.net"
+    }
+  ],
+  "addedUserMemberItem": "Jane Doe (test-b)",
+  "addedUserListLabel": "Jane Doe",
+  "authenticatedUsersGroupItem": "Authenticated Users (Group)",
+  "authenticatedUsersListLabel": "Authenticated Users",
+  "expectedRoleMembersAfterAdd": "Authenticated Users, Admin BuiltIn, Jane Doe",
+  "searchWildcard": "*"
+}

@@ -1,0 +1,8 @@
+{
+  "totalDepth": 2,
+  "rootChildOrgCount": 3,
+  "leafChildOrgCount": 3,
+  "minExpectedSidebarOrgLinks": 3,
+  "expectedOwnerEditorHeading": "New Application",
+  "expectedOwnerEditorNameLabel": "Application Name"
+}

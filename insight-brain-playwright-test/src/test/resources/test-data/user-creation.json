@@ -1,0 +1,15 @@
+{
+  "builtinAdminUsername": "admin",
+  "newUsername": "Automationdeveloper1",
+  "newFirstName": "Automation",
+  "newLastName": "User",
+  "newEmail": "Automation.User@company.com",
+  "newUserListLabel": "Automationdeveloper1 (Automation User)",
+  "editedFirstName": "AutomationEdited",
+  "editedLastName": "UserEdited",
+  "editedFullName": "AutomationEdited UserEdited",
+  "editedEmail": "Automation.Edited@company.com",
+  "editedUserListLabel": "Automationdeveloper1 (AutomationEdited UserEdited)",
+  "newPassword": "automation@123",
+  "developerRoleName": "Developer"
+}

@@ -1,0 +1,8 @@
+{
+    "expectedColumnCount": 6,
+    "expectedFirstPageRowCount": 50,
+    "expectedTotalAppCount": 75,
+    "filterQuerySingleMatch": "Test App 19",
+    "filterQueryResetChar": " ",
+    "filterQuerySecondSingleMatch": "Test App 21"
+  }

@@ -1,0 +1,5 @@
+{
+  "invalidUsername": "unknown",
+  "invalidPassword": "user",
+  "invalidCredentialsMessage": "Invalid credentials"
+}

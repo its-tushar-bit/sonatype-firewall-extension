@@ -451,10 +451,8 @@ public abstract class AbstractPlaywrightTest
    * is still valid here even though all {@code @After} methods have already run.
    *
    * <p>
-   * Writes a plain-text diagnostics file beside the step sidecar at
-   * {@code target/playwright-report/data/<class>.<method>.diag.txt}. The Playwright HTML report
-   * does not currently inline this file, but it's archived for triage and can be referenced from
-   * Jenkins job artifacts.
+   * Writes a plain-text diagnostics file to {@code target/playwright-diagnostics/<class>.<method>.diag.txt},
+   * archived as a Jenkins job artifact for triage.
    */
   private void logPlaywrightFailureDiagnostics(Description description, Throwable failure) {
     String fqMethod = description.getClassName() + "." + description.getMethodName();
@@ -562,9 +560,7 @@ public abstract class AbstractPlaywrightTest
   }
 
   /**
-   * Capture a full-page screenshot. Bundled into the report at
-   * {@code target/playwright-report/data/screenshots/<testKey>.png} where the test card embeds
-   * it. The {@code testKey} is the safe-FQN slug computed by the lifecycle rule.
+   * Capture a full-page screenshot to {@code target/playwright-screenshots/<testKey>.png}.
    */
   private void captureScreenshot(String testKey) {
     try {
@@ -649,6 +645,47 @@ public abstract class AbstractPlaywrightTest
     catch (PlaywrightException e) {
       log.debug("playwrightHardreset: storage not accessible at url='{}': {}", url, e.getMessage());
     }
+  }
+
+  /**
+   * Clears cookies/storage and navigates to {@code about:blank} to ensure the page is in a clean
+   * state before a test that does not want any residual navigation history.
+   */
+  protected void playwrightHardresetToBlank() {
+    playwrightHardreset();
+    try {
+      page.navigate("about:blank");
+    }
+    catch (PlaywrightException e) {
+      // SPA may fire a redirect immediately after storage clear; wait for it to settle then retry
+      page.waitForLoadState();
+      page.navigate("about:blank");
+    }
+    page.waitForLoadState();
+  }
+
+  /**
+   * Navigates to {@code path} and retries until the URL contains {@code urlFragment}, up to
+   * {@link PlaywrightTiming#URL_SUBSTRING_TIMEOUT_MS}.
+   * <p>
+   * Useful when the target page redirects or performs an async route change before settling.
+   * <p>
+   * <strong>Note:</strong> designed for direct/single-hop SPA hash routes. Each retry
+   * re-navigates to {@code path}, which resets any in-progress redirect chain. For pages with
+   * multi-hop redirects (post-action navigation, auth guards that temporarily land elsewhere),
+   * prefer {@code playwrightRefreshOrOpen} followed by an explicit {@code page.waitForURL(...)}.
+   */
+  protected void navigateAndWaitForUrl(String path, String urlFragment) {
+    PlaywrightWaitUtils.waitForCondition(
+        () -> {
+          if (!page.url().contains(urlFragment)) {
+            playwrightNavigateTo(path);
+          }
+          return page.url().contains(urlFragment);
+        },
+        PlaywrightTiming.URL_SUBSTRING_TIMEOUT_MS,
+        1_000L,
+        "URL did not contain '" + urlFragment + "' within " + PlaywrightTiming.URL_SUBSTRING_TIMEOUT_MS + "ms");
   }
 
   /**

@@ -7,37 +7,25 @@ package com.sonatype.clm.testing.playwright.tests;
 
 import com.microsoft.playwright.Locator;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.playwright.pages.PolicyEditorPageAssertions;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
-/**
- * Playwright test for root-organization specifics of the policy editor: opening / editing / saving policies on the
- * root org, plus the cross-org inheritance flow (root org has no inherited policies; policies
- * created at the root are inherited and read-only at child orgs).
- *
- * <p>
- * Each test follows a Given/When/Then shape:
- * <ul>
- * <li>{@link #seedRootOrgAndOpenAsAdmin()} resolves the bootstrap-created root org and lands on
- * its owner summary logged-in as admin.</li>
- * <li>The test body either seeds policies via {@link com.sonatype.insight.brain.dataaccess.TemporaryEntity}
- * or drives the UI through the policy editor, then asserts via page-object locators.</li>
- * </ul>
- *
- * <p>
- * Selectors live in {@link PolicyEditorPage} and {@link OwnerSummaryPage}.
- */
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
+/** Playwright tests for root-org policy editor: create at root, and child-org inheritance read-only flow. */
 public class RootOrganizationPolicyEditorPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -55,11 +43,11 @@ public class RootOrganizationPolicyEditorPlaywrightTest
 
   private static final int INHERITED_POLICY_THREAT_LEVEL = 6;
 
-  private static final String CHILD_ORGANIZATION_NAME_PREFIX = "Child Org";
+  private static final String CHILD_ORG_NAME_PREFIX = "Child Org";
+
+  private static final String OVERRIDE_ENABLED_POLICY_NAME = "Override Enabled Root Policy";
 
   private Organization rootOrganization;
-
-  // --------------- @Before ---------------
 
   @Before
   public void seedRootOrgAndOpenAsAdmin() {
@@ -72,7 +60,6 @@ public class RootOrganizationPolicyEditorPlaywrightTest
     playwrightLogin();
   }
 
-  // --------------- @Test methods ---------------
   // Note: the legacy testNewPolicyEditor / testEditExistingPolicy / testSavePolicy methods
   // (migrated 1:1 from the Selenide RootOrganizationPolicyEditorTest) were removed because they
   // duplicated coverage already provided by OrganizationPolicyEditorPlaywrightTest:
@@ -82,12 +69,7 @@ public class RootOrganizationPolicyEditorPlaywrightTest
   // The removed tests asserted nothing root-org-specific; the remaining tests below cover the
   // genuine root-org behavior (no inherited section + child-org inheritance round-trip).
 
-  /**
-   * Steps 4-6 of the manual spec: from the root org's owner summary, open the Policies tile,
-   * verify there is no "Inherited Policies" section (root has no parent), then click "Add a
-   * Policy", create a policy through the full editor flow, and verify the new policy appears in
-   * the local section of the policies tile.
-   */
+  /** Root org has no inherited policies section; a new policy created here appears in the local tile. */
   @Test
   @Category(SanityTest.class)
   public void testRootOrgHasNoInheritedPolicies_andCreatePolicyAppearsInList() {
@@ -109,10 +91,8 @@ public class RootOrganizationPolicyEditorPlaywrightTest
     ownerSummary.addPolicyButton().click();
     assertThat(editorPage.firstConstraintName()).isVisible();
     editorPage.policyName().fill(CREATED_ROOT_POLICY_NAME);
-    editorPage.selectThreatLevel(
-        CREATED_ROOT_POLICY_THREAT_LEVEL, CREATED_ROOT_POLICY_THREAT_LABEL);
-    editorPage.fillDefaultConstraint(
-        CREATED_ROOT_POLICY_CONSTRAINT_NAME, CREATED_ROOT_POLICY_AGE_IN_DAYS);
+    editorPage.selectThreatLevel(CREATED_ROOT_POLICY_THREAT_LEVEL, CREATED_ROOT_POLICY_THREAT_LABEL);
+    editorPage.fillDefaultConstraint(CREATED_ROOT_POLICY_CONSTRAINT_NAME, CREATED_ROOT_POLICY_AGE_IN_DAYS);
     editorPage.clickSubmit();
     waitForSubmitMask();
 
@@ -122,24 +102,19 @@ public class RootOrganizationPolicyEditorPlaywrightTest
     assertThat(ownerSummary.policiesTileRowByName(CREATED_ROOT_POLICY_NAME)).isVisible();
   }
 
-  /**
-   * Step 7 of the manual spec: verify that a policy created at the root org appears in the
-   * "Inherited from Root Organization" section of any child org's policies tile, and that
-   * opening the inherited policy from the child org shows the read-only "Policy Settings" editor
-   * with no Delete button.
-   */
+  /** Policy at root appears as inherited and read-only in a child org's policies tile. */
   @Test
   @Category(SanityTest.class)
   public void testPolicyAtRootIsInheritedByChildOrg_andIsReadOnlyThere() {
     OwnerSummaryPage ownerSummary = new OwnerSummaryPage();
     PolicyEditorPage editorPage = new PolicyEditorPage();
 
-    // Given: a policy seeded at the root org and a temp child org under root. The seeded policy
-    // is identified downstream by name, so we don't need to keep a reference to the returned
-    // Policy — tempEntity owns its cleanup.
+    // Given: a policy seeded at the root org and a temp child org under root. The seeded
+    // policy is identified downstream by name, so we don't need to keep a reference to the
+    // returned Policy — tempEntity owns its cleanup.
     tempEntity.newPolicy(ROOT_ORGANIZATION_ID, INHERITED_POLICY_NAME, INHERITED_POLICY_THREAT_LEVEL);
     Organization childOrg = tempEntity.newOrganization(
-        CHILD_ORGANIZATION_NAME_PREFIX + "-" + TemporaryEntity.uuid(),
+        CHILD_ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid(),
         rootOrganization);
     // When: navigate to the child org's owner summary and open its policies tile.
     playwrightRefreshOrOpen(OwnerSummaryPage.url(childOrg));
@@ -162,5 +137,34 @@ public class RootOrganizationPolicyEditorPlaywrightTest
     // disabled, no Delete Policy button).
     new PolicyEditorPageAssertions(editorPage).shouldBeInheritedReadOnlyView();
     assertThat(editorPage.policyName()).hasValue(INHERITED_POLICY_NAME);
+  }
+
+  /** Child org actions override on an inherited policy persists after page refresh. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testInheritedPolicyWithActionsOverride_updatePersistsOverride() {
+    PolicyEditorPage editorPage = new PolicyEditorPage();
+
+    // Given: a root policy with policyActionsOverrideAllowed=true, and a child org under root.
+    Policy rootPolicy = tempEntity.newPolicy(ROOT_ORGANIZATION_ID, OVERRIDE_ENABLED_POLICY_NAME);
+    rootPolicy.setPolicyActionsOverrideAllowed(true);
+    lookup(PolicyDAO.class).update(rootPolicy);
+    Organization childOrg = tempEntity.newOrganization(
+        CHILD_ORG_NAME_PREFIX + "-" + TemporaryEntity.uuid(),
+        rootOrganization);
+
+    // When: the child org opens the inherited policy editor, selects "Override parent actions",
+    // adds a Warn action, and clicks Update.
+    navigateAndWaitForUrl(PolicyEditorPage.url(childOrg, rootPolicy), PolicyEditorPage.EDIT_URL_FRAGMENT);
+    assertThat(editorPage.container()).isVisible();
+    editorPage.clickOverrideParentActionsRadio();
+    editorPage.clickActionsTableWarnRowFirstRadio();
+    editorPage.clickSubmit();
+    new PolicyEditorPageAssertions(editorPage).shouldShowSaveSuccessMask();
+
+    // Then: after a page refresh the override selection persists.
+    navigateAndWaitForUrl(PolicyEditorPage.url(childOrg, rootPolicy), PolicyEditorPage.EDIT_URL_FRAGMENT);
+    assertThat(editorPage.container()).isVisible();
+    assertThat(editorPage.overrideParentActionsRadio()).isChecked();
   }
 }

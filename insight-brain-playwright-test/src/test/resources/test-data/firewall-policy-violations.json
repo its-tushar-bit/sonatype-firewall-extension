@@ -1,0 +1,24 @@
+{
+  "repositoryManagerInstanceId": "1",
+  "repositoryPublicId": "maven-central",
+  "componentCoordinates": "g:a:1",
+  "policyName": "policyName",
+  "violationCount": 5,
+  "componentInformation": {
+    "componentHash": "abc123",
+    "componentPathname": "g/a/1/a-1.jar"
+  },
+  "securityPolicies": [
+    {
+      "threatLevel": 8,
+      "constraintName": "High CVE",
+      "constraintReason": "High CVSS score"
+    },
+    {
+      "threatLevel": 3,
+      "constraintName": "Low CVE",
+      "constraintReason": "Low CVSS score"
+    }
+  ],
+  "expectedViolationRowCount": 2
+}

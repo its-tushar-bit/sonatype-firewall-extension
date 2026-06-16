@@ -13,6 +13,7 @@ import { clickHrefFor, enterSearchHref } from 'MainRoot/nosc/search/searchClickT
 import router from 'MainRoot/router/routerInstance';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 import { ItemType, SearchResultItemDTO } from 'MainRoot/nosc/search/searchTypes';
+import { registerNexusOneApplicationDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneApplicationDetailStatesForHref';
 
 const CLASSIC = 'http://localhost/assets/index.html';
 
@@ -23,7 +24,7 @@ function registerState(name: string, url: string): void {
 }
 
 beforeAll(() => {
-  registerState('nexusOneApplicationsDetail', '/applications/{publicId}');
+  registerNexusOneApplicationDetailStatesForHref();
   registerState('nexusOneSearch', '/search?q');
   registerState('platformHome', '/home');
   _setBaseUrlForTesting('http://localhost');

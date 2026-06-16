@@ -35,7 +35,7 @@ function classicHref(path: string): string {
 
 export function clickHrefFor(result: SearchResultItemDTO): string {
   if (isApplication(result) && result.applicationPublicId) {
-    return router.stateService.href('nexusOneApplicationsDetail', {
+    return router.stateService.href('nexusOneApplicationsDetail.overview', {
       publicId: result.applicationPublicId,
     });
   }

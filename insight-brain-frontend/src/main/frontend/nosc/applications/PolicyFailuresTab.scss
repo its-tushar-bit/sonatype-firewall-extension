@@ -4,16 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-/* Reset the native <fieldset> chrome so the grouped filters keep their flat
- * sidebar look while gaining fieldset/legend semantics (CLM-39709 review #5). */
-.filterGroup {
+// Filter sidebar fieldsets on the Policy Failures tab. Reset native fieldset
+// chrome so grouped filters keep a flat look while retaining semantics.
+
+.nosc-policy-failures-filter-group {
   min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-.filterLegend {
+.nosc-policy-failures-filter-legend {
   padding: 0;
   margin-bottom: var(--space-2);
   font-size: var(--font-size-2);

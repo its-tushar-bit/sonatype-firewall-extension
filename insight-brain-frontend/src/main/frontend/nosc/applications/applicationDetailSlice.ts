@@ -15,6 +15,7 @@ import {
   PolicyThreatsResponse,
   RawReportResponse,
 } from './applicationDetailTypes';
+import { extractScanId, pickLatestReport } from './applicationDetailUtils';
 
 /**
  * Redux fetch backing the native Nexus One Application Detail page
@@ -87,6 +88,41 @@ export const fetchApplicationRawReport = createAsyncThunk(
       { signal },
     );
     return data;
+  },
+);
+
+export interface LoadApplicationDetailArgs {
+  readonly applicationInternalId: string;
+  readonly publicId: string;
+}
+
+/**
+ * Single entry point for all Application Detail fetches (CLM-40901). Runs
+ * reports first, then policythreats + raw report in parallel when a scanId
+ * exists. Individual fetch thunks still own slice transitions so partial
+ * loading states match the pre-refactor UX.
+ */
+export const loadApplicationDetail = createAsyncThunk(
+  'applicationDetail/load',
+  async ({ applicationInternalId, publicId }: LoadApplicationDetailArgs, { dispatch }) => {
+    const reports = await dispatch(fetchApplicationReports({ applicationInternalId })).unwrap();
+    const latest = pickLatestReport(reports);
+    const scanId = latest ? extractScanId(latest) : null;
+    if (!scanId) {
+      dispatch(resetPolicyThreats());
+      dispatch(resetRawReport());
+      return;
+    }
+    await Promise.all([
+      dispatch(fetchApplicationPolicyThreats({ publicId, scanId })).unwrap(),
+      dispatch(fetchApplicationRawReport({ publicId, scanId })).unwrap(),
+    ]);
+  },
+  {
+    condition: (_, { getState }) => {
+      const reportsStatus = (getState() as ApplicationDetailRootState).applicationDetail.reports.status;
+      return reportsStatus !== 'loading';
+    },
   },
 );
 

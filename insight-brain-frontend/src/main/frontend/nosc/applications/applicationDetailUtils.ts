@@ -9,6 +9,7 @@ import {
   FlatViolation,
   PolicyComponent,
   PolicyThreatsResponse,
+  PolicyViolation,
   RawReportComponent,
   TabId,
   ThreatColor,
@@ -45,18 +46,22 @@ export function deriveComponentDisplay(component: PolicyComponent): string {
   return component.hash ?? '(unknown component)';
 }
 
+export function getAllViolations(
+  component: PolicyComponent,
+): ReadonlyArray<PolicyViolation> {
+  return (
+    component.allViolations ??
+    [...(component.activeViolations ?? []), ...(component.waivedViolations ?? [])]
+  );
+}
+
 export function flattenViolations(report: PolicyThreatsResponse | null): FlatViolation[] {
   if (!report?.aaData) return [];
   const out: FlatViolation[] = [];
   for (const component of report.aaData) {
     if (!component.hash || component.hash === 'null') continue;
     const display = deriveComponentDisplay(component);
-    const violations =
-      component.allViolations ??
-      [
-        ...(component.activeViolations ?? []),
-        ...(component.waivedViolations ?? []),
-      ];
+    const violations = getAllViolations(component);
     for (const v of violations) {
       const { label, color } = classifyThreat(v.policyThreatLevel);
       out.push({
@@ -130,11 +135,27 @@ export const TAB_TO_URL: Readonly<Record<TabId, string>> = {
 
 const DEFAULT_TAB: TabId = 'overview';
 
+export const NEXUS_ONE_APPLICATION_DETAIL_PARENT_STATE = 'nexusOneApplicationsDetail';
+
 /** Map a URL `{tab}` slug to the internal TabId, falling back to the default
  *  so a malformed bookmark still mounts the page cleanly. */
 export function tabFromSlug(slug: string | undefined): TabId {
   if (!slug) return DEFAULT_TAB;
   return URL_TO_TAB[slug] ?? DEFAULT_TAB;
+}
+
+/** Derive the active tab from a UI-Router child state name (`nexusOneApplicationsDetail.{suffix}`). */
+export function tabFromApplicationDetailStateName(stateName: string | undefined): TabId {
+  if (!stateName?.startsWith(`${NEXUS_ONE_APPLICATION_DETAIL_PARENT_STATE}.`)) {
+    return DEFAULT_TAB;
+  }
+  const suffix = stateName.slice(NEXUS_ONE_APPLICATION_DETAIL_PARENT_STATE.length + 1);
+  return tabFromSlug(suffix);
+}
+
+/** Target child state for a tab click (`nexusOneApplicationsDetail.violations`, etc.). */
+export function applicationDetailStateNameForTab(tab: TabId): string {
+  return `${NEXUS_ONE_APPLICATION_DETAIL_PARENT_STATE}.${TAB_TO_URL[tab]}`;
 }
 
 /** Classic (legacy bundle) href, context-path / MTIQ-prefix aware. */

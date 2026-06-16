@@ -20,25 +20,27 @@ import { useTile } from 'MainRoot/nosc/dashboard/useTile';
 import { getApplicationUrl } from 'MainRoot/util/CLMLocation';
 import { useWaiversList } from 'MainRoot/nosc/waivers/useWaivers';
 import { useApplicationDetailData } from './useApplicationDetailData';
-import { selectApplicationReportsState } from './applicationDetailSlice';
+import {
+  selectApplicationPolicyThreatsState,
+  selectApplicationRawReportState,
+} from './applicationDetailSlice';
+import {
+  selectTotalComponentsScanned,
+  selectViolationSummary,
+} from './applicationDetailSelectors';
 import { usePreviewShellOffsets } from 'MainRoot/nosc/shell/previewShellLayout';
-import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import { UIView, useCurrentStateAndParams, useRouter } from '@uirouter/react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { ApplicationDTO, TabId, TAB_IDS } from './applicationDetailTypes';
 import {
-  classicAppDetailHref,
-  classicHref,
-  extractScanId,
-  flattenViolations,
-  pickLatestReport,
-  tabFromSlug,
-  TAB_TO_URL,
+  applicationDetailStateNameForTab,
+  tabFromApplicationDetailStateName,
 } from './applicationDetailUtils';
-import { InlineComingSoon } from './InlineComingSoon';
-import { OverviewTab } from './OverviewTab';
-import { PolicyFailuresTab } from './PolicyFailuresTab';
-import { ComponentsTab } from './ComponentsTab';
-import { AppWaiversTab } from './AppWaiversTab';
+import {
+  ApplicationDetailShellProvider,
+  type ApplicationDetailShellContextValue,
+} from './applicationDetailContext';
 import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 
 import '@radix-ui/themes/styles.css';
@@ -81,20 +83,16 @@ import '@radix-ui/themes/styles.css';
 
 export default function ApplicationDetail(): JSX.Element {
   const offsets = usePreviewShellOffsets();
-  const { params } = useCurrentStateAndParams();
+  const { params, state } = useCurrentStateAndParams();
   const { stateService } = useRouter();
 
   const publicId = typeof params.publicId === 'string' ? params.publicId : '';
-  const activeTab: TabId = tabFromSlug(typeof params.tab === 'string' ? params.tab : undefined);
+  const activeTab: TabId = tabFromApplicationDetailStateName(state?.name);
 
-  /** Tab-click handler: navigate via UI-Router to the per-tab state so the URL
-   *  and history update through the router (each tab is its own history entry,
-   *  matching GitHub/GitLab tabbed-page UX). `activeTab` then re-derives from
-   *  the new `{tab}` param. */
+  /** Tab-click handler: navigate to the matching child state (CLM-40901). */
   const handleTabChange = (next: string): void => {
     if (!TAB_IDS.includes(next as TabId)) return;
-    const nextTab = next as TabId;
-    stateService.go('nexusOneApplicationsDetailTab', { publicId, tab: TAB_TO_URL[nextTab] });
+    stateService.go(applicationDetailStateNameForTab(next as TabId), { publicId });
   };
 
   // Stage 1: load the application metadata so we have its internal `id`.
@@ -115,83 +113,52 @@ export default function ApplicationDetail(): JSX.Element {
     includeAutoWaivers: true,
   });
 
-  // Stages 2-4 (reports → policythreats + raw report) are fetched through
-  // Redux (CLM-39709 review #7). The dependency chain is: reports need the
-  // internal id; policythreats + raw need publicId + the scanId parsed from
-  // the latest report. We derive `latestReport`/`scanId` from the reports
-  // slice and feed scanId back into the hook, which owns all three dispatches.
-  const reportsData = useSelector(selectApplicationReportsState).data;
-  const latestReport = reportsData ? pickLatestReport(reportsData) : null;
-  const scanId = latestReport ? extractScanId(latestReport) : null;
+  const { retryReports, retryPolicy, retryRaw } = useApplicationDetailData({
+    applicationInternalId,
+    publicId,
+  });
 
-  const {
-    reports,
-    reportsStatus,
-    policyThreats,
-    policyStatus,
-    rawReport,
-    rawStatus,
-    retryReports,
-    retryPolicy,
-    retryRaw,
-  } = useApplicationDetailData({ applicationInternalId, publicId, scanId });
+  const policyState = useSelector(selectApplicationPolicyThreatsState);
+  const rawState = useSelector(selectApplicationRawReportState);
+  const { totalViolations } = useSelector(selectViolationSummary);
+  const totalComponentsScanned = useSelector(selectTotalComponentsScanned);
 
-  const {
-    violations,
-    totalViolations,
-    waivedViolations,
-    openViolations,
-    criticalCount,
-    severeCount,
-    moderateCount,
-    maliciousCount,
-    violationCountByHash,
-  } = useMemo(() => {
-    const flat = flattenViolations(policyThreats);
-    let waived = 0;
-    let critical = 0;
-    let severe = 0;
-    let moderate = 0;
-    let malicious = 0;
-    for (const v of flat) {
-      if (/malicious/i.test(v.policyThreatCategory) || /malicious/i.test(v.policyName)) {
-        malicious += 1;
-      }
-      if (v.waived) {
-        waived += 1;
-        continue;
-      }
-      const level = v.policyThreatLevel;
-      if (level >= 8) critical += 1;
-      else if (level >= 4) severe += 1;
-      else if (level >= 2) moderate += 1;
-    }
-    const total = flat.length;
-    const countsByHash: Record<string, number> = {};
-    for (const c of policyThreats?.aaData ?? []) {
-      if (!c.hash || c.hash === 'null') continue;
-      const active = (c.allViolations ?? []).filter((v) => !v.waived && !v.legacyViolation);
-      countsByHash[c.hash] = active.length;
-    }
-    return {
-      violations: flat,
-      totalViolations: total,
-      waivedViolations: waived,
-      openViolations: total - waived,
-      criticalCount: critical,
-      severeCount: severe,
-      moderateCount: moderate,
-      maliciousCount: malicious,
-      violationCountByHash: countsByHash,
-    };
-  }, [policyThreats]);
-
-  const componentCount = policyThreats?.aaData?.length ?? 0;
-
-  const totalComponentsScanned = rawReport?.components?.length ?? 0;
-
-  const overviewIsLoading = appTile.status === 'loading' || reportsStatus === 'loading' || policyStatus === 'loading';
   const overviewIsReady = appTile.status === 'ready';
+
+  // Annotated + memoized so (a) a missing/renamed field is caught here at the
+  // definition site rather than one call deep at the Provider boundary, and
+  // (b) the Provider value keeps a stable identity across renders that don't
+  // change its inputs — otherwise all tab-route consumers re-render every time.
+  const shellContext = useMemo<ApplicationDetailShellContextValue>(
+    () => ({
+      publicId,
+      appData: appTile.data,
+      appStatus: appTile.status,
+      appRetry: appTile.retry,
+      applicationInternalId,
+      waivers,
+      waiversLoading,
+      waiversError,
+      refetchWaivers,
+      retryReports,
+      retryPolicy,
+      retryRaw,
+    }),
+    [
+      publicId,
+      appTile.data,
+      appTile.status,
+      appTile.retry,
+      applicationInternalId,
+      waivers,
+      waiversLoading,
+      waiversError,
+      refetchWaivers,
+      retryReports,
+      retryPolicy,
+      retryRaw,
+    ],
+  );
 
   return (
     // The Radix Theme is provided once by NexusOneShellLayout; this page renders
@@ -292,7 +259,7 @@ export default function ApplicationDetail(): JSX.Element {
             <Tabs.Trigger value="policy-failures" data-testid="nosc-app-detail-tab-policy-failures">
               <Flex align="center" gap="2">
                 Violations
-                {policyStatus === 'ready' && (
+                {policyState.status === 'ready' && (
                   <Badge size="1" color="gray" variant="soft" radius="full">
                     {totalViolations}
                   </Badge>
@@ -302,7 +269,7 @@ export default function ApplicationDetail(): JSX.Element {
             <Tabs.Trigger value="components" data-testid="nosc-app-detail-tab-components">
               <Flex align="center" gap="2">
                 Components
-                {rawStatus === 'ready' && (
+                {rawState.status === 'ready' && (
                   <Badge size="1" color="gray" variant="soft" radius="full">
                     {totalComponentsScanned}
                   </Badge>
@@ -327,87 +294,29 @@ export default function ApplicationDetail(): JSX.Element {
             </Tabs.Trigger>
           </Tabs.List>
 
-          {/* Overview */}
-          <Tabs.Content value="overview" data-testid="nosc-app-detail-tab-content-overview">
-            <OverviewTab
-              appData={appTile.data}
-              publicId={publicId}
-              overviewIsLoading={overviewIsLoading}
-              policyStatus={policyStatus}
-              reportsStatus={reportsStatus}
-              scanId={scanId}
-              latestReport={latestReport}
-              reports={reports}
-              totalViolations={totalViolations}
-              openViolations={openViolations}
-              waivedViolations={waivedViolations}
-              criticalCount={criticalCount}
-              severeCount={severeCount}
-              moderateCount={moderateCount}
-              componentCount={componentCount}
-              maliciousCount={maliciousCount}
-              onRetryPolicy={retryPolicy}
-              onRetryReports={retryReports}
-            />
-          </Tabs.Content>
-
-          {/* Policy Failures */}
-          <Tabs.Content value="policy-failures" data-testid="nosc-app-detail-tab-content-policy-failures">
-            <PolicyFailuresTab
-              violations={violations}
-              loading={policyStatus === 'loading' || reportsStatus === 'loading'}
-              errored={policyStatus === 'error'}
-              onRetry={retryPolicy}
-              showNoScanYet={!scanId && policyStatus !== 'loading' && reportsStatus === 'ready'}
-            />
-          </Tabs.Content>
-
-          {/* Components — live data, no per-component detail page yet
-              (deferred until Guide integration ships per CLM-39709
-              review). Click-through goes to Classic Application
-              Composition Report. */}
-          <Tabs.Content value="components" data-testid="nosc-app-detail-tab-content-components">
-            <ComponentsTab
-              components={rawReport?.components ?? []}
-              status={rawStatus}
-              publicId={publicId}
-              scanId={scanId}
-              violationCountByHash={violationCountByHash}
-              onRetry={retryRaw}
-            />
-          </Tabs.Content>
-
-          {/* SBOMs — Coming Soon */}
-          <Tabs.Content value="sboms" data-testid="nosc-app-detail-tab-content-sboms">
-            <InlineComingSoon
-              testId="nosc-app-detail-sboms-coming-soon"
-              label="SBOMs"
-              description="Generate, ingest, and download CycloneDX or SPDX SBOMs for this application. Coming to Nexus One soon."
-              classicHref={classicHref(`/sbomManager/management/view/application/${encodeURIComponent(publicId)}`)}
-            />
-          </Tabs.Content>
-
-          {/* Waivers — live data, scoped to this application via
-              applicationIds=[{internalId}] in the dashboard query. */}
-          <Tabs.Content value="waivers" data-testid="nosc-app-detail-tab-content-waivers">
-            <AppWaiversTab
-              applicationInternalId={applicationInternalId}
-              publicId={publicId}
-              waivers={waivers}
-              loading={waiversLoading}
-              error={waiversError}
-              refetch={refetchWaivers}
-            />
-          </Tabs.Content>
-
-          {/* Team Members — Coming Soon */}
-          <Tabs.Content value="team-members" data-testid="nosc-app-detail-tab-content-team-members">
-            <InlineComingSoon
-              testId="nosc-app-detail-team-members-coming-soon"
-              label="Team Members"
-              description="See who can access, scan, and waive policy violations for this application — and adjust their roles."
-              classicHref={classicAppDetailHref(publicId)}
-            />
+          {/* Single Tabs.Content mounts only the active tab (UI-Router child inside).
+              Tab-local useState (filter/sort) resets on switch; data-layer state lives in Redux. */}
+          <Tabs.Content
+            value={activeTab}
+            data-testid={`nosc-app-detail-tab-content-${activeTab}`}
+          >
+            <ErrorBoundary
+              resetKeys={[activeTab]}
+              fallbackRender={({ error }) => (
+                <Flex direction="column" gap="2" p="4" mt="4" data-testid="nosc-app-detail-tab-error">
+                  <Text size="3" color="red" weight="medium">
+                    This tab failed to load.
+                  </Text>
+                  <Text size="2" color="gray">
+                    {error instanceof Error ? error.message : String(error)}
+                  </Text>
+                </Flex>
+              )}
+            >
+              <ApplicationDetailShellProvider value={shellContext}>
+                <UIView />
+              </ApplicationDetailShellProvider>
+            </ErrorBoundary>
           </Tabs.Content>
         </Tabs.Root>
       </main>

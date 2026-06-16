@@ -15,9 +15,9 @@ import {
 import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap';
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
+import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
 import { AdvancedSearchComingSoon } from 'MainRoot/nosc/searchResults/AdvancedSearchComingSoon';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
-import PreviewApplicationDetail from 'MainRoot/nosc/applications/ApplicationDetail';
 import {
   WaiversListPage as PreviewWaiversList,
   WaiverDetailPage as PreviewWaiverDetail,
@@ -73,23 +73,10 @@ router.stateRegistry.register({
   },
 } as ReactStateDeclaration);
 
-router.stateRegistry.register({
-  name: 'nexusOneApplicationsDetail',
-  url: '/applications/{publicId}',
-  component: PreviewApplicationDetail,
-  data: {
-    title: 'Nexus One — Application',
-  },
-} as ReactStateDeclaration);
-
-router.stateRegistry.register({
-  name: 'nexusOneApplicationsDetailTab',
-  url: '/applications/{publicId}/{tab}',
-  component: PreviewApplicationDetail,
-  data: {
-    title: 'Nexus One — Application',
-  },
-} as ReactStateDeclaration);
+// Application detail: abstract parent shell + one child state per tab (CLM-40901).
+nexusOneApplicationDetailStates().forEach((state) => {
+  router.stateRegistry.register(state);
+});
 
 router.stateRegistry.register({
   name: 'nexusOneWaivers',

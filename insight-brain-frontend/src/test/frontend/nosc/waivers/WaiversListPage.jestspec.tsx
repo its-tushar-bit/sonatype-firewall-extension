@@ -84,7 +84,7 @@ describe('WaiversListPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('nosc-waivers-list-table-error')).toBeInTheDocument();
     });
-    expect(screen.getByRole('link', { name: /retry/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
   it('every row links to the native Waiver Detail page', async () => {

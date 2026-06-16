@@ -43,7 +43,7 @@ export default function ApplicationsList() {
   // Native Preview app-detail route via the UI-Router state registry; the
   // Classic escape hatch goes through bundleIndexUrl (context-path / MTIQ aware).
   const previewAppDetailUrl = (publicId: string): string =>
-    stateService.href('nexusOneApplicationsDetail', { publicId });
+    stateService.href('nexusOneApplicationsDetail.overview', { publicId });
   const classicAppUrl = (publicId: string): string =>
     bundleIndexUrl('classic', `/management/view/application/${encodeURIComponent(publicId)}`);
 

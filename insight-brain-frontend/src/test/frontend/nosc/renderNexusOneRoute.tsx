@@ -14,6 +14,8 @@ import {
 import { Theme } from '@radix-ui/themes';
 import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { render } from 'TestRoot/SpecUtil';
+import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
+import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 
 /**
  * Mirrors the Radix Theme that {@code NexusOneShellLayout} provides in
@@ -40,18 +42,15 @@ function NexusOneTestTheme({ children }: { children: React.ReactNode }): ReactEl
  * router so tests can assert/drive navigation.
  */
 
-// Mirrors the production registrations in nexus-one/routes.tsx (url + params only;
-// components are rendered directly by the test, so none are needed here). The
-// dashboard waivers tab is included so detail back-links can resolve their href.
+// Mirrors production registrations in nexus-one/routes.tsx. Dashboard + application
+// detail child states are shared with production via the exported state factories.
 const STATES: ReactStateDeclaration[] = [
   { name: 'nexusOneApplications', url: '/applications' },
-  { name: 'nexusOneApplicationsDetail', url: '/applications/{publicId}' },
-  { name: 'nexusOneApplicationsDetailTab', url: '/applications/{publicId}/{tab}' },
+  ...nexusOneApplicationDetailStates(),
   { name: 'nexusOneWaivers', url: '/waivers' },
   { name: 'nexusOneWaiverDetail', url: '/waivers/{ownerType}/{ownerId}/{waiverId}?from' },
   { name: 'platformHome', url: '/home' },
-  { name: 'nexusOneDashboard', url: '/dashboard', abstract: true },
-  { name: 'nexusOneDashboard.waivers', url: '/waivers' },
+  ...nexusOneDashboardStates(),
 ];
 
 export function createNexusOneRouter(

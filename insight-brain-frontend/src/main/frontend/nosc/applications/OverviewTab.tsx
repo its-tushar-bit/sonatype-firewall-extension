@@ -14,7 +14,7 @@ import { ButtonLink } from 'MainRoot/nosc/components/ButtonLink';
 
 import { ApiApplicationReport, ApplicationDTO } from './applicationDetailTypes';
 import { classicAppDetailHref, classicHref, classicReportHref } from './applicationDetailUtils';
-import styles from './OverviewTab.module.css';
+import './OverviewTab.scss';
 
 type FetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -366,7 +366,7 @@ export function OverviewTab(props: OverviewTabProps): JSX.Element {
                     size="2"
                     variant="surface"
                     color="blue"
-                    className={styles.fullWidthLink}
+                    className="nosc-overview-full-width-link"
                     data-testid="nosc-app-detail-view-classic-app"
                   >
                     <Flex align="center" gap="2" justify="center">

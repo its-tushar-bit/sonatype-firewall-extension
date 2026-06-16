@@ -9,29 +9,20 @@ import {
   ApplicationDetailFetchStatus,
   fetchApplicationPolicyThreats,
   fetchApplicationRawReport,
-  fetchApplicationReports,
+  loadApplicationDetail,
   reset,
-  resetPolicyThreats,
-  resetRawReport,
   selectApplicationPolicyThreatsState,
   selectApplicationRawReportState,
   selectApplicationReportsState,
 } from './applicationDetailSlice';
-import {
-  ApiApplicationReport,
-  PolicyThreatsResponse,
-  RawReportResponse,
-} from './applicationDetailTypes';
+import { ApiApplicationReport, PolicyThreatsResponse, RawReportResponse } from './applicationDetailTypes';
+import { extractScanId, pickLatestReport } from './applicationDetailUtils';
 
 export interface UseApplicationDetailDataArgs {
-  /** Internal application id from `GET /rest/application/{publicId}` — gates
-   *  the per-stage reports fetch. Undefined until the app metadata resolves. */
+  /** Internal application id from `GET /rest/application/{publicId}`. */
   readonly applicationInternalId: string | undefined;
-  /** Route publicId — gates (with scanId) the policythreats + raw fetches. */
+  /** Route publicId — passed through to the orchestrating thunk. */
   readonly publicId: string;
-  /** Scan id parsed from the latest report — null until reports resolve / when
-   *  the app has never been scanned. */
-  readonly scanId: string | null;
 }
 
 export interface UseApplicationDetailDataResult {
@@ -47,109 +38,74 @@ export interface UseApplicationDetailDataResult {
 }
 
 /**
- * Orchestrates the three Application Detail fetches through Redux (CLM-39709,
- * review #7). Mirrors `usePreviewNewestRisksData`: dispatch each thunk when its
- * inputs are present and its status is idle; expose a retry per fetch.
- *
- * Dependency chain:
- *   - reports needs `applicationInternalId`.
- *   - policyThreats + rawReport need `publicId` + `scanId`; they clear back to
- *     idle whenever there is no scanId (e.g. an app that's never been scanned),
- *     preserving the original component's semantics.
- *
- * When the application changes (publicId / internal id), the whole slice is
- * reset and the fetches re-run so a different app never shows stale data.
+ * Dispatches the single `loadApplicationDetail` thunk when the application
+ * changes (CLM-40901). Tab child routes can call this hook directly or read
+ * from {@link applicationDetailSelectors} via `useSelector`.
  */
 export function useApplicationDetailData({
   applicationInternalId,
   publicId,
-  scanId,
 }: UseApplicationDetailDataArgs): UseApplicationDetailDataResult {
   const dispatch = useDispatch();
   const reportsState = useSelector(selectApplicationReportsState);
   const policyState = useSelector(selectApplicationPolicyThreatsState);
   const rawState = useSelector(selectApplicationRawReportState);
 
-  // Reset all fetches when the user navigates to a different application so the
-  // previous app's data doesn't flash before the new fetches resolve. Skipped
-  // on first mount (no previous key to compare against).
-  const appKeyRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    const key = `${publicId}|${applicationInternalId ?? ''}`;
-    if (appKeyRef.current !== undefined && appKeyRef.current !== key) {
-      dispatch(reset());
-    }
-    appKeyRef.current = key;
-  }, [dispatch, publicId, applicationInternalId]);
+  // Only clear slice data when the *identity* of the loaded application changes.
+  // A bare `reset()` on every effect run (e.g. a parent re-render handing a new
+  // `applicationInternalId` reference, or a publicId object identity change)
+  // would blank good data to skeletons before the refetch resolves — the same
+  // flash the detail slice's `activeKey` guard avoids. Tracking the previously
+  // loaded identity keeps in-flight data on screen across benign re-runs.
+  const loadedIdentityRef = useRef<string | null>(null);
+  /** Prevents StrictMode / re-render double-dispatch for the same application identity. */
+  const loadInitiatedRef = useRef<string | null>(null);
 
-  // Each fetch is dispatched at most ONCE per distinct input key. Tracking the
-  // attempted key in a ref (rather than relying solely on status === 'idle')
-  // means status/render churn — or a spurious reset — can never re-trigger an
-  // already-attempted fetch, so a report that errors (e.g. a 404) does not
-  // re-fire in a loop. A genuine input change (new app / new scanId) changes
-  // the key and re-fetches; an explicit Retry re-dispatches directly.
-
-  // reports — gated on the internal id.
-  const reportsKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!applicationInternalId) return;
-    if (reportsState.status === 'idle' && reportsKeyRef.current !== applicationInternalId) {
-      reportsKeyRef.current = applicationInternalId;
-      dispatch(fetchApplicationReports({ applicationInternalId }));
+    const identity = `${applicationInternalId}|${publicId}`;
+    if (loadedIdentityRef.current !== identity) {
+      dispatch(reset());
+      loadedIdentityRef.current = identity;
+      loadInitiatedRef.current = null;
     }
-  }, [dispatch, applicationInternalId, reportsState.status]);
+    if (loadInitiatedRef.current === identity) return;
+    loadInitiatedRef.current = identity;
+    void dispatch(loadApplicationDetail({ applicationInternalId, publicId }));
+  }, [dispatch, applicationInternalId, publicId]);
 
-  // policythreats — gated on publicId + scanId; clear to idle when no scanId.
-  const policyKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!publicId || !scanId) {
-      policyKeyRef.current = null;
-      if (policyState.status !== 'idle') {
-        dispatch(resetPolicyThreats());
-      }
-      return;
-    }
-    const key = `${publicId}|${scanId}`;
-    if (policyState.status === 'idle' && policyKeyRef.current !== key) {
-      policyKeyRef.current = key;
-      dispatch(fetchApplicationPolicyThreats({ publicId, scanId }));
-    }
-  }, [dispatch, publicId, scanId, policyState.status]);
-
-  // raw report — same scanId dependency as policythreats; runs in parallel.
-  const rawKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!publicId || !scanId) {
-      rawKeyRef.current = null;
-      if (rawState.status !== 'idle') {
-        dispatch(resetRawReport());
-      }
-      return;
-    }
-    const key = `${publicId}|${scanId}`;
-    if (rawState.status === 'idle' && rawKeyRef.current !== key) {
-      rawKeyRef.current = key;
-      dispatch(fetchApplicationRawReport({ publicId, scanId }));
-    }
-  }, [dispatch, publicId, scanId, rawState.status]);
-
+  // Retry the whole chain, not just reports: reports gate the scanId that
+  // policyThreats + rawReport depend on, and the orchestrating thunk re-runs
+  // those downstream fetches once reports resolve. Dispatching only
+  // fetchApplicationReports would leave policyThreats/rawReport stuck at idle.
   const retryReports = useCallback(() => {
-    if (applicationInternalId && reportsState.status !== 'loading') {
-      dispatch(fetchApplicationReports({ applicationInternalId }));
-    }
-  }, [dispatch, applicationInternalId, reportsState.status]);
+    if (!applicationInternalId || reportsState.status === 'loading') return;
+    void dispatch(loadApplicationDetail({ applicationInternalId, publicId }));
+  }, [dispatch, applicationInternalId, publicId, reportsState.status]);
 
   const retryPolicy = useCallback(() => {
-    if (publicId && scanId && policyState.status !== 'loading') {
-      dispatch(fetchApplicationPolicyThreats({ publicId, scanId }));
+    const latest = pickLatestReport(reportsState.data ?? []);
+    const scanId = latest ? extractScanId(latest) : null;
+    if (!scanId) {
+      if (!applicationInternalId || reportsState.status === 'loading') return;
+      void dispatch(loadApplicationDetail({ applicationInternalId, publicId }));
+      return;
     }
-  }, [dispatch, publicId, scanId, policyState.status]);
+    if (policyState.status === 'loading') return;
+    void dispatch(fetchApplicationPolicyThreats({ publicId, scanId }));
+  }, [dispatch, applicationInternalId, publicId, policyState.status, reportsState.data, reportsState.status]);
 
   const retryRaw = useCallback(() => {
-    if (publicId && scanId && rawState.status !== 'loading') {
-      dispatch(fetchApplicationRawReport({ publicId, scanId }));
+    const latest = pickLatestReport(reportsState.data ?? []);
+    const scanId = latest ? extractScanId(latest) : null;
+    if (!scanId) {
+      if (!applicationInternalId || reportsState.status === 'loading') return;
+      void dispatch(loadApplicationDetail({ applicationInternalId, publicId }));
+      return;
     }
-  }, [dispatch, publicId, scanId, rawState.status]);
+    if (rawState.status === 'loading') return;
+    void dispatch(fetchApplicationRawReport({ publicId, scanId }));
+  }, [dispatch, applicationInternalId, publicId, rawState.status, reportsState.data, reportsState.status]);
 
   return {
     reports: reportsState.data,

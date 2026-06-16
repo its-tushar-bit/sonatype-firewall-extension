@@ -7,7 +7,7 @@ import React from 'react';
 import { Badge, Flex, Link, Table, Text } from '@radix-ui/themes';
 import { useRouter } from '@uirouter/react';
 import { DomainIcons } from 'MainRoot/nosc/icons';
-import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
+import { AsyncPageState } from 'MainRoot/nosc/components/AsyncPageState';
 import type { PolicyWaiverDTO } from './waiverTypes';
 import {
   formatWaiverCalendarDate,
@@ -72,36 +72,18 @@ export default function WaiversTable({
       from: linkFrom,
     });
 
-  if (loading) {
-    return <LoadingSkeleton height={240} data-testid={`${testId}-loading`} />;
-  }
-
-  if (error) {
+  if (loading || error) {
     return (
-      <Flex
-        direction="column"
-        gap="3"
-        align="start"
-        p="4"
-        data-testid={`${testId}-error`}
-        style={{ backgroundColor: 'var(--red-3)', borderRadius: 'var(--radius-3)' }}
-      >
-        <Text size="2" color="red">
-          Failed to load waivers: {error}
-        </Text>
-        {onRetry && (
-          <Link
-            size="2"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onRetry();
-            }}
-          >
-            Retry
-          </Link>
-        )}
-      </Flex>
+      <AsyncPageState
+        loading={loading}
+        error={error}
+        onRetry={onRetry}
+        loadingHeight={240}
+        loadingTestId={`${testId}-loading`}
+        errorTestId={`${testId}-error`}
+        errorTitle="Failed to load waivers"
+        errorVariant="banner"
+      />
     );
   }
 

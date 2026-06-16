@@ -7,9 +7,8 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import ApplicationDetail from 'MainRoot/nosc/applications/ApplicationDetail';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
-import { renderNexusOneRoute } from 'TestRoot/nosc/renderNexusOneRoute';
+import { renderNexusOneApplicationDetail } from 'TestRoot/nosc/applications/renderNexusOneApplicationDetail';
 import {
   getApplicationReportsUrl,
   getApplicationReportRawUrl,
@@ -200,14 +199,7 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
   // router. `tabSlug` (a URL slug, e.g. 'components' | 'violations' | 'waivers')
   // lands on the per-tab state; omit it for the default (overview) tab.
   function renderAppDetail(tabSlug?: string) {
-    return tabSlug
-      ? renderNexusOneRoute(<ApplicationDetail />, 'nexusOneApplicationsDetailTab', {
-          publicId: PUBLIC_ID,
-          tab: tabSlug,
-        })
-      : renderNexusOneRoute(<ApplicationDetail />, 'nexusOneApplicationsDetail', {
-          publicId: PUBLIC_ID,
-        });
+    return renderNexusOneApplicationDetail(PUBLIC_ID, tabSlug);
   }
 
   it('renders the page shell with the publicId baked in as a data attribute', async () => {
@@ -644,6 +636,38 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
     });
   });
 
+  it('retrying a failed reports fetch also loads the downstream policy data (full chain re-runs)', async () => {
+    axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, APPLICATION_FIXTURE);
+
+    // Reports fail first, then succeed on retry. policythreats/raw depend on the
+    // scanId parsed from reports, so they must fire after the retry resolves.
+    let reportCalls = 0;
+    axiosMock.onGet(getApplicationReportsUrl(INTERNAL_ID)).reply(() => {
+      reportCalls += 1;
+      return reportCalls === 1 ? [500, {}] : [200, REPORTS_FIXTURE];
+    });
+    axiosMock.onGet(getReportPolicyThreatsUrl(PUBLIC_ID, SCAN_ID)).reply(200, POLICY_THREATS_FIXTURE);
+    axiosMock.onGet(getApplicationReportRawUrl(PUBLIC_ID, SCAN_ID)).reply(200, RAW_REPORT_FIXTURE);
+
+    renderAppDetail();
+
+    const scanCard = await screen.findByTestId('nosc-app-detail-scan-info-card');
+    await waitFor(() => {
+      expect(within(scanCard).getByText(/could not load scan history/i)).toBeInTheDocument();
+    });
+    await userEvent.click(within(scanCard).getByRole('button', { name: /retry/i }));
+
+    // The downstream policy data must actually load after the retry. The card
+    // shows "Total Violations" whenever a scanId exists, so assert the real count
+    // (3 from POLICY_THREATS_FIXTURE) — it would be 0 if retryReports only
+    // re-fetched reports and never re-ran the policy/raw chain.
+    const policyCard = await screen.findByTestId('nosc-app-detail-policy-compliance-card');
+    await waitFor(() => {
+      const total = within(policyCard).getByText('Total Violations').parentElement;
+      expect(total).toHaveTextContent('3');
+    });
+  });
+
   it('Overview cards show a "not scanned yet" message when the app has no reports', async () => {
     axiosMock.onGet(getApplicationUrl(PUBLIC_ID)).reply(200, APPLICATION_FIXTURE);
     axiosMock.onGet(getApplicationReportsUrl(INTERNAL_ID)).reply(200, []);
@@ -859,8 +883,8 @@ describe('ApplicationDetail (CLM-39709 / P1-F7c)', () => {
       await waitFor(() => {
         // The router lands on the per-tab state with the friendly "violations" slug,
         // and the clicked tab becomes selected (re-derived from the new param).
-        expect(router.globals.current.name).toBe('nexusOneApplicationsDetailTab');
-        expect(router.globals.params.tab).toBe('violations');
+        expect(router.globals.current.name).toBe('nexusOneApplicationsDetail.violations');
+        expect(router.globals.params.publicId).toBe(PUBLIC_ID);
       });
       expect(
         screen.getByTestId('nosc-app-detail-tab-policy-failures').getAttribute('aria-selected'),

@@ -13,6 +13,7 @@ import axios from 'axios';
 import { SearchOmnibar } from 'MainRoot/nosc/search/SearchOmnibar';
 import router from 'MainRoot/router/routerInstance';
 import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
+import { registerNexusOneApplicationDetailStatesForHref } from 'TestRoot/nosc/search/registerNexusOneApplicationDetailStatesForHref';
 
 // Click targets use the real UI-Router singleton (Nexus One states registered
 // below) and the real bundleIndexUrl (Classic deep-links) with a test base URL —
@@ -108,7 +109,7 @@ describe('SearchOmnibar (P1-F13 multi-entity)', () => {
 
     // Register the Nexus One states the omnibar links to, and pin a base URL so
     // the real bundleIndexUrl can resolve Classic deep-links.
-    registerState('nexusOneApplicationsDetail', '/applications/{publicId}');
+    registerNexusOneApplicationDetailStatesForHref();
     registerState('nexusOneSearch', '/search?q');
     registerState('platformHome', '/home');
     _setBaseUrlForTesting('http://localhost');

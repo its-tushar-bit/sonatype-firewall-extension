@@ -3,42 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  getWaiversAndAutoWaiversUrl,
-  getWaiversUrl,
-  getWaiverDetailsUrl,
-} from 'MainRoot/util/CLMLocation';
-import type {
-  PolicyWaiverDTO,
-  PolicyWaiverDetailDTO,
-  WaiversListResponse,
-} from './waiverTypes';
+  fetchNoscWaiverDetail,
+  fetchNoscWaiversList,
+  resetNoscWaiverDetail,
+  selectNoscWaiverDetailState,
+  selectNoscWaiversListHasEntry,
+  selectNoscWaiversListState,
+  waiverDetailKey,
+  waiversListKey,
+  type WaiversListRequest,
+} from './noscWaiversSlice';
+import type { PolicyWaiverDTO, PolicyWaiverDetailDTO } from './waiverTypes';
 
 /**
- * Phase 1 / CLM-39545 (P1-F7d): waiver-data hooks shared by Nexus One waiver
- * UIs.
- *
- * `useWaiversList` POSTs to /rest/dashboard/policy/policyWaivers (the same
- * endpoint Classic uses) with an optional filter. Filter is intentionally a
- * narrow subset of `createDashboardDataRequestPayload` — Phase 1 only cares
- * about scoping by application (for the per-app tab in ApplicationDetail)
- * and about page size. Sort and full filter UI are Phase-2.
- *
- * `useWaiverDetail` GETs /api/v2/policyWaivers/{ownerType}/{ownerId}/{waiverId}
- * for the detail page. We accept ownerType from the URL even though the
- * Classic page silently maps `root_organization → organization` — instead
- * of replicating that mapping here, the WaiverDetailPage normalizes the
- * URL segment before passing it in (single canonical place).
+ * Nexus One waiver-data hooks (CLM-39545 / CLM-40901). Thin wrappers over
+ * {@link noscWaiversSlice} — list and detail fetches run through Redux thunks
+ * instead of component-local `useState` + `axios`.
  */
 
-export interface UseWaiversListOptions {
-  applicationInternalId?: string;
-  pageSize?: number;
-  page?: number;
-  includeAutoWaivers?: boolean;
-}
+export type UseWaiversListOptions = WaiversListRequest;
 
 export interface UseWaiversListResult {
   loading: boolean;
@@ -48,59 +34,64 @@ export interface UseWaiversListResult {
   refetch: () => void;
 }
 
-const DEFAULT_PAGE_SIZE = 100;
-
 export function useWaiversList(options: UseWaiversListOptions = {}): UseWaiversListResult {
+  const dispatch = useDispatch();
   const {
     applicationInternalId,
-    pageSize = DEFAULT_PAGE_SIZE,
-    page = 0,
+    pageSize,
+    page,
     includeAutoWaivers = true,
   } = options;
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [waivers, setWaivers] = useState<ReadonlyArray<PolicyWaiverDTO>>([]);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
-  const [reloadToken, setReloadToken] = useState<number>(0);
+  const listKey = useMemo(
+    () =>
+      waiversListKey({
+        applicationInternalId,
+        pageSize,
+        page,
+        includeAutoWaivers,
+      }),
+    [applicationInternalId, pageSize, page, includeAutoWaivers],
+  );
 
-  const refetch = useCallback(() => setReloadToken((t) => t + 1), []);
+  const listState = useSelector((state) => selectNoscWaiversListState(state, listKey));
+  const hasEntry = useSelector((state) => selectNoscWaiversListHasEntry(state, listKey));
+
+  // `listKey` is a deterministic function of exactly these option fields, so the
+  // primitives below are the only inputs that can change the request. Dispatching
+  // the request object directly (rather than via a ref) keeps the effect and
+  // `refetch` in sync without indirection.
+  const fetchList = useCallback(() => {
+    void dispatch(
+      fetchNoscWaiversList({
+        applicationInternalId,
+        pageSize,
+        page,
+        includeAutoWaivers,
+      }),
+    );
+  }, [dispatch, applicationInternalId, pageSize, page, includeAutoWaivers]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
+    fetchList();
+    // Stale-while-revalidate: cached entries render immediately on navigate-back,
+    // then refetch in the background. This gives instant page loads when switching
+    // between apps while still keeping data fresh. The `pending` reducer sets
+    // `status:'loading'` on the existing entry, so UI can show a subtle refresh
+    // indicator if desired — but the stale waivers remain visible during refetch.
+    //
+    // No cleanup reset: the cache is keyed by `listKey`, so a stale entry is
+    // harmless and key-scoped. Deleting on unmount would clobber a co-mounted
+    // consumer sharing the same key (the collision the keyed cache exists to prevent).
+  }, [fetchList]);
 
-    const url = includeAutoWaivers ? getWaiversAndAutoWaiversUrl() : getWaiversUrl();
-
-    const body: Record<string, unknown> = { pageSize, page };
-    if (applicationInternalId) {
-      body.applicationIds = [applicationInternalId];
-    }
-
-    axios
-      .post<WaiversListResponse>(url, body)
-      .then((res) => {
-        if (cancelled) return;
-        setWaivers(res.data.dashboardResults || []);
-        setHasNextPage(Boolean(res.data.hasNextPage));
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(extractAxiosMessage(err));
-        setWaivers([]);
-        setHasNextPage(false);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [applicationInternalId, pageSize, page, includeAutoWaivers, reloadToken]);
-
-  return { loading, error, waivers, hasNextPage, refetch };
+  return {
+    loading: !hasEntry || listState.status === 'loading',
+    error: listState.error,
+    waivers: listState.waivers,
+    hasNextPage: listState.hasNextPage,
+    refetch: fetchList,
+  };
 }
 
 export interface UseWaiverDetailResult {
@@ -110,61 +101,50 @@ export interface UseWaiverDetailResult {
   refetch: () => void;
 }
 
+/**
+ * Hook for fetching a single waiver's detail. Uses a single global `detail` slot
+ * (unlike `listsByKey` for list fetches) because only one detail page mounts at
+ * a time. The `activeKey` guard prevents stale responses from overwriting newer
+ * data. If a second detail consumer is added in the future (e.g., a dashboard
+ * preview), the slice should be updated to key the detail slot by `waiverDetailKey`
+ * for symmetrical multi-consumer support.
+ */
 export function useWaiverDetail(
   ownerType: string | null,
   ownerId: string | null,
-  waiverId: string | null
+  waiverId: string | null,
 ): UseWaiverDetailResult {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [waiver, setWaiver] = useState<PolicyWaiverDetailDTO | null>(null);
-  const [reloadToken, setReloadToken] = useState<number>(0);
+  const dispatch = useDispatch();
+  const detailState = useSelector(selectNoscWaiverDetailState);
 
-  const refetch = useCallback(() => setReloadToken((t) => t + 1), []);
+  const missingIdentifier = !ownerType || !ownerId || !waiverId;
+  const activeDetailKey = waiverDetailKey(ownerType, ownerId, waiverId);
+  const detailMatchesRequest =
+    !missingIdentifier && detailState.activeKey === activeDetailKey;
+
+  const refetch = useCallback(() => {
+    if (missingIdentifier) return;
+    dispatch(resetNoscWaiverDetail());
+    void dispatch(fetchNoscWaiverDetail({ ownerType, ownerId, waiverId }));
+  }, [dispatch, missingIdentifier, ownerType, ownerId, waiverId]);
 
   useEffect(() => {
-    if (!ownerType || !ownerId || !waiverId) {
-      setLoading(false);
-      setError('Missing waiver identifier');
-      setWaiver(null);
-      return undefined;
-    }
+    refetch();
+  }, [refetch]);
 
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    axios
-      .get<PolicyWaiverDetailDTO>(getWaiverDetailsUrl(ownerType, ownerId, waiverId))
-      .then((res) => {
-        if (cancelled) return;
-        setWaiver(res.data);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(extractAxiosMessage(err));
-        setWaiver(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
+  if (missingIdentifier) {
+    return {
+      loading: false,
+      error: 'Missing waiver identifier',
+      waiver: null,
+      refetch,
     };
-  }, [ownerType, ownerId, waiverId, reloadToken]);
-
-  return { loading, error, waiver, refetch };
-}
-
-function extractAxiosMessage(err: unknown): string {
-  if (!err || typeof err !== 'object') return 'Unknown error';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const e: any = err;
-  if (typeof e.response?.data === 'string' && e.response.data.length < 240) {
-    return e.response.data;
   }
-  if (typeof e.response?.data?.message === 'string') return e.response.data.message;
-  if (typeof e.message === 'string') return e.message;
-  return 'Unknown error';
+
+  return {
+    loading: detailState.status === 'loading' || !detailMatchesRequest,
+    error: detailMatchesRequest ? detailState.error : null,
+    waiver: detailMatchesRequest ? detailState.waiver : null,
+    refetch,
+  };
 }

@@ -26,7 +26,7 @@ import { LoadingSkeleton } from 'MainRoot/nosc/components/LoadingSkeleton';
 import { Pagination } from 'MainRoot/nosc/components/Pagination';
 import { FlatViolation, ThreatLabel } from './applicationDetailTypes';
 import { THREAT_GROUPS, VIOLATION_PAGE_SIZE } from './applicationDetailUtils';
-import filterStyles from './PolicyFailuresTab.module.css';
+import './PolicyFailuresTab.scss';
 
 interface PolicyFailuresTabProps {
   readonly violations: ReadonlyArray<FlatViolation>;
@@ -200,8 +200,8 @@ export function PolicyFailuresTab({
             </Button>
           </Flex>
           <Flex direction="column" gap="4">
-            <fieldset className={filterStyles.filterGroup}>
-              <legend className={filterStyles.filterLegend}>Policy Type</legend>
+            <fieldset className="nosc-policy-failures-filter-group">
+              <legend className="nosc-policy-failures-filter-legend">Policy Type</legend>
               <Flex direction="column" gap="1">
                 {policyTypeOptions.map((type) => (
                   <Text key={type} as="label" size="2">
@@ -219,8 +219,8 @@ export function PolicyFailuresTab({
                 ))}
               </Flex>
             </fieldset>
-            <fieldset className={filterStyles.filterGroup}>
-              <legend className={filterStyles.filterLegend}>Waived</legend>
+            <fieldset className="nosc-policy-failures-filter-group">
+              <legend className="nosc-policy-failures-filter-legend">Waived</legend>
               <Flex direction="column" gap="1">
                 {(['Yes', 'No'] as const).map((val) => (
                   <Text key={val} as="label" size="2">
@@ -238,8 +238,8 @@ export function PolicyFailuresTab({
                 ))}
               </Flex>
             </fieldset>
-            <fieldset className={filterStyles.filterGroup}>
-              <legend className={filterStyles.filterLegend}>Threat Level</legend>
+            <fieldset className="nosc-policy-failures-filter-group">
+              <legend className="nosc-policy-failures-filter-legend">Threat Level</legend>
               <Flex direction="column" gap="1">
                 {THREAT_GROUPS.map(({ group, range }) => (
                   <Text key={group} as="label" size="2">

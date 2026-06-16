@@ -136,7 +136,7 @@ describe('WaiverDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('preview-waiver-detail-error')).toBeInTheDocument();
     });
-    expect(screen.getByRole('link', { name: /retry/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
   });
 
   it('maps root_organization in the URL to organization for the details API', async () => {

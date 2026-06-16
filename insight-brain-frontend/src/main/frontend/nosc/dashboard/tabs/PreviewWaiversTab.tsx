@@ -27,10 +27,11 @@ import WaiversTable from 'MainRoot/nosc/waivers/WaiversTable';
  * **Filter rail trade-off:** the shared filter rail
  * (`DashboardFilter`) is intentionally NOT mounted on this tab. The
  * rail is wired to the Classic `dashboard.waivers` Redux slice, but
- * the nosc table reads from `useWaiversList` — a different code path
- * with no Redux filter integration. Showing a non-functional filter
- * sidebar would be more confusing than helpful; the Phase-2 plan adds
- * native filter chips to the nosc WaiversTable itself.
+ * the nosc table reads from the `noscWaivers` Redux slice via
+ * `useWaiversList` — a different code path with no Classic Redux
+ * filter. Showing a non-functional filter sidebar would be more
+ * confusing than helpful; the Phase-2 plan adds native filter chips
+ * to the nosc WaiversTable itself.
  *
  * Open-in-Classic escape hatch ships in the standalone
  * /waivers page (see WaiversListPage.tsx), so users who need

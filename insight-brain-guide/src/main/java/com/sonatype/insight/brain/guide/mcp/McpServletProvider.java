@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.mcp.tools.McpResponseFormatter;
 import com.sonatype.insight.brain.guide.mcp.util.McpPurlCompleter;
+import com.sonatype.insight.brain.guide.telemetry.GuideChannel;
+import com.sonatype.insight.brain.guide.telemetry.GuideChannelContext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -149,44 +151,50 @@ public class McpServletProvider
 
   @VisibleForTesting
   CallToolResult callTool(McpTransportContext ctx, CallToolRequest request, SearchFunction fn, ToolType toolType) {
-    Map<String, Object> arguments = request.arguments();
-    if (arguments == null) {
-      return errorResult("packageUrls parameter is required");
-    }
-
-    Object packageUrlsValue = arguments.get("packageUrls");
-    if (!(packageUrlsValue instanceof List<?> rawList) || rawList.isEmpty()) {
-      return errorResult("packageUrls parameter is required and cannot be empty");
-    }
-    if (rawList.size() > MAX_BATCH_SIZE) {
-      return errorResult(String.format(
-          "Too many package URLs provided. Maximum allowed is %d, but received %d",
-          MAX_BATCH_SIZE, rawList.size()));
-    }
-
-    String applicationId = resolveParam(arguments, ctx, "applicationId", "X-Application-Id");
-    String stage = resolveParam(arguments, ctx, "stage", "X-Stage");
-
+    GuideChannelContext.set(GuideChannel.MCP);
     try {
-      List<String> results = new ArrayList<>();
-      for (Object item : rawList) {
-        if (!(item instanceof String s) || s.isBlank()) {
-          String invalid = item != null ? item.toString() : "null";
-          results.add(formatError(invalid, toolType, "Invalid package URL: must be a non-blank string"));
-        }
-        else {
-          results.add(processOnePurl(s, fn, toolType, applicationId, stage));
-        }
+      Map<String, Object> arguments = request.arguments();
+      if (arguments == null) {
+        return errorResult("packageUrls parameter is required");
       }
 
-      String merged = mergeJsonArrays(results);
-      return CallToolResult.builder()
-          .content(List.of(new TextContent(merged)))
-          .build();
+      Object packageUrlsValue = arguments.get("packageUrls");
+      if (!(packageUrlsValue instanceof List<?> rawList) || rawList.isEmpty()) {
+        return errorResult("packageUrls parameter is required and cannot be empty");
+      }
+      if (rawList.size() > MAX_BATCH_SIZE) {
+        return errorResult(String.format(
+            "Too many package URLs provided. Maximum allowed is %d, but received %d",
+            MAX_BATCH_SIZE, rawList.size()));
+      }
+
+      String applicationId = resolveParam(arguments, ctx, "applicationId", "X-Application-Id");
+      String stage = resolveParam(arguments, ctx, "stage", "X-Stage");
+
+      try {
+        List<String> results = new ArrayList<>();
+        for (Object item : rawList) {
+          if (!(item instanceof String s) || s.isBlank()) {
+            String invalid = item != null ? item.toString() : "null";
+            results.add(formatError(invalid, toolType, "Invalid package URL: must be a non-blank string"));
+          }
+          else {
+            results.add(processOnePurl(s, fn, toolType, applicationId, stage));
+          }
+        }
+
+        String merged = mergeJsonArrays(results);
+        return CallToolResult.builder()
+            .content(List.of(new TextContent(merged)))
+            .build();
+      }
+      catch (Exception e) {
+        log.warn("Unexpected error calling search tool", e);
+        return errorResult("Component lookup failed — check server logs for details");
+      }
     }
-    catch (Exception e) {
-      log.warn("Unexpected error calling search tool", e);
-      return errorResult("Component lookup failed — check server logs for details");
+    finally {
+      GuideChannelContext.clear();
     }
   }
 

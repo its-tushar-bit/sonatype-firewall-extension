@@ -41,6 +41,24 @@ function getRequestHeaders(): Headers | undefined {
   return init.headers instanceof Headers ? init.headers : new Headers(init.headers as HeadersInit);
 }
 
+describe('apiFetch UI marker header', () => {
+  it('sends the X-Guide-Client: ui header on Guide API GET calls', async () => {
+    await apiFetch('/api/v2/guide/components/detail?purl=pkg:npm/x@1');
+
+    expect(getRequestHeaders()?.get('X-Guide-Client')).toBe('ui');
+  });
+
+  it('sends the X-Guide-Client: ui header on unsafe (POST) calls alongside the CSRF token', async () => {
+    mockGetCsrfToken.mockReturnValue('csrf-abc');
+
+    await apiFetch('/api/v2/guide/recommendations', { method: 'POST' });
+
+    const headers = getRequestHeaders();
+    expect(headers?.get('X-Guide-Client')).toBe('ui');
+    expect(headers?.get('X-CSRF-TOKEN')).toBe('csrf-abc');
+  });
+});
+
 describe('apiFetch CSRF handling', () => {
   it('injects X-CSRF-TOKEN on POST when a token is present', async () => {
     mockGetCsrfToken.mockReturnValue('csrf-abc-123');

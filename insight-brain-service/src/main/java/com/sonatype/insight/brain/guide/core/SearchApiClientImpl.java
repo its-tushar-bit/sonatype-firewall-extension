@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
+import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
+import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -60,12 +62,14 @@ public class SearchApiClientImpl
     this.hdsClient = hdsClient;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public String getComponentByPurl(String purl) {
     return hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", purlForUpstream(purl)));
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public String getLatestComponentVersion(String purl) {
@@ -73,6 +77,7 @@ public class SearchApiClientImpl
         Map.of("purl", purlForUpstream(purl)));
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public GuideRecommendationResult getRecommendations(String purl) {
@@ -88,6 +93,7 @@ public class SearchApiClientImpl
     }
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<ComponentDocument> searchComponents(GuideComponentSearchRequest request) {
@@ -171,6 +177,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.VULNERABILITY_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<VulnerabilityDocument> searchVulnerabilities(GuideVulnerabilitySearchRequest request) {
@@ -246,6 +253,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.GLOBAL_SEARCH)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<SearchResult> globalSearch(GuideGlobalSearchRequest request) {
@@ -293,6 +301,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.VULNERABILITY_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public VulnerabilityDetailDocument getVulnerabilityByRefId(String id) {
@@ -309,6 +318,7 @@ public class SearchApiClientImpl
     }
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.VULNERABILITY_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<AffectedComponentVersion> getVulnerabilityAffectedComponents(
@@ -353,6 +363,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ComponentDetailDocument getComponentDetailByPurl(String purl) {
@@ -371,6 +382,7 @@ public class SearchApiClientImpl
     }
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<ComponentDetailDocument> getComponentVersions(
@@ -442,6 +454,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<VulnerabilityDocument> getComponentVulnerabilities(
@@ -528,6 +541,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ApiSearchResponse<ComponentDocument> getComponentDependencies(
@@ -617,6 +631,7 @@ public class SearchApiClientImpl
     return params;
   }
 
+  @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public ComponentDetailDocument getLatestVersionDetail(String purl) {

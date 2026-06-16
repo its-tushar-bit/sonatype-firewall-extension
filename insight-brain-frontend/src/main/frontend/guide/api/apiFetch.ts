@@ -48,15 +48,19 @@ export async function apiFetch<T>(
 ): Promise<T> {
   let fetchOptions: ApiFetchOptions = init ?? {};
 
+  // Mark every Guide request as originating from the SPA UI so the backend credit-telemetry
+  // filter attributes it to the UI channel (absence of this header means an external API client).
+  const headers = new Headers(fetchOptions.headers as HeadersInit | undefined);
+  headers.set('X-Guide-Client', 'ui');
+
   const method = (fetchOptions.method ?? 'GET').toUpperCase();
   if (!SAFE_METHODS.has(method)) {
     const token = getCsrfToken();
     if (token) {
-      const headers = new Headers(fetchOptions.headers as HeadersInit | undefined);
       headers.set('X-CSRF-TOKEN', token);
-      fetchOptions = { ...fetchOptions, headers };
     }
   }
+  fetchOptions = { ...fetchOptions, headers };
 
   const response = await fetch(path, { credentials: 'same-origin', ...fetchOptions });
 

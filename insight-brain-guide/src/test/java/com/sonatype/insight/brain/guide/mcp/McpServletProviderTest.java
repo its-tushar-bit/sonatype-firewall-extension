@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.guide.mcp.model.McpPolicyViolation;
 import com.sonatype.insight.brain.guide.mcp.model.McpStageResult;
 import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
+import com.sonatype.insight.brain.guide.telemetry.GuideChannel;
+import com.sonatype.insight.brain.guide.telemetry.GuideChannelContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +27,7 @@ import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +77,29 @@ public class McpServletProviderTest
   public void setUp() {
     underTest = new McpServletProvider();
     underTest.initialize(searchApiClient, policyAnnotator);
+  }
+
+  @After
+  public void clearChannel() {
+    GuideChannelContext.clear();
+  }
+
+  @Test
+  public void callTool_marksMcpChannelDuringCall_andClearsAfter() {
+    GuideChannel[] captured = new GuideChannel[1];
+    SearchFunction fn = purl -> {
+      // capture the channel at the SearchApiClient seam (fn is invoked by processOnePurl)
+      captured[0] = GuideChannelContext.getOrDefault();
+      return COMPONENT_JSON;
+    };
+    CallToolRequest request = new CallToolRequest("getComponentVersion",
+        Map.of("packageUrls", List.of(PURL)), null);
+
+    underTest.callTool(McpTransportContext.EMPTY, request, fn, ToolType.COMPONENT_VERSION);
+
+    assertThat(captured[0]).isEqualTo(GuideChannel.MCP);
+    // cleared after the call (defaults to API when unset)
+    assertThat(GuideChannelContext.getOrDefault()).isEqualTo(GuideChannel.API);
   }
 
   @Test

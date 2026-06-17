@@ -9,16 +9,21 @@ import com.sonatype.insight.brain.guide.mcp.McpServletProvider;
 import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 
-import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.Servlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Registers the optional MCP servlet when the GUIDE_MCP feature is enabled.
+ * Registers the MCP servlet at {@code /mcp} as a {@link ServletRegistrationBean} so Spring Boot honors
+ * the exact {@code /mcp} mapping.
+ *
+ * <p>
+ * Reachability also requires {@code mcp} to be in {@link SelectiveJerseyFilter}'s bypass set, so the
+ * Jersey {@code /*} filter lets {@code /mcp} through to this servlet rather than handling it itself.
+ * Access is gated by {@code McpLicenseFilter}.
  */
 @Configuration
 public class McpConfiguration
@@ -26,27 +31,21 @@ public class McpConfiguration
   private static final Logger log = LoggerFactory.getLogger(McpConfiguration.class);
 
   @Bean
-  public ServletContextInitializer mcpServletInitializer(
+  public ServletRegistrationBean<Servlet> mcpServletRegistration(
       final CoreConfiguration.StaticInjectionInitializer staticInjectionInitializer,
-      final ObjectProvider<McpServletProvider> mcpServletProviderProvider,
-      final ObjectProvider<SearchApiClient> searchApiClientProvider,
-      final ObjectProvider<PolicyAnnotator> policyAnnotatorProvider)
+      final McpServletProvider mcpServletProvider,
+      final SearchApiClient searchApiClient,
+      final PolicyAnnotator policyAnnotator)
   {
-    return servletContext -> {
-      McpServletProvider mcpServletProvider = mcpServletProviderProvider.getIfAvailable();
-      if (mcpServletProvider == null) {
-        throw new IllegalStateException("GUIDE_MCP is enabled but McpServletProvider is unavailable");
-      }
+    // initialize() must run before getServlet(). Declaring the collaborators as bean parameters
+    // (including StaticInjectionInitializer) preserves the original init ordering.
+    mcpServletProvider.initialize(searchApiClient, policyAnnotator);
 
-      mcpServletProvider.initialize(searchApiClientProvider.getObject(), policyAnnotatorProvider.getObject());
-      ServletRegistration.Dynamic registration = servletContext.addServlet("mcp", mcpServletProvider.getServlet());
-      if (registration == null) {
-        log.info("MCP servlet already registered, skipping duplicate registration.");
-        return;
-      }
-      registration.addMapping("/mcp", "/mcp/*");
-      registration.setLoadOnStartup(1);
-      log.info("Registered MCP servlet at /mcp");
-    };
+    ServletRegistrationBean<Servlet> registration =
+        new ServletRegistrationBean<>(mcpServletProvider.getServlet(), "/mcp", "/mcp/*");
+    registration.setName("mcp");
+    registration.setLoadOnStartup(1);
+    log.info("Registered MCP servlet at /mcp via ServletRegistrationBean");
+    return registration;
   }
 }

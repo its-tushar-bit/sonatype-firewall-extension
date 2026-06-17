@@ -28,7 +28,10 @@ import org.glassfish.jersey.servlet.ServletContainer;
 public final class SelectiveJerseyFilter
     implements Filter
 {
-  private static final Set<String> SPRING_MVC_PREFIXES = Set.of("assets", "static", "actuator", "ping");
+  // Top-level path segments the Jersey filter must NOT claim, so they pass through to their own
+  // servlets/handlers. "mcp" routes to the MCP servlet (registered by McpConfiguration); without it
+  // the Jersey /* filter answers /mcp with a JAX-RS 404 before the servlet is reached (GUIDE-2797).
+  private static final Set<String> SPRING_MVC_PREFIXES = Set.of("assets", "static", "actuator", "ping", "mcp");
 
   private final ServletContainer delegate;
 

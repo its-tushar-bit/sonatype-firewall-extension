@@ -102,12 +102,13 @@ export default function EnterpriseReportingDashboardPage() {
   }, [dispatch, combinedDashboards, id, groupId]);
 
   useEffect(() => {
-    if (selectedDashboard?.dashboardId) {
-      sendGainsightCustomEvent('enterprise-reporting-dashboard-viewed', {
-        dashboardId: selectedDashboard.dashboardId,
-      });
+    // Use URL id param as fallback for group cards where selectedDashboard may not have dashboardId
+    // id is authoritative from the URL - fires exactly once per navigation
+    const dashboardId = selectedDashboard?.dashboardId || id;
+    if (dashboardId) {
+      sendGainsightCustomEvent('enterprise-reporting-dashboard-viewed', { dashboardId });
     }
-  }, [selectedDashboard?.dashboardId]);
+  }, [id]);
 
   const onTabSelect = (index, groupId) => {
     dispatch(

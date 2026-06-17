@@ -157,6 +157,31 @@ describe('EnterpriseReportingDashboardPage', () => {
     });
   });
 
+  it('fires enterprise-reporting-dashboard-viewed event with URL id param when selectedDashboard has no dashboardId', async () => {
+    const sendEventSpy = jest.spyOn(gainsightUtils, 'sendGainsightCustomEvent');
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'dashboard-from-url' });
+
+    // Render with selectedDashboard that has no dashboardId (group card scenario)
+    render(<EnterpriseReportingDashboardPage />, {
+      preloadedState: {
+        enterpriseReportingDashboard: {
+          selectedDashboard: {
+            dashboardId: undefined, // No dashboardId - simulates group card
+            dashboardPath: 'dashboards/group::group',
+            category: 'enterprise',
+          },
+          dashboardTabs: [],
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(sendEventSpy).toHaveBeenCalledWith('enterprise-reporting-dashboard-viewed', {
+        dashboardId: 'dashboard-from-url',
+      });
+    });
+  });
+
   describe('Dashboard Navigation Links', () => {
     let hrefSpy;
 

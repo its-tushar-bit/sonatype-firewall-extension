@@ -274,5 +274,53 @@ describe('EnterpriseReportCard', () => {
       const button = screen.getByRole('button', { name: initialState.dashboard.accessButtonText });
       expect(button).not.toHaveAttribute('data-analytics-id');
     });
+
+    describe('group card telemetry', () => {
+      const groupDashboard = {
+        category: 'enterprise',
+        groupId: 'parent',
+        features: ['feature1', 'feature2', 'feature3'],
+        title: 'Parent Card',
+        previewImageIcon: 'faBrain',
+        sinceIQVersion: '188',
+        groupedDashboards: [
+          {
+            category: 'enterprise',
+            groupId: 'parent',
+            dashboardId: 'dashboard1',
+            sinceIQVersion: '188',
+            accessButtonText: 'View Dashboard1',
+          },
+          {
+            category: 'enterprise',
+            groupId: 'parent',
+            dashboardId: 'dashboard2',
+            sinceIQVersion: '188',
+            accessButtonText: 'View Dashboard2',
+          },
+        ],
+      };
+
+      it('sets telemetry ID on the wrapper span for the main segmented button', () => {
+        renderComponent({ dashboard: groupDashboard });
+
+        const btn = screen.getByRole('button', { name: 'View Dashboard1' });
+        expect(btn.closest('[data-analytics-id]')).toHaveAttribute(
+          'data-analytics-id',
+          'lc-reporting-dashboard1-view-cta'
+        );
+      });
+
+      it('sets telemetry ID on dropdown buttons', async () => {
+        const user = userEvent.setup();
+        renderComponent({ dashboard: groupDashboard });
+
+        const dropdownBtn = screen.getByRole('button', { name: 'more options' });
+        await user.click(dropdownBtn);
+
+        const dropdownOption = screen.getByRole('button', { name: 'View Dashboard2' });
+        expect(dropdownOption).toHaveAttribute('data-analytics-id', 'lc-reporting-dashboard2-view-cta');
+      });
+    });
   });
 });

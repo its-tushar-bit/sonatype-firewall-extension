@@ -53,6 +53,8 @@ export default function EnterpriseReportCard(props) {
     dispatch(stateGo('enterpriseReportingDashboardGroup', { id: dashId, groupId: dashboard.groupId }));
   };
 
+  const analyticsId = (dashId) => (dashId ? `lc-reporting-${dashId}-view-cta` : undefined);
+
   return (
     <NxCard
       id={`enterprise-reporting-dashboard-${dashboard.dashboardId || dashboard.groupId}`}
@@ -92,23 +94,26 @@ export default function EnterpriseReportCard(props) {
         >
           <span>
             {isGroupCard ? (
-              <NxStatefulSegmentedButton
-                buttonContent={dashboard.groupedDashboards[0]?.accessButtonText}
-                variant="tertiary"
-                onClick={() => onButtonClick(dashboard.groupedDashboards[0]?.dashboardId)}
-                disabled={buttonDisabled}
-                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.groupedDashboards[0].dashboardId}`}
-              >
-                {tail(dashboard.groupedDashboards).map((dash) => (
-                  <button
-                    key={dash.dashboardId}
-                    className={`nx-dropdown-button dashboard-id-btn-${dash.dashboardId}`}
-                    onClick={() => onButtonClick(dash.dashboardId)}
-                  >
-                    {dash.accessButtonText}
-                  </button>
-                ))}
-              </NxStatefulSegmentedButton>
+              <span data-analytics-id={analyticsId(dashboard.groupedDashboards[0]?.dashboardId)}>
+                <NxStatefulSegmentedButton
+                  buttonContent={dashboard.groupedDashboards[0]?.accessButtonText}
+                  variant="tertiary"
+                  onClick={() => onButtonClick(dashboard.groupedDashboards[0]?.dashboardId)}
+                  disabled={buttonDisabled}
+                  className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.groupedDashboards[0].dashboardId}`}
+                >
+                  {tail(dashboard.groupedDashboards).map((dash) => (
+                    <button
+                      key={dash.dashboardId}
+                      className={`nx-dropdown-button dashboard-id-btn-${dash.dashboardId}`}
+                      onClick={() => onButtonClick(dash.dashboardId)}
+                      data-analytics-id={analyticsId(dash.dashboardId)}
+                    >
+                      {dash.accessButtonText}
+                    </button>
+                  ))}
+                </NxStatefulSegmentedButton>
+              </span>
             ) : (
               <NxButton
                 variant="tertiary"
@@ -117,7 +122,7 @@ export default function EnterpriseReportCard(props) {
                 onClick={() => {
                   dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
                 }}
-                data-analytics-id={dashboard.dashboardId ? `lc-reporting-${dashboard.dashboardId}-view-cta` : undefined}
+                data-analytics-id={analyticsId(dashboard.dashboardId)}
               >
                 {/* dashboardId must stay stable — Gainsight tracks lc-reporting-${dashboardId}-view-cta */}
                 {dashboard.accessButtonText}

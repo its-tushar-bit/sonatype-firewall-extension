@@ -221,8 +221,7 @@ public class RepositoryComponentDAO
         .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
         .where(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
         .and(REPOSITORY.MONITORING_ENABLED.isTrue())
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart)
-            .or(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.isNull()))
+        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
         .asTable("ranked");
     return tx.dsl()
         .select(ranked.fields(REPOSITORY_COMPONENT.fields()))
@@ -264,8 +263,7 @@ public class RepositoryComponentDAO
         .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
         .where(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
         .and(REPOSITORY.MONITORING_ENABLED.isTrue())
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart)
-            .or(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.isNull()))
+        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
         .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH)
         .asTable("maxTimes");
 
@@ -292,8 +290,7 @@ public class RepositoryComponentDAO
         .on(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(mtRepoId))
         .and(REPOSITORY_COMPONENT.HASH.eq(mtHash))
         .and(REPOSITORY_COMPONENT.TIME.eq(mtTime))
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart)
-            .or(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.isNull()))
+        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
         .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH)
         .asTable("reps");
 

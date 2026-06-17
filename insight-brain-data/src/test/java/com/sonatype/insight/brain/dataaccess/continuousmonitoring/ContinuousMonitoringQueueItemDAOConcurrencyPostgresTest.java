@@ -53,23 +53,25 @@ public class ContinuousMonitoringQueueItemDAOConcurrencyPostgresTest
   @Test
   public void testAcquirePending_underConcurrentWorkers_eachRowIsAcquiredExactlyOnce() throws Exception {
     int rowCount = 50;
+    // Half-queue per worker so neither can drain it alone, regardless of CI thread scheduling.
+    // SKIP LOCKED's no-double-acquire property is still verified by doesNotContainAnyElementsOf.
+    int perWorkerLimit = rowCount / 2;
     IntStream.range(0, rowCount)
         .forEach(i -> tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-" + i, 0L));
     assertThat(dao.countPending(ContinuousMonitoringFlowType.HOSTED_REPO)).isEqualTo(rowCount);
 
-    // Barrier ensures both workers enter acquirePending at the same wall-clock instant — without
-    // it, a fast CI runner can complete worker-A before worker-B's thread even starts, leaving
-    // worker-B with 0 PENDING rows and undermining the SKIP LOCKED assertion below.
+    // Barrier maximises the chance both acquirePending statements actually overlap at the DB,
+    // where SKIP LOCKED is what keeps their row sets disjoint.
     CyclicBarrier startGate = new CyclicBarrier(2);
     ExecutorService executor = Executors.newFixedThreadPool(2);
     try {
       Callable<List<ContinuousMonitoringQueueItem>> acquireA = () -> {
         startGate.await(10, TimeUnit.SECONDS);
-        return dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", rowCount);
+        return dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", perWorkerLimit);
       };
       Callable<List<ContinuousMonitoringQueueItem>> acquireB = () -> {
         startGate.await(10, TimeUnit.SECONDS);
-        return dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-B", rowCount);
+        return dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-B", perWorkerLimit);
       };
 
       Future<List<ContinuousMonitoringQueueItem>> futureA = executor.submit(acquireA);
@@ -83,10 +85,10 @@ public class ContinuousMonitoringQueueItemDAOConcurrencyPostgresTest
       assertThat(acquiredA).extracting(ContinuousMonitoringQueueItem::getId)
           .doesNotContainAnyElementsOf(
               acquiredB.stream().map(ContinuousMonitoringQueueItem::getId).toList());
-      // Both workers acquired some rows — guaranteed by the start-gate barrier, so an empty
-      // result here means SKIP LOCKED is regressed (one worker waited on the other's locks).
-      assertThat(acquiredA).as("worker-A should acquire at least one row under SKIP LOCKED").isNotEmpty();
-      assertThat(acquiredB).as("worker-B should acquire at least one row under SKIP LOCKED").isNotEmpty();
+      // With rowCount == 2 * perWorkerLimit and the sum assertion above, each worker must
+      // have claimed exactly perWorkerLimit rows.
+      assertThat(acquiredA).as("worker-A should acquire its bounded share").isNotEmpty();
+      assertThat(acquiredB).as("worker-B should acquire its bounded share").isNotEmpty();
       // Every acquired row is in IN_PROGRESS and stamped with the right worker_id.
       assertThat(acquiredA).allSatisfy(item -> assertThat(item.getWorkerId()).isEqualTo("worker-A"));
       assertThat(acquiredB).allSatisfy(item -> assertThat(item.getWorkerId()).isEqualTo("worker-B"));

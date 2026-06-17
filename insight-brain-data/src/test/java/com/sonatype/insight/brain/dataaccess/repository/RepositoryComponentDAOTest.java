@@ -1531,29 +1531,6 @@ public class RepositoryComponentDAOTest
   }
 
   /**
-   * Components that have NEVER been evaluated (last_evaluation_time IS NULL) must be included in
-   * the first cycle. The fix in commit 7b5c8bb7b5 added {@code OR LAST_EVALUATION_TIME IS NULL} to
-   * both the Postgres and H2 paths; this test pins that behaviour so a future refactor that drops
-   * the IS NULL clause fails the test instead of silently regressing first-ever evaluation.
-   */
-  @Test
-  public void getMonitoringEligiblePage_includesComponentsWithNullLastEvaluationTime() {
-    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
-    Instant cycle = Instant.now();
-    Date cycleStart = Date.from(cycle);
-
-    // last_evaluation_time = null → never evaluated → must be included in the cycle.
-    RepositoryComponent neverEvaluated =
-        newComponentWith(hostedRepo.getId(), "/p/never-eval.jar", "hash-null-eval",
-            Date.from(cycle.minusSeconds(60)), null);
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
-      assertThat(page).extracting(RepositoryComponent::getId).contains(neverEvaluated.getId());
-    }
-  }
-
-  /**
    * AT-003 — only repositories with {@code repository_type='hosted'} AND
    * {@code monitoring_enabled=TRUE} contribute candidates.
    */

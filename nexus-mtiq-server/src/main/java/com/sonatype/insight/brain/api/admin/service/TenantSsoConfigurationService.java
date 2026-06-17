@@ -8,8 +8,13 @@ package com.sonatype.insight.brain.api.admin.service;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OidcConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.api.v2.service.AbstractOidcConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiOidcConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -70,14 +75,35 @@ public class TenantSsoConfigurationService
     ssoUserService.loadSsoConfiguration();
   }
 
+  public SsoConfigurationDTO getSsoConfiguration(String tenantSlug) {
+    validateCurrentTenant(tenantSlug);
+
+    OidcConfiguration oidcConfiguration = oidcConfigurationDAO.get();
+    if (oidcConfiguration == null) {
+      throw new NotFoundException("SSO configuration not set: OIDC configuration not found");
+    }
+
+    OAuth2Configuration oAuth2Configuration = oAuth2ConfigurationDAO.getById(oidcConfiguration.getId());
+    if (oAuth2Configuration == null) {
+      throw new NotFoundException("SSO configuration not set: OAuth2 configuration not found");
+    }
+
+    OidcConfigurationDTO oidcDto = OidcConfigurationDTO.toDTO(oidcConfiguration);
+    OAuth2ConfigurationDTO oAuth2Dto = OAuth2ConfigurationDTO.toDTO(oAuth2Configuration);
+    // clientSecret must never be returned in plaintext. Use the standard mask so that
+    // a GET → PUT round-trip preserves the stored secret (buildOidcConfiguration checks for this value).
+    oidcDto.setClientSecret(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
+    return new SsoConfigurationDTO(oAuth2Dto, oidcDto);
+  }
+
   private void validateCurrentTenant(String tenantSlug) {
     if (tenantUtil.isGlobalTenant()) {
-      throw new BadRequestException("Invalid tenant");
+      throw new BadRequestException("Operation not supported for global tenant");
     }
 
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
       log.debug("Tenant {} doesn't exist", tenantSlug);
-      throw new NotFoundException("Tenant doesn't exist");
+      throw new NotFoundException("Tenant " + tenantSlug + " doesn't exist");
     }
   }
 }

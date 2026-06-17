@@ -66,20 +66,64 @@ public class TenantMetadataResourceTest
     HttpResponse response = updateTenantMetadata("global", metadata).put();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+    assertThat(response.getBodyText()).isEqualTo("Operation not supported for global tenant");
   }
 
   @Test
   public void shouldSend404_whenTenantDoesntExist() throws Exception {
     HttpResponse response = updateTenantMetadata("tenant4", metadata).put();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+    assertThat(response.getBodyText()).isEqualTo("Tenant tenant4 doesn't exist");
+  }
+
+  @Test
+  public void shouldGetTenantMetadata_whenTenantExists() throws Exception {
+    // Pre-populate metadata via the existing PUT endpoint so the GET has something to read.
+    HttpResponse putResponse = updateTenantMetadata(getTestTenant().tenantSlug, metadata).put();
+    assertResponseStatus(204, putResponse);
+
+    HttpResponse getResponse = getTenantMetadata(getTestTenant().tenantSlug).get();
+
+    assertResponseStatus(200, getResponse);
+    TenantMetadataDTO body = objectMapper.readValue(getResponse.getBodyText(), TenantMetadataDTO.class);
+    assertThat(body.getApplicationId()).isEqualTo(metadata.getApplicationId());
+    assertThat(body.getApplicationName()).isEqualTo(metadata.getApplicationName());
+    assertThat(body.getConnectionId()).isEqualTo(metadata.getConnectionId());
+    assertThat(body.getConnectionName()).isEqualTo(metadata.getConnectionName());
+    assertThat(body.getEncryptionKeyName()).isEqualTo(metadata.getEncryptionKeyName());
+    assertThat(body.getOrganizationId()).isEqualTo(metadata.getOrganizationId());
+    assertThat(body.getOrganizationName()).isEqualTo(metadata.getOrganizationName());
+  }
+
+  @Test
+  public void shouldGet404_whenGettingMetadataAndNotConfigured() throws Exception {
+    HttpResponse response = getTenantMetadata(getTestTenant().tenantSlug).get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant metadata not set");
+  }
+
+  @Test
+  public void shouldGet400_whenGettingMetadataAndTenantIsGlobal() throws Exception {
+    HttpResponse response = getTenantMetadata("global").get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Operation not supported for global tenant");
+  }
+
+  @Test
+  public void shouldGet404_whenGettingMetadataAndTenantDoesntExist() throws Exception {
+    HttpResponse response = getTenantMetadata("tenant4").get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant tenant4 doesn't exist");
   }
 
   private HttpRequest updateTenantMetadata(String tenant, final TenantMetadataDTO metadata) throws Exception {
     return adminRestRequest(ADMIN_TENANT_METADATA_PATH)
         .parameter(tenant)
         .body(objectMapper.writeValueAsString(metadata));
+  }
+
+  private HttpRequest getTenantMetadata(String tenant) {
+    return adminRestRequest(ADMIN_TENANT_METADATA_PATH).parameter(tenant);
   }
 
   private void assertMetadataResult(TenantMetadata tenantMetadata1, TenantMetadata tenantMetadata2) {

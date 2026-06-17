@@ -47,11 +47,11 @@ public class TenantMetadataConfigurationService
       final String tenantSlug)
   {
     if (tenantUtil.isGlobalTenant()) {
-      throw new BadRequestException("Invalid tenant");
+      throw new BadRequestException("Operation not supported for global tenant");
     }
 
     if (!tenantValidator.validateTenantExists(tenantSlug)) {
-      throw new NotFoundException("Tenant doesn't exist");
+      throw new NotFoundException("Tenant " + tenantSlug + " doesn't exist");
     }
 
     TenantMetadata tenantMetadata = this.tenantMetadataDAO.get();
@@ -67,5 +67,22 @@ public class TenantMetadataConfigurationService
     if (multiTenantEncryptionKeyStore != null) {
       multiTenantEncryptionKeyStore.initializeKey();
     }
+  }
+
+  public TenantMetadataDTO getMetadata(final String tenantSlug) {
+    if (tenantUtil.isGlobalTenant()) {
+      throw new BadRequestException("Operation not supported for global tenant");
+    }
+
+    if (!tenantValidator.validateTenantExists(tenantSlug)) {
+      throw new NotFoundException("Tenant " + tenantSlug + " doesn't exist");
+    }
+
+    TenantMetadata tenantMetadata = this.tenantMetadataDAO.get();
+    if (tenantMetadata == null) {
+      throw new NotFoundException("Tenant metadata not set");
+    }
+
+    return TenantMetadataDTO.toDTO(tenantMetadata);
   }
 }

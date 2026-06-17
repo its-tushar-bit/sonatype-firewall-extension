@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.api.v2.service.ApiOidcConfigurationService;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -111,14 +112,14 @@ public class TenantSsoConfigurationResourceTest
     HttpResponse response = syncSsoProviderDataSources("global").post();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+    assertThat(response.getBodyText()).isEqualTo("Operation not supported for global tenant");
   }
 
   @Test
   public void shouldSend404_whenCallingSyncSsoProviderDataSourcesTenantDoesntExist() throws Exception {
     HttpResponse response = syncSsoProviderDataSources("tenant4").post();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+    assertThat(response.getBodyText()).isEqualTo("Tenant tenant4 doesn't exist");
   }
 
   @Test
@@ -153,14 +154,14 @@ public class TenantSsoConfigurationResourceTest
     HttpResponse response = updateSsoConfiguration("global", ssoConfigurationDTO).put();
 
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+    assertThat(response.getBodyText()).isEqualTo("Operation not supported for global tenant");
   }
 
   @Test
   public void shouldSend404_whenCallingUpdateSsoConfigurationAndTenantDoesntExist() throws Exception {
     HttpResponse response = updateSsoConfiguration("tenant4", ssoConfigurationDTO).put();
     assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+    assertThat(response.getBodyText()).isEqualTo("Tenant tenant4 doesn't exist");
   }
 
   private void assertSamlUserExistsAndIsTheExpected(final String username, final Set<String> samlUserGroups) {
@@ -216,5 +217,58 @@ public class TenantSsoConfigurationResourceTest
         passwordHandler.decryptPassword(oidcConfiguration.getClientSecret()));
     TestCase.assertEquals(oidcConfigurationDTO.getIdpAuthorizationUrl(), oidcConfiguration.getIdpAuthorizationUrl());
     TestCase.assertEquals(oidcConfigurationDTO.getIdpTokenUrl(), oidcConfiguration.getIdpTokenUrl());
+  }
+
+  @Test
+  public void shouldGetSsoConfiguration_whenConfigured() throws Exception {
+    // Pre-populate via the PUT endpoint so the GET has something to read.
+    HttpResponse putResponse = updateSsoConfiguration(getTestTenant().tenantSlug, ssoConfigurationDTO).put();
+    assertResponseStatus(204, putResponse);
+
+    HttpResponse response = getSsoConfiguration(getTestTenant().tenantSlug).get();
+
+    assertResponseStatus(200, response);
+    SsoConfigurationDTO body = objectMapper.readValue(response.getBodyText(), SsoConfigurationDTO.class);
+
+    OidcConfigurationDTO expectedOidc = ssoConfigurationDTO.getOidcConfiguration();
+    OidcConfigurationDTO actualOidc = body.getOidcConfiguration();
+    assertThat(actualOidc.getIdpIssuer()).isEqualTo(expectedOidc.getIdpIssuer());
+    assertThat(actualOidc.getClientId()).isEqualTo(expectedOidc.getClientId());
+    // The plaintext secret must never be returned; the mask signals "configured but redacted".
+    assertThat(actualOidc.getClientSecret()).isEqualTo(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
+    assertThat(actualOidc.getIdpAuthorizationUrl()).isEqualTo(expectedOidc.getIdpAuthorizationUrl());
+    assertThat(actualOidc.getIdpTokenUrl()).isEqualTo(expectedOidc.getIdpTokenUrl());
+
+    OAuth2ConfigurationDTO expectedOAuth2 = ssoConfigurationDTO.getOAuth2Configuration();
+    OAuth2ConfigurationDTO actualOAuth2 = body.getOAuth2Configuration();
+    assertThat(actualOAuth2.getIdpIssuer()).isEqualTo(expectedOAuth2.getIdpIssuer());
+    assertThat(actualOAuth2.getIdpJwsAlgorithm()).isEqualTo(expectedOAuth2.getIdpJwsAlgorithm());
+    assertThat(actualOAuth2.getIdpJwksUrl()).isEqualTo(expectedOAuth2.getIdpJwksUrl());
+    assertThat(actualOAuth2.getIdpJwks()).isEqualTo(expectedOAuth2.getIdpJwks());
+  }
+
+  @Test
+  public void shouldGet404_whenGettingSsoConfigurationAndNotConfigured() throws Exception {
+    HttpResponse response = getSsoConfiguration(getTestTenant().tenantSlug).get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("SSO configuration not set: OIDC configuration not found");
+  }
+
+  @Test
+  public void shouldGet400_whenGettingSsoConfigurationAndTenantIsGlobal() throws Exception {
+    HttpResponse response = getSsoConfiguration("global").get();
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Operation not supported for global tenant");
+  }
+
+  @Test
+  public void shouldGet404_whenGettingSsoConfigurationAndTenantDoesntExist() throws Exception {
+    HttpResponse response = getSsoConfiguration("tenant4").get();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant tenant4 doesn't exist");
+  }
+
+  private HttpRequest getSsoConfiguration(String tenant) {
+    return adminRestRequest(ADMIN_TENANT_SSO_CONFIGURATION_PATH).parameter(tenant);
   }
 }

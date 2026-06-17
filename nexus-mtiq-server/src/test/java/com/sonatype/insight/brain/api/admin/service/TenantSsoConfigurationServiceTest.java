@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.api.v2.service.ApiOidcConfigurationService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
@@ -38,6 +39,7 @@ import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.cr
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createOidcConfiguration;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createSsoConfigurationDTO;
 import static junit.framework.TestCase.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -196,6 +198,82 @@ public class TenantSsoConfigurationServiceTest
           () -> underTest.updateSsoConfiguration(ssoConfigurationDTO, tenant.tenantSlug))
               .withFailMessage("Invalid tenant")
               .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  @Test
+  public void getSsoConfiguration_returnsDtoWithRedactedClientSecret() {
+    OidcConfiguration oidcConfiguration = createOidcConfiguration();
+    OAuth2Configuration oAuth2Configuration = createOAuth2Configuration();
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOidcConfigurationDAO.get()).thenReturn(oidcConfiguration);
+      when(mockOAuth2ConfigurationDAO.getById(ISSUER)).thenReturn(oAuth2Configuration);
+
+      SsoConfigurationDTO result = underTest.getSsoConfiguration(tenant.tenantSlug);
+
+      assertThat(result).isNotNull();
+      assertThat(result.getOidcConfiguration().getIdpIssuer()).isEqualTo(ISSUER);
+      assertThat(result.getOidcConfiguration().getClientId()).isEqualTo(oidcConfiguration.getClientId());
+      assertThat(result.getOidcConfiguration().getClientSecret())
+          .isEqualTo(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
+      assertThat(result.getOAuth2Configuration().getIdpIssuer()).isEqualTo(ISSUER);
+      assertThat(result.getOAuth2Configuration().getIdpJwsAlgorithm())
+          .isEqualTo(oAuth2Configuration.getIdpJwsAlgorithm());
+    });
+  }
+
+  @Test
+  public void getSsoConfiguration_throwsNotFound_whenOidcMissing() {
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOidcConfigurationDAO.get()).thenReturn(null);
+
+      assertThatThrownBy(() -> underTest.getSsoConfiguration(tenant.tenantSlug))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessage("SSO configuration not set: OIDC configuration not found");
+    });
+  }
+
+  @Test
+  public void getSsoConfiguration_throwsNotFound_whenOAuth2Missing() {
+    OidcConfiguration oidcConfiguration = createOidcConfiguration();
+
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(mockOidcConfigurationDAO.get()).thenReturn(oidcConfiguration);
+      when(mockOAuth2ConfigurationDAO.getById(ISSUER)).thenReturn(null);
+
+      assertThatThrownBy(() -> underTest.getSsoConfiguration(tenant.tenantSlug))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessage("SSO configuration not set: OAuth2 configuration not found");
+    });
+  }
+
+  @Test
+  public void getSsoConfiguration_throwsNotFound_whenTenantDoesNotExist() {
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(() -> underTest.getSsoConfiguration(tenant.tenantSlug))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessage("Tenant " + tenant.tenantSlug + " doesn't exist");
+    });
+  }
+
+  @Test
+  public void getSsoConfiguration_throwsBadRequest_whenGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(true);
+
+      assertThatThrownBy(() -> underTest.getSsoConfiguration(tenant.tenantSlug))
+          .isInstanceOf(BadRequestException.class)
+          .hasMessage("Operation not supported for global tenant");
     });
   }
 

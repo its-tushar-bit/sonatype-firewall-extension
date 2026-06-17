@@ -204,6 +204,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -324,6 +326,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
+import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
+import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
+import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.roi.RoiConfiguration;
@@ -756,6 +761,10 @@ public class TemporaryEntity
 
   private ConsumptionLimitConfigDAO consumptionLimitConfigDAO;
 
+  private ContinuousMonitoringQueueItemDAO continuousMonitoringQueueItemDAO;
+
+  private ContinuousMonitoringHostedRepoItemDAO continuousMonitoringHostedRepoItemDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -1021,6 +1030,8 @@ public class TemporaryEntity
       delete(reevaluateCascadeProgressDAO.getAll(), reevaluateCascadeProgressDAO);
       delete(reevaluateCascadeRequestDAO.getAll(), reevaluateCascadeRequestDAO);
       delete(hostedComponentScanQueueDAO.getAll(), hostedComponentScanQueueDAO);
+      // Satellite rows cascade via ON DELETE CASCADE on the FK; only the parent table needs explicit cleanup.
+      delete(continuousMonitoringQueueItemDAO.getAll(), continuousMonitoringQueueItemDAO);
       delete(repositoryDAO.getAll(), repositoryDAO);
       delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
       delete(webhookDAO.getAll(), webhookDAO);
@@ -6890,6 +6901,8 @@ public class TemporaryEntity
     hostedComponentScanQueueDAO = daoFactory.createHostedComponentScanQueueDAO();
     consumptionEventDAO = daoFactory.createConsumptionEventDAO();
     consumptionLimitConfigDAO = daoFactory.createConsumptionLimitConfigDAO();
+    continuousMonitoringQueueItemDAO = daoFactory.createContinuousMonitoringQueueItemDAO();
+    continuousMonitoringHostedRepoItemDAO = daoFactory.createContinuousMonitoringHostedRepoItemDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -7083,5 +7096,67 @@ public class TemporaryEntity
     queueEntry.setRepositoryId(repositoryId);
     hostedComponentScanQueueDAO.insert(queueEntry);
     return queueEntry;
+  }
+
+  /**
+   * Enqueues a Hosted Repo continuous-monitoring queue parent + satellite pair using the same
+   * caller-orchestrated sequence the production producer uses. Cleanup is handled by
+   * {@code continuousMonitoringQueueItemDAO.getAll()} in {@link #after()} (satellites cascade).
+   */
+  public ContinuousMonitoringQueueItem newContinuousMonitoringHostedRepoQueueItem(
+      String repositoryId,
+      String componentHash,
+      long priority)
+  {
+    return newContinuousMonitoringHostedRepoQueueItem(repositoryId, componentHash, priority, new Date());
+  }
+
+  /**
+   * Variant that lets a test pin {@code createTime} explicitly so ordering assertions don't have
+   * to rely on {@code Thread.sleep} between inserts (CLAUDE.md §6 flags Thread.sleep as a flake
+   * source).
+   */
+  public ContinuousMonitoringQueueItem newContinuousMonitoringHostedRepoQueueItem(
+      String repositoryId,
+      String componentHash,
+      long priority,
+      Date createTime)
+  {
+    String queueId = UUID.randomUUID().toString();
+    ContinuousMonitoringQueueItem parent =
+        new ContinuousMonitoringQueueItem(queueId, ContinuousMonitoringFlowType.HOSTED_REPO, priority, createTime);
+    ContinuousMonitoringHostedRepoItem satellite =
+        new ContinuousMonitoringHostedRepoItem(queueId, repositoryId, componentHash);
+    try (TransactionContext tx = continuousMonitoringQueueItemDAO.createTransactionContext()) {
+      tx.begin();
+      continuousMonitoringQueueItemDAO.insertBatch(tx, List.of(parent), false);
+      continuousMonitoringHostedRepoItemDAO.insertIgnoreDuplicateKey(tx, List.of(satellite));
+      continuousMonitoringQueueItemDAO.deleteOrphanParentsForSatelliteTable(
+          tx,
+          List.of(queueId),
+          com.sonatype.insight.brain.jooq.generated.ods.tables.ContinuousMonitoringHostedRepoItem.CONTINUOUS_MONITORING_HOSTED_REPO_ITEM.QUEUE_ID);
+      tx.commit();
+    }
+    return parent;
+  }
+
+  /**
+   * Inserts a parent-only continuous-monitoring queue row (no satellite). Used to seed rows for
+   * non-Hosted flows whose satellite tables do not yet exist.
+   */
+  public ContinuousMonitoringQueueItem newContinuousMonitoringParentOnlyQueueItem(
+      ContinuousMonitoringFlowType flowType,
+      long priority)
+  {
+    ContinuousMonitoringQueueItem parent =
+        new ContinuousMonitoringQueueItem(UUID.randomUUID().toString(), flowType, priority, new Date());
+    try (TransactionContext tx = continuousMonitoringQueueItemDAO.createTransactionContext()) {
+      tx.begin();
+      List<ContinuousMonitoringQueueItem> single = new ArrayList<>();
+      single.add(parent);
+      continuousMonitoringQueueItemDAO.insertBatch(tx, single, false);
+      tx.commit();
+    }
+    return parent;
   }
 }

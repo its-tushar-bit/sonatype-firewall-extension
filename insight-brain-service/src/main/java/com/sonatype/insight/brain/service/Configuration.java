@@ -44,7 +44,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
-import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
+import com.sonatype.insight.brain.continuousmonitoring.RepositoryEvaluationQueueScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
@@ -110,7 +110,7 @@ public class Configuration
 
   private final HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask;
 
-  private final HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler;
+  private final RepositoryEvaluationQueueScheduler repositoryEvaluationQueueScheduler;
 
   private final AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler;
 
@@ -133,7 +133,7 @@ public class Configuration
       @Lazy PullRequestMonitor pullRequestMonitor,
       @Lazy ReleaseGraphCacheProvider releaseGraphCacheProvider,
       @Lazy PolicyMonitorScheduler policyMonitorScheduler,
-      @Lazy HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler,
+      @Lazy RepositoryEvaluationQueueScheduler repositoryEvaluationQueueScheduler,
       @Lazy AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler,
       @Lazy WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler,
       @Lazy HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask,
@@ -153,7 +153,7 @@ public class Configuration
     this.pullRequestMonitor = pullRequestMonitor;
     this.releaseGraphCacheProvider = releaseGraphCacheProvider;
     this.policyMonitorScheduler = policyMonitorScheduler;
-    this.hostedRepositoryMonitorScheduler = hostedRepositoryMonitorScheduler;
+    this.repositoryEvaluationQueueScheduler = repositoryEvaluationQueueScheduler;
     this.automaticQuarantineReleaseScheduler = automaticQuarantineReleaseScheduler;
     this.waivedComponentUpgradeScheduler = waivedComponentUpgradeScheduler;
     this.tenantUtil = tenantUtil;
@@ -199,6 +199,9 @@ public class Configuration
         SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
         SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
         SystemConfigurationProperty.POLICY_MONITORING_HOUR,
+        SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS,
+        SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES,
+        SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES,
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS,
@@ -346,7 +349,7 @@ public class Configuration
             !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
         prop -> {
           policyMonitorScheduler.schedulePolicyMonitoring();
-          hostedRepositoryMonitorScheduler.reschedule();
+          repositoryEvaluationQueueScheduler.reschedule();
         });
   }
 
@@ -640,6 +643,32 @@ public class Configuration
 
   public Integer getPolicyMonitoringHour() {
     return configCache.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR);
+  }
+
+  /**
+   * Worker-thread count (semaphore permit count) for the unified continuous monitoring queue
+   * consumer (CLM-40039 §6.2, reviewer comment #3). Default 4. Changes take effect on next server
+   * restart — the semaphore is constructed once at tenant registration time and is not resized
+   * while the consumer is running.
+   */
+  public Integer getContinuousMonitoringWorkerThreads() {
+    return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS);
+  }
+
+  /**
+   * Maximum retry attempts for continuous monitoring jobs before permanent deletion (CLM-40039
+   * §7.1, reviewer comment #2). Default 3; runtime-mutable.
+   */
+  public Integer getMaxContinuousMonitoringRetries() {
+    return configCache.get(SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES);
+  }
+
+  /**
+   * Jitter window in minutes applied to the continuous monitoring producer's daily fire time
+   * (CLM-40039 §6.1, AT-011). Default 5.
+   */
+  public Integer getContinuousMonitoringJitterMinutes() {
+    return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES);
   }
 
   public Integer getHistoricalPolicyViolationTelemetryHour() {

@@ -100,6 +100,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedDeploymentBlockDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
@@ -803,6 +805,16 @@ public class TestDAOFactory
   @Override
   public HostedDeploymentBlockDAO createHostedDeploymentBlockDAO() {
     return new HostedDeploymentBlockDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ContinuousMonitoringQueueItemDAO createContinuousMonitoringQueueItemDAO() {
+    return new ContinuousMonitoringQueueItemDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ContinuousMonitoringHostedRepoItemDAO createContinuousMonitoringHostedRepoItemDAO() {
+    return new ContinuousMonitoringHostedRepoItemDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

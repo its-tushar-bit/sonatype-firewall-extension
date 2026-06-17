@@ -68,6 +68,12 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.POLICY_MONITORING_HOUR, configuration.getPolicyMonitoringHour());
     entries.put(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR,
         configuration.getHistoricalPolicyViolationTelemetryHour());
+    entries.put(SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS,
+        configuration.getContinuousMonitoringWorkerThreads());
+    entries.put(SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES,
+        configuration.getMaxContinuousMonitoringRetries());
+    entries.put(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES,
+        configuration.getContinuousMonitoringJitterMinutes());
     entries.put(SystemConfigurationProperty.DB_BACKUP_DIR, configuration.getDbBackupDir());
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, MASK);
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, MASK);

@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.relay.RelayClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
-import com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitorScheduler;
+import com.sonatype.insight.brain.continuousmonitoring.RepositoryEvaluationQueueScheduler;
 import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
@@ -92,7 +92,7 @@ public class MultiTenantConfigurationTest
   HistoricalPolicyViolationTelemetryTask historicalPolicyViolationTelemetryTask;
 
   @Mock
-  HostedRepositoryMonitorScheduler hostedRepositoryMonitorScheduler;
+  RepositoryEvaluationQueueScheduler repositoryEvaluationQueueScheduler;
 
   @Mock
   AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler;
@@ -113,7 +113,7 @@ public class MultiTenantConfigurationTest
     underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
         jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
         asyncEventBus, relayClient, taskScheduler, defaultBranchMonitor, pullRequestMonitor,
-        releaseGraphCacheProvider, policyMonitorScheduler, hostedRepositoryMonitorScheduler,
+        releaseGraphCacheProvider, policyMonitorScheduler, repositoryEvaluationQueueScheduler,
         automaticQuarantineReleaseScheduler,
         waivedComponentUpgradeScheduler, historicalPolicyViolationTelemetryTask, tenantUtil);
   }

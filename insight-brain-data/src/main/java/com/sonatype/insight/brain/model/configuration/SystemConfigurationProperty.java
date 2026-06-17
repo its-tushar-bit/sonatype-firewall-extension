@@ -181,6 +181,34 @@ public class SystemConfigurationProperty
 
   public static final String POLICY_MONITORING_HOUR = "policyMonitoringHour";
 
+  /**
+   * Number of worker threads (semaphore permit count) used by the unified continuous monitoring
+   * queue consumer. The consumer dispatches at most this many jobs in flight per tenant. Default
+   * is 4. Changes take effect on next server restart (the semaphore is constructed once at tenant
+   * registration time).
+   */
+  public static final String CONTINUOUS_MONITORING_WORKER_THREADS = "continuousMonitoringWorkerThreads";
+
+  /**
+   * Maximum total number of attempts (initial + retries) for a continuous monitoring job before
+   * it is permanently deleted from the queue (CLM-40039 §7.1, reviewer comment #2). Default 3 —
+   * which means up to 3 attempts (initial + 2 retries) before the row is dropped on the 3rd
+   * failure. Setting this to 1 disables retries (single attempt only). Runtime-mutable: the
+   * consumer reads the current value on each failure via {@code DefaultRetryPolicy}.
+   * <p>
+   * The contract is owned by {@code RetryPolicy.maxRetries()}; see that Javadoc for the precise
+   * semantics. The property name retains the legacy "Retries" suffix for backward compatibility
+   * with existing operator documentation; "total attempts" is the correct mental model.
+   */
+  public static final String MAX_CONTINUOUS_MONITORING_RETRIES = "maxContinuousMonitoringRetries";
+
+  /**
+   * Random-jitter window in minutes applied to the producer's daily fire time (CLM-40039 §6.1,
+   * AT-011). The producer fires at {@code policyMonitoringHour + 10 min ± jitter} to spread DB
+   * and HDS load across nodes and tenants. Default 5.
+   */
+  public static final String CONTINUOUS_MONITORING_JITTER_MINUTES = "continuousMonitoringJitterMinutes";
+
   public static final String HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR = "historicalPolicyViolationTelemetryHour";
 
   public static final String DB_BACKUP_DIR = "dbBackupDir";

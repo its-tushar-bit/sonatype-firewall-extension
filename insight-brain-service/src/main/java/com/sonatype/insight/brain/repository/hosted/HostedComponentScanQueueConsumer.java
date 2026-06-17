@@ -6,10 +6,8 @@
 package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.ByteArrayInputStream;
-import java.io.PrintWriter;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import jakarta.annotation.Nonnull;
@@ -138,11 +136,6 @@ public class HostedComponentScanQueueConsumer
     this.reportDataStoreProvider = reportDataStoreProvider;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.configs = new TenantReference<>(this::loadConfig);
-  }
-
-  public void execute(Map<String, List<String>> parameters, PrintWriter output) throws Exception {
-    log.info("Manual request to run {}.", CONSUMER_NAME);
-    triggerProcessing();
   }
 
   @Override

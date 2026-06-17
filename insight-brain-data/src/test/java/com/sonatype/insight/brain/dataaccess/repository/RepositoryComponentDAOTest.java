@@ -64,6 +64,7 @@ import org.junit.experimental.categories.Category;
 import static com.sonatype.insight.brain.utils.DateConverter.toLocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 @Category(SlowTest.class)
 public class RepositoryComponentDAOTest
@@ -1499,5 +1500,237 @@ public class RepositoryComponentDAOTest
       List<RepositoryComponent> result = dao.getByRepositoryId(tx, repository.getId(), 10, 100);
       assertThat(result).isEmpty();
     }
+  }
+
+  // ----------------------------------------------------------------------
+  // CLM-40039 §6.1 — getMonitoringEligiblePage: eligibility filter + dedup
+  // by (repository_id, hash) + globally newest-first emission.
+  // Covers AT-001 / AT-002 / AT-003 plus the dedup + newest-first behavior
+  // introduced by the audit-finding fix to RepositoryComponentDAO.
+  // ----------------------------------------------------------------------
+
+  /**
+   * AT-002 — components with {@code last_evaluation_time >= cycleStart} are excluded so the
+   * cycle does not re-evaluate work it just did.
+   */
+  @Test
+  public void getMonitoringEligiblePage_excludesComponentsEvaluatedAtOrAfterCycleStart() {
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    Date afterCycle = Date.from(cycle.plusSeconds(60));
+    Date beforeCycle = Date.from(cycle.minusSeconds(60));
+
+    RepositoryComponent stale = newComponentWithEvalTime(hostedRepo.getId(), "/path/old.jar", "hash-old", beforeCycle);
+    newComponentWithEvalTime(hostedRepo.getId(), "/path/fresh.jar", "hash-fresh", afterCycle);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).extracting(RepositoryComponent::getId).containsExactly(stale.getId());
+    }
+  }
+
+  /**
+   * Components that have NEVER been evaluated (last_evaluation_time IS NULL) must be included in
+   * the first cycle. The fix in commit 7b5c8bb7b5 added {@code OR LAST_EVALUATION_TIME IS NULL} to
+   * both the Postgres and H2 paths; this test pins that behaviour so a future refactor that drops
+   * the IS NULL clause fails the test instead of silently regressing first-ever evaluation.
+   */
+  @Test
+  public void getMonitoringEligiblePage_includesComponentsWithNullLastEvaluationTime() {
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+
+    // last_evaluation_time = null → never evaluated → must be included in the cycle.
+    RepositoryComponent neverEvaluated =
+        newComponentWith(hostedRepo.getId(), "/p/never-eval.jar", "hash-null-eval",
+            Date.from(cycle.minusSeconds(60)), null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).extracting(RepositoryComponent::getId).contains(neverEvaluated.getId());
+    }
+  }
+
+  /**
+   * AT-003 — only repositories with {@code repository_type='hosted'} AND
+   * {@code monitoring_enabled=TRUE} contribute candidates.
+   */
+  @Test
+  public void getMonitoringEligiblePage_excludesNonHostedAndMonitoringDisabledRepositories() {
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    Date past = Date.from(cycle.minusSeconds(60));
+
+    // Hosted, monitoring enabled — eligible.
+    Repository eligible = tempEntity.newHostedRepository(repositoryManager, uuid("eligible"), "maven2", false);
+    RepositoryComponent eligibleRc = newComponentWithEvalTime(eligible.getId(), "/p/eligible.jar", "h-elig", past);
+
+    // Hosted, monitoring DISABLED — excluded.
+    Repository disabled = tempEntity.newHostedRepository(repositoryManager, uuid("disabled"), "maven2", false);
+    disabled.setMonitoringEnabled(false);
+    daoFactory.createRepositoryDAO().update(disabled);
+    newComponentWithEvalTime(disabled.getId(), "/p/disabled.jar", "h-disab", past);
+
+    // Proxy repo (default newRepository is proxy) — excluded.
+    newComponentWithEvalTime(repository.getId(), "/p/proxy.jar", "h-proxy", past);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).extracting(RepositoryComponent::getId).containsExactly(eligibleRc.getId());
+    }
+  }
+
+  /**
+   * Dedup behavior — multiple {@code repository_component} rows sharing the same
+   * {@code (repository_id, hash)} pair (e.g. same jar at different pathnames) collapse to a
+   * single representative. Without this, parent queue rows would orphan against the
+   * satellite UNIQUE constraint on consume.
+   */
+  @Test
+  public void getMonitoringEligiblePage_dedupsByRepositoryIdAndHash() {
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+    Date cycleStart = new Date();
+    Date past = new Date(cycleStart.getTime() - 60_000L);
+
+    // Three rows in the same repo with the same hash but different pathnames.
+    newComponentWithEvalTime(hostedRepo.getId(), "/a/lib.jar", "shared-hash", past);
+    newComponentWithEvalTime(hostedRepo.getId(), "/b/lib.jar", "shared-hash", past);
+    newComponentWithEvalTime(hostedRepo.getId(), "/c/lib.jar", "shared-hash", past);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).hasSize(1);
+      assertThat(page).extracting(RepositoryComponent::getRepositoryId, RepositoryComponent::getHash)
+          .containsExactly(tuple(hostedRepo.getId(), "shared-hash"));
+    }
+  }
+
+  /**
+   * Within each {@code (repository_id, hash)} group, the row with the most recent
+   * {@code repository_component.time} wins as the representative — the design's "newest-first"
+   * intent operating at the dedup-group level.
+   */
+  @Test
+  public void getMonitoringEligiblePage_picksMostRecentRowAsRepresentativePerGroup() {
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    Date oldest = Date.from(cycle.minusSeconds(600));
+    Date middle = Date.from(cycle.minusSeconds(400));
+    Date newest = Date.from(cycle.minusSeconds(200));
+
+    RepositoryComponent oldestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", oldest);
+    RepositoryComponent middleRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", middle);
+    RepositoryComponent newestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/c", "h", newest);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).hasSize(1);
+      assertThat(page.get(0).getId()).isEqualTo(newestRow.getId());
+      // Sanity: the older rows do exist in the table; they were filtered, not deleted.
+      assertThat(dao.getById(oldestRow.getId())).isNotNull();
+      assertThat(dao.getById(middleRow.getId())).isNotNull();
+    }
+  }
+
+  /**
+   * Across repositories, the deduped result is emitted globally newest-first by
+   * {@code rc.time DESC} so a freshly-uploaded artifact in any repo is picked up before
+   * older ones (design doc §6.1, refined for hosted repo).
+   */
+  @Test
+  public void getMonitoringEligiblePage_emitsGloballyNewestFirstAcrossRepositories() {
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    // Three repos whose newest rc.time differs. Naming chosen so alphabetical
+    // ordering by repository_id would NOT match the expected newest-first emission.
+    Repository repoA = tempEntity.newHostedRepository(repositoryManager, "aaa-" + uuid("r"), "maven2", false);
+    Repository repoB = tempEntity.newHostedRepository(repositoryManager, "bbb-" + uuid("r"), "maven2", false);
+    Repository repoC = tempEntity.newHostedRepository(repositoryManager, "ccc-" + uuid("r"), "maven2", false);
+
+    Date oldTime = Date.from(cycle.minusSeconds(900));
+    Date midTime = Date.from(cycle.minusSeconds(600));
+    Date newTime = Date.from(cycle.minusSeconds(300));
+
+    RepositoryComponent inA = newComponentWithTimeAndHash(repoA.getId(), "/a", "h-a", oldTime);
+    RepositoryComponent inB = newComponentWithTimeAndHash(repoB.getId(), "/b", "h-b", newTime);
+    RepositoryComponent inC = newComponentWithTimeAndHash(repoC.getId(), "/c", "h-c", midTime);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      assertThat(page).extracting(RepositoryComponent::getId)
+          .containsExactly(inB.getId(), inC.getId(), inA.getId());
+    }
+  }
+
+  /**
+   * AT-001 — eligibility query is page-aware: limit + offset slice the deduped, ordered set.
+   */
+  @Test
+  public void getMonitoringEligiblePage_paginatesDedupedNewestFirstResult() {
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+
+    // 4 distinct (repo, hash) pairs, ordered newest-first by time.
+    RepositoryComponent first = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
+        Date.from(cycle.minusSeconds(100)));
+    RepositoryComponent second = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
+        Date.from(cycle.minusSeconds(200)));
+    RepositoryComponent third = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
+        Date.from(cycle.minusSeconds(300)));
+    RepositoryComponent fourth = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
+        Date.from(cycle.minusSeconds(400)));
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, 0);
+      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, 2);
+
+      assertThat(page1).extracting(RepositoryComponent::getId).containsExactly(first.getId(), second.getId());
+      assertThat(page2).extracting(RepositoryComponent::getId).containsExactly(third.getId(), fourth.getId());
+    }
+  }
+
+  // -- helpers ---------------------------------------------------------------
+
+  private RepositoryComponent newComponentWithEvalTime(
+      String repositoryId,
+      String pathname,
+      String hash,
+      Date evalTime)
+  {
+    return newComponentWith(repositoryId, pathname, hash, evalTime, evalTime);
+  }
+
+  private RepositoryComponent newComponentWithTimeAndHash(
+      String repositoryId,
+      String pathname,
+      String hash,
+      Date rcTime)
+  {
+    // last_evaluation_time stays in the past so the row is eligible; rc.time controls emission order.
+    Date pastEval = new Date(rcTime.getTime() - 3600_000L);
+    return newComponentWith(repositoryId, pathname, hash, rcTime, pastEval);
+  }
+
+  private RepositoryComponent newComponentWith(
+      String repositoryId,
+      String pathname,
+      String hash,
+      Date rcTime,
+      Date lastEvalTime)
+  {
+    RepositoryComponent rc = new RepositoryComponent(
+        repositoryId, pathname, rcTime, hash,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+        MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), lastEvalTime);
+    dao.insert(rc);
+    return rc;
+  }
+
+  private static String uuid(String prefix) {
+    return prefix + "-" + java.util.UUID.randomUUID().toString().substring(0, 8);
   }
 }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.queue;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -24,7 +25,11 @@ public class QueueTask
   private final Consumer<String> onStart;
 
   QueueTask(final String jobId, final Runnable delegate, final Consumer<String> onStart) {
-    this.jobId = jobId;
+    // jobId must be non-null because downstream sites (queuedItemIds.add, Set.of(jobId) for
+    // unacquire) cannot accept null — Java immutable collections reject null elements (CLM-37961
+    // / AT-024). Failing here pinpoints the offending getJobId() implementation rather than
+    // surfacing as an opaque NPE deep in dispatch().
+    this.jobId = Objects.requireNonNull(jobId, "jobId must not be null");
     this.delegate = delegate;
     this.onStart = onStart;
   }

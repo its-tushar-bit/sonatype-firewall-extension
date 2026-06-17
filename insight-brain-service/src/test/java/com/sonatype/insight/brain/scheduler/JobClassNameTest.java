@@ -149,9 +149,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.ReevaluateCascadeRequestCleaner", "ReevaluateCascadeRequestCleaner");
     insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.repository.hosted.monitoring.HostedRepositoryMonitoringTask",
-        "HostedRepositoryMonitoringTask");
-    insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.repository.hosted.HostedDeploymentBlockCleanupTask",
         "HostedDeploymentBlockCleanupTask");
     insightJobClassNameToExpectedJobName.put(
@@ -159,6 +156,9 @@ public class JobClassNameTest
         "SystemConfigurationPropertyCacheInvalidation");
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.relay.RelayLinkRetrySweepTask", "RelayLinkRetrySweepTask");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.continuousmonitoring.RepositoryEvaluationQueueProducerJob",
+        "RepositoryEvaluationQueueProducerJob");
   }
 
   @Inject

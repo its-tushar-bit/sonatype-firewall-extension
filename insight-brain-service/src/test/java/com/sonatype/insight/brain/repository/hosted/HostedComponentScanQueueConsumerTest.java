@@ -73,6 +73,13 @@ public class HostedComponentScanQueueConsumerTest
     consumer.disableForTesting = true;
     setHdsUrl(hdsMockServer.getHttpUrl());
     hdsMockServer.reset();
+    // Reset queue config to defaults so tests that mutate it via setQueueConfig do not leak
+    // state into sibling tests. Without this, configurationChanged_appliesNewConfig and
+    // handleConfigurationChanged_resizesWorkerThreadPool flake when run after a test that
+    // changed workerThreadsPerTenant.
+    setQueueConfig(
+        "{\"enabled\":true,\"workerThreadsPerTenant\":1,\"pollIntervalMilliseconds\":30000,"
+            + "\"maxQueuedRows\":10,\"maxRetries\":3}");
     // Note: GET /rest/application/analysis/{scanId} is handled by the HDS mock built-in
     // handler (returns 400 BadRequest). ReportDownloader only retries on NotFoundException
     // and BadGatewayException — a 400 fails fast so jobs complete within the test window.

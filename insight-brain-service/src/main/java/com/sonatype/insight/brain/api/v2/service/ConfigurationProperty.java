@@ -148,6 +148,21 @@ public class ConfigurationProperty
         (p, s) -> NumberUtils.toInt(s, 0),
         (p, o) -> ConfigurationUtils.integerValueToString(o, SystemConfigurationProperty.POLICY_MONITORING_HOUR,
             0, 23)),
+    // CLM-40039: unified continuous monitoring queue tuning. Runtime-mutable so operators can
+    // adjust worker concurrency, retry budget, and producer jitter without a restart (reviewer
+    // comments #2, #3 on the design doc).
+    new ConfigurationProperty(SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS, Integer.class,
+        (p, s) -> NumberUtils.toInt(s, 4),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS, 1, 64)),
+    new ConfigurationProperty(SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES, Integer.class,
+        (p, s) -> NumberUtils.toInt(s, 3),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES, 1, 100)),
+    new ConfigurationProperty(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES, Integer.class,
+        (p, s) -> NumberUtils.toInt(s, 5),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES, 0, 240)),
     new ConfigurationProperty(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, Integer.class,
         (p, s) -> s == null ? null : NumberUtils.toInt(s, 0), (p, o) -> ConfigurationUtils.integerValueToString(o,
             SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 0, 23)),

@@ -2463,3 +2463,32 @@ CREATE TABLE relay_event_log (
 CREATE INDEX relay_event_log_secondary_idx
   ON relay_event_log(application_public_id, pull_request_number, commit_hash, mode, event_type);
 CREATE INDEX relay_event_log_processed_at_idx ON relay_event_log(processed_at);
+
+CREATE TABLE continuous_monitoring_queue (
+  id varchar(50) NOT NULL,
+  flow_type varchar(50) NOT NULL,
+  priority bigint NOT NULL,
+  status varchar(20) NOT NULL DEFAULT 'PENDING',
+  retry_count integer NOT NULL DEFAULT 0,
+  create_time timestamp NOT NULL,
+  update_time timestamp NOT NULL,
+  acquired_at timestamp,
+  worker_id varchar(50),
+  error_message varchar(500),
+  CONSTRAINT continuous_monitoring_queue_pk PRIMARY KEY (id)
+);
+CREATE INDEX continuous_monitoring_queue_status_idx ON continuous_monitoring_queue(status);
+
+CREATE TABLE continuous_monitoring_hosted_repo_item (
+  queue_id varchar(50) NOT NULL,
+  repository_id varchar(255) NOT NULL,
+  component_hash varchar(255) NOT NULL,
+  CONSTRAINT continuous_monitoring_hosted_repo_item_pk PRIMARY KEY (queue_id),
+  CONSTRAINT continuous_monitoring_hosted_repo_item_fk FOREIGN KEY (queue_id) REFERENCES continuous_monitoring_queue(id) ON DELETE CASCADE,
+  CONSTRAINT continuous_monitoring_hosted_repo_item_natural_uk UNIQUE (repository_id, component_hash)
+);
+CREATE INDEX continuous_monitoring_hosted_repo_item_repository_id_idx ON continuous_monitoring_hosted_repo_item(repository_id);
+CREATE INDEX continuous_monitoring_queue_acquired_at_idx ON continuous_monitoring_queue(acquired_at);
+-- Note: continuous_monitoring_queue_flow_priority_* index is dialect-specific and lives in
+-- schema_post_init_h2.sql (plain composite) and schema_post_init_postgres.sql (partial WHERE
+-- status='PENDING'), mirroring the policy_violation_app_stage_open_unfixed_idx precedent.

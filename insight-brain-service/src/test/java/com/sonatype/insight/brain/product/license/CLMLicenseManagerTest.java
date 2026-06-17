@@ -1347,6 +1347,30 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testLoadLicense_GuideMcpFeature_ExternalDatabaseNotAllowed() {
+    // GUIDE_MCP gates McpLicenseFilter independently of the GUIDE umbrella, so HDS signing it
+    // alone must still be rejected on embedded DB.
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE_MCP));
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
+  public void testLoadLicense_GuideSearchFeature_ExternalDatabaseNotAllowed() {
+    // GUIDE_SEARCH gates SearchLicenseFilter independently of the GUIDE umbrella, so HDS signing
+    // it alone must still be rejected on embedded DB.
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE_SEARCH));
+
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
+  }
+
+  @Test
   public void testInstallLicense_LegacyVersion() {
     licenseManager.setVersion(0);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -1497,6 +1521,28 @@ public class CLMLicenseManagerTest
   @Test
   public void testInstallLicense_GuideFeature_ExternalDatabaseNotAllowed() {
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE));
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_GuideMcpFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE_MCP));
+    clmLicenseManager.uninstallLicense();
+
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining(
+            "Guide feature requires use of an external database, please retry using an external database.");
+    assertThat(productLicense.isValid()).isFalse();
+  }
+
+  @Test
+  public void testInstallLicense_GuideSearchFeature_ExternalDatabaseNotAllowed() {
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.GUIDE_SEARCH));
     clmLicenseManager.uninstallLicense();
 
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -2682,10 +2728,12 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testGetFeatures_GuideSelfHosted() throws Exception {
+    config.setDatabase(new DatabaseConfig());
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
-    mockHdsProductLicenseDetails(withFeatures());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH));
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+    assertThat(productLicense.getFeatures()).contains(
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);
@@ -2693,15 +2741,43 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testGetFeatures_GuideSelfHosted_viaGuideProductsProperty() throws Exception {
+    config.setDatabase(new DatabaseConfig());
     licenseManager.setProducts("");
     licenseManager.setProperty(ProductLicenseDetails.PROPERTY_GUIDE_PRODUCTS,
         ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
-    mockHdsProductLicenseDetails(withFeatures());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH));
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+    assertThat(productLicense.getFeatures()).contains(
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGetFeatures_GuideSelfHosted_HdsOmitsAllFeatures() throws Exception {
+    // No external DB configured here: when HDS omits GUIDE from features_csv,
+    // validateExternalDatabaseForFeature does not throw, so installLicense succeeds on embedded DB
+    // and we can assert the cache simply does not pick up the Guide features.
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(
+        LicensedFeature.GUIDE,
+        LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH);
+  }
+
+  @Test
+  public void testGetFeatures_GuideSelfHosted_HdsSignsPartialFeatures() throws Exception {
+    config.setDatabase(new DatabaseConfig());
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
+    mockHdsProductLicenseDetails(withFeatures(
+        LicensedFeature.EXTERNAL_DATABASE, LicensedFeature.GUIDE, LicensedFeature.GUIDE_SEARCH));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_SEARCH);
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.GUIDE_MCP);
   }
 
   @Test
@@ -2843,11 +2919,13 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testGuideSelfHosted_guideOnlyFeature_accepted() throws Exception {
+    config.setDatabase(new DatabaseConfig());
     licenseManager.setAllowedFeatureIds(GuideFeature.ID);
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
-    mockHdsProductLicenseDetails(withFeatures());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH));
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+    assertThat(productLicense.getFeatures()).contains(
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);
@@ -2855,11 +2933,13 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testGuideSelfHosted_clmFeature_accepted() throws Exception {
+    config.setDatabase(new DatabaseConfig());
     licenseManager.setAllowedFeatureIds(CLMFeature.ID);
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
-    mockHdsProductLicenseDetails(withFeatures());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH));
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+    assertThat(productLicense.getFeatures()).contains(
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);
@@ -2867,11 +2947,13 @@ public class CLMLicenseManagerTest
 
   @Test
   public void testGuideSelfHosted_firewallFeature_accepted() throws Exception {
+    config.setDatabase(new DatabaseConfig());
     licenseManager.setAllowedFeatureIds(FirewallFeature.ID);
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED);
-    mockHdsProductLicenseDetails(withFeatures());
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.EXTERNAL_DATABASE,
+        LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH));
     installLicense();
-    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder(
+    assertThat(productLicense.getFeatures()).contains(
         LicensedFeature.GUIDE,
         LicensedFeature.GUIDE_MCP,
         LicensedFeature.GUIDE_SEARCH);

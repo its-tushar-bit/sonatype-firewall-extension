@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +25,23 @@ public class GuideComponentsResourceTest
     extends AbstractResourceTest
 {
   private static final String SEARCH_PATH = "api/v2/guide/components/search";
+
+  /**
+   * Guide features (GUIDE, GUIDE_MCP, GUIDE_SEARCH) are HDS-controlled (see
+   * CLMLicenseManager.populateLicenseCache hdsControlledFeatures). The default integration-test HDS
+   * mock response in productLicenseDetails.json doesn't include them, so the Guide-feature-gated
+   * resources under test would 403 on every happy-path test without an explicit setFeatures here.
+   * <p>
+   * Note: setFeatures replaces the entire feature set — tests in this class that require non-Guide
+   * licensed features must call setFeatures/setMissingFeature explicitly in the test body.
+   * <p>
+   * Auth filtering runs before license-feature filtering in the Dropwizard filter chain, so
+   * unauthenticatedRequest_returns401 is unaffected by this narrowed feature set.
+   */
+  @Before
+  public void enableGuideFeatures() throws Exception {
+    setFeatures(LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP, LicensedFeature.GUIDE_SEARCH);
+  }
 
   @Test
   public void unauthenticatedRequest_returns401() throws Exception {

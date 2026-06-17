@@ -280,9 +280,16 @@ public class CLMLicenseManager
       throw new ExternalDatabaseNotSupportedException(
           "SBOM Manager feature requires use of an external database, please retry using an external database.");
     }
-    if (licenseDetails.features.contains(LicensedFeature.GUIDE.name())) {
-      throw new ExternalDatabaseNotSupportedException(
-          "Guide feature requires use of an external database, please retry using an external database.");
+    // Each Guide entitlement (GUIDE umbrella, GUIDE_MCP, GUIDE_SEARCH) requires external DB on its
+    // own. SearchLicenseFilter and McpLicenseFilter gate on the child features independently of the
+    // umbrella, so HDS signing only a child feature must still be rejected on embedded DB.
+    for (LicensedFeature feature : EnumSet.of(LicensedFeature.GUIDE, LicensedFeature.GUIDE_MCP,
+        LicensedFeature.GUIDE_SEARCH))
+    {
+      if (licenseDetails.features.contains(feature.name())) {
+        throw new ExternalDatabaseNotSupportedException(
+            "Guide feature requires use of an external database, please retry using an external database.");
+      }
     }
   }
 
@@ -1050,10 +1057,9 @@ public class CLMLicenseManager
       stageTypes.add(StageTypes.COMPLIANCE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)) {
-      features.add(LicensedFeature.GUIDE);
-      features.add(LicensedFeature.GUIDE_MCP);
-      features.add(LicensedFeature.GUIDE_SEARCH);
-
+      // GUIDE, GUIDE_MCP, GUIDE_SEARCH are HDS-controlled (added below from
+      // licenseDetails.features) so ops can disable Guide via SQL on the product_license
+      // features_csv column without reissuing the license file.
       stageTypes.add(StageTypes.DEVELOP);
     }
 
@@ -1072,6 +1078,9 @@ public class CLMLicenseManager
     // Tier-controlled features are reconciled at read time in DefaultProductLicense. They remain
     // in this HDS overlay so HDS-granted entries land in the cache and survive the tier check.
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //
+        LicensedFeature.GUIDE, //
+        LicensedFeature.GUIDE_MCP, //
+        LicensedFeature.GUIDE_SEARCH, //
         LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, //
         LicensedFeature.EXTERNAL_DATABASE, //
         LicensedFeature.HYGIENE, //

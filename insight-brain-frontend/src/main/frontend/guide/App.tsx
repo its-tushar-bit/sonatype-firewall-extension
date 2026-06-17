@@ -21,7 +21,6 @@ import { SonatypeResearchTab } from './vulnerabilities/detail/SonatypeResearchTa
 import { SearchPage } from './search/SearchPage';
 import { LicenseProvider } from './license/LicenseProvider';
 import { LicenseGate } from './license/LicenseGate';
-import { GUIDE_PRODUCTS } from './license/licenseProducts';
 import { ComponentDetailPage } from './components/detail/ComponentDetailPage';
 import { OverviewTab } from './components/detail/OverviewTab';
 import { VulnerabilitiesTab } from './components/detail/VulnerabilitiesTab';
@@ -49,7 +48,7 @@ function AuthGate() {
 
   return (
     <LicenseProvider>
-      <LicenseGate requires={GUIDE_PRODUCTS}>
+      <LicenseGate>
         <FeatureFlagProvider>
           <AppShell>
             <ErrorBoundary>

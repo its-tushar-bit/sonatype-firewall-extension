@@ -8,9 +8,21 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from '../test-utils';
 import { FeatureFlagProvider } from 'GuideRoot/feature-flags/FeatureFlagProvider';
 import { TopNavigation } from 'GuideRoot/layout/TopNavigation';
+import { LicenseProvider } from 'GuideRoot/license/LicenseProvider';
 import * as featureFlagsApi from 'GuideRoot/feature-flags/featureFlagsApi';
 
 jest.mock('GuideRoot/feature-flags/featureFlagsApi');
+
+// TopNavigation embeds ProductSwitcher, which reads licensed solutions from LicenseProvider.
+function renderTopNav() {
+  return render(
+    <LicenseProvider>
+      <FeatureFlagProvider>
+        <TopNavigation onSidebarToggle={() => {}} />
+      </FeatureFlagProvider>
+    </LicenseProvider>
+  );
+}
 
 describe('TopNavigation', () => {
   const originalFetch = global.fetch;
@@ -31,22 +43,14 @@ describe('TopNavigation', () => {
   });
 
   it('renders a log out button next to the avatar', () => {
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument();
   });
 
   it('calls DELETE /rest/user/session/logout when log out is clicked', async () => {
     const user = userEvent.setup();
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 
@@ -61,11 +65,7 @@ describe('TopNavigation', () => {
 
   // guide-ui is intentionally absent — search visibility is controlled by guide-search only
   it('renders the global search input with placeholder', async () => {
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     await waitFor(() => {
       const searchInput = screen.getByPlaceholderText(/search components and vulnerabilities/i);
@@ -74,11 +74,7 @@ describe('TopNavigation', () => {
   });
 
   it('search submission targets /search via the form action', async () => {
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     await waitFor(() => {
       const input = screen.getByPlaceholderText(/search components and vulnerabilities/i);
@@ -91,11 +87,7 @@ describe('TopNavigation', () => {
   it('forwards typed query to the global search endpoint as URLSearchParams', async () => {
     const fetchMock = global.fetch as jest.Mock;
 
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     const input = await screen.findByPlaceholderText(/search components and vulnerabilities/i);
     const user = userEvent.setup();
@@ -116,11 +108,7 @@ describe('TopNavigation', () => {
   it('does not render search when feature flag is disabled', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue([]);
 
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     await waitFor(() => {
       expect(screen.queryByPlaceholderText(/search components and vulnerabilities/i)).not.toBeInTheDocument();
@@ -130,11 +118,7 @@ describe('TopNavigation', () => {
   it('hides search when guide-search is absent even if guide-ui is present', async () => {
     jest.spyOn(featureFlagsApi, 'fetchFeatureFlags').mockResolvedValue(['guide-ui']);
 
-    render(
-      <FeatureFlagProvider>
-        <TopNavigation onSidebarToggle={() => {}} />
-      </FeatureFlagProvider>
-    );
+    renderTopNav();
 
     // Wait for the component to finish loading flags (logout button is always present)
     await waitFor(() => expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument());

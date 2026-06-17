@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.solution.SolutionUrlResolver;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -138,6 +139,8 @@ public class ApiLicensedSolutionsServiceTest
   private SolutionResolver createSolutionResolver(boolean withProducts) {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(any())).thenReturn(withProducts);
+    // Guide requires the product AND the HDS-controlled GUIDE feature (SolutionResolver).
+    when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(withProducts);
     TenantUtil tenantUtil = Mockito.mock(TenantUtil.class);
     when(tenantUtil.isMultiTenant()).thenReturn(false);
     return new SolutionResolver(productLicense, tenantUtil);

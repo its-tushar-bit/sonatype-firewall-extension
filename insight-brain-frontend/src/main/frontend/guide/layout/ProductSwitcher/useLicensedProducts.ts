@@ -3,15 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { useEffect, useState } from 'react';
-import { useAuth } from 'GuideRoot/auth/AuthProvider';
-import {
-  groupAndSortLicensedSolutions,
-  type LicensedProduct,
-  type LicensedSolution,
-} from './productMetadata';
-
-const LICENSED_SOLUTIONS_URL = '/api/v2/solutions/licensed?allowRelativeUrls=true';
+import { useMemo } from 'react';
+import { useLicense } from 'GuideRoot/license/LicenseProvider';
+import { groupAndSortLicensedSolutions, type LicensedProduct } from './productMetadata';
 
 export interface UseLicensedProductsResult {
   products: LicensedProduct[];
@@ -19,38 +13,13 @@ export interface UseLicensedProductsResult {
   error: boolean;
 }
 
+/**
+ * Derives the ProductSwitcher's grouped/sorted product list from the licensed solutions already
+ * fetched by {@link LicenseProvider}. Both the license gate and the switcher read the same
+ * /api/v2/solutions/licensed response from a single source, so the endpoint is fetched once.
+ */
 export function useLicensedProducts(): UseLicensedProductsResult {
-  const { authFetch } = useAuth();
-  const [products, setProducts] = useState<LicensedProduct[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<boolean>(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const response = await authFetch(LICENSED_SOLUTIONS_URL);
-        if (!response.ok) {
-          throw new Error(`Licensed solutions request failed: ${response.status}`);
-        }
-        const body = (await response.json()) as LicensedSolution[];
-        if (cancelled) return;
-        setProducts(groupAndSortLicensedSolutions(body));
-        setError(false);
-      } catch (e) {
-        if (cancelled) return;
-        // eslint-disable-next-line no-console
-        console.error('Failed to load licensed solutions', e);
-        setProducts([]);
-        setError(true);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authFetch]);
-
-  return { products, loading, error };
+  const { solutions, isLoading, hasError } = useLicense();
+  const products = useMemo(() => groupAndSortLicensedSolutions(solutions), [solutions]);
+  return { products, loading: isLoading, error: hasError };
 }

@@ -7,17 +7,18 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { LicenseProvider, useLicense } from 'GuideRoot/license/LicenseProvider';
 import * as licenseApi from 'GuideRoot/license/licenseApi';
-import { GUIDE_PRODUCTS } from 'GuideRoot/license/licenseProducts';
 
 jest.mock('GuideRoot/license/licenseApi');
 
 function LicenseConsumer() {
-  const { products, isLoading, hasLicenseFor } = useLicense();
+  const { solutions, isLoading, hasError, hasSolution } = useLicense();
   return (
     <div>
       <span data-testid="loading">{String(isLoading)}</span>
-      <span data-testid="products">{products.join(',')}</span>
-      <span data-testid="has-guide">{String(hasLicenseFor(GUIDE_PRODUCTS))}</span>
+      <span data-testid="error">{String(hasError)}</span>
+      <span data-testid="solutions">{solutions.map((s) => s.id).join(',')}</span>
+      <span data-testid="has-guide">{String(hasSolution('guide'))}</span>
+      <span data-testid="has-lifecycle">{String(hasSolution('lifecycle'))}</span>
     </div>
   );
 }
@@ -27,11 +28,11 @@ describe('LicenseProvider', () => {
     jest.restoreAllMocks();
   });
 
-  it('starts in loading state then exposes fetched products', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockResolvedValue({
-      productEdition: 'Lifecycle',
-      products: ['Sonatype Lifecycle', 'Sonatype Guide'],
-    });
+  it('starts in loading state then exposes fetched solutions', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockResolvedValue([
+      { id: 'lifecycle', url: '/lifecycle' },
+      { id: 'guide', url: '/guide' },
+    ]);
 
     render(
       <LicenseProvider>
@@ -44,15 +45,16 @@ describe('LicenseProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
-    expect(screen.getByTestId('products')).toHaveTextContent('Sonatype Lifecycle,Sonatype Guide');
+    expect(screen.getByTestId('solutions')).toHaveTextContent('lifecycle,guide');
     expect(screen.getByTestId('has-guide')).toHaveTextContent('true');
+    expect(screen.getByTestId('has-lifecycle')).toHaveTextContent('true');
+    expect(screen.getByTestId('error')).toHaveTextContent('false');
   });
 
-  it('hasLicenseFor returns false when product is not in the list', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockResolvedValue({
-      productEdition: 'Lifecycle',
-      products: ['Sonatype Lifecycle'],
-    });
+  it('hasSolution returns false when the solution is not licensed', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockResolvedValue([
+      { id: 'lifecycle', url: '/lifecycle' },
+    ]);
 
     render(
       <LicenseProvider>
@@ -64,10 +66,11 @@ describe('LicenseProvider', () => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
     expect(screen.getByTestId('has-guide')).toHaveTextContent('false');
+    expect(screen.getByTestId('has-lifecycle')).toHaveTextContent('true');
   });
 
-  it('sets empty products when fetch fails', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockRejectedValue(new Error('402 Payment Required'));
+  it('exposes empty solutions when fetch fails', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockRejectedValue(new Error('402 Payment Required'));
 
     render(
       <LicenseProvider>
@@ -78,8 +81,9 @@ describe('LicenseProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
-    expect(screen.getByTestId('products')).toHaveTextContent('');
+    expect(screen.getByTestId('solutions')).toHaveTextContent('');
     expect(screen.getByTestId('has-guide')).toHaveTextContent('false');
+    expect(screen.getByTestId('error')).toHaveTextContent('true');
   });
 
   it('throws when useLicense is used outside LicenseProvider', () => {

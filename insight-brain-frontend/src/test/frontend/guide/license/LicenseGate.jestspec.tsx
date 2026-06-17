@@ -8,7 +8,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { Theme } from '@radix-ui/themes';
 import { LicenseProvider } from 'GuideRoot/license/LicenseProvider';
 import { LicenseGate } from 'GuideRoot/license/LicenseGate';
-import { GUIDE_PRODUCTS } from 'GuideRoot/license/licenseProducts';
 import * as licenseApi from 'GuideRoot/license/licenseApi';
 
 jest.mock('GuideRoot/license/licenseApi');
@@ -28,14 +27,14 @@ describe('LicenseGate', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders children when user has the required license', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockResolvedValue({
-      productEdition: 'Lifecycle',
-      products: ['Sonatype Guide'],
-    });
+  it('renders children when guide is in the licensed solutions list', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockResolvedValue([
+      { id: 'lifecycle', url: '/lifecycle' },
+      { id: 'guide', url: '/guide' },
+    ]);
 
     renderWithProviders(
-      <LicenseGate requires={GUIDE_PRODUCTS}>
+      <LicenseGate>
         <div>Guide Content</div>
       </LicenseGate>
     );
@@ -45,14 +44,17 @@ describe('LicenseGate', () => {
     });
   });
 
-  it('renders learn-more page when user does not have the required license', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockResolvedValue({
-      productEdition: 'Lifecycle',
-      products: ['Sonatype Lifecycle'],
-    });
+  // The "guide" solution is absent from the response in two backend cases that are
+  // indistinguishable to the frontend: a Lifecycle-only license (no Guide product), and a
+  // Guide-product license where HDS dropped the GUIDE feature (SolutionResolver omits it).
+  // Both must surface the learn-more page.
+  it('renders learn-more page when "guide" is absent from the licensed solutions', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockResolvedValue([
+      { id: 'lifecycle', url: '/lifecycle' },
+    ]);
 
     renderWithProviders(
-      <LicenseGate requires={GUIDE_PRODUCTS}>
+      <LicenseGate>
         <div>Guide Content</div>
       </LicenseGate>
     );
@@ -63,11 +65,11 @@ describe('LicenseGate', () => {
     expect(screen.queryByText('Guide Content')).not.toBeInTheDocument();
   });
 
-  it('renders spinner while license is loading', () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockReturnValue(new Promise(() => {}));
+  it('renders spinner while licensed solutions are loading', () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockReturnValue(new Promise(() => {}));
 
     renderWithProviders(
-      <LicenseGate requires={GUIDE_PRODUCTS}>
+      <LicenseGate>
         <div>Guide Content</div>
       </LicenseGate>
     );
@@ -76,11 +78,11 @@ describe('LicenseGate', () => {
     expect(screen.queryByText(/not currently enabled/i)).not.toBeInTheDocument();
   });
 
-  it('renders learn-more page when license fetch fails', async () => {
-    jest.spyOn(licenseApi, 'fetchLicenseSummary').mockRejectedValue(new Error('402'));
+  it('renders learn-more page when licensed solutions fetch fails', async () => {
+    jest.spyOn(licenseApi, 'fetchLicensedSolutions').mockRejectedValue(new Error('402'));
 
     renderWithProviders(
-      <LicenseGate requires={GUIDE_PRODUCTS}>
+      <LicenseGate>
         <div>Guide Content</div>
       </LicenseGate>
     );

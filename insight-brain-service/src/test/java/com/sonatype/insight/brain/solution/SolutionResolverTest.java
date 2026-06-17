@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Test;
@@ -36,6 +37,10 @@ public class SolutionResolverTest
       // given: a license mapped to a specific product and a solution resolver that uses that license
       ProductLicense productLicense = Mockito.mock(ProductLicense.class);
       when(productLicense.hasProduct(product)).thenReturn(true);
+      // Guide requires both product AND feature
+      if (product.equals(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)) {
+        when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(true);
+      }
       SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
 
       // when: try to resolve the associated solution
@@ -93,6 +98,7 @@ public class SolutionResolverTest
   public void testGuideIncluded_WhenGuideProductLicensed() {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(true);
     SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
 
     Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
@@ -103,6 +109,18 @@ public class SolutionResolverTest
   public void testGuideNotIncluded_WhenGuideProductNotLicensed() {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(false);
+    when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(true);
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
+
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).doesNotContain(Solution.GUIDE);
+  }
+
+  @Test
+  public void testGuideNotIncluded_WhenGuideFeatureNotLicensed() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(false);
     SolutionResolver solutionResolver = new SolutionResolver(productLicense, singleTenantUtil);
 
     Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
@@ -113,6 +131,7 @@ public class SolutionResolverTest
   public void testGuideNotIncluded_WhenMultiTenant() {
     ProductLicense productLicense = Mockito.mock(ProductLicense.class);
     when(productLicense.hasProduct(ProductLicenseDetails.PRODUCT_GUIDE_SELF_HOSTED)).thenReturn(true);
+    when(productLicense.hasFeature(LicensedFeature.GUIDE)).thenReturn(true);
     SolutionResolver solutionResolver = new SolutionResolver(productLicense, multiTenantUtil);
 
     Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();

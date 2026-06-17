@@ -7,6 +7,7 @@ import React, { act } from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor } from 'TestRoot/guide/test-utils';
 import { ProductSwitcher } from 'GuideRoot/layout/ProductSwitcher/ProductSwitcher';
+import { LicenseProvider } from 'GuideRoot/license/LicenseProvider';
 
 // Flush all pending microtasks (mocked auth session, hook fetches) inside act
 // before driving user-event interactions. Without this, state updates from
@@ -69,6 +70,17 @@ function stubWindowOpen() {
   return mock;
 }
 
+// ProductSwitcher's useLicensedProducts reads the licensed solutions from LicenseProvider, which
+// performs the single /api/v2/solutions/licensed fetch. Render it inside a LicenseProvider so the
+// per-test global.fetch mock drives the switcher's data.
+function renderSwitcher() {
+  return render(
+    <LicenseProvider>
+      <ProductSwitcher />
+    </LicenseProvider>
+  );
+}
+
 describe('ProductSwitcher', () => {
   beforeEach(() => {
     stubLocation();
@@ -83,7 +95,7 @@ describe('ProductSwitcher', () => {
 
   it('renders the trigger immediately on mount', async () => {
     mockLicensedSolutions([{ id: 'lifecycle', url: '/lifecycle' }]);
-    render(<ProductSwitcher />);
+    renderSwitcher();
     expect(screen.getByRole('button', { name: /sonatype solutions/i })).toBeInTheDocument();
   });
 
@@ -100,7 +112,7 @@ describe('ProductSwitcher', () => {
     }) as unknown as typeof fetch;
 
     const user = userEvent.setup();
-    render(<ProductSwitcher />);
+    renderSwitcher();
     await settle();
 
     await user.click(screen.getByRole('button', { name: /sonatype solutions/i }));
@@ -123,7 +135,7 @@ describe('ProductSwitcher', () => {
     const openMock = stubWindowOpen();
 
     const user = userEvent.setup();
-    render(<ProductSwitcher />);
+    renderSwitcher();
     await settle();
 
     await user.click(screen.getByRole('button', { name: /sonatype solutions/i }));
@@ -146,7 +158,7 @@ describe('ProductSwitcher', () => {
     const openMock = stubWindowOpen();
 
     const user = userEvent.setup();
-    render(<ProductSwitcher />);
+    renderSwitcher();
     await settle();
 
     await user.click(screen.getByRole('button', { name: /sonatype solutions/i }));
@@ -165,7 +177,7 @@ describe('ProductSwitcher', () => {
     mockLicensedSolutions([]);
 
     const user = userEvent.setup();
-    render(<ProductSwitcher />);
+    renderSwitcher();
     await settle();
 
     await user.click(screen.getByRole('button', { name: /sonatype solutions/i }));
@@ -179,7 +191,7 @@ describe('ProductSwitcher', () => {
     const openMock = stubWindowOpen();
 
     const user = userEvent.setup();
-    render(<ProductSwitcher />);
+    renderSwitcher();
     await settle();
 
     await user.click(screen.getByRole('button', { name: /sonatype solutions/i }));
@@ -200,7 +212,7 @@ describe('ProductSwitcher', () => {
 
   it('renders nothing when the API errors', async () => {
     mockLicensedSolutions({ message: 'oops' }, false, 500);
-    render(<ProductSwitcher />);
+    renderSwitcher();
 
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /sonatype solutions/i })).not.toBeInTheDocument();

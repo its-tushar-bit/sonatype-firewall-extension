@@ -3,45 +3,45 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { fetchLicenseSummary } from 'GuideRoot/license/licenseApi';
+import { fetchLicensedSolutions } from 'GuideRoot/license/licenseApi';
 
-describe('fetchLicenseSummary', () => {
+describe('fetchLicensedSolutions', () => {
   const originalFetch = global.fetch;
 
   afterEach(() => {
     global.fetch = originalFetch;
   });
 
-  it('returns products and productEdition from /rest/product/license/validate', async () => {
+  it('returns the licensed solutions list from /api/v2/solutions/licensed', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        productEdition: 'Lifecycle',
-        products: ['Sonatype Lifecycle', 'Sonatype Guide'],
-      }),
+      json: () => Promise.resolve([
+        { id: 'lifecycle', url: '/lifecycle' },
+        { id: 'guide', url: '/guide' },
+      ]),
     });
 
-    const result = await fetchLicenseSummary();
+    const result = await fetchLicensedSolutions();
 
-    expect(global.fetch).toHaveBeenCalledWith('/rest/product/license/validate', {
-      credentials: 'same-origin',
-    });
-    expect(result).toEqual({
-      productEdition: 'Lifecycle',
-      products: ['Sonatype Lifecycle', 'Sonatype Guide'],
-    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v2/solutions/licensed?allowRelativeUrls=true',
+      { credentials: 'same-origin' }
+    );
+    expect(result).toEqual([
+      { id: 'lifecycle', url: '/lifecycle' },
+      { id: 'guide', url: '/guide' },
+    ]);
   });
 
-  it('returns empty products when response has no products field', async () => {
+  it('returns an empty array when the response body is not an array', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ productEdition: null }),
+      json: () => Promise.resolve(null),
     });
 
-    const result = await fetchLicenseSummary();
+    const result = await fetchLicensedSolutions();
 
-    expect(result.products).toEqual([]);
-    expect(result.productEdition).toBeNull();
+    expect(result).toEqual([]);
   });
 
   it('throws on non-ok response', async () => {
@@ -51,6 +51,6 @@ describe('fetchLicenseSummary', () => {
       statusText: 'Payment Required',
     });
 
-    await expect(fetchLicenseSummary()).rejects.toThrow('402 Payment Required');
+    await expect(fetchLicensedSolutions()).rejects.toThrow('402 Payment Required');
   });
 });

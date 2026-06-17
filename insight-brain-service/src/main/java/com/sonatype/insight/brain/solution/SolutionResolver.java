@@ -15,6 +15,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -119,7 +120,9 @@ public class SolutionResolver
       licensedSolutions.add(Solution.SBOM_MANAGER);
     }
 
-    if (hasAnyProduct(GUIDE_PRODUCTS) && !tenantUtil.isMultiTenant()) {
+    if (hasAnyProduct(GUIDE_PRODUCTS) && productLicense.hasFeature(LicensedFeature.GUIDE)
+        && !tenantUtil.isMultiTenant())
+    {
       licensedSolutions.add(Solution.GUIDE);
     }
 

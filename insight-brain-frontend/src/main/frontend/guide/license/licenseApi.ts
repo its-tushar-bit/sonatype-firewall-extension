@@ -4,16 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { notifySessionResponse } from '../auth/sessionExpiration';
+import type { LicensedSolution } from '../layout/ProductSwitcher/productMetadata';
 
-const LICENSE_VALIDATE_URL = '/rest/product/license/validate';
+const LICENSED_SOLUTIONS_URL = '/api/v2/solutions/licensed?allowRelativeUrls=true';
 
-export interface LicenseSummary {
-  productEdition: string | null;
-  products: string[];
-}
-
-export async function fetchLicenseSummary(): Promise<LicenseSummary> {
-  const response = await fetch(LICENSE_VALIDATE_URL, { credentials: 'same-origin' });
+export async function fetchLicensedSolutions(): Promise<LicensedSolution[]> {
+  const response = await fetch(LICENSED_SOLUTIONS_URL, { credentials: 'same-origin' });
   notifySessionResponse(response);
 
   if (!response.ok) {
@@ -21,8 +17,5 @@ export async function fetchLicenseSummary(): Promise<LicenseSummary> {
   }
 
   const data = await response.json();
-  return {
-    productEdition: data.productEdition ?? null,
-    products: data.products ?? [],
-  };
+  return Array.isArray(data) ? data : [];
 }

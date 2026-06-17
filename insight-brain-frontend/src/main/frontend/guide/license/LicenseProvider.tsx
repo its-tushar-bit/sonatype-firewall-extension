@@ -5,33 +5,37 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { fetchLicenseSummary } from './licenseApi';
-import type { ProductGroup } from './licenseProducts';
+import { fetchLicensedSolutions } from './licenseApi';
+import type { LicensedSolution, SolutionId } from '../layout/ProductSwitcher/productMetadata';
 
 interface LicenseContextValue {
-  products: string[];
+  solutions: LicensedSolution[];
   isLoading: boolean;
-  hasLicenseFor: (productGroup: ProductGroup) => boolean;
+  hasError: boolean;
+  hasSolution: (solutionId: SolutionId) => boolean;
 }
 
 const LicenseContext = createContext<LicenseContextValue | null>(null);
 
 export function LicenseProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<string[]>([]);
+  const [solutions, setSolutions] = useState<LicensedSolution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
-    fetchLicenseSummary()
-      .then((summary) => {
+    fetchLicensedSolutions()
+      .then((result) => {
         if (!cancelled) {
-          setProducts(summary.products);
+          setSolutions(result);
+          setHasError(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setProducts([]);
+          setSolutions([]);
+          setHasError(true);
         }
       })
       .finally(() => {
@@ -45,14 +49,14 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const hasLicenseFor = useCallback(
-    (productGroup: ProductGroup) => productGroup.some((p) => products.includes(p)),
-    [products]
+  const hasSolution = useCallback(
+    (solutionId: SolutionId) => solutions.some((s) => s.id === solutionId),
+    [solutions]
   );
 
   const value = useMemo<LicenseContextValue>(
-    () => ({ products, isLoading, hasLicenseFor }),
-    [products, isLoading, hasLicenseFor]
+    () => ({ solutions, isLoading, hasError, hasSolution }),
+    [solutions, isLoading, hasError, hasSolution]
   );
 
   return <LicenseContext.Provider value={value}>{children}</LicenseContext.Provider>;

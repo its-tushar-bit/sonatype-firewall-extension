@@ -6,6 +6,7 @@
 import React from 'react';
 import { render, screen, waitFor } from 'TestRoot/guide/test-utils';
 import { useLicensedProducts } from 'GuideRoot/layout/ProductSwitcher/useLicensedProducts';
+import { LicenseProvider } from 'GuideRoot/license/LicenseProvider';
 
 const LICENSED_URL = '/api/v2/solutions/licensed?allowRelativeUrls=true';
 const originalFetch = global.fetch;
@@ -42,6 +43,16 @@ function mockFetchOnce(response: { ok: boolean; status?: number; body?: unknown 
   }) as unknown as typeof fetch;
 }
 
+// useLicensedProducts derives its data from LicenseProvider's single fetch, so the probe must be
+// rendered inside a LicenseProvider (which performs the /api/v2/solutions/licensed request).
+function renderProbe() {
+  return render(
+    <LicenseProvider>
+      <HookProbe />
+    </LicenseProvider>
+  );
+}
+
 describe('useLicensedProducts', () => {
   afterEach(() => {
     global.fetch = originalFetch;
@@ -50,7 +61,7 @@ describe('useLicensedProducts', () => {
 
   it('starts in loading state and fetches the licensed-solutions endpoint once', async () => {
     mockFetchOnce({ ok: true, body: [] });
-    render(<HookProbe />);
+    renderProbe();
 
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
@@ -72,7 +83,7 @@ describe('useLicensedProducts', () => {
         { id: 'lifecycle', url: '/lifecycle' },
       ],
     });
-    render(<HookProbe />);
+    renderProbe();
 
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
@@ -91,7 +102,7 @@ describe('useLicensedProducts', () => {
         { id: 'nexusRepositoryManager', url: '/west' },
       ],
     });
-    render(<HookProbe />);
+    renderProbe();
 
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
@@ -103,7 +114,7 @@ describe('useLicensedProducts', () => {
 
   it('returns error=true and products=[] when the request fails', async () => {
     mockFetchOnce({ ok: false, status: 500, body: { message: 'oops' } });
-    render(<HookProbe />);
+    renderProbe();
 
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');
@@ -121,7 +132,7 @@ describe('useLicensedProducts', () => {
       return Promise.resolve({ ok: true, status: 200, headers: new Headers() } as Response);
     }) as unknown as typeof fetch;
 
-    render(<HookProbe />);
+    renderProbe();
 
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('false');

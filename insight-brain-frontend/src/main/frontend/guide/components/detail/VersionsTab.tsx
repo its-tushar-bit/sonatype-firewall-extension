@@ -95,7 +95,7 @@ export function VersionsTab() {
     return () => { cancelled = true; };
   }, [ecosystem, pkg, version, searchParams]);
 
-  if (loading) return <VersionsTabSkeleton />;
+  if (loading && response === null) return <VersionsTabSkeleton />;
 
   if (error) {
     return (

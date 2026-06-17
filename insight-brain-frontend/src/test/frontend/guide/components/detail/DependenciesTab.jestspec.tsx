@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
 import { DependenciesTab } from 'GuideRoot/components/detail/DependenciesTab';
@@ -117,5 +118,52 @@ describe('DependenciesTab', () => {
     await waitFor(() => {
       expect(screen.getByText(/no dependencies found/i)).toBeInTheDocument();
     });
+  });
+
+  it('keeps results mounted without a skeleton flash during a refetch', async () => {
+    const user = userEvent.setup();
+    mockGetDeps
+      .mockResolvedValueOnce({ hits: mockDependencies, total: 2, offset: 0, limit: 25, aggregations: {} } as any)
+      .mockImplementationOnce(() => new Promise(() => {}));
+
+    function FilterNav() {
+      const navigate = useNavigate();
+      return (
+        <button type="button" onClick={() => navigate('/component/npm/lodash/4.17.21/dependencies?query=under')}>
+          do-filter
+        </button>
+      );
+    }
+
+    render(
+      <Tabs.Root value="dependencies">
+        <Routes>
+          <Route
+            path="/component/:ecosystem/:pkg/:version/dependencies"
+            element={
+              <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
+                <FilterNav />
+                <DependenciesTab />
+              </ComponentProvider>
+            }
+          />
+        </Routes>
+      </Tabs.Root>,
+      { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/dependencies'] } }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    });
+    expect(screen.getByText('underscore')).toBeInTheDocument();
+
+    await user.click(screen.getByText('do-filter'));
+    await waitFor(() => {
+      expect(mockGetDeps).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByTestId('tab-skeleton')).not.toBeInTheDocument();
+    expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    expect(screen.getByText('underscore')).toBeInTheDocument();
   });
 });

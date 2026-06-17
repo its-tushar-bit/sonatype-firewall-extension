@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { render, screen, waitFor } from '../../test-utils';
+import userEvent from '@testing-library/user-event';
 import { ComponentsImpactedTab } from 'GuideRoot/vulnerabilities/detail/ComponentsImpactedTab';
 import * as vulnerabilitiesBackend from 'GuideRoot/api/vulnerabilitiesBackend';
 
@@ -107,6 +108,38 @@ describe('ComponentsImpactedTab', () => {
         screen.getByText(/failed to load affected components/i)
       ).toBeInTheDocument();
     });
+  });
+
+  it('keeps the filter input focused and does not flash the skeleton while re-filtering', async () => {
+    // First load resolves with rows; the refetch triggered by typing stays pending,
+    // so we can observe the in-flight state without it resolving away.
+    mockGetVulnerabilityAffectedComponents
+      .mockResolvedValueOnce(mockResponse)
+      .mockImplementationOnce(() => new Promise(() => {}));
+
+    const user = userEvent.setup();
+    renderAtPath('/vulnerability/CVE-2021-44228/components-impacted');
+
+    // Initial rows are present.
+    await waitFor(() => {
+      expect(screen.getByText('2.14.1')).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText('Filter components') as HTMLInputElement;
+    await user.click(input);
+    await user.type(input, 'log4j'); // >= 3 chars -> debounced submit -> navigate -> refetch
+
+    // The refetch fired and is in flight (pending).
+    await waitFor(() => {
+      expect(mockGetVulnerabilityAffectedComponents).toHaveBeenCalledTimes(2);
+    });
+
+    // No skeleton flash: the aria-busy loading block must not appear during a refetch.
+    expect(document.querySelector('[aria-busy="true"]')).not.toBeInTheDocument();
+    // Stale rows remain visible (data is not cleared on refetch).
+    expect(screen.getByText('2.14.1')).toBeInTheDocument();
+    // Focus stays on the filter input (the input was never unmounted).
+    expect(input).toHaveFocus();
   });
 
   describe('calls getVulnerabilityAffectedComponents with correct params', () => {

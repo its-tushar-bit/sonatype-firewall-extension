@@ -42,7 +42,6 @@ export function ComponentsImpactedTab() {
       return;
     }
 
-    setResponse(null);
     setIsLoading(true);
     setIsError(false);
     let cancelled = false;
@@ -85,7 +84,7 @@ export function ComponentsImpactedTab() {
     paramsRecord[key] = value;
   });
 
-  if (isLoading) {
+  if (isLoading && response === null) {
     return (
       <Box mt={tokens.space.section} aria-busy="true">
         {[...Array(5)].map((_, i) => (

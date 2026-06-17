@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
 import { VulnerabilitiesTab } from 'GuideRoot/components/detail/VulnerabilitiesTab';
@@ -105,5 +106,52 @@ describe('VulnerabilitiesTab', () => {
       expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
     });
     expect(screen.getByRole('navigation')).toBeInTheDocument();
+  });
+
+  it('keeps results mounted without a skeleton flash during a refetch', async () => {
+    const user = userEvent.setup();
+    mockGetVulns
+      .mockResolvedValueOnce({ hits: mockVulnerabilities, total: 2, offset: 0, limit: 25, aggregations: {} } as any)
+      .mockImplementationOnce(() => new Promise(() => {}));
+
+    function FilterNav() {
+      const navigate = useNavigate();
+      return (
+        <button type="button" onClick={() => navigate('/component/npm/lodash/4.17.21/vulnerabilities?query=CVE')}>
+          do-filter
+        </button>
+      );
+    }
+
+    render(
+      <Tabs.Root value="vulnerabilities">
+        <Routes>
+          <Route
+            path="/component/:ecosystem/:pkg/:version/vulnerabilities"
+            element={
+              <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
+                <FilterNav />
+                <VulnerabilitiesTab />
+              </ComponentProvider>
+            }
+          />
+        </Routes>
+      </Tabs.Root>,
+      { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/vulnerabilities'] } }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    });
+    expect(screen.getByText('CVE-2021-23337')).toBeInTheDocument();
+
+    await user.click(screen.getByText('do-filter'));
+    await waitFor(() => {
+      expect(mockGetVulns).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByTestId('tab-skeleton')).not.toBeInTheDocument();
+    expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    expect(screen.getByText('CVE-2021-23337')).toBeInTheDocument();
   });
 });

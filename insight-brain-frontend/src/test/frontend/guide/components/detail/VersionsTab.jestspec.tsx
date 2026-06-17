@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { Tabs } from '@radix-ui/themes';
 import { render, screen, waitFor } from '../../test-utils';
 import { VersionsTab } from 'GuideRoot/components/detail/VersionsTab';
@@ -123,5 +124,52 @@ describe('VersionsTab', () => {
       expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
     });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('keeps results mounted without a skeleton flash during a refetch', async () => {
+    const user = userEvent.setup();
+    mockGetVersions
+      .mockResolvedValueOnce({ hits: mockVersions, total: 3, offset: 0, limit: 25, aggregations: {} } as any)
+      .mockImplementationOnce(() => new Promise(() => {}));
+
+    function FilterNav() {
+      const navigate = useNavigate();
+      return (
+        <button type="button" onClick={() => navigate('/component/npm/lodash/4.17.21/versions?query=4.17')}>
+          do-filter
+        </button>
+      );
+    }
+
+    render(
+      <Tabs.Root value="versions">
+        <Routes>
+          <Route
+            path="/component/:ecosystem/:pkg/:version/versions"
+            element={
+              <ComponentProvider component={mockComponentDetail} vulnerabilityCount={2} versionsCount={3} dependencyCount={2}>
+                <FilterNav />
+                <VersionsTab />
+              </ComponentProvider>
+            }
+          />
+        </Routes>
+      </Tabs.Root>,
+      { routerOptions: { initialEntries: ['/component/npm/lodash/4.17.21/versions'] } }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    });
+    expect(screen.getByText('4.17.21')).toBeInTheDocument();
+
+    await user.click(screen.getByText('do-filter'));
+    await waitFor(() => {
+      expect(mockGetVersions).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByTestId('tab-skeleton')).not.toBeInTheDocument();
+    expect(screen.getByTestId('filter-wrapper')).toBeInTheDocument();
+    expect(screen.getByText('4.17.21')).toBeInTheDocument();
   });
 });

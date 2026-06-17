@@ -97,7 +97,7 @@ export function VulnerabilitiesTab() {
     return () => { cancelled = true; };
   }, [ecosystem, pkg, version, searchParams]);
 
-  if (loading) return <VulnerabilitiesTabSkeleton />;
+  if (loading && response === null) return <VulnerabilitiesTabSkeleton />;
 
   if (error) {
     return (

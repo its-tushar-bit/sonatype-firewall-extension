@@ -97,7 +97,7 @@ export function DependenciesTab() {
     return () => { cancelled = true; };
   }, [ecosystem, pkg, version, searchParams]);
 
-  if (loading) return <DependenciesTabSkeleton />;
+  if (loading && response === null) return <DependenciesTabSkeleton />;
 
   if (error) {
     return (

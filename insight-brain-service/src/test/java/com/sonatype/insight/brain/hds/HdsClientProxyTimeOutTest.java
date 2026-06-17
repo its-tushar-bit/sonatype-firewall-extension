@@ -20,6 +20,7 @@ import jakarta.inject.Inject;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -60,6 +61,9 @@ public class HdsClientProxyTimeOutTest
 
   @Inject
   private ApiProxyServerConfigurationService proxyServerConfigurationService;
+
+  @Inject
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
   @Inject
   private Configuration configuration;
@@ -140,10 +144,16 @@ public class HdsClientProxyTimeOutTest
   @After
   public void exit() {
     nonResponsiveServerThread.interrupt();
-    configurationService.deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
-    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    try {
+      proxyServerConfigurationDAO.delete();
+      proxyServerConfigurationService.applyProxyServerConfigurationToClients();
+    }
+    finally {
+      configurationService.deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
+          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
+          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    }
   }
 
   @Test(timeout = 5000)

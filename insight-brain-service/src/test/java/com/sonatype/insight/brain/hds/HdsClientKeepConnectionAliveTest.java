@@ -19,7 +19,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.hds.util.TelemetryTestUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -60,6 +62,12 @@ public class HdsClientKeepConnectionAliveTest
 
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  @Inject
+  private ApiProxyServerConfigurationService proxyServerConfigurationService;
 
   private InsightConfig config;
 
@@ -110,6 +118,12 @@ public class HdsClientKeepConnectionAliveTest
   public void init() {
     port = PortAllocator.nextFreePort();
 
+    // Clear any proxy configuration leaked by a prior test in the same fork. applyConfigurationToClients below only
+    // refreshes the named properties, so a stale proxy in the shared Configuration cache would otherwise route this
+    // request through a dead port and fail with "Connection refused".
+    proxyServerConfigurationDAO.delete();
+    proxyServerConfigurationService.applyProxyServerConfigurationToClients();
+
     config = new InsightConfig();
     configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
         "http://localhost:" + port);
@@ -131,10 +145,14 @@ public class HdsClientKeepConnectionAliveTest
   @After
   public void exit() {
     stallingServerThread.interrupt();
-    configurationService.deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
-    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
-        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    try {
+      configurationService.deleteConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,
+          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    }
+    finally {
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
+          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    }
   }
 
   @Test

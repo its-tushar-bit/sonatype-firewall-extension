@@ -109,8 +109,14 @@ public class HdsClientProxyTest
 
   @After
   public void exit() throws Exception {
-    if (server != null) {
-      server.stop();
+    try {
+      if (server != null) {
+        server.stop();
+      }
+    }
+    finally {
+      proxyServerConfigurationDAO.delete();
+      proxyServerConfigurationService.applyProxyServerConfigurationToClients();
     }
   }
 

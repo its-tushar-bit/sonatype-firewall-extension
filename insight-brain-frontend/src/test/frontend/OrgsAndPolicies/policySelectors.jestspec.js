@@ -41,6 +41,7 @@ import {
   selectCurrentPolicyThreatLevel,
   selectCurrentLegacyViolationAllowed,
   selectNotificationWebhooks,
+  selectCrossProductWebhooks,
   selectApplicableWebhooks,
   selectNotificationRecipients,
   selectNotificationsEditorFormState,
@@ -1806,6 +1807,7 @@ describe('policySelectors', () => {
       expect(selectNotificationRecipients.dependencies).toEqual([
         selectNotifications,
         selectNotificationWebhooks,
+        selectCrossProductWebhooks,
         selectRolesForCurrentOwner,
         selectJiraProjectNames,
         selectJiraIssueTypeNames,
@@ -1825,12 +1827,12 @@ describe('policySelectors', () => {
       const jiraIssueTypeNames = { 1: 'Issue 1' };
 
       expect(
-        selectNotificationRecipients.resultFunc(notifications, webhooks, roles, jiraProjectNames, jiraIssueTypeNames)
+        selectNotificationRecipients.resultFunc(notifications, webhooks, [], roles, jiraProjectNames, jiraIssueTypeNames)
       ).toEqual([
         { roleId: '1', displayName: 'developer', stageIds: [] },
         { projectKey: 1, issueTypeId: 1, displayName: 'Project 1 (Issue 1)', stageIds: [] },
         { emailAddress: 'user@email.com', displayName: 'user@email.com', stageIds: [] },
-        { webhookId: '1', displayName: 'Webhook: webhook', stageIds: [] },
+        { webhookId: '1', displayName: 'Webhook: webhook', stageIds: [], webhookEventTypes: [], isCrossProductWebhook: false },
       ]);
     });
   });

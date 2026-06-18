@@ -55,6 +55,8 @@ import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesS
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsFirewallOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
+const FIREWALL_POLICY_ALERT_EVENT_TYPE = 'Firewall Violation Alert';
+
 const isValidEmail = (email) => !hasValidationErrors(validateEmailPatternMatch('Invalid email format', email));
 
 export default function PolicyNotificationsEditor() {
@@ -120,11 +122,23 @@ export default function PolicyNotificationsEditor() {
       ? stageId === 'proxy' && isNotificationsSupported
       : (isFirewallSupported && stageId === 'proxy') || isNotificationsSupported;
 
+  const isFirewallWebhookRecipient = (recipient) =>
+    recipient?.webhookId && (recipient.webhookEventTypes ?? []).includes(FIREWALL_POLICY_ALERT_EVENT_TYPE);
   const isDisabled = (recipient, stageId) => {
-    // JIRA/Webhook notifications can't use proxy stage
-    const isJiraOrWebhookProxyStage = (recipient?.projectKey || recipient?.webhookId) && stageId === 'proxy';
+    const isJiraProxyStage = recipient?.projectKey && stageId === 'proxy';
+    const isCrossProductWebhookRow = recipient?.webhookId && recipient?.isCrossProductWebhook;
+    const isLifecycleWebhookProxyStage =
+      recipient?.webhookId && !isFirewallWebhookRecipient(recipient) && stageId === 'proxy';
+    const isFirewallWebhookNonProxyStage = isFirewallWebhookRecipient(recipient) && stageId !== 'proxy';
 
-    return !isNotificationsTableEnabled || isJiraOrWebhookProxyStage || !isNotificationsSupportedForStage(stageId);
+    return (
+      !isNotificationsTableEnabled ||
+      isJiraProxyStage ||
+      isCrossProductWebhookRow ||
+      isLifecycleWebhookProxyStage ||
+      isFirewallWebhookNonProxyStage ||
+      !isNotificationsSupportedForStage(stageId)
+    );
   };
 
   const emailExists = (emailAddress) => {
@@ -143,12 +157,27 @@ export default function PolicyNotificationsEditor() {
   };
 
   const getCheckboxTooltipMessage = (recipient, stage) => {
+    if (recipient.webhookId && recipient.isCrossProductWebhook) {
+      return isFirewallWebhookRecipient(recipient)
+        ? 'This Firewall webhook is configured for this policy. Switch to Repository Firewall to edit.'
+        : 'This Lifecycle webhook is configured for this policy. Switch to Sonatype Lifecycle to edit.';
+    }
+
     if ((isRepositoriesRelated || isFirewallOnlyLicense) && stage.stageTypeId !== 'proxy') {
+      if (recipient.webhookId && isRepositoriesRelated) {
+        return 'Firewall webhook notifications are only supported at Proxy stage.';
+      }
       return 'Notifications are only supported at Proxy stage';
     }
 
+    if (isFirewallWebhookRecipient(recipient) && stage.stageTypeId !== 'proxy') {
+      return 'Firewall webhook notifications are only supported at Proxy stage.';
+    }
+
     if (stage.stageTypeId === 'proxy') {
-      if (recipient.webhookId) return 'Webhooks are not available for policy violations at Proxy stage.';
+      if (recipient.webhookId && !isFirewallWebhookRecipient(recipient)) {
+        return 'Webhooks are not available for policy violations at Proxy stage.';
+      }
       if (recipient.projectKey) return 'Jira notifications are not available for policy violations at Proxy stage.';
     }
 
@@ -243,7 +272,14 @@ export default function PolicyNotificationsEditor() {
                 <NxTable.Row key={recipient.displayName} data-recipient={recipient.displayName}>
                   <NxTable.Cell>
                     <NxOverflowTooltip>
-                      <div className="nx-truncate-ellipsis">{recipient.displayName}</div>
+                      <div className="nx-truncate-ellipsis">
+                        {recipient.displayName}
+                        {recipient.isCrossProductWebhook && (
+                          <span className="nx-text-color-disabled" style={{ marginLeft: '0.5em' }}>
+                            ({isFirewallWebhookRecipient(recipient) ? 'Firewall' : 'Lifecycle'} — read-only)
+                          </span>
+                        )}
+                      </div>
                     </NxOverflowTooltip>
                   </NxTable.Cell>
                   {stageTypes?.map((stage) => (
@@ -278,19 +314,33 @@ export default function PolicyNotificationsEditor() {
                   </NxTable.Cell>
                   <NxTable.Cell>
                     <NxButtonBar>
-                      <NxButton
-                        type="button"
-                        variant="icon-only"
-                        title={!isNotificationsTableEnabled ? '' : 'Remove recipient'}
-                        aria-label="Remove recipient"
-                        className="iq-notifications-action"
-                        disabled={!isNotificationsTableEnabled}
-                        onClick={() => {
-                          if (isNotificationsTableEnabled) removeNotificationRecipient({ recipient });
-                        }}
+                      <NxTooltip
+                        title={
+                          recipient.isCrossProductWebhook
+                            ? isFirewallWebhookRecipient(recipient)
+                              ? 'Switch to Repository Firewall to remove this webhook.'
+                              : 'Switch to Sonatype Lifecycle to remove this webhook.'
+                            : ''
+                        }
                       >
-                        <NxFontAwesomeIcon icon={faTrashAlt} />
-                      </NxButton>
+                        <NxButton
+                          type="button"
+                          variant="icon-only"
+                          title={
+                            !isNotificationsTableEnabled || !!recipient.isCrossProductWebhook ? '' : 'Remove recipient'
+                          }
+                          aria-label="Remove recipient"
+                          className="iq-notifications-action"
+                          disabled={!isNotificationsTableEnabled || !!recipient.isCrossProductWebhook}
+                          onClick={() => {
+                            if (isNotificationsTableEnabled && !recipient.isCrossProductWebhook) {
+                              removeNotificationRecipient({ recipient });
+                            }
+                          }}
+                        >
+                          <NxFontAwesomeIcon icon={faTrashAlt} />
+                        </NxButton>
+                      </NxTooltip>
                     </NxButtonBar>
                   </NxTable.Cell>
                 </NxTable.Row>

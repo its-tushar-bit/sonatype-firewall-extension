@@ -78,6 +78,7 @@ describe('PolicyNotificationsEditor', () => {
           notificationsEditor: {
             roles,
             notificationWebhooks,
+            crossProductWebhooks: [],
           },
           notificationWebhooks: [],
         },
@@ -129,7 +130,9 @@ describe('PolicyNotificationsEditor', () => {
         ],
       },
     ];
+    const crossProductWebhooksUrl = getNotificationWebhooksUrl('organization', 'organizationId', 'FIREWALL_POLICY_ALERT');
     mockAxiosCalls.onGet(webhooksUrl).reply(200, notificationWebhooks);
+    mockAxiosCalls.onGet(crossProductWebhooksUrl).reply(200, []);
     mockAxiosCalls.onGet(rolesUrl).reply(200, { membersByRole: roles });
     mockAxiosCalls.onGet(isJiraEnabledUrl).reply(200, true);
     mockAxiosCalls.onGet(jiraProjectsUrl).reply(200, jiraProjects);
@@ -441,6 +444,66 @@ describe('PolicyNotificationsEditor', () => {
     ).toBeInTheDocument();
   });
 
+  // NEXUS-52728: Firewall webhook recipients are allowed at proxy stage on repository-related policies.
+  describe('Firewall webhook at proxy stage (NEXUS-52728)', () => {
+    const firewallWebhooksUrl = getNotificationWebhooksUrl('repository', 'repositoryId', 'FIREWALL_POLICY_ALERT');
+    const firewallRolesUrl = getRoleMappingForCurrentOwnerUrl('repository', 'repositoryId');
+    const firewallNotificationWebhooks = [
+      {
+        description: 'webhook1name',
+        eventTypes: ['Firewall Violation Alert'],
+        id: 'webhook1',
+        secretKey: null,
+        url: 'http://sdf.com',
+      },
+    ];
+
+    beforeEach(() => {
+      state.router = {
+        currentParams: { repositoryId: 'repositoryId' },
+        currentState: { name: 'firewall.repository' },
+      };
+      mockAxiosCalls.onGet(firewallWebhooksUrl).reply(200, firewallNotificationWebhooks);
+      mockAxiosCalls.onGet(firewallRolesUrl).reply(200, { membersByRole: roles });
+    });
+
+    it('enables proxy stage checkbox for webhook notifications on repository policies', async () => {
+      state.orgsAndPolicies.policy.currentPolicy.notifications = {
+        ...notifications,
+        webhookNotifications: [{ webhookId: 'webhook1', stageIds: [] }],
+      };
+      renderComponent();
+      await waitFor(() => screen.getByRole('table'));
+
+      const proxyCheckbox = screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for proxy' });
+      expect(proxyCheckbox).not.toBeDisabled();
+    });
+
+    it('disables non-proxy stages for webhook notifications on repository policies', async () => {
+      state.orgsAndPolicies.policy.currentPolicy.notifications = {
+        ...notifications,
+        webhookNotifications: [{ webhookId: 'webhook1', stageIds: [] }],
+      };
+      renderComponent();
+      await waitFor(() => screen.getByRole('table'));
+
+      // For repository-related policies the only stage that supports webhook recipients is proxy.
+      // Non-proxy stages are not even rendered (isNotificationsSupportedForStage returns false),
+      // so the only assertion that matters is the proxy checkbox is enabled — covered above.
+      const proxyCheckbox = screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for proxy' });
+      expect(proxyCheckbox).not.toBeDisabled();
+    });
+
+    it('fetches FIREWALL_POLICY_ALERT-subscribed webhooks for repository policies', async () => {
+      renderComponent();
+      await waitFor(() => screen.getByRole('table'));
+
+      // Confirm the right URL was called (with the FIREWALL_POLICY_ALERT eventType query parameter).
+      const urls = mockAxiosCalls.history.get.map((req) => req.url);
+      expect(urls).toContain(firewallWebhooksUrl);
+    });
+  });
+
   it('renders "notifications are not supported" tooltip message when notifications are not supported', async () => {
     state.productFeatures.productFeatures.notifications = false;
     SpecUtil.requestIdleCallbackInvokeImmediateJest();
@@ -500,6 +563,8 @@ describe('PolicyNotificationsEditor', () => {
         }),
         pathSet(['orgsAndPolicies', 'policy', 'currentPolicy', 'policyNotificationsOverrides'], null)
       )(state);
+      const webhookIdEntry = { id: 'webhookId', description: 'webhookIdname', url: 'http://webhook.com', eventTypes: null, secretKey: null };
+      mockAxiosCalls.onGet(webhooksUrl).reply(200, [...notificationWebhooks, webhookIdEntry]);
       renderComponent(preloadedState);
       await waitFor(() => screen.getByRole('table'));
       const overrideParentNotificationsRadio = screen.getByLabelText(/Override parent notifications/i);

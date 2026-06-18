@@ -48,6 +48,7 @@ import {
   selectIsRepositoryContainer,
   selectIsRepository,
   selectIsSbomManager,
+  selectIsFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
@@ -196,6 +197,7 @@ export const initialState = {
     loadError: null,
     roles: null,
     notificationWebhooks: null,
+    crossProductWebhooks: null,
     isJiraEnabled: false,
     jiraProjects: null,
     formState: {
@@ -1006,8 +1008,30 @@ const loadNotificationWebhooks = createAsyncThunk(
   `${REDUCER_NAME}/loadNotificationWebhooks`,
   (_, { getState, rejectWithValue }) => {
     const state = getState();
-    const { ownerType, ownerId } = selectOwnerInfo(state);
-    return axios.get(getNotificationWebhooksUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
+    const isFirewall = selectIsFirewall(state);
+    const eventType = isRepositoriesRelated || isFirewall ? 'FIREWALL_POLICY_ALERT' : undefined;
+    return axios
+      .get(getNotificationWebhooksUrl(ownerType, ownerId, eventType))
+      .then(prop('data'))
+      .catch(rejectWithValue);
+  }
+);
+
+const loadCrossProductWebhooks = createAsyncThunk(
+  `${REDUCER_NAME}/loadCrossProductWebhooks`,
+  (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
+    const isFirewall = selectIsFirewall(state);
+    if (isRepositoriesRelated) return Promise.resolve([]);
+    const otherEventType = isFirewall ? 'POLICY_ALERT' : 'FIREWALL_POLICY_ALERT';
+    return axios
+      .get(getNotificationWebhooksUrl(ownerType, ownerId, otherEventType))
+      .then(prop('data'))
+      .catch(rejectWithValue);
   }
 );
 
@@ -1089,7 +1113,7 @@ const addNotificationRecipient = (originalState, { payload }) => {
 
 const removeNotificationRecipient = (state, { payload }) => {
   const { ownerId, recipient } = payload;
-  const removeRecipientFrom = without([omit(['displayName'], recipient)]);
+  const removeRecipientFrom = without([omit(['displayName', 'webhookEventTypes', 'isCrossProductWebhook'], recipient)]);
   const setNotificationsFor = (notificationType, payload) => setNotifications(notificationType, state, { payload });
   const {
     webhookNotifications = [],
@@ -1213,24 +1237,29 @@ const loadJiraProjects = createAsyncThunk(`${REDUCER_NAME}/loadJiraProjects`, as
 
 export const loadNotificationsEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadNotificationsEditor`,
-  (_, { getState, dispatch, rejectWithValue }) => {
-    const state = getState();
-    let notificationPromises = [dispatch(loadRolesForCurrentOwner()), dispatch(loadJiraProjects())];
-    const isRepositoriesRelated = selectIsRepositoriesRelated(state);
-    if (!isRepositoriesRelated) {
-      notificationPromises = [...notificationPromises, dispatch(loadNotificationWebhooks())];
-    }
+  (_, { dispatch, rejectWithValue }) => {
+    const notificationPromises = [
+      dispatch(loadRolesForCurrentOwner()),
+      dispatch(loadJiraProjects()),
+      dispatch(loadNotificationWebhooks()),
+      dispatch(loadCrossProductWebhooks()),
+    ];
     return Promise.all(notificationPromises)
       .then((results) => {
         const { membersByRole } = unwrapResult(results[0]);
         const { isJiraEnabled, projects } = unwrapResult(results[1]);
-        const notificationWebhooks = isRepositoriesRelated
-          ? initialState.notificationsEditor.notificationWebhooks
-          : unwrapResult(results[2]);
+        const notificationWebhooks = unwrapResult(results[2]);
+        let crossProductWebhooks = [];
+        try {
+          crossProductWebhooks = unwrapResult(results[3]) ?? [];
+        } catch (e) {
+          // cross-product fetch failure is non-fatal; editor loads with empty cross-product list
+        }
 
         return {
           membersByRole,
           notificationWebhooks,
+          crossProductWebhooks,
           isJiraEnabled,
           projects,
         };
@@ -1246,12 +1275,19 @@ const loadNotificationsEditorRequested = (state) => {
 };
 
 const loadNotificationsEditorFulfilled = (state, { payload }) => {
-  const { isJiraEnabled, projects: jiraProjects, notificationWebhooks, membersByRole: roles } = payload;
+  const {
+    isJiraEnabled,
+    projects: jiraProjects,
+    notificationWebhooks,
+    crossProductWebhooks,
+    membersByRole: roles,
+  } = payload;
   state.notificationsEditor.loading = false;
   state.notificationsEditor.loadError = null;
   state.notificationsEditor.isJiraEnabled = isJiraEnabled;
   state.notificationsEditor.jiraProjects = jiraProjects;
   state.notificationsEditor.notificationWebhooks = notificationWebhooks;
+  state.notificationsEditor.crossProductWebhooks = crossProductWebhooks ?? [];
   state.notificationsEditor.roles = roles;
 };
 

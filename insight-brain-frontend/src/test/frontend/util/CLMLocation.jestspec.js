@@ -1912,4 +1912,24 @@ describe('clmLocation.js', function () {
       expect(clmLocation.getDeleteContainerImagePolicyWaiverUrl(containerImageId)).toBe(expectedUrl);
     });
   });
+
+  describe('getNotificationWebhooksUrl', () => {
+    it('returns base URL with no eventType (defaults to POLICY_ALERT on server)', () => {
+      expect(clmLocation.getNotificationWebhooksUrl('organization', 'org-1')).toBe(
+        'http://localhost/rest/config/webhook/policy/organization/org-1'
+      );
+    });
+
+    it('appends eventType=FIREWALL_POLICY_ALERT for repository policies (NEXUS-52728)', () => {
+      expect(clmLocation.getNotificationWebhooksUrl('repository', 'repo-1', 'FIREWALL_POLICY_ALERT')).toBe(
+        'http://localhost/rest/config/webhook/policy/repository/repo-1?eventType=FIREWALL_POLICY_ALERT'
+      );
+    });
+
+    it('appends eventType=POLICY_ALERT when explicitly provided', () => {
+      expect(clmLocation.getNotificationWebhooksUrl('organization', 'org-1', 'POLICY_ALERT')).toBe(
+        'http://localhost/rest/config/webhook/policy/organization/org-1?eventType=POLICY_ALERT'
+      );
+    });
+  });
 });

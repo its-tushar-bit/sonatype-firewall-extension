@@ -1609,8 +1609,9 @@ export const getAutoWaiverExclusionsByExclusionIdUrl = (
   return uriTemplate`/api/v2/autoPolicyWaiverExclusions/${ownerType}/${ownerId}/${autoWaiverId}/${autoPolicyWaiverExclusionId}`;
 };
 
-export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
-  return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
+export const getNotificationWebhooksUrl = (ownerType, ownerId, eventType) => {
+  const base = uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
+  return eventType ? `${base}?eventType=${encodeURIComponent(eventType)}` : base;
 };
 
 export const getRevokeLegacyViolationUrl = (applicationPublicId) =>

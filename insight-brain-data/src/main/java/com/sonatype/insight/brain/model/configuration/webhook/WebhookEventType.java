@@ -16,6 +16,7 @@ public enum WebhookEventType
   POLICY_MANAGEMENT("Policy Management", "iq:policyManagement"),
   APPLICATION_EVALUATION("Application Evaluation", "iq:applicationEvaluation"),
   POLICY_ALERT("Violation Alert", "iq:policyAlert"),
+  FIREWALL_POLICY_ALERT("Firewall Violation Alert", "iq:firewallPolicyAlert"),
   LICENSE_OVERRIDE_MANAGEMENT("License Override Management", "iq:licenseOverrideManagement"),
   SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management",
       "iq:securityVulnerabilityOverrideManagement"),

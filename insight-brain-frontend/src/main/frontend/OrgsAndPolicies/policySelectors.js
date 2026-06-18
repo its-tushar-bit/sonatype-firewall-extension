@@ -574,6 +574,10 @@ export const selectNotificationsEditorLoading = createSelector(selectNotificatio
 export const selectNotificationsEditorLoadError = createSelector(selectNotificationsEditor, prop('loadError'));
 
 export const selectNotificationWebhooks = createSelector(selectNotificationsEditor, prop('notificationWebhooks'));
+export const selectCrossProductWebhooks = createSelector(
+  selectNotificationsEditor,
+  (editor) => editor?.crossProductWebhooks ?? []
+);
 
 export const selectNotificationsEditorFormState = createSelector(selectNotificationsEditor, prop('formState'));
 
@@ -760,10 +764,18 @@ export const selectAvailableJiraProjects = createSelector(
 export const selectNotificationRecipients = createSelector(
   selectNotifications,
   selectNotificationWebhooks,
+  selectCrossProductWebhooks,
   selectRolesForCurrentOwner,
   selectJiraProjectNames,
   selectJiraIssueTypeNames,
-  (notifications, notificationWebhooks, roles = [], jiraProjectNames = {}, jiraIssueTypes = {}) => {
+  (
+    notifications,
+    notificationWebhooks,
+    crossProductWebhooks = [],
+    roles = [],
+    jiraProjectNames = {},
+    jiraIssueTypes = {}
+  ) => {
     const rolesIndexedById = indexBy(prop('roleId'), roles ?? []);
     const {
       roleNotifications = [],
@@ -779,11 +791,21 @@ export const selectNotificationRecipients = createSelector(
       return recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')';
     };
 
+    const findWebhook = (webhookId) => {
+      const inCurrent = !isNilOrEmpty(notificationWebhooks)
+        ? notificationWebhooks.find((webhook) => webhookId === webhook.id)
+        : undefined;
+      if (inCurrent) return { webhook: inCurrent, isCrossProduct: false };
+      const inCross = !isNilOrEmpty(crossProductWebhooks)
+        ? crossProductWebhooks.find((webhook) => webhookId === webhook.id)
+        : undefined;
+      if (inCross) return { webhook: inCross, isCrossProduct: true };
+      return { webhook: undefined, isCrossProduct: false };
+    };
+
     const getWebhookDisplayName = (recipient) => {
       if (recipient.webhookId) {
-        const webhook = !isNilOrEmpty(notificationWebhooks)
-          ? notificationWebhooks.find((webhook) => recipient.webhookId === webhook.id)
-          : undefined;
+        const { webhook } = findWebhook(recipient.webhookId);
         if (webhook) return 'Webhook: ' + (webhook.description ? webhook.description : webhook.url);
         else return 'Undefined webhook: ' + recipient.webhookId;
       }
@@ -799,9 +821,29 @@ export const selectNotificationRecipients = createSelector(
       );
     };
 
+    const enrichRecipient = (recipient) => {
+      const enriched = { ...recipient, displayName: getDisplayName(recipient) };
+      if (recipient.webhookId) {
+        const { webhook, isCrossProduct } = findWebhook(recipient.webhookId);
+        enriched.webhookEventTypes = webhook?.eventTypes ?? [];
+        enriched.isCrossProductWebhook = isCrossProduct;
+      }
+      return enriched;
+    };
+
+    const visibleWebhookNotifications = webhookNotifications.map(enrichRecipient).filter((w) => {
+      if (!w.webhookId) return true;
+      const { webhook } = findWebhook(w.webhookId);
+      return !!webhook;
+    });
+
     const recipients = userNotifications
-      .concat(roleNotifications, webhookNotifications, jiraNotifications)
-      .map((recipient) => ({ ...recipient, displayName: getDisplayName(recipient) }))
+      .map(enrichRecipient)
+      .concat(
+        roleNotifications.map(enrichRecipient),
+        visibleWebhookNotifications,
+        jiraNotifications.map(enrichRecipient)
+      )
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
     return recipients;

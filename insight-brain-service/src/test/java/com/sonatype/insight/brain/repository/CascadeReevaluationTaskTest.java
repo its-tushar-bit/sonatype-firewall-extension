@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -125,6 +126,9 @@ public class CascadeReevaluationTaskTest
 
   @Inject
   private RepositoryPathnameParser repositoryPathnameParser;
+
+  @Inject
+  private FirewallPolicyAlertEventService firewallPolicyAlertEventService;
 
   private String cascadeRequestId;
 
@@ -274,7 +278,7 @@ public class CascadeReevaluationTaskTest
         policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
         componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
         repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
-        repositoryPathnameParser);
+        repositoryPathnameParser, firewallPolicyAlertEventService);
   }
 
   private Policy createPolicy() {

@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.Date;
@@ -111,6 +112,9 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private RepositoryPathnameParser repositoryPathnameParser;
 
+  @Inject
+  private FirewallPolicyAlertEventService firewallPolicyAlertEventService;
+
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
 
@@ -166,7 +170,7 @@ public class RepositoryReevaluationTaskTest
             policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
             repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
-            repositoryPathnameParser),
+            repositoryPathnameParser, firewallPolicyAlertEventService),
         spyExecutorService, 10, repositoryComponentDAO, clusterLockManager);
     createHdsResponse();
   }

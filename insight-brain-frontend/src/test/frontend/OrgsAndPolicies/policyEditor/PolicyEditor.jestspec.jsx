@@ -108,7 +108,13 @@ describe('PolicyEditorSpec', () => {
     mockAxiosCalls.onGet(policyTagUrl).reply(200, policyTag[ownerType]?.[ownerId]?.[policyId] ?? {});
 
     if (mockNotificationEndpoints) {
-      const webhooksUrl = getNotificationWebhooksUrl(ownerType, ownerId);
+      const isRepoRelated =
+        ownerType === 'repository' || ownerType === 'repository_manager' || ownerType === 'repository_container';
+      // For repository-related routes, the slice now requests FIREWALL_POLICY_ALERT-subscribed webhooks
+      // (NEXUS-52728); for application/organization routes it still requests POLICY_ALERT (default).
+      const webhooksUrl = isRepoRelated
+        ? getNotificationWebhooksUrl(ownerType, ownerId, 'FIREWALL_POLICY_ALERT')
+        : getNotificationWebhooksUrl(ownerType, ownerId);
       const rolesUrl = getRoleMappingForCurrentOwnerUrl(ownerType, ownerId);
       const isJiraEnabledUrl = getIsJiraEnabledUrl();
       const jiraProjectsUrl = getJiraProjectsUrl();

@@ -82,8 +82,11 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -112,6 +115,7 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Release
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.test.MailboxTestUtil;
+import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -1883,5 +1887,165 @@ public class RepositoryPolicyEvaluatorTest
             false /* persistEvaluationResults */, false /* forMonitoring */);
 
     assertThat(result.componentEvalResults.get(0).quarantine).isFalse();
+  }
+
+  // =========================================================================
+  // NEXUS-52728: FirewallPolicyAlertEvent transition gate tests
+  // =========================================================================
+
+  @Test
+  public void testEvaluate_FirewallPolicyAlertEvent_postedOnNewQuarantine() throws Exception {
+    Webhook target = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    Notifications notifications = new Notifications();
+    notifications.getWebhookNotifications().add(new WebhookNotification(target.getId(), ProxyStageType.ID));
+    Policy policy = createProxyFailPolicyWithNotifications(repository, notifications);
+
+    TestEventHandler<FirewallPolicyAlertEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), FirewallPolicyAlertEvent.class);
+    mockEventBus.register(handler);
+
+    try {
+      RepositoryComponentEvaluationDataRequestList request =
+          singleQuarantinableComponentRequest("path/to/component.jar", "hash-1");
+      ComponentEvaluationDataList hdsResult = singleQuarantinableComponentHdsResult("hash-1");
+      mockHdsRequest(request, hdsResult, true);
+
+      repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
+
+      assertThat(handler.getLatch().await(2, TimeUnit.SECONDS)).isTrue();
+      FirewallPolicyAlertEvent event = handler.getEvent();
+      assertThat(event.targetId).isEqualTo(target.getId());
+      assertThat(event.repositoryId).isEqualTo(repository.getId());
+      assertThat(event.repositoryPublicId).isEqualTo(repository.getPublicId());
+      assertThat(event.quarantineTime).isNotNull();
+      assertThat(event.violations).isNotEmpty();
+      assertThat(event.violations.get(0).policyId).isEqualTo(policy.getId());
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testEvaluate_FirewallPolicyAlertEvent_notPostedOnReEvaluationOfQuarantinedComponent() throws Exception {
+    Webhook target = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    Notifications notifications = new Notifications();
+    notifications.getWebhookNotifications().add(new WebhookNotification(target.getId(), ProxyStageType.ID));
+    createProxyFailPolicyWithNotifications(repository, notifications);
+
+    RepositoryComponentEvaluationDataRequestList request =
+        singleQuarantinableComponentRequest("path/to/component.jar", "hash-1");
+    ComponentEvaluationDataList hdsResult = singleQuarantinableComponentHdsResult("hash-1");
+    mockHdsRequest(request, hdsResult, true);
+
+    // First evaluation — quarantines and posts an event.
+    repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
+
+    // Now register the handler and re-evaluate — should NOT post a second event since the component
+    // is already quarantined and the gate is false→true only.
+    TestEventHandler<FirewallPolicyAlertEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), FirewallPolicyAlertEvent.class);
+    mockEventBus.register(handler);
+    try {
+      repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
+      assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testEvaluate_FirewallPolicyAlertEvent_notPostedWhenPolicyHasNoWebhookNotification() throws Exception {
+    // Webhook is configured for FIREWALL_POLICY_ALERT but the policy does not list it as a recipient.
+    tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    // Policy with FAIL action on proxy stage but NO webhook notification wired.
+    createProxyFailPolicyWithNotifications(repository, null);
+
+    TestEventHandler<FirewallPolicyAlertEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), FirewallPolicyAlertEvent.class);
+    mockEventBus.register(handler);
+
+    try {
+      RepositoryComponentEvaluationDataRequestList request =
+          singleQuarantinableComponentRequest("path/to/component.jar", "hash-1");
+      ComponentEvaluationDataList hdsResult = singleQuarantinableComponentHdsResult("hash-1");
+      mockHdsRequest(request, hdsResult, true);
+
+      repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
+
+      // Component IS quarantined but no webhook event is posted — no policy targets the webhook.
+      assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isTrue();
+      assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testEvaluate_FirewallPolicyAlertEvent_notPostedWhenComponentNotQuarantined() throws Exception {
+    Webhook target = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    Notifications notifications = new Notifications();
+    notifications.getWebhookNotifications().add(new WebhookNotification(target.getId(), ProxyStageType.ID));
+    // Policy with WARN (not FAIL) on proxy stage — won't quarantine.
+    Policy policy = tempEntity.newPolicy(repository.getId(), "warn-only", 5, Action.ID_WARN, ProxyStageType.ID,
+        notifications);
+    policy.setAction(ProxyStageType.ID, Action.ID_WARN);
+    policyDAO.update(policy);
+
+    TestEventHandler<FirewallPolicyAlertEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), FirewallPolicyAlertEvent.class);
+    mockEventBus.register(handler);
+
+    try {
+      RepositoryComponentEvaluationDataRequestList request =
+          singleQuarantinableComponentRequest("path/to/component.jar", "hash-1");
+      ComponentEvaluationDataList hdsResult = singleQuarantinableComponentHdsResult("hash-1");
+      mockHdsRequest(request, hdsResult, true);
+
+      repositoryPolicyEvaluator.evaluate(repository, request, true /* withQuarantine */, null);
+
+      // Component not quarantined; no webhook event.
+      assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId()).get(0).isQuarantined()).isFalse();
+      assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
+    }
+    finally {
+      mockEventBus.unregister(handler);
+    }
+  }
+
+  private Policy createProxyFailPolicyWithNotifications(Repository repository, Notifications notifications) {
+    Policy policy = tempEntity.newPolicy(repository.getId(), "fail-on-proxy", 9, Action.ID_FAIL, ProxyStageType.ID,
+        notifications);
+    return policy;
+  }
+
+  private RepositoryComponentEvaluationDataRequestList singleQuarantinableComponentRequest(String path, String hash) {
+    RepositoryComponentEvaluationDataRequestList request = new RepositoryComponentEvaluationDataRequestList();
+    request.components.add(new RepositoryComponentEvaluationDataRequest("maven2", path, hash));
+    return request;
+  }
+
+  private ComponentEvaluationDataList singleQuarantinableComponentHdsResult(String hash) {
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components.add(createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), hash, MatchState.EXACT,
+        0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        createSecurityVulnerabilities(), 2 /* popularity */));
+    return hdsResult;
   }
 }

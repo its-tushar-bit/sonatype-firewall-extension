@@ -56,6 +56,9 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.Appli
 import com.sonatype.insight.brain.webhook.dto.ApplicationSummary;
 import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload.ContainerEvaluationDTO;
+import com.sonatype.insight.brain.webhook.dto.FirewallPolicyAlertComponentDTO;
+import com.sonatype.insight.brain.webhook.dto.FirewallPolicyAlertPayload;
+import com.sonatype.insight.brain.webhook.dto.FirewallPolicyAlertViolationDTO;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
@@ -564,6 +567,113 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.applicationEvaluation.isForLatestScan).isEqualTo(true);
     ApiComponentIdentifierDTOV2 componentIdentifier = policyAlertDTO.componentFacts.get(0).componentIdentifier;
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(componentIdentifier)).isEqualTo(mavenCoordinates);
+  }
+
+  @Test
+  public void testOn_HandlesFirewallPolicyAlertEvent() {
+    Webhook target = tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    FirewallPolicyAlertEvent event = new FirewallPolicyAlertEvent(target.getId());
+    event.initiator = "system";
+    event.repositoryId = repository.getId();
+    event.repositoryPublicId = repository.getPublicId();
+    event.repositoryFormat = "maven2";
+    event.quarantineTime = new Date();
+
+    FirewallPolicyAlertViolationDTO violation = new FirewallPolicyAlertViolationDTO();
+    violation.policyId = "policy-1";
+    violation.policyName = "Critical CVE";
+    violation.threatLevel = 10;
+    violation.policyViolationId = "pv-1";
+
+    FirewallPolicyAlertComponentDTO componentFact = new FirewallPolicyAlertComponentDTO();
+    componentFact.hash = "abc123";
+    componentFact.displayName = "log4j-1.2.17";
+    ComponentIdentifier mavenCoordinates =
+        createMavenCoordinates("org.apache.logging.log4j", "log4j", "1.2.17", "test", "jar");
+    componentFact.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(mavenCoordinates);
+    componentFact.pathNames = Collections.singletonList("org/apache/logging/log4j/log4j-1.2.17.jar");
+    violation.componentFacts.add(componentFact);
+    event.violations.add(violation);
+
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> webhookPayloadArgumentCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.FIREWALL_POLICY_ALERT.getId()),
+            webhookPayloadArgumentCaptor.capture());
+
+    Webhook webhook = webhookArgumentCaptor.getValue();
+    assertThat(webhook.getUrl()).isEqualTo("http://localhost");
+    assertThat(webhook.getSecretKey()).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
+
+    FirewallPolicyAlertPayload payload = (FirewallPolicyAlertPayload) webhookPayloadArgumentCaptor.getValue();
+    assertThat(payload.initiator).isEqualTo("system");
+    assertThat(payload.timestamp).isNotNull();
+    assertThat(payload.repository.id).isEqualTo(repository.getId());
+    assertThat(payload.repository.publicId).isEqualTo(repository.getPublicId());
+    assertThat(payload.repository.format).isEqualTo("maven2");
+    assertThat(payload.quarantineStatus.quarantined).isTrue();
+    assertThat(payload.quarantineStatus.quarantineTime).isEqualTo(event.quarantineTime);
+
+    assertThat(payload.policyAlerts).hasSize(1);
+    FirewallPolicyAlertViolationDTO actualViolation = payload.policyAlerts.get(0);
+    assertThat(actualViolation.policyId).isEqualTo("policy-1");
+    assertThat(actualViolation.policyName).isEqualTo("Critical CVE");
+    assertThat(actualViolation.threatLevel).isEqualTo(10);
+    assertThat(actualViolation.policyViolationId).isEqualTo("pv-1");
+    assertThat(actualViolation.componentFacts).hasSize(1);
+    assertThat(actualViolation.componentFacts.get(0).hash).isEqualTo("abc123");
+    assertThat(
+        ApiComponentIdentifierDTOV2.toComponentIdentifier(actualViolation.componentFacts.get(0).componentIdentifier))
+            .isEqualTo(mavenCoordinates);
+  }
+
+  @Test
+  public void testOn_HandlesFirewallPolicyAlertEvent_OnlyDispatchesToTargetWebhook() {
+    Webhook target = tempEntity.newWebhookWithSecret("http://target",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Webhook nonTarget = tempEntity.newWebhookWithSecret("http://other",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    FirewallPolicyAlertEvent event = new FirewallPolicyAlertEvent(target.getId());
+    event.initiator = "system";
+    event.repositoryId = repository.getId();
+    event.repositoryPublicId = repository.getPublicId();
+    event.quarantineTime = new Date();
+
+    asyncEventBus.post(event);
+
+    // Only the targeted webhook receives the delivery; the other Firewall webhook is skipped.
+    ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(webhookArgumentCaptor.capture(), eq(WebhookEventType.FIREWALL_POLICY_ALERT.getId()),
+            any(WebhookPayload.class));
+    assertThat(webhookArgumentCaptor.getValue().getId()).isEqualTo(target.getId());
+    assertThat(webhookArgumentCaptor.getValue().getId()).isNotEqualTo(nonTarget.getId());
+  }
+
+  @Test
+  public void testOn_HandlesFirewallPolicyAlertEvent_SkipsWhenNoSubscribingWebhook() {
+    // Webhook is subscribed to a different event type — should not receive Firewall alerts.
+    tempEntity.newWebhookWithSecret("http://localhost",
+        Collections.singleton(WebhookEventType.POLICY_ALERT));
+    Repository repository = tempEntity.newRepository();
+
+    FirewallPolicyAlertEvent event = new FirewallPolicyAlertEvent("some-target-id");
+    event.repositoryId = repository.getId();
+    event.repositoryPublicId = repository.getPublicId();
+    event.quarantineTime = new Date();
+
+    asyncEventBus.post(event);
+
+    // No delivery — wait briefly to confirm no async post happened.
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS / 2).times(0))
+        .post(any(Webhook.class), eq(WebhookEventType.FIREWALL_POLICY_ALERT.getId()), any(WebhookPayload.class));
   }
 
   @Test

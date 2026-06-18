@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.webhook;
 
+import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -38,6 +39,7 @@ import com.sonatype.insight.brain.webhook.dto.ApplicationEvaluationPayload.Appli
 import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload;
 import com.sonatype.insight.brain.webhook.dto.ContainerEvaluationPayload.ContainerEvaluationDTO;
 import com.sonatype.insight.brain.webhook.dto.ContainerRepositorySummary;
+import com.sonatype.insight.brain.webhook.dto.FirewallPolicyAlertPayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload;
 import com.sonatype.insight.brain.webhook.dto.LicenseOverridePayload.LicenseOverrideDTO;
 import com.sonatype.insight.brain.webhook.dto.OrganizationApplicationSummaryPayload;
@@ -276,6 +278,25 @@ public class WebhookDispatcher
   }
 
   @Subscribe
+  @AllowConcurrentEvents
+  public void on(final FirewallPolicyAlertEvent firewallPolicyAlertEvent) {
+    WebhookEventType webhookEventType = WebhookEventType.FIREWALL_POLICY_ALERT;
+    if (!checkEventIsLicensed(firewallPolicyAlertEvent.repositoryId, webhookEventType)) {
+      return;
+    }
+
+    for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
+      checkAndSendTelemetryForJiraCloudPlugin(webhook.getUrl());
+
+      if (webhook.getId().equals(firewallPolicyAlertEvent.targetId)) {
+        invokeWithAudit(webhook, webhookEventType,
+            () -> sendFirewallPolicyAlertPayload(webhookService.getDecrypted(webhook.getId()),
+                firewallPolicyAlertEvent));
+      }
+    }
+  }
+
+  @Subscribe
   public void on(final WaiverRequestEvent waiverRequestEvent) {
     WebhookEventType webhookEventType = WebhookEventType.WAIVER_REQUEST;
 
@@ -436,6 +457,23 @@ public class WebhookDispatcher
     }
 
     webhookClientUtil.post(webhook, WebhookEventType.POLICY_ALERT.getId(), payload);
+  }
+
+  private void sendFirewallPolicyAlertPayload(final Webhook webhook, final FirewallPolicyAlertEvent event) {
+    FirewallPolicyAlertPayload payload = new FirewallPolicyAlertPayload();
+    payload.timestamp = new Date();
+    payload.initiator = event.initiator;
+
+    payload.repository.id = event.repositoryId;
+    payload.repository.publicId = event.repositoryPublicId;
+    payload.repository.format = event.repositoryFormat;
+
+    payload.quarantineStatus.quarantined = true;
+    payload.quarantineStatus.quarantineTime = event.quarantineTime;
+
+    payload.policyAlerts = event.violations;
+
+    webhookClientUtil.post(webhook, WebhookEventType.FIREWALL_POLICY_ALERT.getId(), payload);
   }
 
   private void sendApplicationEvaluationPayload(final Webhook webhook, final ApplicationEvaluationEvent event) {
@@ -605,8 +643,9 @@ public class WebhookDispatcher
   }
 
   private boolean checkEventIsLicensed(final String ownerId, final WebhookEventType webhookEventType) {
-    // WAIVER_EXPIRATION is Firewall-only (repositories), not applicable to Lifecycle (applications)
-    if (webhookEventType == WebhookEventType.WAIVER_EXPIRATION) {
+    if (webhookEventType == WebhookEventType.WAIVER_EXPIRATION
+        || webhookEventType == WebhookEventType.FIREWALL_POLICY_ALERT)
+    {
       return productLicense.hasFeature(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
     }
 

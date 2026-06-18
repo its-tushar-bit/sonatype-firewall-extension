@@ -50,7 +50,8 @@ public class WebhookService
   private static final Logger log = LoggerFactory.getLogger(WebhookService.class);
 
   private static final Set<WebhookEventType> FIREWALL_ONLY_EVENTS = Set.of(
-      WebhookEventType.WAIVER_EXPIRATION);
+      WebhookEventType.WAIVER_EXPIRATION,
+      WebhookEventType.FIREWALL_POLICY_ALERT);
 
   private static final Set<WebhookEventType> LIFECYCLE_ONLY_EVENTS = Set.of(
       WebhookEventType.POLICY_ALERT,
@@ -85,13 +86,24 @@ public class WebhookService
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String ownerId)
   {
+    return getPolicyNotificationWebhooksByEventType(ownerType, ownerId, WebhookEventType.POLICY_ALERT);
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<Webhook> getPolicyNotificationWebhooksByEventType(
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.ID) String ownerId,
+      WebhookEventType eventType)
+  {
     List<Webhook> result = new ArrayList<>();
     for (Webhook webhook : webhookDao.getAll()) {
-      if (webhook.getEventTypes().contains(WebhookEventType.POLICY_ALERT)) {
+      if (webhook.getEventTypes().contains(eventType)) {
         Webhook redacted = new Webhook();
         redacted.setId(webhook.getId());
         redacted.setUrl(webhook.getUrl());
         redacted.setDescription(webhook.getDescription());
+        // include eventTypes so the policy editor can identify the webhook's product context
+        redacted.setEventTypes(webhook.getEventTypes());
         result.add(redacted);
       }
     }

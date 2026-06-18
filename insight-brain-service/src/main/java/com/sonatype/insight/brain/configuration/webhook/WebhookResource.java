@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.webhook.WebhookContextHolder;
 
 import com.codahale.metrics.annotation.Timed;
@@ -42,7 +43,8 @@ public class WebhookResource
 
   public static final String WEBHOOK_EVENT_TYPES_PATH = "eventTypes";
 
-  static final String POLICY_NOTIFICATION_WEBHOOKS_PATH = "policy/{ownerType: application|organization}/{ownerId}";
+  static final String POLICY_NOTIFICATION_WEBHOOKS_PATH =
+      "policy/{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
   public static final String WAIVER_REQUEST_WEBHOOKS_PATH = "waiverRequestCount";
 
@@ -53,17 +55,15 @@ public class WebhookResource
     this.webhookService = webhookService;
   }
 
-  /**
-   * @since 1.81
-   */
   @GET
   @Path(POLICY_NOTIFICATION_WEBHOOKS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   public List<Webhook> getPolicyNotificationWebhooks(
       @PathParam("ownerType") OwnerType ownerType,
-      @PathParam("ownerId") String ownerId)
+      @PathParam("ownerId") String ownerId,
+      @QueryParam("eventType") @DefaultValue("POLICY_ALERT") WebhookEventType eventType)
   {
-    return webhookService.getPolicyNotificationWebhooks(ownerType, ownerId);
+    return webhookService.getPolicyNotificationWebhooksByEventType(ownerType, ownerId, eventType);
   }
 
   /**

@@ -72,6 +72,7 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Release
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.webhook.FirewallPolicyAlertEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -137,6 +138,8 @@ public class RepositoryPolicyEvaluator
 
   private final RepositoryPathnameParser repositoryPathnameParser;
 
+  private final FirewallPolicyAlertEventService firewallPolicyAlertEventService;
+
   @Inject
   public RepositoryPolicyEvaluator(
       ComponentPolicyEvaluator componentPolicyEvaluator,
@@ -154,7 +157,8 @@ public class RepositoryPolicyEvaluator
       final ClusterLockManager clusterLockManager,
       AsyncEventBus eventBus,
       ApiFirewallMetricsService firewallMetricsService,
-      RepositoryPathnameParser repositoryPathnameParser)
+      RepositoryPathnameParser repositoryPathnameParser,
+      FirewallPolicyAlertEventService firewallPolicyAlertEventService)
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -172,6 +176,7 @@ public class RepositoryPolicyEvaluator
     this.eventBus = eventBus;
     this.firewallMetricsService = firewallMetricsService;
     this.repositoryPathnameParser = repositoryPathnameParser;
+    this.firewallPolicyAlertEventService = firewallPolicyAlertEventService;
   }
 
   public RepositoryComponentEvaluationDataList evaluateForMonitoring(
@@ -689,6 +694,8 @@ public class RepositoryPolicyEvaluator
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
         repository.getId(), pathname);
+    // Must be read before any mutation to repositoryComponent below.
+    boolean wasQuarantined = repositoryComponent != null && repositoryComponent.isQuarantined();
     String repositoryComponentId = repositoryComponent == null ? null : repositoryComponent.getId();
     if (repositoryComponent != null && !repositoryComponent.getHash().equals(component.getHash())) {
       if (repositoryComponent.isQuarantined()) {
@@ -746,6 +753,19 @@ public class RepositoryPolicyEvaluator
 
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
+
+    boolean nowQuarantined = repositoryComponent.isQuarantined();
+    if (!wasQuarantined && nowQuarantined) {
+      try {
+        firewallPolicyAlertEventService.postEvent(repository, pathname, component.getHash(),
+            repositoryComponent.getQuarantineTime(), activeAlerts);
+      }
+      catch (RuntimeException e) {
+        log.error("Failed to post FirewallPolicyAlertEvent for repository {} pathname {}",
+            repository.getId(), pathname, e);
+      }
+    }
+
     return repositoryComponent;
   }
 

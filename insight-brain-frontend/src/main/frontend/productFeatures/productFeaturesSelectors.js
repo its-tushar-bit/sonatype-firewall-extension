@@ -7,6 +7,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { and, both, prop, propOr } from 'ramda';
 import {
   selectIsRepositories,
+  selectIsRepositoriesRelated,
   selectIsRepositoryContainer,
   selectIsSbomManager,
   selectIsStandaloneDeveloper,
@@ -38,8 +39,10 @@ export const selectIsPolicyWebhooksSupported = createSelector(
   selectProductFeatures,
   selectIsRepositories,
   selectIsRepositoryContainer,
-  (features, isRepositories, isRepositoryContainer) =>
-    features['webhooks-for-applications'] && !isRepositories && !isRepositoryContainer
+  selectIsRepositoriesRelated,
+  (features, isRepositories, isRepositoryContainer, isRepositoriesRelated) =>
+    (features['webhooks-for-applications'] && !isRepositories && !isRepositoryContainer) ||
+    (features['webhooks-for-repositories'] && isRepositoriesRelated)
 );
 
 export const selectIsAutomationSupported = createSelector(selectProductFeatures, propOr(false, 'automation'));

@@ -79,7 +79,7 @@ public class WebhookServiceTest
     assertThat(webhook.getUrl()).isEqualTo(webhook1.getUrl());
     assertThat(webhook.getDescription()).isEqualTo(webhook1.getDescription());
     assertThat(webhook.getSecretKey()).isNull();
-    assertThat(webhook.getEventTypes()).isNull();
+    assertThat(webhook.getEventTypes()).containsExactly(WebhookEventType.POLICY_ALERT);
   }
 
   @Test
@@ -108,7 +108,39 @@ public class WebhookServiceTest
     assertThat(webhook.getUrl()).isEqualTo(webhook1.getUrl());
     assertThat(webhook.getDescription()).isEqualTo(webhook1.getDescription());
     assertThat(webhook.getSecretKey()).isNull();
-    assertThat(webhook.getEventTypes()).isNull();
+    assertThat(webhook.getEventTypes()).containsExactly(WebhookEventType.POLICY_ALERT);
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooksByEventType_Firewall() {
+    // FIREWALL_POLICY_ALERT-subscribed webhook (returned)
+    Webhook firewall = tempEntity.newWebhookWithSecret("http://firewall.hook",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT), "fw");
+    // POLICY_ALERT-subscribed webhook (NOT returned for FIREWALL filter)
+    tempEntity.newWebhookWithSecret("http://lifecycle.hook",
+        Collections.singleton(WebhookEventType.POLICY_ALERT), "lc");
+
+    List<Webhook> webhooks = webhookService.getPolicyNotificationWebhooksByEventType(
+        OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, WebhookEventType.FIREWALL_POLICY_ALERT);
+    assertThat(webhooks).hasSize(1);
+    assertThat(webhooks.get(0).getId()).isEqualTo(firewall.getId());
+    assertThat(webhooks.get(0).getUrl()).isEqualTo(firewall.getUrl());
+    assertThat(webhooks.get(0).getSecretKey()).isNull();
+    assertThat(webhooks.get(0).getEventTypes()).containsExactly(WebhookEventType.FIREWALL_POLICY_ALERT);
+  }
+
+  @Test
+  public void testGetPolicyNotificationWebhooks_DefaultsToPolicyAlert() {
+    // Existing getPolicyNotificationWebhooks delegates to the new method with POLICY_ALERT.
+    Webhook lifecycle = tempEntity.newWebhookWithSecret("http://lifecycle.hook",
+        Collections.singleton(WebhookEventType.POLICY_ALERT), "lc");
+    tempEntity.newWebhookWithSecret("http://firewall.hook",
+        Collections.singleton(WebhookEventType.FIREWALL_POLICY_ALERT), "fw");
+
+    List<Webhook> webhooks =
+        webhookService.getPolicyNotificationWebhooks(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
+    assertThat(webhooks).hasSize(1);
+    assertThat(webhooks.get(0).getId()).isEqualTo(lifecycle.getId());
   }
 
   @Test

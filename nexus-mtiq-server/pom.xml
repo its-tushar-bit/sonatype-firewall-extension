@@ -305,6 +305,7 @@
                   <include>io.opentelemetry:*</include>
                   <include>io.opentelemetry.instrumentation:*</include>
                   <include>io.opentelemetry.proto:*</include>
+                  <include>com.google.protobuf:protobuf-java</include>
                   <include>io.micrometer:micrometer-registry-otlp</include>
                   <include>software.amazon.awssdk:*</include>
                   <include>org.reactivestreams:reactive-streams</include>

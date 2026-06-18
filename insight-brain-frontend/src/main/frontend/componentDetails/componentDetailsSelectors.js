@@ -69,6 +69,7 @@ export const selectComponentDetails = createSelector(
           labels: details.labels,
           matchState: component.matchState,
           identificationSource: component.identificationSource,
+          variantSelected: component.variantSelected,
         }
       : null
 );

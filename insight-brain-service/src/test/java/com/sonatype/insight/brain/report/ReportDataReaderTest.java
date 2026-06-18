@@ -166,6 +166,8 @@ public class ReportDataReaderTest
     assertThat(componentDetails[0].getDeclaredLicenseIds()).isEmpty();
     assertThat(componentDetails[0].getObservedLicenseIds()).isEmpty();
     assertThat(componentDetails[0].getEffectiveLicenses()).isEmpty();
+    // bom.json without the CLM-30222 variantSelected field (pre-feature HDS) maps to null
+    assertThat(componentDetails[0].getVariantSelected()).isNull();
 
     com.sonatype.insight.brain.model.license.License licenseNotProvided =
         licenseDAO.getByIdNotNull(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
@@ -205,6 +207,7 @@ public class ReportDataReaderTest
     assertThat(vulnerability.getResearchType()).isEqualTo(SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.getId());
     assertThat(vulnerability.getDetectionType()).isEqualTo(SecurityVulnerabilityDetectionType.CPE_MATCH.getId());
     assertThat(vulnerability.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(details.getVariantSelected()).isTrue();
     assertAnalyzerFeatures(details, analyzerFeatures);
   }
 

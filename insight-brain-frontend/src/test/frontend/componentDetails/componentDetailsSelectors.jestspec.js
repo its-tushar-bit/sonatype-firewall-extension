@@ -225,6 +225,7 @@ describe('componentDetailsSelectors', () => {
           pathnames: ['dependency:/this.is.a.dependency', 'pathname 1', 'pathname 2'],
           proprietary: true,
           identificationSource: 'Sonatype',
+          variantSelected: true,
         },
       ];
 
@@ -254,6 +255,7 @@ describe('componentDetailsSelectors', () => {
         labels: [],
         matchState: 'unknown',
         identificationSource: 'Sonatype',
+        variantSelected: true,
       };
 
       const actual = selectComponentDetails(updatedMockState);

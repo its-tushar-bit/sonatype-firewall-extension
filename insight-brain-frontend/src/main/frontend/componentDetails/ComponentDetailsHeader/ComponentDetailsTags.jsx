@@ -8,13 +8,15 @@ import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { DependencyTypeTag, ComponentLabelTag, ComponentFormatTag } from '../../react/tag';
 import SbomComponentMatchStateTag from 'MainRoot/sbomManager/features/componentDetails/SbomComponentMatchStateTag';
+import VariantSelectionTag from './VariantSelectionTag';
 
-const nothingToRender = ({ format, dependencyType, isInnerSource, labels, matchState }) =>
+const nothingToRender = ({ format, dependencyType, isInnerSource, labels, matchState, variantSelected }) =>
   !format &&
   (!dependencyType || dependencyType === 'unknown') &&
   !isInnerSource &&
   labels.length === 0 &&
-  (!matchState || matchState !== 'similar');
+  (!matchState || matchState !== 'similar') &&
+  !variantSelected;
 
 export const ComponentDetailsTags = ({
   format,
@@ -22,10 +24,11 @@ export const ComponentDetailsTags = ({
   isInnerSource,
   filename,
   matchState,
+  variantSelected,
   labels = [],
   ...props
 }) => {
-  if (nothingToRender({ format, dependencyType, isInnerSource, labels, matchState })) {
+  if (nothingToRender({ format, dependencyType, isInnerSource, labels, matchState, variantSelected })) {
     return null;
   }
   const showDependencyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
@@ -50,6 +53,7 @@ export const ComponentDetailsTags = ({
         </>
       )}
       {<SbomComponentMatchStateTag filename={filename} matchState={matchState} />}
+      <VariantSelectionTag variantSelected={variantSelected} />
     </div>
   );
 };
@@ -69,6 +73,7 @@ export const componentDetailsTagsPropTypes = {
   ),
   filename: PropTypes.string,
   matchState: PropTypes.string,
+  variantSelected: PropTypes.bool,
 };
 ComponentDetailsTags.propTypes = componentDetailsTagsPropTypes;
 

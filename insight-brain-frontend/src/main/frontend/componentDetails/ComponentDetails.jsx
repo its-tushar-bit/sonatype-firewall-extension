@@ -145,6 +145,7 @@ export default function ComponentDetails() {
                     dependencyType={componentDetails.dependencyType}
                     isInnerSource={componentDetails.isInnerSource}
                     labels={componentDetails.labels}
+                    variantSelected={componentDetails.variantSelected}
                   />
                 </ComponentDetailsHeader>
                 {isUnknown && !isProprietary && (

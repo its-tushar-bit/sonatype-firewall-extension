@@ -23,6 +23,7 @@
       "matchState": "exact",
       "scanError": false,
       "proprietary": false,
+      "variantSelected": true,
       "hash": "ed3c2b07d1b16ec11440",
       "relativePopularity": 0.01,
       "createTime": 1132682927000,

@@ -166,6 +166,7 @@ public class ReportDataReader
     componentDetails.setMatchState(componentDTO.bomRow.matchState);
     componentDetails.setIdentificationSource(componentDTO.bomRow.identificationSource);
     componentDetails.setAnalyzerFeatures(componentDTO.bomRow.analyzerFeatures);
+    componentDetails.setVariantSelected(componentDTO.bomRow.variantSelected);
     componentDetails.setSecurityVulnerabilities(
         componentDTO.securityRows.stream().map(this::toSecurityVulnerability).collect(Collectors.toList()));
     if (componentDTO.licenseRow != null) {

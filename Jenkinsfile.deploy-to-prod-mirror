@@ -120,11 +120,12 @@ pipeline {
       steps {
         script {
           try {
-            // Extract build number from IMAGE_TAG: "202606102003-main-13807-46658300" → "13807"
-            def buildNumber = params.IMAGE_TAG.split('-')[2]
-            def saasVersion = "saas-${buildNumber}"
+            // Use the full immutable image tag as the Jira fix version name so
+            // the deployed artifact and the Jira version line up exactly
+            // (e.g. "202606171554-main-13852-fd709f43").
+            def saasVersion = params.IMAGE_TAG
 
-            echo "Creating Jira Fix Version: ${saasVersion} (from image tag: ${params.IMAGE_TAG})"
+            echo "Creating Jira Fix Version: ${saasVersion}"
 
             // Create the Jira fix version in each project
             def CLM_PROJECT_ID = 10002

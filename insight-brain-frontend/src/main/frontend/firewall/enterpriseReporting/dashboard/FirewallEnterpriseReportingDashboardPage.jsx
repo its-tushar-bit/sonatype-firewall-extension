@@ -19,7 +19,7 @@ import {
   NxTag,
 } from '@sonatype/react-shared-components';
 
-import EnterpriseReportingSupportInfo from 'MainRoot/enterpriseReporting/supportInfo/EnterpiseReportingSupportInfo';
+import FirewallEnterpriseReportingSupportInfo from '../supportInfo/FirewallEnterpriseReportingSupportInfo';
 import EnterpriseReportingFilter from 'MainRoot/enterpriseReporting/filter/EnterpriseReportingFilter';
 import {
   actions as filterActions,
@@ -184,7 +184,7 @@ export default function FirewallEnterpriseReportingDashboardPage() {
           iframeContainerHtml
         )}
 
-        <EnterpriseReportingSupportInfo />
+        <FirewallEnterpriseReportingSupportInfo />
       </NxPageMain>
     </>
   );

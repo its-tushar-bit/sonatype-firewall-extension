@@ -10,6 +10,7 @@ import ClassyBrew from 'classybrew/src/classybrew';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 import { actions as displayThemeActions } from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as mainHeaderActions } from 'MainRoot/mainHeader/mainHeaderSlice';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { fetchUser } from 'MainRoot/user/userSessionUtils';
 import store from 'MainRoot/reduxConfig/store';
@@ -41,6 +42,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchUser(false);
   store.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
   store.dispatch(loadProductLicense());
+  // The TopNav System Preferences menu gates its items on mainHeader
+  // permissions (CONFIGURE_SYSTEM, VIEW_ROLES, etc.). Classic loads these in
+  // MainHeader.jsx; the Nexus One bundle must dispatch it too or the gear menu
+  // renders "No preferences available".
+  store.dispatch(mainHeaderActions.loadPermissions());
 
   router.start();
   const container = document.getElementById('nexus-one-root');

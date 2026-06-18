@@ -8,35 +8,9 @@ import { Theme } from '@radix-ui/themes';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from 'TestRoot/SpecUtil';
 import PreviewSolutionSwitcher from 'MainRoot/nosc/shell/PreviewSolutionSwitcher';
+import { installRadixJsdomShims } from 'TestRoot/nosc/shell/radixJsdomShims';
 
-// jsdom does not implement several browser APIs that Radix's
-// DropdownMenu (and its embedded ScrollArea) rely on during open /
-// close. Without these shims `userEvent.click` on the trigger throws
-// an opaque AggregateError. The underlying gaps are well-documented:
-// `ResizeObserver` (jsdom #3368), Pointer Capture (jsdom #3209), and
-// `scrollIntoView` (jsdom #1695). The fix is to polyfill no-op
-// implementations at the start of the spec.
-beforeAll(() => {
-  if (typeof (globalThis as any).ResizeObserver === 'undefined') {
-    (globalThis as any).ResizeObserver = class {
-      observe(): void {}
-      unobserve(): void {}
-      disconnect(): void {}
-    };
-  }
-  if (!Element.prototype.hasPointerCapture) {
-    Element.prototype.hasPointerCapture = (): boolean => false;
-  }
-  if (!Element.prototype.setPointerCapture) {
-    Element.prototype.setPointerCapture = (): void => undefined;
-  }
-  if (!Element.prototype.releasePointerCapture) {
-    Element.prototype.releasePointerCapture = (): void => undefined;
-  }
-  if (!Element.prototype.scrollIntoView) {
-    Element.prototype.scrollIntoView = (): void => undefined;
-  }
-});
+beforeAll(installRadixJsdomShims);
 
 const lifecycleSolution = {
   id: 'lifecycle' as const,

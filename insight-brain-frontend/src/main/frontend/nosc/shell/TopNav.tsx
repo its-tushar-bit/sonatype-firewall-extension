@@ -5,7 +5,6 @@
  */
 import React, { useEffect, useState } from 'react';
 import {
-  Avatar,
   Box,
   Button,
   Flex,
@@ -21,6 +20,7 @@ import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 import PreviewSolutionSwitcher from 'MainRoot/nosc/shell/PreviewSolutionSwitcher';
 import PreviewSystemPreferencesMenu from 'MainRoot/nosc/shell/PreviewSystemPreferencesMenu';
+import PreviewUserMenu from 'MainRoot/nosc/shell/PreviewUserMenu';
 import lifecycleLogoLight from 'MainRoot/productIcons/sonatype-lifecycle-logo-nav.svg';
 import lifecycleLogoDark from 'MainRoot/productIcons/sonatype-lifecycle-logo-nav-dark.svg';
 
@@ -178,7 +178,7 @@ export function TopNav(): JSX.Element {
                 data-testid="nexus-one-top-nav-classic-toggle"
               >
                 <ActionIcons.Swap size={16} />
-                Switch to Classic
+                Switch to Classic UI
               </Button>
             </Tooltip>
 
@@ -240,16 +240,8 @@ export function TopNav(): JSX.Element {
 
             <Separator orientation="vertical" size="2" />
 
-            {/* User avatar — placeholder until the User dropdown is
-                wired (sign-out / profile / activity). Wrapped in Box so
-                the testid lands on a real DOM element (Radix's Avatar
-                doesn't forward arbitrary data-* to its root). */}
-            <Box
-              data-testid="nexus-one-top-nav-user-menu-slot"
-              aria-label="User menu placeholder"
-            >
-              <Avatar size="2" radius="full" fallback="A" />
-            </Box>
+            {/* User account dropdown (current user + Log Out). */}
+            <PreviewUserMenu />
           </Flex>
         </Flex>
       </header>

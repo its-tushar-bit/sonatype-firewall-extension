@@ -31,6 +31,7 @@ import {
   selectSolutionSwitcherError,
   selectSolutionSwitcherLoading,
 } from 'MainRoot/nosc/shell/previewSolutionSwitcherSelectors';
+import ShellDropdownRoot from 'MainRoot/nosc/shell/ShellDropdownRoot';
 
 // Product icons — reuse the SAME SVG assets the Classic
 // SolutionSwitcher uses. Light/dark variants picked at render time
@@ -142,11 +143,8 @@ export default function PreviewSolutionSwitcher(): JSX.Element {
   });
 
   return (
-    <Box
-      data-testid="nexus-one-top-nav-solution-switcher"
-      style={{ display: 'flex', alignItems: 'center' }}
-    >
-      <DropdownMenu.Root>
+    <Flex align="center" data-testid="nexus-one-top-nav-solution-switcher">
+      <ShellDropdownRoot>
         <DropdownMenu.Trigger>
           <IconButton
             variant="ghost"
@@ -198,7 +196,7 @@ export default function PreviewSolutionSwitcher(): JSX.Element {
             </>
           )}
         </DropdownMenu.Content>
-      </DropdownMenu.Root>
-    </Box>
+      </ShellDropdownRoot>
+    </Flex>
   );
 }

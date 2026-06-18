@@ -9,3 +9,37 @@ html, body {
   height: 100%;
   overflow: hidden;
 }
+
+/*
+ * Popper overlay layer for the Nexus One shell. The content region and the
+ * fixed TopNav chrome carry raw z-index literals (100 / 1000) in
+ * NexusOneShellLayout's inline styles (inline styles are set via the CSSOM and
+ * can't reliably consume var()), so those literals are the source of truth for
+ * those two layers. This token sits above both and is consumed by the popper
+ * rule below.
+ */
+:root {
+  --nexus-one-z-popper: 1100;
+}
+
+/*
+ * Lift Radix overlays above the shell content/chrome — without !important.
+ *
+ * Radix popper copies the *content* node's computed z-index onto its portaled
+ * [data-radix-popper-content-wrapper] (@radix-ui/react-popper dist/index.js:176
+ * reads getComputedStyle(content).zIndex, :188 writes it). Every Radix Themes
+ * popper content composes .rt-PopperContent and tooltips compose
+ * .rt-TooltipContent, and neither sets a z-index by default — so the wrapper
+ * resolves to `auto` and open overlays paint BEHIND the content region
+ * (z-index:100) and become un-clickable. Giving the content node a real
+ * z-index makes Radix write it onto the wrapper for us: one rule lifts every
+ * overlay (menus + tooltips) at once, no per-node tagging, and no !important
+ * because the content node has no competing inline style to beat.
+ *
+ * This leans on Radix's copy-content-z-index-onto-wrapper behavior, so re-test
+ * the TopNav overlays when bumping Radix. Verified with @radix-ui/themes 3.3.0.
+ */
+.rt-PopperContent,
+.rt-TooltipContent {
+  z-index: var(--nexus-one-z-popper);
+}

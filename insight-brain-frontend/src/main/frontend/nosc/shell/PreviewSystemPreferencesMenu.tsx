@@ -5,9 +5,10 @@
  */
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Box, DropdownMenu, IconButton, Tooltip } from '@radix-ui/themes';
+import { Box, DropdownMenu, Flex, IconButton, Tooltip } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import ShellDropdownRoot from 'MainRoot/nosc/shell/ShellDropdownRoot';
 import {
   selectIsAutomationSupported,
   selectIsWebhooksSupported,
@@ -325,11 +326,8 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
   const { href: hrefFromStateName } = useRouterState();
 
   return (
-    <Box
-      data-testid="nexus-one-top-nav-settings"
-      style={{ display: 'flex', alignItems: 'center' }}
-    >
-      <DropdownMenu.Root>
+    <Flex align="center" data-testid="nexus-one-top-nav-settings">
+      <ShellDropdownRoot>
         <Tooltip content="System Preferences" side="bottom" align="center">
           <DropdownMenu.Trigger>
             <IconButton
@@ -369,7 +367,7 @@ export default function PreviewSystemPreferencesMenu(): JSX.Element {
             })
           )}
         </DropdownMenu.Content>
-      </DropdownMenu.Root>
-    </Box>
+      </ShellDropdownRoot>
+    </Flex>
   );
 }

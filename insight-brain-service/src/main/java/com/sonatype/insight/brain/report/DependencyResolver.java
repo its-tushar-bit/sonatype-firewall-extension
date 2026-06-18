@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -123,6 +124,8 @@ public class DependencyResolver
   private AtomicInteger exactlyMatchedComponentCount = new AtomicInteger();
 
   private Map<String, ObjectNode> bomNodesByPackageUrl;
+
+  private Map<String, InnerSourceApplication> innerSourceApplicationsByPackageUrl;
 
   private final Set<InnerSourceProducerComponentTelemetry> innerSourceProducerTelemetries = new HashSet<>();
 
@@ -311,6 +314,7 @@ public class DependencyResolver
       Set<PackageUrlIdentifier> modules = getModuleDependencies(children);
       Set<PackageUrlIdentifier> directDependencies = getDirectDependencies(children);
       Set<String> processedDirectDependencies = new HashSet<>();
+      innerSourceApplicationsByPackageUrl = loadInnerSourceApplications(children);
 
       for (DependencyNode dependencyChild : children) {
         if (dependencyChild.isModule()) {
@@ -323,6 +327,59 @@ public class DependencyResolver
       updateReportSummaryWithInnerSourceResults(dataJson, summaryJson);
       sendTelemetryData();
     }
+  }
+
+  private Map<String, InnerSourceApplication> loadInnerSourceApplications(final List<DependencyNode> children) {
+    // CLM-39951: batch-load every direct-dependency InnerSource association in a single query
+    // instead of one query per component (the prior N+1 caused a ~17min scan). package_url is
+    // unique in inner_source_application, so each purl resolves to exactly one association.
+    Set<PackageUrlIdentifier> packageUrls = collectDirectDependencyPackageUrls(children);
+    if (packageUrls.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, InnerSourceApplication> result = new HashMap<>();
+    for (InnerSourceApplication innerSourceApplication : innerSourceApplicationDAO.getByPackageUrls(packageUrls)) {
+      result.put(innerSourceApplication.getPackageUrl(), innerSourceApplication);
+    }
+    return result;
+  }
+
+  private Set<PackageUrlIdentifier> collectDirectDependencyPackageUrls(final List<DependencyNode> children) {
+    Set<PackageUrlIdentifier> packageUrls = new HashSet<>();
+    for (DependencyNode child : children) {
+      if (child.isModule()) {
+        if (getPackageUrl(child) != null) {
+          for (DependencyNode moduleChild : child.getChildren()) {
+            addSimplifiedPackageUrl(packageUrls, moduleChild);
+          }
+        }
+      }
+      else if (child.isDirect()) {
+        addSimplifiedPackageUrl(packageUrls, child);
+      }
+    }
+    return packageUrls;
+  }
+
+  private void addSimplifiedPackageUrl(final Set<PackageUrlIdentifier> packageUrls, final DependencyNode node) {
+    PackageUrlIdentifier packageUrl = getPackageUrl(node);
+    if (packageUrl != null) {
+      PackageUrlIdentifier simplifiedPurl = packageUrl.createAlternativeVersion(null);
+      if (simplifiedPurl != null) {
+        packageUrls.add(simplifiedPurl);
+      }
+    }
+  }
+
+  private InnerSourceApplication getInnerSourceApplicationExcludingApplication(
+      final PackageUrlIdentifier simplifiedPurl)
+  {
+    InnerSourceApplication innerSourceApplication =
+        innerSourceApplicationsByPackageUrl.get(simplifiedPurl.getPackageUrl());
+    if (innerSourceApplication == null || application.getId().equals(innerSourceApplication.getApplicationId())) {
+      return null;
+    }
+    return innerSourceApplication;
   }
 
   private void associateModuleToApp(
@@ -358,7 +415,7 @@ public class DependencyResolver
       // if they are the same app it means they are likely modules
       InnerSourceApplication innerSourceApplication = simplifiedPurl == null
           ? null
-          : innerSourceApplicationDAO.getByPackageUrlExcludingApplication(simplifiedPurl, application.getId());
+          : getInnerSourceApplicationExcludingApplication(simplifiedPurl);
 
       if (innerSourceApplication != null) {
         Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceApplication.getApplicationId());

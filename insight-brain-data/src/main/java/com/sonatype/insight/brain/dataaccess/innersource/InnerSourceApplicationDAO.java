@@ -57,19 +57,6 @@ public class InnerSourceApplicationDAO
     }
   }
 
-  public InnerSourceApplication getByPackageUrlExcludingApplication(
-      PackageUrlIdentifier packageUrl,
-      String excludedApplicationId)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      return toEntity(tx.dsl()
-          .selectFrom(INNER_SOURCE_APPLICATION)
-          .where(INNER_SOURCE_APPLICATION.PACKAGE_URL.eq(packageUrl.getPackageUrl()))
-          .and(INNER_SOURCE_APPLICATION.APPLICATION_ID.ne(excludedApplicationId))
-          .fetchOne());
-    }
-  }
-
   public List<InnerSourceApplication> getByPackageUrls(Set<PackageUrlIdentifier> packageUrls) {
     List<String> urls = packageUrls.stream().map(PackageUrlIdentifier::getPackageUrl).toList();
     List<List<String>> partitions = Lists.partition(urls, getInOperatorThreshold());

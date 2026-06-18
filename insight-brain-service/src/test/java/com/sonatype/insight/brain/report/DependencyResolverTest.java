@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -474,8 +475,8 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module/data.json");
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
-        telemetrySender,
-        telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        telemetrySender, telemetryUtils, observedInnerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+        proprietaryConfigService)
         .resolve();
 
     List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAO.getByApplicationId(app.getId());
@@ -491,6 +492,10 @@ public class DependencyResolverTest
 
     assertTelemetryInformation(app.getId(), producerTelemetries);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+
+    // CLM-39951: every direct-dependency InnerSource association is resolved with a single batch
+    // query rather than one query per component.
+    verify(observedInnerSourceApplicationDAO, times(1)).getByPackageUrls(Mockito.any());
   }
 
   @Test
@@ -846,6 +851,33 @@ public class DependencyResolverTest
         Collections.singleton(isDataForProducer));
     assertBomNodeDependencyInfo(bomJson, producerTransitive1, false, false, Collections.singleton(innerSourceProducer),
         Collections.singleton(isDataForProducerTransitive));
+    assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+  }
+
+  @Test
+  public void processInnerSource_directDependencyRegisteredToSameApp_notMarkedAsInnerSource() throws Exception {
+    // CLM-39951: a direct-dependency purl registered as InnerSource to the *current* application must
+    // be excluded by getInnerSourceApplicationExcludingApplication and therefore must NOT be tagged as
+    // an InnerSource dependency of itself. This guards the in-memory same-app filter that replaced the
+    // removed getByPackageUrlExcludingApplication DAO query.
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/known-direct?type=jar", app);
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+        telemetrySender,
+        telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
+
+    ComponentIdentifier knownDirect =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
+    // Excluded because it belongs to the current app: it stays a regular direct dependency.
+    assertBomNodeDependencyInfo(bomJson, knownDirect, true, false, null, null);
+    assertThat(findNodeById(bomJson, knownDirect).get(ComponentLoader.INNER_SOURCE_DATA_FIELD)).isNull();
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
   }
 

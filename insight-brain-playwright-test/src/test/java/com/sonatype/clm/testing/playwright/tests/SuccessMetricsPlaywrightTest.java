@@ -5,10 +5,13 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.SidebarComponent;
+import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.SuccessMetricsConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPage;
 import com.sonatype.clm.testing.playwright.pages.SuccessMetricsPageAssertions;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -83,6 +86,41 @@ public class SuccessMetricsPlaywrightTest
 
     assertThat(successMetrics.emptyReportListItem()).isVisible();
     assertThat(successMetrics.emptyReportListItem()).hasText(EXPECTED_EMPTY_REPORTS_MESSAGE);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSuccessMetricsConfigurationPageRenders() {
+    playwrightRefreshOrOpen(SuccessMetricsConfigurationPage.url());
+
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+    SuccessMetricsConfigurationPageAssertions configAssertions =
+        new SuccessMetricsConfigurationPageAssertions(configPage);
+
+    configAssertions.shouldRenderPageLayout();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSuccessMetricsConfigurationToggle_persistsAcrossReload() {
+    playwrightRefreshOrOpen(SuccessMetricsConfigurationPage.url());
+
+    SuccessMetricsConfigurationPage configPage = new SuccessMetricsConfigurationPage();
+    SuccessMetricsConfigurationPageAssertions configAssertions =
+        new SuccessMetricsConfigurationPageAssertions(configPage);
+
+    boolean initiallyEnabled = configPage.enabledToggleInput().isChecked();
+    configPage.enabledToggle().click();
+    configPage.updateButton().click();
+    waitForSubmitMaskSuccess();
+
+    playwrightRefreshOrOpen(SuccessMetricsConfigurationPage.url());
+    if (initiallyEnabled) {
+      configAssertions.shouldHaveEnabledToggleUnchecked();
+    }
+    else {
+      configAssertions.shouldHaveEnabledToggleChecked();
+    }
   }
 
   private void ensureSuccessMetricsEnabled() {

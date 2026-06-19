@@ -6,22 +6,23 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.playwright.pages.ComponentLegalOverviewPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.EditAllObligationsModal;
 import com.sonatype.clm.testing.playwright.pages.EditAllObligationsModalAssertions;
+import com.sonatype.clm.testing.playwright.utils.HdsStubs;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import org.apache.commons.io.IOUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -63,18 +64,25 @@ public class AllObligationsPlaywrightTest
 
   private String rootOrgId;
 
+  private ComponentLegalOverviewPage overviewPage;
+
+  private ComponentLegalOverviewPageAssertions overviewAssertions;
+
   @Before
   public void openComponentLegalOverviewAsAdmin() throws Exception {
     seedTestData();
 
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(APP_PUBLIC_ID, COMPONENT_HASH));
     playwrightLogin();
+
+    overviewPage = new ComponentLegalOverviewPage();
+    overviewAssertions = new ComponentLegalOverviewPageAssertions(overviewPage);
   }
 
   private void seedTestData() throws IOException {
     seedLicenseThreatGroups();
     seedOrgsAndApp();
-    seedHdsStubs();
+    HdsStubs.legalOverview(testCLMServer.getHdsServer());
     resolveRootOrg();
   }
 
@@ -93,35 +101,6 @@ public class AllObligationsPlaywrightTest
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), COMPONENT_LICENSE_ID);
   }
 
-  private void seedHdsStubs() throws IOException {
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(
-            getClass().getResourceAsStream("/legal/legalLicenseMetadataHdsResponse.json"),
-            StandardCharsets.UTF_8))
-        .atUri("/rest/license/metadata");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(
-            getClass().getResourceAsStream("/legal/legalCommentHdsResponse.json"),
-            StandardCharsets.UTF_8))
-        .atUri("/rest/legal/comment");
-    testCLMServer.getHdsServer()
-        .respondWith("[]")
-        .atUri("/rest/legal/file");
-    testCLMServer.getHdsServer()
-        .respondWith("[]")
-        .atUri("/rest/legal/source-link");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(
-            getClass().getResourceAsStream("/legal/componentDetails.json"),
-            StandardCharsets.UTF_8))
-        .atUri("rest/ci/componentDetails");
-    testCLMServer.getHdsServer()
-        .respondWith(IOUtils.toString(
-            getClass().getResourceAsStream("/legal/componentDetailsList.json"),
-            StandardCharsets.UTF_8))
-        .atUri("rest/ci/componentDetails/list");
-  }
-
   private void resolveRootOrg() {
     Organization rootOrg = lookup(OrganizationDAO.class).getById(Organization.ROOT_ORGANIZATION_ID);
     rootOrgDisplayText = "Organization - " + rootOrg.getName();
@@ -131,10 +110,9 @@ public class AllObligationsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testComponentLegalOverviewPage() {
-    ComponentLegalOverviewPage overviewPage = new ComponentLegalOverviewPage();
-    verifyObligationsInitialState(overviewPage);
-    verifyFulfillAllObligations(overviewPage);
-    verifyAttributionAccordions(overviewPage);
+    verifyObligationsInitialState();
+    verifyFulfillAllObligations();
+    verifyAttributionAccordions();
   }
 
   @Test
@@ -143,18 +121,16 @@ public class AllObligationsPlaywrightTest
     testCLMServer.getHdsServer().respondWith("[]").atUri("/rest/license/metadata");
     playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(APP_PUBLIC_ID, COMPONENT_HASH));
 
-    ComponentLegalOverviewPage overviewPage = new ComponentLegalOverviewPage();
-    new ComponentLegalOverviewPageAssertions(overviewPage).shouldBeLoaded();
-    verifyNoObligationsState(overviewPage);
+    overviewAssertions.shouldBeLoaded();
+    verifyNoObligationsState();
   }
 
-  private void verifyObligationsInitialState(ComponentLegalOverviewPage overviewPage) {
-    ComponentLegalOverviewPageAssertions overviewAssertions = new ComponentLegalOverviewPageAssertions(overviewPage);
+  private void verifyObligationsInitialState() {
     overviewAssertions.shouldHaveObligationCount(TOTAL_OBLIGATION_COUNT);
     overviewAssertions.shouldShowAllObligationStatus(TOTAL_OBLIGATION_COUNT, INITIAL_OBLIGATION_STATUS);
   }
 
-  private void verifyFulfillAllObligations(ComponentLegalOverviewPage overviewPage) {
+  private void verifyFulfillAllObligations() {
     EditAllObligationsModal modal = overviewPage.clickResolveAllObligations();
     EditAllObligationsModalAssertions modalAssertions = new EditAllObligationsModalAssertions(modal);
     modalAssertions.shouldBeVisible();
@@ -167,18 +143,54 @@ public class AllObligationsPlaywrightTest
     modal.save();
     modalAssertions.shouldBeHidden();
 
-    new ComponentLegalOverviewPageAssertions(overviewPage)
-        .shouldShowAllObligationStatus(TOTAL_OBLIGATION_COUNT, FULFILLED_OBLIGATION_STATUS);
+    overviewAssertions.shouldShowAllObligationStatus(TOTAL_OBLIGATION_COUNT, FULFILLED_OBLIGATION_STATUS);
   }
 
-  private void verifyAttributionAccordions(ComponentLegalOverviewPage overviewPage) {
-    new ComponentLegalOverviewPageAssertions(overviewPage)
-        .shouldHaveExpandedAccordionCount(ATTRIBUTION_ACCORDION_COUNT);
+  private void verifyAttributionAccordions() {
+    overviewAssertions.shouldHaveExpandedAccordionCount(ATTRIBUTION_ACCORDION_COUNT);
   }
 
-  private void verifyNoObligationsState(ComponentLegalOverviewPage overviewPage) {
-    ComponentLegalOverviewPageAssertions overviewAssertions = new ComponentLegalOverviewPageAssertions(overviewPage);
+  private void verifyNoObligationsState() {
     overviewAssertions.shouldHaveObligationCount(0);
     overviewAssertions.shouldHideResolveAllButton();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testObligationSegmentedButton_modalVsDirectStatus() {
+    overviewAssertions.shouldHaveObligationCount(TOTAL_OBLIGATION_COUNT);
+
+    overviewPage.clickSegmentedButtonMain(0);
+    overviewAssertions.shouldHideSegmentedButtonDropdownMenu(0);
+
+    playwrightRefreshOrOpen(ComponentLegalOverviewPage.url(APP_PUBLIC_ID, COMPONENT_HASH));
+
+    overviewPage.clickSegmentedButtonDropdownToggle(0);
+    overviewAssertions.shouldShowSegmentedButtonDropdownMenu(0);
+    overviewAssertions.shouldHaveDropdownOptionCount(0, 3);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testObligationAccordions_collapsedByDefaultWithHeaderAndStatusIcons() {
+    overviewAssertions.shouldHaveObligationCount(TOTAL_OBLIGATION_COUNT);
+
+    overviewAssertions.shouldHaveObligationAccordionCollapsed(0);
+    overviewAssertions.shouldHaveObligationHeaderCountText(0, "Inclusion of Copyright");
+
+    EditAllObligationsModal modal = overviewPage.clickResolveAllObligations();
+    modal.fillComment(FULFILL_COMMENT);
+    modal.save();
+    new EditAllObligationsModalAssertions(modal).shouldBeHidden();
+
+    overviewAssertions.shouldShowFulfilledStatusIcon();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testAdditionalAttributionsSectionRenders() {
+    overviewAssertions.shouldBeLoaded();
+    overviewAssertions.shouldShowAdditionalAttributionTile();
+    overviewAssertions.shouldShowAdditionalAttributionEditButton();
   }
 }

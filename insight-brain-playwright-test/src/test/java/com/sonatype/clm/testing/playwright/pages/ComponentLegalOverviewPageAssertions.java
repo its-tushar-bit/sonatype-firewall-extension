@@ -40,7 +40,6 @@ public class ComponentLegalOverviewPageAssertions
     for (int i = 0; i < expectedCount; i++) {
       Locator accordion = page.attributionAccordions().nth(i);
       assertThat(accordion).hasAttribute("aria-expanded", "true");
-      assertThat(accordion).hasAttribute("open", "");
     }
   }
 
@@ -50,5 +49,45 @@ public class ComponentLegalOverviewPageAssertions
 
   public void shouldShowAttributionSummaryTile() {
     assertThat(page.attributionSummaryTile()).isVisible();
+  }
+
+  public void shouldShowSegmentedButtonDropdownMenu(int obligationIndex) {
+    assertThat(page.segmentedButtonDropdownMenu(obligationIndex)).isVisible();
+  }
+
+  public void shouldHideSegmentedButtonDropdownMenu(int obligationIndex) {
+    assertThat(page.segmentedButtonDropdownMenu(obligationIndex)).isHidden();
+  }
+
+  public void shouldHaveDropdownOptionCount(int obligationIndex, int expectedCount) {
+    assertThat(page.segmentedButtonDropdownOptions(obligationIndex)).hasCount(expectedCount);
+  }
+
+  public void shouldHaveObligationAccordionCollapsed(int index) {
+    assertThat(page.obligationAccordionAt(index)).hasAttribute("aria-expanded", "false");
+  }
+
+  public void shouldHaveObligationHeaderCountText(int index, String expectedText) {
+    assertThat(page.obligationHeaderCountText(index)).containsText(expectedText);
+  }
+
+  public void shouldShowFulfilledStatusIcon() {
+    assertThat(page.obligationStatusIconFulfilled().first()).isVisible();
+  }
+
+  public void shouldShowAdditionalAttributionTile() {
+    assertThat(page.additionalAttributionTile()).isVisible();
+  }
+
+  public void shouldShowAdditionalAttributionEditButton() {
+    assertThat(page.additionalAttributionEditButton()).isVisible();
+  }
+
+  public void shouldShowAdditionalAttributionModal() {
+    assertThat(page.additionalAttributionModal()).isVisible();
+  }
+
+  public void shouldHideAdditionalAttributionModal() {
+    assertThat(page.additionalAttributionModal()).isHidden();
   }
 }

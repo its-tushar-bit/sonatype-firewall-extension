@@ -112,10 +112,7 @@ public abstract class BasePage
   }
 
   private static Pattern exactTextPattern(String text) {
-    // NOTE: cannot use Pattern.quote() — Playwright serialises the pattern to JavaScript RegExp,
-    // which does not support \Q...\E. Callers are responsible for not passing regex metacharacters
-    // in label text; current callers all pass plain accessible-name strings.
-    return Pattern.compile("^" + text + "$");
+    return Pattern.compile("^" + REGEX_METACHARS.matcher(text).replaceAll("\\\\$0") + "$");
   }
 
   protected Locator nxToggleInput(String accessibleName) {

@@ -134,8 +134,6 @@ describe('TopConsumingApps', () => {
     render(<TopConsumingApps topApps={topApps([{ appId: '1', publicId: 'a', name: 'A', consumed: 150 }], 100)} />);
     const [bar] = screen.getAllByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '100');
-    expect(Number(bar.getAttribute('aria-valuenow'))).toBeLessThanOrEqual(
-      Number(bar.getAttribute('aria-valuemax'))
-    );
+    expect(Number(bar.getAttribute('aria-valuenow'))).toBeLessThanOrEqual(Number(bar.getAttribute('aria-valuemax')));
   });
 });

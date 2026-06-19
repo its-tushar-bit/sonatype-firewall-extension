@@ -57,8 +57,19 @@
     background: var(--nx-swatch-blue-60);
     transition: width 200ms ease;
 
+    @include nx-dark-mode-helpers.dark-mode {
+      background: var(--nx-swatch-blue-40);
+    }
+
     &--over {
       background: var(--nx-color-status-error);
+
+      // Re-assert error color in dark mode — without this, the dark-mode
+      // override on __bar-fill above wins by specificity and hides the
+      // over-limit warning state. Codex flagged this as a P2 bug on PR #16408.
+      @include nx-dark-mode-helpers.dark-mode {
+        background: var(--nx-color-status-error);
+      }
     }
   }
 
@@ -137,7 +148,18 @@
   stroke-linecap: butt;
   transition: stroke-dashoffset 200ms ease;
 
+  @include nx-dark-mode-helpers.dark-mode {
+    stroke: var(--nx-swatch-blue-40);
+  }
+
   &--over {
     stroke: var(--nx-color-status-error);
+
+    // Re-assert error color in dark mode — without this, the dark-mode
+    // override on __ring-fill above wins by specificity and hides the
+    // over-limit warning state. Codex flagged this as a P2 bug on PR #16408.
+    @include nx-dark-mode-helpers.dark-mode {
+      stroke: var(--nx-color-status-error);
+    }
   }
 }

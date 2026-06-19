@@ -23,6 +23,10 @@
   flex-wrap: wrap;
   align-items: stretch;
 
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+
   // Force both child tiles to share the same outer dimensions so source/stage
   // line up cleanly when they render side-by-side at full width. Resets any
   // NX `.nx-tile + .nx-tile { margin-top: 8px }` adjacent-sibling rules and
@@ -451,3 +455,13 @@
   height: 250px;
   width: 100%;
 }
+
+// Note: an earlier dark-mode block here forced four selectors
+// (.iq-usage-card__value, __period, __date, __value) to var(--nx-color-text).
+// Removed because each selector's light-mode rule already uses a theme-aware
+// token: __period and __date use var(--nx-color-text) (no-op override), and
+// __value / __card-value use var(--nx-color-text-dark) which is itself an
+// alias for var(--nx-color-text-stark) (RSC). The override silently downgraded
+// the high-prominence headline numbers from `stark` (resolves to grey-05 light /
+// near-white dark via RSC's cascade) to plain `text` (grey-30 / lighter)
+// in dark mode. RSC's theme cascade handles both modes correctly without help.

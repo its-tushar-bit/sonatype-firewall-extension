@@ -52,6 +52,13 @@
   gap: var(--nx-spacing-3x);
   align-items: center;
   font-size: var(--nx-font-size);
+
+  // Symmetric hover affordance in both themes via the theme-aware semantic
+  // token (was dark-mode-only via raw --nx-swatch-indigo-15 — light-mode
+  // users got no hover cue).
+  &:hover {
+    background-color: var(--nx-color-interactive-background-hover);
+  }
 }
 
 .iq-usage-source-chart__swatch {

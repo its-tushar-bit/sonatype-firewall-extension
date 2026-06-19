@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 // Note: NX's `.nx-tile + .nx-tile { margin-top: 8px }` adjacent-sibling rule
 // is reset by `.iq-usage-page__chart-row > .nx-tile` in _usageDashboard.scss.
 
@@ -49,6 +51,13 @@
   gap: var(--nx-spacing-3x);
   align-items: center;
   font-size: var(--nx-font-size);
+
+  // Symmetric hover affordance in both themes via the theme-aware semantic
+  // token (was dark-mode-only via raw --nx-swatch-indigo-15 — light-mode
+  // users got no hover cue). Kept in lockstep with Source chart legend row.
+  &:hover {
+    background-color: var(--nx-color-interactive-background-hover);
+  }
 }
 
 .iq-usage-stage-chart__swatch {

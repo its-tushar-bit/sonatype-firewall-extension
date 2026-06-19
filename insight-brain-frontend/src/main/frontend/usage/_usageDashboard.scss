@@ -341,9 +341,11 @@
 }
 
 .iq-usage-top-apps__row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(8rem, 16rem) auto;
   align-items: center;
-  padding: var(--nx-spacing-3x) 0;
+  gap: var(--nx-spacing-4x);
+  padding: var(--nx-spacing-2x) 0;
   border-bottom: 1px dashed var(--nx-color-border);
 
   &:last-child {
@@ -352,7 +354,6 @@
 }
 
 .iq-usage-top-apps__name {
-  flex: 1;
   font-size: var(--nx-font-size-m);
   font-weight: 600;
   color: var(--nx-color-text-dark);
@@ -361,20 +362,33 @@
   white-space: nowrap;
 }
 
+.iq-usage-top-apps__bar-track {
+  position: relative;
+  height: var(--nx-spacing-2x);
+  background-color: var(--nx-color-interactive-background-disabled);
+  border-radius: 2px;
+  overflow: hidden;
+  display: block;
+}
+
+.iq-usage-top-apps__bar-fill {
+  display: block;
+  height: 100%;
+  background-color: var(--nx-swatch-blue-60);
+  border-radius: 2px;
+  transition: width 200ms ease;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-blue-40);
+  }
+}
+
 .iq-usage-top-apps__count {
   font-size: var(--nx-font-size-m);
   font-weight: 600;
   color: var(--nx-color-text-dark);
   min-width: 60px;
   text-align: right;
-}
-
-.iq-usage-top-apps__percent {
-  font-size: var(--nx-font-size-m);
-  color: var(--nx-color-text);
-  min-width: 40px;
-  text-align: right;
-  margin-left: var(--nx-spacing-2x);
 }
 
 // --- Evaluated Components Tile ---

@@ -50,8 +50,8 @@ describe('TopConsumingApps', () => {
     expect(screen.getByText('Deleted application')).toBeInTheDocument();
   });
 
-  it('shows percent relative to totalConsumed', () => {
-    render(
+  it('shows percent as progress bar width relative to totalConsumed', () => {
+    const { container } = render(
       <TopConsumingApps
         topApps={topApps([
           { appId: 'a', publicId: 'a', name: 'A', consumed: 25 },
@@ -59,8 +59,10 @@ describe('TopConsumingApps', () => {
         ])}
       />
     );
-    expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getByText('75%')).toBeInTheDocument();
+    const fills = container.querySelectorAll('.iq-usage-top-apps__bar-fill');
+    expect(fills).toHaveLength(2);
+    expect(fills[0].style.width).toBe('25%');
+    expect(fills[1].style.width).toBe('75%');
   });
 
   it('caps visible rows at 5 and shows "Show More (N)"', () => {
@@ -90,5 +92,50 @@ describe('TopConsumingApps', () => {
 
     expect(screen.getByText('App 7')).toBeInTheDocument();
     expect(screen.getByText(/Show Less/)).toBeInTheDocument();
+  });
+
+  const topAppsFixture = {
+    totalApps: 3,
+    totalConsumed: 1000,
+    apps: [
+      { appId: '1', publicId: 'web-frontend', name: 'web-frontend', consumed: 600 },
+      { appId: '2', publicId: 'api-service', name: 'api-service', consumed: 300 },
+      { appId: '3', publicId: 'mobile-app', name: 'mobile-app', consumed: 100 },
+    ],
+  };
+
+  it('does not render inline percent text on Top Apps rows', () => {
+    const { container } = render(<TopConsumingApps topApps={topAppsFixture} />);
+    expect(container.querySelector('.iq-usage-top-apps__percent')).toBeNull();
+  });
+
+  it('renders a progress bar per row with width proportional to consumed/totalConsumed', () => {
+    const { container } = render(<TopConsumingApps topApps={topAppsFixture} />);
+    const fills = container.querySelectorAll('.iq-usage-top-apps__bar-fill');
+    expect(fills).toHaveLength(3);
+    // First app: 600/1000 = 60%
+    expect(fills[0].style.width).toBe('60%');
+    expect(fills[1].style.width).toBe('30%');
+    expect(fills[2].style.width).toBe('10%');
+  });
+
+  it('exposes each progress bar as an accessible progressbar element', () => {
+    render(<TopConsumingApps topApps={topAppsFixture} />);
+    const bars = screen.getAllByRole('progressbar');
+    expect(bars).toHaveLength(3);
+    expect(bars[0]).toHaveAttribute('aria-valuenow', '60');
+    expect(bars[0]).toHaveAttribute('aria-valuemax', '100');
+  });
+
+  it('clamps aria-valuenow at 100 when consumed exceeds totalConsumed', () => {
+    // Regression guard for the clamp added against a malformed-progressbar bot warning
+    // (CLM-40967). Without the clamp, raw consumed/totalConsumed > 1 produces
+    // aria-valuenow > aria-valuemax, which violates WAI-ARIA 1.2 and confuses screen readers.
+    render(<TopConsumingApps topApps={topApps([{ appId: '1', publicId: 'a', name: 'A', consumed: 150 }], 100)} />);
+    const [bar] = screen.getAllByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '100');
+    expect(Number(bar.getAttribute('aria-valuenow'))).toBeLessThanOrEqual(
+      Number(bar.getAttribute('aria-valuemax'))
+    );
   });
 });

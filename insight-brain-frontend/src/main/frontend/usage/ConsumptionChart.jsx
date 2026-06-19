@@ -9,9 +9,9 @@ import { NxH2, NxTile, NxFormSelect } from '@sonatype/react-shared-components';
 import {
   BarChart,
   Bar,
+  CartesianGrid,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   ReferenceLine,
@@ -180,7 +180,7 @@ export default function ConsumptionChart({ historyBreakdown, aggregation, onAggr
         <div className="iq-usage-chart__wrapper">
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="period" />
               <YAxis tickFormatter={formatCount} />
               <Tooltip content={tooltipContentWithLabel} wrapperStyle={{ outline: 'none' }} />

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { formatNumber, formatCount, formatPercent } from 'MainRoot/usage/usageFormatters';
+import { formatNumber, formatCount } from 'MainRoot/usage/usageFormatters';
 
 describe('usageFormatters.formatNumber', () => {
   it('returns "0" for null and undefined', () => {
@@ -51,16 +51,5 @@ describe('usageFormatters.formatCount', () => {
     expect(formatCount(1000000)).toBe('1M');
     expect(formatCount(1200000)).toBe('1.2M');
     expect(formatCount(25000000)).toBe('25M');
-  });
-});
-
-describe('usageFormatters.formatPercent', () => {
-  it('rounds to nearest integer percent', () => {
-    expect(formatPercent(0)).toBe('0%');
-    expect(formatPercent(50)).toBe('50%');
-    expect(formatPercent(33.333)).toBe('33%');
-    expect(formatPercent(99.4)).toBe('99%');
-    expect(formatPercent(99.5)).toBe('100%');
-    expect(formatPercent(100)).toBe('100%');
   });
 });

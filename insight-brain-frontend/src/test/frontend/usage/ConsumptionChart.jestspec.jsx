@@ -182,6 +182,20 @@ describe('ConsumptionChart', () => {
     expect(container.querySelector('.recharts-bar')).toBeInTheDocument();
     expect(container.querySelector('.recharts-area')).not.toBeInTheDocument();
   });
+
+  it('renders only horizontal CartesianGrid lines (no vertical) in the Type chart', () => {
+    const historyBreakdown = [{ month: '2026-06-01', consumed: 100, breakdown: { 'App Scan + Re-evaluate': 100 } }];
+    const { container } = render(
+      <ConsumptionChart historyBreakdown={historyBreakdown} aggregation="daily" onAggregationChange={() => {}} />
+    );
+    // Grid container present
+    const grid = container.querySelector('.recharts-cartesian-grid');
+    expect(grid).not.toBeNull();
+    // Horizontal lines rendered
+    expect(grid.querySelectorAll('.recharts-cartesian-grid-horizontal line').length).toBeGreaterThan(0);
+    // Vertical lines suppressed
+    expect(grid.querySelectorAll('.recharts-cartesian-grid-vertical line').length).toBe(0);
+  });
 });
 
 describe('ConsumptionChart tooltip content', () => {

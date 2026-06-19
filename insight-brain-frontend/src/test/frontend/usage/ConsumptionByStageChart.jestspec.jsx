@@ -4,8 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { ResponsivePie } from '@nivo/pie';
 import { render, screen } from 'TestRoot/SpecUtil';
 import ConsumptionByStageChart from 'MainRoot/usage/ConsumptionByStageChart';
+
+jest.mock('@nivo/pie', () => ({
+  ResponsivePie: jest.fn(() => null),
+}));
 
 describe('ConsumptionByStageChart', () => {
   function dataset(breakdown) {
@@ -43,7 +48,7 @@ describe('ConsumptionByStageChart', () => {
     expect(screen.getByText('Consumption by Stage')).toBeInTheDocument();
   });
 
-  it('sorts legend rows by count descending', () => {
+  it('sorts legend rows by canonical phase order', () => {
     render(<ConsumptionByStageChart stageBreakdown={dataset({ build: 250, release: 132, 'stage-release': 157 })} />);
     expect(rowLabels()).toEqual(['Build', 'Stage Release', 'Release']);
   });
@@ -94,10 +99,83 @@ describe('ConsumptionByStageChart', () => {
     expect(rowLabels()).toEqual(['Build']);
   });
 
-  it('renders a percent for every legend row matching count/total', () => {
-    // 700 total: build=300 (43%), release=200 (29%), Unknown=200 (29%)
-    render(<ConsumptionByStageChart stageBreakdown={dataset({ build: 300, release: 200, Unknown: 200 })} />);
-    expect(screen.getByText('43%')).toBeInTheDocument();
-    expect(screen.getAllByText('29%')).toHaveLength(2);
+  it('renders no inline percentage in stage legend rows', () => {
+    // percent spans were removed in favour of bar-track visualisation
+    const { container } = render(
+      <ConsumptionByStageChart stageBreakdown={dataset({ build: 300, release: 200, Unknown: 200 })} />
+    );
+    expect(container.querySelector('.iq-usage-stage-chart__percent')).toBeNull();
+  });
+
+  const allStages = [
+    {
+      month: '2026-06',
+      consumed: 700,
+      breakdown: {
+        operate: 100,
+        release: 100,
+        'stage-release': 100,
+        build: 100,
+        develop: 100,
+        proxy: 50,
+        'continuous-monitoring': 100,
+        Unknown: 50,
+      },
+    },
+  ];
+
+  it('orders legend by canonical phase order (Develop, Build, Stage Release, Release, Operate, then non-canonical, then Unknown)', () => {
+    render(<ConsumptionByStageChart stageBreakdown={allStages} />);
+    const labels = screen.getAllByTitle(
+      /^(Develop|Build|Stage Release|Release|Operate|Continuous Monitoring|Proxy|Unknown)$/
+    );
+    // .map keeps DOM order
+    const order = labels.map((el) => el.getAttribute('title'));
+    // canonical first
+    expect(order.indexOf('Develop')).toBeLessThan(order.indexOf('Build'));
+    expect(order.indexOf('Build')).toBeLessThan(order.indexOf('Stage Release'));
+    expect(order.indexOf('Stage Release')).toBeLessThan(order.indexOf('Release'));
+    expect(order.indexOf('Release')).toBeLessThan(order.indexOf('Operate'));
+    // non-canonical after Operate
+    expect(order.indexOf('Operate')).toBeLessThan(order.indexOf('Continuous Monitoring'));
+    expect(order.indexOf('Operate')).toBeLessThan(order.indexOf('Proxy'));
+    // Unknown last
+    expect(order.indexOf('Unknown')).toBe(order.length - 1);
+  });
+
+  it('configures Stage ResponsivePie with division-line props (borderWidth/borderColor) — couples to Nivo prop API', () => {
+    render(<ConsumptionByStageChart stageBreakdown={allStages} />);
+    const props = ResponsivePie.mock.calls.at(-1)[0];
+    expect(props.borderWidth).toBe(2);
+    expect(props.borderColor).toBe('var(--nx-color-component-background)');
+  });
+
+  it('hover tooltip renders count + percent (Figma annotation #7 for stage donut)', () => {
+    // total in allStages: build 200 + release 100 + Unknown 100 = 400.
+    render(<ConsumptionByStageChart stageBreakdown={dataset({ build: 200, release: 100, Unknown: 100 })} />);
+    const props = ResponsivePie.mock.calls.at(-1)[0];
+
+    const buildTooltip = render(props.tooltip({ datum: { label: 'Build', value: 200 } }));
+    expect(buildTooltip.container.textContent).toMatch(/Build.*200.*\(50%\)/);
+
+    const releaseTooltip = render(props.tooltip({ datum: { label: 'Release', value: 100 } }));
+    expect(releaseTooltip.container.textContent).toMatch(/Release.*100.*\(25%\)/);
+  });
+
+  it('bar widths are proportional to counts using true max, not first-canonical count', () => {
+    // Develop (100) comes first in canonical order but Build (1000) has the highest count.
+    // maxCount must be 1000 (Build), so Develop bar = 10% and Build bar = 100%.
+    const stagesWithBuildLargest = [
+      {
+        month: '2026-06',
+        consumed: 1100,
+        breakdown: { develop: 100, build: 1000 },
+      },
+    ];
+    const { container } = render(<ConsumptionByStageChart stageBreakdown={stagesWithBuildLargest} />);
+    const fills = container.querySelectorAll('.iq-usage-stage-chart__bar-fill');
+    // After canonical sort: Develop is index 0, Build is index 1
+    expect(fills[0].style.width).toBe('10%'); // develop: 100/1000 * 100 = 10%
+    expect(fills[1].style.width).toBe('100%'); // build: 1000/1000 * 100 = 100%
   });
 });

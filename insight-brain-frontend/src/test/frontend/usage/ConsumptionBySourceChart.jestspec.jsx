@@ -4,9 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import userEvent from '@testing-library/user-event';
+import { ResponsivePie } from '@nivo/pie';
 import { render, screen } from 'TestRoot/SpecUtil';
 import ConsumptionBySourceChart, { SOURCE_LABELS, SOURCE_COLORS } from 'MainRoot/usage/ConsumptionBySourceChart';
+
+jest.mock('@nivo/pie', () => ({
+  ResponsivePie: jest.fn(() => null),
+}));
 
 describe('ConsumptionBySourceChart', () => {
   function dataset(breakdown) {
@@ -70,53 +74,47 @@ describe('ConsumptionBySourceChart', () => {
     expect(rowLabels()).toEqual(['FOO_BAR']);
   });
 
-  it('caps the visible legend at 5 rows and shows "More sources (N)"', () => {
-    render(
-      <ConsumptionBySourceChart
-        sourceBreakdown={dataset({
-          CI_CD: 100,
-          IDE: 90,
-          CLI: 80,
-          REPO_MANAGER: 70,
-          CONTINUOUS_MONITOR: 60,
-          UI: 50,
-          API: 40,
+  it('renders all sources upfront without a show-more affordance', () => {
+    const sourceBreakdown = [
+      {
+        month: '2026-06',
+        consumed: 1000,
+        breakdown: {
+          UI: 100,
+          CLI: 90,
+          CI_CD: 80,
+          IDE: 70,
+          REPO_MANAGER: 60,
+          API: 50,
+          CONTINUOUS_MONITOR: 40,
           UNKNOWN: 30,
-        })}
-      />
-    );
-
-    expect(rowLabels()).toHaveLength(5);
-    expect(screen.getByText(/More sources \(3\)/i)).toBeInTheDocument();
+        },
+      },
+    ];
+    render(<ConsumptionBySourceChart sourceBreakdown={sourceBreakdown} />);
+    // 8 sources with non-zero counts — all should be visible.
+    expect(screen.getByText('UI')).toBeInTheDocument();
+    expect(screen.getByText('CLI')).toBeInTheDocument();
+    expect(screen.getByText('CI/CD')).toBeInTheDocument();
+    expect(screen.getByText('IDE')).toBeInTheDocument();
+    expect(screen.getByText('Repository Manager')).toBeInTheDocument();
+    expect(screen.getByText('API')).toBeInTheDocument();
+    expect(screen.getByText('Continuous Monitoring')).toBeInTheDocument();
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
+    expect(screen.queryByText(/More sources/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Show fewer/)).not.toBeInTheDocument();
   });
 
-  it('expands to show all rows when "More sources" is clicked; link flips to "Show fewer"', async () => {
-    const user = userEvent.setup();
-    render(
-      <ConsumptionBySourceChart
-        sourceBreakdown={dataset({
-          CI_CD: 100,
-          IDE: 90,
-          CLI: 80,
-          REPO_MANAGER: 70,
-          CONTINUOUS_MONITOR: 60,
-          UI: 50,
-          API: 40,
-          UNKNOWN: 30,
-        })}
-      />
-    );
-
-    await user.click(screen.getByText(/More sources/i));
-
-    expect(rowLabels()).toHaveLength(8);
-    expect(screen.getByText(/Show fewer/i)).toBeInTheDocument();
-  });
-
-  it('does NOT render "More sources" link when exactly 5 or fewer entries', () => {
-    render(<ConsumptionBySourceChart sourceBreakdown={dataset({ UI: 1, CLI: 2, API: 3, CI_CD: 4, IDE: 5 })} />);
-    expect(screen.queryByText(/More sources/i)).not.toBeInTheDocument();
-    expect(rowLabels()).toHaveLength(5);
+  it('renders no inline percentage in legend rows', () => {
+    const sourceBreakdown = [
+      {
+        month: '2026-06',
+        consumed: 100,
+        breakdown: { UI: 100 },
+      },
+    ];
+    const { container } = render(<ConsumptionBySourceChart sourceBreakdown={sourceBreakdown} />);
+    expect(container.querySelector('.iq-usage-source-chart__percent')).toBeNull();
   });
 
   it('bar widths are proportional to counts (max=100%, half=50%)', () => {
@@ -127,19 +125,6 @@ describe('ConsumptionBySourceChart', () => {
     expect(fills[0].style.width).toBe('100%');
     expect(fills[1].style.width).toBe('50%');
     expect(fills[2].style.width).toBe('25%');
-  });
-
-  it('renders percentage rounded to integer with % suffix', () => {
-    render(
-      <ConsumptionBySourceChart
-        sourceBreakdown={dataset({ CI_CD: 256, IDE: 160, CLI: 93, REPO_MANAGER: 59, CONTINUOUS_MONITOR: 32 })}
-      />
-    );
-    expect(screen.getByText('43%')).toBeInTheDocument();
-    expect(screen.getByText('27%')).toBeInTheDocument();
-    expect(screen.getByText('16%')).toBeInTheDocument();
-    expect(screen.getByText('10%')).toBeInTheDocument();
-    expect(screen.getByText('5%')).toBeInTheDocument();
   });
 
   it('exports a color for every known source token', () => {
@@ -178,5 +163,27 @@ describe('ConsumptionBySourceChart', () => {
     ];
     render(<ConsumptionBySourceChart sourceBreakdown={unordered} />);
     expect(rowLabels()).toEqual(['CLI']);
+  });
+
+  it('configures ResponsivePie with division-line props (borderWidth/borderColor) — couples to Nivo prop API', () => {
+    const sourceBreakdown = [{ month: '2026-06', consumed: 100, breakdown: { UI: 100 } }];
+    render(<ConsumptionBySourceChart sourceBreakdown={sourceBreakdown} />);
+    const props = ResponsivePie.mock.calls.at(-1)[0];
+    expect(props.borderWidth).toBe(2);
+    expect(props.borderColor).toBe('var(--nx-color-component-background)');
+  });
+
+  it('hover tooltip renders count + percent (Figma annotation #2 for donut)', () => {
+    // total = 400; UI = 100 → 25%, API = 300 → 75%.
+    const breakdown = { UI: 100, API: 300 };
+    render(<ConsumptionBySourceChart sourceBreakdown={dataset(breakdown)} />);
+    const props = ResponsivePie.mock.calls.at(-1)[0];
+
+    // Tooltip is a render-prop; invoke it with the same shape Nivo passes.
+    const uiTooltip = render(props.tooltip({ datum: { label: 'UI', value: 100 } }));
+    expect(uiTooltip.container.textContent).toMatch(/UI.*100.*\(25%\)/);
+
+    const apiTooltip = render(props.tooltip({ datum: { label: 'API', value: 300 } }));
+    expect(apiTooltip.container.textContent).toMatch(/API.*300.*\(75%\)/);
   });
 });

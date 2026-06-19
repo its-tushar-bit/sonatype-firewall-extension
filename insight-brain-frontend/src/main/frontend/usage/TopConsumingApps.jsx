@@ -31,15 +31,30 @@ export default function TopConsumingApps({ topApps }) {
         <div className="iq-usage-top-apps__subtitle">{totalApps} applications evaluated this period</div>
         <div className="iq-usage-top-apps__list">
           {visibleApps.map((app) => {
-            const percent = totalConsumed > 0 ? Math.round((app.consumed / totalConsumed) * 100) : 0;
+            // Clamp at 100: when an app's consumed count drifts above totalConsumed
+            // (data race, partial aggregation, rounding), the raw ratio can exceed 100,
+            // which would produce aria-valuenow > aria-valuemax and a malformed
+            // progressbar in the accessibility tree. WAI-ARIA 1.2 requires valuenow
+            // within [valuemin, valuemax].
+            const percent = totalConsumed > 0 ? Math.min(100, Math.round((app.consumed / totalConsumed) * 100)) : 0;
             const displayName = app.name ?? app.publicId ?? 'Deleted application';
             return (
               <div key={app.appId} className="iq-usage-top-apps__row">
                 <span className="iq-usage-top-apps__name" title={displayName}>
                   {displayName}
                 </span>
+                <span
+                  className="iq-usage-top-apps__bar-track"
+                  role="progressbar"
+                  aria-label={`${displayName} consumption`}
+                  aria-valuenow={percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuetext={`${percent}% of total`}
+                >
+                  <span className="iq-usage-top-apps__bar-fill" style={{ width: `${percent}%` }} aria-hidden="true" />
+                </span>
                 <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString('en-US')}</span>
-                <span className="iq-usage-top-apps__percent">{percent}%</span>
               </div>
             );
           })}

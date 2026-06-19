@@ -45,7 +45,7 @@
 
 .iq-usage-stage-chart__legend-row {
   display: grid;
-  grid-template-columns: 12px minmax(120px, 1fr) minmax(80px, 2fr) auto auto;
+  grid-template-columns: 12px minmax(120px, 1fr) minmax(80px, 2fr) auto;
   gap: var(--nx-spacing-3x);
   align-items: center;
   font-size: var(--nx-font-size);
@@ -86,14 +86,6 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--nx-color-text-dark);
-  text-align: right;
-  font-size: var(--nx-font-size-m);
-}
-
-.iq-usage-stage-chart__percent {
-  font-variant-numeric: tabular-nums;
-  color: var(--nx-color-text);
-  min-width: 36px;
   text-align: right;
   font-size: var(--nx-font-size-m);
 }

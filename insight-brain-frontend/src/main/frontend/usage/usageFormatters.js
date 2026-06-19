@@ -42,12 +42,3 @@ export function formatCount(value) {
   }
   return String(value);
 }
-
-/**
- * Rounds a percentage to the nearest integer and appends "%".
- * @param {number} pct
- * @returns {string}
- */
-export function formatPercent(pct) {
-  return `${Math.round(pct)}%`;
-}

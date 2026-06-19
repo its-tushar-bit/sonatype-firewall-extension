@@ -48,7 +48,7 @@
 
 .iq-usage-source-chart__legend-row {
   display: grid;
-  grid-template-columns: 12px minmax(120px, 1fr) minmax(80px, 2fr) auto auto;
+  grid-template-columns: 12px minmax(120px, 1fr) minmax(80px, 2fr) auto;
   gap: var(--nx-spacing-3x);
   align-items: center;
   font-size: var(--nx-font-size);
@@ -91,22 +91,4 @@
   color: var(--nx-color-text-dark);
   text-align: right;
   font-size: var(--nx-font-size-m);
-}
-
-.iq-usage-source-chart__percent {
-  font-variant-numeric: tabular-nums;
-  color: var(--nx-color-text);
-  min-width: 36px;
-  text-align: right;
-  font-size: var(--nx-font-size-m);
-}
-
-.iq-usage-source-chart__legend-more {
-  margin-top: var(--nx-spacing-2x);
-}
-
-.iq-usage-source-chart__bar-track {
-  @include nx-dark-mode-helpers.dark-mode {
-    background-color: var(--nx-color-interactive-background-disabled);
-  }
 }

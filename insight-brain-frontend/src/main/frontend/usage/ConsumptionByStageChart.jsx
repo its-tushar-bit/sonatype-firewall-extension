@@ -9,7 +9,16 @@ import { ResponsivePie } from '@nivo/pie';
 import { NxH2, NxTile } from '@sonatype/react-shared-components';
 
 import { STAGE_COLORS, FALLBACK_COLOR } from './usageChartPalette';
-import { formatNumber, formatPercent } from './usageFormatters';
+import { formatNumber } from './usageFormatters';
+
+// Canonical SDLC phase order. Anything not in this list comes after, in
+// alphabetical order, with `Unknown` always last (data-quality bucket).
+export const STAGE_CANONICAL_ORDER = ['develop', 'build', 'stage-release', 'release', 'operate'];
+
+function canonicalIndex(token) {
+  const i = STAGE_CANONICAL_ORDER.indexOf(token);
+  return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+}
 
 // The literal "Unknown" must match ConsumptionEventDAO.STAGE_UNKNOWN (Java).
 // If renamed there, update this map and STAGE_COLORS in usageChartPalette.js.
@@ -42,10 +51,14 @@ function buildEntries(breakdown) {
       label: labelFor(token),
       color: colorFor(token),
       count,
-      percent: (count / total) * 100,
     }))
     .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
+      if (a.token === 'Unknown') return 1;
+      if (b.token === 'Unknown') return -1;
+      const ai = canonicalIndex(a.token);
+      const bi = canonicalIndex(b.token);
+      if (ai !== bi) return ai - bi;
+      // Both share a canonical index (i.e. both non-canonical, mapped to MAX_SAFE_INTEGER): sort by label.
       return a.label.localeCompare(b.label);
     });
   return { entries, total };
@@ -71,7 +84,10 @@ export default function ConsumptionByStageChart({ stageBreakdown }) {
       entries: built.entries,
       total: built.total,
       chartData: data,
-      maxCount: built.entries[0]?.count ?? 0,
+      // Must use the true max — canonical-phase sort puts e.g. `develop` first
+      // even when `build` has a higher count, so `entries[0].count` would
+      // understate the max and break the legend bar-width proportions.
+      maxCount: built.entries.reduce((m, e) => Math.max(m, e.count), 0),
     };
   }, [stageBreakdown]);
 
@@ -123,11 +139,19 @@ export default function ConsumptionByStageChart({ stageBreakdown }) {
               activeOuterRadiusOffset={4}
               layers={['arcs', centerLayer]}
               margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-              tooltip={({ datum }) => (
-                <div className="iq-usage-chart__tooltip">
-                  <strong>{datum.label}</strong>: {formatNumber(datum.value)}
-                </div>
-              )}
+              borderWidth={2}
+              borderColor="var(--nx-color-component-background)"
+              tooltip={({ datum }) => {
+                // Per the Mateo Figma: legend rows show count only; donut hover
+                // adds the percentage. total > 0 is guaranteed inside this branch
+                // (the entries-empty path returns null above).
+                const percent = Math.round((datum.value / total) * 100);
+                return (
+                  <div className="iq-usage-chart__tooltip">
+                    <strong>{datum.label}</strong>: {formatNumber(datum.value)} ({percent}%)
+                  </div>
+                );
+              }}
             />
           </div>
           <ul className="iq-usage-stage-chart__legend" role="list">
@@ -151,7 +175,6 @@ export default function ConsumptionByStageChart({ stageBreakdown }) {
                   />
                 </span>
                 <span className="iq-usage-stage-chart__count">{formatNumber(entry.count)}</span>
-                <span className="iq-usage-stage-chart__percent">{formatPercent(entry.percent)}</span>
               </li>
             ))}
           </ul>

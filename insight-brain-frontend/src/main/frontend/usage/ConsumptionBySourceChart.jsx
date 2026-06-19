@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 import { ResponsivePie } from '@nivo/pie';
-import { NxH2, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxTile } from '@sonatype/react-shared-components';
 
 import { SOURCE_COLORS, FALLBACK_COLOR } from './usageChartPalette';
-import { formatNumber, formatPercent } from './usageFormatters';
+import { formatNumber } from './usageFormatters';
 
 export const SOURCE_LABELS = {
   UI: 'UI',
@@ -24,8 +24,6 @@ export const SOURCE_LABELS = {
 
 // Re-exports for backward compatibility with existing tests.
 export { SOURCE_COLORS, FALLBACK_COLOR };
-
-const TOP_N_VISIBLE = 5;
 
 function labelFor(token) {
   return SOURCE_LABELS[token] || token;
@@ -47,7 +45,6 @@ function buildEntries(breakdown) {
       label: labelFor(token),
       color: colorFor(token),
       count,
-      percent: (count / total) * 100,
     }))
     .sort((a, b) => {
       if (b.count !== a.count) return b.count - a.count;
@@ -58,8 +55,6 @@ function buildEntries(breakdown) {
 }
 
 export default function ConsumptionBySourceChart({ sourceBreakdown }) {
-  const [expanded, setExpanded] = useState(false);
-
   const { entries, total, chartData, maxCount } = useMemo(() => {
     if (!sourceBreakdown || sourceBreakdown.length === 0) {
       return { entries: [], total: 0, chartData: [], maxCount: 0 };
@@ -68,23 +63,28 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
     if (!currentMonth || !currentMonth.breakdown) {
       return { entries: [], total: 0, chartData: [], maxCount: 0 };
     }
-    const { entries, total } = buildEntries(currentMonth.breakdown);
-    const chartData = entries.map(({ token, label, count, color }) => ({
+    const built = buildEntries(currentMonth.breakdown);
+    const data = built.entries.map(({ token, label, count, color }) => ({
       id: token,
       label,
       value: count,
       color,
     }));
-    const maxCount = entries.length > 0 ? entries[0].count : 0;
-    return { entries, total, chartData, maxCount };
+    return {
+      entries: built.entries,
+      total: built.total,
+      chartData: data,
+      // Use reduce(Math.max) — entries[0].count was correct only because Source sorts
+      // by count desc; this is robust to any future sort-order change and mirrors the
+      // pattern in ConsumptionByStageChart.jsx where canonical-stage sort exposed the
+      // entries[0]-as-max bug.
+      maxCount: built.entries.reduce((m, e) => Math.max(m, e.count), 0),
+    };
   }, [sourceBreakdown]);
 
   if (entries.length === 0) {
     return null;
   }
-
-  const overflowCount = Math.max(0, entries.length - TOP_N_VISIBLE);
-  const visibleEntries = expanded ? entries : entries.slice(0, TOP_N_VISIBLE);
 
   const centerLayer = ({ centerX, centerY }) => (
     <g>
@@ -125,20 +125,28 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
               padAngle={1}
               cornerRadius={2}
               colors={(d) => d.data.color}
+              borderWidth={2}
+              borderColor="var(--nx-color-component-background)"
               enableArcLinkLabels={false}
               enableArcLabels={false}
               activeOuterRadiusOffset={4}
               layers={['arcs', centerLayer]}
               margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-              tooltip={({ datum }) => (
-                <div className="iq-usage-chart__tooltip">
-                  <strong>{datum.label}</strong>: {formatNumber(datum.value)}
-                </div>
-              )}
+              tooltip={({ datum }) => {
+                // Per the Mateo Figma: legend rows show count only; donut hover
+                // adds the percentage. total > 0 is guaranteed inside this branch
+                // (the entries-empty path returns null above).
+                const percent = Math.round((datum.value / total) * 100);
+                return (
+                  <div className="iq-usage-chart__tooltip">
+                    <strong>{datum.label}</strong>: {formatNumber(datum.value)} ({percent}%)
+                  </div>
+                );
+              }}
             />
           </div>
           <ul className="iq-usage-source-chart__legend" role="list">
-            {visibleEntries.map((entry) => (
+            {entries.map((entry) => (
               <li key={entry.token} className="iq-usage-source-chart__legend-row">
                 <span
                   className="iq-usage-source-chart__swatch"
@@ -158,16 +166,8 @@ export default function ConsumptionBySourceChart({ sourceBreakdown }) {
                   />
                 </span>
                 <span className="iq-usage-source-chart__count">{formatNumber(entry.count)}</span>
-                <span className="iq-usage-source-chart__percent">{formatPercent(entry.percent)}</span>
               </li>
             ))}
-            {overflowCount > 0 && (
-              <li className="iq-usage-source-chart__legend-more">
-                <NxTextLink onClick={() => setExpanded((prev) => !prev)}>
-                  {expanded ? 'Show fewer' : `More sources (${overflowCount})`}
-                </NxTextLink>
-              </li>
-            )}
           </ul>
         </div>
       </NxTile.Content>

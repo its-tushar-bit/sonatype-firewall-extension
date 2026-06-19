@@ -26,7 +26,9 @@ import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.consumption.ConsumptionContext;
 import com.sonatype.insight.brain.service.consumption.ConsumptionEvents;
 import com.sonatype.insight.brain.service.consumption.ConsumptionRecorder;
-import com.sonatype.insight.brain.service.consumption.HdsPathActivityMapper;
+import com.sonatype.insight.brain.service.consumption.DeveloperPrioritiesPayloadExtractor;
+import com.sonatype.insight.brain.service.consumption.HdsPathExtractor;
+import com.sonatype.insight.brain.service.consumption.IdempotencyKeyGenerator;
 import com.sonatype.insight.brain.service.consumption.KnownCountExtractor;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
@@ -38,6 +40,7 @@ import com.sonatype.insight.error.exception.GatewayTimeoutException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -47,6 +50,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -85,6 +89,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.sonatype.insight.brain.lifecycle.Managed;
@@ -436,7 +443,7 @@ public class HdsClient
     if (response.getEntity() != null && response.getEntity().getContentType() != null) {
       relayResponse.contentType = response.getEntity().getContentType().getValue();
     }
-    recordConsumption(path, relayResponse.content);
+    recordConsumption(pathAndQuery(cloudReq.getURI()), relayResponse.content);
     return relayResponse;
   }
 
@@ -488,7 +495,18 @@ public class HdsClient
     if (response.getEntity() != null && response.getEntity().getContentType() != null) {
       relayResponse.contentType = response.getEntity().getContentType().getValue();
     }
+    recordConsumption(pathAndQuery(cloudReq.getURI()), relayResponse.content);
     return relayResponse;
+  }
+
+  /**
+   * Extracts the path-with-query portion of an outbound HDS URI for consumption-event
+   * classification. {@link HdsPathExtractor} needs the query string to pull entity ids
+   * from query parameters (e.g. the component {@code hash} on legacy {@code /componentDetails}
+   * calls); using {@link URI#getRawPath()} alone would discard that signal.
+   */
+  private static String pathAndQuery(URI uri) {
+    return uri.getRawQuery() != null ? uri.getRawPath() + "?" + uri.getRawQuery() : uri.getRawPath();
   }
 
   public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams) throws IOException {
@@ -749,7 +767,7 @@ public class HdsClient
     cloudReq.setEntity(entity);
     cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
 
-    return execute(retry, cloudReq, clazz);
+    return execute(retry, cloudReq, clazz, jsonSerializableObject);
   }
 
   public <T> T post(
@@ -906,38 +924,123 @@ public class HdsClient
   }
 
   private <T> T execute(Retry retry, HttpUriRequest request, Class<T> clazz) {
+    return execute(retry, request, clazz, null);
+  }
+
+  private <T> T execute(Retry retry, HttpUriRequest request, Class<T> clazz, @Nullable Object requestBody) {
     HttpResponse response = execute(retry, request);
     T result = fromHttpResponse(response, clazz);
-    recordConsumption(request.getURI().getPath(), result);
+    recordConsumption(pathAndQuery(request.getURI()), result, requestBody);
     return result;
   }
 
   private <T> void recordConsumption(String path, T result) {
+    recordConsumption(path, result, null);
+  }
+
+  private <T> void recordConsumption(String path, T result, @Nullable Object requestBody) {
     try {
-      if (consumptionRecorder != null && currentUser != null) {
-        ActivityType activityType = HdsPathActivityMapper.resolve(path);
-        if (activityType != null) {
-          int count = KnownCountExtractor.extractCount(result);
-          if (count > 0) {
-            ConsumptionContext ctx = ConsumptionContext.get();
-            if (ctx != null) {
-              ActivityType effectiveType = ctx.isDirectApiRequest() ? ActivityType.API : activityType;
-              ConsumptionEvent event = ConsumptionEvents.builderFromContext(ctx)
-                  .appId(ctx.getAppId())
-                  .scanId(ctx.getScanId())
-                  .userId(currentUser.getUsernameOrSystem())
-                  .activityType(effectiveType)
-                  .componentCount(count)
-                  .build();
-              consumptionRecorder.record(event);
-            }
-          }
-        }
+      if (consumptionRecorder == null || currentUser == null) {
+        return;
       }
+      HdsPathExtractor.PathMatch match = HdsPathExtractor.resolve(path, requestBody);
+      if (match == null) {
+        return;
+      }
+      ConsumptionContext ctx = ConsumptionContext.get();
+      if (ctx == null) {
+        return;
+      }
+      // Direct API requests stay classified as ActivityType.API (pre-existing behavior).
+      // The DEVELOPER_PRIORITIES fan-out branch below was added in CLM-40771 and only
+      // applies to UI-driven flows; API requests fall through to the count-based path.
+      ActivityType effectiveType = ctx.isDirectApiRequest() ? ActivityType.API : match.activityType();
+
+      if (effectiveType == ActivityType.DEVELOPER_PRIORITIES
+          && result instanceof AffectedComponentList payload)
+      {
+        // One event per (refId, coordinates) entity from the response payload (CLM-40771).
+        // Gated on a non-null appId because the DEVELOPER_PRIORITIES key shape requires it
+        // (`userId:TYPE:entityId:appId:sessionIdHash`). Cross-app surfaces like Advanced
+        // Search → cveAffectedComponents iterate through every affected package on HDS
+        // (~462k rows for popular CVEs) and produce no usable key — emitting them would
+        // fill consumption_events with NULL-keyed rows that bypass dedup.
+        if (ctx.getAppId() == null) {
+          log.debug("Skipping DEVELOPER_PRIORITIES consumption (appId=null, cross-app surface) for path {}",
+              path);
+          return;
+        }
+        List<String> entities = DeveloperPrioritiesPayloadExtractor.extract(payload);
+        for (String entityId : entities) {
+          emitEvent(effectiveType, entityId, /* count */ 1, ctx);
+        }
+        return;
+      }
+
+      int count = KnownCountExtractor.extractCount(result);
+      if (count <= 0) {
+        return;
+      }
+      // Direct API requests are per-call billable events — never dedup them. Drop the
+      // HDS-extracted entityId so IdempotencyKeyGenerator returns null and each call
+      // lands as its own unkeyed row. Passing the entityId here would dedup repeated
+      // API calls by the same user for the same component into a single row.
+      String entityId = ctx.isDirectApiRequest() ? null : match.entityId();
+      emitEvent(effectiveType, entityId, count, ctx);
     }
     catch (Exception e) {
       log.warn("Consumption recording failed for path {}", path, e);
     }
+  }
+
+  private void emitEvent(
+      ActivityType type,
+      @Nullable String entityId,
+      int count,
+      ConsumptionContext ctx)
+  {
+    // Populate ctx.userId and ctx.sessionId here rather than in ConsumptionContextFilter:
+    // the filter runs at FilterOrder.CONSUMPTION_CONTEXT (12), before Shiro auth filters bind
+    // a Subject to the thread, so SecurityUtils.getSubject() at filter time yields no
+    // principal/session. This call site sits in the request-handling thread AFTER auth has
+    // run, so ctx fields needed by IdempotencyKeyGenerator are reliably available now.
+    String userName = currentUser.getUsernameOrSystem();
+    if (ctx.getUserId() == null) {
+      ctx.setUserId(userName);
+    }
+    if (ctx.getSessionId() == null) {
+      try {
+        Subject subject = SecurityUtils.getSubject();
+        if (subject != null) {
+          // getSession(false) — never force-create. Browser sessions exist already
+          // (Shiro's session filter binds them earlier in the request chain); for
+          // stateless flows (UserToken auth, scanner CLI) we deliberately skip session
+          // creation. A null sessionId yields a NULL idempotency_key for keyable
+          // activity types, which the partial unique index lets coexist freely
+          // (no dedup applies — matches the design's "sessionless flows skip dedup"
+          // semantic). Force-creating sessions here would persist a Shiro session record
+          // for every API-token call, multiplying session-table size unnecessarily.
+          Session shiroSession = subject.getSession(false);
+          if (shiroSession != null && shiroSession.getId() != null) {
+            ctx.setSessionId(shiroSession.getId().toString());
+          }
+        }
+      }
+      catch (RuntimeException e) {
+        log.trace("Failed to populate sessionId on ConsumptionContext for activity type {}",
+            type, e);
+      }
+    }
+    String key = IdempotencyKeyGenerator.generate(type, ctx, entityId);
+    ConsumptionEvent event = ConsumptionEvents.builderFromContext(ctx)
+        .appId(ctx.getAppId())
+        .scanId(ctx.getScanId())
+        .userId(userName)
+        .activityType(type)
+        .componentCount(count)
+        .idempotencyKey(key)
+        .build();
+    consumptionRecorder.record(event);
   }
 
   private String getRequestId(HttpResponse response) {

@@ -713,6 +713,10 @@ function generateMockData(numOfPriorities) {
       highestThreatPolicyConstraintName: faker.lorem.sentence(),
       priority: i,
       securityReachable: faker.helpers.arrayElement([true, false, null]),
+      // CLM-40771: remediationType gates the per-row version-scoring HDS call. Tests
+      // here count `axiosMock.history.get` against the assumption that every row has
+      // a remediation candidate (see PrioritiesPageRow.jsx:175 useEffect guard).
+      remediationType: 'next-no-violations',
     });
   }
 

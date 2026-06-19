@@ -168,13 +168,25 @@ public class PullRequestRemediationService
     {
       ConsumptionContext ctx = ConsumptionContext.get();
       if (ctx != null) {
+        String userId = isManual ? "manual" : "system";
+        // Stamp a session-less idempotency key keyed on the source-control event id so
+        // duplicate webhook deliveries (network retries, GitHub redelivery) dedup against
+        // the partial unique index. The literal "pr-event" segment cannot collide with
+        // the 5-segment user-driven VR shape. If the event id is unexpectedly null
+        // (defensive — `sourceControlEventDAO.update` further down in onRemediateComponent
+        // would fail without an id), leave the key null so the event lands unkeyed
+        // rather than collapsing every null-id delivery into one row.
+        String idempotencyKey = (event.getId() != null)
+            ? userId + ":VERSION_RECOMMENDATION:pr-event:" + event.getId()
+            : null;
         ConsumptionEvent consumptionEvent = ConsumptionEvents.builderFromContext(ctx)
             .appId(application.getId())
             .scanId(event.getScanId())
-            .userId(isManual ? "manual" : "system")
+            .userId(userId)
             .activityType(ActivityType.VERSION_RECOMMENDATION)
             .componentCount(1)
             .source(isManual ? Source.UI.token() : ctx.getSource())
+            .idempotencyKey(idempotencyKey)
             .build();
         consumptionRecorder.record(consumptionEvent);
       }

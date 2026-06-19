@@ -213,6 +213,138 @@ public class ConsumptionRecorderTest
     field.set(null, originalSystemConfigDao);
   }
 
+  @Test
+  public void record_stampsIdempotencyKey_whenEventArrivesWithNullKey() {
+    ConsumptionContext.set("org-1", "pro", "ui");
+    ConsumptionContext.get().setUserId("42");
+    ConsumptionContext.get().setScanId("SX");
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .componentCount(1)
+        .build();
+    // No .idempotencyKey(...) call — arrives with null key.
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isEqualTo("42:APP_SCAN:SX");
+
+    ConsumptionContext.clear();
+  }
+
+  @Test
+  public void record_doesNotStampKey_whenNoUserIdAvailable() {
+    // No ConsumptionContext on the thread and no userId on the event — mergedContext()
+    // returns null, IdempotencyKeyGenerator.generate(type, null, null) returns null,
+    // and the event lands as an unkeyed row (no dedup applies).
+    ConsumptionContext.clear();
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .scanId("SX")
+        .componentCount(1)
+        .build();
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isNull();
+  }
+
+  @Test
+  public void record_prefersEventScanId_overThreadLocalScanId() {
+    // Both event and threadlocal carry a scanId — event wins (preferEventThenCtx).
+    // Background recorders that run on a thread previously bound to a request rely
+    // on this precedence: their event carries the scan they're processing, not
+    // whatever scan the request thread was last handling.
+    ConsumptionContext.set("org-1", "pro", "ui");
+    ConsumptionContext.get().setUserId("42");
+    ConsumptionContext.get().setScanId("threadlocal-scan");
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .scanId("event-scan")
+        .componentCount(1)
+        .build();
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isEqualTo("42:APP_SCAN:event-scan");
+
+    ConsumptionContext.clear();
+  }
+
+  @Test
+  public void record_fallsBackToThreadLocalScanId_whenEventLacksScanId() {
+    // Event has userId but no scanId; threadlocal supplies the scanId.
+    ConsumptionContext.set("org-1", "pro", "ui");
+    ConsumptionContext.get().setUserId("42");
+    ConsumptionContext.get().setScanId("threadlocal-scan");
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .componentCount(1)
+        .build();
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isEqualTo("42:APP_SCAN:threadlocal-scan");
+
+    ConsumptionContext.clear();
+  }
+
+  @Test
+  public void record_prefersEventUserId_overThreadLocalUserId() {
+    // Both event and threadlocal carry a userId — event wins. The
+    // PullRequestRemediationService case stamps "manual"/"system" on the event itself
+    // because the request thread's userId may be a different actor.
+    ConsumptionContext.set("org-1", "pro", "ui");
+    ConsumptionContext.get().setUserId("threadlocal-user");
+    ConsumptionContext.get().setScanId("SX");
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .userId("event-user")
+        .componentCount(1)
+        .build();
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isEqualTo("event-user:APP_SCAN:SX");
+
+    ConsumptionContext.clear();
+  }
+
+  @Test
+  public void record_doesNotOverwrite_keyAlreadyStampedByCaller() {
+    ConsumptionContext.set("org-1", "pro", "ui");
+    ConsumptionContext.get().setUserId("42");
+    ConsumptionContext.get().setScanId("SX");
+
+    ConsumptionEvent event = ConsumptionEvent.builder()
+        .activityType(ActivityType.APP_SCAN)
+        .componentCount(1)
+        .idempotencyKey("preset-key")
+        .build();
+
+    recorder.record(event);
+
+    await().atMost(Duration.ofSeconds(2))
+        .untilAsserted(() -> assertThat(writtenEvents).hasSize(1));
+    assertThat(writtenEvents.get(0).getIdempotencyKey()).isEqualTo("preset-key");
+
+    ConsumptionContext.clear();
+  }
+
   private ConsumptionEvent createTestEvent() {
     return createTestEvent("test-org-id");
   }

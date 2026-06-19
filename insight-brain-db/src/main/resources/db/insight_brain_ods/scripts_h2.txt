@@ -1,6 +1,7 @@
 schema_init_h2.sql
 schema.sql
-schema_post_init_h2.sql
 schema_incremental_0172.sql
 schema_incremental_0433.h2.sql
 schema_incremental_0445.h2.sql
+schema_incremental_0467.h2.sql
+schema_incremental_0469.h2.sql

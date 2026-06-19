@@ -2380,6 +2380,7 @@ CREATE TABLE consumption_events (
   source VARCHAR(30) NOT NULL,
   tier VARCHAR(20) NOT NULL,
   billing_month DATE NOT NULL,
+  idempotency_key VARCHAR(255),
   CONSTRAINT consumption_events_pk PRIMARY KEY (id),
   CONSTRAINT chk_consumption_events_component_count CHECK (component_count > 0)
 );
@@ -2389,6 +2390,10 @@ CREATE INDEX idx_consumption_events_org_activity ON consumption_events(org_id, a
 CREATE INDEX idx_consumption_events_timestamp ON consumption_events(event_timestamp);
 CREATE INDEX idx_consumption_events_billing_activity ON consumption_events(billing_month, activity_type);
 CREATE INDEX idx_consumption_events_timestamp_app ON consumption_events(event_timestamp, app_id);
+-- Note: the unique index on idempotency_key is engine-specific and is created by the
+-- 0469 incremental migration scripts (.pg.sql for PostgreSQL with a partial WHERE
+-- predicate; .h2.sql for H2 as a plain unique index since H2 doesn't support partial
+-- indexes). New databases pick up the index when the migrator runs incrementals.
 
 CREATE TABLE consumption_limit_config (
   id VARCHAR(50) NOT NULL,

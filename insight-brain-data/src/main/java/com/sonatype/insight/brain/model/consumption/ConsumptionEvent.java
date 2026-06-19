@@ -64,6 +64,9 @@ public class ConsumptionEvent
   @Column(name = "billing_month", nullable = false)
   private LocalDate billingMonth;
 
+  @Column(name = "idempotency_key")
+  private String idempotencyKey;
+
   public ConsumptionEvent() {
   }
 
@@ -183,6 +186,14 @@ public class ConsumptionEvent
     this.billingMonth = billingMonth;
   }
 
+  public String getIdempotencyKey() {
+    return idempotencyKey;
+  }
+
+  public void setIdempotencyKey(final String idempotencyKey) {
+    this.idempotencyKey = idempotencyKey;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -238,6 +249,11 @@ public class ConsumptionEvent
 
     public Builder billingMonth(final LocalDate billingMonth) {
       event.setBillingMonth(billingMonth);
+      return this;
+    }
+
+    public Builder idempotencyKey(final String idempotencyKey) {
+      event.setIdempotencyKey(idempotencyKey);
       return this;
     }
 

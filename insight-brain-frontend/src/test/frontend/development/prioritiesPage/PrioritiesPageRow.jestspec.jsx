@@ -46,6 +46,14 @@ describe('PrioritiesPageRow', () => {
     },
   };
 
+  const bulkOffState = mergeDeepRight(defaultPreloadedState, {
+    productFeatures: {
+      productFeatures: {
+        'developer-bulk-recommendations': false,
+      },
+    },
+  });
+
   const minimalProps = {
     component: mockData,
     componentHref: '#testHref',
@@ -56,8 +64,8 @@ describe('PrioritiesPageRow', () => {
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
 
-    renderComponent = (preloadedState) =>
-      render(<PrioritiesPageRow {...minimalProps} />, {
+    renderComponent = (preloadedState, componentOverride) =>
+      render(<PrioritiesPageRow {...minimalProps} component={componentOverride ?? minimalProps.component} />, {
         preloadedState: preloadedState || defaultPreloadedState,
         container: document.body.appendChild(
           document.createElement('table').appendChild(document.createElement('tbody'))
@@ -86,13 +94,7 @@ describe('PrioritiesPageRow', () => {
   });
 
   it('makes network requests only if developerBulkRecommendations feature flag is disabled', () => {
-    const preloadedState = mergeDeepRight(defaultPreloadedState, {
-      productFeatures: {
-        productFeatures: {
-          'developer-bulk-recommendations': false,
-        },
-      },
-    });
+    const preloadedState = bulkOffState;
 
     const requestData = {
       clientType: 'ci',
@@ -895,6 +897,76 @@ describe('PrioritiesPageRow', () => {
 
       const cell = screen.getAllByRole('cell')[4];
       expect(cell).toHaveTextContent('Upgrade to 2.0.0');
+    });
+  });
+
+  describe('version-scoring fetch gate on remediationType (CLM-40771)', () => {
+    it('does NOT fire version-scoring when remediationType is null and bulk flag is OFF', async () => {
+      axiosMock.reset();
+      renderComponent(bulkOffState, { ...mockData, remediationType: null, remediationVersion: null });
+
+      await waitFor(() => {
+        const versionScoringCalls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
+        expect(versionScoringCalls).toHaveLength(0);
+      });
+    });
+
+    it('DOES fire version-scoring when remediationType is actionable and bulk flag is OFF', async () => {
+      axiosMock.reset();
+      axiosMock.onGet(/allVersions/).reply(200, {});
+      renderComponent(bulkOffState, { ...mockData, remediationType: 'next-non-failing', remediationVersion: '1.5' });
+
+      await waitFor(() => {
+        const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
+        expect(calls.length).toBeGreaterThanOrEqual(1);
+      });
+    });
+
+    it('does NOT fire version-scoring when bulk flag is ON, regardless of remediationType', async () => {
+      axiosMock.reset();
+      renderComponent(defaultPreloadedState, {
+        ...mockData,
+        remediationType: 'next-non-failing',
+        remediationVersion: '1.5',
+      });
+
+      await waitFor(() => {
+        const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
+        expect(calls).toHaveLength(0);
+      });
+    });
+
+    // Regression for the missing-dependency bug: the gate effect reads remediationType
+    // but the deps array originally only listed isDeveloperBulkRecommendationsEnabled.
+    // A row that mounted as non-actionable (null) and was later upgraded to actionable
+    // would never fire version-scoring because the effect's closure captured the stale
+    // null. With remediationType in the deps array, the upgrade triggers a re-run.
+    it('fires version-scoring after remediationType flips from null to actionable on re-render', async () => {
+      axiosMock.reset();
+      axiosMock.onGet(/allVersions/).reply(200, {});
+
+      const { rerender } = renderComponent(bulkOffState, {
+        ...mockData,
+        remediationType: null,
+        remediationVersion: null,
+      });
+
+      await waitFor(() => {
+        const initialCalls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
+        expect(initialCalls).toHaveLength(0);
+      });
+
+      rerender(
+        <PrioritiesPageRow
+          {...minimalProps}
+          component={{ ...mockData, remediationType: 'next-non-failing', remediationVersion: '1.5' }}
+        />
+      );
+
+      await waitFor(() => {
+        const calls = axiosMock.history.get.filter((c) => /allVersions/.test(c.url));
+        expect(calls.length).toBeGreaterThanOrEqual(1);
+      });
     });
   });
 });

@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration tests for {@link ConsumptionEventDAO} using real H2 database.
@@ -233,6 +234,57 @@ public class ConsumptionEventDAOTest
     dao.recordEvent(event);
 
     assertThat(event.getId()).isNotNull().isNotEmpty();
+  }
+
+  @Test
+  public void recordEvent_propagatesNonUniqueIntegrityViolation() {
+    // The H2 fallback narrows the absorbed SQLState to "23505" (unique violation) so
+    // non-unique integrity failures — column-overflow, FK, NOT NULL, CHECK — propagate
+    // rather than being silently swallowed. Without this narrowness a future widening
+    // of the catch back to the broader C23 class would silently drop billing rows.
+    // Trigger NOT NULL on org_id by setting it to null at the model level (the setter
+    // does not validate, only the DB does).
+    ConsumptionEvent event = new ConsumptionEvent();
+    event.setOrgId(null); // violates NOT NULL constraint on org_id
+    event.setTier("ENTERPRISE");
+    event.setSource("API");
+    event.setActivityType(ActivityType.APP_SCAN);
+    event.setComponentCount(1);
+    event.setBillingMonth(LocalDate.of(2026, 12, 1));
+    event.setEventTimestamp(Instant.parse("2026-12-10T10:00:00Z"));
+
+    assertThatThrownBy(() -> dao.recordEvent(event)).isInstanceOf(Exception.class);
+  }
+
+  @Test
+  public void recordEvent_duplicateIdempotencyKey_isIgnored() {
+    LocalDate billingMonth = LocalDate.of(2026, 12, 1);
+    String sharedKey = "test-dedup-key-abc";
+
+    ConsumptionEvent first = new ConsumptionEvent();
+    first.setOrgId("org-dedup-1");
+    first.setTier("ENTERPRISE");
+    first.setSource("API");
+    first.setActivityType(ActivityType.APP_SCAN);
+    first.setComponentCount(42);
+    first.setBillingMonth(billingMonth);
+    first.setEventTimestamp(Instant.parse("2026-12-10T10:00:00Z"));
+    first.setIdempotencyKey(sharedKey);
+
+    ConsumptionEvent second = new ConsumptionEvent();
+    second.setOrgId("org-dedup-1");
+    second.setTier("ENTERPRISE");
+    second.setSource("API");
+    second.setActivityType(ActivityType.APP_SCAN);
+    second.setComponentCount(99);
+    second.setBillingMonth(billingMonth);
+    second.setEventTimestamp(Instant.parse("2026-12-10T10:00:01Z"));
+    second.setIdempotencyKey(sharedKey);
+
+    dao.recordEvent(first);
+    dao.recordEvent(second); // same idempotency_key — must be a no-op
+
+    assertThat(dao.sumByMonth(billingMonth)).isEqualTo(42L);
   }
 
   private ConsumptionEvent buildEvent(

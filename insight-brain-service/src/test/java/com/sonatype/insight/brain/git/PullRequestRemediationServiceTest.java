@@ -767,6 +767,7 @@ public class PullRequestRemediationServiceTest
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
 
     SourceControlEvent event = new SourceControlEvent()
+        .withId("scm-evt-auto-1")
         .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-A", "1.0.0"))
         .setApplicationId(application.getId())
         .setRemediationVersion("2.0.0")
@@ -789,6 +790,8 @@ public class PullRequestRemediationServiceTest
       assertThat(consumptionEvent.getAppId()).isEqualTo(application.getId());
       assertThat(consumptionEvent.getScanId()).isEqualTo("scan-consumption");
       assertThat(consumptionEvent.getUserId()).isEqualTo("system");
+      assertThat(consumptionEvent.getIdempotencyKey())
+          .isEqualTo("system:VERSION_RECOMMENDATION:pr-event:scm-evt-auto-1");
     }
     finally {
       SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
@@ -810,6 +813,7 @@ public class PullRequestRemediationServiceTest
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
 
     SourceControlEvent event = new SourceControlEvent()
+        .withId("scm-evt-manual-1")
         .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-M", "1.0.0"))
         .setApplicationId(application.getId())
         .setRemediationVersion("2.0.0")
@@ -832,6 +836,48 @@ public class PullRequestRemediationServiceTest
       assertThat(consumptionEvent.getAppId()).isEqualTo(application.getId());
       assertThat(consumptionEvent.getScanId()).isEqualTo("scan-manual-consumption");
       assertThat(consumptionEvent.getUserId()).isEqualTo("manual");
+      assertThat(consumptionEvent.getIdempotencyKey())
+          .isEqualTo("manual:VERSION_RECOMMENDATION:pr-event:scm-evt-manual-1");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);
+    }
+  }
+
+  @Test
+  public void testOnRemediateComponent_nullEventId_recordsConsumptionWithNullKey() throws Exception {
+    // If the source-control event id is unexpectedly null (defensive guard added in
+    // 160cbd72f2 per review), the idempotency key falls back to null so the event lands
+    // as an unkeyed row rather than collapsing every null-id delivery into a single key.
+    final String branchName = "consumption/nullid/branch";
+    final String appId = "app-consumption-null";
+    final String prUrl = "https://github.com/sonatype/test/pull/99";
+
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(ComponentIdentifier.createNpmCoordinates("pkg-N", "1.0.0"))
+        .setApplicationId(application.getId())
+        .setRemediationVersion("2.0.0")
+        .setScanId("scan-null-id")
+        .setStageTypeId(Stage.ID_BUILD)
+        .setPullRequestContents("null-id PR")
+        .setBranchName(branchName);
+    // Deliberately NOT calling withId(...) — event.getId() returns null.
+
+    SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(true);
+    try {
+      pullRequestRemediationService.onRemediateComponent(event);
+
+      ArgumentCaptor<ConsumptionEvent> consumptionCaptor = ArgumentCaptor.forClass(ConsumptionEvent.class);
+      verify(mockConsumptionRecorder).record(consumptionCaptor.capture());
+      assertThat(consumptionCaptor.getValue().getIdempotencyKey()).isNull();
     }
     finally {
       SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.setEnabled(false);

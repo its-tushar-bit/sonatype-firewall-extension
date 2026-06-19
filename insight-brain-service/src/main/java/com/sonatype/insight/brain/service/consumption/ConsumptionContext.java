@@ -45,6 +45,8 @@ public final class ConsumptionContext
 
   private String scanId;
 
+  private String sessionId;
+
   private ConsumptionContext() {
   }
 
@@ -59,6 +61,26 @@ public final class ConsumptionContext
     ctx.source = source;
     ctx.directApiRequest = directApiRequest;
     HOLDER.set(ctx);
+  }
+
+  /**
+   * Builds a detached (not bound to any thread) {@link ConsumptionContext} for
+   * one-shot use in {@link ConsumptionRecorder}'s key-generation fallback. Lets
+   * the recorder synthesize a context from the event's own userId/appId/scanId
+   * fields without mutating the request-thread's threadlocal context.
+   */
+  static ConsumptionContext detached(
+      @Nullable String userId,
+      @Nullable String appId,
+      @Nullable String scanId,
+      @Nullable String sessionId)
+  {
+    ConsumptionContext ctx = new ConsumptionContext();
+    ctx.userId = userId;
+    ctx.appId = appId;
+    ctx.scanId = scanId;
+    ctx.sessionId = sessionId;
+    return ctx;
   }
 
   @Nullable
@@ -113,6 +135,15 @@ public final class ConsumptionContext
     this.scanId = scanId;
   }
 
+  @Nullable
+  public String getSessionId() {
+    return sessionId;
+  }
+
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
+  }
+
   public static void initBackgroundJob(ProductLicense productLicense) {
     initBackgroundJob(productLicense, null);
   }
@@ -140,7 +171,20 @@ public final class ConsumptionContext
     }
   }
 
-  /** Immutable snapshot for propagating context across threads. */
+  /**
+   * Immutable snapshot for propagating context across threads. Carries only the
+   * fields needed by background-job activity types (APP_SCAN / RE_EVALUATE /
+   * CONTINUOUS_MONITORING), whose key shape is {@code userId:TYPE:scanId} and
+   * does not require {@code sessionId}. {@code userId}, {@code appId}, and
+   * {@code scanId} are passed as overrides through {@link #restoreAndScope}.
+   *
+   * <p>
+   * If a future use site emits session-sensitive activity types
+   * (COMPONENT_DETAILS / VERSION_RECOMMENDATION / DEVELOPER_PRIORITIES) from a
+   * restored context, those events will land as unkeyed rows because the
+   * snapshot carries no {@code sessionId} — dedup will not fire. Add a
+   * {@code sessionId} field to the record before doing so.
+   */
   public record Snapshot(String orgId, String tier, String source, boolean directApiRequest)
   {
   }

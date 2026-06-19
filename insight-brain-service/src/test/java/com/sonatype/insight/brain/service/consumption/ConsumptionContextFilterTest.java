@@ -246,6 +246,11 @@ public class ConsumptionContextFilterTest
     assertThat(ConsumptionContext.get()).isNull();
   }
 
+  // sessionId is no longer populated in the filter — Shiro auth runs after the filter
+  // (FilterOrder.CONSUMPTION_CONTEXT = 12). Lazy population happens in HdsClient.emitEvent
+  // and is verified live via the manual-testing TC4/TC8 evidence under
+  // docs/superpowers/manual-testing/runs/2026-06-11-runtime/.
+
   private final AtomicReference<SystemConfigurationProperty> featureFlagState = new AtomicReference<>(null);
 
   private void injectMockSystemConfigurationPropertyDAO() throws Exception {

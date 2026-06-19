@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -74,6 +75,21 @@ public class ConsumptionRecorder
     if (!SystemConfigurationPropertyFeature.CONSUMPTION_REPORTING.isEnabled()) {
       return;
     }
+    if (event.getIdempotencyKey() == null) {
+      // Background recorders (ScanPolicyEvaluator, PullRequestRemediationService) build
+      // the event from their own state and do not populate the request-thread's
+      // ConsumptionContext. Build a detached context that combines the event's
+      // userId/appId/scanId with whatever sessionId is on the threadlocal — this avoids
+      // mutating the request-scoped ctx (which would corrupt subsequent record() calls
+      // on the same thread for a different scan/app).
+      String key = IdempotencyKeyGenerator.generate(
+          event.getActivityType(),
+          mergedContext(event),
+          /* entityId */ null);
+      if (key != null) {
+        event.setIdempotencyKey(key);
+      }
+    }
     try {
       executors.get().submit(() -> writeEvent(event));
     }
@@ -89,6 +105,35 @@ public class ConsumptionRecorder
     catch (Exception e) {
       log.warn("Failed to enqueue consumption event for org={}", event.getOrgId(), e);
     }
+  }
+
+  /**
+   * Build a detached {@link ConsumptionContext} that prefers the event's own
+   * userId/appId/scanId (the call site that built the event has more reliable
+   * knowledge of these than the threadlocal does), falling back to whatever
+   * the threadlocal carries. The sessionId always comes from the threadlocal
+   * because it is set elsewhere (HdsClient.emitEvent or ConsumptionContextFilter)
+   * and is not present on the event.
+   *
+   * <p>
+   * Returns {@code null} when neither source can supply a userId — without that,
+   * IdempotencyKeyGenerator will not produce a key for any activity type.
+   */
+  @Nullable
+  private static ConsumptionContext mergedContext(ConsumptionEvent event) {
+    ConsumptionContext threadCtx = ConsumptionContext.get();
+    String userId = preferEventThenCtx(event.getUserId(), threadCtx == null ? null : threadCtx.getUserId());
+    if (userId == null) {
+      return null;
+    }
+    String appId = preferEventThenCtx(event.getAppId(), threadCtx == null ? null : threadCtx.getAppId());
+    String scanId = preferEventThenCtx(event.getScanId(), threadCtx == null ? null : threadCtx.getScanId());
+    String sessionId = threadCtx == null ? null : threadCtx.getSessionId();
+    return ConsumptionContext.detached(userId, appId, scanId, sessionId);
+  }
+
+  private static String preferEventThenCtx(@Nullable String fromEvent, @Nullable String fromCtx) {
+    return fromEvent != null ? fromEvent : fromCtx;
   }
 
   public long getDroppedEventCount() {

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.consumption;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,10 +31,14 @@ import jakarta.inject.Singleton;
 import org.jooq.CaseConditionStep;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
+import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Application.APPLICATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ConsumptionEvents.CONSUMPTION_EVENTS;
@@ -50,6 +57,8 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluat
 public class ConsumptionEventDAO
     extends AbstractOperationalSqlDAO<ConsumptionEvent>
 {
+  private static final Logger log = LoggerFactory.getLogger(ConsumptionEventDAO.class);
+
   public static final String STAGE_UNKNOWN = "Unknown";
 
   @Inject
@@ -89,11 +98,29 @@ public class ConsumptionEventDAO
     return entity;
   }
 
+  /**
+   * Inserts a consumption event with idempotency-key dedup.
+   *
+   * <p>
+   * Uses {@code ON CONFLICT (idempotency_key) DO NOTHING} on PostgreSQL to atomically
+   * dedup events that share an {@code idempotency_key}. On H2 (test infrastructure)
+   * this clause is unsupported, so the H2 branch wraps the insert in a JDBC savepoint
+   * and absorbs only SQLState {@code 23505} (unique-violation) — narrower than the
+   * pattern in {@code AbstractDAO.insert}, which catches the whole {@code C23}
+   * integrity-violation class. We do not delegate to {@code AbstractDAO.insert}
+   * because that helper uses {@code onDuplicateKeyIgnore()} (primary-key conflict),
+   * whereas dedup here must conflict on the partial unique index
+   * {@code idx_consumption_events_idempotency_key}.
+   *
+   * <p>
+   * Events with {@code idempotencyKey == null} insert freely (they fall through the
+   * partial unique index's {@code WHERE idempotency_key IS NOT NULL} clause).
+   */
   public void recordEvent(final ConsumptionEvent event) {
     generateIdIfNeeded(event);
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      tx.dsl()
+      InsertSetMoreStep<?> insert = tx.dsl()
           .insertInto(CONSUMPTION_EVENTS)
           .set(CONSUMPTION_EVENTS.ID, event.getId())
           .set(CONSUMPTION_EVENTS.ORG_ID, event.getOrgId())
@@ -107,10 +134,49 @@ public class ConsumptionEventDAO
           .set(CONSUMPTION_EVENTS.BILLING_MONTH, event.getBillingMonth())
           .set(CONSUMPTION_EVENTS.EVENT_TIMESTAMP,
               event.getEventTimestamp() != null ? Date.from(event.getEventTimestamp()) : null)
-          .execute();
+          .set(CONSUMPTION_EVENTS.IDEMPOTENCY_KEY, event.getIdempotencyKey());
+
+      if (tx.dsl().dialect() == SQLDialect.H2) {
+        // H2 1.4.196 does not support ON CONFLICT DO NOTHING; use a savepoint to absorb
+        // the unique-constraint violation instead (same pattern as AbstractDAO.insert).
+        // Catch only SQLState 23505 (unique violation) — broader C23 covers FK / NOT NULL /
+        // CHECK / column-overflow which we want to propagate rather than silently swallow.
+        tx.dsl().connection(conn -> {
+          Savepoint sp = conn.setSavepoint();
+          try (PreparedStatement ps = conn.prepareStatement(tx.dsl().renderInlined(insert))) {
+            ps.execute();
+            conn.releaseSavepoint(sp);
+          }
+          catch (SQLException e) {
+            conn.rollback(sp);
+            if (!H2_UNIQUE_VIOLATION_SQLSTATE.equals(e.getSQLState())) {
+              throw e;
+            }
+            if (event.getIdempotencyKey() != null) {
+              log.debug("Consumption-event dedup hit (H2) for key {}", event.getIdempotencyKey());
+            }
+          }
+        });
+      }
+      else {
+        // The unique index is partial: WHERE (idempotency_key IS NOT NULL).
+        // PostgreSQL only matches ON CONFLICT to a partial index when the conflict
+        // clause carries the same predicate. Without it, every insert fails with
+        // "no unique or exclusion constraint matching the ON CONFLICT specification".
+        int rowsInserted = insert.onConflict(CONSUMPTION_EVENTS.IDEMPOTENCY_KEY)
+            .where(CONSUMPTION_EVENTS.IDEMPOTENCY_KEY.isNotNull())
+            .doNothing()
+            .execute();
+        if (rowsInserted == 0 && event.getIdempotencyKey() != null) {
+          log.debug("Consumption-event dedup hit (Postgres) for key {}", event.getIdempotencyKey());
+        }
+      }
       tx.commit();
     }
   }
+
+  /** H2 SQLState for unique-constraint violations. Tighter than the general C23 class. */
+  private static final String H2_UNIQUE_VIOLATION_SQLSTATE = "23505";
 
   public long sumByMonth(final LocalDate billingMonth) {
     try (TransactionContext tx = createTransactionContext()) {

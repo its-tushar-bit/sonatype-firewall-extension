@@ -173,14 +173,14 @@ export default function PrioritiesPageRow({
   };
 
   useEffect(() => {
-    if (!isDeveloperBulkRecommendationsEnabled) {
+    if (!isDeveloperBulkRecommendationsEnabled && remediationType) {
       doLoad();
     }
 
     return () => {
       remediationStatusPollingRef.current?.abort?.();
     };
-  }, [isDeveloperBulkRecommendationsEnabled]);
+  }, [isDeveloperBulkRecommendationsEnabled, remediationType]);
 
   const openCreatePRModal = () => {
     dispatch(

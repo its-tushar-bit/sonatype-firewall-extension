@@ -81,6 +81,11 @@ public class ConsumptionContextFilter
     if (orgId != null && tier != null) {
       boolean directApiRequest = source == Source.API;
       ConsumptionContext.set(orgId, tier, source.token(), directApiRequest);
+      // userId/sessionId are populated lazily in HdsClient.emitEvent. This filter
+      // runs at FilterOrder.CONSUMPTION_CONTEXT (12), which is BEFORE Shiro's auth
+      // filters bind a Subject to the thread — so SecurityUtils.getSubject() at
+      // filter time has no principal/session. The HdsClient call site is in the
+      // request-handling thread post-auth and reliably has both.
       log.trace("Set ConsumptionContext: orgId={}, tier={}, source={}, directApiRequest={}",
           orgId, tier, source, directApiRequest);
     }

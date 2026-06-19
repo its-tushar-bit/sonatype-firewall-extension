@@ -49,6 +49,7 @@ import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.HostedComponentScanQueue.HOSTED_COMPONENT_SCAN_QUEUE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.Repository.REPOSITORY;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.QuarantinedComponentAccess.QUARANTINED_COMPONENT_ACCESS;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryComponent.REPOSITORY_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.RepositoryPolicyViolation.REPOSITORY_POLICY_VIOLATION;
 import static org.jooq.impl.DSL.notExists;
@@ -1117,6 +1118,46 @@ public class RepositoryComponentDAO
       tx.dsl()
           .deleteFrom(REPOSITORY_COMPONENT)
           .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .execute();
+    }
+  }
+
+  /**
+   * Bulk-deletes {@code repository_component} rows for the given pathnames, in batches sized
+   * for the configured DB IN-clause threshold. Used by the hosted-repo archive-of-archives
+   * fan-out path to remove the per-inner-pathname rows (kept only transiently inside the
+   * evaluator) so the Components page only ever shows the outer artifact — see
+   * {@code HostedComponentScanQueueConsumer.deleteInnerRepositoryComponentRows}.
+   * <p>
+   * Replaces an N+1 (1 SELECT + 1 DELETE per pathname) loop with at most ⌈N / threshold⌉ DML
+   * statements. Honors the per-row {@code quarantined_component_access} cascade by issuing the
+   * matching IN-clause delete on that table first.
+   */
+  public void deleteByRepositoryIdAndPathnames(
+      final TransactionContext tx,
+      final String repositoryId,
+      final java.util.Collection<String> pathnames)
+  {
+    if (repositoryId == null || pathnames == null || pathnames.isEmpty()) {
+      return;
+    }
+    int threshold = getInOperatorThreshold();
+    java.util.List<String> all = new java.util.ArrayList<>(pathnames);
+    for (java.util.List<String> chunk : com.google.common.collect.Lists.partition(all, threshold)) {
+      // Cascade: clear quarantined_component_access for any rows we're about to remove.
+      tx.dsl()
+          .deleteFrom(QUARANTINED_COMPONENT_ACCESS)
+          .where(QUARANTINED_COMPONENT_ACCESS.REPOSITORY_COMPONENT_ID.in(
+              tx.dsl()
+                  .select(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)
+                  .from(REPOSITORY_COMPONENT)
+                  .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+                  .and(REPOSITORY_COMPONENT.PATHNAME.in(chunk))))
+          .execute();
+      tx.dsl()
+          .deleteFrom(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(REPOSITORY_COMPONENT.PATHNAME.in(chunk))
           .execute();
     }
   }

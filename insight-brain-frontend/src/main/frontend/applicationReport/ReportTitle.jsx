@@ -52,9 +52,15 @@ const renderDescription = (metadataDetails) => {
 
 export default function ReportTitle() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
-  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, origin, componentDisplayName } = useSelector(selectRouterCurrentParams);
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
+
+  // Hosted-repo report links arrive with origin='hostedRepoComponents' and a synthetic
+  // application name (the asset path) that's not user-friendly. Show the real component
+  // coordinates instead. Every other entry point keeps the existing application name.
+  const titleName =
+    origin === 'hostedRepoComponents' && componentDisplayName ? componentDisplayName : metadataDetails.application.name;
 
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isFirewallForDocker = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
@@ -141,7 +147,7 @@ export default function ReportTitle() {
         </NxStatefulDropdown>
       </div>
       <h1 className="nx-h1">
-        {metadataDetails.application.name} {metadataDetails.reportTitle}
+        {titleName} {metadataDetails.reportTitle}
       </h1>
       <div className="nx-page-title__description">{renderDescription(metadataDetails)}</div>
     </div>

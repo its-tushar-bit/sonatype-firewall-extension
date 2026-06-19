@@ -579,8 +579,14 @@ public class ReportService
 
   private void saveOverlayFiles(final String appId, final String scanId) throws Exception {
     RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
+    // For an archive-of-archives upload the evaluator persisted N batches of policy_violation rows:
+    // one batch keyed on the outer pathname (outer.zip) plus one batch per inner pathname
+    // (outer.zip!/inner.jar). The Components page only shows the outer row, so the synthesised
+    // policythreats.json that backs the outer's report must include violations from BOTH the outer
+    // pathname AND any inner pathname under it. Without this, this recovery path silently
+    // collapses an archive's report back to just the outer's violations on the next UI load.
     List<RepositoryPolicyViolation> violations = comp != null && comp.getPathname() != null
-        ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
+        ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
             comp.getRepositoryId(), comp.getPathname())
         : List.of();
     for (String fileName : List.of("policythreats.json", "summary.json")) {

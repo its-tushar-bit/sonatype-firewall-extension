@@ -34,7 +34,8 @@ export function goToComponentReport(
   scanId,
   repositoryManagerId,
   repositoryId,
-  repositoryPublicId
+  repositoryPublicId,
+  componentDisplayName
 ) {
   return stateGo('applicationReport.policy', {
     publicId: applicationPublicId,
@@ -43,6 +44,7 @@ export function goToComponentReport(
     repositoryManagerId,
     repositoryId,
     repositoryPublicId,
+    componentDisplayName,
   });
 }
 

@@ -80,6 +80,14 @@ public class HostedComponentScanQueueConsumer
 
   private static final String CONSUMER_NAME = PATH;
 
+  /**
+   * Soft warning threshold for the per-archive component count. We don't enforce a hard cap
+   * because silently truncating inner findings would hide real CVEs. The number is large enough
+   * to never trip on normal application archives (~5–50 inner jars) but small enough that
+   * anything above it is worth a logged note for ops correlation.
+   */
+  private static final int HIGH_COMPONENT_COUNT_THRESHOLD = 500;
+
   private final ApiConfigurationService apiConfigurationService;
 
   private final HostedComponentScanQueueDAO scanQueueDAO;
@@ -191,36 +199,86 @@ public class HostedComponentScanQueueConsumer
           "Scan file not found: repositoryId=" + repositoryId + ", scanFileId=" + job.getScanFileId());
     }
 
-    ScanComponentInfo componentInfo = ScanXmlParser.extractComponentInfo(scanEntity);
+    // The scanner emits one <dir> per archive it recognised. For a single-jar upload that's one
+    // entry; for an archive-of-archives upload (e.g. a .zip containing multiple .jar files) it's
+    // one entry per inner artifact. The first <dir> is always the outer artifact (the thing the
+    // user uploaded); any subsequent <dir>s are inner artifacts the scanner discovered inside it.
+    // We process the outer artifact as the single repository_component row (so the Components page
+    // shows one row per uploaded artifact) but pass ALL components — outer + inners — into the
+    // policy evaluator so violations get persisted for every inner pathname too. Inner-pathname
+    // repository_component rows are deleted post-eval so the Components page stays clean; the
+    // inner-pathname repository_policy_violation rows survive and feed the synthesised
+    // policythreats.json so drilling into the outer's report shows per-inner findings.
+    List<ScanComponentInfo> componentInfos = ScanXmlParser.extractComponentInfos(scanEntity);
+    // Visibility for outsized archives: a normal hosted upload produces a handful of inner
+    // components; anything north of HIGH_COMPONENT_COUNT_THRESHOLD is unusual and worth flagging
+    // (could be a deeply nested archive, a recursive zip, or a misconfigured scanner). We don't
+    // truncate the list — silently dropping inner findings would hide real CVEs and make the
+    // gap impossible to debug from logs alone — but we want ops to see the count so they can
+    // correlate with downstream timing/memory pressure.
+    if (componentInfos.size() > HIGH_COMPONENT_COUNT_THRESHOLD) {
+      log.warn("Archive scan job id={} unpacked into {} components (threshold={}). Processing all but "
+          + "this is unusual; investigate if it correlates with degraded eval performance.",
+          job.getId(), componentInfos.size(), HIGH_COMPONENT_COUNT_THRESHOLD);
+    }
 
     String stage = job.getPolicyEvaluationStage() != null
         ? job.getPolicyEvaluationStage()
         : ComplianceStageType.ID;
 
-    // Get or create a synthetic application for this component so HDS generates full report files
-    com.sonatype.insight.brain.model.Application application = componentInfo != null
-        ? applicationForHostedComponentService.getOrCreateApplication(repositoryId, componentInfo.pathname())
-        : null;
+    if (componentInfos.isEmpty()) {
+      // No usable <dir> in the scan file. Still upload via the repository pipeline so HDS has the
+      // raw scan record (matches today's behaviour for non-archive scans that fail to parse), then
+      // bail — no application, no evaluation, no report.
+      ScanReceipt scanReceipt = scanUploaderProvider.get()
+          .uploadForRepository(scanEntity, repositoryId, stage, null, true);
+      log.warn("Could not extract any component info from scan file for job id={}; uploaded via repository pipeline"
+          + " (scanId={}) and skipping policy evaluation.",
+          job.getId(), scanReceipt.getScanId());
+      return;
+    }
+
+    ScanComponentInfo outerComponentInfo = componentInfos.get(0);
+
+    // Get or create the synthetic application keyed on the OUTER pathname only — one app per
+    // uploaded artifact, matching today's UX (the Components page lists the artifact once).
+    com.sonatype.insight.brain.model.Application application =
+        applicationForHostedComponentService.getOrCreateApplication(repositoryId, outerComponentInfo.pathname());
 
     ScanReceipt scanReceipt;
     if (application != null) {
       scanReceipt = scanUploaderProvider.get().upload(scanEntity, application, stage, null, null, true);
-      log.debug("Uploaded scan via application pipeline, job id={}, scanId={}, appPublicId={}",
-          job.getId(), scanReceipt.getScanId(), application.getPublicId());
+      log.debug("Uploaded scan via application pipeline, job id={}, scanId={}, appPublicId={}, pathname={}",
+          job.getId(), scanReceipt.getScanId(), application.getPublicId(), outerComponentInfo.pathname());
     }
     else {
       scanReceipt = scanUploaderProvider.get().uploadForRepository(scanEntity, repositoryId, stage, null, true);
-      log.debug("Uploaded scan via repository pipeline, job id={}, scanId={}", job.getId(), scanReceipt.getScanId());
+      // WARN, not DEBUG — getOrCreateApplication should always succeed in normal operation. A
+      // null return means the synthetic-application creation failed (org missing, permission
+      // issue, race during cleanup), and the scan falls back to the repository pipeline which
+      // generates a different report shape downstream. Ops needs to see this in production logs
+      // to correlate with missing per-component reports in the UI.
+      log.warn("No synthetic application for hosted scan, job id={}, scanId={}, pathname={}; "
+          + "falling back to repository upload pipeline (per-component report links will be unavailable).",
+          job.getId(), scanReceipt.getScanId(), outerComponentInfo.pathname());
     }
 
-    if (componentInfo == null) {
-      log.warn("Could not extract component info from scan file for job id={}, skipping policy evaluation",
-          job.getId());
-      return;
+    // Evaluate ALL components (outer + every inner) in a single request. The evaluator persists
+    // one repository_component row + one batch of repository_policy_violation rows per request
+    // entry. We delete the inner repository_component rows immediately afterwards (see below) so
+    // the Components page only ever shows the outer artifact.
+    evaluatePolicies(job, repositoryId, componentInfos, stage);
+
+    stampStage(repositoryId, outerComponentInfo.pathname(), stage.toLowerCase());
+
+    if (componentInfos.size() > 1) {
+      deleteInnerRepositoryComponentRows(repositoryId, componentInfos);
+      log.info("Processed archive-of-archives scan for job id={}: outer pathname={} retained, {} inner rows deleted",
+          job.getId(), outerComponentInfo.pathname(), componentInfos.size() - 1);
     }
-    evaluatePolicies(job, componentInfo, stage);
-    stampStage(repositoryId, componentInfo.pathname(), stage.toLowerCase());
-    persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
+
+    persistApplicationLinkedReportFiles(
+        repositoryId, scanEntity, outerComponentInfo, application, scanReceipt, stage);
   }
 
   /**
@@ -285,6 +343,15 @@ public class HostedComponentScanQueueConsumer
    * <p>
    * Failures here are logged but not rethrown — the enforcement verdict has already been returned
    * to NXRM and must not be invalidated by an audit-only persistence hiccup.
+   * <p>
+   * <b>Archive-of-archives fan-out scope (CLM-40943):</b> this sync allow path takes a single
+   * {@link ScanComponentInfo} (the outer artifact) and does NOT walk inner archive entries. So
+   * for a {@code .zip} containing inner {@code .jar}s uploaded through the sync enforcement
+   * path, only the outer artifact is evaluated synchronously; inner-jar findings surface on the
+   * next async monitoring cycle (which DOES fan out — see {@link #executeJob}). Sync-side
+   * fan-out is intentionally deferred per the original CLM-40943 design (synchronous
+   * enforcement keeps a single allow/block verdict on the outer binary's hash); a follow-up
+   * ticket would be needed to make sync evaluation symmetric with the async path.
    */
   public void persistApplicationForSyncAllowPath(
       final String repositoryId,
@@ -352,11 +419,16 @@ public class HostedComponentScanQueueConsumer
       // (number of internal components found inside the artifact). Overriding it with
       // our generated version (hardcoded to 1) would mask the true component count.
       RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
-      List<RepositoryPolicyViolation> violations =
-          comp != null && comp.getPathname() != null
-              ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(
-                  comp.getRepositoryId(), comp.getPathname())
-              : List.of();
+      // For an archive-of-archives upload the evaluator persisted N policy_violation rows: one
+      // batch keyed on the outer pathname (outer.zip) plus one batch per inner pathname
+      // (outer.zip!/inner.jar). The Components page only shows the outer row, so the synthesised
+      // policythreats.json that backs the outer's report must include violations from BOTH the
+      // outer pathname AND any inner pathname under it.
+      List<RepositoryPolicyViolation> violations = List.of();
+      if (comp != null && comp.getPathname() != null) {
+        violations = repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+            comp.getRepositoryId(), comp.getPathname());
+      }
       for (String fileName : List.of("policythreats.json")) {
         byte[] content = HostedReportFileBuilder.build(fileName, comp, violations);
         applicationReportPersistenceService.saveReportFile(application.getId(), scanId, fileName,
@@ -448,47 +520,103 @@ public class HostedComponentScanQueueConsumer
 
   private void evaluatePolicies(
       final HostedComponentScanQueue job,
-      final ScanComponentInfo componentInfo,
+      final String repositoryId,
+      final List<ScanComponentInfo> componentInfos,
       final String stageTypeId)
   {
-    Repository repository = repositoryDAO.getById(job.getRepositoryId());
+    Repository repository = repositoryDAO.getById(repositoryId);
     if (repository == null) {
       throw new IllegalStateException(
-          "Repository not found for policy evaluation: repositoryId=" + job.getRepositoryId()
+          "Repository not found for policy evaluation: repositoryId=" + repositoryId
               + ", job id=" + job.getId());
     }
 
     RepositoryComponentEvaluationDataRequestList request =
         new RepositoryComponentEvaluationDataRequestList("INITIAL_SCAN");
-    request.components.add(new RepositoryComponentEvaluationDataRequest(
-        componentInfo.format() != null ? componentInfo.format() : repository.getFormat(),
-        componentInfo.pathname(),
-        componentInfo.hash()));
+    for (ScanComponentInfo info : componentInfos) {
+      request.components.add(new RepositoryComponentEvaluationDataRequest(
+          info.format() != null ? info.format() : repository.getFormat(),
+          info.pathname(),
+          info.hash()));
+    }
 
     repositoryPolicyEvaluatorProvider.get()
         .evaluate(repository, request, false /* withQuarantine */, null, stageTypeId);
-    log.debug("Policy evaluation completed for job id={}, pathname={}", job.getId(), componentInfo.pathname());
+    log.debug("Policy evaluation completed for job id={}, components={} (outer + {} inner)",
+        job.getId(), componentInfos.size(),
+        Math.max(0, componentInfos.size() - 1));
 
-    if (job.getComponentId() != null) {
-      stampNxrmComponentId(job.getRepositoryId(), componentInfo.pathname(), job.getComponentId());
+    // Stamp NXRM componentId on the outer pathname AND on every inner-pathname violation row
+    // (outer.zip!/inner.jar) the evaluator just persisted. The Components page is keyed on the
+    // outer (we delete the inner repository_component rows next), but downstream code that
+    // joins on repository_policy_violation.component_id — waivers-by-component, quarantine-by-
+    // component — needs the column populated on the inner rows too. Skipping this would create
+    // a silent gap where component-keyed waivers don't match inner-artifact violations.
+    if (job.getComponentId() != null && !componentInfos.isEmpty()) {
+      ScanComponentInfo outer = componentInfos.get(0);
+      stampNxrmComponentIdOnOuterAndInnerPathnames(repositoryId, outer.pathname(), job.getComponentId());
     }
   }
 
-  private void stampNxrmComponentId(
+  /**
+   * Removes the {@code repository_component} rows the evaluator created for inner artifact
+   * pathnames (those containing the {@code !/} separator). The inner-pathname
+   * {@code repository_policy_violation} rows are intentionally left in place — they feed the
+   * outer artifact's synthesised {@code policythreats.json} so drilling into the outer report
+   * surfaces every inner finding.
+   */
+  private void deleteInnerRepositoryComponentRows(
       final String repositoryId,
-      final String pathname,
+      final List<ScanComponentInfo> componentInfos)
+  {
+    if (componentInfos.size() <= 1) {
+      return;
+    }
+    // Collect inner-pathname list once; the DAO batches into IN-clause chunks internally so an
+    // archive with N inner artifacts costs ⌈N/threshold⌉ DELETEs, not 2N (the old SELECT+DELETE
+    // per inner). Cascades to quarantined_component_access via the same IN clause.
+    List<String> innerPathnames = new java.util.ArrayList<>(componentInfos.size() - 1);
+    for (int i = 1; i < componentInfos.size(); i++) {
+      innerPathnames.add(componentInfos.get(i).pathname());
+    }
+    try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      repositoryComponentDAO.deleteByRepositoryIdAndPathnames(tx, repositoryId, innerPathnames);
+      tx.commit();
+    }
+    catch (Exception e) {
+      // Don't fail the job — at worst the Components page shows extra inner-pathname rows the
+      // user can ignore. The outer row + report are unaffected.
+      log.warn("Failed to delete inner repository_component rows for repositoryId={}: {}",
+          repositoryId, e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Stamps {@code component_id} on the outer artifact's {@code repository_component} row AND on
+   * every active violation row whose pathname is either the outer pathname OR an inner-pathname
+   * under it ({@code outer.zip!/inner.jar}). The {@code repository_component} side is intentionally
+   * outer-only because the inner repository_component rows are deleted in
+   * {@link #deleteInnerRepositoryComponentRows}; the violation side covers both so future
+   * component-id-keyed code paths (waivers, quarantine) match inner-artifact findings too.
+   */
+  private void stampNxrmComponentIdOnOuterAndInnerPathnames(
+      final String repositoryId,
+      final String outerPathname,
       final String componentId)
   {
     try (TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
       tx.begin();
-      repositoryComponentDAO.stampComponentId(tx, repositoryId, pathname, componentId);
-      repositoryPolicyViolationDAO.stampComponentId(tx, repositoryId, pathname, componentId);
+      repositoryComponentDAO.stampComponentId(tx, repositoryId, outerPathname, componentId);
+      repositoryPolicyViolationDAO.stampComponentIdOnPathnameOrInnerPathnames(
+          tx, repositoryId, outerPathname, componentId);
       tx.commit();
-      log.debug("Stamped component_id={} on repository_component and repository_policy_violation for pathname={}",
-          componentId, pathname);
+      log.debug("Stamped component_id={} on repository_component (outer) and "
+          + "repository_policy_violation (outer + inner pathnames) for pathname={}",
+          componentId, outerPathname);
     }
     catch (Exception e) {
-      log.warn("Failed to stamp component_id for pathname={}: {}", pathname, e.getMessage(), e);
+      log.warn("Failed to stamp component_id for pathname={}: {}", outerPathname, e.getMessage(), e);
     }
   }
 

@@ -340,6 +340,118 @@ public class RepositoryComponentDAOTest
     assertThat(quarantinedComponentAccessDAO.getAll()).isEmpty();
   }
 
+  // ---- deleteByRepositoryIdAndPathnames (CLM-40943 archive-of-archives fan-out) ----
+
+  @Test
+  public void testDeleteByRepositoryIdAndPathnames_deletesMatchingPathnamesOnly() {
+    String outerPath = "outer.zip";
+    String innerA = outerPath + "!/a.jar";
+    String innerB = outerPath + "!/b.jar";
+    String unrelated = "other/unrelated.jar";
+    tempEntity.newRepositoryComponent(repository.getId(), outerPath);
+    tempEntity.newRepositoryComponent(repository.getId(), innerA);
+    tempEntity.newRepositoryComponent(repository.getId(), innerB);
+    tempEntity.newRepositoryComponent(repository.getId(), unrelated);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), Arrays.asList(innerA, innerB));
+      tx.commit();
+    }
+
+    List<RepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
+    assertThat(remaining).extracting(RepositoryComponent::getPathname)
+        .containsExactlyInAnyOrder(outerPath, unrelated);
+  }
+
+  @Test
+  public void testDeleteByRepositoryIdAndPathnames_cascadesQuarantinedComponentAccess() {
+    // A row that has a quarantined_component_access entry must still be deleted, and the
+    // matching access row must be cleaned up first via the cascade. Without the explicit
+    // pre-delete on the access table, the FK from quarantined_component_access ->
+    // repository_component would block the parent delete.
+    String outerPath = "outer.zip";
+    String inner = outerPath + "!/lib.jar";
+    tempEntity.newRepositoryComponent(repository.getId(), outerPath);
+    RepositoryComponent innerRow = tempEntity.newRepositoryComponent(repository.getId(), inner);
+    tempEntity.newQuarantinedComponentAccess(innerRow.getRepositoryId(), innerRow.getId());
+    assertThat(quarantinedComponentAccessDAO.getAll()).hasSize(1);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), Collections.singletonList(inner));
+      tx.commit();
+    }
+
+    assertThat(dao.getByRepositoryIdAndPathname(repository.getId(), inner)).isNull();
+    assertThat(dao.getByRepositoryIdAndPathname(repository.getId(), outerPath)).isNotNull();
+    assertThat(quarantinedComponentAccessDAO.getAll()).as("access row cleaned up by cascade").isEmpty();
+  }
+
+  @Test
+  public void testDeleteByRepositoryIdAndPathnames_deletesAcrossInClauseChunkBoundaries() {
+    // The DAO partitions the pathname list into IN-clause chunks of size getInOperatorThreshold().
+    // Build a list large enough to span at least two chunks so we exercise the loop, not just a
+    // single bulk DELETE. Using threshold + a small overflow keeps the test fast while still
+    // crossing the chunk boundary.
+    int threshold = dao.getInOperatorThreshold();
+    int totalRows = threshold + 5;
+    List<String> innerPathnames = new java.util.ArrayList<>(totalRows);
+    for (int i = 0; i < totalRows; i++) {
+      String p = "outer.zip!/lib-" + i + ".jar";
+      innerPathnames.add(p);
+      tempEntity.newRepositoryComponent(repository.getId(), p);
+    }
+    String survivor = "outer.zip!/keeper.jar";
+    tempEntity.newRepositoryComponent(repository.getId(), survivor);
+    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(totalRows + 1);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), innerPathnames);
+      tx.commit();
+    }
+
+    List<RepositoryComponent> remaining = dao.getByRepositoryId(repository.getId());
+    assertThat(remaining).extracting(RepositoryComponent::getPathname).containsExactly(survivor);
+  }
+
+  @Test
+  public void testDeleteByRepositoryIdAndPathnames_isolatesPerRepository() {
+    // Same pathname under a sibling repo must NOT be deleted — the WHERE clause keys on
+    // (repository_id, pathname) and the IN-clause is correctly bounded by the repository_id
+    // predicate, not the pathname alone.
+    String shared = "outer.zip!/lib.jar";
+    tempEntity.newRepositoryComponent(repository.getId(), shared);
+    tempEntity.newRepositoryComponent(repositoryTwo.getId(), shared);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), Collections.singletonList(shared));
+      tx.commit();
+    }
+
+    assertThat(dao.getByRepositoryIdAndPathname(repository.getId(), shared)).isNull();
+    assertThat(dao.getByRepositoryIdAndPathname(repositoryTwo.getId(), shared))
+        .as("sibling repo's row must survive")
+        .isNotNull();
+  }
+
+  @Test
+  public void testDeleteByRepositoryIdAndPathnames_emptyOrNullInputs_noOp() {
+    tempEntity.newRepositoryComponent(repository.getId(), "outer.zip");
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), Collections.emptyList());
+      dao.deleteByRepositoryIdAndPathnames(tx, repository.getId(), null);
+      dao.deleteByRepositoryIdAndPathnames(tx, null, Collections.singletonList("outer.zip"));
+      tx.commit();
+    }
+
+    assertThat(dao.getByRepositoryId(repository.getId())).hasSize(1);
+  }
+
   @Test
   public void testGetQuarantinedByRepositoryIdAndDate() {
     Repository repository = tempEntity.newRepository();

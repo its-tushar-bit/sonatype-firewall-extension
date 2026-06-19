@@ -220,7 +220,8 @@ function BackButton() {
       repositoryId: hostedRepositoryId,
       repositoryPublicId,
     });
-    return <MenuBarBackButton href={backHref} text="Back to Repository Components" />;
+    const backText = repositoryPublicId ? `Back to ${repositoryPublicId}` : 'Back to Repository Components';
+    return <MenuBarBackButton href={backHref} text={backText} />;
   }
 
   if (isPrioritiesPageContainer) {

@@ -171,7 +171,8 @@ describe('RepositoryComponentsList', () => {
       'scan-abc123',
       'local-nexus',
       'repo-uuid-123',
-      'maven-hosted'
+      'maven-hosted',
+      'log4j-core : 2.14.1'
     );
   });
 

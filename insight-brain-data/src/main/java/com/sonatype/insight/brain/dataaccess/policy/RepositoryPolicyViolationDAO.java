@@ -118,6 +118,35 @@ public class RepositoryPolicyViolationDAO
         .collect(java.util.stream.Collectors.toList());
   }
 
+  /**
+   * Returns active violations whose pathname is either {@code outerPathname} itself, OR an inner
+   * pathname of the form {@code outerPathname + "!/" + ...}. Used by the hosted-repo consumer to
+   * synthesise a {@code policythreats.json} for an archive-of-archives upload — the outer
+   * artifact has its own violations, plus the evaluator stamps each inner artifact's pathname as
+   * {@code outer.zip!/inner.jar}; this method gathers both batches in one query.
+   */
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+      String repositoryId,
+      String outerPathname)
+  {
+    if (repositoryId == null || outerPathname == null) {
+      return List.of();
+    }
+    String innerPrefix = outerPathname + "!/";
+    String escapedPrefix = innerPrefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    try (TransactionContext tx = createTransactionContext()) {
+      return tx.dsl()
+          .selectFrom(REPOSITORY_POLICY_VIOLATION)
+          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+          .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
+              .or(REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
+          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+          .orderBy(REPOSITORY_POLICY_VIOLATION.PATHNAME, REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
+              REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+          .fetch(this::toEntity);
+    }
+  }
+
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       TransactionContext tx,
       String repositoryId,
@@ -195,6 +224,13 @@ public class RepositoryPolicyViolationDAO
   }
 
   public PolicyViolationSummary getPolicyViolationSummary(final String repositoryId) {
+    // CLM-40943: exclude inner-pathname rows (`outer.zip!/inner.jar`) from the per-repo
+    // summary. The hosted-repo archive-of-archives fan-out persists per-inner-jar violations
+    // against synthetic inner pathnames so the outer's report can roll them up, but the
+    // Repository Manager list shows ONE row per uploaded artifact (the outer). Without this
+    // filter the summary would count the outer plus every inner separately — e.g. a single
+    // archive with 3 violating inner jars would inflate the critical-count by 3 against a
+    // single Components-page row.
     String sQuery =
         " SELECT COUNT(CASE WHEN max_threat_level >= 8 THEN 1 END)                              AS criticalCount," +
             "        COUNT(CASE WHEN max_threat_level >= 4 AND max_threat_level < 8 THEN 1 END) AS severeCount," +
@@ -204,6 +240,7 @@ public class RepositoryPolicyViolationDAO
             "       WHERE repository_id=?" +
             "         AND active=true" +
             "         AND waived=false" +
+            "         AND pathname NOT LIKE '%!/%'" +
             "       GROUP BY pathname) AS subquery";
 
     try (TransactionContext tx = createTransactionContext()) {
@@ -283,6 +320,46 @@ public class RepositoryPolicyViolationDAO
         .set(REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
         .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  /**
+   * Stamps {@code component_id} on every active violation row whose pathname is either
+   * {@code outerPathname} itself OR an inner-pathname under it ({@code outerPathname + "!/..."}).
+   * Used by the hosted-repo archive-of-archives flow so a single NXRM componentId reaches BOTH
+   * the outer artifact's violations AND the synthesized inner-pathname violations the evaluator
+   * persists during fan-out. Without this, future code that joins on
+   * {@code repository_policy_violation.component_id} (waiver-by-component, quarantine-by-component)
+   * would silently miss inner findings.
+   * <p>
+   * The LIKE side of the predicate is escaped the same way as
+   * {@link #getActiveByRepositoryIdAndPathnameOrInnerPathnames} so a real outer pathname
+   * containing {@code %} or {@code _} doesn't turn the prefix into a wildcard.
+   */
+  public void stampComponentIdOnPathnameOrInnerPathnames(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String outerPathname,
+      final String componentId)
+  {
+    if (repositoryId == null || outerPathname == null) {
+      return;
+    }
+    String innerPrefix = outerPathname + "!/";
+    String escapedPrefix = innerPrefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    // Limit the UPDATE to active rows only — symmetric with
+    // getActiveByRepositoryIdAndPathnameOrInnerPathnames so the rows the SELECT can read are
+    // exactly the rows this UPDATE writes. Stamping deactivated historical violation rows
+    // would be harmless today (no current code path reads component_id on inactive rows), but
+    // the asymmetry could mislead a future reader into thinking the filter on the SELECT side
+    // wasn't required.
+    tx.dsl()
+        .update(REPOSITORY_POLICY_VIOLATION)
+        .set(REPOSITORY_POLICY_VIOLATION.COMPONENT_ID, componentId)
+        .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_POLICY_VIOLATION.PATHNAME.eq(outerPathname)
+            .or(REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\')))
+        .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
         .execute();
   }
 

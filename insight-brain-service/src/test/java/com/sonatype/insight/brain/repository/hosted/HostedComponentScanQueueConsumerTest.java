@@ -68,6 +68,9 @@ public class HostedComponentScanQueueConsumerTest
   @Inject
   private RepositoryComponentDAO repositoryComponentDAO;
 
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
   @Before
   public void setUpTest() {
     consumer.disableForTesting = true;
@@ -561,15 +564,26 @@ public class HostedComponentScanQueueConsumerTest
   // ---- Helpers -------------------------------------------------------------
 
   private void mockPolicyEvaluatorHdsResponse(final String hash) {
+    mockPolicyEvaluatorHdsResponseForHashes(hash);
+  }
+
+  /**
+   * Mocks the HDS component-details response with one entry per supplied hash, in order. The
+   * evaluator validates that the response's index/length match the request's, so when the
+   * consumer sends N components in one request the mock must return N entries.
+   */
+  private void mockPolicyEvaluatorHdsResponseForHashes(final String... hashes) {
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
     hdsResult.components = new ArrayList<>();
-    ComponentEvaluationData ced = new ComponentEvaluationData();
-    ced.requestIndex = 0;
-    ced.hash = hash;
-    ced.matchState = MatchState.EXACT.getId();
-    ced.declaredLicenses = new HashSet<>();
-    ced.observedLicenses = new HashSet<>();
-    hdsResult.components.add(ced);
+    for (int i = 0; i < hashes.length; i++) {
+      ComponentEvaluationData ced = new ComponentEvaluationData();
+      ced.requestIndex = i;
+      ced.hash = hashes[i];
+      ced.matchState = MatchState.EXACT.getId();
+      ced.declaredLicenses = new HashSet<>();
+      ced.observedLicenses = new HashSet<>();
+      hdsResult.components.add(ced);
+    }
     hdsMockServer.respondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
   }
 
@@ -682,5 +696,150 @@ public class HostedComponentScanQueueConsumerTest
     job.setPolicyEvaluationStage(policyEvaluationStage);
     queueDAO.insert(job);
     return job;
+  }
+
+  /**
+   * Inserts a job whose scan.xml contains multiple {@code
+   *
+  <dir>
+   * } elements — simulating an
+   * archive-of-archives upload (e.g. a {@code .zip} that the insight-scanner unpacked into N inner
+   * artifacts). Used by the archive-fan-out test below to verify the consumer creates one
+   * {@code repository_component} row per inner artifact.
+   */
+  private HostedComponentScanQueue insertPendingJobWithMultiComponentScanXml(
+      final String repoName,
+      final String componentId,
+      final String outerPathname,
+      final String outerSha1,
+      final String[] innerPathnames,
+      final String[] innerSha1s,
+      final String format) throws Exception
+  {
+    Repository repo = tempEntity.newRepository(repoName);
+    tempEntity.newRepositoryComponent(repo.getId());
+
+    StringBuilder dirs = new StringBuilder();
+    dirs.append("<dir path=\"")
+        .append(outerPathname)
+        .append("\" sha1=\"")
+        .append(outerSha1)
+        .append("\" sha512=\"ignored\">\n</dir>\n");
+    for (int i = 0; i < innerPathnames.length; i++) {
+      dirs.append("<dir path=\"")
+          .append(innerPathnames[i])
+          .append("\" sha1=\"")
+          .append(innerSha1s[i])
+          .append("\" sha512=\"ignored\">\n</dir>\n");
+    }
+
+    String scanXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<scan version=\"2.24\">\n" +
+        "<repository id=\"" + repo.getId() + "\" name=\"" + repoName + "\" format=\"" + format + "\"/>\n" +
+        dirs +
+        "</scan>";
+
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(repo.getId());
+    try (OutputStream out = scanEntity.getOutputStream()) {
+      out.write(scanXml.getBytes(StandardCharsets.UTF_8));
+    }
+
+    HostedComponentScanQueue job = new HostedComponentScanQueue(
+        componentId, scanEntity.getName(),
+        HostedComponentScanQueueDAO.Status.PENDING.name(),
+        HostedComponentScanQueue.DEFAULT_PRIORITY,
+        repo.getId());
+    queueDAO.insert(job);
+    return job;
+  }
+
+  // ---- Archive-of-archives fan-out (CLM-40943) ----
+
+  @Test
+  public void executeJob_archiveOfArchivesScan_keepsOneOuterRowAndDeletesInnerRows() throws Exception {
+    // Archive-of-archives upload (a .zip the scanner unpacked into two inner .jar files): the
+    // Components page should still show just ONE row — the outer .zip (mirroring today's UX where
+    // every uploaded artifact is one row). The inner-pathname rows that the policy evaluator
+    // creates as it walks the multi-component request are deleted post-evaluation; the inner
+    // pathname violations stay in repository_policy_violation so the outer's report can roll
+    // them up via HostedReportFileBuilder.
+    String outerPath = "com/example/bundle/1.0/bundle-1.0.zip";
+    String outerHash = "outer_zip_hash_001a";
+    String[] innerPaths = {
+      "log4j-core-2.14.1.jar",
+      "commons-cli-1.9.0.jar"
+    };
+    String[] innerHashes = {
+      "inner_log4j_hash_01",
+      "inner_cli_hash_001a"
+    };
+
+    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
+        "repo-archive-fanout", "comp-archive-1",
+        outerPath, outerHash, innerPaths, innerHashes, "maven2");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-archive-1");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    // The consumer now sends ALL components (outer + inners) in one evaluation request, so the
+    // HDS mock must return one entry per request component.
+    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0], innerHashes[1]);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    // The outer artifact survives — keyed on the literal .zip path.
+    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath);
+    assertThat(outerRow).as("outer .zip row").isNotNull();
+
+    // The inner-pathname rows are deleted post-evaluation so the Components page only shows the
+    // outer artifact (one row per uploaded file).
+    RepositoryComponent innerLog4j = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]);
+    assertThat(innerLog4j).as("inner log4j row should have been deleted").isNull();
+
+    RepositoryComponent innerCli = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]);
+    assertThat(innerCli).as("inner commons-cli row should have been deleted").isNull();
+  }
+
+  /**
+   * Companion test for {@link #executeJob_archiveOfArchivesScan_keepsOneOuterRowAndDeletesInnerRows}:
+   * verifies the OTHER half of the fan-out invariant — that inner-pathname
+   * {@code repository_policy_violation} rows survive even when the matching
+   * {@code repository_component} row is deleted, AND that the new DAO method
+   * {@code getActiveByRepositoryIdAndPathnameOrInnerPathnames} returns them all under the outer's
+   * pathname. This is what {@code ReportService.saveOverlayFiles} relies on to roll inner
+   * violations into the outer's synthesised {@code policythreats.json}.
+   * <p>
+   * The real evaluator only persists violations when policies match, but this test exercises the
+   * persistence-layer contract directly: seed inner-pathname violation rows, delete inner
+   * repository_component rows the way the consumer would, then assert the DAO surfaces them.
+   * No HDS / queue / Drools required — the same code path the production saveOverlayFiles
+   * recovery hits is hit here.
+   */
+  @Test
+  public void rolledUpViolationsByOuterPathname_returnsBothOuterAndInnerPathnameViolations() throws Exception {
+    Repository repo = tempEntity.newRepository("repo-rollup");
+    String outerPath = "com/example/bundle/1.0/bundle-1.0.zip";
+    String innerLog4j = outerPath + "!/log4j-core-2.14.1.jar";
+    String innerCli = outerPath + "!/commons-cli-1.9.0.jar";
+
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 2, outerPath, null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, innerLog4j, false, "p-cve", "Security-Critical", null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, innerCli, false, "p-arch", "Architecture-Quality", null);
+
+    java.util.List<com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation> rolledUp =
+        repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repo.getId(), outerPath);
+
+    assertThat(rolledUp)
+        .as("rolled-up query returns the outer pathname's violations and every inner-pathname violation")
+        .extracting(com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outerPath, innerLog4j, innerCli);
   }
 }

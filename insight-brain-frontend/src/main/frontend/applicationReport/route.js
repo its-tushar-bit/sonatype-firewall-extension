@@ -21,7 +21,7 @@ import DependencyTreePage from 'MainRoot/DependencyTree/DependencyTreePage';
 router.stateRegistry.register({
   name: 'applicationReport',
   url:
-    '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId&origin&repositoryManagerId&repositoryId&repositoryPublicId',
+    '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId&origin&repositoryManagerId&repositoryId&repositoryPublicId&componentDisplayName',
   abstract: true,
   component: ApplicationReportRoot,
   params: {

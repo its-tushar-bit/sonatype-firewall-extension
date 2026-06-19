@@ -178,7 +178,8 @@ export default function RepositoryComponentsList() {
                                         component.scanId,
                                         repositoryManagerId,
                                         repositoryId,
-                                        repositoryPublicId
+                                        repositoryPublicId,
+                                        component.displayName
                                       )
                                     );
                                   }}

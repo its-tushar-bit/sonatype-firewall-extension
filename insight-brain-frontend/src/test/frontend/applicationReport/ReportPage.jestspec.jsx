@@ -146,6 +146,30 @@ describe('Report Page component', () => {
     expect(backToFirewallDashboard).toBeVisible();
   });
 
+  it('renders "Back to {repositoryPublicId}" when navigated from hostedRepoComponents', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    router.currentParams.origin = 'hostedRepoComponents';
+    router.currentParams.repositoryPublicId = 'maven-hosted';
+    router.currentParams.repositoryManagerId = 'rm-id';
+    router.currentParams.repositoryId = 'repo-id';
+
+    renderComponent();
+
+    expect(screen.getByRole('link', { name: 'Back to maven-hosted' })).toBeVisible();
+  });
+
+  it('falls back to "Back to Repository Components" when hostedRepoComponents origin lacks repositoryPublicId', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    router.currentParams.origin = 'hostedRepoComponents';
+    router.currentParams.repositoryPublicId = undefined;
+    router.currentParams.repositoryManagerId = 'rm-id';
+    router.currentParams.repositoryId = 'repo-id';
+
+    renderComponent();
+
+    expect(screen.getByRole('link', { name: 'Back to Repository Components' })).toBeVisible();
+  });
+
   it('prefers origin param over previous-state firewall detection for container reports', () => {
     selectDisplayedComponentListSpy.mockReturnValue([]);
     router.currentParams.origin = FIREWALL_CONTAINER_REPOSITORY_RESULTS;

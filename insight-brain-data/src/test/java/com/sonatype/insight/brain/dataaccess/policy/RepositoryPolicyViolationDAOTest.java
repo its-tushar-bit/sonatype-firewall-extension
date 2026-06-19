@@ -168,6 +168,259 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(violations.get(i).getThreatLevel()).isEqualTo(1);
   }
 
+  // ---- getActiveByRepositoryIdAndPathnameOrInnerPathnames (CLM-40943 archive-of-archives fan-out) ----
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_returnsBothOuterAndInnerViolations() {
+    String outer = "archive/archive/3/archive-3.zip";
+    String innerLog4j = outer + "!/log4j-core-2.14.1.jar";
+    String innerCli = outer + "!/commons-cli-1.9.0.jar";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, innerLog4j, false, "p-log4j", "Security-Critical",
+        null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, innerCli, false, "p-cli", "Architecture-Quality",
+        null);
+
+    List<RepositoryPolicyViolation> all =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    assertThat(all).hasSize(3);
+    assertThat(all).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer, innerLog4j, innerCli);
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_excludesUnrelatedPathnames() {
+    String outer = "a/a/1/a-1.zip";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer + "!/inner.jar", null);
+    // Different outer that happens to start with the same letters — must NOT match.
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "a/a/1/a-1-other.zip!/x.jar", null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_excludesViolationsForOtherRepositories() {
+    // Confirms the repositoryId predicate is honored — a same-shape pathname under a different
+    // repository must not leak through. (active=false is documented as deprecated/cleanup-only,
+    // see RepositoryPolicyViolation.active javadoc, so a per-repository test gives broader
+    // coverage of the WHERE clause without depending on a setter that no longer exists.)
+    String outer = "x/x/1/x-1.zip";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+    Repository otherRepo = tempEntity.newRepository(repositoryManager);
+    tempEntity.newRepositoryPolicyViolation(otherRepo.getId(), 5, outer + "!/inner.jar", null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getPathname()).isEqualTo(outer);
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_pathnameWithPercentLiteral_escapedCorrectly() {
+    // The DAO escapes %, _ and \ in the LIKE prefix so that a real outer pathname containing
+    // these characters does not turn into a wildcard. Without escaping, "outer%/" would match
+    // any string starting with "outer" plus any prefix — including the unrelated "outerX!/y.jar".
+    String outer = "weird%pct/file.zip";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
+    // This row would match a naive (un-escaped) LIKE 'weird%pct/file.zip!/%' because the literal
+    // '%' is wildcarded — it only matches when escaping is correct.
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "weirdABCpct/file.zip!/x.jar", null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_pathnameWithUnderscoreLiteral_escapedCorrectly() {
+    String outer = "lib_under/file.zip";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
+    // Without escaping, '_' would match any single character so 'libXunder/file.zip!/x.jar'
+    // would also be returned.
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "libXunder/file.zip!/x.jar", null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer, outer + "!/inner.jar");
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_nullRepositoryId_returnsEmpty() {
+    assertThat(dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(null, "x")).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_nullPathname_returnsEmpty() {
+    assertThat(dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), null)).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnameOrInnerPathnames_orderedByPathnameThenThreatLevel() {
+    String outer = "ord/ord/1/ord-1.zip";
+    String innerA = outer + "!/a.jar";
+    String innerB = outer + "!/b.jar";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, innerA, false, "p-A-hi", "Security-High", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, innerA, false, "p-A-lo", "Security-Low", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, innerB, false, "p-B-hi", "Security-Med", null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnameOrInnerPathnames(repository.getId(), outer);
+
+    // Ordering: pathname asc, then threatLevel desc, then policyId asc — matches the DAO's
+    // .orderBy clause. Lexicographically the outer pathname sorts first because it's a prefix of
+    // every inner (a shorter string is less than any longer one starting with it under standard
+    // SQL collation, regardless of whether '!' or '/' compares first as a glyph). Then the two
+    // innerA rows in threat-desc order, then innerB.
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactly(
+            outer, innerA, innerA, innerB);
+    // Outer's only violation has threat=5; first innerA row has threat=9 (desc), then threat=3.
+    assertThat(result.get(0).getThreatLevel()).isEqualTo(5);
+    assertThat(result.get(1).getThreatLevel()).isEqualTo(9);
+    assertThat(result.get(2).getThreatLevel()).isEqualTo(3);
+    assertThat(result.get(3).getThreatLevel()).isEqualTo(7);
+  }
+
+  // ---- stampComponentIdOnPathnameOrInnerPathnames (CLM-40943) ----
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_stampsOuterAndAllInners() {
+    String outer = "archive/archive/3/archive-3.zip";
+    String innerLog4j = outer + "!/log4j-core-2.14.1.jar";
+    String innerCli = outer + "!/commons-cli-1.9.0.jar";
+    RepositoryPolicyViolation outerV =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, outer, null);
+    RepositoryPolicyViolation log4jV =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, innerLog4j, null);
+    RepositoryPolicyViolation cliV =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, innerCli, null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), outer, "nxrm-comp-1");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(outerV.getId()).getComponentId()).isEqualTo("nxrm-comp-1");
+    assertThat(dao.getById(log4jV.getId()).getComponentId()).isEqualTo("nxrm-comp-1");
+    assertThat(dao.getById(cliV.getId()).getComponentId()).isEqualTo("nxrm-comp-1");
+  }
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_doesNotStampUnrelatedPathnames() {
+    String outer = "a/a/1/a-1.zip";
+    String unrelatedSibling = "a/a/1/a-1-other.zip!/x.jar"; // shares prefix but is not inside outer
+    RepositoryPolicyViolation in =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer + "!/inner.jar", null);
+    RepositoryPolicyViolation siblingV =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, unrelatedSibling, null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), outer, "comp-X");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(in.getId()).getComponentId()).isEqualTo("comp-X");
+    assertThat(dao.getById(siblingV.getId()).getComponentId()).as("unrelated sibling not stamped").isNull();
+  }
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_pathnameWithUnderscoreLiteral_escapedCorrectly() {
+    // The UPDATE's LIKE-escape mirrors getActiveByRepositoryIdAndPathnameOrInnerPathnames's. If
+    // the underscore wildcard ever leaks back into this path, an outer pathname like
+    // "lib_under/file.zip" would erroneously stamp the same component_id onto rows under
+    // "libXunder/file.zip!/...". Pin the contract.
+    String outer = "lib_under/file.zip";
+    RepositoryPolicyViolation legitInner =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
+    RepositoryPolicyViolation maliciousMatch =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "libXunder/file.zip!/x.jar", null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), outer, "comp-U");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(legitInner.getId()).getComponentId()).isEqualTo("comp-U");
+    assertThat(dao.getById(maliciousMatch.getId()).getComponentId())
+        .as("escape must prevent _ from matching X")
+        .isNull();
+  }
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_pathnameWithPercentLiteral_escapedCorrectly() {
+    String outer = "weird%pct/file.zip";
+    RepositoryPolicyViolation legitInner =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, outer + "!/inner.jar", null);
+    RepositoryPolicyViolation maliciousMatch =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "weirdABCpct/file.zip!/x.jar", null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), outer, "comp-P");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(legitInner.getId()).getComponentId()).isEqualTo("comp-P");
+    assertThat(dao.getById(maliciousMatch.getId()).getComponentId())
+        .as("escape must prevent % from acting as a wildcard")
+        .isNull();
+  }
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_isolatesPerRepository() {
+    String shared = "outer.zip!/lib.jar";
+    String outer = "outer.zip";
+    Repository otherRepo = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation thisRepo =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, shared, null);
+    RepositoryPolicyViolation otherRepoV =
+        tempEntity.newRepositoryPolicyViolation(otherRepo.getId(), 5, shared, null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), outer, "comp-R");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(thisRepo.getId()).getComponentId()).isEqualTo("comp-R");
+    assertThat(dao.getById(otherRepoV.getId()).getComponentId())
+        .as("sibling repo's row must not be stamped")
+        .isNull();
+  }
+
+  @Test
+  public void testStampComponentIdOnPathnameOrInnerPathnames_nullInputs_noOp() {
+    String outer = "outer.zip";
+    RepositoryPolicyViolation v = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, null, outer, "x");
+      dao.stampComponentIdOnPathnameOrInnerPathnames(tx, repository.getId(), null, "x");
+      tx.commit();
+    }
+
+    assertThat(dao.getById(v.getId()).getComponentId()).isNull();
+  }
+
   @Test
   public void testHasActiveMalwareWaivedViolation_returnsTrueWhenActiveWaivedViolationExistsForPathname() {
     final String pathname = "pathname";

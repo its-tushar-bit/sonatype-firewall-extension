@@ -21,6 +21,7 @@ public enum WebhookEventType
   SECURITY_VULNERABILITY_OVERRIDE_MANAGEMENT("Security Vulnerability Override Management",
       "iq:securityVulnerabilityOverrideManagement"),
   WAIVER_REQUEST("Waiver Request", "iq:waiverRequest"),
+  FIREWALL_WAIVER_REQUEST("Firewall Waiver Request", "iq:firewallWaiverRequest"),
   WAIVER_EXPIRATION("Waiver Expiration", "iq:waiverExpiration"),
   ORG_APP_MANAGEMENT("Organization and Application Management", "iq:orgAppManagement");
 

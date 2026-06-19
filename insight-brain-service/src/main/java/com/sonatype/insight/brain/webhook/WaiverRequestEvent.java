@@ -30,6 +30,9 @@ public class WaiverRequestEvent
 
   public String reasonText;
 
+  /** "firewall" or "lifecycle"; null is treated as "lifecycle" for backward compatibility. */
+  public String source;
+
   @Override
   public String toString() {
     String jsonifiedFields =
@@ -37,4 +40,5 @@ public class WaiverRequestEvent
             comment);
     return getClass().getName() + jsonifiedFields;
   }
+
 }

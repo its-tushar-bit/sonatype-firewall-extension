@@ -14,15 +14,19 @@ import java.util.stream.IntStream;
 
 import jakarta.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
@@ -337,6 +341,78 @@ public class RequestPolicyWaiverEventServiceTest
       assertThat(event.addWaiverLink).isEqualTo(expectedAddWaiverLink);
       assertThat(event.reviewWaiverRequestLink).isEqualTo(expectedReviewWaiverRequestLink);
       assertThat(event.ownerId).isEqualTo(application.getId());
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_setsSourceAsLifecycle() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+          policyViolation.getId(), "comment", null,
+          OwnerType.APPLICATION.toString(), application.getId(), "requestId");
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      assertThat(handler.getEvent().source).isEqualTo(Webhook.CONTEXT_LIFECYCLE);
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostRepositoryWaiverRequestEvent_postsEventWithFirewallSource() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      Repository repository = tempEntity.newRepository();
+      Policy policy = tempEntity.newPolicy(repository.getId());
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifier.createMavenCoordinates("com.example", "artifact", "1.0");
+      RepositoryPolicyViolation violation =
+          tempEntity.newRepositoryPolicyViolation(repository, policy, "/com/example/artifact/1.0/artifact-1.0.jar",
+              componentIdentifier, "abc123hash");
+
+      requestPolicyWaiverEventService.postRepositoryWaiverRequestEvent(
+          violation.getId(), "firewall waiver comment", null,
+          OwnerType.REPOSITORY.toString(), repository.getId(), "requestId");
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.source).isEqualTo(Webhook.CONTEXT_FIREWALL);
+      assertThat(event.ownerId).isEqualTo(repository.getId());
+      assertThat(event.policyViolationId).isEqualTo(violation.getId());
+      assertThat(event.initiator).isEqualTo(USERNAME);
+      assertThat(event.timestamp).isNotNull();
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostRepositoryWaiverRequestEvent_violationNotFound_noEventPosted() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      requestPolicyWaiverEventService.postRepositoryWaiverRequestEvent(
+          "non-existent-violation-id", "comment", null,
+          OwnerType.REPOSITORY.toString(), "some-repo-id", "requestId");
+
+      assertThat(handler.getLatch().await(500, TimeUnit.MILLISECONDS)).isFalse();
     }
     finally {
       asyncEventBus.unregister(handler);

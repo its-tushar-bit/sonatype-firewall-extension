@@ -574,12 +574,12 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testGetAllWebhookEventTypes_FirewallContext_ExcludesWaiverRequest() {
+  public void testGetAllWebhookEventTypes_FirewallContext_IncludesWaiverRequest() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
     List<String> eventTypes = webhookService.getAllWebhookEventTypes("firewall");
 
-    assertThat(eventTypes).doesNotContain("Waiver Request");
+    assertThat(eventTypes).contains("Firewall Waiver Request");
   }
 
   @Test

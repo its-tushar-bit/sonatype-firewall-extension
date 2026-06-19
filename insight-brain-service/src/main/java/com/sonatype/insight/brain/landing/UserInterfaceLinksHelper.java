@@ -79,6 +79,23 @@ public class UserInterfaceLinksHelper
   public static final String REVIEW_WAIVER_REQUEST_PATH =
       "requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}";
 
+  public static final String FIREWALL_REVIEW_WAIVER_REQUEST_PATH =
+      "dashboardFirewallWaiverRequestReview/{ownerType}/{ownerId}/{waiverRequestId}";
+
+  public static final String FIREWALL_WAIVERS_PATH = "firewall/waivers";
+
+  public static final String FIREWALL_VIOLATION_DETAILS_PATH =
+      "firewall/violation/{repositoryId}/{violationId}";
+
+  public static final String FIREWALL_ADD_WAIVER_PATH =
+      "firewall/addWaiver/{repositoryId}/{violationId}";
+
+  public static final String FIREWALL_COMPONENT_DETAILS_FRAGMENT =
+      "/firewall/repository/{0}/component/{1}/{2}/{3}";
+
+  public static final String FIREWALL_ADD_WAIVER_FRAGMENT =
+      "/firewall/repository/{0}/component/{1}/{2}/{3}/{4}/addWaiver/{5}";
+
   public static final String SBOM_BOM_VIEW_PATH =
       "sbomManager/management/view/application/{applicationPublicId}/bom/{version}";
 
@@ -244,6 +261,22 @@ public class UserInterfaceLinksHelper
    */
   public static String getReviewWaiverRequestUrl(String ownerType, String ownerId, String policyWaiverRequestId) {
     return buildStableUrl(REVIEW_WAIVER_REQUEST_PATH, ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  public static String getFirewallReviewWaiverRequestUrl(
+      String ownerType,
+      String ownerId,
+      String policyWaiverRequestId)
+  {
+    return buildStableUrl(FIREWALL_REVIEW_WAIVER_REQUEST_PATH, ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  public static String getFirewallViolationDetailsUrl(String repositoryId, String violationId) {
+    return buildStableUrl(FIREWALL_VIOLATION_DETAILS_PATH, repositoryId, violationId);
+  }
+
+  public static String getFirewallAddWaiverUrl(String repositoryId, String violationId) {
+    return buildStableUrl(FIREWALL_ADD_WAIVER_PATH, repositoryId, violationId);
   }
 
   /**

@@ -16,8 +16,11 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -32,6 +35,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVER_REQUEST;
 
@@ -42,6 +47,8 @@ import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVE
 @Singleton
 public class RequestPolicyWaiverEventService
 {
+  private static final Logger log = LoggerFactory.getLogger(RequestPolicyWaiverEventService.class);
+
   private static final String WAIVER_REASON = "waiver_reason";
 
   private final AsyncEventBus eventBus;
@@ -51,6 +58,8 @@ public class RequestPolicyWaiverEventService
   private final PolicyViolationDAO policyViolationDAO;
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
+
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   private final TelemetryUtils telemetryUtils;
 
@@ -67,6 +76,7 @@ public class RequestPolicyWaiverEventService
       final CurrentUser currentUser,
       final PolicyViolationDAO policyViolationDAO,
       final PolicyWaiverReasonDAO policyWaiverReasonDAO,
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final BaseUrl baseUrl,
@@ -76,6 +86,7 @@ public class RequestPolicyWaiverEventService
     this.currentUser = currentUser;
     this.policyViolationDAO = policyViolationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.baseUrl = baseUrl;
@@ -157,8 +168,57 @@ public class RequestPolicyWaiverEventService
     if (reasonId != null && policyWaiverReasonMap.containsKey(reasonId)) {
       waiverRequestEvent.reasonText = policyWaiverReasonMap.get(reasonId).getReasonText();
     }
+    waiverRequestEvent.source = Webhook.CONTEXT_LIFECYCLE;
 
     return waiverRequestEvent;
+  }
+
+  public void postRepositoryWaiverRequestEvent(
+      final String policyViolationId,
+      final String comment,
+      final String reasonId,
+      final String ownerType,
+      final String ownerId,
+      final String policyWaiverRequestId)
+  {
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        repositoryPolicyViolationDAO.getById(policyViolationId);
+    if (repositoryPolicyViolation == null) {
+      log.warn("Could not find repository policy violation with ID {} — waiver request webhook event not posted.",
+          policyViolationId);
+      return;
+    }
+
+    String reviewWaiverRequestLink =
+        prependBaseUrl(
+            UserInterfaceLinksHelper.getFirewallReviewWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId));
+    String policyViolationLink =
+        prependBaseUrl(UserInterfaceLinksHelper.getFirewallViolationDetailsUrl(
+            repositoryPolicyViolation.getRepositoryId(), policyViolationId));
+    String addWaiverLink =
+        prependBaseUrl(UserInterfaceLinksHelper.getFirewallAddWaiverUrl(
+            repositoryPolicyViolation.getRepositoryId(), policyViolationId));
+    verifyMaxCommentLength(comment);
+
+    Map<String, PolicyWaiverReason> policyWaiverReasonMap =
+        policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+
+    WaiverRequestEvent waiverRequestEvent = new WaiverRequestEvent();
+    waiverRequestEvent.initiator = currentUser.getUsername();
+    waiverRequestEvent.timestamp = LocalDateTime.now();
+    waiverRequestEvent.comment = comment;
+    waiverRequestEvent.policyViolationId = policyViolationId;
+    waiverRequestEvent.policyViolationLink = policyViolationLink;
+    waiverRequestEvent.addWaiverLink = addWaiverLink;
+    waiverRequestEvent.reviewWaiverRequestLink = reviewWaiverRequestLink;
+    waiverRequestEvent.ownerId = repositoryPolicyViolation.getOwnerId();
+    waiverRequestEvent.reasonId = reasonId;
+    if (reasonId != null && policyWaiverReasonMap.containsKey(reasonId)) {
+      waiverRequestEvent.reasonText = policyWaiverReasonMap.get(reasonId).getReasonText();
+    }
+    waiverRequestEvent.source = Webhook.CONTEXT_FIREWALL;
+
+    eventBus.post(waiverRequestEvent);
   }
 
   public void setTelemetrySender(TelemetrySender telemetrySender) {

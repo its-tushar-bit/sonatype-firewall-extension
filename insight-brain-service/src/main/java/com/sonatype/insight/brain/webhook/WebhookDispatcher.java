@@ -298,15 +298,25 @@ public class WebhookDispatcher
 
   @Subscribe
   public void on(final WaiverRequestEvent waiverRequestEvent) {
-    WebhookEventType webhookEventType = WebhookEventType.WAIVER_REQUEST;
+    boolean isFirewallEvent = Webhook.CONTEXT_FIREWALL.equalsIgnoreCase(waiverRequestEvent.source);
+
+    WebhookEventType webhookEventType = isFirewallEvent
+        ? WebhookEventType.FIREWALL_WAIVER_REQUEST
+        : WebhookEventType.WAIVER_REQUEST;
 
     if (!checkEventIsLicensed(waiverRequestEvent.ownerId, webhookEventType)) {
       return;
     }
 
     for (Webhook webhook : getWebhooksOfEventType(webhookEventType)) {
-      invokeWithAudit(webhook, webhookEventType,
-          () -> sendWaiverRequestPayload(webhookService.getDecrypted(webhook.getId()), waiverRequestEvent));
+      boolean shouldFire = isFirewallEvent
+          ? isWebhookForFirewall(webhook)
+          : isWebhookForLifecycle(webhook);
+
+      if (shouldFire) {
+        invokeWithAudit(webhook, webhookEventType,
+            () -> sendWaiverRequestPayload(webhookService.getDecrypted(webhook.getId()), waiverRequestEvent));
+      }
     }
   }
 
@@ -594,7 +604,10 @@ public class WebhookDispatcher
     payload.reasonId = event.reasonId;
     payload.reasonText = event.reasonText;
 
-    webhookClientUtil.post(webhook, WebhookEventType.WAIVER_REQUEST.getId(), payload);
+    String eventTypeId = Webhook.CONTEXT_FIREWALL.equalsIgnoreCase(event.source)
+        ? WebhookEventType.FIREWALL_WAIVER_REQUEST.getId()
+        : WebhookEventType.WAIVER_REQUEST.getId();
+    webhookClientUtil.post(webhook, eventTypeId, payload);
   }
 
   private void sendWaiverExpirationPayload(final Webhook webhook, WaiverExpirationEvent event) {
@@ -664,12 +677,6 @@ public class WebhookDispatcher
     return false;
   }
 
-  /**
-   * Determines if a webhook is intended for Firewall context based on its stored context.
-   *
-   * @param webhook the webhook to check
-   * @return true if the webhook is intended for Firewall context
-   */
   /**
    * Determines if a webhook is intended for Firewall context.
    * For NULL context (old webhooks before migration), fires only if customer has Firewall license.

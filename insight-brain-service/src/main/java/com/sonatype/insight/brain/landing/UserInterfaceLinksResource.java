@@ -10,13 +10,19 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 import com.codahale.metrics.annotation.Timed;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
@@ -80,6 +86,10 @@ public class UserInterfaceLinksResource
 
   private final RepositoryDAO repositoryDAO;
 
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private final RepositoryComponentDAO repositoryComponentDAO;
+
   @Inject
   public UserInterfaceLinksResource(
       BaseUrl baseUrl,
@@ -88,7 +98,9 @@ public class UserInterfaceLinksResource
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       TelemetryUtils telemetryUtils,
-      RepositoryDAO repositoryDAO)
+      RepositoryDAO repositoryDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
+      RepositoryComponentDAO repositoryComponentDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
@@ -97,6 +109,8 @@ public class UserInterfaceLinksResource
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.telemetryUtils = telemetryUtils;
     this.repositoryDAO = repositoryDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
+    this.repositoryComponentDAO = repositoryComponentDAO;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -363,6 +377,113 @@ public class UserInterfaceLinksResource
     uriBuilder.path(ASSET_INDEX_PATH)
         .fragment("/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}");
     return redirect(uriBuilder, ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  @GET
+  @Path(FIREWALL_REVIEW_WAIVER_REQUEST_PATH)
+  @UnlicensedPath
+  public Response linkToFirewallReviewWaiverRequest(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("waiverRequestId") String waiverRequestId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH)
+        .fragment("/firewall/waivers/review/{ownerType}/{ownerId}/{waiverRequestId}");
+    return redirect(uriBuilder, ownerType, ownerId, waiverRequestId);
+  }
+
+  @GET
+  @Path(FIREWALL_WAIVERS_PATH)
+  @UnlicensedPath
+  public Response linkToFirewallWaivers() {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/firewall/waivers");
+    return redirect(uriBuilder);
+  }
+
+  @GET
+  @Path(FIREWALL_VIOLATION_DETAILS_PATH)
+  @UnlicensedPath
+  public Response linkToFirewallViolationDetails(
+      @PathParam("repositoryId") String repositoryId,
+      @PathParam("violationId") String violationId)
+  {
+    return buildFirewallComponentRedirect(repositoryId, violationId, false);
+  }
+
+  @GET
+  @Path(FIREWALL_ADD_WAIVER_PATH)
+  @UnlicensedPath
+  public Response linkToFirewallAddWaiver(
+      @PathParam("repositoryId") String repositoryId,
+      @PathParam("violationId") String violationId)
+  {
+    return buildFirewallComponentRedirect(repositoryId, violationId, true);
+  }
+
+  private Response buildFirewallComponentRedirect(
+      String repositoryId,
+      String violationId,
+      boolean addWaiverMode)
+  {
+    RepositoryPolicyViolation violation = repositoryPolicyViolationDAO.getById(violationId);
+    if (violation == null) {
+      UriBuilder fallback = baseUrl.redirect();
+      fallback.path(ASSET_INDEX_PATH).fragment("/firewall/waivers");
+      return redirect(fallback);
+    }
+
+    RepositoryComponent component =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, violation.getPathname());
+    String matchState = (component != null && component.getMatchStateId() != null)
+        ? component.getMatchStateId()
+        : "unknown";
+
+    ComponentIdentifier componentIdentifier =
+        repositoryComponentDAO.getComponentIdentifierByRepositoryIdAndPathname(
+            repositoryId, violation.getPathname());
+    if (componentIdentifier == null) {
+      UriBuilder fallback = baseUrl.redirect();
+      fallback.path(ASSET_INDEX_PATH).fragment("/firewall/waivers");
+      return redirect(fallback);
+    }
+
+    String componentIdentifierJson =
+        java.net.URLEncoder.encode(
+            JsonUtils.writeUnformatted(componentIdentifier), java.nio.charset.StandardCharsets.UTF_8)
+            .replace("+", "%20");
+
+    String fragment;
+    if (addWaiverMode) {
+      fragment = java.text.MessageFormat.format(
+          FIREWALL_ADD_WAIVER_FRAGMENT,
+          repositoryId,
+          componentIdentifierJson,
+          violation.getHash(),
+          matchState,
+          "violations",
+          violationId);
+    }
+    else {
+      fragment = java.text.MessageFormat.format(
+          FIREWALL_COMPONENT_DETAILS_FRAGMENT,
+          repositoryId,
+          componentIdentifierJson,
+          violation.getHash(),
+          matchState);
+    }
+
+    if (violation.getPathname() != null) {
+      String encodedPathname =
+          java.net.URLEncoder.encode(violation.getPathname(), java.nio.charset.StandardCharsets.UTF_8)
+              .replace("+", "%20");
+      fragment += "?pathname=" + encodedPathname;
+    }
+
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragment);
+    return redirect(uriBuilder);
   }
 
   @GET

@@ -321,6 +321,29 @@ public class RepositoryComponentDAO
         .fetchOne());
   }
 
+  public ComponentIdentifier getComponentIdentifierByRepositoryIdAndPathname(
+      String repositoryId,
+      String pathname)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      var record = tx.dsl()
+          .select(REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT, REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON)
+          .from(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+          .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+          .fetchOne();
+      if (record == null) {
+        return null;
+      }
+      String format = record.get(REPOSITORY_COMPONENT.COMPONENT_ID_FORMAT);
+      String coordinatesJson = record.get(REPOSITORY_COMPONENT.COMPONENT_ID_COORDINATES_JSON);
+      if (format == null || coordinatesJson == null) {
+        return null;
+      }
+      return ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(format, coordinatesJson);
+    }
+  }
+
   public RepositoryComponent getByRepositoryIdAndComponentId(String repositoryId, String componentId) {
     if (componentId == null) {
       return null;

@@ -11,6 +11,7 @@ import static com.sonatype.insight.brain.webhook.WebhookDispatcher.JIRA_CLOUD_PL
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -234,15 +235,19 @@ public class WebhookDispatcherTest
     tempEntity.newWebhookWithSecret("http://localhost", EnumSet.allOf(WebhookEventType.class));
 
     testEventTypesWithOwner(rootOrg);
+    postWaiverRequestEventWithSource(rootOrg.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(organization);
+    postWaiverRequestEventWithSource(organization.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(application);
+    postWaiverRequestEventWithSource(application.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(repository);
+    postWaiverRequestEventWithSource(repository.getId(), Webhook.CONTEXT_FIREWALL);
     verifyEventTypesSent();
   }
 
@@ -280,15 +285,19 @@ public class WebhookDispatcherTest
     webhookDAO.update(webhook);
 
     testEventTypesWithOwner(rootOrg);
+    postWaiverRequestEventWithSource(rootOrg.getId(), Webhook.CONTEXT_FIREWALL);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(repository);
+    postWaiverRequestEventWithSource(repository.getId(), Webhook.CONTEXT_FIREWALL);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(organization);
+    postWaiverRequestEventWithSource(organization.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyNoMoreInteractions(webhookClientUtil);
 
     testEventTypesWithOwner(application);
+    postWaiverRequestEventWithSource(application.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyNoMoreInteractions(webhookClientUtil);
   }
 
@@ -306,15 +315,19 @@ public class WebhookDispatcherTest
     webhookDAO.update(webhook);
 
     testEventTypesWithOwner(rootOrg);
+    postWaiverRequestEventWithSource(rootOrg.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(organization);
+    postWaiverRequestEventWithSource(organization.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(application);
+    postWaiverRequestEventWithSource(application.getId(), Webhook.CONTEXT_LIFECYCLE);
     verifyEventTypesSent();
 
     testEventTypesWithOwner(repository);
+    postWaiverRequestEventWithSource(repository.getId(), Webhook.CONTEXT_FIREWALL);
     verifyNoMoreInteractions(webhookClientUtil);
   }
 
@@ -814,6 +827,100 @@ public class WebhookDispatcherTest
   }
 
   @Test
+  public void testOn_WaiverRequest_LifecycleEvent_deliversToLifecycleWebhookOnly() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    Webhook lifecycleWebhook =
+        tempEntity.newWebhookWithSecret("http://lifecycle", Collections.singleton(WebhookEventType.WAIVER_REQUEST));
+    lifecycleWebhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(lifecycleWebhook);
+
+    Webhook firewallWebhook =
+        tempEntity.newWebhookWithSecret("http://firewall",
+            Collections.singleton(WebhookEventType.FIREWALL_WAIVER_REQUEST));
+    firewallWebhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(firewallWebhook);
+
+    WaiverRequestEvent event = new WaiverRequestEvent();
+    event.initiator = "initiator";
+    event.timestamp = LocalDateTime.now();
+    event.comment = "lifecycle waiver";
+    event.policyViolationId = "lc-violation-id";
+    event.policyViolationLink = "http://policyViolationLink";
+    event.reviewWaiverRequestLink = "http://reviewLink";
+    event.ownerId = "app-owner-id";
+    event.source = Webhook.CONTEXT_LIFECYCLE;
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookCaptor = ArgumentCaptor.forClass(Webhook.class);
+    ArgumentCaptor<WebhookPayload> payloadCaptor = ArgumentCaptor.forClass(WebhookPayload.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).times(1))
+        .post(webhookCaptor.capture(), eq(WebhookEventType.WAIVER_REQUEST.getId()), payloadCaptor.capture());
+
+    assertThat(webhookCaptor.getValue().getUrl()).isEqualTo("http://lifecycle");
+  }
+
+  @Test
+  public void testOn_WaiverRequest_FirewallEvent_deliversToFirewallWebhookOnly() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+
+    Webhook lifecycleWebhook =
+        tempEntity.newWebhookWithSecret("http://lifecycle", Collections.singleton(WebhookEventType.WAIVER_REQUEST));
+    lifecycleWebhook.setContext(Webhook.CONTEXT_LIFECYCLE);
+    webhookDAO.update(lifecycleWebhook);
+
+    Webhook firewallWebhook =
+        tempEntity.newWebhookWithSecret("http://firewall",
+            Collections.singleton(WebhookEventType.FIREWALL_WAIVER_REQUEST));
+    firewallWebhook.setContext(Webhook.CONTEXT_FIREWALL);
+    webhookDAO.update(firewallWebhook);
+
+    Repository repository = tempEntity.newRepository();
+
+    WaiverRequestEvent event = new WaiverRequestEvent();
+    event.initiator = "initiator";
+    event.timestamp = LocalDateTime.now();
+    event.comment = "firewall waiver";
+    event.policyViolationId = "fw-violation-id";
+    event.policyViolationLink = "http://policyViolationLink";
+    event.reviewWaiverRequestLink = "http://reviewLink";
+    event.ownerId = repository.getId();
+    event.source = Webhook.CONTEXT_FIREWALL;
+    asyncEventBus.post(event);
+
+    ArgumentCaptor<Webhook> webhookCaptor = ArgumentCaptor.forClass(Webhook.class);
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).times(1))
+        .post(webhookCaptor.capture(), eq(WebhookEventType.FIREWALL_WAIVER_REQUEST.getId()), any(WebhookPayload.class));
+
+    assertThat(webhookCaptor.getValue().getUrl()).isEqualTo("http://firewall");
+  }
+
+  @Test
+  public void testOn_WaiverRequest_NullSourceEvent_treatedAsLifecycle() {
+    testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+
+    // Null-context webhook (pre-migration) + null-source event must behave as Lifecycle (Q-01)
+    Webhook webhook =
+        tempEntity.newWebhookWithSecret("http://localhost", Collections.singleton(WebhookEventType.WAIVER_REQUEST));
+    // no setContext() — null context simulates pre-migration webhook
+
+    WaiverRequestEvent event = new WaiverRequestEvent();
+    event.initiator = "initiator";
+    event.timestamp = LocalDateTime.now();
+    event.comment = "legacy waiver";
+    event.policyViolationId = "policyViolationId";
+    event.policyViolationLink = "http://policyViolationLink";
+    event.reviewWaiverRequestLink = "http://reviewLink";
+    event.ownerId = "app-owner-id";
+    // no event.source — null source
+
+    asyncEventBus.post(event);
+
+    verify(webhookClientUtil, timeout(EVENT_TIMEOUT_MS).only())
+        .post(any(Webhook.class), eq(WebhookEventType.WAIVER_REQUEST.getId()), any(WebhookPayload.class));
+  }
+
+  @Test
   public void testOn_HandlesWaiverExpirationEvent() {
     testProductLicense.setFeatures(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
 
@@ -1043,9 +1150,13 @@ public class WebhookDispatcherTest
     licenseOverrideEvent.licenseOverride.setOwnerId(ownerId);
     webhookDispatcher.on(licenseOverrideEvent);
 
+  }
+
+  private void postWaiverRequestEventWithSource(String ownerId, String source) {
     WaiverRequestEvent waiverRequestEvent = new WaiverRequestEvent();
     waiverRequestEvent.policyViolationId = "policyViolationId";
     waiverRequestEvent.ownerId = ownerId;
+    waiverRequestEvent.source = source;
     webhookDispatcher.on(waiverRequestEvent);
   }
 
@@ -1065,7 +1176,10 @@ public class WebhookDispatcherTest
         .post(any(Webhook.class), eq(WebhookEventType.LICENSE_OVERRIDE_MANAGEMENT.getId()), any(WebhookPayload.class));
 
     verify(webhookClientUtil)
-        .post(any(Webhook.class), eq(WebhookEventType.WAIVER_REQUEST.getId()), any(WebhookPayload.class));
+        .post(any(Webhook.class),
+            argThat(id -> WebhookEventType.WAIVER_REQUEST.getId().equals(id)
+                || WebhookEventType.FIREWALL_WAIVER_REQUEST.getId().equals(id)),
+            any(WebhookPayload.class));
 
     reset(webhookClientUtil);
   }

@@ -51,7 +51,8 @@ public class WebhookService
 
   private static final Set<WebhookEventType> FIREWALL_ONLY_EVENTS = Set.of(
       WebhookEventType.WAIVER_EXPIRATION,
-      WebhookEventType.FIREWALL_POLICY_ALERT);
+      WebhookEventType.FIREWALL_POLICY_ALERT,
+      WebhookEventType.FIREWALL_WAIVER_REQUEST);
 
   private static final Set<WebhookEventType> LIFECYCLE_ONLY_EVENTS = Set.of(
       WebhookEventType.POLICY_ALERT,

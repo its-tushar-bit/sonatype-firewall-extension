@@ -225,9 +225,12 @@ public class ApiPolicyWaiverRequestService
     PolicyWaiverRequest policyWaiverRequest = createPolicyWaiverRequest(internalOwnerId, abstractPolicyViolation,
         comment, noteToReviewer, matcherStrategy, expiryTime, waiverReasonId, expireWhenRemediationAvailable);
 
-    // The repository policy violation doesn't support webhooks yet.
     if (abstractPolicyViolation instanceof PolicyViolation) {
       requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(policyViolationId, comment,
+          waiverReasonId, ownerType.toString(), ownerId, policyWaiverRequest.getId());
+    }
+    else {
+      requestPolicyWaiverEventService.postRepositoryWaiverRequestEvent(policyViolationId, comment,
           waiverReasonId, ownerType.toString(), ownerId, policyWaiverRequest.getId());
     }
 

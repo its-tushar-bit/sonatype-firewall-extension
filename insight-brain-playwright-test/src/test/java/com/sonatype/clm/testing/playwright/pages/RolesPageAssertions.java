@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import com.microsoft.playwright.Locator;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -108,7 +110,8 @@ public class RolesPageAssertions
     assertThat(page.deleteRoleButton()).isDisabled();
   }
 
-  public void shouldHavePermissionTogglesDisabled(String displayName) {
+  /** First toggle is sufficient — {@code readonly} in RoleEditorPermissionsList disables the whole list uniformly. */
+  public void shouldHaveFirstPermissionToggleDisabled(String displayName) {
     assertThat(page.firstPermissionToggle(displayName).locator("input")).isDisabled();
   }
 
@@ -116,6 +119,7 @@ public class RolesPageAssertions
     assertThat(page.permissionsHeading()).isVisible();
   }
 
+  /** {@code .nx-list__subtext} has no role — CSS class is the only hook (RoleListItem.jsx). */
   public void shouldShowRoleDescription(String name) {
     assertThat(page.roleItem(name).first()).isVisible();
     assertThat(page.roleItem(name).first().locator(".nx-list__subtext")).isVisible();
@@ -131,5 +135,26 @@ public class RolesPageAssertions
 
   public void shouldShowDeleteWarningContaining(String text) {
     assertThat(page.deleteModalWarning()).containsText(text);
+  }
+
+  public void shouldShowInfoAlertWithDocsLink(String alertText, String linkName) {
+    assertThat(page.infoAlert()).isVisible();
+    assertThat(page.infoAlert()).containsText(alertText);
+    assertThat(page.infoAlertDocsLink()).isVisible();
+    assertThat(page.infoAlertDocsLink()).hasText(linkName);
+  }
+
+  public void shouldShowBuiltInAndCustomSubtitles() {
+    assertThat(page.builtInSubtitle()).isVisible();
+    assertThat(page.customSubtitle()).isVisible();
+  }
+
+  public void shouldShowCustomRolesEmptyMessage(String fullText) {
+    assertThat(page.emptyCustomRolesMessage()).hasText(fullText);
+  }
+
+  public void shouldRenderRoleItemAsAnchorLink(String roleName) {
+    Locator anchor = page.roleItemAnchor(page.roleItem(roleName).first());
+    assertThat(anchor).isVisible();
   }
 }

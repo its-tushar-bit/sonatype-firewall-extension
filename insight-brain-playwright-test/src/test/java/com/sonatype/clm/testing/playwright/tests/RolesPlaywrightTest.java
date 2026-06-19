@@ -15,8 +15,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.ExternalResource;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -35,13 +37,29 @@ public class RolesPlaywrightTest
 
   private static final String BUILTIN_POLICY_ADMIN_NAME = "Policy Administrator";
 
-  private final String RESTRICTED_USER = "pw-roles-viewer-" + TemporaryEntity.uuid();
+  private static final String RESTRICTED_USER_PREFIX = "pw-roles-viewer";
+
+  private static final String RESTRICTED_USER_EMAIL_DOMAIN = "test.local";
 
   private static final String PERMISSION_CATEGORY_IQ = "IQ";
+
+  private static final String INFO_ALERT_PROMPT = "Looking for how to assign a user to a role?";
+
+  private static final String INFO_ALERT_DOCS_LINK_TEXT = "Docs";
+
+  private static final String CUSTOM_ROLES_EMPTY_MESSAGE =
+      "No custom roles defined. Click \"Create Role\" in the upper right to add one.";
+
+  /** Combined message for missing-name OR missing-description (RoleEditor.jsx:60-66). */
+  private static final String VALIDATION_ERROR_INVALID_OR_MISSING =
+      "Unable to submit: fields with invalid or missing data.";
 
   private RolesPage rolesPage;
 
   private RolesPageAssertions assertions;
+
+  /** Always flip via {@link #switchToRestrictedUser} — setting after login leaks the session if login throws. */
+  private boolean switchedToRestrictedUser;
 
   @Before
   public void openRolesPage() {
@@ -51,6 +69,19 @@ public class RolesPlaywrightTest
     rolesPage = new RolesPage();
     assertions = new RolesPageAssertions(rolesPage);
   }
+
+  /** {@code @Rule} (not {@code @After}) runs deterministically vs the parent class teardown. */
+  @Rule
+  public final ExternalResource restoreAdminSession = new ExternalResource()
+  {
+    @Override
+    protected void after() {
+      if (switchedToRestrictedUser) {
+        playwrightHardreset();
+        playwrightLoginAdminAt(RolesPage.url());
+      }
+    }
+  };
 
   @Test
   @Category(RegressionTest.class)
@@ -84,6 +115,7 @@ public class RolesPlaywrightTest
     assertions.shouldHavePermissionToggles(PERMISSION_CATEGORY_IQ);
   }
 
+  /** The form emits one combined message for both missing-name and missing-description (RoleEditor.jsx:60-66). */
   @Test
   @Category(RegressionTest.class)
   public void testCreateRole_fieldValidation() {
@@ -94,14 +126,14 @@ public class RolesPlaywrightTest
 
     rolesPage.roleDescriptionInput().fill("Some description");
     rolesPage.clickSave();
-    assertions.shouldShowRoleFormValidationErrors();
+    assertions.shouldShowRoleFormValidationErrorsContaining(VALIDATION_ERROR_INVALID_OR_MISSING);
     assertions.shouldShowRoleEditor();
 
     String uniqueRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
     rolesPage.roleNameInput().fill(uniqueRoleName);
     rolesPage.roleDescriptionInput().fill("");
     rolesPage.clickSave();
-    assertions.shouldShowRoleFormValidationErrors();
+    assertions.shouldShowRoleFormValidationErrorsContaining(VALIDATION_ERROR_INVALID_OR_MISSING);
     assertions.shouldShowRoleEditor();
 
     playwrightRefreshOrOpen(RolesPage.url());
@@ -146,10 +178,10 @@ public class RolesPlaywrightTest
     assertions.shouldListRole(uniqueRoleName);
   }
 
+  /** {@code NxStatefulForm} only renders the (mount-time) read-only error after a submit attempt. */
   @Test
   @Category(RegressionTest.class)
   public void testEditRole_builtInRoleIsReadOnly() {
-
     assertions.shouldShowContainer();
     rolesPage.openRoleForEdit(BUILTIN_SYSTEM_ADMIN_NAME);
 
@@ -159,7 +191,7 @@ public class RolesPlaywrightTest
     assertions.shouldHaveRoleNameDisabled();
     assertions.shouldHaveRoleDescriptionDisabled();
     assertions.shouldHaveDeleteButtonDisabled();
-    assertions.shouldHavePermissionTogglesDisabled(PERMISSION_CATEGORY_IQ);
+    assertions.shouldHaveFirstPermissionToggleDisabled(PERMISSION_CATEGORY_IQ);
 
     rolesPage.clickSave();
     assertions.shouldShowRoleFormValidationErrorsContaining("This role cannot be edited");
@@ -171,28 +203,26 @@ public class RolesPlaywrightTest
     String customRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
     Role customRole = tempEntity.newRole(customRoleName, ROLE_DESCRIPTION, false);
 
+    String restrictedUser = RESTRICTED_USER_PREFIX + "-" + TemporaryEntity.uuid();
     Role viewOnlyRole = tempEntity.newRole(true, Permission.VIEW_ROLES);
-    tempEntity.newUser(RESTRICTED_USER, "View", "Only", "view@test.local");
+    tempEntity.newUser(restrictedUser, "View", "Only", restrictedUser + "@" + RESTRICTED_USER_EMAIL_DOMAIN);
     tempEntity.newMembershipMapping(
-        MembershipMapping.GLOBAL_CONTEXT_ID, viewOnlyRole.getId(), RESTRICTED_USER);
+        MembershipMapping.GLOBAL_CONTEXT_ID, viewOnlyRole.getId(), restrictedUser);
 
     playwrightLogout();
+    switchToRestrictedUser(restrictedUser, TemporaryEntity.USER_PASSWORD_CLEAR);
     playwrightRefreshOrOpen(RolesPage.urlToEditRole(customRole.getId()));
-    playwrightLogin(RESTRICTED_USER, TemporaryEntity.USER_PASSWORD_CLEAR);
 
     assertions.shouldShowRoleEditor();
     assertions.shouldShowRoleNameInput();
     assertions.shouldHaveRoleNameDisabled();
     assertions.shouldHaveRoleDescriptionDisabled();
     assertions.shouldHaveDeleteButtonDisabled();
-    assertions.shouldHavePermissionTogglesDisabled(PERMISSION_CATEGORY_IQ);
+    assertions.shouldHaveFirstPermissionToggleDisabled(PERMISSION_CATEGORY_IQ);
 
     rolesPage.clickSave();
     assertions.shouldShowRoleFormValidationErrorsContaining(
         "You have insufficient permissions to edit this role");
-
-    playwrightHardreset();
-    playwrightLoginAdminAt(RolesPage.url());
   }
 
   @Test
@@ -216,5 +246,69 @@ public class RolesPlaywrightTest
 
     assertions.shouldShowContainer();
     assertions.shouldNotListRole(customRoleName);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_infoAlertWithDocsLink() {
+    assertions.shouldShowContainer();
+    assertions.shouldShowInfoAlertWithDocsLink(INFO_ALERT_PROMPT, INFO_ALERT_DOCS_LINK_TEXT);
+  }
+
+  /**
+   * The {@code readOnly=true} branch of the page is reached by logging in as a user with
+   * {@code VIEW_ROLES} but no {@code EDIT_ROLES} — the {@code rolesActions#load} thunk maps
+   * that combination to {@code readOnly=true}.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_createRoleDisabledForReadOnlyUser() {
+    String restrictedUser = RESTRICTED_USER_PREFIX + "-" + TemporaryEntity.uuid();
+    Role viewOnlyRole = tempEntity.newRole(true, Permission.VIEW_ROLES);
+    tempEntity.newUser(restrictedUser, "View", "Only", restrictedUser + "@" + RESTRICTED_USER_EMAIL_DOMAIN);
+    tempEntity.newMembershipMapping(
+        MembershipMapping.GLOBAL_CONTEXT_ID, viewOnlyRole.getId(), restrictedUser);
+
+    playwrightLogout();
+    switchToRestrictedUser(restrictedUser, TemporaryEntity.USER_PASSWORD_CLEAR);
+    playwrightRefreshOrOpen(RolesPage.url());
+
+    assertions.shouldShowContainer();
+    assertions.shouldHaveCreateRoleButtonDisabled();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_builtInAndCustomSubtitles() {
+    assertions.shouldShowContainer();
+    assertions.shouldShowBuiltInAndCustomSubtitles();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_customRolesEmptyMessageFullText() {
+    assertions.shouldShowContainer();
+    assertions.shouldShowCustomRolesEmptyMessage(CUSTOM_ROLES_EMPTY_MESSAGE);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testRolesList_roleItemsAreAnchorLinks() {
+    String customRoleName = ROLE_NAME_PREFIX + TemporaryEntity.uuid();
+    Role customRole = tempEntity.newRole(customRoleName, ROLE_DESCRIPTION, false);
+
+    playwrightRefreshOrOpen(RolesPage.url());
+
+    assertions.shouldShowContainer();
+    assertions.shouldRenderRoleItemAsAnchorLink(customRoleName);
+
+    rolesPage.roleItemAnchor(rolesPage.roleItem(customRoleName).first()).click();
+    assertThat(page).hasURL(RolesPage.editRoleUrlPattern(customRole.getId()));
+  }
+
+  /** Flag set before login so a login throw still triggers cleanup in {@link #restoreAdminSession}. */
+  private void switchToRestrictedUser(String username, String password) {
+    switchedToRestrictedUser = true;
+    playwrightLogin(username, password);
   }
 }

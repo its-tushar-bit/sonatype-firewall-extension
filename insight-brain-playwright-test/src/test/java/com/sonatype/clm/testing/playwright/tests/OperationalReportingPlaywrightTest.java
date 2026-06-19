@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.playwright.tests;
 
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPage;
 import com.sonatype.clm.testing.playwright.pages.OperationalReportingPageAssertions;
@@ -15,9 +17,9 @@ import com.sonatype.clm.testing.playwright.pages.SidebarComponentAssertions;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * Playwright test for the Operational Reporting landing page.
@@ -82,5 +84,27 @@ public class OperationalReportingPlaywrightTest
         .as("Browser tab title is set by documentTitle.js from the route data.title + product suffix")
         .isEqualTo(EXPECTED_PAGE_TAB_TITLE);
 
+  }
+
+  /**
+   * Beyond the page heading + URL fragment covered by the sanity test, the landing page
+   * renders a description paragraph, a "Rapid Response Reports" section, and a "Contact Us"
+   * section. This regression-tier coverage guards against a future template change that
+   * silently removes one of those structural elements without the heading-level test
+   * failing.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testOperationalReporting_landingPageContentSections() {
+    SidebarComponent sidebar = new SidebarComponent();
+    sidebar.clickOperationalReportingNavigation();
+
+    OperationalReportingPage operationalReporting = new OperationalReportingPage();
+    OperationalReportingPageAssertions assertions =
+        new OperationalReportingPageAssertions(operationalReporting);
+
+    assertions.shouldBeLoaded();
+    assertions.shouldShowDescriptionContent();
+    assertions.shouldShowReportingSections();
   }
 }

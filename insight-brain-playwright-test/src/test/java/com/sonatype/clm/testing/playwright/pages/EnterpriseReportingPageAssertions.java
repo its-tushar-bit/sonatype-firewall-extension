@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.playwright.pages;
 
+import java.util.regex.Pattern;
+
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
@@ -28,11 +30,46 @@ public class EnterpriseReportingPageAssertions
   }
 
   public void shouldShowEnterpriseDashboardsSectionHeading(String expectedTitle) {
-    assertThat(page.enterpriseDashboardsSectionHeading()).hasText(expectedTitle);
+    // h2 text includes a sibling description paragraph; containsText avoids coupling to marketing copy.
+    assertThat(page.enterpriseDashboardsSectionHeading()).containsText(expectedTitle);
   }
 
   public void shouldShowEnterpriseDashboardCardWithTitle(String dashboardId, String expectedTitle) {
     assertThat(page.enterpriseDashboardCard(dashboardId)).isVisible();
     assertThat(page.enterpriseDashboardCard(dashboardId).locator("h3")).hasText(expectedTitle);
+  }
+
+  public void shouldShowDashboardSubpage() {
+    assertThat(page.dashboardPageContainer()).isVisible();
+    assertThat(page.dashboardIframeContainer()).isVisible();
+  }
+
+  public void shouldShowDashboardSubpageWithTitle(String expectedTitle) {
+    assertThat(page.dashboardSubpageHeading()).hasText(expectedTitle);
+  }
+
+  public void shouldShowSupportInfoSection() {
+    assertThat(page.supportInfoSection()).isVisible();
+  }
+
+  public void shouldShowCopySupportInfoButton() {
+    assertThat(page.copySupportInfoButton()).isVisible();
+  }
+
+  public void shouldShowCheckmarkIcon() {
+    assertThat(page.copySupportInfoIcon()).hasClass(COPIED_CLASS_PATTERN);
+  }
+
+  /** {@code \b} + {@code .*} are JS-RegExp-safe; do not add {@code \Q…\E} or {@code (?i)}. */
+  private static final Pattern COPIED_CLASS_PATTERN = Pattern.compile(".*\\bcopied\\b.*");
+
+  public void shouldShowCopyConfirmationMessage() {
+    assertThat(page.copyConfirmationMessage()).isVisible();
+    assertThat(page.copyConfirmationMessage()).hasText(EnterpriseReportingPage.COPY_CONFIRMATION_MESSAGE);
+  }
+
+  public void shouldShowSupportInfoLoadError() {
+    assertThat(page.supportInfoLoadError()).isVisible();
+    assertThat(page.supportInfoLoadErrorRetryButton()).isVisible();
   }
 }

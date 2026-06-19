@@ -6,37 +6,27 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.options.AriaRole;
 
 /**
- * Playwright page object for the Operational Reporting landing page
- * ({@code operationalReporting/OperationalReportingLandingPage.jsx}).
- * <p>
- * The IQ frontend renders this landing page (and its sidebar entry
- * {@code #operational-reporting-button}) when the license does NOT include the HDS-controlled
- * {@code integrated-enterprise-reporting} feature. The default test license falls into this
- * branch, which is why functional tests target Operational rather than Enterprise Reporting.
+ * Operational Reporting landing page — default-license branch (Enterprise Reporting requires
+ * {@code integrated-enterprise-reporting}).
  */
 public class OperationalReportingPage
     extends BasePage
 {
-  /** Stable container id from {@code <NxPageMain id="operational-reporting-landing-page">}. */
   private static final String ROOT = "#operational-reporting-landing-page";
+
+  private static final String DESCRIPTION_PREFIX =
+      "Operational Reporting provides immediate, real-time insight";
 
   public OperationalReportingPage() {
     super();
   }
 
-  // --------------- URL helpers ---------------
-
-  /**
-   * Hash route registered in {@code operationalReporting/route.js} as state
-   * {@code operationalReporting} → {@code /operationalReporting}.
-   */
   public static String url() {
     return "/assets/index.html#/operationalReporting";
   }
-
-  // --------------- Locators ---------------
 
   public Locator container() {
     return locator(ROOT);
@@ -47,11 +37,27 @@ public class OperationalReportingPage
   }
 
   public Locator pageHeading() {
-    return locator(ROOT + " #operational-reporting-landing-page-heading");
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setLevel(1).setName("Operational Reporting"));
   }
 
+  /** Wrapper has no role; assertions on the paragraph use {@link #pageDescriptionParagraph()}. */
   public Locator pageDescription() {
     return locator(ROOT + " #operational-reporting-landing-page-description");
+  }
+
+  public Locator pageDescriptionParagraph() {
+    return pageDescription().getByText(DESCRIPTION_PREFIX);
+  }
+
+  public Locator rapidResponseReportsHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setLevel(2).setName("Rapid Response Reports"));
+  }
+
+  public Locator contactUsHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setLevel(2).setName("Contact Us"));
   }
 
 }

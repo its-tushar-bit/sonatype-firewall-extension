@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
@@ -27,6 +28,10 @@ public class RolesPage
   private static final Locator.GetByRoleOptions CREATE_ROLE_BUTTON_OPTIONS =
       new Locator.GetByRoleOptions().setName("Create Role");
 
+  /**
+   * Playwright serializes to JS RegExp — no {@code \Q…\E}, no {@code (?i)}; use {@link BasePage#escapeForJsRegex} for
+   * dynamic input.
+   */
   private static final Pattern ROLES_LIST_URL = Pattern.compile(".*/roles(\\?.*)?$");
 
   public RolesPage() {
@@ -45,6 +50,11 @@ public class RolesPage
     return "/assets/index.html#/roles/" + roleId;
   }
 
+  public static Pattern editRoleUrlPattern(String roleId) {
+    return Pattern.compile(".*/roles/" + escapeForJsRegex(roleId) + "$");
+  }
+
+  /** Id-anchored: list and editor both render {@code <main>} on different routes. */
   public Locator container() {
     return locator(ROOT);
   }
@@ -58,6 +68,12 @@ public class RolesPage
     return container().getByRole(AriaRole.BUTTON, CREATE_ROLE_BUTTON_OPTIONS);
   }
 
+  /**
+   * Two unlabelled sibling {@code
+   *
+  <ul>
+   * }s — id is the only stable hook (RoleList.jsx:57,63).
+   */
   public Locator builtInRolesList() {
     return locator("#builtin-roles");
   }
@@ -70,13 +86,11 @@ public class RolesPage
     return builtInRolesList().getByRole(AriaRole.LISTITEM);
   }
 
-  public Locator customRoleItems() {
-    return customRolesList().getByRole(AriaRole.LISTITEM);
-  }
-
+  /** Exact-text match on the {@code nx-list__text} span — the row's anchor concatenates name + description. */
   public Locator roleItem(String name) {
     return container().getByRole(AriaRole.LISTITEM)
-        .filter(new Locator.FilterOptions().setHasText(name));
+        .filter(new Locator.FilterOptions().setHas(
+            page.getByText(name, new Page.GetByTextOptions().setExact(true))));
   }
 
   public Locator emptyCustomRolesMessage() {
@@ -84,12 +98,18 @@ public class RolesPage
         .filter(new Locator.FilterOptions().setHasText("No custom roles defined"));
   }
 
+  /** Separate {@code <main>} from {@link #container()} — see that locator's note. */
   public Locator roleEditor() {
     return locator(EDITOR);
   }
 
+  /**
+   * The editor title is the only h1 in {@link #roleEditor()}; the "Permissions" section heading is
+   * a lower-level heading. Pinning to {@code setLevel(1)} fails loudly if a future change adds a
+   * sibling h1, instead of silently asserting against the wrong element.
+   */
   public Locator roleEditorTitle() {
-    return roleEditor().getByRole(AriaRole.HEADING).first();
+    return roleEditor().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(1));
   }
 
   public Locator roleNameInput() {
@@ -98,10 +118,6 @@ public class RolesPage
 
   public Locator roleDescriptionInput() {
     return roleEditor().getByLabel("Role Description");
-  }
-
-  public Locator roleEditorForm() {
-    return roleEditor().locator(".nx-form");
   }
 
   public Locator roleEditorSaveButton() {
@@ -113,7 +129,7 @@ public class RolesPage
   }
 
   public Locator roleEditorFormValidationErrors() {
-    return roleEditor().locator(".nx-form__validation-errors");
+    return roleEditor().getByLabel("form validation errors");
   }
 
   public Locator permissionsHeading() {
@@ -127,6 +143,7 @@ public class RolesPage
                 new Page.GetByRoleOptions().setName(displayName).setExact(true).setLevel(3))));
   }
 
+  /** Outer label only — assert disabled state via {@code .locator("input").isDisabled()}, not {@code hasClass}. */
   public Locator permissionToggles(String displayName) {
     return permissionCategory(displayName).locator(".nx-toggle");
   }
@@ -139,8 +156,16 @@ public class RolesPage
     return roleEditor().getByRole(AriaRole.BUTTON, CommonButtonOptions.DELETE_BUTTON_OPTS);
   }
 
+  /**
+   * Anchored on the dialog's "Delete Role" {@code h2} (RoleEditor.jsx:180-183) so any future
+   * concurrent dialog cannot satisfy this locator. {@code NxModal} does not set an
+   * {@code aria-label}/{@code aria-labelledby}, so a {@code byRole(DIALOG, "Delete Role")} would
+   * not work — the inner heading text is not promoted into the dialog's accessible name.
+   */
   public Locator deleteModal() {
-    return byRole(AriaRole.DIALOG);
+    return byRole(AriaRole.DIALOG).filter(new Locator.FilterOptions()
+        .setHas(page.getByRole(AriaRole.HEADING,
+            new Page.GetByRoleOptions().setLevel(2).setName("Delete Role"))));
   }
 
   public Locator deleteModalSubmit() {
@@ -151,13 +176,35 @@ public class RolesPage
     return deleteModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
   }
 
+  /** RSC's NxAlert wrapper has no role/name — CSS class is the only hook. */
   public Locator deleteModalWarning() {
     return deleteModal().locator(".nx-alert--warning");
   }
 
+  /** Same as {@link #deleteModalWarning()} — NxAlert wrapper has no role. */
+  public Locator infoAlert() {
+    return container().locator(".nx-alert--info");
+  }
+
+  public Locator infoAlertDocsLink() {
+    return infoAlert().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Docs"));
+  }
+
+  public Locator builtInSubtitle() {
+    return container().getByText("Built-In", new Locator.GetByTextOptions().setExact(true));
+  }
+
+  public Locator customSubtitle() {
+    return container().getByText("Custom", new Locator.GetByTextOptions().setExact(true));
+  }
+
+  public Locator roleItemAnchor(Locator roleItem) {
+    return roleItem.getByRole(AriaRole.LINK).first();
+  }
+
   public void clickCreateRole() {
     createRoleButton().click();
-    assertThat(roleEditor()).isVisible();
+    roleEditor().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
   }
 
   public void fillRoleDetails(String name, String description) {
@@ -175,19 +222,21 @@ public class RolesPage
 
   public void openDeleteModal() {
     deleteRoleButton().click();
-    assertThat(deleteModal()).isVisible();
+    deleteModal().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
   }
 
   public void confirmDelete() {
     deleteModalSubmit().click();
   }
 
+  /** Asserts exactly one match before click so duplicate role names fail loudly, not silently. */
   public void openRoleForEdit(String roleName) {
-    roleItem(roleName).first().click();
-    assertThat(roleEditor()).isVisible();
+    assertThat(roleItem(roleName)).hasCount(1);
+    roleItem(roleName).click();
+    roleEditor().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
   }
 
   public void waitForRolesListRoute() {
-    assertThat(page).hasURL(ROLES_LIST_URL);
+    page.waitForURL(ROLES_LIST_URL);
   }
 }

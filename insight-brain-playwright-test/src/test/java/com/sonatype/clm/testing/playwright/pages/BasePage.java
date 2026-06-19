@@ -266,4 +266,12 @@ public abstract class BasePage
     return CSS_CLASS_PATTERN_CACHE.computeIfAbsent(cssClass,
         c -> Pattern.compile(".*(?<![\\w-])" + REGEX_METACHARS.matcher(c).replaceAll("\\\\$0") + "(?![\\w-]).*"));
   }
+
+  /**
+   * JS-RegExp-safe escape for runtime input interpolated into a Playwright {@link Pattern}.
+   * Don't use {@link Pattern#quote(String)} — its {@code \Q…\E} silently breaks under JS RegExp.
+   */
+  protected static String escapeForJsRegex(String text) {
+    return text.replaceAll("[\\\\^$.|?*+()\\[\\]{}]", "\\\\$0");
+  }
 }

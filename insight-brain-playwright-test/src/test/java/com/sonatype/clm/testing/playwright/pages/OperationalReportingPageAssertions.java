@@ -26,4 +26,13 @@ public class OperationalReportingPageAssertions
   public void shouldHaveHeading(String expectedHeading) {
     assertThat(page.pageHeading()).hasText(expectedHeading);
   }
+
+  public void shouldShowDescriptionContent() {
+    assertThat(page.pageDescriptionParagraph()).isVisible();
+  }
+
+  public void shouldShowReportingSections() {
+    assertThat(page.rapidResponseReportsHeading()).isVisible();
+    assertThat(page.contactUsHeading()).isVisible();
+  }
 }

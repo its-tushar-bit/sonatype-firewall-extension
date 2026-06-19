@@ -8,13 +8,18 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Route;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
+import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
@@ -24,6 +29,7 @@ import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -32,21 +38,7 @@ import org.junit.experimental.categories.Category;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Playwright test for the Report List page.
- * <p>
- * Each test follows a Given/When/Then shape:
- * <ul>
- * <li>{@link #seedReportsAndOpenAsAdmin()} seeds a per-test {@link Organization} + {@link Application}
- * (names are UUID-suffixed so parallel forks cannot collide), evaluates two canned reports
- * against the build and stage-release stages, then opens the Reports page logged-in as admin.</li>
- * <li>The test body interacts with the report list via {@link ReportListPage} locators.</li>
- * </ul>
- *
- * <p>
- * Selectors live in {@link ReportListPage} (and {@link ApplicationReportPage} for the destination
- * page after clicking a report link).
- */
+/** Per-test UUID-seeded org + app + canned BUILD / STAGE-RELEASE evaluations. */
 public class ReportListPlaywrightTest
     extends AbstractIqUiTest
 {
@@ -70,14 +62,19 @@ public class ReportListPlaywrightTest
 
   private static final String STAGE_REPORT_DIR = "/canned-reports/small-report";
 
+  private static final String NO_MATCH_FILTER = "zzzz-no-app-matches-this";
+
+  private static final String CONTACT_ENDPOINT_GLOB = "**/rest/application/services/summary/*";
+
   private static final List<String> EXPECTED_HEADERS =
       List.of("APPLICATION", "ORGANIZATION", "SOURCE", "BUILD", "STAGE RELEASE", "RELEASE");
 
   private static final String EXPECTED_FIRST_ROW_BUILD_THREAT_CATEGORY = "Critical";
 
-  private Application app;
+  /** Slice's page-1 size threshold for triggering "more results exist". */
+  private static final int LOAD_MORE_PAGE_SIZE = 50;
 
-  // --------------- @Before ---------------
+  private Application app;
 
   @Before
   public void seedReportsAndOpenAsAdmin() throws IOException {
@@ -87,24 +84,19 @@ public class ReportListPlaywrightTest
     playwrightLogin();
   }
 
-  // --------------- @Test methods ---------------
-
   @Test
   @Category(SanityTest.class)
   public void testReportLinks() {
     ReportListPage reportList = new ReportListPage();
     ApplicationReportPage appReport = new ApplicationReportPage();
 
-    // Given: the report list is open (from @Before) and the seeded app row is present.
     Locator firstRow = reportList.firstRow();
     assertThat(firstRow).isVisible();
 
-    // When: the user clicks the BUILD-stage "View Report" link in the first row.
     Locator buildLink = reportList.buildReportLinkOf(firstRow);
     assertThat(buildLink).isVisible();
     buildLink.click();
 
-    // Then: navigation lands on the application report shell.
     assertThat(appReport.appReportMain()).isVisible();
   }
 
@@ -113,12 +105,9 @@ public class ReportListPlaywrightTest
   public void testChiclets() {
     ReportListPage reportList = new ReportListPage();
 
-    // Given: the seeded app row is rendered with its threat counters.
     Locator firstRow = reportList.firstRow();
     assertThat(firstRow).isVisible();
 
-    // Then: the BUILD cell shows a "Critical" small-threat counter (canned large-report fixture
-    // contains critical-severity violations at BUILD stage).
     Locator buildCell = reportList.buildCellOf(firstRow);
     Locator criticalCounter = reportList.criticalCounterIn(buildCell);
     assertThat(criticalCounter).isVisible();
@@ -131,16 +120,273 @@ public class ReportListPlaywrightTest
   public void testHeadersOrder() {
     ReportListPage reportList = new ReportListPage();
 
-    // Then: column headers render in the documented order (App | Org | Source | Build | Stage Release | Release).
     Assertions.assertThat(reportList.headerTexts(EXPECTED_HEADERS.size()))
         .as("report list table header order")
         .isEqualTo(EXPECTED_HEADERS);
   }
 
-  // --------------- Backend seed methods ---------------
+  @Test
+  @Category(RegressionTest.class)
+  public void testReportsPage_titleAndContainerVisible() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    assertions.shouldBeVisible();
+    assertions.shouldShowPageTitle(ReportListPage.LIFECYCLE_TITLE);
+    assertions.shouldShowFilterInput();
+  }
+
+  /**
+   * Title is gated on {@code DEVELOPER_DASHBOARD}; reached via direct URL since the Solution Switcher opens in a new
+   * tab.
+   * <p>
+   * Note: {@code setFeatures} replaces the full feature set, leaving only {@code DEVELOPER_DASHBOARD} licensed
+   * for this test. The minimal-license scenario is intentional — only the page title is asserted, so a
+   * partial render (or 402s on feature-gated API calls) does not affect the assertion.
+   */
+  @Test
+  @Category(RegressionTest.class)
+  public void testDeveloperPriorities_pageTitleIsPriorities() {
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    playwrightRefreshOrOpen(ReportListPage.developerPrioritiesUrl());
+
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    assertions.shouldBeVisible();
+    assertions.shouldShowPageTitle(ReportListPage.DEVELOPER_TITLE);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testFilter_realTimeFiltersTable_clearRestoresAll() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    assertions.shouldHaveRowCount(1);
+
+    reportList.typeFilter(NO_MATCH_FILTER);
+    assertions.shouldShowEmptyMessage();
+
+    reportList.clearFilter();
+    assertions.shouldHaveRowCount(1);
+  }
+
+  /** Only App and Org headers are sortable; Source-stage is checked as a non-sortable guard. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSort_applicationAndOrganizationHeaders_toggleAriaSort() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    reportList.waitForFullHeaderRow(EXPECTED_HEADERS.size());
+
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
+    assertions.shouldHaveAriaSort(reportList.organizationHeaderCell(), "none");
+
+    reportList.clickApplicationSort();
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "ascending");
+    reportList.clickApplicationSort();
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "descending");
+
+    reportList.clickOrganizationSort();
+    assertions.shouldHaveAriaSort(reportList.organizationHeaderCell(), "ascending");
+    reportList.clickOrganizationSort();
+    assertions.shouldHaveAriaSort(reportList.organizationHeaderCell(), "descending");
+
+    assertions.shouldNotBeSortable(reportList.sourceColumnHeader());
+  }
+
+  /** Stage columns aren't sortable; click must be a no-op for aria-sort on every header. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSort_stageColumnHeader_isNotSortable() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    reportList.waitForFullHeaderRow(EXPECTED_HEADERS.size());
+
+    assertions.shouldNotBeSortable(reportList.sourceColumnHeader());
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
+
+    reportList.sourceColumnHeader().click();
+
+    assertions.shouldNotBeSortable(reportList.sourceColumnHeader());
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
+    assertions.shouldHaveAriaSort(reportList.organizationHeaderCell(), "none");
+  }
+
+  /** Asserts the AT-facing accessible name; the sibling test covers aria-sort on the th cell. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSort_indicatorReflectsAscendingDescending() {
+    ReportListPage reportList = new ReportListPage();
+    reportList.waitForFullHeaderRow(EXPECTED_HEADERS.size());
+
+    Locator appSortButton = reportList.sortButtonOf(reportList.applicationHeaderCell());
+
+    // RSC NxTableCell.tsx accessible-name format: `<headerText> <ariaSort>`.
+    assertThat(appSortButton).hasAccessibleName("Application unsorted");
+    reportList.clickApplicationSort();
+    assertThat(appSortButton).hasAccessibleName("Application ascending");
+    reportList.clickApplicationSort();
+    assertThat(appSortButton).hasAccessibleName("Application descending");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCell_threatCountsRendered() {
+    ReportListPage reportList = new ReportListPage();
+
+    Locator firstRow = reportList.firstRow();
+    assertThat(firstRow).isVisible();
+    Locator buildCell = reportList.buildCellOf(firstRow);
+    assertThat(reportList.criticalCounterIn(buildCell)).isVisible();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCell_sourcePendingState() {
+    tempEntity.newSourceControlEvaluationEvent(app);
+
+    playwrightRefreshOrOpen(ReportListPage.url());
+
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    assertions.shouldShowSourcePendingState(reportList.firstRow());
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCellLinks_dualMode_showsReportAndPriorities() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    Locator firstRow = reportList.firstRow();
+    assertThat(firstRow).isVisible();
+
+    assertions.shouldShowBothReportAndPrioritiesLinks(firstRow);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testStageCellLinks_developerMode_onlyDeveloperPrioritiesLink() {
+    playwrightRefreshOrOpen(ReportListPage.developerPrioritiesUrl());
+
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    Locator firstRow = reportList.firstRow();
+    assertThat(firstRow).isVisible();
+
+    assertions.shouldShowOnlyDeveloperPrioritiesLink(firstRow);
+  }
+
+  /** N+1 apps so page-1 fills to {@link #LOAD_MORE_PAGE_SIZE}; page-2's single row hides the button. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testLoadMoreResults_buttonAppendsNextPage() {
+    int totalApps = LOAD_MORE_PAGE_SIZE + 1;
+    tempEntity.newApplications(app.getOrganizationId(), totalApps - 1);
+
+    playwrightRefreshOrOpen(ReportListPage.url());
+
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    assertions.shouldHaveRowCount(LOAD_MORE_PAGE_SIZE);
+    assertions.shouldShowLoadMoreButton();
+
+    reportList.loadButton().click();
+
+    assertions.shouldHaveRowCount(totalApps);
+    assertThat(reportList.loadButton()).hasCount(0);
+  }
+
+  /** Show Contact lazy-loads the contact-info via the application services-summary endpoint. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testContactColumn_loadedState_displaysName() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    Locator firstRow = reportList.firstRow();
+    assertions.shouldShowShowContactButton(firstRow);
+    reportList.showContactButtonOf(firstRow).click();
+
+    assertions.shouldShowLoadedContactName(firstRow, USER_FIRST_NAME + " " + USER_LAST_NAME);
+  }
+
+  /** Latch holds the response so the spinner is observable; avoids the banned {@code page.waitForTimeout}. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testContactColumn_loadingState_showsSpinner() {
+    CountDownLatch release = new CountDownLatch(1);
+    page.route(CONTACT_ENDPOINT_GLOB, route -> {
+      try {
+        release.await(15, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      route.resume();
+    });
+    try {
+      ReportListPage reportList = new ReportListPage();
+      ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+      Locator firstRow = reportList.firstRow();
+      reportList.showContactButtonOf(firstRow).click();
+      assertions.shouldShowContactLoadingSpinner(firstRow);
+    }
+    finally {
+      release.countDown();
+      page.unrouteAll();
+    }
+  }
+
+  /** 500 → {@code reportsSlice.loadContactNameRejected} → renders the error-icon block. */
+  @Test
+  @Category(RegressionTest.class)
+  public void testContactColumn_errorState_showsErrorIconAndText() {
+    page.route(CONTACT_ENDPOINT_GLOB,
+        route -> route.fulfill(new Route.FulfillOptions().setStatus(500)));
+    try {
+      ReportListPage reportList = new ReportListPage();
+      ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+      Locator firstRow = reportList.firstRow();
+      reportList.showContactButtonOf(firstRow).click();
+      assertions.shouldShowContactErrorState(firstRow);
+    }
+    finally {
+      page.unrouteAll();
+    }
+  }
+
+  /** {@code doSort} short-circuits on an empty result set so {@code aria-sort} stays "none". */
+  @Test
+  @Category(RegressionTest.class)
+  public void testSort_disabledWhenNoData() {
+    ReportListPage reportList = new ReportListPage();
+    ReportListPageAssertions assertions = new ReportListPageAssertions(reportList);
+
+    reportList.typeFilter(NO_MATCH_FILTER);
+    assertions.shouldShowEmptyMessage();
+
+    reportList.clickApplicationSort();
+
+    assertions.shouldHaveAriaSort(reportList.applicationHeaderCell(), "none");
+  }
+
+  private static final String REFERENCE_POLICIES_RESOURCE = "/reference-policies-v3.json";
 
   private void seedOrgAppUserAndReports() throws IOException {
-    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
+    URL referencePolicyUrl = getClass().getResource(REFERENCE_POLICIES_RESOURCE);
+    if (referencePolicyUrl == null) {
+      throw new IllegalStateException("Missing classpath resource: " + REFERENCE_POLICIES_RESOURCE);
+    }
     PolicyExportResult referencePolicies =
         JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
 

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.playwright.pages;
 
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 
 /**
@@ -28,6 +29,16 @@ public class SystemNoticePage
     return locator(ROOT);
   }
 
+  public Locator pageHeading() {
+    return page.getByRole(AriaRole.HEADING,
+        new Page.GetByRoleOptions().setName("System Notice").setExact(true));
+  }
+
+  public Locator tileHeading() {
+    return container().getByRole(AriaRole.HEADING,
+        new Locator.GetByRoleOptions().setName("Configure System Notice").setExact(true));
+  }
+
   public Locator explanation() {
     return locator("#system-notice-explanation");
   }
@@ -36,23 +47,20 @@ public class SystemNoticePage
     return byLabel("Notice Text");
   }
 
-  public Locator displayToggle() {
-    return byRole(AriaRole.CHECKBOX, "Enable Notice Display");
+  public Locator enabledToggle() {
+    return nxToggleLabel(container(), "Enable Notice Display");
   }
 
-  public Locator saveButton() {
-    return byRole(AriaRole.BUTTON, "Save");
+  public Locator enabledToggleInput() {
+    return nxToggleInput(container(), "Enable Notice Display");
+  }
+
+  public Locator updateButton() {
+    return container().getByRole(AriaRole.BUTTON,
+        new Locator.GetByRoleOptions().setName("Update").setExact(true));
   }
 
   public Locator cancelButton() {
-    return byRole(AriaRole.BUTTON, "Cancel");
-  }
-
-  public Locator messageInput() {
-    return byLabel("Notice Text");
-  }
-
-  public Locator enabledToggle() {
-    return byRole(AriaRole.CHECKBOX, "Enable Notice Display");
+    return container().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
   }
 }

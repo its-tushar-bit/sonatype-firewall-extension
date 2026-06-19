@@ -10,9 +10,11 @@ import com.sonatype.clm.testing.playwright.pages.BaseUrlConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
@@ -91,6 +93,23 @@ public class BaseUrlConfigurationPlaywrightTest
 
     assertDefaultFormState();
     assertThat(configPage.deleteButton()).isEnabled();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testBaseUrlNotSetNotice_routeShowsNotice() {
+    lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.BASE_URL, "");
+
+    playwrightRefreshOrOpen(BaseUrlConfigurationPage.url());
+
+    BaseUrlConfigurationPage configPage = new BaseUrlConfigurationPage();
+    assertThat(configPage.notSetNoticeBanner()).isVisible();
+    assertThat(configPage.notSetNoticeBanner()).containsText("The Base URL is not configured");
+  }
+
+  @After
+  public void restoreBaseUrl() {
+    lookup(SystemConfigurationPropertyDAO.class).set(SystemConfigurationProperty.BASE_URL, baseUrl);
   }
 
   private void assertDefaultFormState() {

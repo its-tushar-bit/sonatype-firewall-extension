@@ -66,4 +66,13 @@ public class ProxyConfigurationPageAssertions
   public void shouldHideDeleteModal() {
     assertThat(page.deleteModal()).isHidden();
   }
+
+  public void shouldRenderPageLayout() {
+    assertThat(page.hostName()).isVisible();
+    assertThat(page.port()).isVisible();
+    assertThat(page.username()).isVisible();
+    assertThat(page.password()).isVisible();
+    assertThat(page.excludeHosts()).isVisible();
+    assertThat(page.saveButton()).isVisible();
+  }
 }

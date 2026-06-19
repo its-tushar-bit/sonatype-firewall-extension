@@ -37,8 +37,6 @@ public class HeaderComponent
     return locator("#header-login-button");
   }
 
-  // --------------- User Menu ---------------
-
   public Locator userMenu() {
     return locator("#user-menu");
   }
@@ -115,12 +113,6 @@ public class HeaderComponent
     // NxModal does not set aria-labelledby in this RSC version, so the dialog has no accessible
     // name and getByRole(DIALOG,"Manage User Token") never resolves. Use the stable id.
     assertThat(locator("#user-token-modal")).isVisible();
-  }
-
-  // --------------- System Config Menu ---------------
-
-  public Locator systemConfigMenuButton() {
-    return locator("#system-config-menu button");
   }
 
 }

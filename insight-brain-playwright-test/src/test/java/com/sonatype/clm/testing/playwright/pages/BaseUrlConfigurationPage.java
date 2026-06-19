@@ -37,8 +37,16 @@ public class BaseUrlConfigurationPage
     return "/assets/index.html#/baseUrl";
   }
 
+  public static String notSetNoticeUrl() {
+    return "/assets/index.html#/baseUrlNotSetNotice";
+  }
+
   public Locator baseUrlAttribute() {
     return byLabel("Base URL");
+  }
+
+  public Locator notSetNoticeBanner() {
+    return locator("#base-url-not-set-notice");
   }
 
   /**

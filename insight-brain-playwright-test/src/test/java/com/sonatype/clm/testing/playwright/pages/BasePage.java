@@ -101,6 +101,31 @@ public abstract class BasePage
     return page.getByRole(role, new Page.GetByRoleOptions().setName(name));
   }
 
+  protected Locator nxToggleLabel(String accessibleName) {
+    return page.locator("label.nx-toggle")
+        .filter(new Locator.FilterOptions().setHasText(exactTextPattern(accessibleName)));
+  }
+
+  protected Locator nxToggleLabel(Locator scope, String accessibleName) {
+    return scope.locator("label.nx-toggle")
+        .filter(new Locator.FilterOptions().setHasText(exactTextPattern(accessibleName)));
+  }
+
+  private static Pattern exactTextPattern(String text) {
+    // NOTE: cannot use Pattern.quote() — Playwright serialises the pattern to JavaScript RegExp,
+    // which does not support \Q...\E. Callers are responsible for not passing regex metacharacters
+    // in label text; current callers all pass plain accessible-name strings.
+    return Pattern.compile("^" + text + "$");
+  }
+
+  protected Locator nxToggleInput(String accessibleName) {
+    return nxToggleLabel(accessibleName).locator("input.nx-toggle__input");
+  }
+
+  protected Locator nxToggleInput(Locator scope, String accessibleName) {
+    return nxToggleLabel(scope, accessibleName).locator("input.nx-toggle__input");
+  }
+
   /**
    * IQ global left navigation ({@code IqSidebarNav.jsx} / {@code NxGlobalSidebar2}).
    * Matches the frontend unit test: {@code getByRole('navigation', { name: 'global sidebar' })}.

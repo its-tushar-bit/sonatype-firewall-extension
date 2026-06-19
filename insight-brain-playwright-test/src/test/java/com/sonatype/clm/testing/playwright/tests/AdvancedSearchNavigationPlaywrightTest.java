@@ -5,8 +5,10 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.pages.AdvancedSearchConfigurationPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.playwright.pages.AdvancedSearchPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
@@ -83,5 +85,16 @@ public class AdvancedSearchNavigationPlaywrightTest
   private void ensureAdvancedSearchEnabled() {
     lookup(SystemConfigurationPropertyDAO.class)
         .set(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true");
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testAdvancedSearchConfigurationPageRenders() {
+    playwrightRefreshOrOpen(AdvancedSearchConfigurationPage.url());
+
+    AdvancedSearchConfigurationPage configPage = new AdvancedSearchConfigurationPage();
+    assertThat(configPage.container()).isVisible();
+    assertThat(configPage.pageHeading()).isVisible();
+    assertThat(configPage.tile()).isVisible();
   }
 }

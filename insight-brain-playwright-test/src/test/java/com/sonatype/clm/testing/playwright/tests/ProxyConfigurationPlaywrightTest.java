@@ -13,6 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 
@@ -125,5 +126,29 @@ public class ProxyConfigurationPlaywrightTest
     waitForSubmitMask();
 
     proxyAssertions.shouldBeEmpty();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProxyConfigurationPageRenders() {
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    ProxyConfigurationPageAssertions proxyAssertions = new ProxyConfigurationPageAssertions(proxyPage);
+
+    proxyAssertions.shouldHaveNoLoadError();
+    proxyAssertions.shouldRenderPageLayout();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testProxySaveConfiguration() {
+    ProxyConfigurationPage proxyPage = new ProxyConfigurationPage();
+    ProxyConfigurationPageAssertions proxyAssertions = new ProxyConfigurationPageAssertions(proxyPage);
+
+    proxyPage.fillMinimal(HOSTNAME, PORT);
+    proxyPage.save();
+    waitForSubmitMaskSuccess();
+
+    proxyAssertions.shouldShowHostname(HOSTNAME);
+    proxyAssertions.shouldShowPort(PORT);
   }
 }

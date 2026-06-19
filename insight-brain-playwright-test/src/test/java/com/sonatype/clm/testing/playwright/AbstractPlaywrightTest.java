@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.playwright;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,6 +27,7 @@ import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.TimeoutError;
 import com.microsoft.playwright.Tracing;
 import com.microsoft.playwright.Video;
+import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import com.sonatype.clm.testing.playwright.pages.BasePage;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
@@ -805,11 +809,52 @@ public abstract class AbstractPlaywrightTest
   }
 
   /**
+   * Waits for the success submit mask to disappear from the DOM. This is a best-effort cue that the
+   * save flow has settled, not a positive assertion that the save succeeded: {@code isHidden()}
+   * returns true if {@code .nx-submit-mask--success} has never been in the DOM, so a failed save
+   * (whose mask never transitions to the success state) will still pass this assertion.
+   *
+   * <p>
+   * Adding a prior {@code waitFor(VISIBLE)} does not close this gap &mdash; swallowing the timeout
+   * (which is required to keep fast successful saves stable) re-introduces the same false positive,
+   * and not swallowing it makes the helper flaky when the mask transitions faster than Playwright
+   * can observe.
+   *
+   * <p>
+   * <b>Contract for callers:</b> always follow this call with a downstream assertion that re-reads
+   * the persisted value (e.g. {@code shouldHaveHostname(...)}, {@code shouldShowBaselineDaysContaining(...)}).
+   * Do not rely on this method alone to detect save success.
+   */
+  protected void waitForSubmitMaskSuccess() {
+    PlaywrightAssertions.assertThat(page.locator(".nx-submit-mask--success").first()).isHidden();
+  }
+
+  /**
    * Normalises a fully-qualified test name to a filesystem-safe slug by collapsing any character
    * outside {@code [A-Za-z0-9._-]} to {@code _}. Prevents two test classes with the same method
    * name from clobbering each other's screenshot/trace/video artifacts.
    */
   private static String safeFileName(String name) {
     return name.replaceAll("[^A-Za-z0-9._-]", "_");
+  }
+
+  /**
+   * Read a classpath resource as a UTF-8 string. Shared helper used by tests that load XML/JSON
+   * fixtures (e.g. SAML IdP metadata, HDS stub bodies). No callers in this; consumed by tests
+   * added in subsequent parts of the regression suite split.
+   */
+  protected static String readClasspathUtf8(Class<?> contextClass, String absoluteResourcePath) {
+    InputStream in = contextClass.getResourceAsStream(absoluteResourcePath);
+    if (in == null) {
+      throw new IllegalArgumentException(
+          "Missing classpath resource: " + absoluteResourcePath
+              + " (relative to " + contextClass.getName() + ")");
+    }
+    try (in) {
+      return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Failed to read " + absoluteResourcePath, e);
+    }
   }
 }

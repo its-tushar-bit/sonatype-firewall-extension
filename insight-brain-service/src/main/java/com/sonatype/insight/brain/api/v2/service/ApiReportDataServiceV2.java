@@ -475,6 +475,70 @@ public class ApiReportDataServiceV2
     return getDataNoAuth(applicationPublicId, scanId, false, true, false);
   }
 
+  /**
+   * Lightweight variant of {@link #getDataNoAuth} for the developer priorities flow.
+   * <p>
+   * Loads ONLY {@code bom.json} and {@code dependencies.json}. Deliberately skips
+   * {@code security.json}, {@code licenses.json}, and {@code data.json} because the
+   * priorities flow ({@code DevelopmentPrioritiesService.getAllPrioritizedFindings})
+   * never reads the fields they would populate:
+   * <ul>
+   * <li>{@code security.json} → {@code component.securityData} — unread</li>
+   * <li>{@code licenses.json} → {@code component.licenseData} — unread</li>
+   * <li>{@code data.json} → {@code matchSummary}, {@code globalInformation} — unread</li>
+   * </ul>
+   * Loading them today only inflates heap and was the direct cause of OOM on
+   * large scans (CLM-39938). Security threat / reachability data shown in the
+   * priorities response comes from {@code policythreats.json}, which is loaded
+   * separately via {@link ReportService#getPolicyThreats} and is unaffected.
+   * <p>
+   * The returned DTO populates only the component fields the priorities flow reads:
+   * {@code hash}, {@code componentIdentifier}, {@code packageUrl}, {@code displayName},
+   * {@code matchState}, and {@code dependencyData}. The other component fields
+   * ({@code securityData}, {@code licenseData}, {@code aiModelData}, {@code pathnames},
+   * {@code filenames}, {@code cpe}, {@code swid}) will be null/empty by design.
+   * <p>
+   * Do NOT use this method for SBOM export, PDF generation, or the public
+   * {@code /api/v2/...} raw data endpoint — those flows require the full data via
+   * {@link #getDataNoAuth}. Routing them here WILL produce incorrect output.
+   */
+  public ApiReportRawDataDTOV2 getDataForPrioritization(
+      final String applicationPublicId,
+      final String scanId) throws IOException
+  {
+    Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
+    ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
+
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        BOM_JSON.getName(),
+        DEPENDENCIES_JSON.getName()));
+    ReportEntry bomEntry = entries.get(BOM_JSON.getName());
+    ReportEntry dependenciesEntry = entries.get(DEPENDENCIES_JSON.getName());
+
+    if (bomEntry == null || dependenciesEntry == null) {
+      throw new BadRequestException("The report with ID " + scanId + " contains no component data.");
+    }
+
+    List<Component> components = componentLoaderFactory.createComponentLoader(app)
+        .getAll(null /* license data */, null /* security data */, bomEntry.buf, dependenciesEntry.buf);
+
+    ApiReportRawDataDTOV2 data = new ApiReportRawDataDTOV2();
+    for (Component comp : components) {
+      ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+      component.hash = comp.getHash();
+      ComponentIdentifier componentIdentifier = comp.getComponentIdentifier();
+      component.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
+      component.packageUrl = StringUtils.isNotBlank(comp.getPackageUrl())
+          ? comp.getPackageUrl()
+          : (componentIdentifier != null ? PackageUrlIdentifier.toPackageUrl(componentIdentifier) : null);
+      component.displayName = comp.getDisplayName();
+      component.matchState = comp.getMatchState() != null ? comp.getMatchState().getId() : null;
+      populateDependencyData(comp, component);
+      data.components.add(component);
+    }
+    return data;
+  }
+
   public ApiReportRawDataDTOV2 getDataNoAuth(
       final String applicationPublicId,
       final String scanId,
@@ -546,7 +610,7 @@ public class ApiReportDataServiceV2
           ComponentDisplayNameUtil.fromIdentifier(comp.getComponentIdentifier());
       component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
 
-      component.matchState = comp.getMatchState().getId();
+      component.matchState = comp.getMatchState() != null ? comp.getMatchState().getId() : null;
       component.proprietary = comp.isProprietary();
       setPathnames(comp, component);
       setFilenames(comp, component);

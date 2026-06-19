@@ -42,11 +42,11 @@ public class DevelopmentPrioritiesReportService
       final String scanId)
   {
     try {
-      return this.apiReportDataServiceV2.getDataNoAuthWithDependencyData(applicationPublicId, scanId);
+      return this.apiReportDataServiceV2.getDataForPrioritization(applicationPublicId, scanId);
     }
     catch (final IOException ioException) {
-      log.warn("IOException fetching bom information from report files (" +
-          applicationPublicId + ", " + scanId + "): " + ioException.getMessage());
+      log.warn("IOException fetching bom and dependencies data from report files ({}, {}): {}",
+          applicationPublicId, scanId, ioException.getMessage());
       throw new NotFoundException(NOT_FOUND_ERROR_MESSAGE);
     }
   }

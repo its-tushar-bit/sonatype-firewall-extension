@@ -408,6 +408,132 @@ public class ApiReportDataServiceV2Test
     reportDataService.getRawData(app.getPublicId(), scanId);
   }
 
+  /**
+   * CLM-39938: {@code getDataForPrioritization} populates the fields the priorities flow needs.
+   */
+  @Test
+  public void testGetDataForPrioritization_populatesNeededFields() throws Exception {
+    makeReport("report-1");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(3);
+
+    ApiReportComponentDTOV2 first = data.components.get(0);
+    assertThat(first.hash).isEqualTo("5398a935d7fbeccac7b1");
+    assertThat(first.matchState).isEqualTo("exact");
+    assertThat(first.componentIdentifier).isNotNull();
+    assertThat(first.displayName).isEqualTo("com.sonatype.insight.scan : insight-scanner-archive : 1.0.0-SNAPSHOT");
+    assertThat(first.packageUrl)
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(first.dependencyData).isNotNull();
+    assertThat(first.dependencyData.directDependency).isTrue();
+  }
+
+  /**
+   * CLM-39938: {@code getDataForPrioritization} must NOT populate security/license/AI model data —
+   * those would require loading {@code security.json} / {@code licenses.json}, the very files
+   * the fix avoids loading. Asserting null here is a regression guard: if a future refactor
+   * accidentally re-introduces those file loads, this test fails.
+   */
+  @Test
+  public void testGetDataForPrioritization_doesNotPopulateUnusedFields() throws Exception {
+    makeReport("report-1");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+
+    assertThat(data.components).isNotEmpty();
+    for (ApiReportComponentDTOV2 component : data.components) {
+      assertThat(component.securityData).as("securityData must be null - security.json is not loaded").isNull();
+      assertThat(component.licenseData).as("licenseData must be null - licenses.json is not loaded").isNull();
+      assertThat(component.aiModelData).as("aiModelData must be null - not populated by lightweight method").isNull();
+      assertThat(component.pathnames).as("pathnames must be empty - not populated by lightweight method").isEmpty();
+      assertThat(component.filenames).as("filenames must be empty - not populated by lightweight method").isEmpty();
+      assertThat(component.sha256).as("sha256 must be null - not populated by lightweight method").isNull();
+      assertThat(component.proprietary).as("proprietary must be false - not populated by lightweight method").isFalse();
+    }
+  }
+
+  /**
+   * CLM-39938: missing report contents must throw {@link BadRequestException} (same contract
+   * as {@link ApiReportDataServiceV2#getDataNoAuth} for parity).
+   */
+  @Test(expected = BadRequestException.class)
+  public void testGetDataForPrioritization_emptyReportThrows() throws Exception {
+    makeEmptyReport();
+    reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+  }
+
+  /**
+   * CLM-39938: a partial report with {@code bom.json} but no {@code dependencies.json}
+   * (e.g. an older scan) must also be rejected — the null check in
+   * {@link ApiReportDataServiceV2#getDataForPrioritization} fires when either entry is missing.
+   */
+  @Test(expected = BadRequestException.class)
+  public void testGetDataForPrioritization_missingDependenciesJsonThrows() throws Exception {
+    makeEmptyReport();
+    populateBom("report-1", "bom.json");
+    reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+  }
+
+  /**
+   * CLM-39938: regression guard for the null-componentIdentifier fix.
+   * Unknown components have a null {@code componentIdentifier} (the 3rd component in
+   * {@code report-1} is the unknown {@code sample-application.zip}). The lightweight method
+   * must not NPE when computing {@code packageUrl} from a null identifier — the guarded
+   * code returns null for {@code packageUrl} in that case.
+   */
+  @Test
+  public void testGetDataForPrioritization_unknownComponentHasNullPackageUrl() throws Exception {
+    makeReport("report-1");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+
+    assertThat(data.components).hasSize(3);
+    ApiReportComponentDTOV2 unknown = data.components.get(2);
+    assertThat(unknown.matchState).isEqualTo("unknown");
+    assertThat(unknown.componentIdentifier).as("unknown components have null componentIdentifier").isNull();
+    assertThat(unknown.packageUrl).as("packageUrl must be null when componentIdentifier is null - no NPE").isNull();
+    assertThat(unknown.displayName).isEqualTo("sample-application.zip");
+  }
+
+  /**
+   * CLM-39938: contract preservation test for the priorities-flow fields.
+   * <p>
+   * Proves that {@link ApiReportDataServiceV2#getDataForPrioritization} returns,
+   * for every field consumed by {@code DevelopmentPrioritiesService.getAllPrioritizedFindings}
+   * ({@code hash}, {@code componentIdentifier}, {@code packageUrl}, {@code displayName},
+   * {@code matchState}, {@code dependencyData}), the exact same values as the legacy
+   * {@link ApiReportDataServiceV2#getDataNoAuthWithDependencyData} path that loaded all 5
+   * report files. The lightweight method loads only {@code bom.json} + {@code dependencies.json};
+   * any divergence here would mean the OOM fix changed user-visible response data.
+   * <p>
+   * This guards against future refactors silently breaking the contract that priorities
+   * response JSON is byte-for-byte identical to the pre-fix output.
+   */
+  @Test
+  public void testGetDataForPrioritization_matchesLegacyDataForPrioritiesFields() throws Exception {
+    makeReport("report-1");
+
+    ApiReportRawDataDTOV2 legacy = reportDataService.getDataNoAuthWithDependencyData(app.getPublicId(), scanId);
+    ApiReportRawDataDTOV2 optimized = reportDataService.getDataForPrioritization(app.getPublicId(), scanId);
+
+    assertThat(optimized.components).hasSameSizeAs(legacy.components);
+    for (int i = 0; i < optimized.components.size(); i++) {
+      ApiReportComponentDTOV2 o = optimized.components.get(i);
+      ApiReportComponentDTOV2 l = legacy.components.get(i);
+      assertThat(o.hash).as("hash[%d]", i).isEqualTo(l.hash);
+      assertThat(o.componentIdentifier).as("componentIdentifier[%d]", i).isEqualTo(l.componentIdentifier);
+      assertThat(o.packageUrl).as("packageUrl[%d]", i).isEqualTo(l.packageUrl);
+      assertThat(o.displayName).as("displayName[%d]", i).isEqualTo(l.displayName);
+      assertThat(o.matchState).as("matchState[%d]", i).isEqualTo(l.matchState);
+      assertThat(o.dependencyData).as("dependencyData[%d]", i)
+          .usingRecursiveComparison()
+          .isEqualTo(l.dependencyData);
+    }
+  }
+
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigEnabled() throws Exception {
     ComponentIdentifier innerSourceId = ComponentIdentifier

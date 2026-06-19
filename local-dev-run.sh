@@ -11,7 +11,9 @@
 # This gives you an overall running system accessible at port 8070, with hot-reloading of frontend
 # code changes (though you must explicitly refresh the browser).
 #
-# Usage: ./local-dev-run.sh
+# Usage: ./local-dev-run.sh [config-yaml-path]
+
+CONFIG_FILE="${1:-src/test/resources/config-dev.yml}"
 
 # Start frontend in background (proxies API calls to port 8072)
 (cd insight-brain-frontend && yarn start) &
@@ -19,7 +21,7 @@
 # Start backend in foreground on port 8072
 cd insight-brain-service && mvn exec:java \
     -Dexec.mainClass=com.sonatype.insight.brain.spring.InsightBrainSpringApplication \
-    -Dexec.args="server src/test/resources/config-dev.yml" \
+    -Dexec.args="server $CONFIG_FILE" \
     -Ddw.server.applicationConnectors[0].port=8072
 
 # If the backend process exits, wait here until the user Ctrl-Cs or the frontend dies.  Without this, backend crashes

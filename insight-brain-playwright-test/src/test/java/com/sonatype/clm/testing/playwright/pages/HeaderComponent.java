@@ -115,4 +115,16 @@ public class HeaderComponent
     assertThat(locator("#user-token-modal")).isVisible();
   }
 
+  public Locator systemConfigMenuButton() {
+    return locator("#system-configuration-menu button");
+  }
+
+  public void navigateToSystemPreference(String menuItemLabel) {
+    systemConfigMenuButton().click();
+    Locator menuItem = locator("#system-configuration-menu")
+        .getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(menuItemLabel).setExact(true));
+    assertThat(menuItem).isVisible();
+    menuItem.click();
+  }
+
 }

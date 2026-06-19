@@ -44,4 +44,71 @@ public class UserManagementPageAssertions
     assertThat(page.passwordInput()).hasValue("");
     assertThat(page.passwordValidateInput()).hasValue("");
   }
+
+  public void shouldShowCreateUserButton() {
+    assertThat(page.createUserButton()).isVisible();
+  }
+
+  public void shouldShowEditForm() {
+    assertThat(page.editForm()).isVisible();
+  }
+
+  public void shouldHaveEditFirstName(String expected) {
+    assertThat(page.editFirstNameInput()).hasValue(expected);
+  }
+
+  public void shouldHaveEditLastName(String expected) {
+    assertThat(page.editLastNameInput()).hasValue(expected);
+  }
+
+  public void shouldHaveEditEmail(String expected) {
+    assertThat(page.editEmailInput()).hasValue(expected);
+  }
+
+  public void shouldHaveEditFormValidationErrors() {
+    assertThat(page.editForm()).hasClass(BasePage.cssClassPattern("nx-form--has-validation-errors"));
+  }
+
+  public void shouldNotHaveEditFormValidationErrors() {
+    assertThat(page.editForm()).not().hasClass(BasePage.cssClassPattern("nx-form--has-validation-errors"));
+  }
+
+  public void shouldShowValidationErrors() {
+    assertThat(page.userFormValidationError()).isVisible();
+  }
+
+  public void shouldShowUserFormSubmitButton() {
+    assertThat(page.userFormSubmitButton()).isVisible();
+  }
+
+  public void shouldShowPageTitle(String expectedTitle) {
+    assertThat(page.pageTitle()).hasText(expectedTitle);
+  }
+
+  public void shouldShowDeleteError() {
+    assertThat(page.deleteSubmitError()).isVisible();
+  }
+
+  public void shouldShowActivityTrackingTabs() {
+    assertThat(page.tabList()).isVisible();
+    assertThat(page.usersTab()).isVisible();
+    assertThat(page.activityTab()).isVisible();
+  }
+
+  public void shouldHideTabs() {
+    assertThat(page.tabList()).isHidden();
+  }
+
+  public void shouldShowActivityTab() {
+    assertThat(page.activityTab()).isVisible();
+  }
+
+  public void shouldShowActivityView() {
+    assertThat(page.userList()).isHidden();
+    assertThat(page.activityTable()).isVisible();
+  }
+
+  public void shouldHaveUserListItemContaining(String username, String expectedText) {
+    assertThat(page.userListItem(username)).containsText(expectedText);
+  }
 }

@@ -252,16 +252,21 @@ public abstract class BasePage
   }
 
   /**
-   * Cache compiled {@link Pattern}s for class-name assertions and quote the class name so
-   * hyphens/underscores in BEM-style names like {@code my-app__button--disabled} are matched
-   * literally. Class boundaries are detected via {@code (?<![\w-]) ... (?![\w-])} so
-   * {@code foo} does not match inside {@code foo-bar} — {@code \b} alone would because
-   * {@code \b} treats {@code -} as a word boundary.
+   * Cache compiled {@link Pattern}s for class-name assertions. Class boundaries are detected via
+   * {@code (?<![\w-]) ... (?![\w-])} so {@code foo} does not match inside {@code foo-bar} —
+   * {@code \b} alone would because {@code \b} treats {@code -} as a word boundary.
+   *
+   * <p>
+   * Cannot use {@link Pattern#quote(String)}: Playwright serialises the pattern to Chromium's
+   * JavaScript {@code RegExp} which does not support {@code \Q...\E} (they parse as literal
+   * {@code Q}/{@code E}). We escape regex metacharacters character-by-character instead.
    */
   private static final ConcurrentMap<String, Pattern> CSS_CLASS_PATTERN_CACHE = new ConcurrentHashMap<>();
 
-  private static Pattern cssClassPattern(String cssClass) {
+  private static final Pattern REGEX_METACHARS = Pattern.compile("[\\\\^$.|?*+()\\[\\]{}]");
+
+  static Pattern cssClassPattern(String cssClass) {
     return CSS_CLASS_PATTERN_CACHE.computeIfAbsent(cssClass,
-        c -> Pattern.compile(".*(?<![\\w-])" + Pattern.quote(c) + "(?![\\w-]).*"));
+        c -> Pattern.compile(".*(?<![\\w-])" + REGEX_METACHARS.matcher(c).replaceAll("\\\\$0") + "(?![\\w-]).*"));
   }
 }

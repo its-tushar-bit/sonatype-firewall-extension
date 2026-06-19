@@ -5,10 +5,12 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
-import com.sonatype.clm.testing.playwright.pages.DashboardPage;
+import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.SamlConfigurationPageAssertions;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 
 import org.junit.After;
@@ -50,9 +52,19 @@ public class SamlConfigurationPlaywrightTest
 
   private static final String FEEDBACK_URL = "http://links.sonatype.com/products/nxiq/feedback/saml";
 
+  private static final String VALID_IDP_METADATA_XML =
+      readClasspathUtf8(SamlConfigurationPlaywrightTest.class, "/saml/valid-idp-metadata.xml");
+
+  private SamlConfigurationPage samlPage;
+
+  private SamlConfigurationPageAssertions samlAssertions;
+
   @Before
   public void openSamlConfigPageAsAdmin() {
-    playwrightLoginAdminAt(DashboardPage.url());
+    playwrightRefreshOrOpen(SamlConfigurationPage.url());
+    playwrightLogin();
+    samlPage = new SamlConfigurationPage();
+    samlAssertions = new SamlConfigurationPageAssertions(samlPage);
   }
 
   @After
@@ -64,9 +76,8 @@ public class SamlConfigurationPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testDefaultState() {
-    playwrightRefreshOrOpen(SamlConfigurationPage.url());
+    navigateToSamlPage();
 
-    SamlConfigurationPage samlPage = new SamlConfigurationPage();
     assertThat(samlPage.identityProviderName()).hasValue(DEFAULT_IDP_NAME);
     assertThat(samlPage.identityProviderMetadataXml()).isEmpty();
     assertThat(samlPage.usernameAttribute()).hasValue(DEFAULT_USERNAME_ATTR);
@@ -81,9 +92,8 @@ public class SamlConfigurationPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testCancelRevertsAllFields() {
-    playwrightRefreshOrOpen(SamlConfigurationPage.url());
+    navigateToSamlPage();
 
-    SamlConfigurationPage samlPage = new SamlConfigurationPage();
     samlPage.identityProviderName().fill(EDIT_IDP_NAME);
     samlPage.usernameAttribute().fill(EDIT_USERNAME_ATTR);
     samlPage.firstNameAttribute().fill(EDIT_FIRST_NAME_ATTR);
@@ -104,10 +114,62 @@ public class SamlConfigurationPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testDocumentationLinks() {
-    playwrightRefreshOrOpen(SamlConfigurationPage.url());
+    navigateToSamlPage();
 
-    SamlConfigurationPage samlPage = new SamlConfigurationPage();
     assertThat(samlPage.documentationLink()).hasAttribute("href", DOCUMENTATION_URL);
     assertThat(samlPage.feedbackLink()).hasAttribute("href", FEEDBACK_URL);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSamlConfigurationPageRenders() {
+    new HeaderComponent().navigateToSystemPreference("SAML");
+    assertThat(samlPage.saveButton()).isVisible();
+
+    samlAssertions.shouldRenderPageLayout();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testSaveConfiguration() {
+    navigateToSamlPage();
+
+    samlPage.identityProviderMetadataXml().fill(VALID_IDP_METADATA_XML);
+
+    samlAssertions.shouldShowSaveButtonEnabled();
+    samlPage.saveButton().click();
+    waitForSubmitMaskSuccess();
+    samlAssertions.shouldShowDeleteButtonEnabled();
+
+    navigateToSamlPage();
+    assertThat(samlPage.identityProviderMetadataXml()).not().isEmpty();
+    samlAssertions.shouldShowDeleteButtonEnabled();
+    samlAssertions.shouldShowIqServerMetadataDownloadEnabled();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testDeleteConfiguration() {
+    navigateToSamlPage();
+
+    samlPage.identityProviderMetadataXml().fill(VALID_IDP_METADATA_XML);
+    samlPage.saveButton().click();
+    waitForSubmitMask();
+
+    navigateToSamlPage();
+    samlAssertions.shouldShowDeleteButtonEnabled();
+    samlPage.deleteButton().click();
+
+    samlAssertions.shouldShowDeleteModal();
+    samlPage.deleteModalConfirmButton().click();
+    waitForSubmitMask();
+
+    navigateToSamlPage();
+    samlAssertions.shouldShowDeleteButtonDisabled();
+  }
+
+  private void navigateToSamlPage() {
+    playwrightRefreshOrOpen(SamlConfigurationPage.url());
+    assertThat(samlPage.saveButton()).isVisible();
   }
 }

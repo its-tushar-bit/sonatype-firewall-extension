@@ -18,6 +18,26 @@ public class AdministratorsPageAssertions
     this.page = page;
   }
 
+  public void shouldShowContainer() {
+    assertThat(page.container()).isVisible();
+  }
+
+  public void shouldShowPageTitle() {
+    assertThat(page.pageTitle()).isVisible();
+  }
+
+  public void shouldShowTileHeader() {
+    assertThat(page.tileHeader()).isVisible();
+  }
+
+  public void shouldShowTableHeaderRoleColumn(String expected) {
+    assertThat(page.tableHeaderRoleCell()).hasText(expected);
+  }
+
+  public void shouldShowTableHeaderMembersColumn(String expected) {
+    assertThat(page.tableHeaderMembersCell()).hasText(expected);
+  }
+
   public void shouldHaveRowCount(int expected) {
     assertThat(page.rows()).hasCount(expected);
   }
@@ -28,5 +48,19 @@ public class AdministratorsPageAssertions
 
   public void rowShouldHaveMembers(int rowIndex, String expectedMembers) {
     assertThat(page.membersCell(rowIndex)).containsText(expectedMembers);
+  }
+
+  public void shouldShowChevron(int rowIndex) {
+    assertThat(page.chevron(rowIndex)).isVisible();
+  }
+
+  public void shouldShowErrorWithRetryButton() {
+    assertThat(page.errorMessage()).isVisible();
+    assertThat(page.retryButton()).isVisible();
+  }
+
+  public void shouldShowEmptyMessage(String expected) {
+    assertThat(page.emptyMessage()).isVisible();
+    assertThat(page.emptyMessage()).containsText(expected);
   }
 }

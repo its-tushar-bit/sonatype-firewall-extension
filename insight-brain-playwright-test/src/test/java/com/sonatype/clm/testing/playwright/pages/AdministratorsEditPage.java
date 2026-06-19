@@ -29,8 +29,6 @@ public class AdministratorsEditPage
     return locator(ROOT);
   }
 
-  // --------------- Role Details ---------------
-
   public Locator roleDetailsSection() {
     return locator(ROOT + " .nx-read-only");
   }
@@ -42,8 +40,6 @@ public class AdministratorsEditPage
   public Locator roleDescription() {
     return locator(ROOT + " .nx-read-only .nx-read-only__data").last();
   }
-
-  // --------------- Add Members Form ---------------
 
   private static final String FORM = ROOT + " #administrators-add-members-form";
 
@@ -77,8 +73,6 @@ public class AdministratorsEditPage
   public Locator removeAllButton() {
     return locator(FORM + " .nx-transfer-list__move-all");
   }
-
-  // --------------- Actions ---------------
 
   public void searchAndSelectResult(String query, int resultIndex) {
     searchInput().fill(query);

@@ -5,7 +5,12 @@
  */
 package com.sonatype.clm.testing.playwright.tests;
 
+import java.util.regex.Pattern;
+
+import com.microsoft.playwright.Route;
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
+import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPage;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsEditPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.AdministratorsPage;
@@ -16,11 +21,11 @@ import com.sonatype.clm.testing.playwright.utils.PlaywrightWaitUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * Coverage for the System Administrators screen
@@ -87,12 +92,38 @@ public class AdministratorsPlaywrightTest
 
   private static final String SEARCH_WILDCARD = "*";
 
+  private static final Pattern ROLE_MEMBERSHIPS_URL =
+      Pattern.compile(".*/api/v2/roleMemberships/global/roles.*");
+
+  private static final String EMPTY_RESPONSE = "{\"membersByRole\":[]}";
+
+  private static final String ERROR_RESPONSE = "{\"statusCode\":500,\"message\":\"Internal Server Error\"}";
+
+  private static final String EMPTY_MESSAGE = "No data found.";
+
+  private static final String TABLE_HEADER_ROLE = "Role";
+
+  private static final String TABLE_HEADER_MEMBERS = "Members";
+
+  private AdministratorsPage adminsPage;
+
+  private AdministratorsPageAssertions adminsAssertions;
+
+  private AdministratorsEditPage editPage;
+
+  private AdministratorsEditPageAssertions editAssertions;
+
   @Before
   public void seedUsersAndOpenAsAdmin() {
     seedNonAdminUsers();
 
     playwrightRefreshOrOpen(AdministratorsPage.url());
     playwrightLogin();
+
+    adminsPage = new AdministratorsPage();
+    adminsAssertions = new AdministratorsPageAssertions(adminsPage);
+    editPage = new AdministratorsEditPage();
+    editAssertions = new AdministratorsEditPageAssertions(editPage);
   }
 
   private void seedNonAdminUsers() {
@@ -120,32 +151,31 @@ public class AdministratorsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testDefaultRolesAndBuiltinUsers() {
-    AdministratorsPage adminsPage = new AdministratorsPage();
-    AdministratorsPageAssertions adminsAssertions = new AdministratorsPageAssertions(adminsPage);
-
+    adminsAssertions.shouldShowContainer();
+    adminsAssertions.shouldShowPageTitle();
+    adminsAssertions.shouldShowTileHeader();
+    adminsAssertions.shouldShowTableHeaderRoleColumn(TABLE_HEADER_ROLE);
+    adminsAssertions.shouldShowTableHeaderMembersColumn(TABLE_HEADER_MEMBERS);
     adminsAssertions.shouldHaveRowCount(EXPECTED_DEFAULT_ROLE_COUNT);
 
     assertThat(adminsPage.row(0)).isVisible();
     adminsAssertions.rowShouldHaveRole(0, POLICY_ADMIN_ROLE_NAME);
     adminsAssertions.rowShouldHaveMembers(0, BUILTIN_ADMIN_LIST_LABEL);
-    assertThat(adminsPage.chevron(0)).isVisible();
+    adminsAssertions.shouldShowChevron(0);
 
     assertThat(adminsPage.row(1)).isVisible();
     adminsAssertions.rowShouldHaveRole(1, SYSTEM_ADMIN_ROLE_NAME);
     adminsAssertions.rowShouldHaveMembers(1, BUILTIN_ADMIN_LIST_LABEL);
-    assertThat(adminsPage.chevron(1)).isVisible();
+    adminsAssertions.shouldShowChevron(1);
   }
 
   @Test
   @Category(SanityTest.class)
   public void testClickEdit() {
-    AdministratorsPage adminsPage = new AdministratorsPage();
     assertThat(adminsPage.row(0)).isVisible();
     PlaywrightWaitUtils.clickAndWaitForUrlContains(page, adminsPage.row(0),
         AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
 
-    AdministratorsEditPage editPage = new AdministratorsEditPage();
-    AdministratorsEditPageAssertions editAssertions = new AdministratorsEditPageAssertions(editPage);
     editAssertions.shouldBeVisible();
     editAssertions.shouldShowRoleName(POLICY_ADMIN_ROLE_NAME);
     editAssertions.shouldShowRoleDescription(POLICY_ADMIN_ROLE_DESCRIPTION);
@@ -157,18 +187,12 @@ public class AdministratorsPlaywrightTest
   @Test
   @Category(SanityTest.class)
   public void testSubmitAddMembersForm() {
-    AdministratorsPage adminsPage = new AdministratorsPage();
-    AdministratorsPageAssertions adminsAssertions = new AdministratorsPageAssertions(adminsPage);
-
     assertThat(adminsPage.row(0)).isVisible();
     adminsAssertions.rowShouldHaveRole(0, POLICY_ADMIN_ROLE_NAME);
     adminsAssertions.rowShouldHaveMembers(0, BUILTIN_ADMIN_LIST_LABEL);
 
     PlaywrightWaitUtils.clickAndWaitForUrlContains(page, adminsPage.row(0),
         AdministratorsEditPage.url(POLICY_ADMIN_ROLE_ID));
-
-    AdministratorsEditPage editPage = new AdministratorsEditPage();
-    AdministratorsEditPageAssertions editAssertions = new AdministratorsEditPageAssertions(editPage);
 
     editPage.searchAndAddByText(SEARCH_WILDCARD, ADDED_USER_MEMBER_ITEM);
     editAssertions.shouldHaveAddedItemCount(2);
@@ -199,5 +223,33 @@ public class AdministratorsPlaywrightTest
     assertThat(adminsPage.row(0)).isVisible();
     adminsAssertions.rowShouldHaveRole(0, POLICY_ADMIN_ROLE_NAME);
     adminsAssertions.rowShouldHaveMembers(0, BUILTIN_ADMIN_LIST_LABEL);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testAdministratorsTable_emptyState() {
+    page.route(ROLE_MEMBERSHIPS_URL, route -> route.fulfill(new Route.FulfillOptions()
+        .setStatus(200)
+        .setContentType("application/json")
+        .setBody(EMPTY_RESPONSE)));
+
+    playwrightRefreshOrOpen(AdministratorsPage.url());
+
+    adminsAssertions.shouldShowContainer();
+    adminsAssertions.shouldShowEmptyMessage(EMPTY_MESSAGE);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testAdministratorsTable_loadErrorWithRetryButton() {
+    page.route(ROLE_MEMBERSHIPS_URL, route -> route.fulfill(new Route.FulfillOptions()
+        .setStatus(500)
+        .setContentType("application/json")
+        .setBody(ERROR_RESPONSE)));
+
+    playwrightRefreshOrOpen(AdministratorsPage.url());
+
+    adminsAssertions.shouldShowContainer();
+    adminsAssertions.shouldShowErrorWithRetryButton();
   }
 }

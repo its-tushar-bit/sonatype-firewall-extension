@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.microsoft.playwright.options.AriaRole;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
@@ -36,8 +37,6 @@ public class UserManagementPage
     super();
   }
 
-  // --------------- URLs ---------------
-
   /** Users list (Administration → Users). Matches ui-router state {@code users} → url {@code /users}. */
   public static String url() {
     return "/assets/index.html#/users";
@@ -48,14 +47,36 @@ public class UserManagementPage
     return "/assets/index.html#/users/_new_";
   }
 
-  // --------------- List view locators ---------------
+  public Locator pageTitle() {
+    return locator("#user-title");
+  }
+
+  public Locator usersTab() {
+    return byRole(AriaRole.TAB, "Users");
+  }
+
+  public Locator activityTab() {
+    return byRole(AriaRole.TAB, "Activity");
+  }
+
+  public Locator tabList() {
+    return byRole(AriaRole.TABLIST);
+  }
+
+  public Locator activityTable() {
+    return locator("#user-activity-table");
+  }
+
+  public void clickActivityTab() {
+    activityTab().click();
+  }
 
   public Locator container() {
     return locator(ROOT);
   }
 
   public Locator createUserButton() {
-    return byRole(com.microsoft.playwright.options.AriaRole.BUTTON, "Create User");
+    return byRole(AriaRole.BUTTON, "Create User");
   }
 
   public Locator userList() {
@@ -66,7 +87,6 @@ public class UserManagementPage
     return locator(USER_LIST + " .nx-list__item");
   }
 
-  /** A list item whose visible text contains the given username (matches "username (First Last)"). */
   public Locator userListItem(String username) {
     return userListItems().filter(new Locator.FilterOptions().setHasText(username));
   }
@@ -78,8 +98,6 @@ public class UserManagementPage
   public Locator loadError() {
     return locator(ROOT + " .nx-alert--load-error");
   }
-
-  // --------------- Add User form locators ---------------
 
   public Locator userForm() {
     return locator(USER_FORM);
@@ -111,12 +129,12 @@ public class UserManagementPage
   }
 
   public Locator userFormSubmitButton() {
-    return userForm().getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+    return userForm().getByRole(AriaRole.BUTTON,
         new Locator.GetByRoleOptions().setName("Save"));
   }
 
   public Locator userFormCancelButton() {
-    return userForm().getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+    return userForm().getByRole(AriaRole.BUTTON,
         new Locator.GetByRoleOptions().setName("Cancel"));
   }
 
@@ -127,8 +145,6 @@ public class UserManagementPage
   public Locator userFormSubmitError() {
     return locator(USER_FORM + " .nx-form__submit-error");
   }
-
-  // --------------- Edit User form (existing patterns) ---------------
 
   public Locator editForm() {
     return locator("#user-edit");
@@ -153,11 +169,15 @@ public class UserManagementPage
   }
 
   public Locator deleteUserButton() {
-    return byRole(com.microsoft.playwright.options.AriaRole.BUTTON, "Delete User");
+    return byRole(AriaRole.BUTTON, "Delete User");
+  }
+
+  public Locator deleteSubmitError() {
+    return locator("#delete-user-modal .nx-alert--load-error");
   }
 
   public Locator resetPasswordButton() {
-    return byRole(com.microsoft.playwright.options.AriaRole.BUTTON, "Reset Password");
+    return byRole(AriaRole.BUTTON, "Reset Password");
   }
 
   // Copy Password Modal (Reset Password modal)
@@ -173,8 +193,6 @@ public class UserManagementPage
   public Locator copyPasswordInput() {
     return locator("#copy-password-modal .nx-text-input__input");
   }
-
-  // --------------- Actions ---------------
 
   public void clickAddUser() {
     createUserButton().click();
@@ -236,14 +254,10 @@ public class UserManagementPage
     editFormSubmitButton().click();
   }
 
-  // --------------- Delete helpers (UI-driven cleanup) ---------------
-
-  /** Trash-can delete button on a user list row. */
   public Locator deleteUserListItemButton(String username) {
     return userListItem(username).locator(".iq-user-list-item__delete-btn");
   }
 
-  /** Confirmation modal shown after clicking a row's trash-can icon. */
   public Locator deleteConfirmModalSubmit() {
     // NxModal does not set aria-labelledby in this RSC version; byRole(DIALOG) is too broad.
     // The original pattern targets the submit button inside any open NxModal.

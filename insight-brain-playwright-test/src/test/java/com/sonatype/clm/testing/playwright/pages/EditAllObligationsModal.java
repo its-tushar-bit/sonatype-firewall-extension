@@ -20,8 +20,6 @@ public class EditAllObligationsModal
     super();
   }
 
-  // --------------- Locators ---------------
-
   public Locator modal() {
     return locator(MODAL);
   }
@@ -45,8 +43,6 @@ public class EditAllObligationsModal
   private Locator saveButton() {
     return locator(MODAL + " .nx-btn--primary");
   }
-
-  // --------------- Actions ---------------
 
   public void fillComment(String comment) {
     commentInput().fill(comment);

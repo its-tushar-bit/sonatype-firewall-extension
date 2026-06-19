@@ -52,7 +52,6 @@ public class UserTokenModalAssertions
   public void shouldShowExistingTokenState() {
     assertThat(page.modal())
         .isVisible(new LocatorAssertions.IsVisibleOptions().setTimeout(PlaywrightTiming.ELEMENT_TIMEOUT_MS));
-    assertThat(page.deleteUserTokenButton()).isVisible();
     assertThat(page.tokenExistenceAlert()).isVisible();
     assertThat(page.deleteUserTokenButton()).isVisible();
     assertThat(page.generateUserTokenButton()).isHidden();

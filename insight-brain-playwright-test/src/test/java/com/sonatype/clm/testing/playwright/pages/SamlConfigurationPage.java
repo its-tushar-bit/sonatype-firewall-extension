@@ -8,9 +8,6 @@ package com.sonatype.clm.testing.playwright.pages;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.options.AriaRole;
 
-/**
- * Playwright page object for the SAML Configuration page.
- */
 public class SamlConfigurationPage
     extends BasePage
 {
@@ -74,8 +71,32 @@ public class SamlConfigurationPage
     return byLabel("Identity Provider Metadata XML");
   }
 
+  public Locator validateResponseSignature() {
+    return byLabel("Validate Response Signature");
+  }
+
+  public Locator validateAssertionSignature() {
+    return byLabel("Validate Assertion Signature");
+  }
+
+  public Locator deleteModal() {
+    return byRole(AriaRole.DIALOG);
+  }
+
+  public Locator deleteModalConfirmButton() {
+    return deleteModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.DELETE_BUTTON_OPTS);
+  }
+
+  public Locator deleteModalCancelButton() {
+    return deleteModal().getByRole(AriaRole.BUTTON, CommonButtonOptions.CANCEL_BUTTON_OPTS);
+  }
+
+  public Locator downloadIqServerMetadataLink() {
+    return byRole(AriaRole.BUTTON, "Download IQ Server Metadata");
+  }
+
   public Locator documentationLink() {
-    return locator("#saml-explanation");
+    return byRole(AriaRole.LINK, "how to configure SAML integration");
   }
 
   public Locator feedbackLink() {

@@ -8,43 +8,39 @@ package com.sonatype.clm.testing.playwright.tests;
 import java.util.regex.Pattern;
 
 import com.microsoft.playwright.Page;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 import com.sonatype.clm.testing.playwright.AbstractIqUiTest;
+import com.sonatype.clm.testing.playwright.categories.RegressionTest;
 import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.DashboardPage;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponent;
 import com.sonatype.clm.testing.playwright.pages.HeaderComponentAssertions;
+import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPage;
+import com.sonatype.clm.testing.playwright.pages.UserTokenConfigurationPageAssertions;
 import com.sonatype.clm.testing.playwright.pages.UserTokenModal;
 import com.sonatype.clm.testing.playwright.pages.UserTokenModalAssertions;
 import com.sonatype.clm.testing.playwright.utils.PlaywrightTiming;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-/**
- * Coverage for the Manage User Token modal opened from the user menu
- * ({@link UserTokenModal}, JSX: {@code UserTokenModal.jsx}).
- *
- * <p>
- * Authoring rules: see {@code PLAYWRIGHT_TEST_AUTHORING_GUIDE.md}.
- *
- * <ul>
- * <li>Each test logs in as a different non-admin user, so {@code @Before} clears browser storage to
- * keep tests independent (§3b).</li>
- * <li>Per-test backend wiring (user creation) lives in the private {@link #seedUser()} helper.</li>
- * <li>Modal state assertions are encoded as semantic methods on {@link UserTokenModal}
- * ({@code shouldShowInitialState()}, {@code shouldShowGeneratedCredentials()},
- * {@code shouldShowExistingTokenState()}) instead of being repeated in each test (§4).</li>
- * </ul>
- */
 public class UserTokenPlaywrightTest
     extends AbstractIqUiTest
 {
+  private String originalExpirationDays;
+
   @Before
-  public void clearBrowserState() {
+  public void setUpFreshBrowserAndCaptureExpirationDays() {
     playwrightHardreset();
+    originalExpirationDays = lookup(SystemConfigurationPropertyDAO.class)
+        .get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS);
   }
 
   @Test
@@ -85,28 +81,6 @@ public class UserTokenPlaywrightTest
     modal.close();
   }
 
-  // --------------- Test helpers ---------------
-
-  /**
-   * Log in as the given user and open the Manage User Token modal.
-   *
-   * <p>
-   * <strong>Why we wait for the dashboard to settle before opening the modal:</strong> the
-   * userToken redux reducer treats {@code UI_ROUTER_ON_FINISH} as a full-state reset
-   * ({@code userTokenReducer.js:153} — {@code [UI_ROUTER_ON_FINISH]: always(initialState)}),
-   * which sets {@code isUserTokenModalVisible: false} and unmounts the modal. Under parallel
-   * runs the post-login uiRouter transition (e.g. resolving
-   * {@code dashboard.overview.violations}) frequently completed <em>after</em> the test had
-   * already clicked "Manage User Token" — firing {@code UI_ROUTER_ON_FINISH} mid-modal-open
-   * and silently unmounting the modal. The downstream
-   * {@code waitFor("#user-token-modal #generate-user-token")} then timed out because the
-   * modal element itself never re-appeared.
-   *
-   * <p>
-   * Waiting for the dashboard's chrome (header menu bar visible + spinners gone) before
-   * opening the user menu lets the post-login router transition finish first, so the modal
-   * mounts <em>after</em> all router transitions have settled.
-   */
   private void loginAndOpenUserTokenModal(User user) {
     playwrightRefreshOrOpen(DashboardPage.url());
     playwrightLoginAt(DashboardPage.url(), user.getUsername(), TemporaryEntity.USER_PASSWORD_CLEAR);
@@ -114,11 +88,10 @@ public class UserTokenPlaywrightTest
     HeaderComponent header = new HeaderComponent();
     new HeaderComponentAssertions(header).shouldBeLoggedIn();
     new DashboardPage().waitUntilSpinnersGone();
-    // Belt-and-suspenders for the UI_ROUTER_ON_FINISH race documented above: even after the
-    // header chrome has rendered and the dashboard spinner has cleared, uiRouter can still be
-    // mid-transition on a cold backend. Waiting for the URL hash to actually land on the
-    // dashboard route guarantees the transition has completed before we click "Manage User
-    // Token", so the modal won't be unmounted by a late onFinish event.
+    // Wait for the post-login uiRouter transition to finish before opening the modal. The
+    // userToken redux reducer treats UI_ROUTER_ON_FINISH as a full-state reset (sets
+    // isUserTokenModalVisible=false), so a late onFinish event firing after the click would
+    // silently unmount the modal and cause downstream "modal not visible" timeouts.
     page.waitForURL(Pattern.compile("#/dashboard/.+"),
         new Page.WaitForURLOptions().setTimeout(PlaywrightTiming.URL_EXACT_TIMEOUT_MS));
 
@@ -126,11 +99,69 @@ public class UserTokenPlaywrightTest
     new UserTokenModalAssertions(new UserTokenModal()).shouldShowInitialState();
   }
 
-  /**
-   * Per-test user creation. Uses {@code tempEntity.newUser()}'s no-arg overload to get a unique
-   * username per test (authoring guide §7b: "Name every seeded entity uniquely").
-   */
   private User seedUser() {
     return tempEntity.newUser();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testUserTokenConfigurationPageRenders() {
+    playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
+    playwrightLogin();
+
+    UserTokenConfigurationPage configPage = new UserTokenConfigurationPage();
+    assertThat(configPage.container()).isVisible();
+    assertThat(configPage.pageHeading()).isVisible();
+    assertThat(configPage.tile()).isVisible();
+  }
+
+  @After
+  public void restoreExpirationDays() {
+    lookup(SystemConfigurationPropertyDAO.class)
+        .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, originalExpirationDays);
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testUserToken_enablingExpirationPersistsAcrossReload() {
+    lookup(SystemConfigurationPropertyDAO.class)
+        .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+
+    playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
+    playwrightLogin();
+
+    UserTokenConfigurationPage configPage = new UserTokenConfigurationPage();
+    UserTokenConfigurationPageAssertions configAssertions =
+        new UserTokenConfigurationPageAssertions(configPage);
+
+    configAssertions.shouldHaveExpirationToggleUnchecked();
+    configPage.expirationToggle().click();
+    configPage.updateButton().click();
+    waitForSubmitMaskSuccess();
+
+    playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
+    configAssertions.shouldHaveExpirationToggleChecked();
+  }
+
+  @Test
+  @Category(RegressionTest.class)
+  public void testUserToken_disablingExpirationPersistsAcrossReload() {
+    lookup(SystemConfigurationPropertyDAO.class)
+        .set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+
+    playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
+    playwrightLogin();
+
+    UserTokenConfigurationPage configPage = new UserTokenConfigurationPage();
+    UserTokenConfigurationPageAssertions configAssertions =
+        new UserTokenConfigurationPageAssertions(configPage);
+
+    configAssertions.shouldHaveExpirationToggleChecked();
+    configPage.expirationToggle().click();
+    configPage.updateButton().click();
+    waitForSubmitMaskSuccess();
+
+    playwrightRefreshOrOpen(UserTokenConfigurationPage.url());
+    configAssertions.shouldHaveExpirationToggleUnchecked();
   }
 }

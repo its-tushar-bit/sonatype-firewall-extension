@@ -386,27 +386,42 @@ export const compositeSourceControlToModel = (
     pullRequestCommentingEnabled: {
       ...pullRequestCommentingEnabled,
       isInherited: pullRequestCommentingEnabled.value === null && !isRootOrg,
-      value: setDefaultIfNull(pullRequestCommentingEnabled.value, pullRequestCommentingEnabled.parentValue, true),
+      value: setDefaultIfNull(
+        pullRequestCommentingEnabled.value,
+        pullRequestCommentingEnabled.parentValue,
+        true,
+        isRootOrg
+      ),
     },
     remediationPullRequestsEnabled: {
       ...remediationPullRequestsEnabled,
       isInherited: remediationPullRequestsEnabled.value === null && !isRootOrg,
-      value: setDefaultIfNull(remediationPullRequestsEnabled.value, remediationPullRequestsEnabled.parentValue, false),
+      value: setDefaultIfNull(
+        remediationPullRequestsEnabled.value,
+        remediationPullRequestsEnabled.parentValue,
+        false,
+        isRootOrg
+      ),
     },
     sourceControlEvaluationsEnabled: {
       ...sourceControlEvaluationsEnabled,
       isInherited: sourceControlEvaluationsEnabled.value === null && !isRootOrg,
-      value: setDefaultIfNull(sourceControlEvaluationsEnabled.value, sourceControlEvaluationsEnabled.parentValue, true),
+      value: setDefaultIfNull(
+        sourceControlEvaluationsEnabled.value,
+        sourceControlEvaluationsEnabled.parentValue,
+        true,
+        isRootOrg
+      ),
     },
     sshEnabled: {
       ...sshEnabled,
       isInherited: sshEnabled.value === null && !isRootOrg,
-      value: setDefaultIfNull(sshEnabled.value, sshEnabled.parentValue, null),
+      value: setDefaultIfNull(sshEnabled.value, sshEnabled.parentValue, null, isRootOrg),
     },
     commitStatusEnabled: {
       ...commitStatusEnabled,
       isInherited: commitStatusEnabled.value === null && !isRootOrg,
-      value: setDefaultIfNull(commitStatusEnabled.value, commitStatusEnabled.parentValue, true),
+      value: setDefaultIfNull(commitStatusEnabled.value, commitStatusEnabled.parentValue, true, isRootOrg),
     },
     statusChecksEnabled,
     manualPullRequestsEnabled: {
@@ -415,7 +430,8 @@ export const compositeSourceControlToModel = (
       value: setDefaultIfNull(
         manualPullRequestsEnabled?.value ?? null,
         manualPullRequestsEnabled?.parentValue ?? null,
-        true
+        true,
+        isRootOrg
       ),
     },
     innerSourceAutomatedUpdatesEnabled: {
@@ -424,18 +440,29 @@ export const compositeSourceControlToModel = (
       value: setDefaultIfNull(
         innerSourceAutomatedUpdatesEnabled?.value ?? null,
         innerSourceAutomatedUpdatesEnabled?.parentValue ?? null,
-        true
+        true,
+        isRootOrg
       ),
     },
     closePrOnFailedChecksEnabled: {
       ...closePrOnFailedChecksEnabled,
       isInherited: closePrOnFailedChecksEnabled?.value === null && !isRootOrg,
-      value: setDefaultIfNull(closePrOnFailedChecksEnabled?.value, closePrOnFailedChecksEnabled?.parentValue, true),
+      value: setDefaultIfNull(
+        closePrOnFailedChecksEnabled?.value,
+        closePrOnFailedChecksEnabled?.parentValue,
+        true,
+        isRootOrg
+      ),
     },
     closePrAfterDaysOpenEnabled: {
       ...closePrAfterDaysOpenEnabled,
       isInherited: closePrAfterDaysOpenEnabled?.value === null && !isRootOrg,
-      value: setDefaultIfNull(closePrAfterDaysOpenEnabled?.value, closePrAfterDaysOpenEnabled?.parentValue, false),
+      value: setDefaultIfNull(
+        closePrAfterDaysOpenEnabled?.value,
+        closePrAfterDaysOpenEnabled?.parentValue,
+        false,
+        isRootOrg
+      ),
     },
     closePrAfterDays: {
       parentName: closePrAfterDays?.parentName,
@@ -780,8 +807,22 @@ export const isAccessTokenRequiredOnNode = (sourceControl, serverSourceControl, 
   return true;
 };
 
-export const setDefaultIfNull = (value, parentValue, defaultValue) => {
-  return value === null && parentValue === null ? defaultValue : value;
+/**
+ * Resolves the model `value` for an SCM toggle field.
+ *
+ * - At the **root organization** (no parent to inherit from): when neither `value` nor `parentValue`
+ *   is set, fall back to `defaultValue` so the UI has something sensible to display.
+ * - At a **sub-org or application**: a `null` `value` means the user picked "Inherit (Not Configured)".
+ *   That `null` must be preserved so `SourceControlInheritedInput` keeps the "Inherit" radio selected
+ *   (CLM-32426 — defaulting to `true`/`false` here would re-render the toggle as Enabled/Disabled).
+ *
+ * `isRootOrg` is required: passing it explicitly forces every caller to consider which side of
+ * this distinction it's on and prevents silently re-introducing CLM-32426 at new call sites.
+ */
+export const setDefaultIfNull = (value, parentValue, defaultValue, isRootOrg) => {
+  if (value !== null) return value;
+  if (!isRootOrg) return null;
+  return parentValue === null ? defaultValue : value;
 };
 
 export const arePullRequestsSupported = (sourceControl, serverSourceControl, isAutomationSupported) =>

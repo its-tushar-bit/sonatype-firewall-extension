@@ -633,23 +633,28 @@ describe('sourceControlConfiguration util', () => {
   });
 
   describe('setDefaultIfNull', () => {
-    it('returns defaultValue if value and parentValue are null', () => {
-      let value = null,
-        parentValue = null,
-        defaultValue = true;
-      expect(setDefaultIfNull(value, parentValue, defaultValue)).toBe(defaultValue);
+    describe('at root org (isRootOrg = true)', () => {
+      it('returns defaultValue when both value and parentValue are null', () => {
+        expect(setDefaultIfNull(null, null, true, true)).toBe(true);
+      });
+      it('returns value when value is not null', () => {
+        expect(setDefaultIfNull(true, null, false, true)).toBe(true);
+      });
+      it('returns null when value is null but parentValue is not null', () => {
+        expect(setDefaultIfNull(null, true, false, true)).toBe(null);
+      });
     });
-    it('returns value if value is not null', () => {
-      let value = true,
-        parentValue = null,
-        defaultValue = true;
-      expect(setDefaultIfNull(value, parentValue, defaultValue)).toBe(defaultValue);
-    });
-    it('returns value if parentValue is not null', () => {
-      let value = null,
-        parentValue = true,
-        defaultValue = false;
-      expect(setDefaultIfNull(value, parentValue, defaultValue)).toBe(value);
+
+    describe('at sub-org / application (isRootOrg = false) — CLM-32426', () => {
+      it('returns null when value is null and parentValue is null (preserves "Inherit")', () => {
+        expect(setDefaultIfNull(null, null, true, false)).toBe(null);
+      });
+      it('returns null when value is null and parentValue has a value (preserves "Inherit")', () => {
+        expect(setDefaultIfNull(null, true, false, false)).toBe(null);
+      });
+      it('returns value when value is not null (user override)', () => {
+        expect(setDefaultIfNull(false, null, true, false)).toBe(false);
+      });
     });
   });
 
@@ -1257,12 +1262,27 @@ describe('sourceControlConfiguration util', () => {
         expect(sourceControl.token.rscValue.value).toBe('');
       });
 
-      it('returns default toggles values for Root organization if no values for toggles in response provided', () => {
+      it('applies toggle defaults at the Root organization when no values are configured (mirrors CLM-32426 sub-org test)', () => {
         const sourceControl = compositeSourceControlToModel(configResponse, isRootOrg);
+
         expect(sourceControl.pullRequestCommentingEnabled.value).toBe(true);
+        expect(sourceControl.pullRequestCommentingEnabled.isInherited).toBe(false);
         expect(sourceControl.remediationPullRequestsEnabled.value).toBe(false);
+        expect(sourceControl.remediationPullRequestsEnabled.isInherited).toBe(false);
         expect(sourceControl.sourceControlEvaluationsEnabled.value).toBe(true);
-        expect(sourceControl.sshEnabled.value).toBe(null);
+        expect(sourceControl.sourceControlEvaluationsEnabled.isInherited).toBe(false);
+        expect(sourceControl.commitStatusEnabled.value).toBe(true);
+        expect(sourceControl.commitStatusEnabled.isInherited).toBe(false);
+        expect(sourceControl.manualPullRequestsEnabled.value).toBe(true);
+        expect(sourceControl.manualPullRequestsEnabled.isInherited).toBe(false);
+        expect(sourceControl.innerSourceAutomatedUpdatesEnabled.value).toBe(true);
+        expect(sourceControl.innerSourceAutomatedUpdatesEnabled.isInherited).toBe(false);
+        expect(sourceControl.sshEnabled.value).toBeNull();
+        expect(sourceControl.sshEnabled.isInherited).toBe(false);
+        expect(sourceControl.closePrOnFailedChecksEnabled.value).toBe(true);
+        expect(sourceControl.closePrOnFailedChecksEnabled.isInherited).toBe(false);
+        expect(sourceControl.closePrAfterDaysOpenEnabled.value).toBe(false);
+        expect(sourceControl.closePrAfterDaysOpenEnabled.isInherited).toBe(false);
       });
     });
 
@@ -1540,6 +1560,97 @@ describe('sourceControlConfiguration util', () => {
           installationId: 999,
           isActive: true,
         });
+      });
+    });
+
+    describe('sub-org with all toggles set to inherit (CLM-32426)', () => {
+      it('preserves null toggle values so the UI shows "Inherit" instead of falling back to defaults', () => {
+        const subOrgConfigResponse = {
+          id: 'sub-org-id',
+          ownerId: 'SUB_ORGANIZATION_ID',
+          repositoryUrl: null,
+          provider: { value: 'github', parentValue: null, parentName: null },
+          username: { value: null, parentValue: null, parentName: null },
+          token: { value: 'someToken', parentValue: null, parentName: null },
+          baseBranch: { value: null, parentValue: null, parentName: null },
+          authenticationType: { value: null, parentValue: null, parentName: null },
+          pullRequestCommentingEnabled: { value: null, parentValue: null, parentName: null },
+          remediationPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
+          sourceControlEvaluationsEnabled: { value: null, parentValue: null, parentName: null },
+          commitStatusEnabled: { value: null, parentValue: null, parentName: null },
+          statusChecksEnabled: { value: null, parentValue: null, parentName: null },
+          sshEnabled: { value: null, parentValue: null, parentName: null },
+          manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
+          innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
+          closePrOnFailedChecksEnabled: { value: null, parentValue: null, parentName: null },
+          closePrAfterDaysOpenEnabled: { value: null, parentValue: null, parentName: null },
+          closePrAfterDays: { value: null, parentValue: null, parentName: null },
+        };
+        const sourceControl = compositeSourceControlToModel(subOrgConfigResponse, false);
+
+        expect(sourceControl.pullRequestCommentingEnabled.value).toBeNull();
+        expect(sourceControl.pullRequestCommentingEnabled.isInherited).toBe(true);
+        expect(sourceControl.remediationPullRequestsEnabled.value).toBeNull();
+        expect(sourceControl.remediationPullRequestsEnabled.isInherited).toBe(true);
+        expect(sourceControl.sourceControlEvaluationsEnabled.value).toBeNull();
+        expect(sourceControl.sourceControlEvaluationsEnabled.isInherited).toBe(true);
+        expect(sourceControl.commitStatusEnabled.value).toBeNull();
+        expect(sourceControl.commitStatusEnabled.isInherited).toBe(true);
+        expect(sourceControl.manualPullRequestsEnabled.value).toBeNull();
+        expect(sourceControl.manualPullRequestsEnabled.isInherited).toBe(true);
+        expect(sourceControl.innerSourceAutomatedUpdatesEnabled.value).toBeNull();
+        expect(sourceControl.innerSourceAutomatedUpdatesEnabled.isInherited).toBe(true);
+        expect(sourceControl.sshEnabled.value).toBeNull();
+        expect(sourceControl.sshEnabled.isInherited).toBe(true);
+        expect(sourceControl.closePrOnFailedChecksEnabled.value).toBeNull();
+        expect(sourceControl.closePrOnFailedChecksEnabled.isInherited).toBe(true);
+        expect(sourceControl.closePrAfterDaysOpenEnabled.value).toBeNull();
+        expect(sourceControl.closePrAfterDaysOpenEnabled.isInherited).toBe(true);
+      });
+    });
+
+    describe('sub-org with all toggles inheriting a configured root parent (CLM-32426)', () => {
+      it('preserves null value while exposing parentValue/parentName so the UI shows "Inherit from <parent> (<state>)"', () => {
+        const parentName = 'Root Organization';
+        const subOrgConfigResponse = {
+          id: 'sub-org-id',
+          ownerId: 'SUB_ORGANIZATION_ID',
+          repositoryUrl: null,
+          provider: { value: null, parentValue: 'github', parentName },
+          username: { value: null, parentValue: null, parentName },
+          token: { value: null, parentValue: '#~FAKE~SECRET~KEY~#', parentName },
+          baseBranch: { value: null, parentValue: 'main', parentName },
+          authenticationType: { value: null, parentValue: null, parentName },
+          pullRequestCommentingEnabled: { value: null, parentValue: false, parentName },
+          remediationPullRequestsEnabled: { value: null, parentValue: true, parentName },
+          sourceControlEvaluationsEnabled: { value: null, parentValue: false, parentName },
+          commitStatusEnabled: { value: null, parentValue: false, parentName },
+          statusChecksEnabled: { value: null, parentValue: true, parentName },
+          sshEnabled: { value: null, parentValue: true, parentName },
+          manualPullRequestsEnabled: { value: null, parentValue: false, parentName },
+          innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: false, parentName },
+          closePrOnFailedChecksEnabled: { value: null, parentValue: true, parentName },
+          closePrAfterDaysOpenEnabled: { value: null, parentValue: false, parentName },
+          closePrAfterDays: { value: null, parentValue: null, parentName },
+        };
+        const sourceControl = compositeSourceControlToModel(subOrgConfigResponse, false);
+
+        const assertInheritsFromParent = (field, expectedParentValue) => {
+          expect(sourceControl[field].value).toBeNull();
+          expect(sourceControl[field].isInherited).toBe(true);
+          expect(sourceControl[field].parentValue).toBe(expectedParentValue);
+          expect(sourceControl[field].parentName).toBe(parentName);
+        };
+
+        assertInheritsFromParent('pullRequestCommentingEnabled', false);
+        assertInheritsFromParent('remediationPullRequestsEnabled', true);
+        assertInheritsFromParent('sourceControlEvaluationsEnabled', false);
+        assertInheritsFromParent('commitStatusEnabled', false);
+        assertInheritsFromParent('manualPullRequestsEnabled', false);
+        assertInheritsFromParent('innerSourceAutomatedUpdatesEnabled', false);
+        assertInheritsFromParent('sshEnabled', true);
+        assertInheritsFromParent('closePrOnFailedChecksEnabled', true);
+        assertInheritsFromParent('closePrAfterDaysOpenEnabled', false);
       });
     });
   });

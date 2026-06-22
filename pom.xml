@@ -1337,12 +1337,19 @@
         <artifactId>opentelemetry-instrumentation-annotations</artifactId>
         <version>${opentelemetry.version}</version>
       </dependency>
-
       <!-- Force opentelemetry-api to 1.62.0 to resolve CVE-2026-45292 (transitive from annotations brings 1.55.0) -->
       <dependency>
         <groupId>io.opentelemetry</groupId>
         <artifactId>opentelemetry-api</artifactId>
         <version>1.62.0</version>
+      </dependency>
+      <!-- OTel SDK testing harness (InMemoryLogRecordExporter, OpenTelemetryRule) for verifying the
+           access-event bridge emits records correctly. Matches opentelemetry-api version. -->
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-sdk-testing</artifactId>
+        <version>1.62.0</version>
+        <scope>test</scope>
       </dependency>
 
       <!-- Dropwizard Jackson compatibility pieces retained for legacy IQ JSON behavior -->

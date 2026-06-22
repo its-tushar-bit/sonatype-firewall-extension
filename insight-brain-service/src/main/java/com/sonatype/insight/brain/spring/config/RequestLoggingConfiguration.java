@@ -185,6 +185,10 @@ public class RequestLoggingConfiguration
       requestLog.addAppender(appenderFactory.build(
           loggerContext, ACCESS_LOG_APPLICATION_NAME, layoutFactory, levelFilterFactory, asyncAppenderFactory));
     }
+
+    // The OTel Java agent does not instrument logback-access. Attach a custom bridge appender so
+    // HTTP access events still reach OTLP. The bridge is a no-op when the OTel SDK is not active.
+    OpenTelemetryLogbackInstaller.installAccessAppender(loggerContext, requestLog);
     requestLog.start();
 
     return (request, response) -> {

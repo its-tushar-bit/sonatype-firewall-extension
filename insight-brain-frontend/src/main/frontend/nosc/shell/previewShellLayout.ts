@@ -23,6 +23,8 @@ import { useLeftNavCollapsed } from 'MainRoot/nosc/shell/useLeftNavCollapsed';
 export const TOP_NAV_HEIGHT_PX = 56;
 export const LEFT_NAV_EXPANDED_WIDTH_PX = 256;
 export const LEFT_NAV_COLLAPSED_WIDTH_PX = 64;
+/** Page surfaces sit below shell chrome (LeftNav=100, TopNav wrapper=1000). */
+export const PAGE_CONTENT_Z_INDEX = 1;
 
 /**
  * Live page-content offset that tracks the LeftNav's collapsed state.
@@ -39,6 +41,9 @@ export const LEFT_NAV_COLLAPSED_WIDTH_PX = 64;
 export interface PreviewShellOffsets {
   readonly top: number;
   readonly left: number;
+  readonly zIndex: number;
+  /** Re-enable clicks on the page surface; the UIView wrapper is pointer-events:none. */
+  readonly pointerEvents: 'auto';
   readonly transition: string;
 }
 
@@ -47,6 +52,8 @@ export function usePreviewShellOffsets(): PreviewShellOffsets {
   return {
     top: TOP_NAV_HEIGHT_PX,
     left: collapsed ? LEFT_NAV_COLLAPSED_WIDTH_PX : LEFT_NAV_EXPANDED_WIDTH_PX,
+    zIndex: PAGE_CONTENT_Z_INDEX,
+    pointerEvents: 'auto',
     transition: 'left 120ms ease',
   };
 }

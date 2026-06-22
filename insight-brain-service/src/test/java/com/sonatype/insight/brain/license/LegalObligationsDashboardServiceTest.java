@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.sonatype.insight.brain.dashboard.DashboardResultsDTO;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskDTO;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
@@ -17,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.license.LegalObligationsDashboardResponse.Variant;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupCount;
+import com.sonatype.insight.brain.model.policy.PolicyOpenViolationSummary;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.mockito.quality.Strictness;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -148,7 +152,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void alpVariant_returnsExpectedPayloadShape() {
+  public void testAlpVariant_returnsExpectedPayloadShape() {
     List<LicenseThreatGroupCount> counts = new ArrayList<>();
     // Zero-unreviewed rows are intentionally filtered out — configured LTGs with no review workload.
     counts.add(new LicenseThreatGroupCount("ltg-zero", "Zero", 10, 0L));
@@ -174,7 +178,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void alpVariant_emptyAfterFilteringZeros_returnsEmpty() {
+  public void testAlpVariant_emptyAfterFilteringZeros_returnsEmpty() {
     when(licenseThreatGroupService.getUnreviewedComponentCountsByApplicationIds(anyCollection()))
         .thenReturn(List.of(new LicenseThreatGroupCount("ltg-zero", "Zero", 10, 0L)));
 
@@ -188,7 +192,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void alpVariant_priorWindowZero_trendPctIsZero() {
+  public void testAlpVariant_priorWindowZero_trendPctIsZero() {
     when(licenseThreatGroupService.getUnreviewedComponentCountsByApplicationIds(anyCollection())).thenReturn(
         List.of(new LicenseThreatGroupCount("ltg-1", "Banned", 10, 3L)));
     when(policyViolationDAO.countOpenInWindowByCategory(anyCollection(), eq(PolicyThreatCategory.LICENSE), any(),
@@ -202,7 +206,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void alpVariant_resultIsCappedAt10() {
+  public void testAlpVariant_resultIsCappedAt10() {
     List<LicenseThreatGroupCount> twenty = new ArrayList<>();
     for (int i = 0; i < 20; i++) {
       twenty.add(new LicenseThreatGroupCount("ltg-" + i, "Group " + i, 10, 5L + i));
@@ -217,7 +221,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void nonAlpVariant_returnsExpectedPayloadShape() {
+  public void testNonAlpVariant_returnsExpectedPayloadShape() {
     List<DashboardViolationRiskDTO> rows = new ArrayList<>();
     for (int i = 0; i < 12; i++) {
       rows.add(violationRow("p1", "License - Banned"));
@@ -227,7 +231,7 @@ public class LegalObligationsDashboardServiceTest
     }
     stubNonAlpViolationRisks(rows.toArray(DashboardViolationRiskDTO[]::new));
 
-    LegalObligationsDashboardResponse response = service.buildTopViolationsResponse();
+    LegalObligationsDashboardResponse response = service.buildTopViolationsResponse(SCOPE_ONE_APP);
 
     assertThat(response.variant).isEqualTo(Variant.TOP_LEGAL_VIOLATIONS);
     assertThat(response.permissionDenied).isNull();
@@ -242,10 +246,10 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void nonAlpVariant_noViolations_returnsEmpty() {
+  public void testNonAlpVariant_noViolations_returnsEmpty() {
     stubNonAlpViolationRisks();
 
-    LegalObligationsDashboardResponse response = service.buildTopViolationsResponse();
+    LegalObligationsDashboardResponse response = service.buildTopViolationsResponse(SCOPE_ONE_APP);
 
     assertThat(response.empty).isTrue();
     assertThat(response.variant).isNull();
@@ -253,7 +257,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void permissionDenied_whenUserHasNoScopedApplications() {
+  public void testPermissionDenied_whenUserHasNoScopedApplications() {
     when(productLicense.hasFeature(LicensedFeature.ADVANCED_LEGAL_PACK)).thenReturn(true);
     when(applicationService.getApplications()).thenReturn(Collections.emptyList());
 
@@ -272,7 +276,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void permissionDenied_whenApplicationServiceReturnsNull() {
+  public void testPermissionDenied_whenApplicationServiceReturnsNull() {
     when(productLicense.hasFeature(LicensedFeature.ADVANCED_LEGAL_PACK)).thenReturn(false);
     when(applicationService.getApplications()).thenReturn(null);
 
@@ -282,7 +286,7 @@ public class LegalObligationsDashboardServiceTest
   }
 
   @Test
-  public void computeTrendPct_handlesCorrectly() {
+  public void testComputeTrendPct_handlesCorrectly() {
     assertThat(LegalObligationsDashboardService.computeTrendPct(10, 5)).isEqualTo(100.0);
     assertThat(LegalObligationsDashboardService.computeTrendPct(5, 10)).isEqualTo(-50.0);
     assertThat(LegalObligationsDashboardService.computeTrendPct(0, 5)).isEqualTo(-100.0);
@@ -291,8 +295,72 @@ public class LegalObligationsDashboardServiceTest
     assertThat(LegalObligationsDashboardService.computeTrendPct(0, 0)).isEqualTo(0.0);
   }
 
+  // NOTE: The cache behaviour of getResponse() is deliberately NOT tested here. Driving getResponse() through
+  // Mockito mocks is sensitive to Mockito / Failsafe B-L shard pollution (CLM-39641) and fails
+  // non-deterministically only in the distributed shard. Memoization is covered with real Spring wiring in
+  // LegalObligationsDashboardServiceCacheTest. The mutation-isolation guarantee — the cached response exposes
+  // unmodifiable lists, so a caller cannot corrupt the shared per-tenant cache entry — is covered
+  // deterministically by the factory-level tests below.
+
   @Test
-  public void alpVariant_neverCallsTopOpenByCategory() {
+  public void testTopLegalViolations_exposesUnmodifiableList() {
+    LegalObligationsDashboardResponse cached = LegalObligationsDashboardResponse.topLegalViolations(List.of(
+        new PolicyOpenViolationSummary("p1", "GPL", 2L),
+        new PolicyOpenViolationSummary("p2", "Apache", 1L)));
+
+    assertThat(cached.violations).hasSize(2);
+    assertThatThrownBy(() -> cached.violations.clear()).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  public void testAlp_exposesUnmodifiableList() {
+    LegalObligationsDashboardResponse cached = LegalObligationsDashboardResponse.alp(List.of(
+        new LegalObligationsAlpGroupDTO("ltg-1", "Banned", 5L, 10.0)));
+
+    assertThat(cached.groups).hasSize(1);
+    assertThatThrownBy(() -> cached.groups.clear()).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  // The cache-load unwrap is tested directly against the pure static helper below rather than by driving
+  // getResponse() through Mockito to force a throw. Mockito-driven getResponse() is non-deterministic in the
+  // distributed B-L Failsafe shard (CLM-39641): the stub that should force the exception path silently does
+  // not take effect and getResponse() returns normally, so an "expected a throwable" assertion flakes.
+
+  @Test
+  public void testUnwrapCacheLoadFailure_returnsOriginalRuntimeExceptionFromUncheckedWrapper() {
+    // Guava wraps a RuntimeException thrown by the loader in UncheckedExecutionException; the ORIGINAL
+    // runtime exception must surface, not the Guava wrapper.
+    RuntimeException boom = new IllegalStateException("boom from loader");
+    assertThat(LegalObligationsDashboardService.unwrapCacheLoadFailure(new UncheckedExecutionException(boom)))
+        .isSameAs(boom);
+  }
+
+  @Test
+  public void testUnwrapCacheLoadFailure_wrapsCheckedCauseFromExecutionException() {
+    Exception checked = new Exception("checked loader failure");
+    assertThat(LegalObligationsDashboardService.unwrapCacheLoadFailure(new ExecutionException(checked)))
+        .isInstanceOf(RuntimeException.class)
+        .hasCause(checked);
+  }
+
+  @Test
+  public void testUnwrapCacheLoadFailure_rethrowsErrorCause() {
+    Error fatal = new OutOfMemoryError("fatal loader failure");
+    assertThatThrownBy(
+        () -> LegalObligationsDashboardService.unwrapCacheLoadFailure(new UncheckedExecutionException(fatal)))
+            .isSameAs(fatal);
+  }
+
+  @Test
+  public void testUnwrapCacheLoadFailure_wrapsWhenCauseIsNull() {
+    ExecutionException noCause = new ExecutionException("no cause", null);
+    assertThat(LegalObligationsDashboardService.unwrapCacheLoadFailure(noCause))
+        .isInstanceOf(RuntimeException.class)
+        .hasCause(noCause);
+  }
+
+  @Test
+  public void testAlpVariant_neverCallsTopOpenByCategory() {
     // Defense-in-depth: ensures the ALP branch path does not accidentally fall through to the non-ALP DAO query.
     when(licenseThreatGroupService.getUnreviewedComponentCountsByApplicationIds(anyCollection())).thenReturn(
         List.of(new LicenseThreatGroupCount("ltg-1", "Banned", 10, 1L)));

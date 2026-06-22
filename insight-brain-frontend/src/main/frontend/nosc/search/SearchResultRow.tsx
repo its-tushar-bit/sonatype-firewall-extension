@@ -14,6 +14,7 @@ import {
   isOrganization,
   isPolicy,
   isVulnerability,
+  vulnerabilitySourceLabel,
 } from 'MainRoot/nosc/search/searchTypes';
 
 /**
@@ -37,20 +38,6 @@ import {
  * indigo-9 = org, blue-9 = component, red-9 = vuln, purple-9 = policy).
  * The right-hand Badge is always gray/soft for visual consistency.
  */
-
-/**
- * Maps a vulnerability refId to its source label, mirroring the prefix logic in
- * VulnerabilityUrlBuilder.java (Source enum: CVE- / GHSA- / SONATYPE-). Falls
- * back to "Sonatype" for unrecognized ids, matching that builder's default
- * source. Keeps the badge honest instead of always claiming "CVE".
- */
-export function vulnerabilitySourceLabel(vulnerabilityId: string | undefined): string {
-  const id = (vulnerabilityId ?? '').toUpperCase();
-  if (id.startsWith('CVE-')) return 'CVE';
-  if (id.startsWith('GHSA-')) return 'GHSA';
-  if (id.startsWith('SONATYPE-')) return 'Sonatype';
-  return 'Sonatype';
-}
 
 interface SearchResultRowProps {
   readonly result: SearchResultItemDTO;

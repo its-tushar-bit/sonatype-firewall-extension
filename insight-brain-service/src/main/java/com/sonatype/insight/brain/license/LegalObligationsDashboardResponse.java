@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.license;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.policy.PolicyOpenViolationSummary;
@@ -54,14 +53,14 @@ public class LegalObligationsDashboardResponse
   public static LegalObligationsDashboardResponse alp(List<LegalObligationsAlpGroupDTO> groups) {
     LegalObligationsDashboardResponse r = new LegalObligationsDashboardResponse();
     r.variant = Variant.ALP;
-    r.groups = groups != null ? groups : new ArrayList<>();
+    r.groups = groups != null ? List.copyOf(groups) : List.of();
     return r;
   }
 
   public static LegalObligationsDashboardResponse topLegalViolations(List<PolicyOpenViolationSummary> violations) {
     LegalObligationsDashboardResponse r = new LegalObligationsDashboardResponse();
     r.variant = Variant.TOP_LEGAL_VIOLATIONS;
-    r.violations = violations != null ? violations : new ArrayList<>();
+    r.violations = violations != null ? List.copyOf(violations) : List.of();
     return r;
   }
 

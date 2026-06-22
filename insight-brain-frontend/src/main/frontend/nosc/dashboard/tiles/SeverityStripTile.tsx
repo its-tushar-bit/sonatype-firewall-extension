@@ -135,7 +135,7 @@ export function SeverityStripTile(): JSX.Element {
   if (status === 'loading') {
     return (
       <DashboardTile
-        title="Severity"
+        title="Policy violations by severity"
         status="ready"
         onRetry={retry}
         errorMessage="Failed to load severity counts"
@@ -158,7 +158,7 @@ export function SeverityStripTile(): JSX.Element {
 
   return (
     <DashboardTile
-      title="Severity"
+      title="Policy violations by severity"
       status={status === 'error' ? 'error' : 'ready'}
       onRetry={retry}
       errorMessage="Failed to load severity counts"

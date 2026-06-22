@@ -15,12 +15,11 @@ import { NexusOneRouterProvider } from 'TestRoot/nosc/renderNexusOneRoute';
 /**
  * S2-PR-D-3 (CLM-39992) tests for the Violations Preview tab.
  *
- * The wrapped Classic `DashboardViolationsContainer` defers its first
- * fetch until `dashboardFilter.loading` is false, which is `true` in
- * the initial Redux state. That keeps the table in its loading-row
- * shape during these tests and lets us focus on the wrapper itself
- * (filter-rail mount, URL-query handling, tab-isolation) without
- * needing to stand up a full filter-load fixture.
+ * The tab mounts `PreviewDashboardViolationsTable` (Radix-native rewrite)
+ * and applies hash-query severity filters via `applySeverityFilterFromQuery`.
+ * Initial Redux `dashboardFilter.loading` is true, so the violations slice
+ * stays in its loading shape during these tests — we focus on the wrapper
+ * contracts (filter-rail mount, URL-query handling, tab-isolation).
  */
 
 function renderWithTheme(ui: JSX.Element) {
@@ -52,11 +51,12 @@ describe('PreviewViolationsTab (CLM-39992 / S2-PR-D-3)', () => {
   });
 
   describe('rendering', () => {
-    it('renders the tab shell, filter-rail slot, and the wrapped table slot without crashing', () => {
+    it('renders the tab shell, filter-rail slot, and PreviewDashboardViolationsTable loading state', () => {
       renderWithTheme(<PreviewViolationsTab />);
       expect(screen.getByTestId('nosc-dashboard-violations-tab')).toBeInTheDocument();
       expect(screen.getByTestId('nosc-dashboard-violations-filter-slot')).toBeInTheDocument();
       expect(screen.getByTestId('nosc-dashboard-violations-table-slot')).toBeInTheDocument();
+      expect(screen.getByTestId('nosc-dashboard-violations-table-loading')).toBeInTheDocument();
     });
   });
 

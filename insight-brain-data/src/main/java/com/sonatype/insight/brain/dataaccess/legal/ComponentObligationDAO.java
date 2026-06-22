@@ -50,13 +50,14 @@ public class ComponentObligationDAO
     extends AbstractOperationalSqlDAO<ComponentObligation>
 {
   /**
-   * Bind parameters contributed by each component identifier in a row-value {@code IN} clause (format +
-   * coordinates JSON). Not the partition/chunk size — {@link AbstractOperationalSqlDAO#getListWithSqlInClause}
-   * computes that from the database IN-operator threshold (well above 100 elements per chunk).
+   * Bind parameters consumed per (format, coordinates-json) pair when chunking
+   * IN-clause queries over component identifiers.
    */
   private static final int COMPONENT_IDENTIFIER_PARAMS_PER_ELEMENT = 2;
 
-  /** Extra bind parameters outside the row-value {@code IN} clause (e.g. {@code owner_id} filter). */
+  /**
+   * Additional bind parameters beyond the chunked rows (the owner id filter).
+   */
   private static final int COMPONENT_IDENTIFIER_EXTRA_PARAMS = 1;
 
   private final OwnerDAO ownerDAO;
@@ -210,6 +211,11 @@ public class ComponentObligationDAO
       final List<ComponentObligation> componentObligationsFromDb,
       final Set<String> obligationNames)
   {
+    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(obligationNames)
+        || CollectionUtils.isEmpty(componentObligationsFromDb))
+    {
+      return Collections.emptyList();
+    }
     Map<String, List<ComponentObligation>> ownerIdAndComponentObligation =
         componentObligationsFromDb.stream().collect(groupingBy(ComponentObligation::getOwnerId, toList()));
 

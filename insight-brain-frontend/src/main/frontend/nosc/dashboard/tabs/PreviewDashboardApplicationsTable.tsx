@@ -14,7 +14,6 @@ import {
   Table,
   Text,
   Tooltip,
-  VisuallyHidden,
 } from '@radix-ui/themes';
 import { ActionIcons } from 'MainRoot/nosc/icons';
 import { loadApplicationResults } from 'MainRoot/dashboard/results/dashboardResultsActions';
@@ -25,6 +24,10 @@ import {
 } from 'MainRoot/nosc/dashboard/tabs/previewDashboardApplicationsSelectors';
 import { PREVIEW_APPLICATIONS_COLUMNS } from 'MainRoot/nosc/dashboard/tabs/previewDashboardApplicationsColumns';
 import PreviewDashboardApplicationsRow from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardApplicationsRow';
+import {
+  SKELETON_ROW_COUNT,
+  usePreviewDashboardFilterGate,
+} from 'MainRoot/nosc/dashboard/tabs/previewDashboardFilterGate';
 
 /**
  * Radix-native rewrite of the Classic
@@ -44,59 +47,41 @@ import PreviewDashboardApplicationsRow from 'MainRoot/nosc/dashboard/tabs/Previe
  *     report surface that exists today)
  *
  * Deferred to follow-ups (visible Coming-Soon affordances):
- *   - CSV export (CLM-39992)
- *   - Pagination (CLM-39709)
+ *   - CSV export
+ *   - Pagination
  *
  * NO Nx* primitives in this file — the test asserts the rendered
  * DOM contains zero `class*="nx-"` nodes.
  */
-
-const SKELETON_ROW_COUNT = 5;
-
-interface DashboardFilterLike {
-  loading?: boolean;
-  needsAcknowledgement?: boolean;
-}
-
-interface RootStateWithFilter {
-  dashboardFilter?: DashboardFilterLike;
-}
 
 export default function PreviewDashboardApplicationsTable(): JSX.Element {
   const dispatch = useDispatch();
   const apps = useSelector(selectPreviewApplications);
   const loading = useSelector(selectPreviewApplicationsLoading);
   const error = useSelector(selectPreviewApplicationsError);
-  const filterLoading = useSelector(
-    (s: RootStateWithFilter): boolean => s.dashboardFilter?.loading ?? false,
-  );
-  const needsAcknowledgement = useSelector(
-    (s: RootStateWithFilter): boolean =>
-      s.dashboardFilter?.needsAcknowledgement ?? false,
-  );
+  const { filterLoading, needsAcknowledgement } = usePreviewDashboardFilterGate();
 
   useEffect(() => {
     // Wait for the Classic dashboardFilter rail to finish loading. Firing
     // pre-filter sends a malformed payload to /rest/dashboard/policy/
     // applicationRisks and the backend returns 400 → "Failed to load".
-    // Filter-driven refetches go through the rail's own dispatch chain
-    // (LOAD_FILTER_REQUESTED → RESET_ALL_TABS → loadApplicationResults).
+    // Filter-driven refetches go through the rail's dispatch chain
+    // (RESET_ALL_TABS → loadApplicationResults). Only bootstrap the
+    // first fetch here when the slice is still empty.
     if (!filterLoading && !needsAcknowledgement && loading) {
       dispatch(loadApplicationResults());
     }
+    // `loading` is read above but intentionally excluded from deps:
+    // LOAD_RESULTS_REQUESTED keeps `loading === true` for the whole in-flight
+    // request, so re-running on `loading` would re-dispatch and loop. We
+    // bootstrap once when the slice is empty; the guard prevents re-entry.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, filterLoading, needsAcknowledgement]);
 
   return (
     <Box data-testid="nosc-dashboard-applications-table">
       <Flex justify="end" gap="2" mb="3">
-        <Tooltip content="Coming soon in Preview — CSV export (CLM-39992)">
-          {/* Disabled native buttons swallow pointerenter, so the
-              <span> wrapper gives Radix a real hover target. The
-              VisuallyHidden sibling carries the Jira tracking ID
-              once in DOM (Radix Tooltip duplicates its content into
-              an aria-describedby clone, so the ID has to live
-              outside the Tooltip to keep it uniquely findable). */}
+        <Tooltip content="Coming soon in Preview — CSV export">
           <span>
             <Button
               variant="soft"
@@ -109,9 +94,6 @@ export default function PreviewDashboardApplicationsTable(): JSX.Element {
             </Button>
           </span>
         </Tooltip>
-        <VisuallyHidden data-testid="nosc-dashboard-applications-csv-jira">
-          Tracked in CLM-39992.
-        </VisuallyHidden>
       </Flex>
 
       <Table.Root variant="surface">
@@ -157,9 +139,7 @@ export default function PreviewDashboardApplicationsTable(): JSX.Element {
             <Callout.Icon>
               <ActionIcons.AlertCircle size={16} />
             </Callout.Icon>
-            <Callout.Text>
-              {error instanceof Error ? error.message : String(error)}
-            </Callout.Text>
+            <Callout.Text>{error}</Callout.Text>
           </Callout.Root>
         </Box>
       )}
@@ -173,7 +153,7 @@ export default function PreviewDashboardApplicationsTable(): JSX.Element {
       )}
 
       <Flex justify="center" mt="3" gap="2" align="center">
-        <Tooltip content="Coming soon in Preview — pagination (CLM-39709)">
+        <Tooltip content="Coming soon in Preview — pagination">
           <span>
             <Button
               variant="ghost"
@@ -185,9 +165,6 @@ export default function PreviewDashboardApplicationsTable(): JSX.Element {
             </Button>
           </span>
         </Tooltip>
-        <VisuallyHidden data-testid="nosc-dashboard-applications-pagination-jira">
-          Tracked in CLM-39709.
-        </VisuallyHidden>
       </Flex>
     </Box>
   );

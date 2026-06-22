@@ -11,6 +11,7 @@ import { BRAND_ACCENT } from 'MainRoot/nosc/theme';
 import { useNoscTheme } from 'MainRoot/nosc/theme/useNoscTheme';
 import { useGlobalSearch } from 'MainRoot/nosc/search/useGlobalSearch';
 import {
+  ITEM_TYPE_LABEL,
   ItemType,
   SearchResultItemDTO,
   reactKeyFor,
@@ -62,6 +63,8 @@ const TYPEAHEAD_CAPS: Record<ItemType, number> = {
   ORGANIZATION: 2,
   NON_VULNERABLE_COMPONENT: 3,
   SECURITY_VULNERABILITY: 2,
+  POLICY_VIOLATION: 2,
+  WAIVER: 2,
   APPLICATION_CATEGORY: 0, // not rendered
   COMPONENT_LABEL: 0, // not rendered
   POLICY: 1,
@@ -79,23 +82,13 @@ const TYPEAHEAD_CAPS: Record<ItemType, number> = {
  */
 const SECTION_ORDER: readonly ItemType[] = [
   'SECURITY_VULNERABILITY',
+  'POLICY_VIOLATION',
+  'WAIVER',
   'NON_VULNERABLE_COMPONENT',
   'APPLICATION',
   'ORGANIZATION',
   'POLICY',
 ];
-
-/** Section heading label per entity type. */
-const SECTION_LABEL: Record<ItemType, string> = {
-  APPLICATION: 'Applications',
-  ORGANIZATION: 'Organizations',
-  NON_VULNERABLE_COMPONENT: 'Components',
-  SECURITY_VULNERABILITY: 'Vulnerabilities',
-  APPLICATION_CATEGORY: '',
-  COMPONENT_LABEL: '',
-  POLICY: 'Policies',
-  SBOM_METADATA: '',
-};
 
 /**
  * Group results by ItemType, apply per-type cap, return a flat ordered
@@ -111,17 +104,25 @@ interface RenderItem {
   readonly result?: SearchResultItemDTO;
   /** Stable key for React. */
   readonly key: string;
+  /** Flat row index for keyboard nav (when kind === 'row'). */
+  readonly rowOrdinal?: number;
 }
 
 function buildRenderItems(results: readonly SearchResultItemDTO[]): RenderItem[] {
   if (results.length === 0) return [];
 
   const items: RenderItem[] = [];
+  let rowOrdinal = 0;
   let bestMatch: SearchResultItemDTO | null = null;
   if (results[0]?.resultIndex === 0) {
     bestMatch = results[0];
     items.push({ kind: 'section', label: 'Best match', key: 'sec:best' });
-    items.push({ kind: 'row', result: bestMatch, key: `row:best:${reactKeyFor(bestMatch)}` });
+    items.push({
+      kind: 'row',
+      result: bestMatch,
+      key: `row:best:${reactKeyFor(bestMatch)}`,
+      rowOrdinal: rowOrdinal++,
+    });
   }
 
   // Group remaining by type, applying per-type cap.
@@ -142,11 +143,16 @@ function buildRenderItems(results: readonly SearchResultItemDTO[]): RenderItem[]
     if (!bucket || bucket.length === 0) continue;
     items.push({
       kind: 'section',
-      label: `${SECTION_LABEL[type]} (${bucket.length})`,
+      label: `${ITEM_TYPE_LABEL[type]} (${bucket.length})`,
       key: `sec:${type}`,
     });
     for (const r of bucket) {
-      items.push({ kind: 'row', result: r, key: `row:${type}:${reactKeyFor(r)}` });
+      items.push({
+        kind: 'row',
+        result: r,
+        key: `row:${type}:${reactKeyFor(r)}`,
+        rowOrdinal: rowOrdinal++,
+      });
     }
   }
 
@@ -338,7 +344,7 @@ export function SearchOmnibar(): JSX.Element {
                 );
               }
               if (item.kind === 'row' && item.result) {
-                const flatRowIndex = rowIndices.indexOf(renderItems.indexOf(item));
+                const flatRowIndex = item.rowOrdinal ?? -1;
                 const isActive = flatRowIndex === activeIndex;
                 return (
                   <li

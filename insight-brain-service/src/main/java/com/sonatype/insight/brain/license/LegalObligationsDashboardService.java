@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -34,8 +36,12 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,12 @@ import org.slf4j.LoggerFactory;
  * {@link LegalObligationsDashboardResponse#permissionDenied()}
  * — the tile renders a graceful greyed state rather than a 5xx or spinner.
  *
+ * <p>
+ * Responses are memoized for 30 s in a {@link TenantReference}-wrapped Caffeine-style Guava cache keyed on
+ * {@code (userId, scopeHash)}: the per-tenant {@link TenantReference} wrapping guarantees MTIQ isolation, while
+ * the per-user key prevents one user's response from being served to another user with a different
+ * scoped-application set. A 30 s TTL absorbs dashboard-refresh bursts without leaking long-lived stale data.
+ *
  * @since 1.205
  */
 @Named
@@ -68,6 +80,10 @@ public class LegalObligationsDashboardService
 
   /** Upper bound when aggregating license violations via {@link DashboardViolationRiskService}. */
   static final int VIOLATION_FETCH_PAGE_SIZE = 10_000;
+
+  static final Duration CACHE_EXPIRATION = Duration.ofSeconds(30);
+
+  static final long CACHE_MAXIMUM_SIZE = 5_000L;
 
   static final Duration TREND_WINDOW = Duration.ofDays(30);
 
@@ -96,6 +112,11 @@ public class LegalObligationsDashboardService
 
   private final CurrentUser currentUser;
 
+  // Per-tenant cache; per-(userId, scopeHash) entries. TenantReference wrapper guarantees MTIQ tenants never
+  // share entries; the scopeHash component of the key fences entries from one user accidentally serving a
+  // different user whose scoped-application set has since changed.
+  private final TenantReference<Cache<CacheKey, LegalObligationsDashboardResponse>> caches;
+
   @Inject
   public LegalObligationsDashboardService(
       final ProductLicense productLicense,
@@ -111,16 +132,25 @@ public class LegalObligationsDashboardService
     this.policyViolationDAO = policyViolationDAO;
     this.dashboardViolationRiskService = dashboardViolationRiskService;
     this.currentUser = currentUser;
+    this.caches = new TenantReference<>(this::createCache);
+  }
+
+  private Cache<CacheKey, LegalObligationsDashboardResponse> createCache() {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(CACHE_EXPIRATION.toMillis(), TimeUnit.MILLISECONDS)
+        .maximumSize(CACHE_MAXIMUM_SIZE)
+        .build();
   }
 
   /**
    * Computes the discriminated payload for the current user. Branches on ALP entitlement server-side; never
-   * leaks ALP-shaped data to non-ALP tenants.
+   * leaks ALP-shaped data to non-ALP tenants. See class-level Javadoc for cache semantics.
    */
   public LegalObligationsDashboardResponse getResponse() {
-    // The non-ALP branch re-reads scope inside DashboardViolationRiskService.get(null, …) by design (see
-    // buildTopViolationsResponse); a theoretical TOCTOU within this single synchronous request is accepted —
-    // both reads are Shiro-filtered and the window is sub-millisecond.
+    // Scope is read once for the cache key. The non-ALP branch re-reads scope inside
+    // DashboardViolationRiskService.get(null, …) by design (see buildTopViolationsResponse);
+    // a theoretical TOCTOU within this single synchronous request is accepted — both reads are
+    // Shiro-filtered and the window is sub-millisecond.
     Set<String> scopedAppIds = resolveScopedApplicationIds();
     if (scopedAppIds.isEmpty()) {
       // The user has no apps in scope — there is nothing legal-relevant they could see. Return permission-denied
@@ -128,10 +158,53 @@ public class LegalObligationsDashboardService
       return LegalObligationsDashboardResponse.permissionDenied();
     }
 
+    String userId = currentUser.getUsername();
     boolean alp = productLicense.hasFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
-    log.debug("Legal-obligations user={} variant={} scopedApps={}",
-        currentUser.getUsername(), alp ? "ALP" : "TOP_LEGAL_VIOLATIONS", scopedAppIds.size());
-    return alp ? buildAlpResponse(scopedAppIds) : buildTopViolationsResponse();
+    CacheKey key = new CacheKey(userId, alp, scopedAppIds);
+
+    try {
+      // The cached response holds unmodifiable lists (see LegalObligationsDashboardResponse#alp /
+      // #topLegalViolations), so it is safe to hand the memoized instance back directly — a caller that
+      // attempts to mutate the collections fails fast with UnsupportedOperationException rather than
+      // corrupting the shared per-tenant cache entry.
+      return caches.get().get(key, () -> {
+        log.debug("Legal-obligations cache miss user={} variant={} scopedApps={}",
+            userId, alp ? "ALP" : "TOP_LEGAL_VIOLATIONS", scopedAppIds.size());
+        return alp ? buildAlpResponse(scopedAppIds) : buildTopViolationsResponse(scopedAppIds);
+      });
+    }
+    catch (ExecutionException | UncheckedExecutionException e) {
+      throw unwrapCacheLoadFailure(e);
+    }
+  }
+
+  /**
+   * Unwraps a Guava cache-load failure so the loader's original cause surfaces instead of the Guava wrapper.
+   * Guava wraps a checked loader exception in {@link ExecutionException} and a {@code RuntimeException} in
+   * {@link UncheckedExecutionException}; both expose the real failure via {@link Throwable#getCause()}.
+   *
+   * <p>
+   * This is a pure static helper (no cache / mock / Shiro state) so it can be unit-tested deterministically —
+   * driving {@code getResponse()} through Mockito to force the throw is non-deterministic in the distributed
+   * B-L Failsafe shard (CLM-39641).
+   *
+   * <p>
+   * Always transfers control out: an {@link Error} cause is rethrown directly, so the returned
+   * {@link RuntimeException} is only produced for the runtime/checked/no-cause paths. Callers write
+   * {@code throw unwrapCacheLoadFailure(e);}.
+   */
+  static RuntimeException unwrapCacheLoadFailure(final Exception wrapper) {
+    Throwable cause = wrapper.getCause();
+    if (cause == null) {
+      return new RuntimeException(wrapper);
+    }
+    if (cause instanceof Error error) {
+      throw error;
+    }
+    if (cause instanceof RuntimeException runtimeException) {
+      return runtimeException;
+    }
+    return new RuntimeException(cause);
   }
 
   /**
@@ -180,16 +253,19 @@ public class LegalObligationsDashboardService
     return LegalObligationsDashboardResponse.alp(groups);
   }
 
-  LegalObligationsDashboardResponse buildTopViolationsResponse() {
+  LegalObligationsDashboardResponse buildTopViolationsResponse(final Set<String> scopedAppIds) {
     // Use the same production-proven path the rest of the dashboard reads from. See the
     // `dashboardViolationRiskService` field doc for why we don't query `policy_violation` directly.
     //
-    // This method takes no scope argument on purpose: `DashboardViolationRiskService.get(...)` already
-    // runs through the same Shiro-scoped `ApplicationService.getApplications()` the rest of the dashboard
-    // uses, which returns only apps the current user is authorized to read. Passing the pre-resolved
-    // scoped-application ids here would constrain the inner ApplicationStageView lookup in a way that
-    // drops evaluation rows we ARE authorized to see (verified: H2 path returns 2 license violations with
-    // appIds=null and 0 with appIds=<the same 10 ids>).
+    // applicationIds is intentionally null: `DashboardViolationRiskService.get(...)` already runs through
+    // the same Shiro-scoped `ApplicationService.getApplications()` the rest of the dashboard uses, which
+    // returns only apps the current user is authorized to read. Passing the pre-resolved scopedAppIds
+    // here would constrain the inner ApplicationStageView lookup in a way that drops evaluation rows we
+    // ARE authorized to see (verified: H2 path returns 2 license violations with appIds=null and 0 with
+    // appIds=<the same 10 ids>). Keeping the param-name `scopedAppIds` here so callers see the contract
+    // — we use it for the cache key, not the data filter. That means scope is resolved twice on a cache
+    // miss (once in getResponse for the key, once inside the risk service for the query); see getResponse
+    // for the accepted TOCTOU note.
     // CRITICAL: pass null (not default-constructed) for the threat-level and state filters.
     // PolicyViolationLoader treats a null filter as "no filter, load everything", but a
     // default-constructed filter with an empty set as "load violations where the state is in
@@ -265,5 +341,49 @@ public class LegalObligationsDashboardService
         .map(Application::getId)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
+  }
+
+  /**
+   * Cache key. {@link #variantIsAlp} is folded in so a tenant flipping entitlement mid-cache-window does not
+   * serve a stale ALP payload to a now-non-ALP user (or vice versa) before the 30 s TTL expires.
+   * Scoped application ids are stored directly (order-insensitive) rather than a 32-bit hash so two
+   * distinct scopes cannot collide in the cache.
+   */
+  static final class CacheKey
+  {
+    private final String userId;
+
+    private final boolean variantIsAlp;
+
+    private final Set<String> scopedAppIds;
+
+    CacheKey(final String userId, final boolean variantIsAlp, final Set<String> scopedAppIds) {
+      this.userId = userId;
+      this.variantIsAlp = variantIsAlp;
+      // Set equality/hashCode are order-insensitive, so an immutable copy is enough — no need to
+      // sort the (potentially 40k-element) scope on every request.
+      this.scopedAppIds = scopedAppIds == null || scopedAppIds.isEmpty()
+          ? Set.of()
+          : Set.copyOf(scopedAppIds);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof CacheKey)) {
+        return false;
+      }
+      CacheKey other = (CacheKey) o;
+      return variantIsAlp == other.variantIsAlp
+          && Objects.equals(scopedAppIds, other.scopedAppIds)
+          && Objects.equals(userId, other.userId);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(userId, variantIsAlp, scopedAppIds);
+    }
   }
 }

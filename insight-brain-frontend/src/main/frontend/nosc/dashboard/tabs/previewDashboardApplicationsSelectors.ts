@@ -5,6 +5,7 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { selectApplicationResults } from 'MainRoot/dashboard/dashboardSelectors';
+import { previewDashboardSliceError } from 'MainRoot/nosc/dashboard/tabs/previewDashboardSliceError';
 
 /**
  * Re-export the Classic Applications-tab selector under typed names
@@ -73,7 +74,7 @@ export const selectPreviewApplicationsLoading = createSelector(
 
 export const selectPreviewApplicationsError = createSelector(
   selectPreviewApplicationsSlice,
-  (slice) => slice.error
+  (slice) => previewDashboardSliceError(slice.error, 'Failed to load applications'),
 );
 
 export const selectPreviewApplicationsSortFields = createSelector(

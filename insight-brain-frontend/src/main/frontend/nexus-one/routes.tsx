@@ -16,7 +16,7 @@ import { NEXUS_ONE_DEFAULT_PATH } from 'MainRoot/nosc/routing/classicPreviewMap'
 import PreviewUiSettingsPage from 'MainRoot/nosc/settings/PreviewUiSettingsPage';
 import { nexusOneDashboardStates } from 'MainRoot/nexus-one/nexusOneDashboardStates';
 import { nexusOneApplicationDetailStates } from 'MainRoot/nexus-one/nexusOneApplicationDetailStates';
-import { AdvancedSearchComingSoon } from 'MainRoot/nosc/searchResults/AdvancedSearchComingSoon';
+import { SearchResultsPage } from 'MainRoot/nosc/searchResults/SearchResultsPage';
 import PreviewApplicationsList from 'MainRoot/nosc/applications/ApplicationsList';
 import {
   WaiversListPage as PreviewWaiversList,
@@ -100,10 +100,9 @@ router.stateRegistry.register({
 
 router.stateRegistry.register({
   name: 'nexusOneSearch',
-  // `?q` carries the omnibar query so the destination (and the Classic escape
-  // hatch) can read the user's term instead of dropping it.
-  url: '/search?q',
-  component: AdvancedSearchComingSoon,
+  // `?q` carries the omnibar query; `?tab` selects the active results tab.
+  url: '/search?q&tab',
+  component: SearchResultsPage,
   data: {
     title: 'Nexus One — Search',
   },

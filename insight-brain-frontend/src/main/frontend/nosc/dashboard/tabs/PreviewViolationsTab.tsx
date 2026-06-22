@@ -7,43 +7,30 @@ import React, { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Box, Flex } from '@radix-ui/themes';
 
-import DashboardViolationsContainer from 'MainRoot/dashboard/results/violations/DashboardViolationsContainer';
+import PreviewDashboardViolationsTable from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardViolationsTable';
 import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilter';
 import {
   applySeverityFilterFromQuery,
   parseViolationsTabQuery,
-} from './previewDashboardTabQuery';
-
-import './previewDashboardTabLayout.css';
+} from 'MainRoot/nosc/dashboard/tabs/previewDashboardTabQuery';
 
 /**
- * S2-PR-D-3 (CLM-39992): Violations tab — Preview port.
+ * Preview Dashboard — Violations tab.
  *
- * Wraps the Classic `DashboardViolationsContainer` (already redux-
- * connected) so this tab consumes the EXACT same `dashboard.violations`
- * Redux slice with the EXACT same column set, sort defaults, chips,
- * CSV export, pagination, and policy-violation drill-down behavior.
+ * Renders `PreviewDashboardViolationsTable`, which reads the same Classic
+ * `dashboard.violations` Redux slice (so the filter rail and drill-down behave
+ * like Classic) but is a Phase-1 preview presentation: a fixed Threat / Policy /
+ * Application / Component / Age column set.
  *
- * What we add on top of Classic:
- *   - The shared filter rail (`DashboardFilter`) is mounted to the left
- *     of the table, same as the Classic `/dashboard` page renders it.
- *     The rail uses the same Redux slice — D-3 does NOT fork it. D-4
- *     owns the share-extract refactor of the filter rail itself.
- *   - URL-query pre-filter: on first mount, read `?severity=…`,
- *     `?ltg=…`, `?policy=…` from the hash query portion, dispatch the
- *     corresponding filter action, then strip the query so a re-mount
- *     doesn't re-apply. The chip becomes visible + removable in the
- *     filter rail (the user can clear it the same way as any other
- *     applied filter).
+ * Intentionally NOT carried over from the Classic `DashboardViolationsContainer`
+ * in this preview (deferred — see PR description / CLM-40018 follow-up):
+ *   - CSV export
+ *   - pagination / load-more beyond the first results page
+ *   - sortable / configurable columns and chips
  *
- * What we deliberately do NOT add:
- *   - A Radix `<Theme>` wrapper. The parent `PreviewDashboardPage`
- *     owns the outer Theme + shell offsets (D-1) so the tab strip
- *     stays visible.
- *   - `position: fixed`. Tab content renders inline inside the parent
- *     `Tabs.Content` panel.
- *   - Any tab-isolation error boundary — the parent already wraps each
- *     tab's content in `TabErrorBoundary`.
+ * On first mount, reads `?severity=…`, `?ltg=…`, `?policy=…` from the hash
+ * query portion and dispatches matching filter actions. Query params stay in
+ * the URL so bookmarks and back/forward preserve the deep-link state.
  */
 
 export default function PreviewViolationsTab(): JSX.Element {
@@ -58,8 +45,7 @@ export default function PreviewViolationsTab(): JSX.Element {
     if (typeof window === 'undefined') {
       return;
     }
-    const hash = window.location.hash || '';
-    const parsed = parseViolationsTabQuery(hash);
+    const parsed = parseViolationsTabQuery(window.location.hash || '');
 
     applySeverityFilterFromQuery(dispatch, parsed.severity);
 
@@ -76,8 +62,8 @@ export default function PreviewViolationsTab(): JSX.Element {
         <Box data-testid="nosc-dashboard-violations-filter-slot">
           <DashboardFilter />
         </Box>
-        <Box className="preview-dashboard-tab__table-slot" data-testid="nosc-dashboard-violations-table-slot">
-          <DashboardViolationsContainer />
+        <Box style={{ flex: 1, minWidth: 0 }} data-testid="nosc-dashboard-violations-table-slot">
+          <PreviewDashboardViolationsTable />
         </Box>
       </Flex>
     </Box>

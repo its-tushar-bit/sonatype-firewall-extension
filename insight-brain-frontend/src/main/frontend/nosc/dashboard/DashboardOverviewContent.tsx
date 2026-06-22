@@ -19,10 +19,9 @@ import './DashboardOverviewContent.css';
  *
  * Pure-content component that renders the Dashboard tile grid
  * WITHOUT a Radix `<Theme>` wrapper, WITHOUT `position: fixed`, and
- * WITHOUT `usePreviewShellOffsets`. Both consumers — the standalone
- * `Dashboard.tsx` route AND the Overview tab inside
- * `PreviewDashboardPage.tsx` — wrap this in their own outer Theme +
- * shell offsets.
+ * WITHOUT `usePreviewShellOffsets`. The Overview tab inside
+ * `PreviewDashboardPage.tsx` (via UI-Router `nexusOneDashboard.overview`)
+ * wraps this in its own outer Theme + shell offsets.
  *
  * Layout (per F6 §9.3 spec):
  *   row 1: [ Apps Scanned ]   [ Severity Strip (spans 2 cols) ]

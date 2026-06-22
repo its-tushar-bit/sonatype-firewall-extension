@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { Badge, Box, Card, Flex, Heading, Tabs, Text, Theme } from '@radix-ui/themes';
+import { PageHeading } from '@sonatype/nexus-one-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { UIView, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -18,6 +19,13 @@ import {
   selectViolationResults,
   selectWaiversResults,
 } from 'MainRoot/dashboard/dashboardSelectors';
+import {
+  loadApplicationResults,
+  loadComponentResults,
+  loadViolationResults,
+  loadWaiverResults,
+} from 'MainRoot/dashboard/results/dashboardResultsActions';
+import { formatDashboardTabBadge } from 'MainRoot/nosc/dashboard/dashboardTabBadge';
 
 import '@radix-ui/themes/styles.css';
 
@@ -34,7 +42,9 @@ import '@radix-ui/themes/styles.css';
  *   - The visible tab strip (with live badge counts read from the same Redux selectors the Classic
  *     tables read), driving navigation via `router.stateService.go(...)`.
  *   - A single `loadFilter()` dispatch on first mount so the shared `dashboardFilter` slice is loaded
- *     for every tab (runs once per shell mount, NOT per tab).
+ *     for every tab (runs once per shell mount, NOT per tab). We intentionally do NOT call
+ *     `applyDefaultFilter()` — that action persists via PUT and would overwrite the user's active
+ *     Classic dashboard filter on every Preview visit.
  *   - A `react-error-boundary` around the `<UIView />` so a thrown render error in one tab shows an
  *     inline fallback while the tab strip stays navigable (AT-D1-002). It resets on tab change.
  */
@@ -81,20 +91,18 @@ function TabErrorFallback({ tabId, message }: TabErrorFallbackProps): JSX.Elemen
   );
 }
 
-/** Live badge count for a tab strip trigger. Reads `results.length` from the same Redux selectors the
- *  Classic tables consume. Renders nothing when the slice has no `results` array yet (initial / loading
- *  / errored) so the trigger doesn't flash a "0" before the first fetch completes. */
+/** Live badge count for a tab strip trigger. Renders nothing while the slice is still unloaded. */
 function TabBadge({
-  count,
+  label,
   testId,
 }: {
-  readonly count: number | null;
+  readonly label: string | null;
   readonly testId: string;
 }): JSX.Element | null {
-  if (count === null) return null;
+  if (label === null) return null;
   return (
     <Badge variant="soft" color="gray" ml="2" data-testid={testId}>
-      {count}
+      {label}
     </Badge>
   );
 }
@@ -107,35 +115,51 @@ export default function PreviewDashboardPage(): JSX.Element {
   const { state } = useCurrentStateAndParams();
   const activeTab = tabFromStateName(state?.name);
 
-  // Tab-strip badge counts. The Redux slice initializes `results` to `null`; a successful fetch
-  // replaces it with an array. Treat the null state as "nothing to show yet" so the badge is hidden
-  // until there's a real number to display (avoids a "0" flash on first mount before the table loads).
   const violationsResults = useSelector(selectViolationResults);
   const componentsResults = useSelector(selectComponentResults);
   const applicationsResults = useSelector(selectApplicationResults);
   const waiversResults = useSelector(selectWaiversResults);
-  const violationsCount: number | null = Array.isArray(violationsResults?.results)
-    ? violationsResults.results.length
-    : null;
-  const componentsCount: number | null = Array.isArray(componentsResults?.results)
-    ? componentsResults.results.length
-    : null;
-  const applicationsCount: number | null = Array.isArray(applicationsResults?.results)
-    ? applicationsResults.results.length
-    : null;
-  const waiversCount: number | null = Array.isArray(waiversResults?.results)
-    ? waiversResults.results.length
-    : null;
+  const violationsBadge = formatDashboardTabBadge(violationsResults);
+  const componentsBadge = formatDashboardTabBadge(componentsResults);
+  const applicationsBadge = formatDashboardTabBadge(applicationsResults);
+  const waiversBadge = formatDashboardTabBadge(waiversResults);
+
+  // The active tab's own table dispatches its `load*Results()` on mount, so the
+  // shell must NOT also eager-fetch that slice or the active tab double-fires the
+  // request on first paint (`loadResults` has no in-flight guard). We read the
+  // active tab through a ref so the post-`loadFilter` callback below sees the
+  // current tab even if it changed while the filter request was in flight.
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
 
   // One-shot `loadFilter()` dispatch on first shell mount so the shared `dashboardFilter` slice is
   // populated for ALL tabs (the filter drawer each tab mounts shows options instead of a spinner).
-  // The shell mounts once per dashboard visit, so this runs once regardless of which tab is active.
-  // The ref guards against React StrictMode's double-invoke; the action is also idempotent.
+  // After a successful load, eagerly fetch the INACTIVE tab slices so strip badges reflect the
+  // hydrated filter; the active tab is owned by its mounted table (see above). The ref guards
+  // against React StrictMode's double-invoke.
   const filterLoadDispatchedRef = useRef(false);
   useEffect(() => {
     if (filterLoadDispatchedRef.current) return;
     filterLoadDispatchedRef.current = true;
-    dispatch(loadFilter());
+    // `loadFilter()` handles its own failures (it dispatches `loadFilterFailed`
+    // and resolves), so the returned promise never rejects — we branch on the
+    // resulting `dashboardFilter.loadError` state instead of a `.catch()`.
+    void dispatch(loadFilter()).then(() => {
+      dispatch((_, getState) => {
+        const filterState = getState().dashboardFilter;
+        if (filterState?.loadError || filterState?.loadErrorFilterName) {
+          return;
+        }
+        if (filterState?.loading || filterState?.needsAcknowledgement) {
+          return;
+        }
+        const active = activeTabRef.current;
+        if (active !== 'components') dispatch(loadComponentResults());
+        if (active !== 'applications') dispatch(loadApplicationResults());
+        if (active !== 'violations') dispatch(loadViolationResults());
+        if (active !== 'waivers') dispatch(loadWaiverResults());
+      });
+    });
   }, [dispatch]);
 
   const handleTabChange = (next: string): void => {
@@ -164,7 +188,7 @@ export default function PreviewDashboardPage(): JSX.Element {
       >
         <Box p="6" data-testid="nosc-dashboard-page" data-active-tab={activeTab}>
           <Flex direction="column" gap="2" mb="4">
-            <Heading size="6">Dashboard</Heading>
+            <PageHeading>Dashboard</PageHeading>
             <Text size="2" color="gray">
               Monitor policy violations, components, applications, and waivers across your organization.
             </Text>
@@ -180,19 +204,19 @@ export default function PreviewDashboardPage(): JSX.Element {
               </Tabs.Trigger>
               <Tabs.Trigger value="violations" data-testid="nosc-dashboard-tab-violations">
                 Violations
-                <TabBadge count={violationsCount} testId="nosc-dashboard-tab-badge-violations" />
+                <TabBadge label={violationsBadge} testId="nosc-dashboard-tab-badge-violations" />
               </Tabs.Trigger>
               <Tabs.Trigger value="components" data-testid="nosc-dashboard-tab-components">
                 Components
-                <TabBadge count={componentsCount} testId="nosc-dashboard-tab-badge-components" />
+                <TabBadge label={componentsBadge} testId="nosc-dashboard-tab-badge-components" />
               </Tabs.Trigger>
               <Tabs.Trigger value="applications" data-testid="nosc-dashboard-tab-applications">
                 Applications
-                <TabBadge count={applicationsCount} testId="nosc-dashboard-tab-badge-applications" />
+                <TabBadge label={applicationsBadge} testId="nosc-dashboard-tab-badge-applications" />
               </Tabs.Trigger>
               <Tabs.Trigger value="waivers" data-testid="nosc-dashboard-tab-waivers">
                 Waivers
-                <TabBadge count={waiversCount} testId="nosc-dashboard-tab-badge-waivers" />
+                <TabBadge label={waiversBadge} testId="nosc-dashboard-tab-badge-waivers" />
               </Tabs.Trigger>
             </Tabs.List>
 

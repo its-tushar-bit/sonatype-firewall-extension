@@ -7,26 +7,33 @@ import React from 'react';
 import { Badge, Link, Table, Text } from '@radix-ui/themes';
 import PreviewDashboardApplicationsAppNameLink from 'MainRoot/nosc/dashboard/tabs/PreviewDashboardApplicationsAppNameLink';
 import { PreviewDashboardApplication } from 'MainRoot/nosc/dashboard/tabs/previewDashboardApplicationsSelectors';
+import {
+  BadgeColor,
+  ComponentScoreKind,
+  severityColor as scoreColor,
+} from 'MainRoot/nosc/dashboard/tabs/previewDashboardSeverity';
 
 type Severity = 'critical' | 'severe' | 'moderate' | 'low' | 'total';
 
+const SEVERITY_TO_SCORE_KIND: Record<Exclude<Severity, 'total'>, ComponentScoreKind> = {
+  critical: 'crit',
+  severe: 'sev',
+  moderate: 'mod',
+  low: 'low',
+};
+
 /**
- * Severity badge color. Replaces the Classic
- * `DashboardHeatMapCell` saturation gradient with discrete Radix
- * accent colors — semantic, accessible, dark-mode-clean.
+ * Severity badge color. Replaces the Classic `DashboardHeatMapCell` saturation gradient with discrete Radix
+ * accent colors — semantic, accessible, dark-mode-clean. Per-tier colors come from the shared
+ * {@link scoreColor} helper so hues stay consistent across Preview surfaces.
  *
- * `total` is a roll-up cell, not a severity tier; it goes red when
- * there are any violations and green otherwise.
+ * `total` is a roll-up cell, not a severity tier; it goes red when there are any violations and green
+ * otherwise (intentionally distinct from the components grid's threat-bucketed total).
  */
-function severityColor(value: number, severity: Severity): 'red' | 'orange' | 'amber' | 'gray' | 'green' {
+function severityColor(value: number, severity: Severity): BadgeColor {
   if (value === 0) return 'green';
-  switch (severity) {
-    case 'critical': return 'red';
-    case 'severe':   return 'orange';
-    case 'moderate': return 'amber';
-    case 'low':      return 'gray';
-    case 'total':    return 'red';
-  }
+  if (severity === 'total') return 'red';
+  return scoreColor(value, SEVERITY_TO_SCORE_KIND[severity]);
 }
 
 function SeverityBadge({

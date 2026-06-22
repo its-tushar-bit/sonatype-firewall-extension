@@ -10,7 +10,7 @@ import axios from 'axios';
 import {
   useGlobalSearch,
   buildBucketQuery,
-  buildBackendQuery,
+  ENTITY_BUCKETS,
 } from 'MainRoot/nosc/search/useGlobalSearch';
 
 /**
@@ -81,7 +81,7 @@ describe('useGlobalSearch', () => {
 
   it('caps the merged result list to the requested pageSize', async () => {
     mock.onGet(/\/api\/v2\/search\/advanced/).reply(200, okResponse());
-    const { result } = renderHook(() => useGlobalSearch('log4j', { pageSize: 2 }));
+    const { result } = renderHook(() => useGlobalSearch('log4j', { mode: 'full', pageSize: 2 }));
     await waitFor(() => expect(result.current.results.length).toBeGreaterThan(0), { timeout: 2000 });
     expect(result.current.results.length).toBeLessThanOrEqual(2);
   });
@@ -117,14 +117,41 @@ describe('useGlobalSearch', () => {
   });
 });
 
-describe('buildBucketQuery / buildBackendQuery', () => {
+describe('buildBucketQuery', () => {
+  const applicationBucket = ENTITY_BUCKETS.find((b) => b.bucketKey === 'APPLICATION')!;
+  const violationBucket = ENTITY_BUCKETS.find((b) => b.bucketKey === 'POLICY_VIOLATION')!;
+  const waiverBucket = ENTITY_BUCKETS.find((b) => b.bucketKey === 'WAIVER')!;
+
   it('escapes && and || so they are not parsed as Lucene operators', () => {
-    expect(buildBucketQuery('APPLICATION', ['applicationName'], 'a&&b')).toContain('a\\&\\&b');
-    expect(buildBackendQuery('x||y')).toContain('x\\|\\|y');
+    expect(buildBucketQuery(applicationBucket, 'a&&b')).toContain('a\\&\\&b');
+    expect(buildBucketQuery(applicationBucket, 'x||y')).toContain('x\\|\\|y');
+  });
+
+  it('does NOT escape "/" so GAV / path-style component queries keep matching', () => {
+    const componentBucket = ENTITY_BUCKETS.find((b) => b.bucketKey === 'NON_VULNERABLE_COMPONENT')!;
+    const query = buildBucketQuery(componentBucket, 'org/apache/log4j');
+    // A lone "/" is a literal in Lucene; escaping it (org\/apache\/log4j) would
+    // stop the wildcard from matching the indexed coordinate value.
+    expect(query).toContain('componentName:*org/apache/log4j*');
+    expect(query).not.toContain('org\\/apache\\/log4j');
   });
 
   it('returns an empty string for blank input', () => {
-    expect(buildBucketQuery('APPLICATION', ['applicationName'], '   ')).toBe('');
-    expect(buildBackendQuery('')).toBe('');
+    expect(buildBucketQuery(applicationBucket, '   ')).toBe('');
+  });
+
+  it('pins active violations to policyViolationWaiverStatus:Active', () => {
+    const query = buildBucketQuery(violationBucket, 'log4j');
+    expect(query).toContain('itemType:POLICY_VIOLATION');
+    expect(query).toContain('policyViolationWaiverStatus:Active');
+    expect(query).toContain('policyViolationPolicyName:*log4j*');
+  });
+
+  it('pins waived rows to Waived or AutoWaived status', () => {
+    const query = buildBucketQuery(waiverBucket, 'log4j');
+    expect(query).toContain('itemType:POLICY_VIOLATION');
+    expect(query).toContain('policyViolationWaiverStatus:Waived');
+    expect(query).toContain('policyViolationWaiverStatus:AutoWaived');
+    expect(query).toContain('policyViolationPolicyName:*log4j*');
   });
 });

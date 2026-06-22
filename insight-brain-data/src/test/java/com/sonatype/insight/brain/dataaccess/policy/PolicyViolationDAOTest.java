@@ -1721,13 +1721,32 @@ public class PolicyViolationDAOTest
       assertThat(violations2).extracting(PolicyViolation::getId)
           .containsExactly(unfixedLegacyViolation2.getId());
     }
+  }
 
-    assertThat(dao.getUnfixedLegacyViolationByApplicationId(application.getId()))
-        .extracting(PolicyViolation::getId)
-        .containsExactly(unfixedLegacyViolation1.getId());
-    assertThat(dao.getUnfixedLegacyViolationByApplicationId(application2.getId()))
-        .extracting(PolicyViolation::getId)
-        .containsExactly(unfixedLegacyViolation2.getId());
+  @Test
+  public void testgetUnfixedLegacyViolationByApplicationId_stringOverload() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation evaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-str-overload");
+    PolicyViolation unfixed = tempEntity.newPolicyViolation(evaluation, policy);
+    unfixed.setLegacyViolationTime(evaluation.getTime());
+    dao.update(unfixed);
+
+    // A second application's unfixed legacy violation must NOT leak into the first application's
+    // result — proves the string overload scopes by application id and does not return other apps' rows.
+    Application application2 = tempEntity.newApplicationWithParent();
+    Policy policy2 = tempEntity.newPolicy(application2);
+    PolicyEvaluation evaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scan-str-overload-2");
+    PolicyViolation unfixed2 = tempEntity.newPolicyViolation(evaluation2, policy2);
+    unfixed2.setLegacyViolationTime(evaluation2.getTime());
+    dao.update(unfixed2);
+
+    List<PolicyViolation> violations = dao.getUnfixedLegacyViolationByApplicationId(application.getId());
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactly(unfixed.getId());
+
+    List<PolicyViolation> violations2 = dao.getUnfixedLegacyViolationByApplicationId(application2.getId());
+    assertThat(violations2).extracting(PolicyViolation::getId).containsExactly(unfixed2.getId());
   }
 
   @Test

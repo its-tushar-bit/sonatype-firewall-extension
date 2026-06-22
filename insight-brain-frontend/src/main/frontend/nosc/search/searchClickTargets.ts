@@ -10,9 +10,11 @@ import {
   isComponent,
   isVulnerability,
   isPolicy,
+  isPolicyViolation,
+  isWaiver,
   isSbomMetadata,
 } from 'MainRoot/nosc/search/searchTypes';
-import { bundleIndexUrl } from 'MainRoot/util/urlUtil';
+import { classicHref, violationSidebarHref } from 'MainRoot/nosc/applications/applicationDetailUtils';
 import router from 'MainRoot/router/routerInstance';
 
 /**
@@ -28,10 +30,6 @@ import router from 'MainRoot/router/routerInstance';
  * component / SBOM "home" fallbacks with native Nexus One detail routes as those
  * pages land, so global-search clicks keep users inside the Nexus One UI.
  */
-
-function classicHref(path: string): string {
-  return bundleIndexUrl('classic', path);
-}
 
 export function clickHrefFor(result: SearchResultItemDTO): string {
   if (isApplication(result) && result.applicationPublicId) {
@@ -52,6 +50,11 @@ export function clickHrefFor(result: SearchResultItemDTO): string {
 
   if (isPolicy(result) && result.policyId) {
     return classicHref('/management/view/organization/ROOT_ORGANIZATION_ID');
+  }
+
+  // Policy violations and waivers both deep-link to the same Classic violation-detail sidebar.
+  if ((isPolicyViolation(result) || isWaiver(result)) && result.policyViolationId) {
+    return violationSidebarHref(result.policyViolationId);
   }
 
   // TODO(CLM-39549): no native Nexus One component / SBOM detail page exists yet;

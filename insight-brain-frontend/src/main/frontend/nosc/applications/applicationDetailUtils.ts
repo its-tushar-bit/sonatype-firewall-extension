@@ -163,6 +163,15 @@ export function classicHref(path: string): string {
   return bundleIndexUrl('classic', path);
 }
 
+/**
+ * Classic violation-detail sidebar deep-link. There is no Preview-side violation detail page yet, so the
+ * Preview violations table and global-search both route here. Single source of truth for the path + bundle
+ * prefix (context-path / MTIQ aware via {@link classicHref}).
+ */
+export function violationSidebarHref(policyViolationId: string): string {
+  return classicHref(`/sidebarView/violation/${encodeURIComponent(policyViolationId)}`);
+}
+
 export function classicAppDetailHref(publicId: string): string {
   return classicHref(`/management/view/application/${encodeURIComponent(publicId)}`);
 }

@@ -84,9 +84,9 @@ const TOP_OFFSET = TOP_NAV_HEIGHT_PX + 'px';
  *   Success Metrics      → /preview/success-metrics      (Coming Soon)
  *   Vulnerability Lookup → /preview/vulnerability-lookup (Coming Soon;
  *                          follow-on PR replaces with native CVE detail)
- *   Advanced Search      → /preview/search               (Coming Soon —
- *                          AdvancedSearchComingSoon page; the omnibar
- *                          handles real typeahead today)
+ *   Advanced Search      → /preview/search               (live — mounts the
+ *                          full SearchResultsPage; the omnibar handles
+ *                          typeahead and deep-links into this page)
  *   Legal                → /preview/legal                (Coming Soon)
  *   Hosted Repos         → /preview/repositories         (Coming Soon)
  *   Enterprise/Operational Reporting → /preview/reports  (consolidated

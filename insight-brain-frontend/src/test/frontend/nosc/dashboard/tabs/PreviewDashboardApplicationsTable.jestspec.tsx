@@ -171,14 +171,11 @@ describe('PreviewDashboardApplicationsTable', () => {
     expect(container.querySelectorAll('[class^="nx-"]').length).toBe(0);
   });
 
-  it('exposes Coming-Soon affordances for CSV export and pagination', async () => {
-    const user = userEvent.setup();
+  it('exposes Coming-Soon affordances for CSV export and pagination', () => {
     renderWrapped(loadedState);
-    const csv = screen.getByRole('button', { name: /csv export/i });
-    expect(csv).toBeDisabled();
-    await user.hover(csv);
-    expect(await screen.findByText(/CLM-39992/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /csv export/i })).toBeDisabled();
+    expect(screen.getByTestId('nosc-dashboard-applications-csv')).toBeDisabled();
     expect(screen.getByRole('button', { name: /pagination/i })).toBeDisabled();
-    expect(screen.getByText(/CLM-39709/)).toBeInTheDocument();
+    expect(screen.getByTestId('nosc-dashboard-applications-pagination')).toBeDisabled();
   });
 });

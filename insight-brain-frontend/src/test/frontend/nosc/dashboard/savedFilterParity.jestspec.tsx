@@ -7,6 +7,7 @@ import React from 'react';
 import { Theme } from '@radix-ui/themes';
 import { within } from '@testing-library/react';
 import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
+import { _setBaseUrlForTesting } from 'MainRoot/util/urlUtil';
 
 import DashboardViolationsContainer from 'MainRoot/dashboard/results/violations/DashboardViolationsContainer';
 import DashboardWaiversTable from 'MainRoot/dashboard/results/waivers/DashboardWaiversTable';
@@ -350,6 +351,9 @@ describe('Saved-filter parity (CLM-39992 / S2-PR-D-3 / AT-D3-003)', () => {
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
+    // The Preview violations table builds Classic deep-links via the shared (context-path-aware)
+    // violationSidebarHref → bundleIndexUrl; pin a base URL so it can construct a valid URL.
+    _setBaseUrlForTesting('http://localhost');
   });
 
   beforeEach(() => {

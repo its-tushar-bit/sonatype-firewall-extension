@@ -18,16 +18,21 @@
  */
 
 /**
- * The 8 ItemType values from
- * com.sonatype.insight.brain.search.index.ItemType. Phase 1 omnibar shows
- * 6 of them as result rows (we omit APPLICATION_CATEGORY and
- * COMPONENT_LABEL because they're filter values, not search destinations).
+ * The 10 ItemType values surfaced by the frontend search union. Eight mirror
+ * com.sonatype.insight.brain.search.index.ItemType; `WAIVER` is a synthetic
+ * client-side type for waived policy-violation rows remapped from the backend
+ * POLICY_VIOLATION bucket. Phase 1 omnibar shows 7 of them as result rows
+ * (we omit APPLICATION_CATEGORY and COMPONENT_LABEL because they're filter
+ * values, not search destinations).
  */
 export type ItemType =
   | 'APPLICATION'
   | 'ORGANIZATION'
   | 'NON_VULNERABLE_COMPONENT'
   | 'SECURITY_VULNERABILITY'
+  | 'POLICY_VIOLATION'
+  /** Client-side type for waived / auto-waived policy violations. */
+  | 'WAIVER'
   | 'APPLICATION_CATEGORY'
   | 'COMPONENT_LABEL'
   | 'POLICY'
@@ -79,6 +84,14 @@ export interface SearchResultItemDTO {
   policyName?: string;
   policyThreatCategory?: string;
   policyThreatLevel?: number;
+
+  policyViolationId?: string;
+  policyViolationThreatCategory?: string;
+  policyViolationThreatLevel?: number;
+  policyViolationPolicyName?: string;
+  policyViolationPolicyId?: string;
+  policyViolationWaiverStatus?: string;
+  policyViolationConstraintName?: string;
 }
 
 /**
@@ -92,9 +105,10 @@ export interface GroupingByDTO {
   groupIdentifier?: string;
   groupBy?: string;
   additionalInfo?: string;
-  // Optional: a group can legitimately come back without an items array (the
-  // backend may omit it), and `flattenGroups` already treats it as possibly
-  // undefined when calling `consume()`. Typing it required was a mismatch.
+  /**
+   * Optional — the backend omits this field on empty groups. Callers
+   * flattening groups must tolerate undefined (see useGlobalSearch).
+   */
   searchResultItemDTOS?: SearchResultItemDTO[];
 }
 
@@ -149,6 +163,14 @@ export function isPolicy(r: SearchResultItemDTO): boolean {
   return r.itemType === 'POLICY';
 }
 
+export function isPolicyViolation(r: SearchResultItemDTO): boolean {
+  return r.itemType === 'POLICY_VIOLATION';
+}
+
+export function isWaiver(r: SearchResultItemDTO): boolean {
+  return r.itemType === 'WAIVER';
+}
+
 export function isSbomMetadata(r: SearchResultItemDTO): boolean {
   return r.itemType === 'SBOM_METADATA';
 }
@@ -182,6 +204,8 @@ export const RENDERED_ITEM_TYPES: readonly ItemType[] = [
   'ORGANIZATION',
   'NON_VULNERABLE_COMPONENT',
   'SECURITY_VULNERABILITY',
+  'POLICY_VIOLATION',
+  'WAIVER',
   'POLICY',
 ];
 
@@ -190,16 +214,54 @@ export function isRenderedType(r: SearchResultItemDTO): boolean {
 }
 
 /**
+ * Human-readable label per entity type. Single source of truth shared by the omnibar section headers
+ * (SearchOmnibar) and the /search results-page tabs (SearchResultsTabs) so the two surfaces can never
+ * disagree on a label. Entity types with no dedicated search surface map to an empty string.
+ */
+export const ITEM_TYPE_LABEL: Record<ItemType, string> = {
+  APPLICATION: 'Applications',
+  ORGANIZATION: 'Organizations',
+  NON_VULNERABLE_COMPONENT: 'Components',
+  SECURITY_VULNERABILITY: 'Vulnerabilities',
+  POLICY_VIOLATION: 'Policy Violations',
+  WAIVER: 'Waivers',
+  APPLICATION_CATEGORY: '',
+  COMPONENT_LABEL: '',
+  POLICY: 'Policies',
+  SBOM_METADATA: '',
+};
+
+/**
  * Display name for a result row. Used in the typeahead row primary text
  * and in result cards. Falls back through reasonable defaults if the
  * primary name field is missing.
  */
+/**
+ * Single source-label helper for a vulnerability id, shared by the omnibar row and the /search results page so
+ * the two surfaces can never label the same vulnerability differently. Mirrors the prefix logic in
+ * VulnerabilityUrlBuilder.java (Source enum: CVE- / GHSA- / SONATYPE-); matching is case-insensitive and
+ * unrecognized ids fall back to "Sonatype", matching that builder's default source.
+ */
+export function vulnerabilitySourceLabel(vulnerabilityId: string | undefined): string {
+  const id = (vulnerabilityId ?? '').toUpperCase();
+  if (id.startsWith('CVE-')) return 'CVE';
+  if (id.startsWith('GHSA-')) return 'GHSA';
+  if (id.startsWith('SONATYPE-')) return 'Sonatype';
+  return 'Sonatype';
+}
+
 export function displayNameFor(r: SearchResultItemDTO): string {
   if (isApplication(r)) return r.applicationName || r.applicationPublicId || 'Unknown application';
   if (isOrganization(r)) return r.organizationName || 'Unknown organization';
   if (isComponent(r)) return r.componentName || r.componentHash || 'Unknown component';
   if (isVulnerability(r)) return r.vulnerabilityId || 'Unknown vulnerability';
   if (isPolicy(r)) return r.policyName || 'Unknown policy';
+  if (isPolicyViolation(r)) {
+    return r.policyViolationPolicyName || r.componentName || 'Unknown policy violation';
+  }
+  if (isWaiver(r)) {
+    return r.policyViolationPolicyName || r.componentName || 'Unknown waiver';
+  }
   if (isSbomMetadata(r)) return r.applicationName || r.reportId || 'SBOM document';
   if (isApplicationCategory(r)) return r.applicationCategoryName || '';
   if (isComponentLabel(r)) return r.componentLabelName || '';
@@ -216,6 +278,8 @@ export function reactKeyFor(r: SearchResultItemDTO): string {
   if (isComponent(r)) return `comp:${r.componentHash}`;
   if (isVulnerability(r)) return `vuln:${r.vulnerabilityId}`;
   if (isPolicy(r)) return `policy:${r.policyId}`;
+  if (isPolicyViolation(r)) return `pviolation:${r.policyViolationId ?? r.resultIndex}`;
+  if (isWaiver(r)) return `waiver:${r.policyViolationId ?? r.resultIndex}`;
   if (isSbomMetadata(r)) return `sbom:${r.reportId ?? r.applicationId}`;
   if (isApplicationCategory(r)) return `cat:${r.applicationCategoryId}`;
   if (isComponentLabel(r)) return `label:${r.componentLabelId}`;

@@ -42,9 +42,9 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImag
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyOpenViolationSummary;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyOpenViolationSummary;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
@@ -1139,6 +1139,12 @@ public class PolicyViolationDAO
     }
   }
 
+  public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(String appId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getUnfixedLegacyViolationByApplicationId(tx, appId);
+    }
+  }
+
   public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(TransactionContext tx, String appId) {
     return tx.dsl()
         .selectFrom(POLICY_VIOLATION)
@@ -1146,12 +1152,6 @@ public class PolicyViolationDAO
         .and(POLICY_VIOLATION.FIX_TIME.isNull())
         .and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNotNull())
         .fetchInto(PolicyViolation.class);
-  }
-
-  public List<PolicyViolation> getUnfixedLegacyViolationByApplicationId(String appId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getUnfixedLegacyViolationByApplicationId(tx, appId);
-    }
   }
 
   public int replacePolicyId(String fromPolicyId, String toPolicyId) {

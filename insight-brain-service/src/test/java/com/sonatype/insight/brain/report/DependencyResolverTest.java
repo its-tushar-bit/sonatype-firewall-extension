@@ -869,8 +869,8 @@ public class DependencyResolverTest
     JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/data.json");
 
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
-        telemetrySender,
-        telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        telemetrySender, telemetryUtils, observedInnerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+        proprietaryConfigService)
         .resolve();
 
     ComponentIdentifier knownDirect =
@@ -879,6 +879,89 @@ public class DependencyResolverTest
     assertBomNodeDependencyInfo(bomJson, knownDirect, true, false, null, null);
     assertThat(findNodeById(bomJson, knownDirect).get(ComponentLoader.INNER_SOURCE_DATA_FIELD)).isNull();
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
+
+    // CLM-39951: the same-app-exclusion path must also resolve associations from the single batch query.
+    verify(observedInnerSourceApplicationDAO, times(1)).getByPackageUrls(Mockito.any());
+  }
+
+  @Test
+  public void processInnerSource_unknownTransitiveUnderInnerSourceParent_resolvedFromBatchNotPerComponentQuery() throws Exception {
+    // CLM-40956: an UNKNOWN transitive dependency under an InnerSource parent must be resolved from the
+    // up-front batch map (getByPackageUrls) rather than a per-component getByPackageUrl call. This guards
+    // against reintroducing the N+1 query pattern for transitive InnerSource lookups (follow-up to CLM-39951).
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/known-direct?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/unknown-transitive?type=jar", appInnerSource);
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+        telemetrySender, telemetryUtils, observedInnerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+        proprietaryConfigService)
+        .resolve();
+
+    String unknownTransitivePurl = "pkg:maven/com.innersource/unknown-transitive?type=jar";
+
+    // The transitive InnerSource association must NOT be looked up with a per-component query.
+    verify(observedInnerSourceApplicationDAO, never())
+        .getByPackageUrl(Mockito.argThat(purl -> unknownTransitivePurl.equals(purl.getPackageUrl())));
+
+    // It must instead be covered by the single up-front batch query.
+    verify(observedInnerSourceApplicationDAO, times(1))
+        .getByPackageUrls(Mockito.argThat(purls -> purls.stream()
+            .map(PackageUrlIdentifier::getPackageUrl)
+            .anyMatch(unknownTransitivePurl::equals)));
+
+    // Behavior preserved: the unknown transitive that exists as InnerSource is marked as known (exact).
+    ComponentIdentifier unknownTransitive =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-transitive", "2.8.1", "", "jar");
+    JsonNode bomNode = findNodeById(bomJson, unknownTransitive);
+    assertThat(bomNode).isNotNull();
+    assertThat(bomNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
+  }
+
+  @Test
+  public void processInnerSource_unknownTransitiveRegisteredToSameApp_stillMarkedKnown() throws Exception {
+    // CLM-40956: the transitive path intentionally applies NO same-app exclusion (unlike the direct path,
+    // which uses getInnerSourceApplicationExcludingApplication). This preserves the pre-batch getByPackageUrl
+    // behavior, so an UNKNOWN transitive that exists as InnerSource registered to the *current* app must still
+    // be marked as known. This locks in the asymmetry between the direct and transitive resolution paths.
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+    // Parent belongs to a different app so the direct path recurses into its transitive children.
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/known-direct?type=jar", appInnerSource);
+    // Transitive is registered to the current app (same app); the transitive path must not exclude it.
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/unknown-transitive?type=jar", app);
+
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-transitive-unknown-with-purl/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+        telemetrySender,
+        telemetryUtils, observedInnerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+        proprietaryConfigService)
+        .resolve();
+
+    String unknownTransitivePurl = "pkg:maven/com.innersource/unknown-transitive?type=jar";
+
+    // Defence-in-depth: even when the InnerSource association is registered to the *current* app, the transitive
+    // path must resolve it from the up-front batch map, never via a per-component query. This guards the stated
+    // asymmetry (no same-app exclusion on the transitive path) against a future regression that reaches the same
+    // matchState through a per-component DB call.
+    verify(observedInnerSourceApplicationDAO, never())
+        .getByPackageUrl(Mockito.argThat(purl -> unknownTransitivePurl.equals(purl.getPackageUrl())));
+
+    ComponentIdentifier unknownTransitive =
+        ComponentIdentifier.createMavenCoordinates("com.innersource", "unknown-transitive", "2.8.1", "", "jar");
+    JsonNode bomNode = findNodeById(bomJson, unknownTransitive);
+    assertThat(bomNode).isNotNull();
+    assertThat(bomNode.get("matchState").asText()).isEqualTo(MatchState.EXACT.getId());
   }
 
   @Test

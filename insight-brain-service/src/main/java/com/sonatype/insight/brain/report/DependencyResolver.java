@@ -125,7 +125,7 @@ public class DependencyResolver
 
   private Map<String, ObjectNode> bomNodesByPackageUrl;
 
-  private Map<String, InnerSourceApplication> innerSourceApplicationsByPackageUrl;
+  private Map<String, InnerSourceApplication> innerSourceApplicationsByPackageUrl = Collections.emptyMap();
 
   private final Set<InnerSourceProducerComponentTelemetry> innerSourceProducerTelemetries = new HashSet<>();
 
@@ -229,6 +229,8 @@ public class DependencyResolver
       return false;
     }
 
+    // Single lookup is intentional here: this is the write path, invoked once per module/root artifact, so the
+    // number of lookups is bounded by module count. The read/association path resolves from the batched map instead.
     InnerSourceApplication innerSourceApplication = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
     try (TransactionContext tx = innerSourceApplicationDAO.createTransactionContext()) {
       tx.begin();
@@ -314,6 +316,10 @@ public class DependencyResolver
       Set<PackageUrlIdentifier> modules = getModuleDependencies(children);
       Set<PackageUrlIdentifier> directDependencies = getDirectDependencies(children);
       Set<String> processedDirectDependencies = new HashSet<>();
+      // Loaded once here, before module processing. associateModuleToApp may insert a new InnerSourceApplication via
+      // saveInnerSourceComponent, but the map is intentionally not refreshed afterwards: it reflects associations as
+      // of scan start, so a transitive is only marked known if its association already existed then. A module
+      // association first written during this scan is resolved on the next scan rather than retroactively mid-scan.
       innerSourceApplicationsByPackageUrl = loadInnerSourceApplications(children);
 
       for (DependencyNode dependencyChild : children) {
@@ -330,10 +336,11 @@ public class DependencyResolver
   }
 
   private Map<String, InnerSourceApplication> loadInnerSourceApplications(final List<DependencyNode> children) {
-    // CLM-39951: batch-load every direct-dependency InnerSource association in a single query
-    // instead of one query per component (the prior N+1 caused a ~17min scan). package_url is
-    // unique in inner_source_application, so each purl resolves to exactly one association.
-    Set<PackageUrlIdentifier> packageUrls = collectDirectDependencyPackageUrls(children);
+    // CLM-39951 / CLM-40956: batch-load every InnerSource association in the dependency tree (direct, module
+    // and transitive components) in a single query, so the association lookups stay at one query per scan
+    // regardless of component count. package_url is unique in inner_source_application, so each purl resolves
+    // to exactly one association.
+    Set<PackageUrlIdentifier> packageUrls = collectAllPackageUrls(children);
     if (packageUrls.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -344,21 +351,19 @@ public class DependencyResolver
     return result;
   }
 
-  private Set<PackageUrlIdentifier> collectDirectDependencyPackageUrls(final List<DependencyNode> children) {
+  private Set<PackageUrlIdentifier> collectAllPackageUrls(final List<DependencyNode> children) {
     Set<PackageUrlIdentifier> packageUrls = new HashSet<>();
-    for (DependencyNode child : children) {
-      if (child.isModule()) {
-        if (getPackageUrl(child) != null) {
-          for (DependencyNode moduleChild : child.getChildren()) {
-            addSimplifiedPackageUrl(packageUrls, moduleChild);
-          }
-        }
-      }
-      else if (child.isDirect()) {
-        addSimplifiedPackageUrl(packageUrls, child);
+    collectPackageUrls(children, packageUrls);
+    return packageUrls;
+  }
+
+  private void collectPackageUrls(final List<DependencyNode> nodes, final Set<PackageUrlIdentifier> packageUrls) {
+    for (DependencyNode node : nodes) {
+      addSimplifiedPackageUrl(packageUrls, node);
+      if (CollectionUtils.isNotEmpty(node.getChildren())) {
+        collectPackageUrls(node.getChildren(), packageUrls);
       }
     }
-    return packageUrls;
   }
 
   private void addSimplifiedPackageUrl(final Set<PackageUrlIdentifier> packageUrls, final DependencyNode node) {
@@ -785,7 +790,16 @@ public class DependencyResolver
       final ObjectNode bomObjectNode)
   {
     PackageUrlIdentifier versionlessPurl = bomPurl.createAlternativeVersion(null);
-    InnerSourceApplication is = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
+    if (versionlessPurl == null) {
+      return;
+    }
+    // CLM-40956: resolve from the in-memory batch map populated in processInnerSourceDependencies, so each transitive
+    // is a map lookup rather than a per-component database query.
+    // No same-app exclusion is applied here (unlike the direct path's getInnerSourceApplicationExcludingApplication):
+    // a same-app transitive InnerSource is still marked known. The map reflects associations that existed at scan
+    // start; one first written during this scan via saveInnerSourceComponent is resolved on the next scan rather than
+    // retroactively mid-scan.
+    InnerSourceApplication is = innerSourceApplicationsByPackageUrl.get(versionlessPurl.getPackageUrl());
     if (is != null) {
       // If the component is transitive and exists as InnerSource, it needs to be updated, so it can be marked as
       // Transitive dependency but not as InnerSource

@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.innersource;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import com.google.common.collect.Lists;
 import org.jooq.Table;
-import static java.util.stream.Collectors.toList;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -59,16 +56,11 @@ public class InnerSourceApplicationDAO
 
   public List<InnerSourceApplication> getByPackageUrls(Set<PackageUrlIdentifier> packageUrls) {
     List<String> urls = packageUrls.stream().map(PackageUrlIdentifier::getPackageUrl).toList();
-    List<List<String>> partitions = Lists.partition(urls, getInOperatorThreshold());
-
     try (TransactionContext tx = createTransactionContext()) {
-      return partitions.stream()
-          .map(partition -> tx.dsl()
-              .selectFrom(INNER_SOURCE_APPLICATION)
-              .where(INNER_SOURCE_APPLICATION.PACKAGE_URL.in(partition))
-              .fetch(this::toEntity))
-          .flatMap(Collection::stream)
-          .collect(toList());
+      return getListWithSqlInClause(urls, partition -> tx.dsl()
+          .selectFrom(INNER_SOURCE_APPLICATION)
+          .where(INNER_SOURCE_APPLICATION.PACKAGE_URL.in(partition))
+          .fetch(this::toEntity));
     }
   }
 

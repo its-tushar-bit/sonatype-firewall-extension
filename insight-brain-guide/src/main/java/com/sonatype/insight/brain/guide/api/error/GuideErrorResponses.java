@@ -92,10 +92,14 @@ final class GuideErrorResponses
       logClientError(request, status, exception, log);
     }
 
-    return Response.status(status)
+    Response.ResponseBuilder builder = Response.status(status)
         .type(MediaType.APPLICATION_JSON_TYPE)
-        .entity(new GuideErrorResponse(false, message))
-        .build();
+        .entity(new GuideErrorResponse(false, message));
+    if (exception instanceof GuideLicenseUnavailableException) {
+      builder.header(GuideLicenseUnavailableException.LICENSE_HEADER,
+          GuideLicenseUnavailableException.LICENSE_UNAVAILABLE);
+    }
+    return builder.build();
   }
 
   private static String reasonPhrase(int status) {

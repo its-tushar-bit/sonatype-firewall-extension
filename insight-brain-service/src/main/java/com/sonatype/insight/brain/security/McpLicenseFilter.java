@@ -18,6 +18,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -64,6 +65,8 @@ public class McpLicenseFilter
     if (isMultiTenant || !hasGuideMcp) {
       log.debug("MCP access denied: multi-tenant={}, license includes GUIDE_MCP={}", isMultiTenant, hasGuideMcp);
       HttpServletResponse httpResponse = (HttpServletResponse) response;
+      httpResponse.setHeader(GuideLicenseUnavailableException.LICENSE_HEADER,
+          GuideLicenseUnavailableException.LICENSE_UNAVAILABLE);
       httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
       httpResponse.setContentType(CONTENT_TYPE_TEXT_PLAIN_UTF8);
       try (PrintWriter writer = httpResponse.getWriter()) {

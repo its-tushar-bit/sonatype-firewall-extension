@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -35,12 +36,14 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilityDetailDocument
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
+import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
 import com.sonatype.insight.brain.guide.telemetry.GuideOperationType;
 import com.sonatype.insight.brain.guide.telemetry.GuideUsageEvent;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -49,32 +52,42 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class SearchApiClientImpl
     implements SearchApiClient
 {
+  private static final Logger log = LoggerFactory.getLogger(SearchApiClientImpl.class);
+
   private final HdsClient hdsClient;
 
+  private final GuideLicenseRevocationHandler revocationHandler;
+
   @Inject
-  public SearchApiClientImpl(HdsClient hdsClient) {
+  public SearchApiClientImpl(HdsClient hdsClient, GuideLicenseRevocationHandler revocationHandler) {
     this.hdsClient = hdsClient;
+    this.revocationHandler = revocationHandler;
   }
 
   @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public String getComponentByPurl(String purl) {
-    return hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", purlForUpstream(purl)));
+    return withLicenseRefreshOn402("rest/search/components/detail",
+        () -> hdsClient.get(String.class, "rest/search/components/detail",
+            Map.of("purl", purlForUpstream(purl))));
   }
 
   @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
   @Authorize(permission = Permission.READ)
   @Override
   public String getLatestComponentVersion(String purl) {
-    return hdsClient.post(String.class, "rest/search/components/latest-version",
-        Map.of("purl", purlForUpstream(purl)));
+    return withLicenseRefreshOn402("rest/search/components/latest-version",
+        () -> hdsClient.post(String.class, "rest/search/components/latest-version",
+            Map.of("purl", purlForUpstream(purl))));
   }
 
   @GuideUsageEvent(operationType = GuideOperationType.COMPONENT_LOOKUP)
@@ -82,8 +95,9 @@ public class SearchApiClientImpl
   @Override
   public GuideRecommendationResult getRecommendations(String purl) {
     try {
-      return hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations",
-          Map.of("purl", purlForUpstream(purl)));
+      return withLicenseRefreshOn402("rest/search/recommendations",
+          () -> hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations",
+              Map.of("purl", purlForUpstream(purl))));
     }
     catch (NotFoundException e) {
       throw notFound(e, "No recommendations found for purl: " + purl);
@@ -98,8 +112,9 @@ public class SearchApiClientImpl
   @Override
   public ApiSearchResponse<ComponentDocument> searchComponents(GuideComponentSearchRequest request) {
     try {
-      return hdsClient.getWithMultimap(
-          GuideComponentSearchResponse.class, "rest/search/components", buildComponentSearchParams(request));
+      return withLicenseRefreshOn402("rest/search/components",
+          () -> hdsClient.getWithMultimap(
+              GuideComponentSearchResponse.class, "rest/search/components", buildComponentSearchParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -182,9 +197,10 @@ public class SearchApiClientImpl
   @Override
   public ApiSearchResponse<VulnerabilityDocument> searchVulnerabilities(GuideVulnerabilitySearchRequest request) {
     try {
-      return hdsClient.getWithMultimap(
-          GuideVulnerabilitySearchResponse.class, "rest/search/vulnerabilities",
-          buildVulnerabilitySearchParams(request));
+      return withLicenseRefreshOn402("rest/search/vulnerabilities",
+          () -> hdsClient.getWithMultimap(
+              GuideVulnerabilitySearchResponse.class, "rest/search/vulnerabilities",
+              buildVulnerabilitySearchParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -258,8 +274,9 @@ public class SearchApiClientImpl
   @Override
   public ApiSearchResponse<SearchResult> globalSearch(GuideGlobalSearchRequest request) {
     try {
-      return hdsClient.getWithMultimap(
-          GuideGlobalSearchResponse.class, "rest/search/global", buildGlobalSearchParams(request));
+      return withLicenseRefreshOn402("rest/search/global",
+          () -> hdsClient.getWithMultimap(
+              GuideGlobalSearchResponse.class, "rest/search/global", buildGlobalSearchParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -306,8 +323,9 @@ public class SearchApiClientImpl
   @Override
   public VulnerabilityDetailDocument getVulnerabilityByRefId(String id) {
     try {
-      return hdsClient.get(GuideVulnerabilityDetailDocument.class,
-          "rest/search/vulnerabilities/" + encodePathSegment(id));
+      return withLicenseRefreshOn402("rest/search/vulnerabilities/{id}",
+          () -> hdsClient.get(GuideVulnerabilityDetailDocument.class,
+              "rest/search/vulnerabilities/" + encodePathSegment(id)));
     }
     catch (NotFoundException e) {
       throw notFound(e, "Vulnerability not found: " + id);
@@ -325,10 +343,11 @@ public class SearchApiClientImpl
       GuideAffectedComponentVersionRequest request)
   {
     try {
-      return hdsClient.getWithMultimap(
-          GuideAffectedComponentVersionSearchResponse.class,
-          "rest/search/vulnerabilities/" + encodePathSegment(request.id()) + "/components",
-          buildAffectedComponentParams(request));
+      return withLicenseRefreshOn402("rest/search/vulnerabilities/{id}/components",
+          () -> hdsClient.getWithMultimap(
+              GuideAffectedComponentVersionSearchResponse.class,
+              "rest/search/vulnerabilities/" + encodePathSegment(request.id()) + "/components",
+              buildAffectedComponentParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -368,10 +387,11 @@ public class SearchApiClientImpl
   @Override
   public ComponentDetailDocument getComponentDetailByPurl(String purl) {
     try {
-      return hdsClient.get(
-          GuideComponentDetailDocument.class,
-          "rest/search/components/detail",
-          Map.of("purl", purlForUpstream(purl)));
+      return withLicenseRefreshOn402("rest/search/components/detail",
+          () -> hdsClient.get(
+              GuideComponentDetailDocument.class,
+              "rest/search/components/detail",
+              Map.of("purl", purlForUpstream(purl))));
     }
     catch (NotFoundException e) {
       throw notFound(e, "Component not found: " + purl);
@@ -389,10 +409,11 @@ public class SearchApiClientImpl
       GuideComponentVersionsRequest request)
   {
     try {
-      return hdsClient.getWithMultimap(
-          GuideComponentDetailSearchResponse.class,
-          "rest/search/components/versions",
-          buildComponentVersionsParams(request));
+      return withLicenseRefreshOn402("rest/search/components/versions",
+          () -> hdsClient.getWithMultimap(
+              GuideComponentDetailSearchResponse.class,
+              "rest/search/components/versions",
+              buildComponentVersionsParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -461,10 +482,11 @@ public class SearchApiClientImpl
       GuideComponentVulnerabilitiesRequest request)
   {
     try {
-      return hdsClient.getWithMultimap(
-          GuideVulnerabilitySearchResponse.class,
-          "rest/search/components/vulnerabilities",
-          buildComponentVulnerabilitiesParams(request));
+      return withLicenseRefreshOn402("rest/search/components/vulnerabilities",
+          () -> hdsClient.getWithMultimap(
+              GuideVulnerabilitySearchResponse.class,
+              "rest/search/components/vulnerabilities",
+              buildComponentVulnerabilitiesParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -548,10 +570,11 @@ public class SearchApiClientImpl
       GuideComponentDependenciesRequest request)
   {
     try {
-      return hdsClient.getWithMultimap(
-          GuideComponentSearchResponse.class,
-          "rest/search/components/dependencies",
-          buildComponentDependenciesParams(request));
+      return withLicenseRefreshOn402("rest/search/components/dependencies",
+          () -> hdsClient.getWithMultimap(
+              GuideComponentSearchResponse.class,
+              "rest/search/components/dependencies",
+              buildComponentDependenciesParams(request)));
     }
     catch (NotFoundException e) {
       int limit = request.limit() != null ? request.limit() : 20;
@@ -636,10 +659,11 @@ public class SearchApiClientImpl
   @Override
   public ComponentDetailDocument getLatestVersionDetail(String purl) {
     try {
-      return hdsClient.post(
-          GuideComponentDetailDocument.class,
-          "rest/search/components/latest-version",
-          Map.of("purl", purlForUpstream(purl)));
+      return withLicenseRefreshOn402("rest/search/components/latest-version",
+          () -> hdsClient.post(
+              GuideComponentDetailDocument.class,
+              "rest/search/components/latest-version",
+              Map.of("purl", purlForUpstream(purl))));
     }
     catch (NotFoundException e) {
       throw notFound(e, "No latest version found for purl: " + purl);
@@ -647,6 +671,42 @@ public class SearchApiClientImpl
     catch (BadGatewayException | InternalServerErrorException e) {
       throw new GuideApiException(Response.Status.BAD_GATEWAY,
           "Failed to retrieve latest version from data service");
+    }
+  }
+
+  /**
+   * Wraps an HDS call so that an HTTP 402 from upstream triggers a single license refresh
+   * (single-flight + 60s debounce, see {@link GuideLicenseRevocationHandler}) before the
+   * caller throws a deterministic {@link GuideLicenseUnavailableException}. Non-402 failures
+   * (5xx, 404, network errors) are propagated unchanged so existing per-method handlers can
+   * continue mapping them to {@link GuideApiException} or empty results.
+   *
+   * <p>
+   * Refresh failures are intentionally swallowed: HDS already told us the license no longer
+   * grants this feature, so the deterministic 402 marker response must reach the client
+   * regardless of whether the in-process refresh attempt succeeded. The originating thread's
+   * {@code RuntimeException} from {@code loadLicense()} and concurrent threads' wrapping
+   * {@code CompletionException} from {@code CompletableFuture.join()} are both caught here.
+   *
+   * @param endpoint relative HDS path used for the audit-log line; for templated endpoints
+   *          (e.g. {@code rest/search/vulnerabilities/{id}}) pass the route, not the
+   *          substituted form, so logs group by route rather than by id
+   * @param hdsCall thunk that performs the actual upstream call
+   */
+  private <T> T withLicenseRefreshOn402(String endpoint, Supplier<T> hdsCall) {
+    try {
+      return hdsCall.get();
+    }
+    catch (PaymentRequiredException e) {
+      try {
+        revocationHandler.onPaymentRequired(endpoint);
+      }
+      catch (RuntimeException refreshFailure) {
+        log.warn("Guide license refresh failed for endpoint {}; returning deterministic 402 anyway",
+            endpoint, refreshFailure);
+      }
+      throw new GuideLicenseUnavailableException(Response.Status.PAYMENT_REQUIRED,
+          "Guide feature is no longer licensed");
     }
   }
 

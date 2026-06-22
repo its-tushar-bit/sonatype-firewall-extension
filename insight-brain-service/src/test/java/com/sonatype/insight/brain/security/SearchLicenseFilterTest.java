@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.net.URI;
 
-import com.sonatype.insight.brain.guide.api.error.GuideApiException;
+import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -65,7 +65,7 @@ public class SearchLicenseFilterTest
     SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, singleTenantUtil);
 
     assertThatThrownBy(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
-        .isInstanceOfSatisfying(GuideApiException.class, e -> {
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class, e -> {
           assertThat(e.getResponse().getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
           assertThat(e.getMessage()).isEqualTo(SearchLicenseFilter.LICENSE_DENIED_MSG);
         });
@@ -79,7 +79,7 @@ public class SearchLicenseFilterTest
     SearchLicenseFilter filter = new SearchLicenseFilter(productLicense, multiTenantUtil);
 
     assertThatThrownBy(() -> filter.filter(requestForPath("api/v2/guide/components/search")))
-        .isInstanceOfSatisfying(GuideApiException.class, e -> {
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class, e -> {
           assertThat(e.getResponse().getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
           assertThat(e.getMessage()).isEqualTo(SearchLicenseFilter.MULTI_TENANT_DENIED_MSG);
         });

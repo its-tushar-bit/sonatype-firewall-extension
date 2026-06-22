@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
+import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -77,7 +78,7 @@ public class SearchLicenseFilter
       String message = isMultiTenant ? MULTI_TENANT_DENIED_MSG : LICENSE_DENIED_MSG;
       log.debug("Guide API access denied: multi-tenant={}, license includes GUIDE_SEARCH={}",
           isMultiTenant, hasGuideSearch);
-      throw new GuideApiException(Response.Status.FORBIDDEN, message);
+      throw new GuideLicenseUnavailableException(Response.Status.FORBIDDEN, message);
     }
   }
 }

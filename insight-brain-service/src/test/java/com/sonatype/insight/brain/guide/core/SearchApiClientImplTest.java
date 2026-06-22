@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.guide.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -31,10 +32,12 @@ import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchResponse;
 import com.sonatype.insight.brain.guide.api.dto.RecommendedVersionInfo;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
+import com.sonatype.insight.brain.guide.api.error.GuideLicenseUnavailableException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.sonatype.insight.brain.security.SecurityAspectControl;
 import jakarta.ws.rs.InternalServerErrorException;
@@ -47,6 +50,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,12 +65,15 @@ public class SearchApiClientImplTest
   @Mock
   private HdsClient hdsClient;
 
+  @Mock
+  private GuideLicenseRevocationHandler revocationHandler;
+
   private SearchApiClientImpl underTest;
 
   @Before
   public void setUp() {
     SecurityAspectControl.disableEnforcement();
-    underTest = new SearchApiClientImpl(hdsClient);
+    underTest = new SearchApiClientImpl(hdsClient, revocationHandler);
   }
 
   @After
@@ -680,5 +690,73 @@ public class SearchApiClientImplTest
     assertThatThrownBy(() -> underTest.getComponentDependencies(request))
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Failed to retrieve component dependencies");
+  }
+
+  @Test
+  public void getComponentByPurl_paymentRequired_triggersHandlerAndThrowsLicenseUnavailable() {
+    when(hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", PURL)))
+        .thenThrow(new PaymentRequiredException("HDS gated"));
+
+    assertThatThrownBy(() -> underTest.getComponentByPurl(PURL))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+
+    verify(revocationHandler, times(1)).onPaymentRequired("rest/search/components/detail");
+  }
+
+  @Test
+  public void getLatestComponentVersion_paymentRequired_triggersHandlerAndThrowsLicenseUnavailable() {
+    when(hdsClient.post(String.class, "rest/search/components/latest-version", Map.of("purl", PURL)))
+        .thenThrow(new PaymentRequiredException("HDS gated"));
+
+    assertThatThrownBy(() -> underTest.getLatestComponentVersion(PURL))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+
+    verify(revocationHandler, times(1)).onPaymentRequired("rest/search/components/latest-version");
+  }
+
+  @Test
+  public void badGateway_doesNotInvokeRevocationHandler() {
+    when(hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", PURL)))
+        .thenThrow(new BadGatewayException("upstream"));
+
+    assertThatThrownBy(() -> underTest.getComponentByPurl(PURL))
+        .isInstanceOf(BadGatewayException.class);
+
+    verify(revocationHandler, never()).onPaymentRequired(anyString());
+  }
+
+  @Test
+  public void paymentRequired_refreshHandlerThrows_stillThrowsLicenseUnavailable() {
+    // Refresh failures must not mask the deterministic 402 marker response — HDS already told
+    // us the license no longer grants this feature, so the client must see 402 +
+    // X-Sonatype-Guide-License: unavailable regardless of whether the in-process refresh
+    // attempt succeeded. Covers the originating thread's RuntimeException from loadLicense()
+    // and concurrent threads' CompletionException from CompletableFuture.join().
+    when(hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", PURL)))
+        .thenThrow(new PaymentRequiredException("HDS gated"));
+    doThrow(new RuntimeException("HDS unreachable while refreshing license"))
+        .when(revocationHandler)
+        .onPaymentRequired("rest/search/components/detail");
+
+    assertThatThrownBy(() -> underTest.getComponentByPurl(PURL))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
+  }
+
+  @Test
+  public void paymentRequired_concurrentJoinFailure_stillThrowsLicenseUnavailable() {
+    // CompletableFuture.join() wraps the original cause in CompletionException, which Thread B
+    // sees when Thread A's loadLicense() throws. withLicenseRefreshOn402 must catch this too.
+    when(hdsClient.get(String.class, "rest/search/components/detail", Map.of("purl", PURL)))
+        .thenThrow(new PaymentRequiredException("HDS gated"));
+    doThrow(new CompletionException(new RuntimeException("Thread A's loadLicense failed")))
+        .when(revocationHandler)
+        .onPaymentRequired("rest/search/components/detail");
+
+    assertThatThrownBy(() -> underTest.getComponentByPurl(PURL))
+        .isInstanceOfSatisfying(GuideLicenseUnavailableException.class,
+            e -> assertThat(e.getResponse().getStatus()).isEqualTo(402));
   }
 }

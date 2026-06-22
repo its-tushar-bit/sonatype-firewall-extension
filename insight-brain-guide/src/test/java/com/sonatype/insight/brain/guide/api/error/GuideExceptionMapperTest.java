@@ -74,6 +74,29 @@ public class GuideExceptionMapperTest
         .doesNotContain("stack trace details");
   }
 
+  @Test
+  public void licenseUnavailableException_emitsMarkerHeader() {
+    Response response = mapper.toResponse(
+        new GuideLicenseUnavailableException(Response.Status.FORBIDDEN,
+            "Guide API is not available with the current license."));
+
+    assertThat(response.getStatus()).isEqualTo(403);
+    assertThat(response.getHeaderString(GuideLicenseUnavailableException.LICENSE_HEADER))
+        .isEqualTo(GuideLicenseUnavailableException.LICENSE_UNAVAILABLE);
+
+    GuideErrorResponse body = (GuideErrorResponse) response.getEntity();
+    assertThat(body.success()).isFalse();
+    assertThat(body.message()).isEqualTo("Guide API is not available with the current license.");
+  }
+
+  @Test
+  public void regularGuideApiException_doesNotEmitMarkerHeader() {
+    Response response = mapper.toResponse(
+        new GuideApiException(Response.Status.BAD_GATEWAY, "downstream failure"));
+
+    assertThat(response.getHeaderString(GuideLicenseUnavailableException.LICENSE_HEADER)).isNull();
+  }
+
   // Reflection sets the @Context-injected `request` field directly, avoiding the cost of
   // booting a Jersey test container just to verify response-body construction. If the field
   // is renamed, this throws NoSuchFieldException — update the literal below to match.

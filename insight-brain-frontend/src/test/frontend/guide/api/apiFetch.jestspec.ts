@@ -8,8 +8,13 @@ jest.mock('GuideRoot/auth/csrfToken', () => ({
   getCsrfToken: jest.fn(),
 }));
 
-import { apiFetch } from 'GuideRoot/api/apiFetch';
+import { apiFetch, ApiError, GuideLicenseRevokedError } from 'GuideRoot/api/apiFetch';
 import { getCsrfToken } from 'GuideRoot/auth/csrfToken';
+import {
+  setLicenseRevocationHandler,
+  GUIDE_LICENSE_HEADER,
+  GUIDE_LICENSE_UNAVAILABLE,
+} from 'GuideRoot/license/licenseRevocation';
 
 const mockGetCsrfToken = getCsrfToken as jest.MockedFunction<typeof getCsrfToken>;
 
@@ -128,5 +133,95 @@ describe('apiFetch CSRF handling', () => {
     expect(headers?.get('Content-Type')).toBe('application/json');
     expect(headers?.get('X-Custom')).toBe('keep-me');
     expect(headers?.get('X-CSRF-TOKEN')).toBe('csrf-abc');
+  });
+});
+
+describe('apiFetch Guide license-revocation handling', () => {
+  let revocationHandler: jest.Mock;
+
+  beforeEach(() => {
+    revocationHandler = jest.fn();
+    setLicenseRevocationHandler(revocationHandler);
+  });
+
+  afterEach(() => {
+    setLicenseRevocationHandler(null);
+  });
+
+  function errorResponse(
+    status: number,
+    statusText: string,
+    { marker, body }: { marker?: boolean; body?: unknown } = {}
+  ): Response {
+    const headers = new Headers();
+    if (marker) headers.set(GUIDE_LICENSE_HEADER, GUIDE_LICENSE_UNAVAILABLE);
+    return {
+      ok: false,
+      status,
+      statusText,
+      headers,
+      json: async () => body ?? { success: false, message: `${status} denied` },
+    } as unknown as Response;
+  }
+
+  it('notifies the revocation handler and throws GuideLicenseRevokedError on a 403 carrying the marker', async () => {
+    mockFetch.mockResolvedValue(errorResponse(403, 'Forbidden', { marker: true }));
+
+    const error = await apiFetch('/api/v2/guide/components/detail').catch((e) => e);
+
+    expect(error).toBeInstanceOf(GuideLicenseRevokedError);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.status).toBe(403);
+    expect(revocationHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('also handles the first-call 402 that carries the marker', async () => {
+    mockFetch.mockResolvedValue(errorResponse(402, 'Payment Required', { marker: true }));
+
+    const error = await apiFetch('/api/v2/guide/global/search?query=x').catch((e) => e);
+
+    expect(error).toBeInstanceOf(GuideLicenseRevokedError);
+    expect(error.status).toBe(402);
+    expect(revocationHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces the backend error-envelope message on the revocation error', async () => {
+    mockFetch.mockResolvedValue(
+      errorResponse(403, 'Forbidden', {
+        marker: true,
+        body: { success: false, message: 'Guide API is not available with the current license.' },
+      })
+    );
+
+    const error = await apiFetch('/api/v2/guide/x').catch((e) => e);
+
+    expect(error.message).toBe('Guide API is not available with the current license.');
+  });
+
+  it('does NOT trigger a refresh on a 403 without the marker (e.g. a permission error)', async () => {
+    mockFetch.mockResolvedValue(errorResponse(403, 'Forbidden', { marker: false }));
+
+    const error = await apiFetch('/api/v2/guide/x').catch((e) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).not.toBeInstanceOf(GuideLicenseRevokedError);
+    expect(revocationHandler).not.toHaveBeenCalled();
+  });
+
+  it('does not crash or trigger a refresh when an error response has no headers object', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      json: async () => {
+        throw new Error('not json');
+      },
+    } as unknown as Response);
+
+    const error = await apiFetch('/api/v2/guide/x').catch((e) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).not.toBeInstanceOf(GuideLicenseRevokedError);
+    expect(revocationHandler).not.toHaveBeenCalled();
   });
 });

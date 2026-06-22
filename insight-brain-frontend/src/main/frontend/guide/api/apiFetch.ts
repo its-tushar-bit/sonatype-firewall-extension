@@ -6,6 +6,7 @@
 
 import { getCsrfToken } from '../auth/csrfToken';
 import { notifySessionResponse } from '../auth/sessionExpiration';
+import { isGuideLicenseUnavailable, notifyLicenseRevoked } from '../license/licenseRevocation';
 
 /**
  * API configuration for Guide SPA.
@@ -28,6 +29,20 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = 'ApiError';
+  }
+}
+
+/**
+ * Specialised {@link ApiError} thrown when a Guide data call returns a response flagged as
+ * Guide-license-unavailable (the {@link isGuideLicenseUnavailable} marker header). By the time
+ * this is thrown, {@link apiFetch} has already triggered a licensed-solutions refresh via
+ * {@link notifyLicenseRevoked}; the {@code LicenseGate} then swaps in the learn-more page, so
+ * callers generally do not need to render their own error UI for it.
+ */
+export class GuideLicenseRevokedError extends ApiError {
+  constructor(message: string, status: number, statusText: string) {
+    super(message, status, statusText);
+    this.name = 'GuideLicenseRevokedError';
   }
 }
 
@@ -67,6 +82,11 @@ export async function apiFetch<T>(
   notifySessionResponse(response);
 
   if (!response.ok) {
+    // Capture the Guide-license-revocation marker before consuming the body: a refresh must be
+    // triggered whether or not the error body parses as JSON. Reading headers does not consume
+    // the body.
+    const licenseRevoked = isGuideLicenseUnavailable(response);
+
     let errorMessage = `${response.status} ${response.statusText}`;
     try {
       const errorBody = await response.json();
@@ -78,6 +98,15 @@ export async function apiFetch<T>(
     } catch {
       // Response body not JSON, use status text
     }
+
+    if (licenseRevoked) {
+      // Guide entitlement was revoked mid-session (GUIDE-2814 backend / GUIDE-2815 frontend). Ask
+      // the LicenseProvider to refetch licensed solutions so the existing LicenseGate renders the
+      // learn-more page, then surface a typed error to the in-flight caller.
+      notifyLicenseRevoked();
+      throw new GuideLicenseRevokedError(errorMessage, response.status, response.statusText);
+    }
+
     throw new ApiError(errorMessage, response.status, response.statusText);
   }
 

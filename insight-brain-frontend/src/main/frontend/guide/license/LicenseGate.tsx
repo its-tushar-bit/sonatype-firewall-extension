@@ -7,9 +7,7 @@ import type { ReactNode } from 'react';
 import { Flex, Spinner } from '@radix-ui/themes';
 import { useLicense } from './LicenseProvider';
 import { GuideLearnMorePage } from './GuideLearnMorePage';
-import type { SolutionId } from '../layout/ProductSwitcher/productMetadata';
-
-const GUIDE_SOLUTION_ID: SolutionId = 'guide';
+import { GUIDE_SOLUTION_ID } from './solutionIds';
 
 interface LicenseGateProps {
   children: ReactNode;

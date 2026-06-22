@@ -200,8 +200,8 @@ public class SearchApiClientImplTest
   public void testGetRecommendations_delegatesToHdsPost() {
     GuideRecommendationResult expected = new GuideRecommendationResult(
         Outcome.FOUND_RECOMMENDATIONS,
-        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null),
-        List.of(new RecommendedVersionInfo("2.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 95, null)));
+        new RecommendedVersionInfo("1.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 80, null, null),
+        List.of(new RecommendedVersionInfo("2.0.0", null, Map.of(), Map.of(), Map.of(), List.of(), 95, null, null)));
     when(hdsClient.post(GuideRecommendationResult.class, "rest/search/recommendations", Map.of("purl", PURL)))
         .thenReturn(expected);
 
@@ -286,7 +286,7 @@ public class SearchApiClientImplTest
     GuideComponentSearchResponse expected = new GuideComponentSearchResponse(
         List.of(new GuideComponentDocument(
             "maven", null, "org.apache.logging.log4j", "log4j-core", "2.21.1",
-            null, List.of(), List.of("Logging"), true, 99, 0.0, null, false, null)),
+            null, List.of(), List.of("Logging"), true, 99, 0.0, null, false, null, null)),
         1, 0, 10, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
@@ -468,7 +468,7 @@ public class SearchApiClientImplTest
     GuideGlobalSearchResponse expected = new GuideGlobalSearchResponse(
         List.of(new GuideComponentDocument(
             "maven", null, "org.apache.logging.log4j", "log4j-core", "2.21.1",
-            null, List.of(), List.of("library"), true, 99, 0.0, null, false, null)),
+            null, List.of(), List.of("library"), true, 99, 0.0, null, false, null, null)),
         1, 0, 10, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();
@@ -629,7 +629,7 @@ public class SearchApiClientImplTest
     GuideComponentSearchResponse expected = new GuideComponentSearchResponse(
         List.of(new GuideComponentDocument(
             "maven", null, "org.apache.logging.log4j", "log4j-core", "2.21.1",
-            null, List.of(), List.of("Logging"), true, 99, 0.0, null, false, null)),
+            null, List.of(), List.of("Logging"), true, 99, 0.0, null, false, null, null)),
         1, 0, 10, null);
 
     Multimap<String, String> expectedParams = ArrayListMultimap.create();

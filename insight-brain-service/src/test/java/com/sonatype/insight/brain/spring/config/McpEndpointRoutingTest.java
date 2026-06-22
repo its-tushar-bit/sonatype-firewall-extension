@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.mcp.McpServletProvider;
-import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.guide.mcp.policy.McpPolicyAnnotator;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.codahale.metrics.MetricRegistry;
@@ -218,8 +218,8 @@ public class McpEndpointRoutingTest
     }
 
     @Bean
-    PolicyAnnotator policyAnnotator() {
-      return mock(PolicyAnnotator.class);
+    McpPolicyAnnotator policyAnnotator() {
+      return mock(McpPolicyAnnotator.class);
     }
 
     @Bean

@@ -10,10 +10,13 @@ import java.util.Map;
 
 import com.sonatype.guide.api.dto.RecommendationVulnerableMethod;
 import com.sonatype.guide.api.dto.RecommendedVersion;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record RecommendedVersionInfo(
     String version,
@@ -24,7 +27,8 @@ public record RecommendedVersionInfo(
     @JsonDeserialize(
         contentAs = GuideRecommendationVulnerableMethod.class) List<? extends RecommendationVulnerableMethod> vulnerableMethods,
     Integer developerTrustScore,
-    Double maxSeverity)
+    Double maxSeverity,
+    GuidePolicyCompliance policyCompliance)
     implements RecommendedVersion
 {
 }

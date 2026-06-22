@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.guide.api.dto.GuideAffectedComponentVersionReq
 import com.sonatype.insight.brain.guide.api.dto.GuideVulnerabilitySearchRequest;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
+import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 import jakarta.inject.Inject;
@@ -24,11 +25,11 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Named
 @Singleton
@@ -41,9 +42,15 @@ public class GuideVulnerabilitiesResource
 
   private final SearchApiClient searchApiClient;
 
+  private final GuidePolicyService guidePolicyService;
+
   @Inject
-  public GuideVulnerabilitiesResource(SearchApiClient searchApiClient) {
+  public GuideVulnerabilitiesResource(
+      SearchApiClient searchApiClient,
+      GuidePolicyService guidePolicyService)
+  {
     this.searchApiClient = searchApiClient;
+    this.guidePolicyService = guidePolicyService;
   }
 
   @GET
@@ -101,7 +108,8 @@ public class GuideVulnerabilitiesResource
     requireNonBlankId(id);
     GuideAffectedComponentVersionRequest request = new GuideAffectedComponentVersionRequest(
         id, query, offset, limit, sortField, sortOrder);
-    return searchApiClient.getVulnerabilityAffectedComponents(request);
+    return guidePolicyService.enrichAffectedSearch(
+        searchApiClient.getVulnerabilityAffectedComponents(request));
   }
 
   private static void requireNonBlankId(String id) {

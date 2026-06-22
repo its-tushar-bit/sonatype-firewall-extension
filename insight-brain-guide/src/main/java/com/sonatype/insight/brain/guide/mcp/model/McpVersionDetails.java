@@ -9,6 +9,11 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+/**
+ * MCP per-version response. {@code policyCompliance} carries the slim MCP-specific policy shape
+ * ({@link McpPolicyCompliance}); it is null (and omitted) when policy evaluation was not requested
+ * or soft-failed.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record McpVersionDetails(
     String version,
@@ -17,6 +22,6 @@ public record McpVersionDetails(
     Set<String> licenses,
     Long catalogDate,
     boolean malicious,
-    McpPolicyContext policyCompliance)
+    McpPolicyCompliance policyCompliance)
 {
 }

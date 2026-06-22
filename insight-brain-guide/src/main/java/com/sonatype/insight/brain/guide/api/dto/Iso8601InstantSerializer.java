@@ -13,11 +13,12 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 // Writes an Instant as an ISO-8601 string (e.g. "2020-11-06T21:03:29Z"). Needed because the
-// ObjectMapper used by Jersey to render Guide responses does not register JavaTimeModule and
-// would otherwise emit Instants as epoch-seconds decimals — a contract drift from Guide SaaS,
-// which renders ISO-8601 strings. Paired with Iso8601InstantDeserializer for the inbound side.
-// A future cleanup could register JavaTimeModule once globally and drop this class along with
-// the @JsonSerialize / @JsonDeserialize annotations on Guide DTO Instant fields.
+// HdsClient / JsonUtils ObjectMapper that handles Guide DTOs does not register JavaTimeModule;
+// without this serializer Jackson would fall back to its default Instant shape — a JSON object
+// with epochSecond and nano fields — which drifts from Guide SaaS, which always emits ISO-8601
+// strings. (The Spring primary ObjectMapper in CoreConfiguration does register JavaTimeModule,
+// but Guide DTOs also round-trip through the JsonUtils mapper.) Paired with
+// Iso8601InstantDeserializer for the inbound side.
 public class Iso8601InstantSerializer
     extends JsonSerializer<Instant>
 {

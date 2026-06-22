@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.guide.api.resource;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +13,17 @@ import com.sonatype.guide.api.dto.RecommendationResponse;
 import com.sonatype.guide.api.request.RecommendationRequest;
 import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
 import com.sonatype.insight.brain.guide.api.dto.RecommendedVersionInfo;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceLevel;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceSummary;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
+import com.sonatype.insight.brain.guide.policy.GuidePolicyEvaluator;
+import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
+import com.sonatype.insight.brain.security.PermissionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -32,14 +42,30 @@ public class GuideRecommendationsResourceTest
 {
   private static final String PURL = "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1";
 
+  private static final String CANDIDATE_PURL = "pkg:maven/org.apache.logging.log4j/log4j-core@2.21.1?type=jar";
+
   @Mock
   private SearchApiClient searchApiClient;
+
+  @Mock
+  private GuidePolicyEvaluator guidePolicyEvaluator;
+
+  @Mock
+  private ApplicationDAO applicationDAO;
+
+  @Mock
+  private OwnerDAO ownerDAO;
+
+  @Mock
+  private PermissionService permissionService;
 
   private GuideRecommendationsResource underTest;
 
   @Before
   public void setUp() {
-    underTest = new GuideRecommendationsResource(searchApiClient);
+    underTest = new GuideRecommendationsResource(
+        searchApiClient,
+        new GuidePolicyService(guidePolicyEvaluator, applicationDAO, ownerDAO, permissionService));
   }
 
   @Test
@@ -50,6 +76,7 @@ public class GuideRecommendationsResourceTest
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Purl is required");
     verifyNoInteractions(searchApiClient);
+    verifyNoInteractions(guidePolicyEvaluator);
   }
 
   @Test
@@ -60,6 +87,7 @@ public class GuideRecommendationsResourceTest
         .isInstanceOf(GuideApiException.class)
         .hasMessageContaining("Purl is required");
     verifyNoInteractions(searchApiClient);
+    verifyNoInteractions(guidePolicyEvaluator);
   }
 
   @Test
@@ -71,20 +99,94 @@ public class GuideRecommendationsResourceTest
     assertThatThrownBy(() -> underTest.getRecommendations(request))
         .isInstanceOf(GuideNotFoundException.class)
         .hasMessage("Recommendations not found for PURL: " + PURL);
+    verifyNoInteractions(guidePolicyEvaluator);
   }
 
   @Test
-  public void getRecommendations_returnsResponse_whenClientReturnsData() throws Exception {
-    RecommendationRequest request = new RecommendationRequest(PURL);
-    GuideRecommendationResult expected = new GuideRecommendationResult(
+  public void getRecommendations_filtersOutNonCompliantCandidates() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
         RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
-        new RecommendedVersionInfo("2.14.1", null, Map.of(), Map.of(), Map.of(), List.of(), 85, null),
-        List.of(new RecommendedVersionInfo("2.21.1", null, null, null, Map.of(), List.of(), 99, null)));
-    when(searchApiClient.getRecommendations(PURL)).thenReturn(expected);
+        version("2.14.1"),
+        List.of(version("2.21.0"), version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    GuidePolicyCompliance compliant = compliantOf();
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of(
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.21.0?type=jar", nonCompliantOf(),
+        CANDIDATE_PURL, compliant));
 
-    RecommendationResponse result = underTest.getRecommendations(request);
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
 
-    assertThat(result).isSameAs(expected);
+    assertThat(result.toVersions()).hasSize(1);
+    assertThat(((RecommendedVersionInfo) result.toVersions().get(0)).version()).isEqualTo("2.21.1");
+    // Recommendation candidates are a list surface → slim compliance (flag only).
+    GuidePolicyCompliance attached =
+        ((RecommendedVersionInfo) result.toVersions().get(0)).policyCompliance();
+    assertThat(attached).isNotNull();
+    assertThat(attached.compliant()).isTrue();
+    assertThat(attached.summary()).isNull();
+    assertThat(attached.violations()).isNull();
+    assertThat(result.outcome()).isEqualTo(RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS);
+  }
+
+  @Test
+  public void getRecommendations_emptyAfterFilter_returnsBlockedByPolicy() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of(CANDIDATE_PURL, nonCompliantOf()));
+
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
+
+    assertThat(result.outcome()).isEqualTo(RecommendationResponse.Outcome.BLOCKED_BY_POLICY);
+    assertThat(result.toVersions()).isEmpty();
+  }
+
+  @Test
+  public void getRecommendations_noEvaluationData_keepsCandidatesTreatedCompliant() throws Exception {
+    GuideRecommendationResult upstream = new GuideRecommendationResult(
+        RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
+        version("2.14.1"),
+        List.of(version("2.21.1")));
+    when(searchApiClient.getRecommendations(PURL)).thenReturn(upstream);
+    when(guidePolicyEvaluator.evaluate(anyList())).thenReturn(Map.of());
+
+    RecommendationResponse result = underTest.getRecommendations(new RecommendationRequest(PURL));
+
+    assertThat(result.toVersions()).hasSize(1);
+    RecommendedVersionInfo v = (RecommendedVersionInfo) result.toVersions().get(0);
+    assertThat(v.version()).isEqualTo("2.21.1");
+    // No evaluation data for the candidate → treated as compliant (SaaS not-found rule), kept with
+    // slim compliance — not returned with null policyCompliance.
+    assertThat(v.policyCompliance()).isNotNull();
+    assertThat(v.policyCompliance().compliant()).isTrue();
+    assertThat(v.policyCompliance().summary()).isNull();
+    assertThat(result.outcome()).isEqualTo(RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS);
     verify(searchApiClient).getRecommendations(PURL);
+  }
+
+  private static RecommendedVersionInfo version(String v) {
+    return new RecommendedVersionInfo(v, null, null, null, null, null, null, null, null);
+  }
+
+  private static GuidePolicyCompliance compliantOf() {
+    Map<String, Integer> counts = new LinkedHashMap<>();
+    counts.put("SECURITY", 0);
+    counts.put("LICENSE", 0);
+    counts.put("QUALITY", 0);
+    counts.put("OTHER", 0);
+    return new GuidePolicyCompliance(true, GuidePolicyComplianceLevel.PASS, "release", "ROOT_ORGANIZATION_ID",
+        new GuidePolicyComplianceSummary(0, "none", 0, 0, counts), List.of());
+  }
+
+  private static GuidePolicyCompliance nonCompliantOf() {
+    Map<String, Integer> counts = new LinkedHashMap<>();
+    counts.put("SECURITY", 1);
+    counts.put("LICENSE", 0);
+    counts.put("QUALITY", 0);
+    counts.put("OTHER", 0);
+    return new GuidePolicyCompliance(false, GuidePolicyComplianceLevel.FAIL, "release", "ROOT_ORGANIZATION_ID",
+        new GuidePolicyComplianceSummary(8, "fail", 1, 0, counts), List.of());
   }
 }

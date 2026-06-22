@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceLevel;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceSummary;
 import com.sonatype.insight.brain.guide.mcp.McpServletProvider.SearchFunction;
 import com.sonatype.insight.brain.guide.mcp.McpServletProvider.ToolType;
-import com.sonatype.insight.brain.guide.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyCompliance;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyConstraint;
 import com.sonatype.insight.brain.guide.mcp.model.McpPolicyViolation;
-import com.sonatype.insight.brain.guide.mcp.model.McpStageResult;
-import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.guide.mcp.policy.McpPolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.telemetry.GuideChannel;
 import com.sonatype.insight.brain.guide.telemetry.GuideChannelContext;
@@ -69,7 +71,7 @@ public class McpServletProviderTest
   private SearchApiClient searchApiClient;
 
   @Mock
-  private PolicyAnnotator policyAnnotator;
+  private McpPolicyAnnotator policyAnnotator;
 
   private McpServletProvider underTest;
 
@@ -144,11 +146,10 @@ public class McpServletProviderTest
 
   @Test
   public void callTool_withPolicy_includesPolicyComplianceInData() throws Exception {
-    McpPolicyContext policyContext = new McpPolicyContext(
-        "app-123", "develop",
-        new McpStageResult("develop", true, "None", 0),
-        List.of());
-    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "app-123", null)).thenReturn(policyContext);
+    McpPolicyCompliance policy =
+        new McpPolicyCompliance(true, GuidePolicyComplianceLevel.PASS, "develop", "app-123", null, List.of());
+    when(policyAnnotator.evaluatePolicies(List.of(PURL_COMPLETED), "app-123", null))
+        .thenReturn(Map.of(PURL_COMPLETED, policy));
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",
@@ -158,18 +159,18 @@ public class McpServletProviderTest
 
     JsonNode root = parseResult(result);
     JsonNode policyNode = root.get(0).get("data").get("policyCompliance");
-    assertThat(policyNode.get("applicationId").asText()).isEqualTo("app-123");
+    assertThat(policyNode.get("compliant").asBoolean()).isTrue();
+    assertThat(policyNode.get("ownerId").asText()).isEqualTo("app-123");
     assertThat(policyNode.get("stage").asText()).isEqualTo("develop");
-    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "app-123", null);
+    verify(policyAnnotator).evaluatePolicies(List.of(PURL_COMPLETED), "app-123", null);
   }
 
   @Test
   public void callTool_applicationIdFromHeader_fallback() throws Exception {
-    McpPolicyContext policyContext = new McpPolicyContext(
-        "header-app", "build",
-        new McpStageResult("build", true, "None", 0),
-        List.of());
-    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "header-app", "build")).thenReturn(policyContext);
+    McpPolicyCompliance policy =
+        new McpPolicyCompliance(true, GuidePolicyComplianceLevel.PASS, "build", "header-app", null, List.of());
+    when(policyAnnotator.evaluatePolicies(List.of(PURL_COMPLETED), "header-app", "build"))
+        .thenReturn(Map.of(PURL_COMPLETED, policy));
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",
@@ -181,18 +182,17 @@ public class McpServletProviderTest
     CallToolResult result = underTest.callTool(ctx, request, fn, ToolType.COMPONENT_VERSION);
 
     JsonNode root = parseResult(result);
-    assertThat(root.get(0).get("data").get("policyCompliance").get("applicationId").asText())
+    assertThat(root.get(0).get("data").get("policyCompliance").get("ownerId").asText())
         .isEqualTo("header-app");
-    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "header-app", "build");
+    verify(policyAnnotator).evaluatePolicies(List.of(PURL_COMPLETED), "header-app", "build");
   }
 
   @Test
   public void callTool_toolArgOverridesHeader() {
-    McpPolicyContext policyContext = new McpPolicyContext(
-        "arg-app", "release",
-        new McpStageResult("release", true, "None", 0),
-        List.of());
-    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "arg-app", "release")).thenReturn(policyContext);
+    McpPolicyCompliance policy =
+        new McpPolicyCompliance(true, GuidePolicyComplianceLevel.PASS, "release", "arg-app", null, List.of());
+    when(policyAnnotator.evaluatePolicies(List.of(PURL_COMPLETED), "arg-app", "release"))
+        .thenReturn(Map.of(PURL_COMPLETED, policy));
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     Map<String, Object> args = new HashMap<>();
@@ -206,12 +206,12 @@ public class McpServletProviderTest
 
     underTest.callTool(ctx, request, fn, ToolType.COMPONENT_VERSION);
 
-    verify(policyAnnotator).evaluatePolicy(PURL_COMPLETED, "arg-app", "release");
+    verify(policyAnnotator).evaluatePolicies(List.of(PURL_COMPLETED), "arg-app", "release");
   }
 
   @Test
   public void callTool_policyEvaluationFailure_stillReturnsData() throws Exception {
-    when(policyAnnotator.evaluatePolicy(any(), any(), any()))
+    when(policyAnnotator.evaluatePolicies(any(), any(), any()))
         .thenThrow(new RuntimeException("evaluation error"));
 
     SearchFunction fn = purl -> COMPONENT_JSON;
@@ -229,13 +229,15 @@ public class McpServletProviderTest
 
   @Test
   public void callTool_withViolations_includesViolationDetails() throws Exception {
-    McpPolicyViolation violation = new McpPolicyViolation(
-        "Security-High", 8, "Fail", List.of("CVE-2024-1234"), false);
-    McpPolicyContext policyContext = new McpPolicyContext(
-        "app-123", "develop",
-        new McpStageResult("develop", false, "Fail", 1),
-        List.of(violation));
-    when(policyAnnotator.evaluatePolicy(PURL_COMPLETED, "app-123", null)).thenReturn(policyContext);
+    McpPolicyCompliance policy = new McpPolicyCompliance(
+        false, GuidePolicyComplianceLevel.FAIL, "develop", "app-123",
+        new GuidePolicyComplianceSummary(8, "fail", 1, 0,
+            Map.of("SECURITY", 1, "LICENSE", 0, "QUALITY", 0, "OTHER", 0)),
+        List.of(new McpPolicyViolation(
+            "Security-High", 8, List.of("fail"), false, null,
+            List.of(new McpPolicyConstraint("High risk CVSS score", List.of("Found CVE-2024-1234"))))));
+    when(policyAnnotator.evaluatePolicies(List.of(PURL_COMPLETED), "app-123", null))
+        .thenReturn(Map.of(PURL_COMPLETED, policy));
 
     SearchFunction fn = purl -> COMPONENT_JSON;
     CallToolRequest request = new CallToolRequest("getComponentVersion",
@@ -247,7 +249,10 @@ public class McpServletProviderTest
     JsonNode violations = root.get(0).get("data").get("policyCompliance").get("violations");
     assertThat(violations).hasSize(1);
     assertThat(violations.get(0).get("policyName").asText()).isEqualTo("Security-High");
-    assertThat(violations.get(0).get("actionType").asText()).isEqualTo("Fail");
+    assertThat(violations.get(0).get("actions").get(0).asText()).isEqualTo("fail");
+    JsonNode constraint = violations.get(0).get("constraints").get(0);
+    assertThat(constraint.get("constraintName").asText()).isEqualTo("High risk CVSS score");
+    assertThat(constraint.get("reasons").get(0).asText()).isEqualTo("Found CVE-2024-1234");
   }
 
   @Test

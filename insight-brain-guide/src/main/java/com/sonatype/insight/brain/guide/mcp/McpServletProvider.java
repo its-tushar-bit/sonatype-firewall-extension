@@ -12,10 +12,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.guide.mcp.model.McpBatchItem;
-import com.sonatype.insight.brain.guide.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyCompliance;
 import com.sonatype.insight.brain.guide.mcp.model.McpRecommendationItem;
 import com.sonatype.insight.brain.guide.api.error.GuideNotFoundException;
-import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.guide.mcp.policy.McpStageResolver;
+import com.sonatype.insight.brain.guide.mcp.policy.McpPolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 import com.sonatype.insight.brain.guide.mcp.tools.McpResponseFormatter;
 import com.sonatype.insight.brain.guide.mcp.util.McpPurlCompleter;
@@ -59,7 +60,7 @@ public class McpServletProvider
 
   private HttpServletStatelessServerTransport transport;
 
-  private PolicyAnnotator policyAnnotator;
+  private McpPolicyAnnotator policyAnnotator;
 
   @Inject
   public McpServletProvider() {
@@ -71,7 +72,7 @@ public class McpServletProvider
    *
    * @throws IllegalStateException if called more than once
    */
-  public void initialize(SearchApiClient searchApiClient, PolicyAnnotator policyAnnotator) {
+  public void initialize(SearchApiClient searchApiClient, McpPolicyAnnotator policyAnnotator) {
     Objects.requireNonNull(searchApiClient, "searchApiClient must not be null");
     Objects.requireNonNull(policyAnnotator, "policyAnnotator must not be null");
     if (transport != null) {
@@ -124,7 +125,7 @@ public class McpServletProvider
   }
 
   /**
-   * @throws IllegalStateException if {@link #initialize(SearchApiClient, PolicyAnnotator)} has not been called
+   * @throws IllegalStateException if {@link #initialize(SearchApiClient, McpPolicyAnnotator)} has not been called
    */
   public Servlet getServlet() {
     if (transport == null) {
@@ -171,7 +172,36 @@ public class McpServletProvider
       String applicationId = resolveParam(arguments, ctx, "applicationId", "X-Application-Id");
       String stage = resolveParam(arguments, ctx, "stage", "X-Stage");
 
+      // Up-front stage validation. Stage is a per-call argument; rejecting it as a top-level
+      // error envelope is more useful than emitting a per-PURL failure for every entry.
+      if (stage != null && !stage.isBlank()) {
+        try {
+          McpStageResolver.resolve(stage);
+        }
+        catch (IllegalArgumentException e) {
+          return errorResult(e.getMessage());
+        }
+      }
+
       try {
+        // Evaluate policy for the whole batch in a single call (one owner resolution + HDS fetch +
+        // Drools session for all PURLs), keyed by completed PURL. RECOMMENDATIONS carries no policy.
+        // A failure — including an authorization denial — soft-degrades to "no policy" rather than
+        // failing the lookup, matching the per-surface soft-fail behavior.
+        Map<String, McpPolicyCompliance> policyByPurl = Map.of();
+        if (toolType != ToolType.RECOMMENDATIONS) {
+          List<String> purlsToEvaluate = rawList.stream()
+              .filter(item -> item instanceof String s && !s.isBlank())
+              .map(item -> McpPurlCompleter.complete((String) item))
+              .toList();
+          try {
+            policyByPurl = policyAnnotator.evaluatePolicies(purlsToEvaluate, applicationId, stage);
+          }
+          catch (Exception e) {
+            log.warn("Policy evaluation failed for batch (app={}): {}", applicationId, e.getMessage());
+          }
+        }
+
         List<String> results = new ArrayList<>();
         for (Object item : rawList) {
           if (!(item instanceof String s) || s.isBlank()) {
@@ -179,7 +209,7 @@ public class McpServletProvider
             results.add(formatError(invalid, toolType, "Invalid package URL: must be a non-blank string"));
           }
           else {
-            results.add(processOnePurl(s, fn, toolType, applicationId, stage));
+            results.add(processOnePurl(s, fn, toolType, policyByPurl.get(McpPurlCompleter.complete(s))));
           }
         }
 
@@ -202,8 +232,7 @@ public class McpServletProvider
       String purl,
       SearchFunction fn,
       ToolType toolType,
-      String applicationId,
-      String stage)
+      McpPolicyCompliance policyResult)
   {
     try {
       String rawJson;
@@ -219,17 +248,9 @@ public class McpServletProvider
         return formatError(purl, toolType, "Search API returned no data");
       }
 
-      McpPolicyContext policyContext = null;
-      try {
-        policyContext = policyAnnotator.evaluatePolicy(McpPurlCompleter.complete(purl), applicationId, stage);
-      }
-      catch (Exception e) {
-        log.warn("Policy evaluation failed for purl={}, app={}: {}", purl, applicationId, e.getMessage());
-      }
-
       return switch (toolType) {
-        case COMPONENT_VERSION -> McpResponseFormatter.formatComponentVersion(purl, rawJson, policyContext);
-        case LATEST_VERSION -> McpResponseFormatter.formatLatestVersion(purl, rawJson, policyContext);
+        case COMPONENT_VERSION -> McpResponseFormatter.formatComponentVersion(purl, rawJson, policyResult);
+        case LATEST_VERSION -> McpResponseFormatter.formatLatestVersion(purl, rawJson, policyResult);
         case RECOMMENDATIONS -> McpResponseFormatter.formatRecommendations(purl, rawJson);
       };
     }
@@ -336,9 +357,10 @@ public class McpServletProvider
             "applicationId", Map.of("type", "string",
                 "description", "IQ application ID for policy evaluation (optional)"),
             "stage", Map.of("type", "string",
-                "description", "Stage label for response context (optional, defaults to 'release'). "
-                    + "Does not control which stage is evaluated — evaluation uses the application's configured "
-                    + "default.")),
+                "description", "Lifecycle stage to evaluate against (optional, defaults to 'release'). "
+                    + "Controls which stage's policy actions apply, so different stages (e.g. 'build' vs "
+                    + "'release') can yield different violations and actions. Case-insensitive; must be a "
+                    + "recognized stage.")),
         List.of("packageUrls"),
         null, null, null);
   }

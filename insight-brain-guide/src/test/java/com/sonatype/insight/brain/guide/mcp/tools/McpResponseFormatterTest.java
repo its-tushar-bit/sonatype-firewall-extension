@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.guide.mcp.tools;
 
 import java.util.List;
+import java.util.Map;
 
-import com.sonatype.insight.brain.guide.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceLevel;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyComplianceSummary;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyCompliance;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyConstraint;
 import com.sonatype.insight.brain.guide.mcp.model.McpPolicyViolation;
-import com.sonatype.insight.brain.guide.mcp.model.McpStageResult;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -145,17 +148,35 @@ public class McpResponseFormatterTest
 
   @Test
   public void formatComponentVersion_withPolicy() throws Exception {
-    McpPolicyContext policy = new McpPolicyContext(
-        "my-app", "build",
-        new McpStageResult("build", false, "Fail", 1),
-        List.of(new McpPolicyViolation("Security-Critical", 9, "Fail", List.of("CVE-2025-48924"), false)));
+    McpPolicyCompliance policy = new McpPolicyCompliance(
+        false, GuidePolicyComplianceLevel.FAIL, "build", "my-app",
+        new GuidePolicyComplianceSummary(9, "fail", 1, 0,
+            Map.of("SECURITY", 1, "LICENSE", 0, "QUALITY", 0, "OTHER", 0)),
+        List.of(new McpPolicyViolation(
+            "Security-Critical", 9, List.of("fail"), false, null,
+            List.of(new McpPolicyConstraint("Critical CVSS score", List.of("Found CVE-2025-48924"))))));
 
     String result = McpResponseFormatter.formatComponentVersion(PURL, COMPONENT_DETAIL_JSON, policy);
 
-    JsonNode policyNode = mapper.readTree(result).get(0).get("data").get("policyCompliance");
-    assertThat(policyNode.get("applicationId").asText()).isEqualTo("my-app");
-    assertThat(policyNode.get("violations")).hasSize(1);
-    assertThat(policyNode.get("violations").get(0).get("policyName").asText()).isEqualTo("Security-Critical");
+    JsonNode data = mapper.readTree(result).get(0).get("data");
+    // Legacy dual-emission field is gone; only the slim policyCompliance remains.
+    assertThat(data.has("oldPolicyComplianceToBeRemoved")).isFalse();
+
+    JsonNode policyNode = data.get("policyCompliance");
+    assertThat(policyNode.get("compliant").asBoolean()).isFalse();
+    assertThat(policyNode.get("stage").asText()).isEqualTo("build");
+    assertThat(policyNode.get("ownerId").asText()).isEqualTo("my-app");
+    assertThat(policyNode.get("summary").get("worstAction").asText()).isEqualTo("fail");
+
+    JsonNode violation = policyNode.get("violations").get(0);
+    assertThat(violation.get("policyName").asText()).isEqualTo("Security-Critical");
+    assertThat(violation.get("actions").get(0).asText()).isEqualTo("fail");
+    // Slim shape: no policyId, no constraintViolations — reasons live under named constraints.
+    assertThat(violation.has("policyId")).isFalse();
+    assertThat(violation.has("constraintViolations")).isFalse();
+    JsonNode constraint = violation.get("constraints").get(0);
+    assertThat(constraint.get("constraintName").asText()).isEqualTo("Critical CVSS score");
+    assertThat(constraint.get("reasons").get(0).asText()).isEqualTo("Found CVE-2025-48924");
   }
 
   @Test

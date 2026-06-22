@@ -14,7 +14,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sonatype.guide.api.dto.ComponentDocument;
+import com.sonatype.guide.api.dto.ComponentLicense;
 import com.sonatype.guide.api.dto.DtsDimensions;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,7 +28,7 @@ public record GuideComponentDocument(
     String version,
     String registryLink,
     @JsonDeserialize(
-        contentAs = GuideComponentLicense.class) List<? extends com.sonatype.guide.api.dto.ComponentLicense> licenses,
+        contentAs = GuideComponentLicense.class) List<? extends ComponentLicense> licenses,
     List<String> categories,
     Boolean latestStable,
     Integer versionScore,
@@ -34,7 +36,8 @@ public record GuideComponentDocument(
     @JsonDeserialize(using = Iso8601InstantDeserializer.class) @JsonSerialize(
         using = Iso8601InstantSerializer.class) Instant publishedDate,
     Boolean isMalware,
-    @JsonProperty("dts") @JsonDeserialize(as = GuideDtsDimensions.class) DtsDimensions dtsDimensions)
+    @JsonProperty("dts") @JsonDeserialize(as = GuideDtsDimensions.class) DtsDimensions dtsDimensions,
+    GuidePolicyCompliance policyCompliance)
     implements ComponentDocument
 {
 }

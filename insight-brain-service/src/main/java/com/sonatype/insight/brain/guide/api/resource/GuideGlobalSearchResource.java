@@ -13,6 +13,7 @@ import com.sonatype.guide.api.dto.ApiSearchResponse;
 import com.sonatype.guide.api.dto.SearchResult;
 import com.sonatype.insight.brain.guide.api.dto.GuideGlobalSearchRequest;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
+import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 import jakarta.inject.Inject;
@@ -35,9 +36,15 @@ public class GuideGlobalSearchResource
 
   private final SearchApiClient searchApiClient;
 
+  private final GuidePolicyService guidePolicyService;
+
   @Inject
-  public GuideGlobalSearchResource(SearchApiClient searchApiClient) {
+  public GuideGlobalSearchResource(
+      SearchApiClient searchApiClient,
+      GuidePolicyService guidePolicyService)
+  {
     this.searchApiClient = searchApiClient;
+    this.guidePolicyService = guidePolicyService;
   }
 
   @GET
@@ -55,6 +62,6 @@ public class GuideGlobalSearchResource
   {
     GuideGlobalSearchRequest request = new GuideGlobalSearchRequest(
         query, offset, limit, sortField, sortOrder, latestStable, formats, publishedWindow);
-    return searchApiClient.globalSearch(request);
+    return guidePolicyService.enrichGlobalSearch(searchApiClient.globalSearch(request));
   }
 }

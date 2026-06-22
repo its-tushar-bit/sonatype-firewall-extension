@@ -134,8 +134,8 @@ public class GuideRecommendationsResourceTest
     GuideRecommendationResult hdsResponse = new GuideRecommendationResult(
         RecommendationResponse.Outcome.FOUND_RECOMMENDATIONS,
         new RecommendedVersionInfo("2.14.1", "0", Map.of("CVE-2021-44228", 10.0), Map.of(), Map.of(),
-            List.of(), 85, 10.0),
-        List.of(new RecommendedVersionInfo("2.21.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 99, null)));
+            List.of(), 85, 10.0, null),
+        List.of(new RecommendedVersionInfo("2.21.1", "0", Map.of(), Map.of(), Map.of(), List.of(), 99, null, null)));
     hdsRespondWith(hdsResponse).atUri("/rest/search/recommendations");
 
     HttpResponse response = restRequest()

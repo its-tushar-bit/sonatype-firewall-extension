@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.spring.config;
 
 import com.sonatype.insight.brain.guide.mcp.McpServletProvider;
-import com.sonatype.insight.brain.guide.mcp.policy.PolicyAnnotator;
+import com.sonatype.insight.brain.guide.mcp.policy.McpPolicyAnnotator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
 
 import jakarta.servlet.Servlet;
@@ -35,7 +35,7 @@ public class McpConfiguration
       final CoreConfiguration.StaticInjectionInitializer staticInjectionInitializer,
       final McpServletProvider mcpServletProvider,
       final SearchApiClient searchApiClient,
-      final PolicyAnnotator policyAnnotator)
+      final McpPolicyAnnotator policyAnnotator)
   {
     // initialize() must run before getServlet(). Declaring the collaborators as bean parameters
     // (including StaticInjectionInitializer) preserves the original init ordering.

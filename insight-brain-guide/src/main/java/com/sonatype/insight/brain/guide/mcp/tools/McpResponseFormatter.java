@@ -17,7 +17,7 @@ import java.util.Set;
 import com.sonatype.insight.brain.guide.mcp.model.McpBatchItem;
 import com.sonatype.insight.brain.guide.mcp.model.McpCve;
 import com.sonatype.insight.brain.guide.mcp.model.McpMethodSignature;
-import com.sonatype.insight.brain.guide.mcp.model.McpPolicyContext;
+import com.sonatype.insight.brain.guide.mcp.model.McpPolicyCompliance;
 import com.sonatype.insight.brain.guide.mcp.model.McpRecommendationItem;
 import com.sonatype.insight.brain.guide.mcp.model.McpRecommendedVersion;
 import com.sonatype.insight.brain.guide.mcp.model.McpVersionDetails;
@@ -40,10 +40,10 @@ public class McpResponseFormatter
   private McpResponseFormatter() {
   }
 
-  public static String formatComponentVersion(String purl, String rawJson, McpPolicyContext policy) {
+  public static String formatComponentVersion(String purl, String rawJson, McpPolicyCompliance policyResult) {
     try {
       Map<String, Object> response = parseJson(rawJson);
-      McpVersionDetails details = convertToVersionDetails(response, policy);
+      McpVersionDetails details = convertToVersionDetails(response, policyResult);
       return mapper.writeValueAsString(List.of(McpBatchItem.success(purl, details)));
     }
     catch (Exception e) {
@@ -53,10 +53,10 @@ public class McpResponseFormatter
   }
 
   // Same transformation as formatComponentVersion — search-server returns an identical response shape for both.
-  public static String formatLatestVersion(String purl, String rawJson, McpPolicyContext policy) {
+  public static String formatLatestVersion(String purl, String rawJson, McpPolicyCompliance policyResult) {
     try {
       Map<String, Object> response = parseJson(rawJson);
-      McpVersionDetails details = convertToVersionDetails(response, policy);
+      McpVersionDetails details = convertToVersionDetails(response, policyResult);
       return mapper.writeValueAsString(List.of(McpBatchItem.success(purl, details)));
     }
     catch (Exception e) {
@@ -92,7 +92,10 @@ public class McpResponseFormatter
     }
   }
 
-  private static McpVersionDetails convertToVersionDetails(Map<String, Object> response, McpPolicyContext policy) {
+  private static McpVersionDetails convertToVersionDetails(
+      Map<String, Object> response,
+      McpPolicyCompliance policyResult)
+  {
     String version = (String) response.get("version");
     Set<String> licenses = extractLicenseNames(response);
     Long catalogDate = extractCatalogDate(response);
@@ -100,7 +103,8 @@ public class McpResponseFormatter
     boolean endOfLife = Boolean.TRUE.equals(response.get("endOfLife"));
     McpVulnerabilities vulnerabilities = extractVulnerabilities(response);
 
-    return new McpVersionDetails(version, endOfLife, vulnerabilities, licenses, catalogDate, malicious, policy);
+    return new McpVersionDetails(
+        version, endOfLife, vulnerabilities, licenses, catalogDate, malicious, policyResult);
   }
 
   private static Set<String> extractLicenseNames(Map<String, Object> response) {

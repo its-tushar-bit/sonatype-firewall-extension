@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.sonatype.guide.api.dto.ComponentDetailDocument;
 import com.sonatype.guide.api.dto.DtsDimensions;
+import com.sonatype.insight.brain.guide.api.dto.policy.GuidePolicyCompliance;
 
 /**
  * Detailed component document with all fields from HDS search-server.
@@ -38,7 +39,8 @@ public record GuideComponentDetailDocument(
         using = Iso8601InstantSerializer.class) Instant publishedDate,
     List<String> directDependencies,
     Boolean isMalware,
-    @JsonProperty("dts") @JsonDeserialize(as = GuideDtsDimensions.class) DtsDimensions dtsDimensions)
+    @JsonProperty("dts") @JsonDeserialize(as = GuideDtsDimensions.class) DtsDimensions dtsDimensions,
+    GuidePolicyCompliance policyCompliance)
     implements ComponentDetailDocument
 {
 }

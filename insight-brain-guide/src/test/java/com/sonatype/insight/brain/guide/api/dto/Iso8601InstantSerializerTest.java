@@ -23,7 +23,7 @@ public class Iso8601InstantSerializerTest
     Instant published = Instant.parse("2020-11-06T21:03:29Z");
     GuideComponentDocument doc = new GuideComponentDocument(
         "maven", "Central", "log4j", "log4j", "1.2.17", null,
-        List.of(), null, true, null, 9.8, published, false, null);
+        List.of(), null, true, null, 9.8, published, false, null, null);
 
     JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(doc));
 
@@ -54,7 +54,7 @@ public class Iso8601InstantSerializerTest
     // field is explicitly null and asserting the key is absent (rather than serialized as 0.0).
     GuideComponentDocument doc = new GuideComponentDocument(
         "maven", "Central", "log4j", "log4j", "1.2.17", null,
-        List.of(), null, true, null, 9.8, null, false, null);
+        List.of(), null, true, null, 9.8, null, false, null, null);
 
     JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(doc));
 

@@ -10,9 +10,11 @@ import java.io.IOException;
 import com.sonatype.guide.api.controller.GuideRecommendationsApi;
 import com.sonatype.guide.api.dto.RecommendationResponse;
 import com.sonatype.guide.api.request.RecommendationRequest;
+import com.sonatype.insight.brain.guide.api.dto.GuideRecommendationResult;
 import com.sonatype.insight.brain.guide.api.error.GuideApiException;
 import com.sonatype.insight.brain.guide.api.error.GuidePurlValidator;
 import com.sonatype.insight.brain.guide.core.SearchApiClient;
+import com.sonatype.insight.brain.guide.policy.GuidePolicyService;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 import jakarta.inject.Inject;
@@ -36,9 +38,15 @@ public class GuideRecommendationsResource
 {
   private final SearchApiClient searchApiClient;
 
+  private final GuidePolicyService guidePolicyService;
+
   @Inject
-  public GuideRecommendationsResource(SearchApiClient searchApiClient) {
+  public GuideRecommendationsResource(
+      SearchApiClient searchApiClient,
+      GuidePolicyService guidePolicyService)
+  {
     this.searchApiClient = searchApiClient;
+    this.guidePolicyService = guidePolicyService;
   }
 
   @POST
@@ -50,6 +58,7 @@ public class GuideRecommendationsResource
       throw new GuideApiException(Response.Status.BAD_REQUEST, "Purl is required");
     }
     GuidePurlValidator.validate(request.purl());
-    return searchApiClient.getRecommendations(request.purl());
+    GuideRecommendationResult upstream = searchApiClient.getRecommendations(request.purl());
+    return guidePolicyService.filterRecommendations(upstream, request.purl());
   }
 }

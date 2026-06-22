@@ -4,18 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { Grid, Tabs } from '@radix-ui/themes';
-import { PolicyComplianceCard, VulnerabilitiesCard, LicenseCard } from '@guide/ui-core';
+import { Flex, Grid, Tabs } from '@radix-ui/themes';
+import { VulnerabilitiesCard, LicenseCard } from '@guide/ui-core';
 import { tokens } from '@guide/ui-core/utils';
+import { PolicyComplianceCardV2 } from './PolicyComplianceCardV2';
 
 export function OverviewTab() {
   return (
     <Tabs.Content value="overview">
-      <Grid columns={{ initial: '1', lg: '1fr 1fr 1fr' }} gap={tokens.space.section}>
-        <PolicyComplianceCard />
-        <VulnerabilitiesCard />
-        <LicenseCard />
-      </Grid>
+      <Flex direction="column" gap={tokens.space.section}>
+        <Grid columns={{ initial: '1', md: '1fr 1fr' }} gap={tokens.space.section}>
+          <VulnerabilitiesCard />
+          <LicenseCard />
+        </Grid>
+        <PolicyComplianceCardV2 />
+      </Flex>
     </Tabs.Content>
   );
 }

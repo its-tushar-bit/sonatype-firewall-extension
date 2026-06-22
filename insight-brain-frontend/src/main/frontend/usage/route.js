@@ -13,7 +13,11 @@ import { getValidPermissions } from '../util/permissionService';
 
 router.stateRegistry.register({
   name: 'usage',
-  url: '/usage',
+  url: '/usage?tab',
+  // dynamic: true so a tab change updates the URL without retriggering the
+  // state transition — onBefore (and the component remount) only run on
+  // initial entry to /usage, not on every Overview ↔ Trends click.
+  params: { tab: { value: 'overview', squash: true, dynamic: true } },
   component: UsageDashboard,
   data: {
     title: 'Usage',

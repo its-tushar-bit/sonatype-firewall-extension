@@ -5,11 +5,12 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import { act, axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import UsageDashboard from 'MainRoot/usage/UsageDashboard';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('UsageDashboard', () => {
-  let axiosMock;
+  let axiosMock, stateGoSpy;
 
   const summaryResponse = {
     consumed: 1478,
@@ -19,7 +20,9 @@ describe('UsageDashboard', () => {
     resetDate: '2026-06-01',
     billingWindowStart: '2026-05-01',
     tier: 'ADVANCED',
-    breakdown: {
+    // Field name mirrors the backend `ConsumptionSummaryDTO` JSON shape, which
+    // serialises this as `activityBreakdown` (not `breakdown`).
+    activityBreakdown: {
       'App Scan + Re-evaluate': 746,
       'Continuous Monitoring': 434,
       'Component Details': 23,
@@ -44,6 +47,9 @@ describe('UsageDashboard', () => {
       loadErrorTopApps: null,
       loadErrorDailyHistory: null,
       loadErrorAll: null,
+      activeTab: 'overview',
+      cumulativeFilter: 'thisMonth',
+      lastRefreshedAt: null,
     },
   };
 
@@ -52,6 +58,7 @@ describe('UsageDashboard', () => {
   });
 
   beforeEach(() => {
+    stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
     axiosMock.reset();
     axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
     axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
@@ -77,6 +84,20 @@ describe('UsageDashboard', () => {
     });
   });
 
+  it('renders Usage Categories tile with the activityBreakdown counts after load', async () => {
+    // Integration guard: confirms summary.activityBreakdown reaches UsageCategoriesTile.
+    // Previously the fixture used `breakdown` (wrong field) so the categories tile
+    // silently rendered nothing — every category-related test was a no-op.
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('Usage Categories')).toBeInTheDocument();
+    });
+    expect(screen.getByText('APIs')).toBeInTheDocument();
+    expect(screen.getByText('App Scan + Re-evaluate')).toBeInTheDocument();
+    expect(screen.getByText('746')).toBeInTheDocument();
+  });
+
   it('should fetch all consumption data on mount', async () => {
     renderComponent();
 
@@ -93,39 +114,11 @@ describe('UsageDashboard', () => {
     expect(urls.some((url) => url.includes('/api/v2/consumption/daily-history'))).toBe(true);
   });
 
-  it('renders ConsumptionByStageChart in the 2-column chart row when data is present', async () => {
-    axiosMock
-      .onGet(/\/api\/v2\/consumption\/history\/by-source/)
-      .reply(200, [{ month: '2026-05-01', consumed: 100, breakdown: { CI_CD: 100 } }]);
-    renderComponent();
-    await waitFor(() => {
-      expect(screen.getByText('Consumption by Stage')).toBeInTheDocument();
-    });
-    const sourceTitle = screen.getByText('Consumption by Source');
-    const stageTitle = screen.getByText('Consumption by Stage');
-    // Both tiles share the same .iq-usage-page__chart-row ancestor
-    const sourceRow = sourceTitle.closest('.iq-usage-page__chart-row');
-    const stageRow = stageTitle.closest('.iq-usage-page__chart-row');
-    expect(sourceRow).toBeTruthy();
-    expect(stageRow).toBe(sourceRow);
-  });
-
-  it('should display summary card after loading', async () => {
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText(/1,478/)).toBeInTheDocument();
-    expect(screen.getByText(/50,000/)).toBeInTheDocument();
-  });
-
   it('should show export button', async () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Export')).toBeInTheDocument();
+      expect(screen.getByText('Export Report')).toBeInTheDocument();
     });
   });
 
@@ -156,213 +149,143 @@ describe('UsageDashboard', () => {
     });
   });
 
-  it('should handle no-limit state', async () => {
-    const noLimitSummary = {
-      ...summaryResponse,
-      limit: null,
-      remaining: null,
-      percentUsed: null,
-    };
+  // Tab navigation — Overview tab is default
 
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, noLimitSummary);
-
+  it('default tab is Overview: shows My Usage tile content', async () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByText('My usage')).toBeInTheDocument();
     });
-
-    expect(screen.getByText(/1,478/)).toBeInTheDocument();
-    expect(screen.queryByText('50,000')).not.toBeInTheDocument();
-    expect(screen.queryByText(/remaining/i)).not.toBeInTheDocument();
   });
 
-  it('has-limit but percentUsed null: renders em-dash in percentage label and zero-width progress fill', async () => {
-    const nullPercentSummary = {
-      ...summaryResponse,
-      limit: 50000,
-      percentUsed: null,
-    };
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, nullPercentSummary);
+  it('default tab is Overview: does not show Consumption by Source donut content', async () => {
+    renderComponent();
 
-    const { container } = renderComponent();
-
+    // Wait for load to complete, then assert Trends content is absent
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByText('My usage')).toBeInTheDocument();
     });
 
-    const percentage = container.querySelector('.iq-usage-card__progress-percentage');
-    expect(percentage).toHaveTextContent('—');
-    expect(percentage).not.toHaveTextContent('%');
-
-    const fill = container.querySelector('.iq-usage-card__progress-fill');
-    expect(fill.style.width).toBe('0%');
-
-    expect(container.querySelector('.iq-usage-card__progress-container--over')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-container--warning')).not.toBeInTheDocument();
+    expect(screen.queryByText('Consumption by Source')).not.toBeInTheDocument();
   });
 
-  it('U-45: bar stays normal (indigo) below 100% regardless of warningThresholdPct', async () => {
-    const customThresholdSummary = {
-      ...summaryResponse,
-      consumed: 30000,
-      limit: 50000,
-      warningThresholdPct: 60,
-      percentUsed: 60.0,
-      remaining: 20000,
-    };
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, customThresholdSummary);
+  it('clicking Trends tab shows Consumption by Source content', async () => {
+    axiosMock
+      .onGet(/\/api\/v2\/consumption\/history\/by-source/)
+      .reply(200, [{ month: '2026-05-01', consumed: 100, breakdown: { CI_CD: 100 } }]);
 
-    const { container } = renderComponent();
+    const user = userEvent.setup();
+    renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByText('My usage')).toBeInTheDocument();
     });
 
-    expect(container.querySelector('.iq-usage-card__progress-container--warning')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-container--normal')).toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-container--over')).not.toBeInTheDocument();
+    const trendsTab = screen.getByRole('tab', { name: /trends/i });
+    await user.click(trendsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('Consumption by Source')).toBeInTheDocument();
+    });
   });
 
-  it('U-46: custom threshold 90% does not trigger warning state at 80%', async () => {
-    const customThresholdSummary = {
-      ...summaryResponse,
-      consumed: 40000,
-      limit: 50000,
-      warningThresholdPct: 90,
-      percentUsed: 80.0,
-      remaining: 10000,
-    };
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, customThresholdSummary);
+  it('renders ConsumptionByStageChart in the 2-column chart row after switching to Trends', async () => {
+    axiosMock
+      .onGet(/\/api\/v2\/consumption\/history\/by-source/)
+      .reply(200, [{ month: '2026-05-01', consumed: 100, breakdown: { CI_CD: 100 } }]);
 
-    const { container } = renderComponent();
+    const user = userEvent.setup();
+    renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByText('My usage')).toBeInTheDocument();
     });
 
-    expect(container.querySelector('.iq-usage-card__progress-container--warning')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-container--normal')).toBeInTheDocument();
+    const trendsTab = screen.getByRole('tab', { name: /trends/i });
+    await user.click(trendsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('Consumption by Stage')).toBeInTheDocument();
+    });
+
+    const sourceTitle = screen.getByText('Consumption by Source');
+    const stageTitle = screen.getByText('Consumption by Stage');
+    const sourceRow = sourceTitle.closest('.iq-usage-page__chart-row');
+    const stageRow = stageTitle.closest('.iq-usage-page__chart-row');
+    expect(sourceRow).toBeTruthy();
+    expect(stageRow).toBe(sourceRow);
   });
 
-  it('null warningThresholdPct with limit: percentUsed 90 stays normal, 100 still goes to over', async () => {
-    const noThresholdSummary = {
-      ...summaryResponse,
-      consumed: 45000,
-      limit: 50000,
-      warningThresholdPct: null,
-      percentUsed: 90.0,
-      remaining: 5000,
-    };
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, noThresholdSummary);
+  it('?tab=trends deep-link: shows Trends content on initial render via preloadedState', async () => {
+    axiosMock
+      .onGet(/\/api\/v2\/consumption\/history\/by-source/)
+      .reply(200, [{ month: '2026-05-01', consumed: 100, breakdown: { CI_CD: 100 } }]);
 
-    const { container, unmount } = renderComponent();
+    renderComponent(
+      {},
+      {
+        ...defaultPreloadedState,
+        usage: { ...defaultPreloadedState.usage, activeTab: 'trends' },
+        router: { currentParams: { tab: 'trends' }, currentState: { name: 'usage' } },
+      }
+    );
 
+    // Wait for initial load to complete (loading spinner clears), then assert Trends tab is active.
+    // Use ARIA `aria-selected` rather than a CSS class — the class name varies across RSC versions.
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /trends/i })).toHaveAttribute('aria-selected', 'true');
     });
 
-    expect(container.querySelector('.iq-usage-card__progress-container--warning')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-container--normal')).toBeInTheDocument();
+    expect(screen.getByText('Consumption by Source')).toBeInTheDocument();
+  });
+
+  it('refresh button click dispatches refresh and eventually sets lastRefreshedAt', async () => {
+    const user = userEvent.setup();
+    const { store } = renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /refresh usage data/i })).toBeInTheDocument();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /refresh usage data/i });
+    await user.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(store.getState().usage.lastRefreshedAt).not.toBeNull();
+    });
+  });
+
+  it('60s ticker advances the "Last refreshed" relative time and cleans up on unmount', () => {
+    // Preload lastRefreshedAt = now so the ticker effect fires and the subtitle
+    // reads "a few seconds ago". After 65s of fake-timer advance, the subtitle
+    // should update to "a minute ago".
+    const now = Date.now();
+    jest.useFakeTimers({ now });
+    const stateWithTimestamp = {
+      ...defaultPreloadedState,
+      usage: { ...defaultPreloadedState.usage, lastRefreshedAt: now },
+    };
+    const { unmount } = renderComponent({}, stateWithTimestamp);
+
+    expect(screen.getByText(/last refreshed/i).textContent).toMatch(/a few seconds ago/);
+
+    // Jest's fake-timer advance also bumps Date.now(), so a single 65s advance
+    // both fires the 60s setInterval callback (causing setTick → re-render)
+    // AND moves the wall clock past moment.js's "a few seconds ago" cutoff
+    // (~44s) into "a minute ago" (~89s). act() flushes the queued setState.
+    act(() => {
+      jest.advanceTimersByTime(65000);
+    });
+
+    expect(screen.getByText(/last refreshed/i).textContent).toMatch(/a minute ago/);
 
     unmount();
+    // Advancing further after unmount must not throw — the interval should be
+    // cleared by the effect cleanup.
+    expect(() => jest.advanceTimersByTime(120000)).not.toThrow();
 
-    const overLimitNoThreshold = {
-      ...summaryResponse,
-      consumed: 55000,
-      limit: 50000,
-      warningThresholdPct: null,
-      percentUsed: 110.0,
-      remaining: -5000,
-    };
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, overLimitNoThreshold);
-
-    const { container: overContainer } = renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    expect(overContainer.querySelector('.iq-usage-card__progress-container--over')).toBeInTheDocument();
-  });
-
-  it('over limit: renders two progress segments with proportional widths', async () => {
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, {
-      ...summaryResponse,
-      consumed: 5000,
-      limit: 1000,
-      warningThresholdPct: 80,
-      percentUsed: 500.0,
-      remaining: -4000,
-    });
-
-    const { container } = renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    const within = container.querySelector('.iq-usage-card__progress-fill--within');
-    const overage = container.querySelector('.iq-usage-card__progress-fill--overage');
-    expect(within).toBeInTheDocument();
-    expect(overage).toBeInTheDocument();
-    expect(within).toHaveStyle({ width: '20%' });
-    expect(overage).toHaveStyle({ width: '80%' });
-  });
-
-  it('exactly at limit (100%): renders single progress fill, no overage segment', async () => {
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, {
-      ...summaryResponse,
-      consumed: 5000,
-      limit: 5000,
-      warningThresholdPct: 80,
-      percentUsed: 100.0,
-      remaining: 0,
-    });
-
-    const { container } = renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    expect(container.querySelector('.iq-usage-card__progress-fill--within')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-fill--overage')).not.toBeInTheDocument();
-    const singleFill = container.querySelector('.iq-usage-card__progress-bar > .iq-usage-card__progress-fill');
-    expect(singleFill).toBeInTheDocument();
-    expect(singleFill).toHaveStyle({ width: '100%' });
-  });
-
-  it('exactly at limit (100%): detail text reads "Limit reached" not "Over limit by 0"', async () => {
-    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, {
-      ...summaryResponse,
-      consumed: 5000,
-      limit: 5000,
-      warningThresholdPct: 80,
-      percentUsed: 100.0,
-      remaining: 0,
-    });
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Limit reached')).toBeInTheDocument();
-    expect(screen.queryByText(/Over limit by/i)).not.toBeInTheDocument();
-  });
-
-  it('under limit: renders single progress fill only', async () => {
-    const { container } = renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
-    });
-
-    expect(container.querySelector('.iq-usage-card__progress-fill--within')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-fill--overage')).not.toBeInTheDocument();
-    expect(container.querySelector('.iq-usage-card__progress-fill')).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('should show export error when download fails', async () => {
@@ -372,7 +295,7 @@ describe('UsageDashboard', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Evaluated Components')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument();
     });
 
     const exportButton = screen.getByRole('button', { name: /export/i });
@@ -381,5 +304,107 @@ describe('UsageDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/error occurred while exporting/i)).toBeInTheDocument();
     });
+  });
+
+  // Tab ↔ URL sync regression tests (items 1, 2, 3).
+  // These tests verify that clicking a tab updates the URL (slice→URL write-back),
+  // that reloading on Trends restores the correct tab (URL→slice), and that
+  // clicking Overview from a ?tab=trends URL updates the URL to ?tab=overview.
+  // All three FAILED on 06307bc48a before the isUrlToSlicePending guard was removed.
+
+  it('clicking Trends tab triggers stateGo with tab=trends (URL write-back)', async () => {
+    const user = userEvent.setup();
+    const { store } = renderComponent(
+      {},
+      {
+        ...defaultPreloadedState,
+        router: { currentParams: { tab: 'overview' }, currentState: { name: 'usage' } },
+      }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('My usage')).toBeInTheDocument();
+    });
+
+    stateGoSpy.mockClear();
+
+    const trendsTab = screen.getByRole('tab', { name: /trends/i });
+    await user.click(trendsTab);
+
+    await waitFor(() => {
+      expect(store.getState().usage.activeTab).toBe('trends');
+    });
+
+    expect(stateGoSpy).toHaveBeenCalledWith('usage', { tab: 'trends' }, { location: 'replace' });
+  });
+
+  it('deep-link ?tab=trends → slice activeTab becomes trends (URL→slice)', () => {
+    const { store } = renderComponent(
+      {},
+      {
+        ...defaultPreloadedState,
+        usage: { ...defaultPreloadedState.usage, activeTab: 'overview' },
+        router: { currentParams: { tab: 'trends' }, currentState: { name: 'usage' } },
+      }
+    );
+
+    // The URL→slice effect fires synchronously on mount when the URL tab
+    // differs from the slice default. By the time render returns, the
+    // dispatch has been enqueued — we need to wait for the state update.
+    return waitFor(() => {
+      expect(store.getState().usage.activeTab).toBe('trends');
+    });
+  });
+
+  it('deep-link ?tab=trends survives URL→slice→URL cycle: Trends stays active, stateGo never called with tab=overview', async () => {
+    // Regression guard for the mount-time race: on reload the slice starts with
+    // activeTab='overview' (initial state). Without the urlSyncInProgressRef guard,
+    // the slice→URL effect fires on that stale value before the URL→slice dispatch
+    // reduces, calling stateGo('usage', { tab:'overview' }) and overwriting the URL.
+    const { store } = renderComponent(
+      {},
+      {
+        ...defaultPreloadedState,
+        usage: { ...defaultPreloadedState.usage, activeTab: 'overview' }, // initial state before URL→slice
+        router: { currentParams: { tab: 'trends' }, currentState: { name: 'usage' } },
+      }
+    );
+
+    // Wait for URL→slice to reduce
+    await waitFor(() => {
+      expect(store.getState().usage.activeTab).toBe('trends');
+    });
+
+    // The slice→URL effect must NOT have fired with 'overview' — that would have
+    // stomped the deep-link URL back to overview.
+    const overwriteCalls = stateGoSpy.mock.calls.filter(([, params]) => params && params.tab === 'overview');
+    expect(overwriteCalls).toHaveLength(0);
+  });
+
+  it('clicking Overview from ?tab=trends triggers stateGo with tab=overview', async () => {
+    const user = userEvent.setup();
+    const { store } = renderComponent(
+      {},
+      {
+        ...defaultPreloadedState,
+        usage: { ...defaultPreloadedState.usage, activeTab: 'trends' },
+        router: { currentParams: { tab: 'trends' }, currentState: { name: 'usage' } },
+      }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /overview/i })).toBeInTheDocument();
+    });
+
+    stateGoSpy.mockClear();
+
+    const overviewTab = screen.getByRole('tab', { name: /overview/i });
+    await user.click(overviewTab);
+
+    await waitFor(() => {
+      expect(store.getState().usage.activeTab).toBe('overview');
+    });
+
+    expect(stateGoSpy).toHaveBeenCalledWith('usage', { tab: 'overview' }, { location: 'replace' });
   });
 });

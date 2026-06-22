@@ -65,32 +65,34 @@ describe('TopConsumingApps', () => {
     expect(fills[1].style.width).toBe('75%');
   });
 
-  it('caps visible rows at 5 and shows "Show More (N)"', () => {
-    const apps = Array.from({ length: 8 }, (_, i) => ({
+  it('caps visible rows at 10 and shows "Show More (N)"', () => {
+    const apps = Array.from({ length: 13 }, (_, i) => ({
       appId: `a-${i}`,
       publicId: `pub-${i}`,
       name: `App ${i}`,
-      consumed: 10 - i,
+      consumed: 20 - i,
     }));
     render(<TopConsumingApps topApps={topApps(apps)} />);
 
     expect(screen.getByText(/Show More \(3\)/)).toBeInTheDocument();
-    expect(screen.queryByText('App 7')).not.toBeInTheDocument();
+    // Apps 0–9 visible; 10–12 hidden until expand.
+    expect(screen.getByText('App 9')).toBeInTheDocument();
+    expect(screen.queryByText('App 10')).not.toBeInTheDocument();
   });
 
   it('expands to show all rows when "Show More" clicked', async () => {
     const user = userEvent.setup();
-    const apps = Array.from({ length: 8 }, (_, i) => ({
+    const apps = Array.from({ length: 13 }, (_, i) => ({
       appId: `a-${i}`,
       publicId: `pub-${i}`,
       name: `App ${i}`,
-      consumed: 10 - i,
+      consumed: 20 - i,
     }));
     render(<TopConsumingApps topApps={topApps(apps)} />);
 
     await user.click(screen.getByText(/Show More/));
 
-    expect(screen.getByText('App 7')).toBeInTheDocument();
+    expect(screen.getByText('App 12')).toBeInTheDocument();
     expect(screen.getByText(/Show Less/)).toBeInTheDocument();
   });
 
@@ -104,9 +106,14 @@ describe('TopConsumingApps', () => {
     ],
   };
 
-  it('does not render inline percent text on Top Apps rows', () => {
+  it('renders a percentage element below the bar for each row', () => {
     const { container } = render(<TopConsumingApps topApps={topAppsFixture} />);
-    expect(container.querySelector('.iq-usage-top-apps__percent')).toBeNull();
+    const percents = container.querySelectorAll('.iq-usage-top-apps__percent');
+    // First app: 600/1000 = 60%, second: 300/1000 = 30%, third: 100/1000 = 10%
+    expect(percents).toHaveLength(3);
+    expect(percents[0]).toHaveTextContent('60%');
+    expect(percents[1]).toHaveTextContent('30%');
+    expect(percents[2]).toHaveTextContent('10%');
   });
 
   it('renders a progress bar per row with width proportional to consumed/totalConsumed', () => {
@@ -125,6 +132,15 @@ describe('TopConsumingApps', () => {
     expect(bars).toHaveLength(3);
     expect(bars[0]).toHaveAttribute('aria-valuenow', '60');
     expect(bars[0]).toHaveAttribute('aria-valuemax', '100');
+  });
+
+  it('renders app name and count together in the row-top div', () => {
+    const { container } = render(<TopConsumingApps topApps={topAppsFixture} />);
+    const rowTops = container.querySelectorAll('.iq-usage-top-apps__row-top');
+    expect(rowTops).toHaveLength(3);
+    // Each row-top contains both the name and the count
+    expect(rowTops[0].querySelector('.iq-usage-top-apps__name')).toHaveTextContent('web-frontend');
+    expect(rowTops[0].querySelector('.iq-usage-top-apps__count')).toHaveTextContent('600');
   });
 
   it('clamps aria-valuenow at 100 when consumed exceeds totalConsumed', () => {

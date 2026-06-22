@@ -5,9 +5,9 @@
  */
 import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxH2, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxButton, NxH2, NxTile } from '@sonatype/react-shared-components';
 
-const DEFAULT_VISIBLE = 5;
+const DEFAULT_VISIBLE = 10;
 
 export default function TopConsumingApps({ topApps }) {
   const [expanded, setExpanded] = useState(false);
@@ -16,20 +16,23 @@ export default function TopConsumingApps({ topApps }) {
     return null;
   }
 
-  const { apps, totalApps, totalConsumed } = topApps;
+  const { apps, totalConsumed } = topApps;
   const visibleApps = expanded ? apps : apps.slice(0, DEFAULT_VISIBLE);
-  const remainingCount = apps.length - DEFAULT_VISIBLE;
+  // Guard: when apps.length < DEFAULT_VISIBLE, this would be negative. The render
+  // is gated by `> 0` below so a negative value never paints, but Math.max keeps
+  // the variable's intent obvious and prevents a future regression if the gate
+  // is ever weakened.
+  const remainingCount = Math.max(0, apps.length - DEFAULT_VISIBLE);
 
   return (
     <NxTile className="iq-usage-top-apps-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH2>Top Consuming Applications</NxH2>
+          <NxH2>Top 10 Consuming Applications</NxH2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <div className="iq-usage-top-apps__subtitle">{totalApps} applications evaluated this period</div>
-        <div className="iq-usage-top-apps__list">
+        <ul className="iq-usage-top-apps__list">
           {visibleApps.map((app) => {
             // Clamp at 100: when an app's consumed count drifts above totalConsumed
             // (data race, partial aggregation, rounding), the raw ratio can exceed 100,
@@ -39,11 +42,14 @@ export default function TopConsumingApps({ topApps }) {
             const percent = totalConsumed > 0 ? Math.min(100, Math.round((app.consumed / totalConsumed) * 100)) : 0;
             const displayName = app.name ?? app.publicId ?? 'Deleted application';
             return (
-              <div key={app.appId} className="iq-usage-top-apps__row">
-                <span className="iq-usage-top-apps__name" title={displayName}>
-                  {displayName}
-                </span>
-                <span
+              <li key={app.appId} className="iq-usage-top-apps__row">
+                <div className="iq-usage-top-apps__row-top">
+                  <span className="iq-usage-top-apps__name" title={displayName}>
+                    {displayName}
+                  </span>
+                  <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString('en-US')}</span>
+                </div>
+                <div
                   className="iq-usage-top-apps__bar-track"
                   role="progressbar"
                   aria-label={`${displayName} consumption`}
@@ -52,17 +58,27 @@ export default function TopConsumingApps({ topApps }) {
                   aria-valuemax={100}
                   aria-valuetext={`${percent}% of total`}
                 >
-                  <span className="iq-usage-top-apps__bar-fill" style={{ width: `${percent}%` }} aria-hidden="true" />
-                </span>
-                <span className="iq-usage-top-apps__count">{app.consumed.toLocaleString('en-US')}</span>
-              </div>
+                  <div className="iq-usage-top-apps__bar-fill" style={{ width: `${percent}%` }} aria-hidden="true" />
+                </div>
+                <span className="iq-usage-top-apps__percent">{percent}%</span>
+              </li>
             );
           })}
-        </div>
+        </ul>
         {remainingCount > 0 && (
-          <NxTextLink onClick={() => setExpanded(!expanded)}>
+          // Use NxButton (variant="tertiary") for this in-page expand/collapse
+          // toggle rather than NxTextLink, which renders <a> and reads as
+          // navigation to screen readers / keyboard users. The toggle isn't
+          // navigation — it flips local state — so a button gives correct
+          // role, Space-key activation, and aria-expanded semantics.
+          <NxButton
+            variant="tertiary"
+            className="iq-usage-top-apps__show-more"
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+          >
             {expanded ? 'Show Less' : `Show More (${remainingCount})`}
-          </NxTextLink>
+          </NxButton>
         )}
       </NxTile.Content>
     </NxTile>

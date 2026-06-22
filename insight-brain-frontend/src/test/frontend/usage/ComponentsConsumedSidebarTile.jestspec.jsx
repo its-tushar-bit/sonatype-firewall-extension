@@ -65,11 +65,38 @@ describe('ComponentsConsumedSidebarTile', () => {
     expect(screen.getByTestId('iq-components-consumed-tile__skeleton')).toBeInTheDocument();
   });
 
-  it('renders nothing on fetch error when no summary cached', () => {
-    const { container } = render(<ComponentsConsumedSidebarTile />, {
+  it('renders an inline error placeholder when fetch fails with no cached summary', () => {
+    // Regression guard: previously the tile silently disappeared on a transient
+    // 5xx (returns null when error truthy AND no summary). The useEffect's
+    // !error guard then prevented auto-retry, so the user had to full-page
+    // reload to recover. Now we render a status placeholder so the layout slot
+    // stays reserved and the failure is visible.
+    render(<ComponentsConsumedSidebarTile />, {
       preloadedState: makeState({ usage: { loadErrorSummary: 'boom' } }),
     });
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText(/Couldn’t load data/)).toBeInTheDocument();
+  });
+
+  it('does NOT render the error placeholder when collapsed (tile is hidden anyway)', () => {
+    const { container } = render(<ComponentsConsumedSidebarTile collapsed />, {
+      preloadedState: makeState({ usage: { loadErrorSummary: 'boom' } }),
+    });
+    // Collapsed state takes precedence over the error placeholder.
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('does NOT fire loadSummary when sidebar is collapsed (saves a wasted round-trip)', async () => {
+    // Regression guard: previously the effect would still run for a collapsed
+    // tile that won't render the data, wasting an HTTP request if the parent
+    // kept this component mounted with collapsed={true} rather than unmounting.
+    render(<ComponentsConsumedSidebarTile collapsed />, {
+      preloadedState: makeState(),
+    });
+    // Give the effect a tick to fire if it were going to.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const consumptionSummaryCalls = axiosMock.history.get.filter((req) => req.url === getConsumptionSummaryUrl());
+    expect(consumptionSummaryCalls).toHaveLength(0);
   });
 
   it('renders consumed only (no progress bar) when limit is null', () => {
@@ -104,37 +131,22 @@ describe('ComponentsConsumedSidebarTile', () => {
     expect(screen.getByText(/1k/)).toBeInTheDocument();
   });
 
-  it('renders progress ring + icon when collapsed=true', () => {
+  it('renders null when sidebar is collapsed', () => {
     const { container } = render(<ComponentsConsumedSidebarTile collapsed={true} />, {
       preloadedState: makeState({
         usage: { summary: { consumed: 1635, limit: 1000 } },
       }),
     });
-    expect(container.querySelector('.iq-components-consumed-tile--collapsed')).toBeInTheDocument();
-    expect(container.querySelector('.iq-components-consumed-tile__ring')).toBeInTheDocument();
-    expect(container.querySelector('.iq-components-consumed-tile__icon')).toBeInTheDocument();
-    // Bar track from expanded state should NOT be present
-    expect(container.querySelector('.iq-components-consumed-tile__bar-track')).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('collapsed ring uses over-limit style when consumed > limit', () => {
-    const { container } = render(<ComponentsConsumedSidebarTile collapsed={true} />, {
+  it('still renders the expanded tile when collapsed=false', () => {
+    render(<ComponentsConsumedSidebarTile collapsed={false} />, {
       preloadedState: makeState({
         usage: { summary: { consumed: 1635, limit: 1000 } },
       }),
     });
-    const ringFill = container.querySelector('.iq-components-consumed-tile__ring-fill');
-    expect(ringFill.className.baseVal || ringFill.getAttribute('class')).toMatch(/--over/);
-  });
-
-  it('collapsed widget exposes the canonical full-precision text via aria-label', () => {
-    render(<ComponentsConsumedSidebarTile collapsed={true} />, {
-      preloadedState: makeState({
-        usage: { summary: { consumed: 1635, limit: 1000 } },
-      }),
-    });
-    const btn = screen.getByRole('button', { name: /Components: 1,635 \/ 1,000 \(164%\)/ });
-    expect(btn).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
   it('saturates with over-limit modifier when consumed > limit', () => {

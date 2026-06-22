@@ -23,6 +23,10 @@ const queryParamsToShowInPlaintext = [
   'scanId',
   'pathname',
   'aggregation',
+  // Usage page tab state — enum ('overview' | 'trends'), no PII. Listed so
+  // Gainsight PX URL analytics keep the value visible for Overview-vs-Trends
+  // usage telemetry instead of hashing or dropping it.
+  'tab',
 ];
 
 /**

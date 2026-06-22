@@ -19,12 +19,26 @@ const REDUCER_NAME = 'usage';
 
 const initialState = {
   summary: null,
+  // historyBreakdown is owned by Trends; cumulativeHistoryBreakdown is owned
+  // by the Overview range filter. Without separate fields, a Trends-Daily +
+  // Overview-Last6Months scenario lets the monthly response overwrite the
+  // daily data the Trends chart is rendering (and vice versa).
   historyBreakdown: [],
+  cumulativeHistoryBreakdown: [],
+  // chartAggregation is owned by the Trends tab's Daily/Weekly/Monthly <select>.
+  // cumulativeChartAggregation is owned by the Overview tab's range filter
+  // (This month / Last 3 / Last 6 months). Splitting the pointers keeps the
+  // user's Trends selection from being clobbered when switching to Overview.
   chartAggregation: 'daily',
+  cumulativeChartAggregation: 'daily',
   sourceBreakdown: [],
   stageBreakdown: [],
   topApps: null,
   dailyHistory: null,
+
+  activeTab: 'overview',
+  cumulativeFilter: 'thisMonth',
+  lastRefreshedAt: null,
 
   loadingSummary: false,
   loadingHistoryBreakdown: false,
@@ -125,6 +139,7 @@ const loadAllUsageData = createAsyncThunk(
         stageBreakdown: stageRes.status === 'fulfilled' ? stageRes.value.data : [],
         topApps: topAppsRes.status === 'fulfilled' ? topAppsRes.value.data : null,
         dailyHistory: dailyRes.status === 'fulfilled' ? dailyRes.value.data : null,
+        loadedAt: Date.now(),
       };
     } catch (error) {
       return rejectWithValue(error);
@@ -149,23 +164,27 @@ const historyBreakdownPending = (state) => ({
   loadingHistoryBreakdown: true,
   loadErrorHistoryBreakdown: null,
 });
-// Last-wins guard: only apply the payload (or error) when the settled request's
-// aggregation matches the currently-selected one. Prevents a stale slow response
-// from overwriting fresh state after rapid dropdown changes. Always clears the
-// loading flag on settlement regardless of the guard — the in-flight request is
-// done either way, and a stuck loading state is worse than stale data.
+// Last-wins guard. The shared loadHistoryBreakdown thunk serves two consumers:
+// the Trends chart (chartAggregation) and the Overview cumulative chart
+// (cumulativeChartAggregation). Route the payload (or error) to whichever
+// field's pointer matches meta.arg — both, when the two contexts happen to
+// agree on the same aggregation. If neither matches, the response is stale.
+// Always clears the loading flag on settlement regardless of the guard — the
+// in-flight request is done either way, and a stuck loading state is worse
+// than stale data.
+const matchesTrends = (state, arg) => arg === state.chartAggregation;
+const matchesCumulative = (state, arg) => arg === state.cumulativeChartAggregation;
+
 const historyBreakdownFulfilled = (state, { payload, meta }) => {
-  if (meta.arg !== state.chartAggregation) {
-    return { ...state, loadingHistoryBreakdown: false };
-  }
-  return {
-    ...state,
-    loadingHistoryBreakdown: false,
-    historyBreakdown: payload,
-  };
+  const next = { ...state, loadingHistoryBreakdown: false };
+  if (matchesTrends(state, meta.arg)) next.historyBreakdown = payload;
+  if (matchesCumulative(state, meta.arg)) next.cumulativeHistoryBreakdown = payload;
+  return next;
 };
 const historyBreakdownRejected = (state, { payload, meta }) => {
-  if (meta.arg !== state.chartAggregation) {
+  // Set the error only when the failing request was for one of the active
+  // selections. Stale rejections are silently dropped on the floor.
+  if (!matchesTrends(state, meta.arg) && !matchesCumulative(state, meta.arg)) {
     return { ...state, loadingHistoryBreakdown: false };
   }
   return {
@@ -237,12 +256,27 @@ const dailyHistoryRejected = (state, { payload }) => ({
 
 const allPending = (state) => ({ ...state, loadingAll: true, loadErrorAll: null });
 const allFulfilled = (state, { payload }) => {
-  const { aggregation, historyBreakdown, ...rest } = payload;
+  // Destructure the fields that need custom routing before spreading the rest.
+  // `rest` is expected to contain only slice-safe fields (summary, sourceBreakdown,
+  // stageBreakdown, topApps, dailyHistory). If the API payload ever gains a top-level
+  // `historyBreakdown` or `cumulativeHistoryBreakdown` field, `...rest` would silently
+  // clobber the routed writes below — audit this routing if the payload schema grows.
+  const { aggregation, historyBreakdown, loadedAt, ...rest } = payload;
   return {
     ...state,
     loadingAll: false,
     ...rest,
+    // Stamp lastRefreshedAt on every successful full load so the "Last refreshed:" subtitle
+    // shows a real relative time from first paint, not the "recently" fallback.
+    lastRefreshedAt: loadedAt ?? state.lastRefreshedAt,
+    // Route the bundled history payload to whichever field's pointer matches
+    // the request's aggregation. On initial mount both pointers default to
+    // 'daily' so both fields populate; on refresh while Trends is on Weekly
+    // and Overview is on Last3Months (monthly), the response is necessarily
+    // for one of them and only that field updates here — the other field's
+    // dedicated loadHistoryBreakdown round-trip keeps it accurate.
     ...(aggregation === state.chartAggregation ? { historyBreakdown } : {}),
+    ...(aggregation === state.cumulativeChartAggregation ? { cumulativeHistoryBreakdown: historyBreakdown } : {}),
   };
 };
 const allRejected = (state, { payload }) => ({
@@ -251,16 +285,66 @@ const allRejected = (state, { payload }) => ({
   loadErrorAll: Messages.getHttpErrorMessage(payload),
 });
 
+const refresh = createAsyncThunk(`${REDUCER_NAME}/refresh`, async (_, { dispatch, getState, rejectWithValue }) => {
+  const { chartAggregation, cumulativeChartAggregation } = getState().usage;
+  const result = await dispatch(loadAllUsageData(chartAggregation));
+  if (result.meta.requestStatus === 'rejected') {
+    return rejectWithValue(result.payload);
+  }
+  // The bundled load only routes the response to whichever aggregation pointer
+  // matches its request arg (allFulfilled, lines 273-274). When the Overview
+  // tab's filter (cumulativeChartAggregation) differs from the Trends tab's
+  // (chartAggregation), fetch the Overview's view explicitly so its cumulative
+  // chart doesn't go stale after the user hits ↻.
+  if (cumulativeChartAggregation !== chartAggregation) {
+    const fanOut = await dispatch(loadHistoryBreakdown(cumulativeChartAggregation));
+    // If the fan-out 5xx's, the user would otherwise see "Last refreshed: a
+    // few seconds ago" but the Overview cumulative chart silently stays stale.
+    // The thunk's own rejected reducer writes to loadErrorHistoryBreakdown
+    // already; promote the refresh thunk to rejected so loadErrorAll fires
+    // too and the page-level retry banner appears.
+    if (fanOut.meta.requestStatus === 'rejected') {
+      return rejectWithValue(fanOut.payload);
+    }
+  }
+  // No payload needed — lastRefreshedAt is stamped by allFulfilled via
+  // payload.loadedAt, which covers both initial mount and manual refresh.
+  return null;
+});
+
+// Switching the cumulative filter (This month / Last 3 / Last 6) also flips the
+// underlying historyBreakdown aggregation: thisMonth → daily, last3/last6 → monthly.
+// Writes to cumulativeChartAggregation (Overview's own field) so the Trends
+// tab's chartAggregation — which the user controls via the Daily/Weekly/Monthly
+// <select> — is preserved across tab switches. Returns the loadHistoryBreakdown
+// promise so callers can await fetch completion.
+const changeCumulativeFilter = (filter) => (dispatch) => {
+  const aggregation = filter === 'thisMonth' ? 'daily' : 'monthly';
+  dispatch(usageSlice.actions.setCumulativeFilter(filter));
+  dispatch(usageSlice.actions.setCumulativeChartAggregation(aggregation));
+  return dispatch(loadHistoryBreakdown(aggregation));
+};
+
 const setChartAggregation = (state, action) => ({
   ...state,
   chartAggregation: action.payload,
 });
+const setCumulativeChartAggregation = (state, action) => ({
+  ...state,
+  cumulativeChartAggregation: action.payload,
+});
+
+const setActiveTab = (state, action) => ({ ...state, activeTab: action.payload });
+const setCumulativeFilter = (state, action) => ({ ...state, cumulativeFilter: action.payload });
 
 const usageSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
     setChartAggregation,
+    setCumulativeChartAggregation,
+    setActiveTab,
+    setCumulativeFilter,
   },
   extraReducers: (builder) => {
     builder
@@ -284,7 +368,21 @@ const usageSlice = createSlice({
       .addCase(loadDailyHistory.rejected, dailyHistoryRejected)
       .addCase(loadAllUsageData.pending, allPending)
       .addCase(loadAllUsageData.fulfilled, allFulfilled)
-      .addCase(loadAllUsageData.rejected, allRejected);
+      .addCase(loadAllUsageData.rejected, allRejected)
+      // refresh.pending sets loadingAll synchronously so the refresh button
+      // disables on click — closing the double-click race window before the
+      // inner loadAllUsageData.pending action lands on the next microtask.
+      .addCase(refresh.pending, (state) => ({ ...state, loadingAll: true, loadErrorAll: null }))
+      // refresh.fulfilled is handled implicitly via the inner loadAllUsageData
+      // lifecycle (lastRefreshedAt stamped from the loadedAt field in
+      // loadAllUsageData.fulfilled so timestamps populate on initial mount
+      // too, not only on manual refresh). refresh.rejected needs an explicit
+      // handler for the partial-failure case where the fan-out
+      // loadHistoryBreakdown rejects — the inner loadAllUsageData succeeded
+      // (so allRejected didn't fire) but the trailing dispatch failed and we
+      // bubbled it through rejectWithValue. Without this case, loadErrorAll
+      // stays null and the refresh appears to have succeeded silently.
+      .addCase(refresh.rejected, allRejected);
   },
 });
 
@@ -299,4 +397,6 @@ export const actions = {
   loadTopApps,
   loadDailyHistory,
   loadAllUsageData,
+  refresh,
+  changeCumulativeFilter,
 };

@@ -6,11 +6,37 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
+// --- Sidebar layout: park the Components-Consumed tile at the bottom of the nav,
+//     directly above the Collapse Menu toggle button.
+// Earlier iterations forced the entire <nav> into flex-column so `margin-top: auto`
+// on the tile would push it down. That had a visible side effect: switching the
+// sibling NxGlobalSidebar2NavigationLink items from block to flex-children
+// disabled margin collapse, doubling the vertical gaps between every nav link.
+// This positioning approach scopes the layout change to the tile alone — the
+// nav stays in normal block flow for its links, but the tile pins itself to
+// the bottom of the nav's content area via absolute positioning.
+//
+// Scoped under .iq-lifecycle-sidebar (the IqSidebarNav's NxGlobalSidebar2
+// className) so other product sidebars (SBOM Manager, Firewall, Developer)
+// — which don't render this tile — are unaffected.
+.iq-lifecycle-sidebar .nx-global-sidebar-2__nav {
+  position: relative;
+  // Reserve space at the bottom equal to the tile's footprint so the absolute
+  // positioning never overlaps the last nav link. The number is the tile's
+  // own height (label + 2x gap + bar = ~52px) plus the 3x bottom margin.
+  padding-bottom: 80px;
+}
+
 // --- Expanded state: bordered card ---
 .iq-components-consumed-tile {
   display: block;
-  width: calc(100% - 2 * var(--nx-spacing-3x));
-  margin: var(--nx-spacing-3x);
+  // Anchor to the bottom of the nav (which is now position: relative — see the
+  // scoped rule above). Sibling nav links stay in normal block flow with
+  // their margin-collapse intact.
+  position: absolute;
+  bottom: var(--nx-spacing-3x);
+  left: var(--nx-spacing-3x);
+  right: var(--nx-spacing-3x);
   padding: var(--nx-spacing-3x) var(--nx-spacing-4x);
   background: transparent;
   text-align: left;
@@ -91,75 +117,17 @@
     height: 4px;
     width: 100%;
   }
-}
 
-// --- Collapsed state: icon + progress ring ---
-// Replaces the bordered card when the global sidebar is collapsed. Shows a
-// 32px circular progress ring around a components icon, communicating fill
-// state at a glance. Hover surfaces the canonical "Components: X / Y (Z%)"
-// tooltip from NxTooltip.
-.iq-components-consumed-tile--collapsed {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin: var(--nx-spacing-3x) auto;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-
-  &:hover .iq-components-consumed-tile__icon {
-    color: var(--nx-color-text-stark);
+  // Error placeholder shown when loadSummary fails. Keeps the layout slot
+  // reserved so the sidebar nav doesn't shift around mid-session, and gives
+  // the user a signal instead of a silently-vanished widget.
+  &--error {
+    cursor: default;
   }
 
-  .iq-components-consumed-tile__icon {
-    font-size: 14px;
-    color: var(--nx-color-text);
-    z-index: 1;
-  }
-}
-
-.iq-components-consumed-tile__ring {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-}
-
-.iq-components-consumed-tile__ring-track {
-  fill: none;
-  stroke: var(--nx-swatch-grey-80);
-  stroke-width: 2.5;
-
-  @include nx-dark-mode-helpers.dark-mode {
-    stroke: var(--nx-swatch-grey-30);
-  }
-}
-
-.iq-components-consumed-tile__ring-fill {
-  fill: none;
-  stroke: var(--nx-swatch-blue-60);
-  stroke-width: 2.5;
-  // butt linecap so a 100% fill renders as a complete ring without an
-  // overshoot dot at the rotation start point.
-  stroke-linecap: butt;
-  transition: stroke-dashoffset 200ms ease;
-
-  @include nx-dark-mode-helpers.dark-mode {
-    stroke: var(--nx-swatch-blue-40);
-  }
-
-  &--over {
-    stroke: var(--nx-color-status-error);
-
-    // Re-assert error color in dark mode — without this, the dark-mode
-    // override on __ring-fill above wins by specificity and hides the
-    // over-limit warning state. Codex flagged this as a P2 bug on PR #16408.
-    @include nx-dark-mode-helpers.dark-mode {
-      stroke: var(--nx-color-status-error);
-    }
+  &__error-text {
+    font-size: var(--nx-font-size-s);
+    color: var(--nx-color-text-secondary);
+    margin-top: var(--nx-spacing-1x);
   }
 }

@@ -31,3 +31,32 @@ export const selectLoadErrorStageBreakdown = createSelector(selectUsageSlice, pr
 export const selectLoadErrorTopApps = createSelector(selectUsageSlice, prop('loadErrorTopApps'));
 export const selectLoadErrorDailyHistory = createSelector(selectUsageSlice, prop('loadErrorDailyHistory'));
 export const selectLoadErrorAll = createSelector(selectUsageSlice, prop('loadErrorAll'));
+
+export const selectActiveTab = createSelector(selectUsageSlice, prop('activeTab'));
+export const selectCumulativeFilter = createSelector(selectUsageSlice, prop('cumulativeFilter'));
+export const selectLastRefreshedAt = createSelector(selectUsageSlice, prop('lastRefreshedAt'));
+
+// Cumulative chart reads its own field so a Trends-tab loadHistoryBreakdown
+// (e.g. Daily/Weekly) can never overwrite the monthly buckets the Overview
+// chart is rendering.
+const selectCumulativeHistoryBreakdownSlice = createSelector(selectUsageSlice, prop('cumulativeHistoryBreakdown'));
+
+export const selectCumulativeChartSeries = createSelector(
+  selectDailyHistory,
+  selectCumulativeHistoryBreakdownSlice,
+  selectCumulativeFilter,
+  (dailyHistory, cumulativeHistoryBreakdown, filter) => {
+    if (filter === 'thisMonth') {
+      return dailyHistory?.dailyHistory ?? [];
+    }
+    if (!Array.isArray(cumulativeHistoryBreakdown)) return [];
+    const N = filter === 'last6Months' ? 6 : 3;
+    const sorted = [...cumulativeHistoryBreakdown].sort((a, b) => (a.month || '').localeCompare(b.month || ''));
+    const tail = sorted.slice(-N);
+    let cumulative = 0;
+    return tail.map((entry) => {
+      cumulative += entry.consumed || 0;
+      return { date: entry.month, components: entry.consumed || 0, componentsCumulative: cumulative };
+    });
+  }
+);

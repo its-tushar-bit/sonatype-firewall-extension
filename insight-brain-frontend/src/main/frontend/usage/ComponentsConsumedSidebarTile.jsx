@@ -7,43 +7,12 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import classnames from 'classnames';
-import { NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
-import { faCubes } from '@fortawesome/pro-regular-svg-icons';
 
 import { actions } from './usageSlice';
 import { selectSummary, selectLoadingSummary, selectLoadErrorSummary } from './usageSelectors';
 import { selectIsUsageDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { formatCount, formatNumber } from './usageFormatters';
-
-const RING_RADIUS = 13;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-function ProgressRing({ pct, overLimit }) {
-  const safePct = Math.max(0, Math.min(100, pct));
-  const dashOffset = RING_CIRCUMFERENCE * (1 - safePct / 100);
-  return (
-    <svg className="iq-components-consumed-tile__ring" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="16" cy="16" r={RING_RADIUS} className="iq-components-consumed-tile__ring-track" />
-      <circle
-        cx="16"
-        cy="16"
-        r={RING_RADIUS}
-        className={classnames('iq-components-consumed-tile__ring-fill', {
-          'iq-components-consumed-tile__ring-fill--over': overLimit,
-        })}
-        strokeDasharray={RING_CIRCUMFERENCE}
-        strokeDashoffset={dashOffset}
-        transform="rotate(-90 16 16)"
-      />
-    </svg>
-  );
-}
-
-ProgressRing.propTypes = {
-  pct: PropTypes.number.isRequired,
-  overLimit: PropTypes.bool.isRequired,
-};
+import { formatCount } from './usageFormatters';
 
 export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   const dispatch = useDispatch();
@@ -53,23 +22,44 @@ export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   const error = useSelector(selectLoadErrorSummary);
 
   useEffect(() => {
-    if (enabled && summary === null && !loading && !error) {
+    // Skip the fetch when the sidebar is collapsed — the tile isn't visible,
+    // and firing a request for data that won't render wastes a round-trip.
+    // Without `!collapsed` the effect would still run if a parent kept this
+    // mounted with `collapsed={true}` rather than unmounting.
+    if (!collapsed && enabled && summary === null && !loading && !error) {
       dispatch(actions.loadSummary());
     }
-  }, [enabled, summary, loading, error, dispatch]);
+  }, [collapsed, enabled, summary, loading, error, dispatch]);
 
   if (!enabled) return null;
-  if (error && !summary) return null;
+
+  if (collapsed) {
+    return null;
+  }
+
+  // Transient error path: render a small inline placeholder rather than
+  // disappearing. With `return null` here, a single 5xx during loadSummary
+  // would silently hide the sidebar widget with no recovery — the useEffect's
+  // `!error` guard prevents auto-retry, so the user would have to full-page
+  // reload to see the tile again. Showing a tooltip-only placeholder keeps
+  // the layout slot reserved and signals the failure.
+  if (error && !summary) {
+    return (
+      <div
+        className="iq-components-consumed-tile iq-components-consumed-tile--error"
+        role="status"
+        title="Couldn't load consumption data"
+      >
+        <div className="iq-components-consumed-tile__label">Components</div>
+        <div className="iq-components-consumed-tile__error-text">Couldn’t load data</div>
+      </div>
+    );
+  }
 
   if (loading && !summary) {
     return (
-      <div
-        className={classnames('iq-components-consumed-tile', {
-          'iq-components-consumed-tile--collapsed': collapsed,
-        })}
-        data-testid="iq-components-consumed-tile__skeleton"
-      >
-        {!collapsed && <div className="iq-components-consumed-tile__label-skeleton" />}
+      <div className="iq-components-consumed-tile" data-testid="iq-components-consumed-tile__skeleton">
+        <div className="iq-components-consumed-tile__label-skeleton" />
         <div className="iq-components-consumed-tile__bar-skeleton" />
       </div>
     );
@@ -84,28 +74,6 @@ export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   const pct = Math.min(100, pctRaw);
 
   const handleClick = () => dispatch(stateGo('usage'));
-
-  // Tooltip text used in collapsed state. Full-precision numbers so the
-  // tooltip is the canonical source of truth even when the visible label is compact.
-  const tooltipText = hasLimit
-    ? `Components: ${formatNumber(consumed)} / ${formatNumber(limit)}` + (limit > 0 ? ` (${Math.round(pctRaw)}%)` : '')
-    : `Components: ${formatNumber(consumed)}`;
-
-  if (collapsed) {
-    return (
-      <NxTooltip title={tooltipText} placement="right">
-        <button
-          type="button"
-          className="iq-components-consumed-tile iq-components-consumed-tile--collapsed"
-          onClick={handleClick}
-          aria-label={tooltipText}
-        >
-          {hasLimit && <ProgressRing pct={pct} overLimit={overLimit} />}
-          <NxFontAwesomeIcon icon={faCubes} className="iq-components-consumed-tile__icon" />
-        </button>
-      </NxTooltip>
-    );
-  }
 
   return (
     <button type="button" className="iq-components-consumed-tile" onClick={handleClick}>
@@ -125,10 +93,16 @@ export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
         <div
           className="iq-components-consumed-tile__bar-track"
           role="progressbar"
-          aria-label="Components consumed"
+          // aria-label includes consumed/limit so screen readers get domain
+          // context, not just a raw percentage. aria-valuetext announces the
+          // over-limit state explicitly because aria-valuenow is clamped at 100.
+          aria-label={`Components consumed: ${formatCount(consumed)} of ${formatCount(limit)}`}
           aria-valuenow={Math.round(pct)}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-valuetext={
+            overLimit ? `Over limit: ${Math.round(pctRaw)}% of monthly limit` : `${Math.round(pct)}% of monthly limit`
+          }
         >
           <div
             data-testid="iq-components-consumed-tile__bar-fill"

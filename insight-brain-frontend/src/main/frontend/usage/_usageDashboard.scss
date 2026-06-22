@@ -13,8 +13,61 @@
 .iq-usage-page__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: var(--nx-spacing-6x);
+  gap: var(--nx-spacing-4x);
+}
+
+.iq-usage-page__header-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-1x);
+}
+
+.iq-usage-page__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nx-spacing-3x);
+}
+
+.iq-usage-page__subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nx-spacing-2x);
+  font-size: var(--nx-font-size-m);
+  color: var(--nx-color-text-stark);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    color: var(--nx-color-text);
+  }
+}
+
+.iq-usage-page__refresh-icon {
+  // Reset native button so the rotate icon sits inline with the subtitle text.
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: var(--nx-spacing-1x);
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  border-radius: var(--nx-border-radius);
+  line-height: 1;
+
+  &:hover:not(:disabled) {
+    color: var(--nx-color-interactive-text-hover);
+    background-color: var(--nx-color-interactive-background-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nx-color-interactive-border-focus);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
 
 .iq-usage-page__chart-row {
@@ -53,148 +106,6 @@
 
 .iq-usage-tile {
   margin: 0;
-}
-
-// --- Summary Card (matches CLM-38071 reference pattern) ---
-.iq-usage-summary-card {
-  border: 1px solid var(--nx-color-border);
-  border-radius: var(--nx-border-radius);
-  padding: var(--nx-spacing-6x);
-}
-
-.iq-usage-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--nx-spacing-4x);
-}
-
-.iq-usage-card__label {
-  font-family: var(--nx-font-family);
-  font-size: var(--nx-font-size-heading-3);
-  font-weight: 700;
-  color: var(--nx-color-text-dark);
-}
-
-.iq-usage-card__billing-month {
-  font-size: var(--nx-font-size-m);
-  font-weight: 400;
-  color: var(--nx-color-text);
-}
-
-.iq-usage-card__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nx-spacing-2x);
-}
-
-.iq-usage-card__value {
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--nx-color-text-dark);
-}
-
-.iq-usage-card__value-label {
-  font-size: var(--nx-font-size);
-  font-weight: 400;
-  color: var(--nx-color-text);
-}
-
-.iq-usage-card__value-separator {
-  font-size: var(--nx-font-size-l);
-  font-weight: 400;
-  color: var(--nx-color-text);
-}
-
-.iq-usage-card__progress-container {
-  display: flex;
-  align-items: center;
-  gap: var(--nx-spacing-4x);
-  width: 100%;
-  margin-top: var(--nx-spacing-2x);
-}
-
-.iq-usage-card__progress-bar {
-  flex: 1;
-  display: flex;
-  height: 4px;
-  background-color: var(--nx-swatch-indigo-95);
-  border-radius: 2px;
-  overflow: hidden;
-  border: 1px solid var(--nx-swatch-indigo-90);
-
-  @include nx-dark-mode-helpers.dark-mode {
-    background-color: var(--nx-swatch-indigo-20);
-    border-color: var(--nx-swatch-indigo-30);
-  }
-}
-
-.iq-usage-card__progress-fill {
-  height: 100%;
-  background-color: var(--nx-swatch-indigo-50);
-  border-radius: 2px;
-  transition: width 0.3s ease-in-out;
-
-  @include nx-dark-mode-helpers.dark-mode {
-    background-color: var(--nx-swatch-indigo-60);
-  }
-}
-
-.iq-usage-card__progress-percentage {
-  font-size: var(--nx-font-size-m);
-  font-weight: 600;
-  color: var(--nx-color-text);
-  min-width: 40px;
-  text-align: right;
-}
-
-// Over limit state (100%+)
-.iq-usage-card__progress-container--over {
-  .iq-usage-card__progress-fill {
-    background-color: var(--nx-swatch-red-60);
-
-    @include nx-dark-mode-helpers.dark-mode {
-      background-color: var(--nx-swatch-red-50);
-    }
-  }
-
-  // Two-segment variant: keep the within-limit portion in the accent color and
-  // only paint the overage portion red. Scoped under --over container to win
-  // over the blanket red rule above via matching specificity + later source order.
-  .iq-usage-card__progress-fill--within {
-    background-color: var(--nx-swatch-indigo-50);
-    border-radius: 2px 0 0 2px;
-
-    @include nx-dark-mode-helpers.dark-mode {
-      background-color: var(--nx-swatch-indigo-60);
-    }
-  }
-
-  .iq-usage-card__progress-fill--overage {
-    border-radius: 0 2px 2px 0;
-  }
-
-  .iq-usage-card__progress-percentage {
-    color: var(--nx-swatch-red-60);
-  }
-}
-
-.iq-usage-card__details {
-  display: flex;
-  gap: var(--nx-spacing-6x);
-  font-size: var(--nx-font-size-m);
-  color: var(--nx-color-text);
-  margin-top: var(--nx-spacing-2x);
-}
-
-.iq-usage-card__over-limit {
-  color: var(--nx-color-validation-error);
-  font-weight: 600;
-}
-
-.iq-usage-card__resets {
-  color: var(--nx-color-text);
 }
 
 // --- Source Chart (full width) ---
@@ -250,7 +161,10 @@
   padding: var(--nx-spacing-3x) var(--nx-spacing-4x);
   font-size: var(--nx-font-size-m);
   color: var(--nx-color-text);
-  min-width: 240px;
+  // Set to 180px: narrower than the ~260px donut canvas (was 240px and rendered
+  // wider than the donut), but wide enough to fit the stacked-bar tooltip rows
+  // like "Cumulative Usage: 12,345" on a single line.
+  min-width: 180px;
   max-width: 320px;
   box-shadow: var(--nx-box-shadow-overlay, 0 2px 6px rgba(0, 0, 0, 0.12));
 }
@@ -333,28 +247,26 @@
   margin-top: 0;
 }
 
-.iq-usage-top-apps__subtitle {
-  font-size: var(--nx-font-size-m);
-  color: var(--nx-color-text);
-  margin-bottom: var(--nx-spacing-4x);
-}
-
 .iq-usage-top-apps__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--nx-spacing-4x);
 }
 
 .iq-usage-top-apps__row {
-  display: grid;
-  grid-template-columns: minmax(8rem, 1fr) minmax(8rem, 16rem) auto;
-  align-items: center;
-  gap: var(--nx-spacing-4x);
-  padding: var(--nx-spacing-2x) 0;
-  border-bottom: 1px dashed var(--nx-color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-1x);
+}
 
-  &:last-child {
-    border-bottom: none;
-  }
+.iq-usage-top-apps__row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--nx-spacing-2x);
 }
 
 .iq-usage-top-apps__name {
@@ -364,22 +276,33 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.iq-usage-top-apps__count {
+  font-size: var(--nx-font-size-m);
+  font-weight: 600;
+  color: var(--nx-color-text-dark);
+  flex-shrink: 0;
 }
 
 .iq-usage-top-apps__bar-track {
-  position: relative;
-  height: var(--nx-spacing-2x);
+  height: 6px;
   background-color: var(--nx-color-interactive-background-disabled);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
   display: block;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-grey-30);
+  }
 }
 
 .iq-usage-top-apps__bar-fill {
   display: block;
   height: 100%;
-  background-color: var(--nx-swatch-blue-60);
-  border-radius: 2px;
+  background-color: var(--nx-swatch-blue-50);
+  border-radius: 3px;
   transition: width 200ms ease;
 
   @include nx-dark-mode-helpers.dark-mode {
@@ -387,12 +310,9 @@
   }
 }
 
-.iq-usage-top-apps__count {
-  font-size: var(--nx-font-size-m);
-  font-weight: 600;
-  color: var(--nx-color-text-dark);
-  min-width: 60px;
-  text-align: right;
+.iq-usage-top-apps__percent {
+  font-size: var(--nx-font-size-s);
+  color: var(--nx-color-text-stark);
 }
 
 // --- Evaluated Components Tile ---
@@ -400,16 +320,15 @@
   margin-top: 0;
 }
 
-.iq-usage-evaluated__period {
-  font-size: var(--nx-font-size-m);
-  color: var(--nx-color-text);
-}
-
 .iq-usage-insights-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--nx-spacing-4x);
   margin-bottom: var(--nx-spacing-6x);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .iq-usage-insights-widget {
@@ -427,28 +346,9 @@
 }
 
 .iq-usage-insights-widget__value {
-  font-size: 28px;
+  font-size: var(--nx-font-size-heading-2);
   font-weight: 600;
   color: var(--nx-color-text-dark);
-}
-
-.iq-usage-insights-widget__date {
-  font-size: var(--nx-font-size-m);
-  color: var(--nx-color-text);
-}
-
-.iq-usage-trend-section {
-  border: 1px solid var(--nx-color-border);
-  border-radius: var(--nx-border-radius);
-  padding: var(--nx-spacing-6x);
-}
-
-.iq-usage-trend-section__title {
-  display: block;
-  font-size: var(--nx-font-size-heading-3);
-  font-weight: 700;
-  color: var(--nx-color-text-dark);
-  margin-bottom: var(--nx-spacing-4x);
 }
 
 .iq-usage-trend-chart {
@@ -465,3 +365,174 @@
 // the high-prominence headline numbers from `stark` (resolves to grey-05 light /
 // near-white dark via RSC's cascade) to plain `text` (grey-30 / lighter)
 // in dark mode. RSC's theme cascade handles both modes correctly without help.
+
+// --- CumulativeChartFilter pill-style buttons ---
+.iq-cumulative-filter {
+  display: inline-flex;
+  gap: var(--nx-spacing-2x);
+
+  &__option {
+    background: transparent;
+    border: 1px solid var(--nx-color-border);
+    border-radius: var(--nx-border-radius);
+    // --nx-spacing-1x is not defined in this RSC build (evaluates to empty string
+    // → computed 0px padding). Use --nx-spacing-2x (8px) / --nx-spacing-3x (12px)
+    // which are always present as calc(4px * N) tokens.
+    padding: var(--nx-spacing-2x) var(--nx-spacing-3x);
+    cursor: pointer;
+    color: var(--nx-color-text);
+
+    &:hover {
+      background-color: var(--nx-color-interactive-background-hover);
+    }
+
+    &[aria-pressed='true'] {
+      background-color: var(--nx-swatch-blue-50);
+      border-color: var(--nx-swatch-blue-50);
+      color: #ffffff;
+      font-weight: 600;
+
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-blue-40);
+        border-color: var(--nx-swatch-blue-40);
+      }
+    }
+  }
+}
+
+// --- My Usage Tile ---
+.iq-my-usage-tile {
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-4x);
+  }
+
+  &__value {
+    font-size: var(--nx-font-size-heading-1);
+    line-height: 1.2;
+  }
+
+  &__consumed,
+  &__limit {
+    font-weight: 700;
+  }
+
+  &__value-suffix {
+    font-size: var(--nx-font-size);
+    color: var(--nx-color-text-stark);
+  }
+
+  &__progress-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nx-spacing-3x);
+  }
+
+  &__progress-track {
+    flex: 1 1 auto;
+    position: relative;
+    height: var(--nx-spacing-2x);
+    background-color: var(--nx-swatch-indigo-95);
+    border-radius: 2px;
+    overflow: hidden;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-indigo-20);
+    }
+  }
+
+  // track--over is intentionally a visual-only marker on the bar TRACK at
+  // "limit reached" (displayPct >= 100) — the red fill belongs to
+  // `progress-fill--over` (set when consumed > limit, strictly over). The
+  // previous descendant rule that painted the FILL red whenever the TRACK
+  // had --over caused the "Limit reached" and "Over limit by N" states to
+  // look identical despite their distinct JS class flags. Removed; let
+  // progress-fill--over own the red fill state on its own merits.
+
+  &__progress-fill {
+    display: block;
+    height: 100%;
+    background-color: var(--nx-swatch-indigo-50);
+    border-radius: 2px;
+    transition: width 0.3s ease-in-out;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-indigo-60);
+    }
+  }
+
+  &__progress-fill--over {
+    background-color: var(--nx-swatch-red-60);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-red-50);
+    }
+  }
+
+  &__progress-percent {
+    flex: 0 0 auto;
+    font-size: var(--nx-font-size-m);
+    font-weight: 600;
+    color: var(--nx-color-text);
+    min-width: var(--nx-spacing-12x);
+    text-align: right;
+  }
+
+  &__details {
+    display: flex;
+    gap: var(--nx-spacing-6x);
+    font-size: var(--nx-font-size-m);
+    color: var(--nx-color-text);
+  }
+
+  &__over-limit {
+    color: var(--nx-color-validation-error);
+    font-weight: 600;
+  }
+
+  &__resets {
+    color: var(--nx-color-text);
+  }
+}
+
+// --- Usage Categories Tile (separate card below My Usage) ---
+.iq-usage-categories-tile {
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--nx-spacing-4x);
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__category {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-1x);
+    padding: var(--nx-spacing-4x);
+    border: 1px solid var(--nx-color-border);
+    border-radius: var(--nx-border-radius);
+  }
+
+  &__category-label {
+    font-size: var(--nx-font-size-m);
+    color: var(--nx-color-text);
+  }
+
+  &__category-count {
+    font-size: var(--nx-font-size-heading-3);
+    font-weight: 700;
+    color: var(--nx-color-text-dark);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-color-text);
+    }
+  }
+}

@@ -108,6 +108,7 @@ function buildTabConfig(activeTab: ActiveTab) {
 export function SearchPage() {
   const searchParams = useAdapterSearchParams();
   const [tabData, setTabData] = useState<TabResponse | null>(null);
+  const [tabDataFor, setTabDataFor] = useState<ActiveTab | null>(null);
   const [allData, setAllData] = useState<SearchResponse | null>(null);
   const [browseAggregations, setBrowseAggregations] = useState<Aggregations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,6 +161,7 @@ export function SearchPage() {
       .then(({ tab, all, browse }) => {
         if (cancelled) return;
         setTabData(tab);
+        setTabDataFor(activeTab);
         setAllData(all);
         setBrowseAggregations(browse);
       })
@@ -181,10 +183,17 @@ export function SearchPage() {
     );
   }
 
-  const isPending = loading || filterPending || toolbarPending;
-  const total = tabData?.total ?? 0;
+  // After a tab switch, `tabData` still holds the previous tab's response (e.g. component-shape
+  // hits from the All tab) until the new fetch completes. Rendering that into the new tab's list
+  // would produce cards with undefined fields and links like `/vulnerability/undefined`, which
+  // `@guide/ui-core` 1.10 leaves as orphan DOM because every duplicate key collapses in the
+  // reconciler. Treat the cross-tab data as still-pending so the list shows skeletons.
+  const tabDataMatchesActiveTab = tabDataFor === activeTab;
+  const effectiveTabData = tabDataMatchesActiveTab ? tabData : null;
+  const isPending = loading || filterPending || toolbarPending || !tabDataMatchesActiveTab;
+  const total = effectiveTabData?.total ?? 0;
   const aggregations =
-    mergeAggregations(browseAggregations, tabData?.aggregations as Aggregations | undefined) ?? {};
+    mergeAggregations(browseAggregations, effectiveTabData?.aggregations as Aggregations | undefined) ?? {};
   const offset = getOffsetFromParams(paramsRecord);
 
   // Backend `byType` uses plural keys (`components`, `vulnerabilities`); accept
@@ -209,12 +218,12 @@ export function SearchPage() {
 
   let resultsNode: ReactNode;
   if (activeTab === 'components') {
-    const components = (tabData as ComponentSearchResponse | null)?.hits ?? [];
+    const components = (effectiveTabData as ComponentSearchResponse | null)?.hits ?? [];
     resultsNode = !isPending && components.length === 0
       ? emptyResultsCard
       : <ComponentsResultsList components={components} isPending={isPending} limit={limit} />;
   } else if (activeTab === 'vulnerabilities') {
-    const vulnerabilities = (tabData as VulnerabilitySearchResponse | null)?.hits ?? [];
+    const vulnerabilities = (effectiveTabData as VulnerabilitySearchResponse | null)?.hits ?? [];
     resultsNode = !isPending && vulnerabilities.length === 0
       ? emptyResultsCard
       : (
@@ -229,7 +238,7 @@ export function SearchPage() {
         />
       );
   } else {
-    const hits = (tabData as SearchResponse | null)?.hits ?? [];
+    const hits = (effectiveTabData as SearchResponse | null)?.hits ?? [];
     resultsNode = !isPending && hits.length === 0
       ? emptyResultsCard
       : (

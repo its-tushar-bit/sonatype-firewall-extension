@@ -331,6 +331,51 @@ describe('SearchPage', () => {
     expect(mockFetchGlobalSearchTotals).toHaveBeenCalledWith('cve-2024');
   });
 
+  it('does not render stale tab data after a tab switch (regression: @guide/ui-core 1.10 phantom cards)', async () => {
+    // Repro setup: user is on the All tab with loaded results, then clicks the
+    // Vulnerabilities tab. While the vulnerabilities fetch is in flight, tabData
+    // still holds the All-tab response (component-shape hits, no vulnId). If
+    // those stale hits are passed straight through to VulnerabilitiesResultsList,
+    // every card renders with vulnId=undefined; in @guide/ui-core 1.10 the
+    // duplicate `vuln-undefined` keys cause the unmounts to leak as orphan DOM,
+    // producing the cards-with-`/vulnerability/undefined`-links bug.
+    mockSearchAll.mockResolvedValue(makeAllResponse(5, 5));
+    mockFetchGlobalSearchTotals.mockResolvedValue(makeAllResponse(5, 5));
+    let resolveVulnerabilities: (response: VulnerabilitySearchResponse) => void = () => {};
+    mockSearchVulnerabilities.mockReturnValue(
+      new Promise<VulnerabilitySearchResponse>((resolve) => { resolveVulnerabilities = resolve; })
+    );
+
+    function TriggerNavigate() {
+      const navigate = useNavigate();
+      return <button onClick={() => navigate('/search?query=foo&tab=vulnerabilities')}>nav</button>;
+    }
+
+    render(
+      <>
+        <SearchPage />
+        <TriggerNavigate />
+      </>,
+      { routerOptions: { initialEntries: ['/search?query=foo'] } }
+    );
+
+    await screen.findByText('all-results: 5');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'nav' }));
+
+    // While the vulnerabilities request is pending, the list must show the
+    // loading skeletons — NOT the stale All-tab hits coerced into vulnerability
+    // shape. The "5" here matches the All-tab hitCount, so seeing
+    // "vulnerabilities-results: 5" would mean stale data leaked through.
+    await screen.findByRole('status', { name: /loading-skeletons/i });
+    expect(screen.queryByText('vulnerabilities-results: 5')).not.toBeInTheDocument();
+    expect(screen.queryByText('all-results: 5')).not.toBeInTheDocument();
+
+    resolveVulnerabilities(makeVulnerabilitiesResponse(3, 3));
+    await screen.findByText('vulnerabilities-results: 3');
+  });
+
   it('Components tab: filter changes do not retrigger fetchGlobalSearchTotals (cached by query)', async () => {
     // The point of routing cross-tab totals through the memoized helper is so
     // filter changes — which leave the query untouched — don't repeatedly

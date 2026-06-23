@@ -19,14 +19,16 @@ export const CATEGORY_ORDER = [
 ];
 
 export default function UsageCategoriesTile({ summary }) {
-  if (!summary || !summary.activityBreakdown) return null;
+  if (!summary) return null;
 
-  const { activityBreakdown } = summary;
-
-  // Filter to non-zero categories first so we never render a role="list"
-  // landmark with zero items (which screen readers announce as "list, 0 items").
-  const visibleCategories = CATEGORY_ORDER.filter((key) => (activityBreakdown[key] ?? 0) > 0);
-  if (visibleCategories.length === 0) return null;
+  // Always render all 6 canonical categories — even when a category has zero
+  // consumption for the active period. Empty values appear as `0` so the
+  // dashboard layout stays stable across period filter selections; previously
+  // the whole tile vanished when every count was zero (e.g. selecting a
+  // historical range with no API/IDE/etc. activity), which read as a broken
+  // page rather than honest empty data. The role="list" landmark always
+  // contains exactly 6 items in this branch.
+  const activityBreakdown = summary.activityBreakdown ?? {};
 
   return (
     <NxTile className="iq-usage-categories-tile">
@@ -37,10 +39,12 @@ export default function UsageCategoriesTile({ summary }) {
       </NxTile.Header>
       <NxTile.Content>
         <div className="iq-usage-categories-tile__grid" role="list" aria-label="Usage categories">
-          {visibleCategories.map((key) => (
+          {CATEGORY_ORDER.map((key) => (
             <div key={key} role="listitem" className="iq-usage-categories-tile__category">
               <span className="iq-usage-categories-tile__category-label">{key}</span>
-              <span className="iq-usage-categories-tile__category-count">{formatNumber(activityBreakdown[key])}</span>
+              <span className="iq-usage-categories-tile__category-count">
+                {formatNumber(activityBreakdown[key] ?? 0)}
+              </span>
             </div>
           ))}
         </div>

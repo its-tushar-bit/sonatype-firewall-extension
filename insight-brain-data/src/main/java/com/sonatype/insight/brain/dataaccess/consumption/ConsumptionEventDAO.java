@@ -11,6 +11,7 @@ import java.sql.Savepoint;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -624,5 +625,116 @@ public class ConsumptionEventDAO
   {
     return groupedHistoryByWindows(
         weekStarts, weekEnds, weekLabels, CONSUMPTION_EVENTS.ACTIVITY_TYPE, "activity_type");
+  }
+
+  /**
+   * Get total consumption for events whose timestamp falls within [start, end).
+   * Returns a single-element list containing the aggregate total labelled with
+   * the UTC calendar date of {@code start}. Used when an explicit date range is provided
+   * instead of the computed billing-window series.
+   */
+  public List<ConsumptionMonthlyTotal> historyByWindowsWithRange(final Instant start, final Instant end) {
+    try (TransactionContext tx = createTransactionContext()) {
+      Long total = tx.dsl()
+          .select(DSL.sum(CONSUMPTION_EVENTS.COMPONENT_COUNT))
+          .from(CONSUMPTION_EVENTS)
+          .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(start)))
+          .and(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.lessThan(Date.from(end)))
+          .fetchOne(0, Long.class);
+      LocalDate label = LocalDate.ofInstant(start, ZoneOffset.UTC);
+      return List.of(new ConsumptionMonthlyTotal(label, total != null ? total : 0L));
+    }
+  }
+
+  /**
+   * Get consumption with per-activity-type breakdown for events whose timestamp falls within
+   * [start, end). Rows are labelled with the UTC calendar date of {@code start}.
+   * Used when an explicit date range is provided instead of the computed billing-window series.
+   */
+  public List<ConsumptionMonthlyBreakdown> historyWithBreakdownByWindowsWithRange(
+      final Instant start,
+      final Instant end)
+  {
+    return groupedHistoryByRange(start, end, CONSUMPTION_EVENTS.ACTIVITY_TYPE, "activity_type");
+  }
+
+  /**
+   * Get consumption grouped by source for events whose timestamp falls within [start, end).
+   * Rows are labelled with the UTC calendar date of {@code start}.
+   */
+  public List<ConsumptionMonthlyBreakdown> historyBySourceByWindowsWithRange(
+      final Instant start,
+      final Instant end)
+  {
+    return groupedHistoryByRange(start, end, CONSUMPTION_EVENTS.SOURCE, "source");
+  }
+
+  /**
+   * Get consumption grouped by IQ stage for events whose timestamp falls within [start, end).
+   * Events without a matching policy_evaluation row are bucketed under "Unknown".
+   * Rows are labelled with the UTC calendar date of {@code start}.
+   */
+  public List<ConsumptionMonthlyBreakdown> historyByStageByWindowsWithRange(
+      final Instant start,
+      final Instant end)
+  {
+    LocalDate label = LocalDate.ofInstant(start, ZoneOffset.UTC);
+    Field<String> stageOrUnknown = DSL.coalesce(POLICY_EVALUATION.STAGE_TYPE_ID, DSL.inline(STAGE_UNKNOWN));
+    Field<String> stageCol = DSL.field("stage", String.class);
+    Field<Integer> componentCountCol = DSL.field("component_count", Integer.class);
+    try (TransactionContext tx = createTransactionContext()) {
+      Table<?> inner = tx.dsl()
+          .select(stageOrUnknown.as("stage"),
+              CONSUMPTION_EVENTS.COMPONENT_COUNT.as("component_count"))
+          .from(CONSUMPTION_EVENTS)
+          .leftJoin(POLICY_EVALUATION)
+          .on(POLICY_EVALUATION.SCAN_ID.eq(CONSUMPTION_EVENTS.SCAN_ID)
+              .and(POLICY_EVALUATION.APPLICATION_ID.eq(CONSUMPTION_EVENTS.APP_ID))
+              .and(POLICY_EVALUATION.REEVALUATION.isFalse())
+              .and(POLICY_EVALUATION.FOR_OBSOLETE_SCAN.isFalse()))
+          .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(start)))
+          .and(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.lessThan(Date.from(end)))
+          .asTable("e");
+      LocalDate finalLabel = label;
+      return tx.dsl()
+          .select(stageCol, DSL.sum(componentCountCol))
+          .from(inner)
+          .groupBy(stageCol)
+          .orderBy(stageCol.asc())
+          .fetch(record -> new ConsumptionMonthlyBreakdown(
+              finalLabel,
+              record.get(0, String.class),
+              record.get(1, Long.class) != null ? record.get(1, Long.class) : 0L));
+    }
+  }
+
+  private List<ConsumptionMonthlyBreakdown> groupedHistoryByRange(
+      final Instant start,
+      final Instant end,
+      final Field<String> groupKeyField,
+      final String groupKeyAlias)
+  {
+    LocalDate label = LocalDate.ofInstant(start, ZoneOffset.UTC);
+    Field<String> groupKeyCol = DSL.field(groupKeyAlias, String.class);
+    Field<Integer> componentCountCol = DSL.field("component_count", Integer.class);
+    try (TransactionContext tx = createTransactionContext()) {
+      Table<?> inner = tx.dsl()
+          .select(groupKeyField.as(groupKeyAlias),
+              CONSUMPTION_EVENTS.COMPONENT_COUNT.as("component_count"))
+          .from(CONSUMPTION_EVENTS)
+          .where(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.greaterOrEqual(Date.from(start)))
+          .and(CONSUMPTION_EVENTS.EVENT_TIMESTAMP.lessThan(Date.from(end)))
+          .asTable("e");
+      LocalDate finalLabel = label;
+      return tx.dsl()
+          .select(groupKeyCol, DSL.sum(componentCountCol))
+          .from(inner)
+          .groupBy(groupKeyCol)
+          .orderBy(groupKeyCol.asc())
+          .fetch(record -> new ConsumptionMonthlyBreakdown(
+              finalLabel,
+              record.get(0, String.class),
+              record.get(1, Long.class) != null ? record.get(1, Long.class) : 0L));
+    }
   }
 }

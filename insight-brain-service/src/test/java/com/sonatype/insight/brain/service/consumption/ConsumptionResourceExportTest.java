@@ -103,6 +103,49 @@ public class ConsumptionResourceExportTest
     tempEntity.insertConsumptionEvents(Collections.singletonList(event));
   }
 
+  // BDD: startDate+endDate range accepted on /export (parity with read endpoints)
+  @Test
+  public void exportCsv_withValidDateRange_returns200() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.EXPORT_PATH)
+        .query("startDate", "2026-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+    assertThat(response.getContentType()).contains("text/csv");
+  }
+
+  // BDD: Invalid date format on /export returns 400
+  @Test
+  public void exportCsv_withInvalidDateFormat_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.EXPORT_PATH)
+        .query("startDate", "not-a-date")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Range exceeding 366-day cap on /export returns 400
+  @Test
+  public void exportCsv_rangeExceeding366DayCap_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.EXPORT_PATH)
+        .query("startDate", "2025-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
   @Test
   public void exportCsv_asUsageViewer_returns200() throws Exception {
     User usageViewerUser = createUsageViewerUser();

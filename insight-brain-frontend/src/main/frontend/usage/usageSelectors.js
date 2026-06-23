@@ -9,6 +9,18 @@ import { prop } from 'ramda';
 export const selectUsageSlice = prop('usage');
 
 export const selectSummary = createSelector(selectUsageSlice, prop('summary'));
+
+// selectSummaryForPeriod feeds UsageCategoriesTile's activityBreakdown.
+// It is seeded from the initial loadAllUsageData response (billing-window default)
+// and updated by loadSummaryForPeriod when the user changes the period filter.
+// Falls back to selectSummary until the period-specific data arrives so the
+// Categories tile is never blank on the initial load.
+export const selectSummaryForPeriod = createSelector(
+  selectUsageSlice,
+  (slice) => slice.summaryForPeriod ?? slice.summary
+);
+export const selectLoadingSummaryForPeriod = createSelector(selectUsageSlice, prop('loadingSummaryForPeriod'));
+export const selectLoadErrorSummaryForPeriod = createSelector(selectUsageSlice, prop('loadErrorSummaryForPeriod'));
 export const selectHistoryBreakdown = createSelector(selectUsageSlice, prop('historyBreakdown'));
 export const selectChartAggregation = createSelector(selectUsageSlice, prop('chartAggregation'));
 export const selectSourceBreakdown = createSelector(selectUsageSlice, prop('sourceBreakdown'));
@@ -36,6 +48,9 @@ export const selectActiveTab = createSelector(selectUsageSlice, prop('activeTab'
 export const selectCumulativeFilter = createSelector(selectUsageSlice, prop('cumulativeFilter'));
 export const selectLastRefreshedAt = createSelector(selectUsageSlice, prop('lastRefreshedAt'));
 
+export const selectPeriodPreset = createSelector(selectUsageSlice, prop('periodPreset'));
+export const selectPeriodRange = createSelector(selectUsageSlice, prop('periodRange'));
+export const selectPeriodIsActive = createSelector(selectPeriodPreset, (preset) => preset !== 'currentBillingPeriod');
 // Cumulative chart reads its own field so a Trends-tab loadHistoryBreakdown
 // (e.g. Daily/Weekly) can never overwrite the monthly buckets the Overview
 // chart is rendering.

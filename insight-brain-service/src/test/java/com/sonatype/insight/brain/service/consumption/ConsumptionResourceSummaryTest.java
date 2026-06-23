@@ -138,4 +138,63 @@ public class ConsumptionResourceSummaryTest
     assertResponseStatus(HttpStatus.SC_OK, response);
   }
 
+  // BDD: Valid startDate+endDate range returns 200
+  @Test
+  public void getSummary_withValidDateRange_returns200() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.SUMMARY_PATH)
+        .query("startDate", "2026-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+  }
+
+  // BDD: Invalid date format returns 400
+  @Test
+  public void getSummary_withInvalidDateFormat_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.SUMMARY_PATH)
+        .query("startDate", "not-a-date")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Only startDate provided returns 400
+  @Test
+  public void getSummary_withOnlyStartDate_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.SUMMARY_PATH)
+        .query("startDate", "2026-01-01")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Range exceeding 366-day cap returns 400. The Summary endpoint passes
+  // 366 as the cap to DateRangeValidator (only /daily-history uses 92). This
+  // test guards the HTTP boundary — the unit-level DateRangeValidatorTest
+  // covers the math, this proves the resource wires the right cap.
+  @Test
+  public void getSummary_rangeExceeding366DayCap_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    // 2025-01-01 → 2026-06-30 is 546 inclusive days (well past 366).
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(ConsumptionResource.SUMMARY_PATH)
+        .query("startDate", "2025-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
 }

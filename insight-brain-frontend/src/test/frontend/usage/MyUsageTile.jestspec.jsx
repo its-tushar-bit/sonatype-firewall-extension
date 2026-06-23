@@ -56,6 +56,16 @@ it('renders nothing when summary is null', () => {
   expect(container).toBeEmptyDOMElement();
 });
 
+it('renders <UsagePeriodFilter /> in the tile header actions slot', () => {
+  // Figma annotation #2: the page-level period filter lives in the My Usage
+  // tile header, top-right. "Period:" is a static label outside the dropdown
+  // button; the dropdown toggle shows only the range label. Assert each
+  // independently — getByText cannot span separate DOM elements.
+  render(<MyUsageTile summary={baseSummary} />);
+  expect(screen.getByText('Period:')).toBeInTheDocument();
+  expect(document.querySelector('.nx-dropdown__toggle')).toHaveTextContent('Current billing period');
+});
+
 it('renders em-dash when percentUsed is null but limit is set', () => {
   const summary = { consumed: 100, limit: 1000, percentUsed: null, remaining: 900, activityBreakdown: {} };
   render(<MyUsageTile summary={summary} />);

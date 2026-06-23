@@ -1973,20 +1973,40 @@ export function getGitHubAppDeleteUrl(githubAppId, ownerId) {
 }
 
 // --- Consumption / Usage Dashboard ---
-export const getConsumptionSummaryUrl = () => uriTemplate`/api/v2/consumption/summary`;
-
-export const getConsumptionHistoryBreakdownUrl = (aggregation) => {
-  const path = uriTemplate`/api/v2/consumption/history/breakdown`;
-  const params = toURIParams({ aggregation });
+export const getConsumptionSummaryUrl = (rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/summary`;
+  const params = toURIParams(rangeParams);
   return params ? `${path}?${params}` : path;
 };
 
-export const getConsumptionHistoryBySourceUrl = () => uriTemplate`/api/v2/consumption/history/by-source`;
+export const getConsumptionHistoryBreakdownUrl = (aggregation, rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/history/breakdown`;
+  const params = toURIParams({ aggregation, ...rangeParams });
+  return params ? `${path}?${params}` : path;
+};
 
-export const getConsumptionHistoryByStageUrl = () => uriTemplate`/api/v2/consumption/history/by-stage`;
+export const getConsumptionHistoryBySourceUrl = (rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/history/by-source`;
+  const params = toURIParams(rangeParams);
+  return params ? `${path}?${params}` : path;
+};
 
-export const getConsumptionTopAppsUrl = () => uriTemplate`/api/v2/consumption/top-apps`;
+export const getConsumptionHistoryByStageUrl = (rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/history/by-stage`;
+  const params = toURIParams(rangeParams);
+  return params ? `${path}?${params}` : path;
+};
 
-export const getConsumptionDailyHistoryUrl = () => uriTemplate`/api/v2/consumption/daily-history`;
+export const getConsumptionTopAppsUrl = (rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/top-apps`;
+  const params = toURIParams(rangeParams);
+  return params ? `${path}?${params}` : path;
+};
+
+export const getConsumptionDailyHistoryUrl = (rangeParams = {}) => {
+  const path = uriTemplate`/api/v2/consumption/daily-history`;
+  const params = toURIParams(rangeParams);
+  return params ? `${path}?${params}` : path;
+};
 
 export const getConsumptionExportUrl = () => uriTemplate`/api/v2/consumption/export`;

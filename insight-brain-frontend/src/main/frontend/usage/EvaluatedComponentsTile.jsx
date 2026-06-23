@@ -14,6 +14,8 @@ import {
   selectCumulativeChartSeries,
   selectCumulativeFilter,
   selectDailyHistory,
+  selectLoadErrorDailyHistory,
+  selectLoadErrorHistoryBreakdown,
   selectSummary,
 } from './usageSelectors';
 import CumulativeChartFilter from './CumulativeChartFilter';
@@ -36,6 +38,15 @@ export default function EvaluatedComponentsTile() {
   const dailyHistoryData = useSelector(selectDailyHistory);
   const dailyAverage = dailyHistoryData?.dailyAverage ?? 0;
   const peakDay = dailyHistoryData?.peakDay ?? null;
+  // Per-endpoint load errors. The cumulative chart's data source depends on
+  // the filter: thisMonth reads /daily-history; last3/last6Months reads
+  // /history/breakdown. Surface whichever one is relevant for the active
+  // filter so the user sees WHY the chart is empty rather than a vanished
+  // tile (which is what happened pre-fix: page-level period > 92 days made
+  // /daily-history 400 and the whole tile returned null because all data
+  // sources fell to defaults).
+  const loadErrorDailyHistory = useSelector(selectLoadErrorDailyHistory);
+  const loadErrorHistoryBreakdown = useSelector(selectLoadErrorHistoryBreakdown);
 
   // Granularity drives both label format and chart shape. Derived from the
   // filter explicitly — earlier code heuristic'd on `moment.date() === 1` to
@@ -65,7 +76,14 @@ export default function EvaluatedComponentsTile() {
   const hasEntries = entries && entries.length > 0;
   const hasAverage = typeof dailyAverage === 'number' && dailyAverage > 0;
   const hasPeak = peakDay && typeof peakDay.count === 'number' && peakDay.count > 0;
-  if (!hasEntries && !hasAverage && !hasPeak) {
+  // The active filter dictates which endpoint feeds the chart, which in turn
+  // dictates which error to surface for the chart-empty state.
+  const chartError = filter === 'thisMonth' ? loadErrorDailyHistory : loadErrorHistoryBreakdown;
+
+  // Hide the tile entirely only when there's neither data NOR an error to
+  // explain its absence. With an error present, render the tile shell so the
+  // user gets feedback instead of a silently-disappeared section.
+  if (!hasEntries && !hasAverage && !hasPeak && !chartError) {
     return null;
   }
 
@@ -96,6 +114,11 @@ export default function EvaluatedComponentsTile() {
             <span className="iq-usage-insights-widget__value">{peakDay ? formatNumber(peakDay.count) : '0'}</span>
           </div>
         </div>
+        {chartError && !hasEntries && (
+          <div className="iq-usage-trend-chart__error" role="alert">
+            Unable to load chart data: {chartError}
+          </div>
+        )}
         {hasEntries && (
           <div
             className="iq-usage-trend-chart"
@@ -120,6 +143,7 @@ export default function EvaluatedComponentsTile() {
                     borderRadius: '4px',
                     color: 'var(--nx-color-text)',
                   }}
+                  cursor={{ fill: 'rgba(127, 127, 127, 0.18)' }}
                 />
                 <Legend />
                 {/* Bar `name=` props are the display labels — Recharts surfaces them to

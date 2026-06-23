@@ -183,7 +183,11 @@ export default function ConsumptionChart({ historyBreakdown, aggregation, onAggr
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="period" />
               <YAxis tickFormatter={formatCount} />
-              <Tooltip content={tooltipContentWithLabel} wrapperStyle={{ outline: 'none' }} />
+              <Tooltip
+                content={tooltipContentWithLabel}
+                wrapperStyle={{ outline: 'none' }}
+                cursor={{ fill: 'rgba(127, 127, 127, 0.18)' }}
+              />
               <Legend content={renderLegendContent} />
               {ACTIVITY_KEYS.map((key) => (
                 <Bar key={key} dataKey={key} stackId="1" fill={colorFor(key)} fillOpacity={1} />

@@ -204,6 +204,47 @@ public class ConsumptionResourceTest
     assertThat(response.getBodyText()).startsWith("[");
   }
 
+  // BDD: history/breakdown with valid date range returns 200
+  @Test
+  public void getHistoryBreakdown_withValidDateRange_returns200() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path("history/breakdown")
+        .query("startDate", "2026-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+  }
+
+  // BDD: history/breakdown with invalid date format returns 400
+  @Test
+  public void getHistoryBreakdown_withInvalidDateFormat_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path("history/breakdown")
+        .query("startDate", "not-a-date")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: history/breakdown with only startDate returns 400
+  @Test
+  public void getHistoryBreakdown_withOnlyStartDate_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path("history/breakdown")
+        .query("startDate", "2026-01-01")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
   @Test
   public void allEndpoints_asAdmin_featureDisabled_return403() throws Exception {
     // Override AbstractConsumptionResourceTest's @Before that enables the feature.

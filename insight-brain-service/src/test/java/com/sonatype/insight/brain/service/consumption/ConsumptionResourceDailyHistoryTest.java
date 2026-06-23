@@ -60,4 +60,59 @@ public class ConsumptionResourceDailyHistoryTest
 
     assertResponseStatus(HttpStatus.SC_UNAUTHORIZED, response);
   }
+
+  // BDD: Valid startDate+endDate range (within 92-day cap) returns 200
+  @Test
+  public void getDailyHistory_withValidDateRange_returns200() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(DAILY_HISTORY_PATH)
+        .query("startDate", "2026-04-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+  }
+
+  // BDD: Invalid date format returns 400
+  @Test
+  public void getDailyHistory_withInvalidDateFormat_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(DAILY_HISTORY_PATH)
+        .query("startDate", "not-a-date")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Only startDate provided returns 400
+  @Test
+  public void getDailyHistory_withOnlyStartDate_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(DAILY_HISTORY_PATH)
+        .query("startDate", "2026-01-01")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Range exceeding 92-day cap returns 400
+  @Test
+  public void getDailyHistory_rangeExceeding92DayCap_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(DAILY_HISTORY_PATH)
+        .query("startDate", "2026-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
 }

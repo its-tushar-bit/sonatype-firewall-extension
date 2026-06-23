@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ComponentsConsumedSidebarTile from 'MainRoot/usage/ComponentsConsumedSidebarTile';
 import { getConsumptionSummaryUrl } from 'MainRoot/util/CLMLocation';
@@ -169,5 +169,31 @@ describe('ComponentsConsumedSidebarTile', () => {
     });
     await user.click(screen.getByRole('button', { name: /components/i }));
     expect(stateGoSpy).toHaveBeenCalledWith('usage');
+  });
+
+  it('loadSummary request has no startDate/endDate even when a custom period is active in state (regression: sidebar shows billing-window data only)', async () => {
+    // Regression guard: the sidebar tile always shows billing-window consumed/limit.
+    // loadSummary must never read periodRange — otherwise opening the sidebar while
+    // "Last 30 days" is active would write 30-day counts into state.summary,
+    // corrupting the My Usage tile's progress bar.
+    render(<ComponentsConsumedSidebarTile />, {
+      preloadedState: makeState({
+        usage: {
+          periodPreset: 'last30Days',
+          periodRange: { startDate: '2026-05-23', endDate: '2026-06-22' },
+        },
+      }),
+    });
+
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBeGreaterThan(0);
+    });
+
+    const summaryRequests = axiosMock.history.get.filter((req) => req.url.includes('/api/v2/consumption/summary'));
+    expect(summaryRequests.length).toBeGreaterThan(0);
+    summaryRequests.forEach((req) => {
+      expect(req.url).not.toMatch(/startDate/);
+      expect(req.url).not.toMatch(/endDate/);
+    });
   });
 });

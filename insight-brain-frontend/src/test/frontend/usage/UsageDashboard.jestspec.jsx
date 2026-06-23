@@ -35,13 +35,16 @@ describe('UsageDashboard', () => {
   const defaultPreloadedState = {
     usage: {
       summary: null,
+      summaryForPeriod: null,
       loadingSummary: false,
+      loadingSummaryForPeriod: false,
       loadingHistoryBreakdown: false,
       loadingSourceBreakdown: false,
       loadingTopApps: false,
       loadingDailyHistory: false,
       loadingAll: false,
       loadErrorSummary: null,
+      loadErrorSummaryForPeriod: null,
       loadErrorHistoryBreakdown: null,
       loadErrorSourceBreakdown: null,
       loadErrorTopApps: null,
@@ -50,6 +53,8 @@ describe('UsageDashboard', () => {
       activeTab: 'overview',
       cumulativeFilter: 'thisMonth',
       lastRefreshedAt: null,
+      periodPreset: 'currentBillingPeriod',
+      periodRange: { startDate: null, endDate: null },
     },
   };
 
@@ -286,6 +291,38 @@ describe('UsageDashboard', () => {
     expect(() => jest.advanceTimersByTime(120000)).not.toThrow();
 
     jest.useRealTimers();
+  });
+
+  it('period filter change triggers only one /summary request, not all 6 endpoints', async () => {
+    // Re-scope guard: selecting a period preset must dispatch loadSummaryForPeriod
+    // (1 /summary call) and must NOT refetch the other 5 endpoints.
+    const user = userEvent.setup();
+    renderComponent();
+
+    // Wait for initial 6-endpoint mount load to complete.
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBe(6);
+    });
+
+    axiosMock.reset();
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+
+    // Open the period dropdown and pick "Last 30 days".
+    const periodToggle = document.querySelector('.nx-dropdown__toggle');
+    await user.click(periodToggle);
+    await user.click(screen.getByText('Last 30 days'));
+
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBe(1);
+    });
+
+    const url = axiosMock.history.get[0].url;
+    expect(url).toMatch(/\/api\/v2\/consumption\/summary/);
+    expect(url).not.toMatch(/breakdown/);
+    expect(url).not.toMatch(/by-source/);
+    expect(url).not.toMatch(/by-stage/);
+    expect(url).not.toMatch(/top-apps/);
+    expect(url).not.toMatch(/daily-history/);
   });
 
   it('should show export error when download fails', async () => {

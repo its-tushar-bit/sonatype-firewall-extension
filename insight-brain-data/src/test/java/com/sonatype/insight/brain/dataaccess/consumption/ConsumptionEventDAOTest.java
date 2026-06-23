@@ -798,4 +798,152 @@ public class ConsumptionEventDAOTest
     assertThat(breakdown.get(0).getGroupKey()).isEqualTo("build"); // appA's stage, not appB's
     assertThat(breakdown.get(0).getComponentCount()).isEqualTo(50L); // not 100L
   }
+
+  // --- WithRange overloads ---
+
+  @Test
+  public void historyByWindowsWithRange_sumsTotalForRange() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-07-01T00:00:00Z");
+    LocalDate billingMonth = LocalDate.of(2026, 5, 1);
+    tempEntity.insertConsumptionEvents(Arrays.asList(
+        buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 100, billingMonth,
+            Instant.parse("2026-05-15T10:00:00Z")),
+        buildEventWithTimestamp("org-1", "app-2", ActivityType.RE_EVALUATE, 50, billingMonth,
+            Instant.parse("2026-06-15T10:00:00Z")),
+        buildEventWithTimestamp("org-1", "app-3", ActivityType.APP_SCAN, 999, billingMonth,
+            Instant.parse("2026-04-15T10:00:00Z")) // outside range
+    ));
+
+    List<ConsumptionMonthlyTotal> result = dao.historyByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getTotalConsumed()).isEqualTo(150L);
+    assertThat(result.get(0).getBillingMonth()).isEqualTo(LocalDate.of(2026, 5, 1));
+  }
+
+  @Test
+  public void historyByWindowsWithRange_noData_returnsZero() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-06-01T00:00:00Z");
+
+    List<ConsumptionMonthlyTotal> result = dao.historyByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getTotalConsumed()).isEqualTo(0L);
+  }
+
+  @Test
+  public void historyWithBreakdownByWindowsWithRange_groupsByActivityType() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-06-01T00:00:00Z");
+    LocalDate billingMonth = LocalDate.of(2026, 5, 1);
+    tempEntity.insertConsumptionEvents(Arrays.asList(
+        buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 100, billingMonth,
+            Instant.parse("2026-05-10T10:00:00Z")),
+        buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 50, billingMonth,
+            Instant.parse("2026-05-20T10:00:00Z")),
+        buildEventWithTimestamp("org-1", "app-2", ActivityType.CONTINUOUS_MONITORING, 30, billingMonth,
+            Instant.parse("2026-05-15T10:00:00Z")),
+        buildEventWithTimestamp("org-1", "app-3", ActivityType.APP_SCAN, 999, billingMonth,
+            Instant.parse("2026-04-15T10:00:00Z")) // outside range
+    ));
+
+    List<ConsumptionMonthlyBreakdown> result = dao.historyWithBreakdownByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("APP_SCAN");
+      assertThat(b.getComponentCount()).isEqualTo(150L);
+      assertThat(b.getBillingMonth()).isEqualTo(LocalDate.of(2026, 5, 1));
+    });
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("CONTINUOUS_MONITORING");
+      assertThat(b.getComponentCount()).isEqualTo(30L);
+    });
+  }
+
+  @Test
+  public void historyBySourceByWindowsWithRange_groupsBySource() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-06-01T00:00:00Z");
+    LocalDate billingMonth = LocalDate.of(2026, 5, 1);
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 100, billingMonth,
+        Instant.parse("2026-05-10T10:00:00Z"));
+    e1.setSource("UI");
+    ConsumptionEvent e2 = buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 40, billingMonth,
+        Instant.parse("2026-05-15T10:00:00Z"));
+    e2.setSource("CLI");
+    ConsumptionEvent e3 = buildEventWithTimestamp("org-1", "app-1", ActivityType.APP_SCAN, 999, billingMonth,
+        Instant.parse("2026-04-15T10:00:00Z")); // outside range
+    e3.setSource("UI");
+    tempEntity.insertConsumptionEvents(Arrays.asList(e1, e2, e3));
+
+    List<ConsumptionMonthlyBreakdown> result = dao.historyBySourceByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("UI");
+      assertThat(b.getComponentCount()).isEqualTo(100L);
+    });
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("CLI");
+      assertThat(b.getComponentCount()).isEqualTo(40L);
+    });
+  }
+
+  @Test
+  public void historyByStageByWindowsWithRange_groupsByStage() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-06-01T00:00:00Z");
+    LocalDate billingMonth = LocalDate.of(2026, 5, 1);
+
+    String appId = tempEntity.newApplicationWithParent().getId();
+    String buildScanId = "scan-range-build";
+    String releaseScanId = "scan-range-release";
+    tempEntity.insertPolicyEvaluation(appId, buildScanId, "build");
+    tempEntity.insertPolicyEvaluation(appId, releaseScanId, "release");
+
+    ConsumptionEvent e1 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 70, billingMonth,
+        Instant.parse("2026-05-10T10:00:00Z"));
+    e1.setScanId(buildScanId);
+    ConsumptionEvent e2 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 30, billingMonth,
+        Instant.parse("2026-05-20T10:00:00Z"));
+    e2.setScanId(releaseScanId);
+    ConsumptionEvent e3 = buildEventWithTimestamp("org-1", appId, ActivityType.APP_SCAN, 999, billingMonth,
+        Instant.parse("2026-04-10T10:00:00Z")); // outside range
+    e3.setScanId(buildScanId);
+    tempEntity.insertConsumptionEvents(Arrays.asList(e1, e2, e3));
+
+    List<ConsumptionMonthlyBreakdown> result = dao.historyByStageByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("build");
+      assertThat(b.getComponentCount()).isEqualTo(70L);
+      assertThat(b.getBillingMonth()).isEqualTo(LocalDate.of(2026, 5, 1));
+    });
+    assertThat(result).anySatisfy(b -> {
+      assertThat(b.getGroupKey()).isEqualTo("release");
+      assertThat(b.getComponentCount()).isEqualTo(30L);
+    });
+  }
+
+  @Test
+  public void historyByStageByWindowsWithRange_noMatchingScan_bucketsToUnknown() {
+    Instant start = Instant.parse("2026-05-01T00:00:00Z");
+    Instant end = Instant.parse("2026-06-01T00:00:00Z");
+    LocalDate billingMonth = LocalDate.of(2026, 5, 1);
+
+    ConsumptionEvent e = buildEventWithTimestamp("org-1", "app-orphan", ActivityType.APP_SCAN, 25, billingMonth,
+        Instant.parse("2026-05-15T10:00:00Z"));
+    e.setScanId(null);
+    tempEntity.insertConsumptionEvents(Collections.singletonList(e));
+
+    List<ConsumptionMonthlyBreakdown> result = dao.historyByStageByWindowsWithRange(start, end);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getGroupKey()).isEqualTo(ConsumptionEventDAO.STAGE_UNKNOWN);
+    assertThat(result.get(0).getComponentCount()).isEqualTo(25L);
+  }
 }

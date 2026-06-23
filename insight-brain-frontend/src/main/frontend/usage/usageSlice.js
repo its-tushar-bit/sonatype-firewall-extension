@@ -14,6 +14,7 @@ import {
   fetchDailyHistory,
 } from './usageApi';
 import { Messages } from 'MainRoot/util/CommonServices';
+import { defaultPresetKey, presetToRange } from './periodPresets';
 
 const REDUCER_NAME = 'usage';
 
@@ -36,6 +37,18 @@ const initialState = {
   topApps: null,
   dailyHistory: null,
 
+  // summaryForPeriod is the period-filtered summary that feeds UsageCategoriesTile's
+  // activityBreakdown. It is seeded from the initial loadAllUsageData response and
+  // refreshed exclusively by loadSummaryForPeriod when the user changes the period
+  // filter. This keeps My Usage (billing-window consumed/limit/remaining/resetDate)
+  // isolated from the period filter so the progress bar always reflects the user's
+  // actual billing-window state regardless of what the Categories filter is set to.
+  summaryForPeriod: null,
+  loadingSummaryForPeriod: false,
+  loadErrorSummaryForPeriod: null,
+
+  periodPreset: defaultPresetKey,
+  periodRange: { startDate: null, endDate: null },
   activeTab: 'overview',
   cumulativeFilter: 'thisMonth',
   lastRefreshedAt: null,
@@ -65,6 +78,28 @@ const loadSummary = createAsyncThunk(`${REDUCER_NAME}/loadSummary`, async (_, { 
     return rejectWithValue(error);
   }
 });
+
+// Fetches /summary for the currently-active period filter and writes the
+// result to summaryForPeriod (not summary). This is the ONLY thunk that the
+// period-filter UI should dispatch on preset/range changes, and the ONLY
+// thunk that reads periodRange from state. The other 5 endpoints
+// (historyBreakdown, sourceBreakdown, stageBreakdown, topApps, dailyHistory)
+// and loadSummary are NOT filtered by period — they continue to reflect the
+// user's full billing window or per-tab filter and must not be disturbed by
+// a change to the Categories-only period filter.
+const loadSummaryForPeriod = createAsyncThunk(
+  `${REDUCER_NAME}/loadSummaryForPeriod`,
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { startDate, endDate } = getState().usage.periodRange;
+      const range = startDate && endDate ? { startDate, endDate } : null;
+      const response = await fetchConsumptionSummary(range);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
 
 const loadHistoryBreakdown = createAsyncThunk(
   `${REDUCER_NAME}/loadHistoryBreakdown`,
@@ -131,6 +166,12 @@ const loadAllUsageData = createAsyncThunk(
         return rejectWithValue(summaryRes.reason);
       }
 
+      // Promote per-endpoint rejections to their dedicated error fields so the
+      // UI surfaces partial failures alongside the partial data. Without this,
+      // a range like 120 days would 400 on /daily-history (92-day cap) while
+      // the other 5 endpoints succeeded — and the daily-history chart would
+      // render blank with no indication of why.
+      const errorOf = (res) => (res.status === 'rejected' ? Messages.getHttpErrorMessage(res.reason) : null);
       return {
         aggregation,
         summary: summaryRes.value.data,
@@ -139,6 +180,11 @@ const loadAllUsageData = createAsyncThunk(
         stageBreakdown: stageRes.status === 'fulfilled' ? stageRes.value.data : [],
         topApps: topAppsRes.status === 'fulfilled' ? topAppsRes.value.data : null,
         dailyHistory: dailyRes.status === 'fulfilled' ? dailyRes.value.data : null,
+        loadErrorHistoryBreakdown: errorOf(breakdownRes),
+        loadErrorSourceBreakdown: errorOf(sourceRes),
+        loadErrorStageBreakdown: errorOf(stageRes),
+        loadErrorTopApps: errorOf(topAppsRes),
+        loadErrorDailyHistory: errorOf(dailyRes),
         loadedAt: Date.now(),
       };
     } catch (error) {
@@ -157,6 +203,22 @@ const summaryRejected = (state, { payload }) => ({
   ...state,
   loadingSummary: false,
   loadErrorSummary: Messages.getHttpErrorMessage(payload),
+});
+
+const summaryForPeriodPending = (state) => ({
+  ...state,
+  loadingSummaryForPeriod: true,
+  loadErrorSummaryForPeriod: null,
+});
+const summaryForPeriodFulfilled = (state, { payload }) => ({
+  ...state,
+  loadingSummaryForPeriod: false,
+  summaryForPeriod: payload,
+});
+const summaryForPeriodRejected = (state, { payload }) => ({
+  ...state,
+  loadingSummaryForPeriod: false,
+  loadErrorSummaryForPeriod: Messages.getHttpErrorMessage(payload),
 });
 
 const historyBreakdownPending = (state) => ({
@@ -269,6 +331,11 @@ const allFulfilled = (state, { payload }) => {
     // Stamp lastRefreshedAt on every successful full load so the "Last refreshed:" subtitle
     // shows a real relative time from first paint, not the "recently" fallback.
     lastRefreshedAt: loadedAt ?? state.lastRefreshedAt,
+    // Seed summaryForPeriod from the initial full-load response so UsageCategoriesTile
+    // renders immediately on mount without waiting for a separate period-thunk dispatch.
+    // After the user changes the period filter, loadSummaryForPeriod updates this field
+    // independently while summary stays on the billing-window value from this load.
+    summaryForPeriod: rest.summary,
     // Route the bundled history payload to whichever field's pointer matches
     // the request's aggregation. On initial mount both pointers default to
     // 'daily' so both fields populate; on refresh while Trends is on Weekly
@@ -286,16 +353,16 @@ const allRejected = (state, { payload }) => ({
 });
 
 const refresh = createAsyncThunk(`${REDUCER_NAME}/refresh`, async (_, { dispatch, getState, rejectWithValue }) => {
-  const { chartAggregation, cumulativeChartAggregation } = getState().usage;
+  const { chartAggregation, cumulativeChartAggregation, periodRange } = getState().usage;
   const result = await dispatch(loadAllUsageData(chartAggregation));
   if (result.meta.requestStatus === 'rejected') {
     return rejectWithValue(result.payload);
   }
   // The bundled load only routes the response to whichever aggregation pointer
-  // matches its request arg (allFulfilled, lines 273-274). When the Overview
-  // tab's filter (cumulativeChartAggregation) differs from the Trends tab's
-  // (chartAggregation), fetch the Overview's view explicitly so its cumulative
-  // chart doesn't go stale after the user hits ↻.
+  // matches its request arg (allFulfilled). When the Overview tab's filter
+  // (cumulativeChartAggregation) differs from the Trends tab's (chartAggregation),
+  // fetch the Overview's view explicitly so its cumulative chart doesn't go
+  // stale after the user hits ↻.
   if (cumulativeChartAggregation !== chartAggregation) {
     const fanOut = await dispatch(loadHistoryBreakdown(cumulativeChartAggregation));
     // If the fan-out 5xx's, the user would otherwise see "Last refreshed: a
@@ -305,6 +372,17 @@ const refresh = createAsyncThunk(`${REDUCER_NAME}/refresh`, async (_, { dispatch
     // too and the page-level retry banner appears.
     if (fanOut.meta.requestStatus === 'rejected') {
       return rejectWithValue(fanOut.payload);
+    }
+  }
+  // When a custom period range is active, the Categories tile (summaryForPeriod)
+  // needs to be refreshed too. loadAllUsageData always fetches billing-window
+  // data — it does NOT carry the period range — so we fire a separate
+  // loadSummaryForPeriod to keep the Categories tile aligned with the active
+  // period after the user clicks ↻.
+  if (periodRange.startDate && periodRange.endDate) {
+    const periodResult = await dispatch(loadSummaryForPeriod());
+    if (periodResult.meta.requestStatus === 'rejected') {
+      return rejectWithValue(periodResult.payload);
     }
   }
   // No payload needed — lastRefreshedAt is stamped by allFulfilled via
@@ -325,6 +403,22 @@ const changeCumulativeFilter = (filter) => (dispatch) => {
   return dispatch(loadHistoryBreakdown(aggregation));
 };
 
+// 'custom' is reached only via setPeriodRange (Apply button); reject the direct call.
+const setPeriodPreset = (state, action) => {
+  const presetKey = action.payload;
+  if (presetKey === 'custom') return state;
+  return {
+    ...state,
+    periodPreset: presetKey,
+    periodRange: presetToRange(presetKey),
+  };
+};
+
+const setPeriodRange = (state, action) => ({
+  ...state,
+  periodPreset: 'custom',
+  periodRange: { ...action.payload },
+});
 const setChartAggregation = (state, action) => ({
   ...state,
   chartAggregation: action.payload,
@@ -341,6 +435,8 @@ const usageSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    setPeriodPreset,
+    setPeriodRange,
     setChartAggregation,
     setCumulativeChartAggregation,
     setActiveTab,
@@ -351,6 +447,9 @@ const usageSlice = createSlice({
       .addCase(loadSummary.pending, summaryPending)
       .addCase(loadSummary.fulfilled, summaryFulfilled)
       .addCase(loadSummary.rejected, summaryRejected)
+      .addCase(loadSummaryForPeriod.pending, summaryForPeriodPending)
+      .addCase(loadSummaryForPeriod.fulfilled, summaryForPeriodFulfilled)
+      .addCase(loadSummaryForPeriod.rejected, summaryForPeriodRejected)
       .addCase(loadHistoryBreakdown.pending, historyBreakdownPending)
       .addCase(loadHistoryBreakdown.fulfilled, historyBreakdownFulfilled)
       .addCase(loadHistoryBreakdown.rejected, historyBreakdownRejected)
@@ -391,6 +490,7 @@ export default usageSlice.reducer;
 export const actions = {
   ...usageSlice.actions,
   loadSummary,
+  loadSummaryForPeriod,
   loadHistoryBreakdown,
   loadSourceBreakdown,
   loadStageBreakdown,

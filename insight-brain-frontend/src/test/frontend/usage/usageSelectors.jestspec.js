@@ -8,12 +8,14 @@ import {
   selectCumulativeFilter,
   selectLastRefreshedAt,
   selectCumulativeChartSeries,
+  selectSummaryForPeriod,
 } from 'MainRoot/usage/usageSelectors';
 
 const baseUsage = {
   activeTab: 'overview',
   cumulativeFilter: 'thisMonth',
   lastRefreshedAt: null,
+  summaryForPeriod: null,
   dailyHistory: {
     dailyHistory: [
       { date: '2026-06-01', components: 1, componentsCumulative: 1 },
@@ -28,6 +30,27 @@ const baseUsage = {
     { month: '2026-06-01', consumed: 300, breakdown: { 'App Scan + Re-evaluate': 300 } },
   ],
 };
+
+it('selectSummaryForPeriod returns summaryForPeriod when set', () => {
+  const periodSummary = { consumed: 40, limit: 1000, activityBreakdown: { APIs: 40 } };
+  expect(
+    selectSummaryForPeriod({ usage: { ...baseUsage, summary: { consumed: 100 }, summaryForPeriod: periodSummary } })
+  ).toEqual(periodSummary);
+});
+
+it('selectSummaryForPeriod falls back to summary when summaryForPeriod is null', () => {
+  // Before the user ever touches the period filter, summaryForPeriod starts as
+  // null. The selector must fall back to summary so UsageCategoriesTile renders
+  // the billing-window breakdown on initial mount without a blank flash.
+  const billingSummary = { consumed: 100, limit: 1000, activityBreakdown: { APIs: 100 } };
+  expect(selectSummaryForPeriod({ usage: { ...baseUsage, summary: billingSummary, summaryForPeriod: null } })).toEqual(
+    billingSummary
+  );
+});
+
+it('selectSummaryForPeriod returns null when both summaryForPeriod and summary are null', () => {
+  expect(selectSummaryForPeriod({ usage: { ...baseUsage, summary: null, summaryForPeriod: null } })).toBeNull();
+});
 
 it('selectActiveTab returns activeTab', () => {
   expect(selectActiveTab({ usage: baseUsage })).toBe('overview');

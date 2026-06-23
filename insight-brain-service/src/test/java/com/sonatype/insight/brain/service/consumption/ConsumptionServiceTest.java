@@ -652,4 +652,193 @@ public class ConsumptionServiceTest
     assertThat(result.getPeakDay().getDate()).isEqualTo(dayA.toString());
   }
 
+  // --- Range overloads ---
+
+  @Test
+  public void getCurrentMonthSummary_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.sumByTimestampRange(any(), any())).thenReturn(100L);
+    when(limitConfigDAO.getConfig(any())).thenReturn(Optional.empty());
+
+    ConsumptionSummaryDTO result = service.getCurrentMonthSummary(15, "ENTERPRISE", Optional.empty());
+
+    assertThat(result).isNotNull();
+    // The DAO call MUST use the BillingWindowUtil-computed window, not arbitrary
+    // range Instants. Capture-and-compare proves the absent path actually took
+    // the billing-window code path rather than the new range path. Without this
+    // assertion, the test passes even if the 'range.isEmpty()' guard is
+    // accidentally removed and the service starts treating Optional.empty()
+    // like a present-but-zero range.
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    LocalDate expectedWindowStart = BillingWindowUtil.calculateWindowStart(today, 15);
+    LocalDate expectedResetDate = BillingWindowUtil.calculateResetDate(expectedWindowStart, 15);
+    Instant expectedStart = expectedWindowStart.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = expectedResetDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+    verify(eventDAO).sumByTimestampRange(eq(expectedStart), eq(expectedEnd));
+  }
+
+  @Test
+  public void getCurrentMonthSummary_withRange_presentCallsRangeMethods() {
+    when(eventDAO.sumByTimestampRange(any(), any())).thenReturn(500L);
+    when(eventDAO.activityBreakdownByRange(any(), any())).thenReturn(new HashMap<>());
+    when(limitConfigDAO.getConfig(any())).thenReturn(Optional.empty());
+
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 30);
+    ConsumptionSummaryDTO result = service.getCurrentMonthSummary(15, "ENTERPRISE",
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    assertThat(result.getConsumed()).isEqualTo(500L);
+    assertThat(result.getBillingWindowStart()).isEqualTo("2026-06-01");
+    assertThat(result.getResetDate()).isEqualTo("2026-06-30");
+    Instant expectedStart = start.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    verify(eventDAO).sumByTimestampRange(eq(expectedStart), eq(expectedEnd));
+  }
+
+  @Test
+  public void getMonthlyHistory_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.historyByWindows(anyList(), anyList(), anyList())).thenReturn(Collections.emptyList());
+    when(limitConfigDAO.getConfig(any())).thenReturn(Optional.empty());
+
+    List<ConsumptionHistoryEntryDTO> result = service.getMonthlyHistory(15, Optional.empty());
+
+    assertThat(result).hasSize(12);
+    verify(eventDAO).historyByWindows(anyList(), anyList(), anyList());
+  }
+
+  @Test
+  public void getMonthlyHistory_withRange_presentCallsWithRangeDAO() {
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 30);
+    Instant expectedStart = start.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    when(eventDAO.historyByWindowsWithRange(any(), any()))
+        .thenReturn(Collections.singletonList(new ConsumptionMonthlyTotal(start, 200L)));
+    when(limitConfigDAO.getConfig(any())).thenReturn(Optional.empty());
+
+    List<ConsumptionHistoryEntryDTO> result = service.getMonthlyHistory(15,
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getConsumed()).isEqualTo(200L);
+    assertThat(result.get(0).getMonth()).isEqualTo("2026-06-01");
+    assertThat(result.get(0).getWindowEnd()).isEqualTo("2026-06-30");
+    verify(eventDAO).historyByWindowsWithRange(eq(expectedStart), eq(expectedEnd));
+  }
+
+  @Test
+  public void getMonthlyHistoryBySource_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.historyBySourceByWindows(anyList(), anyList(), anyList())).thenReturn(Collections.emptyList());
+
+    service.getMonthlyHistoryBySource(15, Optional.empty());
+
+    verify(eventDAO).historyBySourceByWindows(anyList(), anyList(), anyList());
+  }
+
+  @Test
+  public void getMonthlyHistoryBySource_withRange_presentCallsWithRangeDAO() {
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 30);
+    when(eventDAO.historyBySourceByWindowsWithRange(any(), any())).thenReturn(Collections.emptyList());
+
+    service.getMonthlyHistoryBySource(15,
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    verify(eventDAO).historyBySourceByWindowsWithRange(
+        eq(start.atStartOfDay(ZoneOffset.UTC).toInstant()),
+        eq(end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant()));
+  }
+
+  @Test
+  public void getMonthlyHistoryByStage_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.historyByStageByWindows(anyList(), anyList(), anyList())).thenReturn(Collections.emptyList());
+
+    service.getMonthlyHistoryByStage(15, Optional.empty());
+
+    verify(eventDAO).historyByStageByWindows(anyList(), anyList(), anyList());
+  }
+
+  @Test
+  public void getMonthlyHistoryByStage_withRange_presentCallsWithRangeDAO() {
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 30);
+    when(eventDAO.historyByStageByWindowsWithRange(any(), any())).thenReturn(Collections.emptyList());
+
+    service.getMonthlyHistoryByStage(15,
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    verify(eventDAO).historyByStageByWindowsWithRange(
+        eq(start.atStartOfDay(ZoneOffset.UTC).toInstant()),
+        eq(end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant()));
+  }
+
+  @Test
+  public void getAllConsumingApps_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.topAppsByRange(any(), any(), anyInt())).thenReturn(Collections.emptyList());
+    when(eventDAO.countDistinctAppsByRange(any(), any())).thenReturn(0);
+    when(eventDAO.sumByTimestampRange(any(), any())).thenReturn(0L);
+
+    service.getAllConsumingApps(15, Optional.empty());
+
+    // Capture-and-compare against BillingWindowUtil to prove the absent path
+    // took the billing-window code path. The DAO method names overlap between
+    // the two paths (both call topAppsByRange), so an any(Instant.class) verify
+    // can't discriminate — the Instant VALUE must.
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    LocalDate expectedWindowStart = BillingWindowUtil.calculateWindowStart(today, 15);
+    LocalDate expectedResetDate = BillingWindowUtil.calculateResetDate(expectedWindowStart, 15);
+    Instant expectedStart = expectedWindowStart.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = expectedResetDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+    verify(eventDAO).topAppsByRange(eq(expectedStart), eq(expectedEnd), anyInt());
+  }
+
+  @Test
+  public void getAllConsumingApps_withRange_presentCallsDAOWithConvertedInstants() {
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 30);
+    Instant expectedStart = start.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    when(eventDAO.topAppsByRange(any(), any(), anyInt())).thenReturn(Collections.emptyList());
+    when(eventDAO.countDistinctAppsByRange(any(), any())).thenReturn(0);
+    when(eventDAO.sumByTimestampRange(any(), any())).thenReturn(0L);
+
+    service.getAllConsumingApps(15,
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    verify(eventDAO).topAppsByRange(eq(expectedStart), eq(expectedEnd), anyInt());
+  }
+
+  @Test
+  public void getDailyHistory_withRange_absentDelegatesToExistingPath() {
+    when(eventDAO.dailyHistoryByWindow(any(), any())).thenReturn(Collections.emptyList());
+
+    service.getDailyHistory(15, Optional.empty());
+
+    // Same DAO method (dailyHistoryByWindow) services both the billing-window
+    // path and the range-present path, so an any(Instant.class) verify can't
+    // discriminate. Capture-and-compare against BillingWindowUtil to prove the
+    // absent path delegated through the existing billing-window code.
+    LocalDate today = LocalDate.now(ZoneOffset.UTC);
+    LocalDate expectedWindowStart = BillingWindowUtil.calculateWindowStart(today, 15);
+    LocalDate expectedResetDate = BillingWindowUtil.calculateResetDate(expectedWindowStart, 15);
+    verify(eventDAO).dailyHistoryByWindow(
+        eq(expectedWindowStart.atStartOfDay(ZoneOffset.UTC).toInstant()),
+        eq(expectedResetDate.atStartOfDay(ZoneOffset.UTC).toInstant()));
+  }
+
+  @Test
+  public void getDailyHistory_withRange_presentBuildsEntriesForAllDays() {
+    LocalDate start = LocalDate.of(2026, 6, 1);
+    LocalDate end = LocalDate.of(2026, 6, 3); // 3 days inclusive
+    Instant expectedStart = start.atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant expectedEnd = end.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    when(eventDAO.dailyHistoryByWindow(any(), any())).thenReturn(Collections.emptyList());
+
+    ConsumptionDailyHistoryDTO result = service.getDailyHistory(15,
+        Optional.of(new com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange(start, end)));
+
+    assertThat(result.getDailyHistory()).hasSize(3); // 3 days: Jun 1, Jun 2, Jun 3
+    verify(eventDAO).dailyHistoryByWindow(eq(expectedStart), eq(expectedEnd));
+  }
+
 }

@@ -21,6 +21,7 @@ import moment from 'moment';
 import { actions } from './usageSlice';
 import {
   selectSummary,
+  selectSummaryForPeriod,
   selectHistoryBreakdown,
   selectChartAggregation,
   selectSourceBreakdown,
@@ -49,6 +50,7 @@ import './_usageDashboard.scss';
 export default function UsageDashboard({ isAuthorized }) {
   const dispatch = useDispatch();
   const summary = useSelector(selectSummary);
+  const summaryForPeriod = useSelector(selectSummaryForPeriod);
   const historyBreakdown = useSelector(selectHistoryBreakdown);
   const chartAggregation = useSelector(selectChartAggregation);
   const sourceBreakdown = useSelector(selectSourceBreakdown);
@@ -199,7 +201,7 @@ export default function UsageDashboard({ isAuthorized }) {
             overview={
               <div className="iq-usage-overview-pane">
                 <MyUsageTile summary={summary} />
-                <UsageCategoriesTile summary={summary} />
+                <UsageCategoriesTile summary={summaryForPeriod} />
                 <EvaluatedComponentsTile />
               </div>
             }

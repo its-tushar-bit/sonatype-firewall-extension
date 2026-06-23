@@ -60,4 +60,45 @@ public class ConsumptionResourceHistoryByStageTest
 
     assertResponseStatus(HttpStatus.SC_UNAUTHORIZED, response);
   }
+
+  // BDD: Valid startDate+endDate range returns 200
+  @Test
+  public void getHistoryByStage_withValidDateRange_returns200() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(HISTORY_BY_STAGE_PATH)
+        .query("startDate", "2026-01-01")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_OK, response);
+  }
+
+  // BDD: Invalid date format returns 400
+  @Test
+  public void getHistoryByStage_withInvalidDateFormat_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(HISTORY_BY_STAGE_PATH)
+        .query("startDate", "not-a-date")
+        .query("endDate", "2026-06-30")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
+
+  // BDD: Only startDate provided returns 400
+  @Test
+  public void getHistoryByStage_withOnlyStartDate_returns400() throws Exception {
+    User adminUser = createSystemAdminUser();
+
+    HttpResponse response = restRequest().auth(adminUser)
+        .path(HISTORY_BY_STAGE_PATH)
+        .query("startDate", "2026-01-01")
+        .get();
+
+    assertResponseStatus(HttpStatus.SC_BAD_REQUEST, response);
+  }
 }

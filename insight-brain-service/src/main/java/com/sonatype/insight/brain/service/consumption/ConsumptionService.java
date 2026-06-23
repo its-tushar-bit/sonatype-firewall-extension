@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange;
+
 import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionEventDAO;
 import com.sonatype.insight.brain.dataaccess.consumption.ConsumptionLimitConfigDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -94,6 +96,38 @@ public class ConsumptionService
     return dto;
   }
 
+  public ConsumptionSummaryDTO getCurrentMonthSummary(
+      int subscriptionDayOfMonth,
+      String tier,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getCurrentMonthSummary(subscriptionDayOfMonth, tier);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    long consumed = eventDAO.sumByTimestampRange(rangeStart, rangeEnd);
+    Map<String, Long> rawBreakdown = eventDAO.activityBreakdownByRange(rangeStart, rangeEnd);
+    Map<String, Long> displayBuckets = mapToDisplayBuckets(rawBreakdown);
+
+    Optional<ConsumptionLimitConfig> limitConfig = limitConfigDAO.getConfig(currentOrgId());
+    Long limit = limitConfig.map(ConsumptionLimitConfig::getMonthlyLimit).orElse(null);
+    Integer warningThresholdPct =
+        limit != null ? limitConfig.map(ConsumptionLimitConfig::getWarningThresholdPct).orElse(null) : null;
+
+    ConsumptionSummaryDTO dto = new ConsumptionSummaryDTO();
+    dto.setConsumed(consumed);
+    dto.setLimit(limit);
+    dto.setWarningThresholdPct(warningThresholdPct);
+    dto.setPercentUsed(calculatePercentUsed(consumed, limit));
+    dto.setRemaining(calculateRemaining(consumed, limit));
+    dto.setResetDate(range.get().getEndDate().toString());
+    dto.setBillingWindowStart(range.get().getStartDate().toString());
+    dto.setTier(tier);
+    dto.setActivityBreakdown(displayBuckets);
+    return dto;
+  }
+
   public List<ConsumptionHistoryEntryDTO> getMonthlyHistory(int subscriptionDayOfMonth) {
     BillingWindowSeries windows = computeRecentWindows(subscriptionDayOfMonth, DEFAULT_HISTORY_MONTHS);
     List<ConsumptionMonthlyTotal> history =
@@ -132,6 +166,38 @@ public class ConsumptionService
     }).collect(Collectors.toList());
   }
 
+  public List<ConsumptionHistoryEntryDTO> getMonthlyHistory(
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getMonthlyHistory(subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionMonthlyTotal> history = eventDAO.historyByWindowsWithRange(rangeStart, rangeEnd);
+    Optional<ConsumptionLimitConfig> limitConfig = limitConfigDAO.getConfig(currentOrgId());
+    Long limit = limitConfig.map(ConsumptionLimitConfig::getMonthlyLimit).orElse(null);
+
+    Long limitForCalc = limit;
+    // Source the per-row month label from the DAO row itself, not from
+    // range.startDate. historyByWindowsWithRange currently returns a single
+    // row labelled with the range start, so the two are equivalent today —
+    // but stamping range.startDate would corrupt the labels if the DAO ever
+    // returns multiple aggregation rows. windowEnd is a range-scoped attribute
+    // and stays on range.endDate.
+    return history.stream().map(total -> {
+      ConsumptionHistoryEntryDTO dto = new ConsumptionHistoryEntryDTO();
+      dto.setMonth(total.getBillingMonth().toString());
+      dto.setWindowEnd(range.get().getEndDate().toString());
+      dto.setConsumed(total.getTotalConsumed());
+      dto.setLimit(limitForCalc);
+      dto.setPercentUsed(calculatePercentUsed(total.getTotalConsumed(), limitForCalc));
+      dto.setRemaining(calculateRemaining(total.getTotalConsumed(), limitForCalc));
+      return dto;
+    }).collect(Collectors.toList());
+  }
+
   public List<ConsumptionHistoryBreakdownDTO> getHistoryWithBreakdown(Aggregation agg, int subscriptionDayOfMonth) {
     if (agg == Aggregation.MONTHLY) {
       BillingWindowSeries windows = computeRecentWindows(subscriptionDayOfMonth, DEFAULT_HISTORY_MONTHS);
@@ -159,6 +225,39 @@ public class ConsumptionService
     throw new IllegalStateException("Unhandled aggregation type: " + agg);
   }
 
+  public List<ConsumptionHistoryBreakdownDTO> getHistoryWithBreakdown(
+      Aggregation agg,
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getHistoryWithBreakdown(agg, subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionMonthlyBreakdown> rows;
+    List<LocalDate> expectedPeriods;
+    if (agg == Aggregation.DAILY) {
+      rows = eventDAO.dailyHistoryWithBreakdownByWindow(rangeStart, rangeEnd);
+      expectedPeriods = computeDailyPeriods(
+          range.get().getStartDate(), range.get().getEndDate(), range.get().getEndDate().plusDays(1));
+    }
+    else {
+      // TODO(CLM-40967 follow-up): WEEKLY aggregation with a custom range falls
+      // through to historyWithBreakdownByWindowsWithRange, which returns a
+      // single aggregated row spanning the whole range — not the per-week
+      // buckets a Weekly chart would expect. The user can reach this path by
+      // switching the Trends tab to Weekly AND applying a non-default period
+      // filter; the chart will show one bar instead of week-by-week. Reaching
+      // semantic parity requires a weeklyHistoryWithBreakdownByWindowsWithRange
+      // DAO method that derives the weekly windows from the explicit range.
+      // For now, MONTHLY behavior is the documented intent; flag for follow-up.
+      rows = eventDAO.historyWithBreakdownByWindowsWithRange(rangeStart, rangeEnd);
+      expectedPeriods = null;
+    }
+    return groupBreakdownRows(rows, true, expectedPeriods);
+  }
+
   public List<ConsumptionHistoryBreakdownDTO> getMonthlyHistoryBySource(int subscriptionDayOfMonth) {
     BillingWindowSeries windows = computeRecentWindows(subscriptionDayOfMonth, DEFAULT_HISTORY_MONTHS);
     List<ConsumptionMonthlyBreakdown> rows =
@@ -166,11 +265,100 @@ public class ConsumptionService
     return groupBreakdownRows(rows, false, windows.labels);
   }
 
+  public List<ConsumptionHistoryBreakdownDTO> getMonthlyHistoryBySource(
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getMonthlyHistoryBySource(subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionMonthlyBreakdown> rows = eventDAO.historyBySourceByWindowsWithRange(rangeStart, rangeEnd);
+    return groupBreakdownRows(rows, false);
+  }
+
   public List<ConsumptionHistoryBreakdownDTO> getMonthlyHistoryByStage(int subscriptionDayOfMonth) {
     BillingWindowSeries windows = computeRecentWindows(subscriptionDayOfMonth, DEFAULT_HISTORY_MONTHS);
     List<ConsumptionMonthlyBreakdown> rows =
         eventDAO.historyByStageByWindows(windows.starts, windows.ends, windows.labels);
     return groupBreakdownRows(rows, false, windows.labels);
+  }
+
+  public List<ConsumptionHistoryBreakdownDTO> getMonthlyHistoryByStage(
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getMonthlyHistoryByStage(subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionMonthlyBreakdown> rows = eventDAO.historyByStageByWindowsWithRange(rangeStart, rangeEnd);
+    return groupBreakdownRows(rows, false);
+  }
+
+  public ConsumptionTopAppsResponseDTO getAllConsumingApps(
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getAllConsumingApps(subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionAppTotal> appTotals = eventDAO.topAppsByRange(rangeStart, rangeEnd, MAX_TOP_APPS);
+    List<ConsumptionTopAppDTO> apps = appTotals.stream()
+        .map(total -> new ConsumptionTopAppDTO(total.getAppId(), total.getPublicId(), total.getName(),
+            total.getComponentCount()))
+        .collect(Collectors.toList());
+    int totalApps = eventDAO.countDistinctAppsByRange(rangeStart, rangeEnd);
+    long totalConsumed = eventDAO.sumByTimestampRange(rangeStart, rangeEnd);
+    return new ConsumptionTopAppsResponseDTO(apps, totalApps, totalConsumed);
+  }
+
+  public ConsumptionDailyHistoryDTO getDailyHistory(
+      int subscriptionDayOfMonth,
+      Optional<ConsumptionDateRange> range)
+  {
+    if (range.isEmpty()) {
+      return getDailyHistory(subscriptionDayOfMonth);
+    }
+    Instant rangeStart = range.get().getStartDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+    Instant rangeEnd = range.get().getEndDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    List<ConsumptionDailyTotal> rows = eventDAO.dailyHistoryByWindow(rangeStart, rangeEnd);
+
+    Map<LocalDate, Long> dayTotalsAsc = new LinkedHashMap<>();
+    LocalDate cursor = range.get().getStartDate();
+    LocalDate exclusiveEnd = range.get().getEndDate().plusDays(1);
+    while (cursor.isBefore(exclusiveEnd)) {
+      dayTotalsAsc.put(cursor, 0L);
+      cursor = cursor.plusDays(1);
+    }
+    for (ConsumptionDailyTotal row : rows) {
+      dayTotalsAsc.merge(row.getDay(), row.getComponentCount(), Long::sum);
+    }
+
+    List<ConsumptionDailyHistoryDTO.DailyEntry> entries = new ArrayList<>();
+    long cumulative = 0;
+    long peak = 0;
+    String peakDate = null;
+    long total = 0;
+    for (Map.Entry<LocalDate, Long> entry : dayTotalsAsc.entrySet()) {
+      long count = entry.getValue();
+      cumulative += count;
+      total += count;
+      entries.add(new ConsumptionDailyHistoryDTO.DailyEntry(
+          entry.getKey().toString(), count, cumulative));
+      if (count > peak) {
+        peak = count;
+        peakDate = entry.getKey().toString();
+      }
+    }
+
+    double dailyAverage = dayTotalsAsc.isEmpty() ? 0.0 : (double) total / dayTotalsAsc.size();
+    return new ConsumptionDailyHistoryDTO(
+        entries, dailyAverage, new ConsumptionDailyHistoryDTO.PeakDay(peak, peakDate));
   }
 
   /** Compute the last {@code n} billing windows ending at the current window, ASC (oldest first). */

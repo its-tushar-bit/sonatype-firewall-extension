@@ -10,6 +10,7 @@ import classnames from 'classnames';
 import moment from 'moment';
 
 import { formatNumber } from './usageFormatters';
+import UsagePeriodFilter from './UsagePeriodFilter';
 
 export default function MyUsageTile({ summary }) {
   if (!summary) return null;
@@ -27,6 +28,9 @@ export default function MyUsageTile({ summary }) {
         <NxTile.HeaderTitle>
           <NxH2>My usage</NxH2>
         </NxTile.HeaderTitle>
+        <NxTile.HeaderActions>
+          <UsagePeriodFilter />
+        </NxTile.HeaderActions>
       </NxTile.Header>
       <NxTile.Content>
         <div className="iq-my-usage-tile__summary">

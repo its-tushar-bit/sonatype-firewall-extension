@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer, { actions } from 'MainRoot/usage/usageSlice';
+import { selectPeriodIsActive } from 'MainRoot/usage/usageSelectors';
 import { axiosMockAdapter, configureStore } from 'TestRoot/SpecUtil';
 
 describe('usageSlice.allFulfilled', () => {
@@ -267,6 +268,32 @@ describe('usageSlice.loadAllUsageData thunk', () => {
     expect(typeof stamped).toBe('number');
     expect(stamped).toBeGreaterThan(0);
   });
+
+  it('surfaces per-endpoint rejections to dedicated loadError fields (partial-failure visibility)', async () => {
+    // Regression guard: when /daily-history 400s but the other endpoints succeed
+    // (e.g. a custom range > 92 days hits the daily-history cap), the daily-history
+    // tile would historically render blank with no error indicator. The
+    // loadErrorDailyHistory field carries the message so the UI can surface it.
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(400, 'Date range exceeds maximum of 92 days');
+
+    await store.dispatch(actions.loadAllUsageData('daily'));
+
+    const state = store.getState().usage;
+    // Summary success → no top-level error
+    expect(state.loadErrorAll).toBeNull();
+    // The 5 non-summary endpoints each route their rejection to a dedicated field
+    expect(state.loadErrorDailyHistory).toBeTruthy();
+    // Fulfilled endpoints keep their error fields null
+    expect(state.loadErrorSourceBreakdown).toBeNull();
+    expect(state.loadErrorStageBreakdown).toBeNull();
+    expect(state.loadErrorTopApps).toBeNull();
+    expect(state.loadErrorHistoryBreakdown).toBeNull();
+  });
 });
 
 describe('usageSlice.loadStageBreakdown', () => {
@@ -390,6 +417,22 @@ describe('usageSlice.changeCumulativeFilter thunk', () => {
     expect(state.chartAggregation).toBe('weekly');
     const lastReq = axiosMock.history.get[axiosMock.history.get.length - 1];
     expect(aggregationFromUrl(lastReq.url)).toBe('monthly');
+  });
+
+  it('does NOT forward the period range — loadHistoryBreakdown always fetches billing-window data', async () => {
+    // Regression guard: loadHistoryBreakdown must never read periodRange.
+    // Period filter is scoped to Categories tile only (loadSummaryForPeriod).
+    // Carrying the range here would contaminate cumulativeHistoryBreakdown with
+    // period-filtered data when the user switches the Overview cumulative filter
+    // while a custom period is active.
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-04-01', endDate: '2026-06-30' }));
+
+    await store.dispatch(actions.changeCumulativeFilter('last3Months'));
+
+    const lastReq = axiosMock.history.get[axiosMock.history.get.length - 1];
+    expect(lastReq.url).not.toMatch(/startDate/);
+    expect(lastReq.url).not.toMatch(/endDate/);
   });
 });
 
@@ -516,5 +559,401 @@ describe('usageSlice.refresh thunk', () => {
     expect(result.type).toBe(actions.refresh.rejected.type);
     const state = store.getState().usage;
     expect(state.loadErrorAll).toBeTruthy();
+  });
+});
+
+describe('usageSlice.period state and reducers', () => {
+  it('initial state has periodPreset=currentBillingPeriod and periodRange={null,null}', () => {
+    const s = reducer(undefined, { type: '@@INIT' });
+    expect(s.periodPreset).toBe('currentBillingPeriod');
+    expect(s.periodRange).toEqual({ startDate: null, endDate: null });
+  });
+
+  it('setPeriodPreset("last30Days") updates both preset and derived range', () => {
+    const next = reducer(undefined, actions.setPeriodPreset('last30Days'));
+    expect(next.periodPreset).toBe('last30Days');
+    expect(next.periodRange.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(next.periodRange.endDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('setPeriodPreset("currentBillingPeriod") resets range to {null,null}', () => {
+    const seeded = reducer(undefined, actions.setPeriodPreset('last30Days'));
+    const next = reducer(seeded, actions.setPeriodPreset('currentBillingPeriod'));
+    expect(next.periodRange).toEqual({ startDate: null, endDate: null });
+  });
+
+  it('setPeriodPreset("custom") is a no-op (custom requires setPeriodRange)', () => {
+    const seeded = reducer(undefined, actions.setPeriodPreset('last30Days'));
+    const next = reducer(seeded, actions.setPeriodPreset('custom'));
+    // State should be unchanged from seeded
+    expect(next.periodPreset).toBe('last30Days');
+  });
+
+  it('setPeriodRange flips preset to "custom" and stores the dates', () => {
+    const next = reducer(undefined, actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+    expect(next.periodPreset).toBe('custom');
+    expect(next.periodRange).toEqual({ startDate: '2026-06-01', endDate: '2026-06-30' });
+  });
+
+  it('selectPeriodIsActive is true when periodPreset !== currentBillingPeriod', () => {
+    expect(selectPeriodIsActive({ usage: { periodPreset: 'currentBillingPeriod' } })).toBe(false);
+    expect(selectPeriodIsActive({ usage: { periodPreset: 'last30Days' } })).toBe(true);
+    expect(selectPeriodIsActive({ usage: { periodPreset: 'custom' } })).toBe(true);
+  });
+});
+
+describe('usageSlice.loadAllUsageData with period range', () => {
+  let axiosMock;
+  let store;
+
+  const summaryResponse = { consumed: 100, limit: 1000 };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    store = configureStore({ reducer: { usage: reducer } });
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
+  });
+
+  it('never passes startDate/endDate to any endpoint, even when periodRange is active (regression: period filter scoped to Categories only)', async () => {
+    // Regression guard: loadAllUsageData is used for initial mount and the ↻ refresh.
+    // It must always fetch billing-window (unfiltered) data regardless of periodRange.
+    // The period filter is scoped exclusively to the Categories tile via loadSummaryForPeriod.
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, null);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+    await store.dispatch(actions.loadAllUsageData('daily'));
+
+    const allUrls = axiosMock.history.get.map((req) => req.url);
+    expect(allUrls).toHaveLength(6);
+    allUrls.forEach((url) => {
+      expect(url).not.toContain('startDate');
+      expect(url).not.toContain('endDate');
+    });
+  });
+
+  it('omits startDate/endDate params when periodPreset=currentBillingPeriod (default)', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, null);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    // Default state: periodPreset = 'currentBillingPeriod', periodRange = { null, null }
+    await store.dispatch(actions.loadAllUsageData('daily'));
+
+    const allUrls = axiosMock.history.get.map((req) => req.url);
+    allUrls.forEach((url) => {
+      expect(url).not.toContain('startDate');
+      expect(url).not.toContain('endDate');
+    });
+  });
+});
+
+describe('usageSlice.loadSummaryForPeriod thunk', () => {
+  let axiosMock;
+  let store;
+
+  const summaryResponse = { consumed: 100, limit: 1000 };
+  const filteredSummaryResponse = {
+    consumed: 40,
+    limit: 1000,
+    activityBreakdown: { APIs: 10, 'App Scan + Re-evaluate': 30 },
+  };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    store = configureStore({ reducer: { usage: reducer } });
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
+  });
+
+  it('fires exactly one /summary request and writes to summaryForPeriod — not summary', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, filteredSummaryResponse);
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+
+    const result = await store.dispatch(actions.loadSummaryForPeriod());
+
+    expect(result.type).toBe(actions.loadSummaryForPeriod.fulfilled.type);
+    const state = store.getState().usage;
+    expect(state.summaryForPeriod).toEqual(filteredSummaryResponse);
+    // summary (billing-window value) must remain null — loadSummaryForPeriod must
+    // NOT write to the summary field used by My Usage tile.
+    expect(state.summary).toBeNull();
+    // Exactly 1 HTTP request — only /summary, none of the 5 other endpoints.
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).toMatch(/\/api\/v2\/consumption\/summary/);
+  });
+
+  it('passes startDate/endDate params to /summary when periodRange is active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, filteredSummaryResponse);
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+
+    await store.dispatch(actions.loadSummaryForPeriod());
+
+    expect(axiosMock.history.get[0].url).toMatch(/startDate=2026-06-01/);
+    expect(axiosMock.history.get[0].url).toMatch(/endDate=2026-06-30/);
+  });
+
+  it('omits startDate/endDate when periodPreset=currentBillingPeriod', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    // Default state: periodPreset = 'currentBillingPeriod', periodRange = { null, null }
+
+    await store.dispatch(actions.loadSummaryForPeriod());
+
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('sets loadingSummaryForPeriod=true on pending, false on fulfilled', () => {
+    const pendingAction = { type: actions.loadSummaryForPeriod.pending.type };
+    const pendingState = reducer(undefined, pendingAction);
+    expect(pendingState.loadingSummaryForPeriod).toBe(true);
+    expect(pendingState.loadErrorSummaryForPeriod).toBeNull();
+
+    const fulfilledAction = { type: actions.loadSummaryForPeriod.fulfilled.type, payload: filteredSummaryResponse };
+    const fulfilledState = reducer(pendingState, fulfilledAction);
+    expect(fulfilledState.loadingSummaryForPeriod).toBe(false);
+    expect(fulfilledState.summaryForPeriod).toEqual(filteredSummaryResponse);
+  });
+
+  it('sets loadErrorSummaryForPeriod on rejected and does NOT affect loadErrorAll', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(500);
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+
+    await store.dispatch(actions.loadSummaryForPeriod());
+
+    const state = store.getState().usage;
+    expect(state.loadErrorSummaryForPeriod).toBeTruthy();
+    // loadErrorAll must stay null — the period-filter error is scoped to the
+    // Categories tile, not the entire page.
+    expect(state.loadErrorAll).toBeNull();
+  });
+
+  it('does NOT fire any of the 5 other endpoints when dispatched', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, filteredSummaryResponse);
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-06-01', endDate: '2026-06-30' }));
+
+    await store.dispatch(actions.loadSummaryForPeriod());
+
+    const urls = axiosMock.history.get.map((req) => req.url);
+    expect(urls.every((u) => u.includes('/api/v2/consumption/summary'))).toBe(true);
+    expect(urls.some((u) => u.includes('/history/breakdown'))).toBe(false);
+    expect(urls.some((u) => u.includes('/history/by-source'))).toBe(false);
+    expect(urls.some((u) => u.includes('/history/by-stage'))).toBe(false);
+    expect(urls.some((u) => u.includes('/top-apps'))).toBe(false);
+    expect(urls.some((u) => u.includes('/daily-history'))).toBe(false);
+  });
+});
+
+describe('usageSlice — period range isolation regression (non-period thunks must never carry range)', () => {
+  // Regression guard for the "period filter scoped to Categories only" contract.
+  // Every thunk other than loadSummaryForPeriod must issue requests with NO
+  // startDate/endDate query params, even when periodRange is set in state.
+  // Failure here means period-filter state leaks into billing-window tiles.
+  let axiosMock;
+  let store;
+
+  const summaryResponse = { consumed: 100, limit: 1000 };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    store = configureStore({ reducer: { usage: reducer } });
+    // Seed a custom period range in state for every test in this suite.
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-04-01', endDate: '2026-06-30' }));
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
+  });
+
+  it('loadSummary: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+
+    await store.dispatch(actions.loadSummary());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadHistoryBreakdown: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+
+    await store.dispatch(actions.loadHistoryBreakdown('daily'));
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadSourceBreakdown: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+
+    await store.dispatch(actions.loadSourceBreakdown());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadStageBreakdown: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+
+    await store.dispatch(actions.loadStageBreakdown());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadTopApps: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, []);
+
+    await store.dispatch(actions.loadTopApps());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadDailyHistory: request URL has no startDate/endDate even with a custom period active', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    await store.dispatch(actions.loadDailyHistory());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).not.toMatch(/startDate/);
+    expect(axiosMock.history.get[0].url).not.toMatch(/endDate/);
+  });
+
+  it('loadSummaryForPeriod: DOES carry startDate/endDate (the one thunk that should)', async () => {
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+
+    await store.dispatch(actions.loadSummaryForPeriod());
+
+    expect(axiosMock.history.get).toHaveLength(1);
+    expect(axiosMock.history.get[0].url).toMatch(/startDate=2026-04-01/);
+    expect(axiosMock.history.get[0].url).toMatch(/endDate=2026-06-30/);
+  });
+});
+
+describe('usageSlice.refresh with active period range', () => {
+  let axiosMock;
+  let store;
+
+  const summaryResponse = { consumed: 100, limit: 1000 };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    store = configureStore({ reducer: { usage: reducer } });
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
+  });
+
+  it('with currentBillingPeriod preset: fires exactly 6 requests, none with range params', async () => {
+    // Default state: no custom period. Refresh must fire 6 billing-window requests.
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, null);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    const result = await store.dispatch(actions.refresh());
+
+    expect(result.type).toBe(actions.refresh.fulfilled.type);
+    // Exactly 6 — the 6 bundled endpoints, no extra period-summary call.
+    expect(axiosMock.history.get).toHaveLength(6);
+    axiosMock.history.get.forEach((req) => {
+      expect(req.url).not.toMatch(/startDate/);
+      expect(req.url).not.toMatch(/endDate/);
+    });
+  });
+
+  it('with custom range active: fires 6 unfiltered requests + 1 period /summary (7 total)', async () => {
+    // Regression guard: when a custom period is active, refresh must keep the
+    // Categories tile aligned by firing loadSummaryForPeriod in addition to the
+    // 6 unfiltered loadAllUsageData requests.
+    axiosMock.onGet(/\/api\/v2\/consumption\/summary/).reply(200, summaryResponse);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/breakdown/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-source/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/history\/by-stage/).reply(200, []);
+    axiosMock.onGet(/\/api\/v2\/consumption\/top-apps/).reply(200, null);
+    axiosMock.onGet(/\/api\/v2\/consumption\/daily-history/).reply(200, null);
+
+    store.dispatch(actions.setPeriodRange({ startDate: '2026-04-01', endDate: '2026-06-30' }));
+    const result = await store.dispatch(actions.refresh());
+
+    expect(result.type).toBe(actions.refresh.fulfilled.type);
+    // 7 requests total: 6 unfiltered + 1 period /summary
+    expect(axiosMock.history.get).toHaveLength(7);
+
+    const summaryRequests = axiosMock.history.get.filter((req) => req.url.includes('/api/v2/consumption/summary'));
+    // Two /summary calls: one unfiltered (from loadAllUsageData), one with range (from loadSummaryForPeriod)
+    expect(summaryRequests).toHaveLength(2);
+
+    const unfiltered = summaryRequests.filter((req) => !req.url.includes('startDate'));
+    const filtered = summaryRequests.filter((req) => req.url.includes('startDate'));
+    expect(unfiltered).toHaveLength(1);
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].url).toMatch(/startDate=2026-04-01/);
+    expect(filtered[0].url).toMatch(/endDate=2026-06-30/);
+
+    // The 5 non-summary endpoints must have NO range params
+    const nonSummaryRequests = axiosMock.history.get.filter((req) => !req.url.includes('/api/v2/consumption/summary'));
+    expect(nonSummaryRequests).toHaveLength(5);
+    nonSummaryRequests.forEach((req) => {
+      expect(req.url).not.toMatch(/startDate/);
+      expect(req.url).not.toMatch(/endDate/);
+    });
+  });
+});
+
+describe('usageSlice.allFulfilled seeds summaryForPeriod', () => {
+  it('seeds summaryForPeriod from summary payload on loadAllUsageData success', () => {
+    const summaryPayload = { consumed: 100, limit: 1000, activityBreakdown: { APIs: 10 } };
+    const action = {
+      type: actions.loadAllUsageData.fulfilled.type,
+      payload: {
+        aggregation: 'daily',
+        summary: summaryPayload,
+        historyBreakdown: [],
+        sourceBreakdown: [],
+        stageBreakdown: [],
+        topApps: null,
+        dailyHistory: null,
+        loadedAt: Date.now(),
+      },
+    };
+    const state = reducer(undefined, action);
+    // summaryForPeriod must match summary so the Categories tile renders
+    // correctly before the user ever touches the period filter.
+    expect(state.summaryForPeriod).toEqual(summaryPayload);
+    expect(state.summary).toEqual(summaryPayload);
   });
 });

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service.consumption;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import jakarta.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.consumption.dto.ConsumptionDailyHistoryDTO;
+import com.sonatype.insight.brain.service.consumption.dto.ConsumptionDateRange;
 import com.sonatype.insight.brain.service.consumption.dto.ConsumptionHistoryBreakdownDTO;
 import com.sonatype.insight.brain.service.consumption.dto.ConsumptionHistoryEntryDTO;
 import com.sonatype.insight.brain.service.consumption.dto.ConsumptionSummaryDTO;
@@ -37,6 +39,7 @@ import com.sonatype.insight.brain.utils.Csv;
 
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -76,15 +79,19 @@ public class ConsumptionResource
 
   private final PermissionService permissionService;
 
+  private final DateRangeValidator dateRangeValidator;
+
   @Inject
   public ConsumptionResource(
       ConsumptionService consumptionService,
       ProductLicense productLicense,
-      PermissionService permissionService)
+      PermissionService permissionService,
+      DateRangeValidator dateRangeValidator)
   {
     this.consumptionService = consumptionService;
     this.productLicense = productLicense;
     this.permissionService = permissionService;
+    this.dateRangeValidator = dateRangeValidator;
   }
 
   @GET
@@ -97,9 +104,16 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getSummary() {
+  public Response getSummary(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
-    ConsumptionSummaryDTO summary = consumptionService.getCurrentMonthSummary(getSubscriptionDay(), getTier());
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
+    ConsumptionSummaryDTO summary = consumptionService.getCurrentMonthSummary(getSubscriptionDay(), getTier(), range);
     return Response.ok(summary).build();
   }
 
@@ -112,9 +126,16 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getHistory() {
+  public Response getHistory(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
-    List<ConsumptionHistoryEntryDTO> history = consumptionService.getMonthlyHistory(getSubscriptionDay());
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
+    List<ConsumptionHistoryEntryDTO> history = consumptionService.getMonthlyHistory(getSubscriptionDay(), range);
     return Response.ok(history).build();
   }
 
@@ -129,10 +150,18 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getHistoryBreakdown(@QueryParam("aggregation") @DefaultValue("monthly") Aggregation aggregation) {
+  public Response getHistoryBreakdown(
+      @QueryParam("aggregation") @DefaultValue("monthly") Aggregation aggregation,
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
     List<ConsumptionHistoryBreakdownDTO> breakdown =
-        consumptionService.getHistoryWithBreakdown(aggregation, getSubscriptionDay());
+        consumptionService.getHistoryWithBreakdown(aggregation, getSubscriptionDay(), range);
     return Response.ok(breakdown).build();
   }
 
@@ -145,10 +174,17 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getHistoryBySource() {
+  public Response getHistoryBySource(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
     List<ConsumptionHistoryBreakdownDTO> breakdown =
-        consumptionService.getMonthlyHistoryBySource(getSubscriptionDay());
+        consumptionService.getMonthlyHistoryBySource(getSubscriptionDay(), range);
     return Response.ok(breakdown).build();
   }
 
@@ -164,10 +200,17 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getHistoryByStage() {
+  public Response getHistoryByStage(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
     List<ConsumptionHistoryBreakdownDTO> breakdown =
-        consumptionService.getMonthlyHistoryByStage(getSubscriptionDay());
+        consumptionService.getMonthlyHistoryByStage(getSubscriptionDay(), range);
     return Response.ok(breakdown).build();
   }
 
@@ -180,9 +223,16 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getTopApps() {
+  public Response getTopApps(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
-    ConsumptionTopAppsResponseDTO topApps = consumptionService.getAllConsumingApps(getSubscriptionDay());
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
+    ConsumptionTopAppsResponseDTO topApps = consumptionService.getAllConsumingApps(getSubscriptionDay(), range);
     return Response.ok(topApps).build();
   }
 
@@ -196,9 +246,16 @@ public class ConsumptionResource
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response getDailyHistory() {
+  public Response getDailyHistory(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 92-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
-    ConsumptionDailyHistoryDTO dto = consumptionService.getDailyHistory(getSubscriptionDay());
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 92);
+    ConsumptionDailyHistoryDTO dto = consumptionService.getDailyHistory(getSubscriptionDay(), range);
     return Response.ok(dto).build();
   }
 
@@ -206,15 +263,24 @@ public class ConsumptionResource
   @Path(EXPORT_PATH)
   @Produces("text/csv")
   @Audited(AuditEvent.EXPORT_CONSUMPTION_HISTORY)
-  @Operation(description = "Export 12-month history as CSV. Requires CONFIGURE_SYSTEM or VIEW_USAGE.",
+  @Operation(description = "Export consumption history as CSV. When startDate/endDate are omitted, defaults to "
+      + "12-month history. Requires CONFIGURE_SYSTEM or VIEW_USAGE.",
       responses = {
         @ApiResponse(responseCode = "200", description = "CSV body"),
+        @ApiResponse(responseCode = "400", description = "Invalid date range"),
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Missing permission")
       })
-  public Response exportCsv() {
+  public Response exportCsv(
+      @Parameter(
+          description = "Start date in YYYY-MM-DD format, inclusive. Optional. Must accompany endDate.") @QueryParam("startDate") String startDate,
+      @Parameter(
+          description = "End date in YYYY-MM-DD format, inclusive. Optional. Must accompany startDate. Max 366-day range inclusive.") @QueryParam("endDate") String endDate)
+  {
     requireAccess();
-    List<ConsumptionHistoryEntryDTO> history = consumptionService.getMonthlyHistory(getSubscriptionDay());
+    Optional<ConsumptionDateRange> range =
+        dateRangeValidator.validate(Optional.ofNullable(startDate), Optional.ofNullable(endDate), 366);
+    List<ConsumptionHistoryEntryDTO> history = consumptionService.getMonthlyHistory(getSubscriptionDay(), range);
     return Csv.generate(Response.ok(), EXPORT_FILE_PREFIX, ConsumptionHistoryEntryDTO.getCsvHeader(), history).build();
   }
 

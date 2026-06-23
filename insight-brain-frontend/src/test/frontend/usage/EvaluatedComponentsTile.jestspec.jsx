@@ -232,4 +232,41 @@ describe('EvaluatedComponentsTile', () => {
     // Honest legend: the "Cumulative Usage" claim is gone for windowed-only data.
     expect(screen.queryByRole('img', { name: /cumulative usage series/i })).not.toBeInTheDocument();
   });
+
+  it('renders tile shell with inline error when /daily-history failed on thisMonth filter', () => {
+    // Regression guard for T9 (manual verification): when a page-level period
+    // range > 92 days makes /daily-history 400 but the other 5 endpoints
+    // succeed, the tile used to return null because all data fell to defaults.
+    // The tile should still render the title and surface the loadErrorDailyHistory
+    // so the user knows why the chart is empty.
+    render(<EvaluatedComponentsTile />, {
+      preloadedState: makeState({
+        summary: { consumed: 1234, limit: 10000 },
+        dailyHistory: null,
+        cumulativeFilter: 'thisMonth',
+        loadErrorDailyHistory: 'Date range exceeds maximum of 92 days',
+      }),
+    });
+    expect(screen.getByText('Cumulative Components Evaluated')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Date range exceeds maximum of 92 days/);
+    // Total Components Evaluated widget still renders from summary.consumed
+    expect(screen.getByText('1,234')).toBeInTheDocument();
+  });
+
+  it('renders tile shell with inline error when /history/breakdown failed on last3Months filter', () => {
+    // The error source switches based on the active filter: last3/6Months
+    // reads cumulativeHistoryBreakdown (from /history/breakdown), so the
+    // chart-empty state should surface loadErrorHistoryBreakdown.
+    render(<EvaluatedComponentsTile />, {
+      preloadedState: makeState({
+        summary: { consumed: 500, limit: 10000 },
+        cumulativeFilter: 'last3Months',
+        cumulativeChartAggregation: 'monthly',
+        cumulativeHistoryBreakdown: [],
+        loadErrorHistoryBreakdown: 'Server error',
+      }),
+    });
+    expect(screen.getByText('Cumulative Components Evaluated')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Server error/);
+  });
 });

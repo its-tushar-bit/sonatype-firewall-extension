@@ -54,6 +54,17 @@ public class DashboardViolationsComponent
     return locator(ROOT + " .iq-dashboard-violation").nth(index);
   }
 
+  /**
+   * The first violation row containing the given application-name substring. Tests use this when
+   * the row index is not predictable (e.g. the table may include unrelated violations from prior
+   * setup). Mirrors {@code ApplicationReportPage.violationRowForComponent}.
+   */
+  public Locator violationRowForApp(String appNameSubstring) {
+    return violations()
+        .filter(new Locator.FilterOptions().setHasText(appNameSubstring))
+        .first();
+  }
+
   public Locator noDataMessage() {
     return locator(ROOT + " .iq-dashboard-violation-entries .nx-table-row:last-child");
   }

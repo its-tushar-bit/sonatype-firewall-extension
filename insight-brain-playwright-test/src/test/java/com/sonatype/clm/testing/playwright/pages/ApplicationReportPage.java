@@ -94,6 +94,19 @@ public class ApplicationReportPage
     return appReportMain().getByPlaceholder("component name");
   }
 
+  public Locator policyNameFilter() {
+    return appReportMain().getByPlaceholder("policy name");
+  }
+
+  /**
+   * CSS-class anchored: RSC composes the column header's accessible name as
+   * {@code "Threat <sortDir>"} (and stamps an SVG layer that leaks into name calculation), so a
+   * role+name locator is fragile across sort states. {@code aria-sort} is asserted by callers.
+   */
+  public Locator threatColumnHeader() {
+    return appReportMain().locator("th.iq-app-report__threat-cell");
+  }
+
   public Locator loadButton() {
     return byRole(AriaRole.BUTTON, "Load More Results");
   }
@@ -279,6 +292,27 @@ public class ApplicationReportPage
     return row.getByRole(AriaRole.CELL).nth(0).getByText(THREAT_NUMBER_PATTERN);
   }
 
+  /**
+   * Sibling of {@link #violationRowThreatNumber} that returns every row's number in one
+   * {@code allInnerTexts()} round-trip, avoiding {@code count()}+{@code nth(i)} TOCTOU races.
+   */
+  public Locator violationRowThreatNumbers() {
+    return violationRows().getByRole(AriaRole.CELL).nth(0).getByText(THREAT_NUMBER_PATTERN);
+  }
+
+  /**
+   * CSS-class anchored: {@code ActiveWaiversIndicator} renders a plain {@code <div>} with no
+   * {@code role}, {@code aria-label}, or {@code aria-labelledby}, so role/label queries are not
+   * viable. The class name is the only stable hook.
+   */
+  public Locator violationRowWaivedIndicator(Locator row) {
+    return row.locator(".iq-waiver-indicator");
+  }
+
+  public Locator violationRowThreatIndicator(Locator row) {
+    return row.getByRole(AriaRole.CELL).nth(0).locator(".nx-threat-indicator");
+  }
+
   public Locator violationRowPolicyName(Locator row) {
     return row.getByRole(AriaRole.CELL).nth(1);
   }
@@ -316,5 +350,15 @@ public class ApplicationReportPage
         .getByRole(AriaRole.ROW)
         .filter(
             new Locator.FilterOptions().setHasText(componentNameSubstring));
+  }
+
+  public Locator violationRowsForPolicy(String policyName) {
+    return violationRows().filter(new Locator.FilterOptions().setHasText(policyName));
+  }
+
+  public Locator violationRowForComponentWithPolicy(String componentNameSubstring, String policyName) {
+    return violationRows()
+        .filter(new Locator.FilterOptions().setHasText(componentNameSubstring))
+        .filter(new Locator.FilterOptions().setHasText(policyName));
   }
 }

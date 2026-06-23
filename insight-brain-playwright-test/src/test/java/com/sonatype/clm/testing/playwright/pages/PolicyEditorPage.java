@@ -283,11 +283,16 @@ public class PolicyEditorPage
     return locator(".nx-submit-mask--success");
   }
 
-  /** Selects the threat level by its rendered "{level} - {label}" option text in the dropdown. */
+  /**
+   * Selects the threat level by its rendered "{level} - {label}" option. {@code setExact(true)}
+   * because the dropdown toggle re-labels to the selected option once open, which would
+   * substring-collide with the new option (e.g. selected "5 - Severe" matches "4 - Severe").
+   */
   public void selectThreatLevel(int level, String label) {
     threatLevelDropdown().click();
-    page.locator("#editor-policy-threat-level")
-        .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName(level + " - " + label))
+    locator("#editor-policy-threat-level")
+        .getByRole(AriaRole.BUTTON,
+            new Locator.GetByRoleOptions().setName(level + " - " + label).setExact(true))
         .click();
   }
 

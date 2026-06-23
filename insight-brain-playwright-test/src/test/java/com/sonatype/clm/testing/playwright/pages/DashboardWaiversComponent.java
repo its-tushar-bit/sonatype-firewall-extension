@@ -45,6 +45,17 @@ public class DashboardWaiversComponent
     return waivers().nth(index);
   }
 
+  /**
+   * The first waiver row containing the given application-name substring. Tests use this when
+   * the row index is not predictable (e.g. the table may include unrelated waivers from prior
+   * setup). Mirrors {@code ApplicationReportPage.violationRowForComponent}.
+   */
+  public Locator waiverRowForApp(String appNameSubstring) {
+    return waivers()
+        .filter(new Locator.FilterOptions().setHasText(appNameSubstring))
+        .first();
+  }
+
   public Locator noDataMessage() {
     return container().getByRole(AriaRole.TABLE).locator("tbody").getByRole(AriaRole.ROW).last();
   }

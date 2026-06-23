@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.playwright.categories.SanityTest;
 import com.sonatype.clm.testing.playwright.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPage;
 import com.sonatype.clm.testing.playwright.pages.ReportListPageAssertions;
+import com.sonatype.clm.testing.playwright.utils.SmallReportFixture;
 import com.sonatype.clm.testing.playwright.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
@@ -60,7 +61,7 @@ public class ReportListPlaywrightTest
 
   private static final String BUILD_REPORT_DIR = "/canned-reports/large-report";
 
-  private static final String STAGE_REPORT_DIR = "/canned-reports/small-report";
+  private static final String STAGE_REPORT_DIR = SmallReportFixture.CANNED_REPORT_DIR;
 
   private static final String NO_MATCH_FILTER = "zzzz-no-app-matches-this";
 

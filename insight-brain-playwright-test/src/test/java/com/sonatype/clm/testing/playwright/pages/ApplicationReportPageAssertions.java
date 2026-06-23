@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.playwright.pages;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import com.microsoft.playwright.Locator;
 
@@ -73,14 +72,74 @@ public class ApplicationReportPageAssertions
     assertThat(page.firstWaivedViolationsIndicator()).isVisible();
   }
 
+  public void shouldShowNoViolationForComponentWithPolicy(String componentNameSubstring, String policyName) {
+    assertThat(page.violationRowForComponentWithPolicy(componentNameSubstring, policyName)).hasCount(0);
+  }
+
+  public void shouldShowViolationCountForPolicy(int expectedCount, String policyName) {
+    assertThat(page.violationRowsForPolicy(policyName)).hasCount(expectedCount);
+  }
+
+  public void shouldShowViolationRow(
+      String componentNameSubstring,
+      int expectedThreatLevel,
+      String expectedPolicyName)
+  {
+    Locator row = page.violationRowForComponentWithPolicy(componentNameSubstring, expectedPolicyName).first();
+    assertThat(row).isVisible();
+    assertThat(page.violationRowThreatNumber(row)).hasText(String.valueOf(expectedThreatLevel));
+    assertThat(page.violationRowPolicyName(row)).containsText(expectedPolicyName);
+    assertThat(page.violationRowComponentName(row)).containsText(componentNameSubstring);
+  }
+
+  public void shouldShowNoPolicyViolations(String policyName) {
+    assertThat(page.violationRowsForPolicy(policyName)).hasCount(0);
+  }
+
+  public void shouldShowWaivedIndicatorForComponentWithPolicy(
+      String componentNameSubstring,
+      String policyName)
+  {
+    Locator row = page.violationRowForComponentWithPolicy(componentNameSubstring, policyName).first();
+    assertThat(row).isVisible();
+    assertThat(page.violationRowWaivedIndicator(row)).isVisible();
+  }
+
+  public void shouldNotShowWaivedIndicatorForComponentWithPolicy(
+      String componentNameSubstring,
+      String policyName)
+  {
+    Locator row = page.violationRowForComponentWithPolicy(componentNameSubstring, policyName).first();
+    assertThat(row).isVisible();
+    assertThat(page.violationRowWaivedIndicator(row)).hasCount(0);
+  }
+
+  public void shouldShowViolationRowWithThreatCategory(
+      String componentNameSubstring,
+      int expectedThreatLevel,
+      String expectedPolicyName,
+      String expectedCategory)
+  {
+    Locator row = page.violationRowForComponentWithPolicy(componentNameSubstring, expectedPolicyName).first();
+    assertThat(row).isVisible();
+    assertThat(page.violationRowThreatNumber(row)).hasText(String.valueOf(expectedThreatLevel));
+    assertThat(page.violationRowPolicyName(row)).containsText(expectedPolicyName);
+    assertThat(page.violationRowComponentName(row)).containsText(componentNameSubstring);
+    String expectedClass = "nx-threat-indicator--" + expectedCategory;
+    assertThat(page.violationRowThreatIndicator(row)).hasClass(BasePage.cssClassPattern(expectedClass));
+  }
+
   public void shouldShowViolationsSortedByThreatDescending() {
-    Locator violationRows = page.violationRows();
-    assertThat(violationRows.first()).isVisible();
-    List<Integer> threatNums = IntStream.range(0, violationRows.count())
-        .mapToObj(i -> {
-          String text = page.violationRowThreatNumber(violationRows.nth(i)).innerText().trim();
+    assertThat(page.violationRows().first()).isVisible();
+    // Single atomic `allInnerTexts()` round-trip — avoids `count()`+`nth(i)` TOCTOU races
+    // where the row collection can change between the two calls during a re-sort animation.
+    List<Integer> threatNums = page.violationRowThreatNumbers()
+        .allInnerTexts()
+        .stream()
+        .map(String::trim)
+        .map(text -> {
           Assertions.assertThat(text)
-              .as("threat number in row %d should be a digit", i)
+              .as("threat-number cell text should be numeric — got '%s'", text)
               .matches("^\\d+$");
           return Integer.parseInt(text);
         })

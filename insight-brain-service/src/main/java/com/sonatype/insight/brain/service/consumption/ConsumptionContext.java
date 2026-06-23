@@ -47,6 +47,14 @@ public final class ConsumptionContext
 
   private String sessionId;
 
+  /**
+   * Set by {@code ComponentRemediationService.getComponentDependencies} around the cascade
+   * {@code rest/component/dependencies} POST so {@link com.sonatype.insight.brain.hds.HdsClient}
+   * skips the per-cascade VR event (CLM-40771 Define AC #2). Request-scope only — intentionally
+   * NOT carried by {@link Snapshot}, so background-job propagation is unaffected.
+   */
+  private boolean suppressVrCascade;
+
   private ConsumptionContext() {
   }
 
@@ -142,6 +150,24 @@ public final class ConsumptionContext
 
   public void setSessionId(String sessionId) {
     this.sessionId = sessionId;
+  }
+
+  public boolean isSuppressVrCascade() {
+    return suppressVrCascade;
+  }
+
+  /**
+   * Returns an {@link AutoCloseable} that sets {@code suppressVrCascade=true} on the current
+   * thread's context (if any) and restores the prior value on close. Use with try-with-resources
+   * to guarantee restore even if the wrapped call throws (CLM-40771).
+   */
+  public static SuppressVrCascadeScope suppressVrCascadeScope() {
+    return new SuppressVrCascadeScope(get());
+  }
+
+  /** Package-private — callers outside the package must use {@link #suppressVrCascadeScope()}. */
+  void setSuppressVrCascade(boolean suppressVrCascade) {
+    this.suppressVrCascade = suppressVrCascade;
   }
 
   public static void initBackgroundJob(ProductLicense productLicense) {
@@ -285,5 +311,29 @@ public final class ConsumptionContext
     Scope scope = new Scope();
     restoreAndScope(snapshot, appId, scanId);
     return scope;
+  }
+
+  public static final class SuppressVrCascadeScope
+      implements AutoCloseable
+  {
+    @Nullable
+    private final ConsumptionContext ctx;
+
+    private final boolean previous;
+
+    private SuppressVrCascadeScope(@Nullable ConsumptionContext ctx) {
+      this.ctx = ctx;
+      this.previous = ctx != null && ctx.suppressVrCascade;
+      if (ctx != null) {
+        ctx.suppressVrCascade = true;
+      }
+    }
+
+    @Override
+    public void close() {
+      if (ctx != null) {
+        ctx.suppressVrCascade = previous;
+      }
+    }
   }
 }

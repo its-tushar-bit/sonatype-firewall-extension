@@ -327,6 +327,60 @@ public class HdsClientRecordConsumptionTest
     verifyNoInteractions(mockRecorder);
   }
 
+  @Test
+  public void recordConsumption_versionRecommendation_suppressedForComponentDetailsPageLoad() throws Exception {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/com.example/foo@1.0.0");
+    ComponentDependenciesDTO response = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
+    serveJson(response);
+
+    ConsumptionContext.set(ORG_ID, TIER, SOURCE);
+    ConsumptionContext.get().setScanId("scan-vr-suppress");
+    ConsumptionContext.get().setSessionId("session-vr-suppress");
+
+    try (var ignored = ConsumptionContext.suppressVrCascadeScope()) {
+      client.post(ComponentDependenciesDTO.class, "rest/component/dependencies", List.of(purl));
+    }
+
+    verifyNoInteractions(mockRecorder);
+  }
+
+  @Test
+  public void recordConsumption_versionRecommendation_emittedForRemediationFlowsOutsidePageLoad() throws Exception {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/com.example/foo@1.0.0");
+    ComponentDependenciesDTO response = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
+    serveJson(response);
+
+    ConsumptionContext.set(ORG_ID, TIER, SOURCE);
+    ConsumptionContext.get().setScanId("scan-vr-emit");
+    ConsumptionContext.get().setSessionId("session-vr-emit");
+
+    client.post(ComponentDependenciesDTO.class, "rest/component/dependencies", List.of(purl));
+
+    ArgumentCaptor<ConsumptionEvent> captor = ArgumentCaptor.forClass(ConsumptionEvent.class);
+    verify(mockRecorder, times(1)).record(captor.capture());
+    assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.VERSION_RECOMMENDATION);
+  }
+
+  @Test
+  public void recordConsumption_directApiRequest_precedesSuppressVrCascade() throws Exception {
+    // Direct-API calls are remapped to ActivityType.API before the suppression check, so an API
+    // event MUST still fire for per-call billing even when suppressVrCascade=true is set.
+    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/com.example/foo@1.0.0");
+    ComponentDependenciesDTO response = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
+    serveJson(response);
+
+    ConsumptionContext.set(ORG_ID, TIER, SOURCE, /* directApiRequest */ true);
+    ConsumptionContext.get().setScanId("scan-api-precedence");
+    ConsumptionContext.get().setSessionId("session-api-precedence");
+    ConsumptionContext.get().setSuppressVrCascade(true);
+
+    client.post(ComponentDependenciesDTO.class, "rest/component/dependencies", List.of(purl));
+
+    ArgumentCaptor<ConsumptionEvent> captor = ArgumentCaptor.forClass(ConsumptionEvent.class);
+    verify(mockRecorder, times(1)).record(captor.capture());
+    assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.API);
+  }
+
   // -------------------------------------------------------------------------
   // Helper: configure the Jetty handler to return a JSON-serialised payload
   // -------------------------------------------------------------------------

@@ -956,6 +956,12 @@ public class HdsClient
       // applies to UI-driven flows; API requests fall through to the count-based path.
       ActivityType effectiveType = ctx.isDirectApiRequest() ? ActivityType.API : match.activityType();
 
+      if (effectiveType == ActivityType.VERSION_RECOMMENDATION && ctx.isSuppressVrCascade()) {
+        log.debug("Skipping VERSION_RECOMMENDATION cascade event for path {} orgId {} (CD page-load)",
+            path, ctx.getOrgId());
+        return;
+      }
+
       if (effectiveType == ActivityType.DEVELOPER_PRIORITIES
           && result instanceof AffectedComponentList payload)
       {

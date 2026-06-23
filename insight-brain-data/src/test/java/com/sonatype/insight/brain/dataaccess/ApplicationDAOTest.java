@@ -361,6 +361,48 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testGetByRepositoryUrls_emptyInputReturnsEmptyMap() {
+    assertThat(applicationDAO.getByRepositoryUrls(Collections.emptySet())).isEmpty();
+    assertThat(applicationDAO.getByRepositoryUrls(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetByRepositoryUrls_groupsByNormalizedUrlAndIgnoresMisses() {
+    // given: two URLs that have apps (one with two apps, one with one), one app with no SCM, and one URL with no apps
+    final String repositoryUrl1 = "http://test.gitlab.com/org/repo-one";
+    final String repositoryUrl2 = "http://test.gitlab.com/org/repo-two";
+    final String repositoryUrlMissing = "http://test.gitlab.com/org/no-such-repo";
+
+    tempEntity.newSourceControl(organization.getParentOrganizationId(), null, "token", SourceControlProvider.GITLAB);
+
+    // appA, appB → repositoryUrl1
+    tempEntity.newApplicationWithSpecificId("appA", "application A", "appA", organization.getId());
+    tempEntity.newSourceControl("appA", repositoryUrl1);
+    tempEntity.newApplicationWithSpecificId("appB", "application B", "appB", organization.getId());
+    tempEntity.newSourceControl("appB", repositoryUrl1);
+
+    // appC → repositoryUrl2
+    tempEntity.newApplicationWithSpecificId("appC", "application C", "appC", organization.getId());
+    tempEntity.newSourceControl("appC", repositoryUrl2);
+
+    // appD has no SCM at all
+    tempEntity.newApplicationWithSpecificId("appD", "application D", "appD", organization.getId());
+
+    // when: batch-fetch by all three URLs (including the one with no matches) in a single call
+    Map<String, List<Application>> byUrl = applicationDAO.getByRepositoryUrls(
+        Arrays.asList(repositoryUrl1, repositoryUrl2, repositoryUrlMissing));
+
+    // then: only URLs with matches are present, keys are normalized, and each list contains the correct apps
+    String normalizedUrl1 = SourceControl.normalizeRepositoryUrl(repositoryUrl1);
+    String normalizedUrl2 = SourceControl.normalizeRepositoryUrl(repositoryUrl2);
+    assertThat(byUrl).containsOnlyKeys(normalizedUrl1, normalizedUrl2);
+    assertThat(byUrl.get(normalizedUrl1).stream().map(Application::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("appA", "appB");
+    assertThat(byUrl.get(normalizedUrl2).stream().map(Application::getId).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("appC");
+  }
+
+  @Test
   public void testGetApplicationsByTagIds() {
     int numApplications = 3;
     Tag tag1 = tempEntity.newTag(organization.getId(), "foo");

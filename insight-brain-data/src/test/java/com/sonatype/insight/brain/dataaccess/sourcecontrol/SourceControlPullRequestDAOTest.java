@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO.RepoUrlPrIdKey;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
@@ -139,6 +142,64 @@ public class SourceControlPullRequestDAOTest
     List<SourceControlPullRequest> sourceControlPullRequests = dao.getAll();
     assertThat(sourceControlPullRequests).hasSize(1);
     assertThat(sourceControlPullRequests.get(0).getId()).isEqualTo(sourceControlPullRequest.getId());
+  }
+
+  @Test
+  public void testGetExistingKeysByRepositoryUrlAndPullRequestId_emptyAndNullInputs() {
+    assertThat(dao.getExistingKeysByRepositoryUrlAndPullRequestId(Collections.emptySet())).isEmpty();
+    assertThat(dao.getExistingKeysByRepositoryUrlAndPullRequestId(null)).isEmpty();
+  }
+
+  @Test
+  public void testGetExistingKeysByRepositoryUrlAndPullRequestId_returnsOnlyHits() {
+    // given: three persisted PRs across two repo URLs
+    tempEntity.newSourceControlPullRequest("repoUrl1", 1, "sha", "b-sha", "feature-1", "main");
+    tempEntity.newSourceControlPullRequest("repoUrl1", 2, "sha", "b-sha", "feature-2", "main");
+    tempEntity.newSourceControlPullRequest("repoUrl2", 1, "sha", "b-sha", "feature-3", "main");
+
+    // when: asked about a mix of existing and non-existing keys (including a key that would be a
+    // cartesian-product "false match" if the implementation forgot to filter)
+    RepoUrlPrIdKey hit1 = new RepoUrlPrIdKey("repoUrl1", 1);
+    RepoUrlPrIdKey hit2 = new RepoUrlPrIdKey("repoUrl2", 1);
+    RepoUrlPrIdKey missingPrId = new RepoUrlPrIdKey("repoUrl1", 99);
+    RepoUrlPrIdKey missingRepo = new RepoUrlPrIdKey("repoUrl3", 1);
+    // would surface as a hit if the impl returned the cartesian product of urls × ids instead of filtering
+    RepoUrlPrIdKey cartesianGhost = new RepoUrlPrIdKey("repoUrl2", 2);
+
+    Set<RepoUrlPrIdKey> existing = dao.getExistingKeysByRepositoryUrlAndPullRequestId(
+        Arrays.asList(hit1, hit2, missingPrId, missingRepo, cartesianGhost));
+
+    // then: only the truly persisted (url, id) pairs are returned
+    assertThat(existing).containsExactlyInAnyOrder(hit1, hit2);
+  }
+
+  @Test
+  public void testGetExistingKeysByRepositoryUrlAndPullRequestId_acrossChunkBoundary() {
+    // given: enough PRs to exceed the H2 IN-clause threshold (2000), forcing chunked execution.
+    // We use 2005 keys to cross exactly one chunk boundary and verify the union of results is correct.
+    // Each PR has a unique (repoUrl, prId) pair to avoid cartesian-product over-fetch in the test setup.
+    int keyCount = 2005;
+    List<RepoUrlPrIdKey> insertedKeys = new java.util.ArrayList<>();
+    for (int i = 0; i < keyCount; i++) {
+      String repoUrl = "repoUrl" + i; // unique repo URL per PR to avoid cross-product
+      int prId = i;
+      tempEntity.newSourceControlPullRequest(repoUrl, prId, "sha-" + i, "b-sha", "branch-" + i, "main");
+      insertedKeys.add(new RepoUrlPrIdKey(repoUrl, prId));
+    }
+
+    // and: two keys that should NOT exist
+    RepoUrlPrIdKey miss1 = new RepoUrlPrIdKey("repoUrl-nonexistent", 99999);
+    RepoUrlPrIdKey miss2 = new RepoUrlPrIdKey("repoUrl-miss", 99998);
+
+    // when: querying for all inserted keys plus the miss keys
+    List<RepoUrlPrIdKey> queryKeys = new java.util.ArrayList<>(insertedKeys);
+    queryKeys.add(miss1);
+    queryKeys.add(miss2);
+    Set<RepoUrlPrIdKey> existing = dao.getExistingKeysByRepositoryUrlAndPullRequestId(queryKeys);
+
+    // then: exactly the inserted keys are returned (no more, no less)
+    assertThat(existing).hasSize(keyCount);
+    assertThat(existing).containsExactlyInAnyOrderElementsOf(insertedKeys);
   }
 
   @Test

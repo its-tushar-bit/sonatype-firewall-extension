@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -46,12 +47,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.atLeastOnce;
@@ -427,6 +430,54 @@ public class PullRequestPollingServiceTest
     assertThat(actual.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
     assertThat(actual.getState()).isEqualTo(pullRequestState);
     assertThat(actual.getSource()).isEqualTo(PullRequestSource.EXTERNAL);
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_pullRequestAlreadyPersisted_doesNotInsertDuplicate() throws IOException {
+    // Characterization test for CLM-39624 (N+1 query refactor):
+    // When a polling cycle re-discovers a PR that already has a row in source_control_pull_request,
+    // no duplicate row is inserted, but the discovered-PR event is still published. Both behaviors
+    // must survive the upcoming refactor that replaces the per-PR getByRepositoryUrlAndPullRequestId
+    // lookup with a single batch lookup.
+    final String repositoryUrl = "https://domain.com/dedupOrg/dedupRepo";
+    final int pullRequestId = 42;
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    final Date previouslySeen = new Date(System.currentTimeMillis() - 60_000);
+
+    // given: an existing source_control_pull_request row (e.g. left over from a prior cycle)
+    tempEntity.newSourceControlPullRequest(repositoryUrl, pullRequestId,
+        "previous-head-commit", "previous-base-commit", "feature-branch", "main-branch",
+        pullRequestCreateDate, previouslySeen, previouslySeen,
+        com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.OPEN,
+        PullRequestSource.EXTERNAL);
+
+    // and: a polling cycle in which SCM returns the same open PR again
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("dedupOrg/dedupRepo", SourceControlProvider.GITHUB)
+        .withApplication("appDedup", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(pullRequestId, pullRequestCreateDate, "feature-branch", "main-branch",
+            "feature-commit-xyz-1", "base-commit", PullRequestState.OPEN)
+        .build();
+
+    // when: the cycle runs
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: exactly one row remains -- the pre-existing one. Headcommit unchanged confirms the
+    // persistPullRequest path did not fire (it would have inserted a row with "feature-commit-xyz-1").
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest persisted = sourceControlPullRequests.get(0);
+    assertThat(persisted.getRepositoryUrl()).isEqualTo(repositoryUrl);
+    assertThat(persisted.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(persisted.getHeadCommitHash()).isEqualTo("previous-head-commit");
+
+    // and: the discovered-PR event still fires -- event emission lives outside the existence check
+    verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesContain(
+        info("Sent pull request discovered event for application 'appDedup' with PR# '42' and commit "
+            + "'feature-commit-xyz-1'"));
   }
 
   @Test
@@ -845,6 +896,64 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
+  public void testFetchAndSendPullRequestsForCommenting_batchDaoMethodsInvokedOncePerCycle() throws Exception {
+    // CLM-39624: the dedup path inside fetchAndSendPullRequestsForCommenting used to issue
+    // * one applicationDAO.getByRepositoryUrl per PR
+    // * one sourceControlUtils.getGitRepositoryInfoForApplication per (PR × app)
+    // * one sourceControlPullRequestDAO.getByRepositoryUrlAndPullRequestId per (PR × app)
+    // After the refactor each of those collapses to exactly one batch call per polling cycle, regardless of how
+    // many PRs and apps participate. This test pins that contract: spy the real DAOs and assert call counts.
+    //
+    // Scenario: two repos, two apps per repo (one inherits SCM via shared repo URL), one PR per repo. The pre-
+    // refactor implementation would have issued 2 + 4 + 4 = 10 DAO/util calls; the new implementation issues 3.
+    applicationDAO = spy(applicationDAO);
+    sourceControlPullRequestDAO = spy(sourceControlPullRequestDAO);
+
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 5000);
+    TestablePullRequestPollingServiceBuilder builder = new TestablePullRequestPollingServiceBuilder();
+    PullRequestPollingService pollingService = builder
+        .forRepository("orgBatch/repo-a", SourceControlProvider.GITHUB)
+        .withApplication("appBatchA1", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(11, pullRequestCreateDate, "feature-a", "main-branch",
+            "commit-a", "base-a", PullRequestState.OPEN)
+
+        .forRepository("orgBatch/repo-a", SourceControlProvider.GITHUB)
+        .withApplication("appBatchA2", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+
+        .forRepository("orgBatch/repo-b", SourceControlProvider.GITHUB)
+        .withApplication("appBatchB1", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(22, pullRequestCreateDate, "feature-b", "main-branch",
+            "commit-b", "base-b", PullRequestState.OPEN)
+
+        .forRepository("orgBatch/repo-b", SourceControlProvider.GITHUB)
+        .withApplication("appBatchB2", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .build();
+
+    // when: one polling cycle runs
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: each new batch method is invoked exactly once for the whole cycle
+    verify(builder.mockSourceControlUtils, times(1)).getGitRepositoryInfoForApplications(any());
+    verify(applicationDAO, times(1)).getByRepositoryUrls(any());
+    verify(sourceControlPullRequestDAO, times(1)).getExistingKeysByRepositoryUrlAndPullRequestId(any());
+
+    // and: the old per-iteration methods are never invoked by the dedup path (the singular variant on
+    // SourceControlUtils is intentionally not asserted on: the test's mock for the batch method delegates to it).
+    verify(applicationDAO, never()).getByRepositoryUrl(anyString());
+    verify(sourceControlPullRequestDAO, never()).getByRepositoryUrlAndPullRequestId(any(), anyInt());
+
+    // and: behavior is preserved — both PRs are persisted (no pre-existing rows) and one event per (PR, app)
+    // pair is published (2 PRs × 2 apps each = 4 events).
+    assertThat(sourceControlPullRequestDAO.getAll()).hasSize(2);
+    verify(sourceControlEventPublisher, times(4)).publishEvent(any(SourceControlEvent.class));
+  }
+
+  @Test
   public void testFetchAndSendPullRequests_WithPATAuthentication() throws Exception {
     final Date pullRequestCreateDate = new Date();
     final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
@@ -981,6 +1090,24 @@ public class PullRequestPollingServiceTest
 
         doReturn(pullRequestCommentingSupported).when(mockLicenseChecker).isPullRequestCommentingSupported();
       }
+
+      // Stub the CLM-39624 batch entry point on SourceControlUtils. The mock framework has no default for the
+      // new method, so without this every test would silently get an empty Map back and every PR-discovery
+      // path would skip. Delegate to the per-app stubs configured above to preserve identical behavior.
+      doAnswer(invocation -> {
+        Collection<String> appIds = invocation.getArgument(0);
+        Map<String, GitRepositoryInfo> result = new HashMap<>();
+        for (String appId : appIds) {
+          if (appId == null) {
+            continue;
+          }
+          GitRepositoryInfo info = mockSourceControlUtils.getGitRepositoryInfoForApplication(appId);
+          if (info != null) {
+            result.put(appId, info);
+          }
+        }
+        return result;
+      }).when(mockSourceControlUtils).getGitRepositoryInfoForApplications(any());
 
       return new PullRequestPollingService(applicationDAO, sourceControlDAO,
           sourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,

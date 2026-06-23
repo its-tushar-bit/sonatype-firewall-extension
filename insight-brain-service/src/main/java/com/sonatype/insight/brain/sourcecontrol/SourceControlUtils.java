@@ -10,6 +10,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -74,6 +80,39 @@ public class SourceControlUtils
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(SourceControl sourceControl, String applicationId) {
     return getGitRepositoryInfoForApplicationInternal(sourceControl, applicationId);
+  }
+
+  /**
+   * Batch variant of {@link #getGitRepositoryInfoForApplication(String)}. Resolves each unique application ID exactly
+   * once and returns a {@code Map<applicationId, GitRepositoryInfo>}. Application IDs whose resolution returns
+   * {@code null} (no SCM at app level, or org-hierarchy fallback that doesn't apply) are absent from the map.
+   *
+   * <p>
+   * The composite-source-control lookup itself is still per-application (org-hierarchy traversal isn't trivially
+   * batchable in one SQL); the win this method delivers is collapsing the (PR × App) cross product so an application
+   * referenced by many pull requests in one polling cycle is resolved only once.
+   */
+  public Map<String, GitRepositoryInfo> getGitRepositoryInfoForApplications(Collection<String> applicationIds) {
+    if (applicationIds == null || applicationIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Set<String> uniqueIds = new HashSet<>();
+    for (String id : applicationIds) {
+      if (id != null) {
+        uniqueIds.add(id);
+      }
+    }
+    if (uniqueIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, GitRepositoryInfo> result = new HashMap<>();
+    for (String applicationId : uniqueIds) {
+      GitRepositoryInfo info = getGitRepositoryInfoForApplication(applicationId);
+      if (info != null) {
+        result.put(applicationId, info);
+      }
+    }
+    return result;
   }
 
   /**

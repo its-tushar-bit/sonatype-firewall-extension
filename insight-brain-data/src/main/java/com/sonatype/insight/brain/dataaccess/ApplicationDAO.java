@@ -6,12 +6,15 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -744,6 +747,46 @@ public class ApplicationDAO
           .on(APPLICATION.APPLICATION_ID.eq(SOURCE_CONTROL.OWNER_ID))
           .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.eq(repositoryUrl))
           .fetch(this::toEntity);
+    }
+  }
+
+  /**
+   * Batch variant of {@link #getByRepositoryUrl(String)}. For every input URL it returns the #Application objects
+   * associated with that URL via #SourceControl entries, keyed by normalized URL. URLs with no associated applications
+   * are simply absent from the map (callers should use {@link Map#getOrDefault} with {@link List#of}).
+   * <p>
+   * Issues a single IN-clause query (chunked by the inherited #AbstractSqlDAO threshold) instead of one query per URL.
+   */
+  public Map<String, List<Application>> getByRepositoryUrls(Collection<String> repositoryUrls) {
+    if (repositoryUrls == null || repositoryUrls.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Set<String> normalizedUrls = repositoryUrls.stream()
+        .filter(Objects::nonNull)
+        .map(SourceControl::normalizeRepositoryUrl)
+        .collect(Collectors.toSet());
+    if (normalizedUrls.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      List<org.jooq.Record> rows = getListWithSqlInClause(normalizedUrls,
+          urls -> tx.dsl()
+              .select(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL)
+              .select(APPLICATION.fields())
+              .from(APPLICATION)
+              .join(SOURCE_CONTROL)
+              .on(APPLICATION.APPLICATION_ID.eq(SOURCE_CONTROL.OWNER_ID))
+              .where(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL.in(urls))
+              .fetch());
+
+      Map<String, List<Application>> result = new HashMap<>();
+      for (org.jooq.Record row : rows) {
+        String url = row.get(SOURCE_CONTROL.NORMALIZED_REPOSITORY_URL);
+        Application app = toEntity(row.into(APPLICATION));
+        result.computeIfAbsent(url, k -> new ArrayList<>()).add(app);
+      }
+      return result;
     }
   }
 

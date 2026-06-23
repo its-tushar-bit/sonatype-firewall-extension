@@ -9,9 +9,12 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -19,6 +22,7 @@ import jakarta.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO.RepoUrlPrIdKey;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
@@ -144,11 +148,49 @@ public class PullRequestPollingService
 
     // the pull requests we get back can be for any app that the related org and key have access to
     List<PullRequest> pullRequests = getPullRequestsFromScm(pollingTracker);
+    if (pullRequests.isEmpty()) {
+      return;
+    }
+
+    // Resolve the three lookups (apps for these repo URLs, GitRepositoryInfo for those apps, existing PR rows
+    // for the (repoUrl, prId) pairs we'd persist) once per cycle instead of per (PR, App). One SCM key in SaaS
+    // commonly fans out to hundreds of apps, and that cross product was the dominant DB cost.
+    Set<String> normalizedRepoUrls = pullRequests.stream()
+        .map(PullRequest::getRepository)
+        .map(SourceControl::normalizeRepositoryUrl)
+        .collect(Collectors.toSet());
+    Map<String, List<Application>> appsByRepoUrl = applicationDAO.getByRepositoryUrls(normalizedRepoUrls);
+
+    Set<String> applicationIds = appsByRepoUrl.values()
+        .stream()
+        .flatMap(List::stream)
+        .map(Application::getId)
+        .collect(Collectors.toSet());
+    Map<String, GitRepositoryInfo> gitInfoByAppId =
+        sourceControlUtils.getGitRepositoryInfoForApplications(applicationIds);
+
+    Set<RepoUrlPrIdKey> wantedKeys = new HashSet<>();
+    for (PullRequest pr : pullRequests) {
+      String normalizedUrl = SourceControl.normalizeRepositoryUrl(pr.getRepository());
+      for (Application app : appsByRepoUrl.getOrDefault(normalizedUrl, List.of())) {
+        GitRepositoryInfo info = gitInfoByAppId.get(app.getId());
+        if (info != null) {
+          wantedKeys.add(new RepoUrlPrIdKey(info.repositoryUrl, pr.getNumber()));
+        }
+      }
+    }
+    // Mutated below: each successful persist within this cycle adds its key so a later (PR, App) iteration
+    // landing on the same key skips the insert. Ensures at most one INSERT per (repoUrl, prId) per cycle.
+    Set<RepoUrlPrIdKey> existingKeys =
+        new HashSet<>(sourceControlPullRequestDAO.getExistingKeysByRepositoryUrlAndPullRequestId(wantedKeys));
+
     for (PullRequest pullRequest : pullRequests) {
+      String normalizedUrl = SourceControl.normalizeRepositoryUrl(pullRequest.getRepository());
       // we'll check all apps associated with the pull request's repository
-      List<Application> applications = applicationDAO.getByRepositoryUrl(pullRequest.getRepository());
-      for (Application app : applications) {
-        GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
+      for (Application app : appsByRepoUrl.getOrDefault(normalizedUrl, List.of())) {
+        // Null when the app's SCM record didn't resolve (no app-level SourceControl, or org-hierarchy fallback
+        // didn't apply). The eligibility guards below treat null as "not eligible".
+        GitRepositoryInfo gitRepositoryInfo = gitInfoByAppId.get(app.getId());
 
         if (!pullRequestCommentingEligibilityValidator.isPullRequestCommentingEnabled(gitRepositoryInfo)) {
           log.trace("Pull request commenting is disabled for application '{}'. We will not comment on it.",
@@ -171,9 +213,8 @@ public class PullRequestPollingService
               gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
         }
         else {
-          String repositoryUrl = gitRepositoryInfo.repositoryUrl;
-          int pullRequestId = pullRequest.getNumber();
-          if (sourceControlPullRequestDAO.getByRepositoryUrlAndPullRequestId(repositoryUrl, pullRequestId) == null) {
+          RepoUrlPrIdKey key = new RepoUrlPrIdKey(gitRepositoryInfo.repositoryUrl, pullRequest.getNumber());
+          if (existingKeys.add(key)) {
             persistPullRequest(pullRequest);
           }
           createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest);

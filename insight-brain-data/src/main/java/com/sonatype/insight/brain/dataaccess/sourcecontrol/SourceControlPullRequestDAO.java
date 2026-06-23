@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -176,6 +179,57 @@ public class SourceControlPullRequestDAO
           .limit(1)
           .fetchOne());
     }
+  }
+
+  /**
+   * Composite (repositoryUrl, pullRequestId) key used by
+   * {@link #getExistingKeysByRepositoryUrlAndPullRequestId(Collection)}.
+   */
+  public record RepoUrlPrIdKey(String repositoryUrl, int pullRequestId)
+  {
+  }
+
+  /**
+   * Returns the subset of input (repositoryUrl, pullRequestId) keys for which a row already exists in
+   * source_control_pull_request. Each IN dimension is chunked independently via nested
+   * {@link com.sonatype.insight.brain.dataaccess.AbstractSqlDAO#getListWithSqlInClause} calls so neither side
+   * exceeds the per-vendor IN-clause threshold; the underlying SQL is
+   * {@code WHERE repository_url IN (...) AND pull_request_id IN (...)} (not a tuple-IN), so the database can return
+   * rows for (urlA, prB) combinations not present in the input — the in-memory
+   * {@code requested.contains(candidate)} filter discards those before returning.
+   */
+  public Set<RepoUrlPrIdKey> getExistingKeysByRepositoryUrlAndPullRequestId(Collection<RepoUrlPrIdKey> keys) {
+    if (keys == null || keys.isEmpty()) {
+      return Collections.emptySet();
+    }
+    Set<RepoUrlPrIdKey> requested = new HashSet<>(keys);
+    Set<String> repositoryUrls = requested.stream()
+        .map(RepoUrlPrIdKey::repositoryUrl)
+        .collect(Collectors.toSet());
+    Set<Integer> pullRequestIds = requested.stream()
+        .map(RepoUrlPrIdKey::pullRequestId)
+        .collect(Collectors.toSet());
+
+    List<org.jooq.Record2<String, Integer>> rows = getListWithSqlInClause(repositoryUrls,
+        urlChunk -> getListWithSqlInClause(pullRequestIds, prIdChunk -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            return tx.dsl()
+                .select(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL, SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID)
+                .from(SOURCE_CONTROL_PULL_REQUEST)
+                .where(SOURCE_CONTROL_PULL_REQUEST.REPOSITORY_URL.in(urlChunk))
+                .and(SOURCE_CONTROL_PULL_REQUEST.PULL_REQUEST_ID.in(prIdChunk))
+                .fetch();
+          }
+        }));
+
+    Set<RepoUrlPrIdKey> result = new HashSet<>();
+    for (org.jooq.Record2<String, Integer> row : rows) {
+      RepoUrlPrIdKey candidate = new RepoUrlPrIdKey(row.value1(), row.value2());
+      if (requested.contains(candidate)) {
+        result.add(candidate);
+      }
+    }
+    return result;
   }
 
   /**

@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
@@ -27,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO.StageEvaluationWindow;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -145,8 +145,12 @@ public class ApiCrossStageViolationService
         .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
         .collect(Collectors.toList());
 
-    policyViolationDAO.loadConstraintFacts(Collections.singletonList(constituentViolation));
-    policyViolationDAO.loadConstraintFacts(allApplicableViolations);
+    // constituentViolation is a distinct instance from its same-id entry in allApplicableViolations, so it needs its
+    // own facts loaded for the comparator.
+    List<PolicyViolation> violationsNeedingConstraintFacts = new ArrayList<>(allApplicableViolations);
+    violationsNeedingConstraintFacts.add(constituentViolation);
+    policyViolationDAO.loadConstraintFacts(violationsNeedingConstraintFacts);
+
     Collection<PolicyViolation> violationsToMerge = getViolationsToMerge(constituentViolation, allApplicableViolations,
         allowEarlierViolations);
     Collection<PolicyEvaluation> evaluationsForViolationsToMerge = getEvaluationsForViolations(violationsToMerge);
@@ -155,10 +159,18 @@ public class ApiCrossStageViolationService
   }
 
   private Collection<PolicyEvaluation> getEvaluationsForViolations(Collection<PolicyViolation> violations) {
-    return violations.stream()
-        .map(this::getLatestEvaluationForViolation)
-        .filter(Objects::nonNull)
+    if (violations.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // all violations share an applicationId: they originate from getByApplicationIdAndPolicyIdAndHash
+    String applicationId = violations.iterator().next().getApplicationId();
+    List<StageEvaluationWindow> windows = violations.stream()
+        .map(violation -> new StageEvaluationWindow(violation.getStageTypeId(), violation.getOpenTime(),
+            getEvaluationMaxDate(violation)))
         .collect(Collectors.toList());
+
+    return policyEvaluationDAO.getLatestEvaluationPerWindow(applicationId, windows);
   }
 
   private Collection<PolicyViolation> getViolationsToMerge(
@@ -243,17 +255,9 @@ public class ApiCrossStageViolationService
     return retval;
   }
 
-  private PolicyEvaluation getLatestEvaluationForViolation(PolicyViolation violation) {
+  private Date getEvaluationMaxDate(PolicyViolation violation) {
     // for auto-waived violations, we don't care about the max date, we just want the latest evaluation
-    Date maxDate = violation.isAutoWaived() ? null : violation.getFixOrWaiveTime();
-
-    PolicyEvaluation latestEvaluationForViolation = policyEvaluationDAO.getLastInTimeRangeByApplicationAndStage(
-        violation.getApplicationId(),
-        violation.getStageTypeId(),
-        violation.getOpenTime(),
-        maxDate);
-
-    return latestEvaluationForViolation;
+    return violation.isAutoWaived() ? null : violation.getFixOrWaiveTime();
   }
 
   private ApiCrossStageViolationDTOV2 createDto(

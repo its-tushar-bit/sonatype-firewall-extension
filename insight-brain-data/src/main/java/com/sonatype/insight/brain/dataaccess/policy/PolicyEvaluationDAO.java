@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -27,11 +30,13 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
+import org.jooq.Select;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LastPolicyEvaluation.LAST_POLICY_EVALUATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.PolicyEvaluation.POLICY_EVALUATION;
+import com.sonatype.insight.brain.jooq.generated.ods.tables.records.PolicyEvaluationRecord;
 
 /**
  * @since 1.11
@@ -504,6 +509,54 @@ public class PolicyEvaluationDAO
             .fetchOne());
       }
     }
+  }
+
+  /**
+   * Latest evaluation for each requested window, resolved in a single round-trip. For every
+   * {@link StageEvaluationWindow} this returns the most recent evaluation for the application on that stage whose time
+   * falls in the half-open range {@code [minDate, maxDate)} (a null {@code maxDate} leaves the window open-ended), or
+   * no
+   * row when nothing matches. Each window contributes at most one row, so the result size is bounded by the number of
+   * distinct windows regardless of how much scan history the application has. Duplicate windows are coalesced.
+   */
+  public List<PolicyEvaluation> getLatestEvaluationPerWindow(
+      String applicationId,
+      Collection<StageEvaluationWindow> windows)
+  {
+    if (windows == null || windows.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      Select<PolicyEvaluationRecord> combined = null;
+      for (StageEvaluationWindow window : new LinkedHashSet<>(windows)) {
+        var condition = POLICY_EVALUATION.APPLICATION_ID.eq(applicationId)
+            .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(window.stageTypeId()))
+            .and(POLICY_EVALUATION.TIME.ge(window.minDate()));
+        if (window.maxDate() != null) {
+          condition = condition.and(POLICY_EVALUATION.TIME.lt(window.maxDate()));
+        }
+
+        Select<PolicyEvaluationRecord> latestForWindow = tx.dsl()
+            .selectFrom(POLICY_EVALUATION)
+            .where(condition)
+            .orderBy(POLICY_EVALUATION.TIME.desc())
+            .limit(1);
+
+        combined = combined == null ? latestForWindow : combined.unionAll(latestForWindow);
+      }
+
+      return combined == null ? Collections.emptyList() : combined.fetch(this::toEntity);
+    }
+  }
+
+  /**
+   * A per-violation lookup window: the latest evaluation on {@code stageTypeId} with time in
+   * {@code [minDate, maxDate)}.
+   * A null {@code maxDate} leaves the upper bound open.
+   */
+  public record StageEvaluationWindow(String stageTypeId, Date minDate, Date maxDate)
+  {
   }
 
   public List<PolicyEvaluation> getLimitedAmountByApplicationId(

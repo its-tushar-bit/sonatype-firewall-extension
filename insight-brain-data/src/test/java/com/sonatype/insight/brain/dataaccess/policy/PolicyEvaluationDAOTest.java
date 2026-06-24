@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO.StageEvaluationWindow;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -948,6 +949,140 @@ public class PolicyEvaluationDAOTest
     assertThat(dao.getLastInTimeRangeByApplicationAndStage(app1.getId(), Stage.ID_RELEASE, minDate, null))
         .extracting(PolicyEvaluation::getId)
         .isEqualTo(expected.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow() {
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Date maxDate = new Date(baselineDate.getTime() - 50);
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    // inclusive lower bound: exactly on minDate is included, but it is not the latest in the window
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false, new Date(minDate.getTime()));
+
+    PolicyEvaluation releaseLatest = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan2", false,
+        false, new Date(minDate.getTime() + 1000));
+
+    PolicyEvaluation build = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan3", false, false,
+        new Date(minDate.getTime() + 1500));
+
+    // exclusive upper bound: exactly on maxDate is excluded
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan4", false, false, new Date(maxDate.getTime()));
+
+    // before the window
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan5", false, false,
+        new Date(minDate.getTime() - 1));
+
+    // stage not requested
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_STAGE_RELEASE, "scan6", false, false,
+        new Date(minDate.getTime() + 1000));
+
+    // different app
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan7", false, false,
+        new Date(minDate.getTime() + 1000));
+
+    List<StageEvaluationWindow> windows = List.of(
+        new StageEvaluationWindow(Stage.ID_RELEASE, minDate, maxDate),
+        new StageEvaluationWindow(Stage.ID_BUILD, minDate, maxDate));
+
+    assertThat(dao.getLatestEvaluationPerWindow(app1.getId(), windows))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactlyInAnyOrder(releaseLatest.getId(), build.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_NullMaxDate() {
+    final Date baselineDate = new Date();
+    final Date minDate = new Date(baselineDate.getTime() - 2500);
+    final Application app1 = tempEntity.newApplicationWithParent();
+    final Application app2 = tempEntity.newApplicationWithParent();
+
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(minDate.getTime() + 1000));
+
+    PolicyEvaluation later = tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan2", false, false,
+        new Date(minDate.getTime() + 5000));
+
+    // before the window
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_RELEASE, "scan3", false, false,
+        new Date(minDate.getTime() - 1));
+
+    // different app
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_RELEASE, "scan4", false, false,
+        new Date(minDate.getTime() + 2000));
+
+    assertThat(dao.getLatestEvaluationPerWindow(app1.getId(),
+        List.of(new StageEvaluationWindow(Stage.ID_RELEASE, minDate, null))))
+            .extracting(PolicyEvaluation::getId)
+            .containsExactly(later.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_DistinctWindowsSameStage() {
+    final Date base = new Date();
+    final Application app = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation early = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(base.getTime() + 1000));
+    PolicyEvaluation late = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan2", false, false,
+        new Date(base.getTime() + 3000));
+
+    // two violations on the same stage with different windows must resolve to different evaluations
+    StageEvaluationWindow boundedToEarly =
+        new StageEvaluationWindow(Stage.ID_RELEASE, new Date(base.getTime()), new Date(base.getTime() + 2000));
+    StageEvaluationWindow openEndedFromLate =
+        new StageEvaluationWindow(Stage.ID_RELEASE, new Date(base.getTime() + 2500), null);
+
+    assertThat(dao.getLatestEvaluationPerWindow(app.getId(), List.of(boundedToEarly, openEndedFromLate)))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactlyInAnyOrder(early.getId(), late.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_NoMatchContributesNothing() {
+    final Date base = new Date();
+    final Application app = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation build = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", false, false,
+        new Date(base.getTime() + 1000));
+
+    // the RELEASE window has no matching evaluation; the BUILD window does
+    assertThat(dao.getLatestEvaluationPerWindow(app.getId(), List.of(
+        new StageEvaluationWindow(Stage.ID_RELEASE, new Date(base.getTime()), null),
+        new StageEvaluationWindow(Stage.ID_BUILD, new Date(base.getTime()), null))))
+            .extracting(PolicyEvaluation::getId)
+            .containsExactly(build.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_DuplicateWindowsCoalesced() {
+    final Date base = new Date();
+    final Application app = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation latest = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scan1", false, false,
+        new Date(base.getTime() + 1000));
+
+    StageEvaluationWindow window = new StageEvaluationWindow(Stage.ID_RELEASE, new Date(base.getTime()), null);
+
+    assertThat(dao.getLatestEvaluationPerWindow(app.getId(), List.of(window, window)))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactly(latest.getId());
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_EmptyWindows() {
+    final Application app1 = tempEntity.newApplicationWithParent();
+
+    assertThat(dao.getLatestEvaluationPerWindow(app1.getId(), List.of())).isEmpty();
+  }
+
+  @Test
+  public void testGetLatestEvaluationPerWindow_NullWindows() {
+    final Application app1 = tempEntity.newApplicationWithParent();
+
+    assertThat(dao.getLatestEvaluationPerWindow(app1.getId(), null)).isEmpty();
   }
 
   @Test

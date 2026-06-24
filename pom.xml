@@ -126,15 +126,15 @@
     </argLine>
     <jreleaser.version>1.23.0</jreleaser.version>
     <jdk.distribution>temurin</jdk.distribution>
-    <jdks-maven-plugin.jdk-version>jdk-25.0.2%2B10</jdks-maven-plugin.jdk-version>
+    <jdks-maven-plugin.jdk-version>jdk-25.0.3%2B9</jdks-maven-plugin.jdk-version>
     <jdks-maven-plugin.base-url>https://github.com/adoptium/temurin25-binaries/releases/download</jdks-maven-plugin.base-url>
-    <jdks-maven-plugin.jdk-file-version>25.0.2_10</jdks-maven-plugin.jdk-file-version>
+    <jdks-maven-plugin.jdk-file-version>25.0.3_9</jdks-maven-plugin.jdk-file-version>
     <!--
      Un-encoded JDK directory name (matches the top-level dir inside the Adoptium archives).
      Kept alongside jdks-maven-plugin.jdk-version (URL-encoded) so the jmods installer can
      locate each extracted JDK on disk. Bump all three together when updating the JDK.
      -->
-    <jdks-maven-plugin.jdk-dir-version>jdk-25.0.2+10</jdks-maven-plugin.jdk-dir-version>
+    <jdks-maven-plugin.jdk-dir-version>jdk-25.0.3+9</jdks-maven-plugin.jdk-dir-version>
     <gitlab4j-api.version>6.2.0</gitlab4j-api.version>
     <micrometer.version>1.17.0</micrometer.version>
     <spring-boot.version>4.0.7</spring-boot.version>
@@ -1846,37 +1846,37 @@
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_x86_64</name>
                   <platform>linux-x86_64</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_x64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
-                  <checksum>987387933b64b9833846dee373b640440d3e1fd48a04804ec01a6dbf718e8ab8</checksum>
+                  <checksum>69264a7a211bf5029830d07bc3370f879769d62ebc5b5488e90c9343a2da0e1f</checksum>
                 </jdk>
                 <jdk>
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_musl_x86_64</name>
                   <platform>linux_musl</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_x64_alpine-linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
-                  <checksum>961f13ba0ee1e18c41c50ab642361e4283dee5e7947a48ed6a72c8a661d0cca0</checksum>
+                  <checksum>51c2415b370aac7c3796b0c4663c8fcf91bc22d76f03df95b25fa5667cb5fdd8</checksum>
                 </jdk>
                 <jdk>
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_aarch64</name>
                   <platform>linux-aarch64</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_aarch64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
-                  <checksum>a9d73e711d967dc44896d4f430f73a68fd33590dabc29a7f2fb9f593425b854c</checksum>
+                  <checksum>3e4287cb98870ba824ed698854bdc27cff984254caf66dd12cc291e7bfdde26b</checksum>
                 </jdk>
                 <jdk>
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_mac_x86_64</name>
                   <platform>osx-x86_64</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_x64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
-                  <checksum>7caddeb2d1d06a21487fdf55198349f122ba7b24bfc613b8923a42a133a92dc5</checksum>
+                  <checksum>4c539a18b4d656960ff6766727e9ca546fc17f7a29714dba9e7b47bdcb37c447</checksum>
                 </jdk>
                 <jdk>
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_mac_aarch64</name>
                   <platform>osx-aarch64</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_aarch64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
-                  <checksum>74ff6e892924a49767c35eb61251b1969c03213819d51065d9b8f9e0238c4f97</checksum>
+                  <checksum>7baab4d69a15554e119b86ff78d40e3fdc28819b5b322955c913cebfe3f6a37c</checksum>
                 </jdk>
                 <jdk>
                   <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_windows_x86_64</name>
                   <platform>windows-x86_64</platform>
                   <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK25U-jdk_x64_windows_hotspot_${jdks-maven-plugin.jdk-file-version}.zip</url>
-                  <checksum>06ac5f5444a1269dd11d11cbb7ab6ebaecedc60dc1caca82cdb56f29100b7b8c</checksum>
+                  <checksum>709312cd0420296d9b9de917fe6e28a5b979e875ee5ab91783fb79bcd5857235</checksum>
                 </jdk>
               </jdks>
             </configuration>
@@ -1959,27 +1959,27 @@
 
                     <install-jmods-tgz
                         archive="OpenJDK25U-jmods_x64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz"
-                        checksum="6bb76a10192a53f2a0db8b846f1d1ff0fafa77dff95db95d8c9e0fd4c6f95f62"
+                        checksum="9e39b2995cc3234e63f8cd41cdee8b071fcf581e1a63e3e538354a9802aa0702"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_linux_x86_64/${jdks-maven-plugin.jdk-dir-version}"/>
                     <install-jmods-tgz
                         archive="OpenJDK25U-jmods_x64_alpine-linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz"
-                        checksum="9b2b718392c16a748b05e702a2186ca46aec2643325165d47d209e2011e603c0"
+                        checksum="1a9e999ba3b0747856444df1dc21370abacd18118ee2bf0737338eef8b5b1c76"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_linux_musl_x86_64/${jdks-maven-plugin.jdk-dir-version}"/>
                     <install-jmods-tgz
                         archive="OpenJDK25U-jmods_aarch64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz"
-                        checksum="3190e058e670102dc9743004fca53ef261643d3218e2201f0e37dcabcf1253b8"
+                        checksum="39d1b5322ad28c8d84b28cbb0625d96e9501acc382bae2f6448fa05468aa812a"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_linux_aarch64/${jdks-maven-plugin.jdk-dir-version}"/>
                     <install-jmods-tgz
                         archive="OpenJDK25U-jmods_x64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz"
-                        checksum="a31152dfb2b098a6322610cabf263207eb37500db06e7aeda6eea3e3c5387239"
+                        checksum="c406f58aa8e5c0e5e4edc9b3621b94c5119993ac2af6ba35811860a006cc4015"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_mac_x86_64/${jdks-maven-plugin.jdk-dir-version}/Contents/Home"/>
                     <install-jmods-tgz
                         archive="OpenJDK25U-jmods_aarch64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz"
-                        checksum="011b925f73d77f113ba3db9f50dd4a04fc631f65097a6def9a23addaa14664a2"
+                        checksum="7cf33ddf6cfc433aa9a66aaaa8af2a7bdca4b292b1438016cc9f7ba71e481b82"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_mac_aarch64/${jdks-maven-plugin.jdk-dir-version}/Contents/Home"/>
                     <install-jmods-zip
                         archive="OpenJDK25U-jmods_x64_windows_hotspot_${jdks-maven-plugin.jdk-file-version}.zip"
-                        checksum="a28a3c75911d8f5a02571e46a1859aec2e172a4829bf6e9a89715c882a853d77"
+                        checksum="9bc3093e5a2dc6b6ee9c3086914aa92c052d1c911c844d23e3ca33781834262e"
                         jdkHome="${jdks.root}/${jdks.name.prefix}_windows_x86_64/${jdks-maven-plugin.jdk-dir-version}"/>
                   </target>
                 </configuration>

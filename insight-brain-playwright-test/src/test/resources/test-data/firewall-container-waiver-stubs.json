@@ -1,0 +1,27 @@
+{
+  "policyThreats": {
+    "version": 5,
+    "aaData": [
+      {
+        "hash": "cn-hash",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "cn-grp", "artifactId": "cn-art", "version": "v1"}},
+        "allViolations": [
+          {
+            "policyThreatLevel": 9, "policyName": "Test", "policyThreatCategory": "OTHER",
+            "policyViolationId": "v1", "waived": false, "grandfathered": false, "legacyViolation": false,
+            "actions": [{"actionType": "fail", "actionSummary": "Proxy Failed"}],
+            "constraints": []
+          }
+        ]
+      }
+    ]
+  },
+  "dataGlobals": {
+    "globals": {"currentDate": 1700000000000, "exceededRowLimit": false, "expandedCoverage": false, "scanErrorCount": 0},
+    "totalArtifactCount": 0
+  },
+  "metadata": {
+    "stageId": "proxy",
+    "application": {"id": "test-id", "name": "Container Test"}
+  }
+}

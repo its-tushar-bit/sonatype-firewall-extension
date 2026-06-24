@@ -1,0 +1,132 @@
+{
+  "defaultBody": {
+    "results": [
+      {
+        "displayName": "aru-art-2:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-2", "version": "1.0"}},
+        "hash": "aru-hash-002", "matchState": "exact", "pathname": "aru/path/2",
+        "quarantineDate": 1700000000000, "dateCleared": 1700086400000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-3:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-3", "version": "1.0"}},
+        "hash": "aru-hash-003", "matchState": "exact", "pathname": "aru/path/3",
+        "quarantineDate": 1700086400000, "dateCleared": 1700172800000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-1:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-1", "version": "1.0"}},
+        "hash": "aru-hash-001", "matchState": "exact", "pathname": "aru/path/1",
+        "quarantineDate": 1699913600000, "dateCleared": 1700000000000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      }
+    ],
+    "pageCount": 1, "page": 1
+  },
+  "quarAscBody": {
+    "results": [
+      {
+        "displayName": "aru-art-1:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-1", "version": "1.0"}},
+        "hash": "aru-hash-001", "matchState": "exact", "pathname": "aru/path/1",
+        "quarantineDate": 1699913600000, "dateCleared": 1700000000000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-2:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-2", "version": "1.0"}},
+        "hash": "aru-hash-002", "matchState": "exact", "pathname": "aru/path/2",
+        "quarantineDate": 1700000000000, "dateCleared": 1700086400000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-3:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-3", "version": "1.0"}},
+        "hash": "aru-hash-003", "matchState": "exact", "pathname": "aru/path/3",
+        "quarantineDate": 1700086400000, "dateCleared": 1700172800000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      }
+    ],
+    "pageCount": 1, "page": 1
+  },
+  "quarDescBody": {
+    "results": [
+      {
+        "displayName": "aru-art-3:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-3", "version": "1.0"}},
+        "hash": "aru-hash-003", "matchState": "exact", "pathname": "aru/path/3",
+        "quarantineDate": 1700086400000, "dateCleared": 1700172800000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-2:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-2", "version": "1.0"}},
+        "hash": "aru-hash-002", "matchState": "exact", "pathname": "aru/path/2",
+        "quarantineDate": 1700000000000, "dateCleared": 1700086400000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-1:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-1", "version": "1.0"}},
+        "hash": "aru-hash-001", "matchState": "exact", "pathname": "aru/path/1",
+        "quarantineDate": 1699913600000, "dateCleared": 1700000000000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      }
+    ],
+    "pageCount": 1, "page": 1
+  },
+  "clearAscBody": {
+    "results": [
+      {
+        "displayName": "aru-art-1:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-1", "version": "1.0"}},
+        "hash": "aru-hash-001", "matchState": "exact", "pathname": "aru/path/1",
+        "quarantineDate": 1699913600000, "dateCleared": 1700000000000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-2:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-2", "version": "1.0"}},
+        "hash": "aru-hash-002", "matchState": "exact", "pathname": "aru/path/2",
+        "quarantineDate": 1700000000000, "dateCleared": 1700086400000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-3:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-3", "version": "1.0"}},
+        "hash": "aru-hash-003", "matchState": "exact", "pathname": "aru/path/3",
+        "quarantineDate": 1700086400000, "dateCleared": 1700172800000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      }
+    ],
+    "pageCount": 1, "page": 1
+  },
+  "clearDescBody": {
+    "results": [
+      {
+        "displayName": "aru-art-3:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-3", "version": "1.0"}},
+        "hash": "aru-hash-003", "matchState": "exact", "pathname": "aru/path/3",
+        "quarantineDate": 1700086400000, "dateCleared": 1700172800000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-2:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-2", "version": "1.0"}},
+        "hash": "aru-hash-002", "matchState": "exact", "pathname": "aru/path/2",
+        "quarantineDate": 1700000000000, "dateCleared": 1700086400000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      },
+      {
+        "displayName": "aru-art-1:1.0", "repositoryId": "aru-repo-id",
+        "componentIdentifier": {"format": "maven", "coordinates": {"groupId": "aru-grp", "artifactId": "aru-art-1", "version": "1.0"}},
+        "hash": "aru-hash-001", "matchState": "exact", "pathname": "aru/path/1",
+        "quarantineDate": 1699913600000, "dateCleared": 1700000000000, "repository": "aru-repo",
+        "quarantined": true, "quarantinePolicyViolations": []
+      }
+    ],
+    "pageCount": 1, "page": 1
+  }
+}

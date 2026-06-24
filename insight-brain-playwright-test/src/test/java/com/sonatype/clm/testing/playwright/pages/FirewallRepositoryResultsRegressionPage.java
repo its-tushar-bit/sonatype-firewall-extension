@@ -8,8 +8,11 @@ package com.sonatype.clm.testing.playwright.pages;
 import com.microsoft.playwright.Locator;
 
 /**
- * Regression-specific page object for the Firewall Repository Results Summary page.
- * Kept separate from {@link FirewallRepositoryResultsPage} to avoid merge conflicts.
+ * Playwright page object for the Firewall Repository Results Summary page used in regression tests.
+ * Kept separate to avoid merge conflicts on the pre-existing {@link FirewallRepositoryResultsPage}.
+ * ({@code firewall.repository-report} UI-router state,
+ * URL fragment {@code #/firewall/repository/{repositoryId}/result}).
+ * Root element is {@code #repository-results-summary-page}.
  */
 public class FirewallRepositoryResultsRegressionPage
     extends BasePage
@@ -17,7 +20,6 @@ public class FirewallRepositoryResultsRegressionPage
   private static final String ROOT = "#repository-results-summary-page";
 
   public FirewallRepositoryResultsRegressionPage() {
-    super();
   }
 
   public static String url(String repositoryId) {

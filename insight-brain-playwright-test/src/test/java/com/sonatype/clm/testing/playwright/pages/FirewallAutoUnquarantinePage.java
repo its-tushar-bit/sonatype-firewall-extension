@@ -48,6 +48,26 @@ public class FirewallAutoUnquarantinePage
     return container().locator(".nx-text-link");
   }
 
+  // --------------- MTD / YTD metric cards ---------------
+
+  /**
+   * Call-out count inside the Month-to-Date auto-release metric card.
+   * CSS class {@code .nx-card__call-out} is used because {@code NxCard.CallOut} renders a
+   * plain {@code <div>} with no ARIA role or accessible name.
+   */
+  public Locator mtdCallOut() {
+    return locator("#firewall-auto-release-quarantine-mtd .nx-card__call-out");
+  }
+
+  /**
+   * Call-out count inside the Year-to-Date auto-release metric card.
+   * CSS class {@code .nx-card__call-out} is used because {@code NxCard.CallOut} renders a
+   * plain {@code <div>} with no ARIA role or accessible name.
+   */
+  public Locator ytdCallOut() {
+    return locator("#firewall-auto-release-quarantine-ytd .nx-card__call-out");
+  }
+
   // --------------- Auto-unquarantine status card ---------------
 
   /** The "Auto Release from Quarantine Status" card on the auto-unquarantine page. */
@@ -62,6 +82,18 @@ public class FirewallAutoUnquarantinePage
    */
   public Locator statusText() {
     return locator("#firewall-auto-unquarantine-status .iq-status-indicator > span");
+  }
+
+  /**
+   * "releasing X of Y policy condition types" text in the status-card body.
+   * CSS class {@code .nx-card__text} is used because {@code NxCard.Text} renders a plain
+   * {@code
+   *
+  <p>
+   * } with no ARIA role or accessible name.
+   */
+  public Locator statusReleasingText() {
+    return locator("#firewall-auto-unquarantine-status .nx-card__text");
   }
 
   /** "Configure" element in the status-card footer that opens the configuration modal. */
@@ -97,6 +129,16 @@ public class FirewallAutoUnquarantinePage
 
   public Locator modalSaveButton() {
     return locator("#firewall-configuration-modal .nx-btn--primary");
+  }
+
+  /**
+   * Form-level validation error block rendered by {@code NxStatefulForm} when {@code validationErrors}
+   * is non-empty. When no changes have been made, this shows "There are no changes to save."
+   * Note: {@code NxStatefulForm} never sets the HTML {@code disabled} attribute on the submit button —
+   * this alert is the only DOM signal that the form is in an unmodified state.
+   */
+  public Locator modalValidationErrors() {
+    return locator("#firewall-configuration-modal .nx-form__validation-errors");
   }
 
   public Locator modalCancelButton() {

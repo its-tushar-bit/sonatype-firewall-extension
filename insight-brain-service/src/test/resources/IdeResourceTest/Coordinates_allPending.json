@@ -1,0 +1,92 @@
+[
+  {
+    "waitDelta": 2000,
+    "simpleMatch": false,
+    "matchState": "pending",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "pending-a",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "pending",
+        "version": "1.0.0"
+      }
+    },
+    "groupId": "pending",
+    "artifactId": "pending-a",
+    "version": "1.0.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-1111-1111",
+        "severity": 9.0,
+        "source": "cve",
+        "summary": "Must not be evaluated while pending",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "aaaaaaaaaaaaaaaaaaaa",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 1,
+    "securityThreat": 9.0
+  },
+  {
+    "waitDelta": 3000,
+    "simpleMatch": false,
+    "matchState": "pending",
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "pending-b",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "pending",
+        "version": "2.0.0"
+      }
+    },
+    "groupId": "pending",
+    "artifactId": "pending-b",
+    "version": "2.0.0",
+    "classifier": "",
+    "securityVulnerabilities": [
+      {
+        "refId": "cve-2222-2222",
+        "severity": 8.0,
+        "source": "cve",
+        "summary": "Must not be evaluated while pending",
+        "status": null,
+        "url": null,
+        "vulnerabilityCategories": []
+      }
+    ],
+    "hash": "bbbbbbbbbbbbbbbbbbbb",
+    "observedLicenseIds": [
+      "No-Sources"
+    ],
+    "declaredLicenseIds": [
+      "Not-Declared"
+    ],
+    "catalogDate": null,
+    "relativePopularity": null,
+    "identificationSource": "Sonatype",
+    "componentCategories": null,
+    "hygieneRating": null,
+    "integrityRating": null,
+    "securityIssues": 1,
+    "securityThreat": 8.0
+  }
+]

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import jakarta.mail.MessagingException;
 import jakarta.mail.util.ByteArrayDataSource;
 
@@ -22,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.clm.dto.model.ide.ScannedComponent;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -64,6 +66,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import org.junit.experimental.categories.Category;
@@ -243,6 +246,202 @@ public class IdeResourceTest
     assertThat(ideMatchedComponent.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertThat(ideMatchedComponent.isSimpleMatch()).isTrue();
     assertThat(ideMatchedComponent.getAlerts()).hasSize(1);
+  }
+
+  @Test
+  public void testDoCoordinatesScan_MultipleComponents_attributesAlertsPerComponent() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tomcat", "tomcat-util", "5.5.23", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_multiple.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
+    assertThat(results).hasSize(4);
+
+    Map<String, IdeMatchedComponent> resultsByHash =
+        results.stream().collect(toMap(IdeMatchedComponent::getHash, Function.identity()));
+
+    IdeMatchedComponent tomcat = resultsByHash.get("1249e25aebb15358bedd");
+    assertThat(tomcat.getAlerts()).hasSize(4);
+    assertThat(tomcat.getAlerts())
+        .allSatisfy(alert -> assertThat(alert.getTrigger().getComponentFacts().get(0).getHash())
+            .isEqualTo("1249e25aebb15358bedd"));
+
+    IdeMatchedComponent commons = resultsByHash.get("cccccccccccccccccccc");
+    assertThat(commons.getAlerts()).hasSize(1);
+    assertThat(commons.getAlerts())
+        .allSatisfy(alert -> assertThat(alert.getTrigger().getComponentFacts().get(0).getHash())
+            .isEqualTo("cccccccccccccccccccc"));
+
+    IdeMatchedComponent safe = resultsByHash.get("dddddddddddddddddddd");
+    assertThat(safe.getAlerts()).isNotNull().isEmpty();
+
+    // This component carries a severity-9.0 vulnerability but has a positive waitDelta, so it must be excluded from
+    // the evaluation batch. No alerts here proves needsEvaluation-false components are skipped; keep the vuln in the
+    // fixture so a regression that wrongly evaluates it would surface as an unexpected alert.
+    IdeMatchedComponent pending = resultsByHash.get("ffffffffffffffffffff");
+    assertThat(pending.getWaitDelta()).isPositive();
+    assertThat(pending.getAlerts()).isNullOrEmpty();
+  }
+
+  @Test
+  public void testDoCoordinatesScan_SameHashDifferentIdentifiers_attributesAlertsByIdentity() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "dup", "lib-a", "1.0", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_sameHash.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
+    assertThat(results).hasSize(2);
+
+    ComponentIdentifier idA = ComponentIdentifier.createMavenCoordinates("dup", "lib-a", "1.0", "", "jar");
+    ComponentIdentifier idB = ComponentIdentifier.createMavenCoordinates("dup", "lib-b", "1.0", "", "jar");
+
+    IdeMatchedComponent libA =
+        results.stream().filter(r -> idA.equals(r.getComponentIdentifier())).findFirst().orElseThrow();
+    assertThat(libA.getAlerts()).hasSize(2);
+    assertThat(libA.getAlerts())
+        .allSatisfy(alert -> assertThat(alert.getTrigger().getComponentFacts().get(0).getComponentIdentifier())
+            .isEqualTo(idA));
+
+    IdeMatchedComponent libB =
+        results.stream().filter(r -> idB.equals(r.getComponentIdentifier())).findFirst().orElseThrow();
+    assertThat(libB.getAlerts()).hasSize(1);
+    assertThat(libB.getAlerts())
+        .allSatisfy(alert -> assertThat(alert.getTrigger().getComponentFacts().get(0).getComponentIdentifier())
+            .isEqualTo(idB));
+  }
+
+  @Test
+  public void testDoCoordinatesScan_ManuallyClaimedComponent_clearsVulnerabilitiesWithoutAffectingBatch() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    String claimedHash = "cccccccccccccccccccc";
+    ComponentIdentifier claimedIdentifier = ComponentIdentifier.createMavenCoordinates("claimed", "claimed-lib", "9.9");
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(claimedHash, claimedIdentifier);
+    hashComponentIdentifier.setCreateTime(new Date());
+    hashComponentIdentifierDAO.insert(hashComponentIdentifier);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "tomcat", "tomcat-util", "5.5.23", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_multiple.json");
+    HttpResponse response = request.get();
+    hashComponentIdentifierDAO.delete(hashComponentIdentifier);
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
+    assertThat(results).hasSize(4);
+
+    Map<String, IdeMatchedComponent> resultsByHash =
+        results.stream().collect(toMap(IdeMatchedComponent::getHash, Function.identity()));
+
+    IdeMatchedComponent claimed = resultsByHash.get(claimedHash);
+    assertThat(claimed.getComponentIdentifier()).isEqualTo(claimedIdentifier);
+    assertThat(claimed.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(claimed.getIdentificationSource()).isEqualTo(IdentificationSource.MANUAL.getId());
+    assertThat(claimed.getAlerts()).isNotNull().isEmpty();
+
+    IdeMatchedComponent tomcat = resultsByHash.get("1249e25aebb15358bedd");
+    assertThat(tomcat.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
+    assertThat(tomcat.getAlerts()).hasSize(4);
+    assertThat(tomcat.getAlerts())
+        .allSatisfy(alert -> assertThat(alert.getTrigger().getComponentFacts().get(0).getHash())
+            .isEqualTo("1249e25aebb15358bedd"));
+  }
+
+  @Test
+  public void testDoCoordinatesScan_EmptyComponentList_returnsEmptyResult() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "none", "none", "0", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_empty.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
+
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testDoCoordinatesScan_AllComponentsPending_skipsEvaluationAndReturnsNoAlerts() throws Exception {
+    String applicationPublicId = "IdeResourceTest_AppId";
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "pending", "pending-a", "1.0.0", "", "jar");
+    HttpRequest request = coordinatesScanRequest(applicationPublicId, componentIdentifier);
+    mockHdsScanResponse(request, 200, "Coordinates_allPending.json");
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    List<IdeMatchedComponent> results =
+        JsonUtils.parse(response.getBodyText(), new TypeReference<List<IdeMatchedComponent>>()
+        {
+        });
+
+    // Every component is pending, so candidates is empty and the batched evaluate call is skipped entirely. The
+    // severity-9.0/8.0 vulns would alert if any were wrongly evaluated.
+    assertThat(results).hasSize(2);
+    assertThat(results).allSatisfy(result -> {
+      assertThat(result.getWaitDelta()).isPositive();
+      assertThat(result.getAlerts()).isNullOrEmpty();
+    });
+  }
+
+  @Test
+  public void testGroupAlertsByComponent_alertWithoutComponentFacts_isSkippedNotRouted() {
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("g", "a", "1.0");
+    PolicyFact triggerWithFact = new PolicyFact();
+    triggerWithFact.setComponentFacts(List.of(new ComponentFact(identifier, "aaaaaaaaaaaaaaaaaaaa")));
+    PolicyAlert routable = new PolicyAlert(triggerWithFact, List.of());
+
+    PolicyAlert nullTrigger = new PolicyAlert(null, List.of());
+    PolicyFact triggerNoFacts = new PolicyFact();
+    triggerNoFacts.setComponentFacts(Collections.emptyList());
+    PolicyAlert emptyFacts = new PolicyAlert(triggerNoFacts, List.of());
+
+    var grouped = IdeResource.groupAlertsByComponent(List.of(routable, nullTrigger, emptyFacts));
+
+    assertThat(grouped.values()).hasSize(1);
+    assertThat(grouped.values().iterator().next()).containsExactly(routable);
   }
 
   @Test

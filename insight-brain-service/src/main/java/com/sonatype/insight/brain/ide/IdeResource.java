@@ -6,9 +6,13 @@
 package com.sonatype.insight.brain.ide;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -27,11 +31,14 @@ import jakarta.ws.rs.core.UriBuilder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.IdeMatchedComponent;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -40,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -62,6 +70,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Timed
@@ -72,6 +82,8 @@ public class IdeResource
   public static final String RESOURCE_PATH = "rest/ide";
 
   public static final String COORDINATES_SCAN_PATH = "scan/coordinates/{applicationPublicId}";
+
+  private static final Logger log = LoggerFactory.getLogger(IdeResource.class);
 
   private static final ObjectMapper JSON =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -161,8 +173,21 @@ public class IdeResource
       boolean proprietary,
       boolean forceEvaluation)
   {
-    // Is this a manually claimed component?
-    HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(matchedComponent.getHash());
+    applyManualClaim(matchedComponent, hashComponentIdentifierDAO.getByHash(matchedComponent.getHash()));
+
+    IdeMatchedComponent ideComponent = getComponent(matchedComponent);
+    if (needsEvaluation(ideComponent, forceEvaluation)) {
+      Component component = componentLoaderFactory.createComponentLoader(app)
+          .getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
+      component.setProprietary(proprietary);
+      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
+          Collections.singletonList(component));
+      ideComponent.setAlerts(policyAlerts);
+    }
+    return ideComponent;
+  }
+
+  private void applyManualClaim(MatchedComponent matchedComponent, HashComponentIdentifier hashComponentIdentifier) {
     if (hashComponentIdentifier != null) {
       ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
       matchedComponent.setComponentIdentifier(componentIdentifier);
@@ -176,20 +201,11 @@ public class IdeResource
     else {
       matchedComponent.setIdentificationSource(IdentificationSource.SONATYPE.getId());
     }
+  }
 
-    IdeMatchedComponent ideComponent = getComponent(matchedComponent);
-    if (ideComponent.getWaitDelta() == null
-        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation))
-    {
-      Component component =
-          componentLoaderFactory.createComponentLoader(app)
-              .getComponent(matchedComponent, configuration.isALPObservedLicenseDetectionEnabled());
-      component.setProprietary(proprietary);
-      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
-          Collections.singletonList(component));
-      ideComponent.setAlerts(policyAlerts);
-    }
-    return ideComponent;
+  private static boolean needsEvaluation(IdeMatchedComponent ideComponent, boolean forceEvaluation) {
+    return ideComponent.getWaitDelta() == null
+        && (!"unknown".equals(ideComponent.getMatchState()) || !ideComponent.isSimpleMatch() || forceEvaluation);
   }
 
   /**
@@ -215,9 +231,100 @@ public class IdeResource
     {
     });
 
-    return matchedComponents.stream()
-        .map(mc -> fromMatchedComponent(mc, app, proprietary, true))
-        .collect(Collectors.toList());
+    return fromMatchedComponents(matchedComponents, app, proprietary);
+  }
+
+  private List<IdeMatchedComponent> fromMatchedComponents(
+      List<MatchedComponent> matchedComponents,
+      Application app,
+      boolean proprietary)
+  {
+    final boolean forceEvaluation = true;
+    Map<String, HashComponentIdentifier> claimsByHash = getClaimsByHash(matchedComponents);
+    ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
+    boolean alpObservedLicenseDetectionEnabled = configuration.isALPObservedLicenseDetectionEnabled();
+
+    List<IdeMatchedComponent> ideComponents = new ArrayList<>(matchedComponents.size());
+    List<EvaluationCandidate> candidates = new ArrayList<>();
+    for (MatchedComponent matchedComponent : matchedComponents) {
+      applyManualClaim(matchedComponent, claimsByHash.get(HashHelper.truncateHash(matchedComponent.getHash())));
+
+      IdeMatchedComponent ideComponent = getComponent(matchedComponent);
+      if (needsEvaluation(ideComponent, forceEvaluation)) {
+        Component component = componentLoader.getComponent(matchedComponent, alpObservedLicenseDetectionEnabled);
+        component.setProprietary(proprietary);
+        candidates.add(new EvaluationCandidate(ideComponent, component));
+      }
+      ideComponents.add(ideComponent);
+    }
+
+    if (!candidates.isEmpty()) {
+      List<Component> componentsToEvaluate = candidates.stream().map(EvaluationCandidate::component).toList();
+      List<PolicyAlert> policyAlerts = componentPolicyEvaluator.evaluate(app.getId(), new Stage(DevelopStageType.ID),
+          componentsToEvaluate);
+      Map<ComponentKey, List<PolicyAlert>> alertsByComponent = groupAlertsByComponent(policyAlerts);
+      for (EvaluationCandidate candidate : candidates) {
+        candidate.ideComponent()
+            .setAlerts(alertsByComponent.getOrDefault(keyOf(candidate.component()),
+                Collections.emptyList()));
+      }
+    }
+
+    return ideComponents;
+  }
+
+  private record EvaluationCandidate(IdeMatchedComponent ideComponent, Component component)
+  {
+  }
+
+  private Map<String, HashComponentIdentifier> getClaimsByHash(List<MatchedComponent> matchedComponents) {
+    List<String> hashes = matchedComponents.stream()
+        .map(MatchedComponent::getHash)
+        .filter(Objects::nonNull)
+        // Truncate before distinct so hashes sharing a stored prefix collapse to one query key. getByHashes
+        // truncates again internally, but that is idempotent; the dedup is what this pre-truncation buys.
+        .map(HashHelper::truncateHash)
+        .distinct()
+        .toList();
+    if (hashes.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    return hashComponentIdentifierDAO.getByHashes(hashes)
+        .stream()
+        // Distinct full hashes can truncate to the same stored prefix; keep the first claim, matching the
+        // single-component getByHash path which also resolves a truncated hash to one row.
+        .collect(Collectors.toMap(HashComponentIdentifier::getHash, Function.identity(),
+            (existing, replacement) -> existing));
+  }
+
+  // ComponentPolicyEvaluator builds each ComponentFact from the evaluated component's identifier+hash, which is what
+  // keyOf reconstructs, so alerts route back to the candidate they were raised for. The evaluator guarantees every
+  // alert carries at least one ComponentFact; the guard below only fires if that contract is ever broken, in which
+  // case the alert is skipped (and logged) rather than dropped silently or thrown as an NPE.
+  static Map<ComponentKey, List<PolicyAlert>> groupAlertsByComponent(List<PolicyAlert> policyAlerts) {
+    Map<ComponentKey, List<PolicyAlert>> alertsByComponent = new HashMap<>();
+    for (PolicyAlert policyAlert : policyAlerts) {
+      PolicyFact trigger = policyAlert.getTrigger();
+      List<ComponentFact> componentFacts = trigger == null ? null : trigger.getComponentFacts();
+      if (componentFacts == null || componentFacts.isEmpty()) {
+        log.warn("Policy alert {} has no component facts; cannot attribute it to a scanned component",
+            trigger == null ? null : trigger.getPolicyName());
+        continue;
+      }
+      for (ComponentFact componentFact : componentFacts) {
+        ComponentKey key = new ComponentKey(componentFact.getComponentIdentifier(), componentFact.getHash());
+        alertsByComponent.computeIfAbsent(key, ignored -> new ArrayList<>()).add(policyAlert);
+      }
+    }
+    return alertsByComponent;
+  }
+
+  private static ComponentKey keyOf(Component component) {
+    return new ComponentKey(component.getComponentIdentifier(), component.getHash());
+  }
+
+  private record ComponentKey(ComponentIdentifier componentIdentifier, String hash)
+  {
   }
 
   /**

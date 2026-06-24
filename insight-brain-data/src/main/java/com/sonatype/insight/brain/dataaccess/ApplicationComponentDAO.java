@@ -101,6 +101,31 @@ public class ApplicationComponentDAO
         .fetch(this::toEntity);
   }
 
+  /**
+   * Batch variant of {@link #getByApplicationIdAndStageTypeId(String, String)} that fetches the components for many
+   * applications at once, avoiding a per-application query. Callers group the result by application id.
+   */
+  public List<ApplicationComponent> getByApplicationIdsAndStageTypeId(
+      Set<String> applicationIds,
+      String stageTypeId)
+  {
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return List.of();
+    }
+    return getListWithSqlInClause(
+        applicationIds,
+        appIdChunk -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            return tx.dsl()
+                .selectFrom(APPLICATION_COMPONENT)
+                .where(APPLICATION_COMPONENT.APPLICATION_ID.in(appIdChunk))
+                .and(APPLICATION_COMPONENT.STAGE_TYPE_ID.eq(stageTypeId))
+                .fetch(this::toEntity);
+          }
+        },
+        getDataStore());
+  }
+
   // Bypasses per-entity delete() for performance. This DAO does not use a SearchIndexManager,
   // so no search index side effects are lost.
   public void deleteByApplicationIdAndStageTypeId(TransactionContext tx, String appId, String stageTypeId) {

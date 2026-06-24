@@ -134,6 +134,25 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  public void testGetByApplicationIdsAndStageTypeId() {
+    String app1 = application.getId();
+    String app2 = tempEntity.newApplication(organization.getId()).getId();
+
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-1", MatchState.EXACT, false);
+    tempEntity.newApplicationComponent(app1, BuildStageType.ID, "hash-2", MatchState.EXACT, false);
+    // wrong stage for app1 must be excluded
+    tempEntity.newApplicationComponent(app1, ReleaseStageType.ID, "hash-3", MatchState.EXACT, false);
+    tempEntity.newApplicationComponent(app2, BuildStageType.ID, "hash-4", MatchState.EXACT, false);
+
+    List<ApplicationComponent> components =
+        dao.getByApplicationIdsAndStageTypeId(Sets.newHashSet(app1, app2), BuildStageType.ID);
+    assertThat(components).extracting(ApplicationComponent::getHash)
+        .containsExactlyInAnyOrder("hash-1", "hash-2", "hash-4");
+
+    assertThat(dao.getByApplicationIdsAndStageTypeId(Collections.emptySet(), BuildStageType.ID)).isEmpty();
+  }
+
+  @Test
   public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_H2() {
     testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(true);
   }

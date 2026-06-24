@@ -10,8 +10,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +30,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
 import org.jooq.Select;
@@ -229,6 +232,68 @@ public class PolicyEvaluationDAO
     try (TransactionContext tx = createTransactionContext()) {
       return getLastPrimaryByApplicationIdAndStageId(tx, appId, stageTypeId);
     }
+  }
+
+  /**
+   * Batch variant of {@link #getLastPrimaryByApplicationIdAndStageId(String, String)}: returns the last primary
+   * evaluation (i.e. not a reevaluation) for each of the given applications and the given stage, keyed by application
+   * id. Applications without a primary evaluation are absent from the map.
+   * <p>
+   * Unlike {@link #getLastByApplicationIdsAndStageIds(Set, Set)} (which joins {@code LAST_POLICY_EVALUATION} and can
+   * therefore return a reevaluation), this method preserves the "last primary" semantics. The most recent primary per
+   * application is selected with a {@code GROUP BY application_id} max-time subquery joined back to the matching row
+   * (a portable greatest-n-per-group, avoiding a window function so the query works on both PostgreSQL and the
+   * embedded H2 database). This returns at most a couple of rows per application instead of its full primary-
+   * evaluation history, and the {@code (reevaluation, stage_type_id, application_id, time)} index covers the subquery.
+   */
+  public Map<String, PolicyEvaluation> getLastPrimaryByApplicationIdsAndStageId(
+      Set<String> appIds,
+      String stageTypeId)
+  {
+    if (CollectionUtils.isEmpty(appIds)) {
+      return Map.of();
+    }
+    List<PolicyEvaluation> latestPrimaries = getListWithSqlInClause(
+        appIds,
+        appIdChunk -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            var maxTime = DSL.max(POLICY_EVALUATION.TIME).as("max_time");
+            Table<?> latest = tx.dsl()
+                .select(POLICY_EVALUATION.APPLICATION_ID, maxTime)
+                .from(POLICY_EVALUATION)
+                .where(POLICY_EVALUATION.APPLICATION_ID.in(appIdChunk))
+                .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+                .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+                .groupBy(POLICY_EVALUATION.APPLICATION_ID)
+                .asTable("latest");
+            return tx.dsl()
+                .select(POLICY_EVALUATION.fields())
+                .from(POLICY_EVALUATION)
+                .join(latest)
+                .on(POLICY_EVALUATION.APPLICATION_ID.eq(latest.field(POLICY_EVALUATION.APPLICATION_ID)))
+                .and(POLICY_EVALUATION.TIME.eq(latest.field(maxTime)))
+                // Repeat the chunk predicate on the outer query (not just the JOIN) so planners that don't push
+                // the JOIN condition into an index scan -- notably H2 -- still filter on APPLICATION_ID directly.
+                .where(POLICY_EVALUATION.APPLICATION_ID.in(appIdChunk))
+                .and(POLICY_EVALUATION.STAGE_TYPE_ID.eq(stageTypeId))
+                .and(POLICY_EVALUATION.REEVALUATION.eq(false))
+                .fetch(r -> toEntity(r.into(POLICY_EVALUATION)));
+          }
+        },
+        getDataStore(),
+        // Each chunk element is bound twice (the subquery IN and the outer IN); the 100-param buffer covers the
+        // handful of constant predicates (stage type, reevaluation) on both queries.
+        2,
+        100);
+
+    Map<String, PolicyEvaluation> latestByApp = new HashMap<>();
+    for (PolicyEvaluation eval : latestPrimaries) {
+      // The subquery returns one row per application unless two primaries share the exact max time, in which case
+      // the winner is arbitrary -- as it is for the single-application getLastPrimaryByApplicationIdAndStageId, which
+      // orders only by time desc with no tiebreaker.
+      latestByApp.putIfAbsent(eval.getApplicationId(), eval);
+    }
+    return latestByApp;
   }
 
   /**

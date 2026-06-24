@@ -5,13 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import com.google.common.collect.Lists;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
@@ -55,6 +61,12 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEP
 public class ApiSearchServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSearchServiceV2.class);
+
+  // Upper bound on the number of applications whose components are fetched in a single batch during a
+  // coordinate/wildcard search. A search across a large organization therefore holds at most one batch of components
+  // in memory rather than every inspected application's components at once (CLM-40023). Hash searches filter the
+  // components in SQL and do not use this batching.
+  private static final int COMPONENT_SCAN_BATCH_SIZE = 1000;
 
   private final BaseUrl baseUrl;
 
@@ -143,43 +155,60 @@ public class ApiSearchServiceV2
 
     AuditData.get().setData("inspectedApplicationCount", apps.size());
 
-    for (Application app : apps) {
-      PolicyEvaluation eval = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(app.getId(), stageId);
-      if (eval == null) {
-        continue;
-      }
+    // Batch-fetch the last primary evaluation per application for the stage, avoiding a per-application query.
+    Set<String> appIds = apps.stream().map(Application::getId).collect(Collectors.toSet());
+    Map<String, PolicyEvaluation> evalByAppId =
+        policyEvaluationDAO.getLastPrimaryByApplicationIdsAndStageId(appIds, stageId);
 
-      List<ApplicationComponent> applicationComponentList = applicationComponentDAO.getByApplicationIdAndStageTypeId(
-          app.getId(), stageId);
-      for (ApplicationComponent applicationComponent : applicationComponentList) {
-        String candidateHash = applicationComponent.getHash();
-        if (hash != null && !hash.equalsIgnoreCase(candidateHash)) {
-          continue;
-        }
+    // Collect the components matching the search criteria, preserving the original application iteration order and
+    // remembering which hashes matched. The component fetch is bounded so a search across a large organization does
+    // not materialise every inspected application's components at once (CLM-40023).
+    List<MatchedComponent> matches = new ArrayList<>();
+    Set<String> matchedHashes = new HashSet<>();
+    if (hash != null) {
+      collectMatchesByHash(apps, evalByAppId, stageId, hash, coords, matches, matchedHashes);
+    }
+    else {
+      collectMatchesByCoordinates(apps, evalByAppId, stageId, coords, matches, matchedHashes);
+    }
 
-        ComponentIdentifier candidateComponentIdentifier = applicationComponent.getComponentIdentifier();
-        if (coords != null && coordsDoesNotMatch(coords, candidateComponentIdentifier)) {
-          continue;
-        }
+    // Batch-fetch the active violations for all matched (app, hash) pairs, grouped for per-component max-threat lookup.
+    // This is the cross-product of all matched app ids x all matched hashes, so a wide wildcard search matching many
+    // distinct hashes across many apps can fetch (appX, hashY) rows that never matched together. Correctness is
+    // unaffected -- the ViolationKey lookup below is exact and unmatched rows are never read -- and the common
+    // single-hash search has no blow-up; the over-fetch is an accepted trade-off for eliminating per-component queries.
+    // The matchedHashes.isEmpty() guard only triggers when every match has a null hash, which is unreachable in
+    // practice (application_component.hash is NOT NULL, so candidateHash is never null); it is kept as a defensive
+    // short-circuit so the path is explicit rather than relying on the DAO to no-op on an empty hash set.
+    Map<ViolationKey, List<PolicyViolation>> violationsByAppAndHash = (matches.isEmpty() || matchedHashes.isEmpty())
+        ? Map.of()
+        : policyViolationDAO
+            .getActiveByApplicationIdsAndStageIdAndHashes(
+                matches.stream().map(m -> m.app().getId()).collect(Collectors.toSet()), stageId, matchedHashes)
+            .stream()
+            .collect(Collectors.groupingBy(v -> new ViolationKey(v.getApplicationId(), v.getHash())));
 
-        String reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), eval.getScanId());
+    // Per-request cache so each matched application's report is loaded and parsed at most once.
+    Map<String, Map<String, Component>> componentsByHashByAppId = new HashMap<>();
 
-        ApiSearchResultDTOV2 result = new ApiSearchResultDTOV2();
-        result.applicationId = app.getPublicId();
-        result.applicationName = app.getName();
-        result.reportHtmlUrl = reportHtmlUrl;
-        result.reportUrl = baseUrl + reportHtmlUrl;
-        result.hash = candidateHash;
-        result.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(candidateComponentIdentifier);
-        result.packageUrl = PackageUrlIdentifier.toPackageUrl(candidateComponentIdentifier);
-        results.results.add(result);
-        result.threatLevel = getMaxThreatLevel(
-            policyViolationDAO.getActiveByApplicationIdAndStageIdAndHash(app.getId(), stageId, candidateHash));
-        result.dependencyData = getApiDependencyDataDTO(app, eval, candidateHash);
-        if (hash != null) {
-          break;
-        }
-      }
+    for (MatchedComponent match : matches) {
+      Application app = match.app();
+      String candidateHash = match.candidateHash();
+      String reportHtmlUrl = UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), match.eval().getScanId());
+
+      ApiSearchResultDTOV2 result = new ApiSearchResultDTOV2();
+      result.applicationId = app.getPublicId();
+      result.applicationName = app.getName();
+      result.reportHtmlUrl = reportHtmlUrl;
+      result.reportUrl = baseUrl + reportHtmlUrl;
+      result.hash = candidateHash;
+      result.componentIdentifier =
+          ApiComponentIdentifierDTOV2.fromComponentIdentifier(match.componentIdentifier());
+      result.packageUrl = PackageUrlIdentifier.toPackageUrl(match.componentIdentifier());
+      results.results.add(result);
+      result.threatLevel = getMaxThreatLevel(
+          violationsByAppAndHash.getOrDefault(new ViolationKey(app.getId(), candidateHash), List.of()));
+      result.dependencyData = getApiDependencyDataDTO(app, match.eval(), candidateHash, componentsByHashByAppId);
     }
 
     AuditData.get().setData("resultRecordCount", results.results.size());
@@ -190,17 +219,126 @@ public class ApiSearchServiceV2
     return results;
   }
 
+  /**
+   * Hash search: the {@code (application_id, stage_type_id, hash)} unique constraint guarantees at most one matching
+   * component per application, so the hash is filtered in SQL and only the (few) matching rows are loaded rather than
+   * every inspected application's full component set.
+   */
+  private void collectMatchesByHash(
+      final List<Application> apps,
+      final Map<String, PolicyEvaluation> evalByAppId,
+      final String stageId,
+      final String hash,
+      final ArtifactCoordinate coords,
+      final List<MatchedComponent> matches,
+      final Set<String> matchedHashes)
+  {
+    // Query both case variants so matching stays case-insensitive (mirroring the previous in-memory equalsIgnoreCase);
+    // a stored hash is single-case hex, so at most one variant exists and the unique constraint still holds.
+    Set<String> hashVariants = new HashSet<>();
+    hashVariants.add(hash.toLowerCase(Locale.ROOT));
+    hashVariants.add(hash.toUpperCase(Locale.ROOT));
+
+    // (application_id, stage_type_id, hash) is unique, so the only way an application yields more than one row here is
+    // the (vanishingly unlikely) case of the same hex hash stored under different letter-casing; keep the first to
+    // mirror the previous first-match-wins behavior rather than failing the merge.
+    Map<String, ApplicationComponent> matchedComponentByAppId = applicationComponentDAO
+        .getMapByApplicationIdsAndStageTypeIdsAndHashes(evalByAppId.keySet(), Set.of(stageId), hashVariants)
+        .values()
+        .stream()
+        .collect(Collectors.toMap(ApplicationComponent::getApplicationId, component -> component,
+            (existing, replacement) -> existing));
+
+    for (Application app : apps) {
+      PolicyEvaluation eval = evalByAppId.get(app.getId());
+      if (eval == null) {
+        continue;
+      }
+      ApplicationComponent applicationComponent = matchedComponentByAppId.get(app.getId());
+      if (applicationComponent != null) {
+        addMatchIfCoordinatesMatch(coords, app, eval, applicationComponent, matches, matchedHashes);
+      }
+    }
+  }
+
+  /**
+   * Coordinate/wildcard search: the hash is unknown, so the database cannot pre-filter to matching rows. Components are
+   * fetched in application-id batches and filtered in memory, so peak memory is bounded to a single batch rather than
+   * every inspected application's components at once.
+   */
+  private void collectMatchesByCoordinates(
+      final List<Application> apps,
+      final Map<String, PolicyEvaluation> evalByAppId,
+      final String stageId,
+      final ArtifactCoordinate coords,
+      final List<MatchedComponent> matches,
+      final Set<String> matchedHashes)
+  {
+    List<Application> evaluatedApps = apps.stream().filter(app -> evalByAppId.containsKey(app.getId())).toList();
+    for (List<Application> appBatch : Lists.partition(evaluatedApps, COMPONENT_SCAN_BATCH_SIZE)) {
+      Set<String> batchAppIds = appBatch.stream().map(Application::getId).collect(Collectors.toSet());
+      Map<String, List<ApplicationComponent>> componentsByAppId = applicationComponentDAO
+          .getByApplicationIdsAndStageTypeId(batchAppIds, stageId)
+          .stream()
+          .collect(Collectors.groupingBy(ApplicationComponent::getApplicationId));
+      for (Application app : appBatch) {
+        PolicyEvaluation eval = evalByAppId.get(app.getId());
+        for (ApplicationComponent applicationComponent : componentsByAppId.getOrDefault(app.getId(), List.of())) {
+          addMatchIfCoordinatesMatch(coords, app, eval, applicationComponent, matches, matchedHashes);
+        }
+      }
+    }
+  }
+
+  private void addMatchIfCoordinatesMatch(
+      final ArtifactCoordinate coords,
+      final Application app,
+      final PolicyEvaluation eval,
+      final ApplicationComponent applicationComponent,
+      final List<MatchedComponent> matches,
+      final Set<String> matchedHashes)
+  {
+    ComponentIdentifier candidateComponentIdentifier = applicationComponent.getComponentIdentifier();
+    if (coords != null && coordsDoesNotMatch(coords, candidateComponentIdentifier)) {
+      return;
+    }
+    String candidateHash = applicationComponent.getHash();
+    matches.add(new MatchedComponent(app, eval, candidateHash, candidateComponentIdentifier));
+    if (candidateHash != null) {
+      matchedHashes.add(candidateHash);
+    }
+  }
+
   private ApiDependencyDataDTO getApiDependencyDataDTO(
       final Application app,
       final PolicyEvaluation eval,
-      final String candidateHash)
+      final String candidateHash,
+      final Map<String, Map<String, Component>> componentsByHashByAppId)
   {
-    ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
-
     if (!SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled()) {
       return null;
     }
 
+    ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
+    Map<String, Component> componentsByHash =
+        componentsByHashByAppId.computeIfAbsent(app.getId(), id -> loadComponentsByHash(app, eval));
+
+    Component component = candidateHash == null ? null : componentsByHash.get(candidateHash);
+    if (component != null) {
+      dependencyData.innerSourceData = component.getInnerSourceData();
+      dependencyData.parentComponentPurls = component.getParentComponentPurls();
+      dependencyData.directDependency = component.getDirectDependency();
+      dependencyData.innerSource = component.getInnerSource();
+    }
+    return dependencyData;
+  }
+
+  /**
+   * Loads and parses the application's report once, returning its components keyed by hash. On any failure (e.g. a
+   * missing report) an empty map is returned so the result is cached and the report is not re-fetched for sibling
+   * components of the same application.
+   */
+  private Map<String, Component> loadComponentsByHash(final Application app, final PolicyEvaluation eval) {
     try {
       ApplicationReport applicationReport = reportService.getReport(app.getId(), eval.getScanId());
       final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
@@ -211,22 +349,37 @@ public class ApiSearchServiceV2
             componentLoaderFactory.createComponentLoader(app)
                 .getAll(null, null, bomReportEntry.buf, dependenciesReportEntry.buf);
 
+        Map<String, Component> componentsByHash = new HashMap<>(components.size());
         for (Component component : components) {
-          if (candidateHash.equals(component.getHash())) {
-            dependencyData.innerSourceData = component.getInnerSourceData();
-            dependencyData.parentComponentPurls = component.getParentComponentPurls();
-            dependencyData.directDependency = component.getDirectDependency();
-            dependencyData.innerSource = component.getInnerSource();
-            return dependencyData;
-          }
+          // Preserve the original first-match-wins behavior when multiple components share a hash.
+          componentsByHash.putIfAbsent(component.getHash(), component);
         }
+        return componentsByHash;
       }
     }
     catch (Exception e) {
-      log.warn("Dependency data is incomplete for component with hash {} and report id {}.", candidateHash,
-          eval.getScanId(), e);
+      log.warn("Dependency data is incomplete for report id {}.", eval.getScanId(), e);
     }
-    return dependencyData;
+    return Map.of();
+  }
+
+  /**
+   * A component (from an application's evaluation) that matched the search criteria, paired with the application and
+   * its last primary evaluation. Captured up-front so violation and dependency-data lookups can be batched.
+   */
+  private record MatchedComponent(
+      Application app,
+      PolicyEvaluation eval,
+      String candidateHash,
+      ComponentIdentifier componentIdentifier)
+  {
+  }
+
+  /**
+   * Key for grouping active violations by application and component hash.
+   */
+  private record ViolationKey(String applicationId, String hash)
+  {
   }
 
   private boolean coordsDoesNotMatch(

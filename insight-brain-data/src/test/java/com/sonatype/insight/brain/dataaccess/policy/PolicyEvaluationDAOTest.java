@@ -188,6 +188,44 @@ public class PolicyEvaluationDAOTest
     assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
   }
 
+  @Test
+  public void testGetLastPrimaryByApplicationIdsAndStageId() {
+    String stageTypeId = ReleaseStageType.ID;
+
+    Application application2 = tempEntity.newApplication("AbstractDbDAOTest-AppName2",
+        "AbstractDbDAOTest_AppPublicId2", organization.getId());
+    // application without any evaluation; must be absent from the result map
+    Application application3 = tempEntity.newApplication("AbstractDbDAOTest-AppName3",
+        "AbstractDbDAOTest_AppPublicId3", organization.getId());
+
+    Date time1 = new Date();
+    PolicyEvaluation app1Primary = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scan1", time1);
+    // a later reevaluation must NOT win over the primary
+    Date time2 = new Date(time1.getTime() + 1000);
+    tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scan1", true /* isReevaluation */,
+        false /* forMonitoring */, time2);
+    // a primary for a wrong stage must be ignored
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-build", time2);
+
+    // second app: two primaries, the newest wins
+    Date time3 = new Date(time1.getTime() + 2000);
+    tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scan2", time1);
+    PolicyEvaluation app2Newest = tempEntity.newPolicyEvaluation(application2.getId(), stageTypeId, "scan3", time3);
+
+    var result = dao.getLastPrimaryByApplicationIdsAndStageId(
+        Sets.newHashSet(application.getId(), application2.getId(), application3.getId()), stageTypeId);
+
+    assertThat(result).containsOnlyKeys(application.getId(), application2.getId());
+    assertThat(result.get(application.getId()).getId()).isEqualTo(app1Primary.getId());
+    assertThat(result.get(application.getId()).isReevaluation()).isFalse();
+    assertThat(result.get(application2.getId()).getId()).isEqualTo(app2Newest.getId());
+  }
+
+  @Test
+  public void testGetLastPrimaryByApplicationIdsAndStageId_emptyInput() {
+    assertThat(dao.getLastPrimaryByApplicationIdsAndStageId(Collections.emptySet(), ReleaseStageType.ID)).isEmpty();
+  }
+
   private void assertPolicyEvaluation(
       String applicationId,
       String stageTypeId,

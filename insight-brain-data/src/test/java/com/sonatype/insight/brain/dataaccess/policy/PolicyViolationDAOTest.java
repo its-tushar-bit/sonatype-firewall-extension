@@ -960,6 +960,114 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetActiveByApplicationIdsAndStageIdAndHashes() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
+
+    PolicyViolation app1HashA = tempEntity.newPolicyViolation(eval1, policy);
+    app1HashA.setHash("hash-a");
+    dao.update(app1HashA);
+
+    // fixed, waived and legacy violations for a requested hash must be excluded (build stage)
+    PolicyViolation fixed = tempEntity.newPolicyViolation(eval1, policy);
+    fixed.setHash("hash-a");
+    fixed.setFixTime(eval1.getTime());
+    dao.update(fixed);
+    PolicyViolation waived =
+        tempEntity.newWaivedPolicyViolation(eval1, policy, tempEntity.newWaiver(policy.getId(), application.getId()));
+    waived.setHash("hash-a");
+    dao.update(waived);
+    PolicyViolation legacy = tempEntity.newPolicyViolation(eval1, policy);
+    legacy.setHash("hash-a");
+    legacy.setLegacyViolationTime(eval1.getTime());
+    dao.update(legacy);
+
+    // an active violation for a non-requested hash must be excluded
+    PolicyViolation app1HashOther = tempEntity.newPolicyViolation(eval1, policy);
+    app1HashOther.setHash("hash-other");
+    dao.update(app1HashOther);
+
+    // a second application with a requested hash
+    Application application2 = tempEntity.newApplication(organization.getId());
+    Policy policy2 = tempEntity.newPolicy(application2);
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scan-2");
+    PolicyViolation app2HashB = tempEntity.newPolicyViolation(eval2, policy2);
+    app2HashB.setHash("hash-b");
+    dao.update(app2HashB);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdAndHashes(
+        Set.of(application.getId(), application2.getId()), BuildStageType.ID, Set.of("hash-a", "hash-b"));
+
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(app1HashA.getId(), app2HashB.getId());
+
+    // empty inputs short-circuit to an empty result
+    assertThat(dao.getActiveByApplicationIdsAndStageIdAndHashes(Collections.emptySet(), BuildStageType.ID,
+        Set.of("hash-a"))).isEmpty();
+    assertThat(dao.getActiveByApplicationIdsAndStageIdAndHashes(Set.of(application.getId()), BuildStageType.ID,
+        Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdsAndStageIdAndHashes_ProxyStage_IncludesLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        ProxyStageType.ID, "scan-1");
+
+    String testHash = "test-hash-123";
+
+    // Create legacy violation with specific hash
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setHash(testHash);
+    legacyViolation.setThreatLevel(9);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Create regular violation with same hash
+    PolicyViolation regularViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    regularViolation.setHash(testHash);
+    regularViolation.setThreatLevel(8);
+    dao.update(regularViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdAndHashes(
+        Set.of(application.getId()), ProxyStageType.ID, Set.of(testHash));
+
+    // Firewall includes ALL violations for this hash (legacy and regular)
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(legacyViolation.getId(), regularViolation.getId());
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdsAndStageIdAndHashes_chunksAcrossPartitions() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy);
+    violation.setHash("real-hash");
+    dao.update(violation);
+
+    int threshold = dao.isDatabaseEmbedded()
+        ? PolicyViolationDAO.H2_IN_OPERATOR_THRESHOLD
+        : PolicyViolationDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
+
+    // Both the app-id and hash sets exceed the IN-clause threshold, forcing the nested chunking to span multiple
+    // partitions. The combined bind-parameter budget must stay within limits and the results must merge correctly
+    // across partitions (only the single real violation is returned).
+    Set<String> manyAppIds = new HashSet<>();
+    manyAppIds.add(application.getId());
+    Set<String> manyHashes = new HashSet<>();
+    manyHashes.add("real-hash");
+    for (int i = 0; i <= threshold; i++) {
+      manyAppIds.add("app-" + i);
+      manyHashes.add("hash-" + i);
+    }
+
+    List<PolicyViolation> violations =
+        dao.getActiveByApplicationIdsAndStageIdAndHashes(manyAppIds, BuildStageType.ID, manyHashes);
+
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(violation.getId());
+  }
+
+  @Test
   public void testGetUnfixedByApplicationIds() {
     Policy policy = tempEntity.newPolicy(application);
 

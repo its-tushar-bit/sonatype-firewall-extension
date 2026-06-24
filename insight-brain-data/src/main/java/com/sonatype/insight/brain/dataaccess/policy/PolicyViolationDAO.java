@@ -295,6 +295,52 @@ public class PolicyViolationDAO
     }
   }
 
+  /**
+   * Batch variant of {@link #getActiveByApplicationIdAndStageIdAndHash(String, String, String)} for many
+   * applications/hashes at once, applying the same active/legacy-violation rules. Callers group the result by
+   * application id and hash (e.g. to compute a per-component max threat level).
+   */
+  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdAndHashes(
+      Set<String> applicationIds,
+      String stageTypeId,
+      Set<String> hashes)
+  {
+    if (CollectionUtils.isEmpty(applicationIds) || CollectionUtils.isEmpty(hashes)) {
+      return List.of();
+    }
+    // The app-id and hash IN-clauses are combined into a single query, so each chunk must reserve bind-parameter
+    // budget for the other clause (plus the stageTypeId param) to stay under the database parameter limit. See
+    // ApplicationComponentDAO#getMapByApplicationIdsAndStageTypeIdsAndHashes for the same nested-chunking pattern.
+    return getListWithSqlInClause(
+        applicationIds,
+        appIdChunk -> getListWithSqlInClause(
+            hashes,
+            hashChunk -> {
+              try (TransactionContext tx = createTransactionContext()) {
+                var query = tx.dsl()
+                    .selectFrom(POLICY_VIOLATION)
+                    .where(POLICY_VIOLATION.APPLICATION_ID.in(appIdChunk))
+                    .and(POLICY_VIOLATION.STAGE_TYPE_ID.eq(stageTypeId))
+                    .and(POLICY_VIOLATION.HASH.in(hashChunk))
+                    .and(POLICY_VIOLATION.FIX_TIME.isNull())
+                    .and(POLICY_VIOLATION.WAIVE_TIME.isNull());
+
+                if (!ProxyStageType.ID.equals(stageTypeId)) {
+                  // Lifecycle: exclude legacy violations
+                  query = query.and(POLICY_VIOLATION.LEGACY_VIOLATION_TIME.isNull());
+                }
+
+                return query.fetchInto(PolicyViolation.class);
+              }
+            },
+            getDataStore(),
+            1,
+            appIdChunk.size() + 1), // + 1 for the stageTypeId bind param
+        getDataStore(),
+        1,
+        1 + 1); // reserve 1 for the stageTypeId param and a minimum of 1 hash in each inner IN-clause
+  }
+
   public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(
       Collection<String> applicationIds,
       Date minDate,

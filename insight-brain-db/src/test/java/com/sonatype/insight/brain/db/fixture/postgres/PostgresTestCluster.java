@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
@@ -56,6 +57,8 @@ public class PostgresTestCluster
 
   public static final String DEFAULT_PASSWORD = "testpass";
 
+  private static final String DUPLICATE_OBJECT_SQL_STATE = "42710";
+
   protected final EmbeddedPostgres embeddedPostgres;
 
   protected final int port;
@@ -79,15 +82,22 @@ public class PostgresTestCluster
       throw new IllegalStateException("Could not start embedded postgres", e);
     }
 
-    // Create the role used by tests (embedded-postgres starts with a superuser matching the OS user)
+    // Tolerate a pre-existing role: parallel surefire forks and reused CI agents can leave it behind, and a
+    // hard failure would fail the whole test class. Any such role was created by a prior run of this same
+    // constructor, so its attributes match. To stop tolerating it, drop the duplicate_object check.
     try (Connection conn = getAdminConnection("postgres");
         Statement stmt = conn.createStatement())
     {
       stmt.execute("CREATE ROLE " + DEFAULT_USERNAME + " WITH LOGIN PASSWORD '" + DEFAULT_PASSWORD +
           "' SUPERUSER CREATEDB");
     }
-    catch (Exception e) {
-      throw new IllegalStateException("Could not create test user role", e);
+    catch (SQLException e) {
+      if (DUPLICATE_OBJECT_SQL_STATE.equals(e.getSQLState())) {
+        log.info("Test user role '{}' already exists; reusing it.", DEFAULT_USERNAME);
+      }
+      else {
+        throw new IllegalStateException("Could not create test user role", e);
+      }
     }
 
     log.info("Started Embedded Postgres Test Cluster on port {} for this JVM execution.", port);

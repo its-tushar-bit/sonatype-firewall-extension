@@ -62,6 +62,12 @@ const initialState = {
   loadingAll: false,
 
   loadErrorSummary: null,
+  // HTTP status of the most recent loadSummary rejection (e.g. 401, 403, 5xx).
+  // Persisted alongside the formatted error string so the sidebar tile can
+  // distinguish a permission/feature failure (hide the tile silently) from a
+  // transient 5xx (show the inline error placeholder). Reset to null on
+  // pending/fulfilled.
+  loadErrorSummaryStatus: null,
   loadErrorHistoryBreakdown: null,
   loadErrorSourceBreakdown: null,
   loadErrorStageBreakdown: null,
@@ -193,16 +199,31 @@ const loadAllUsageData = createAsyncThunk(
   }
 );
 
-const summaryPending = (state) => ({ ...state, loadingSummary: true, loadErrorSummary: null });
+const summaryPending = (state) => ({
+  ...state,
+  loadingSummary: true,
+  loadErrorSummary: null,
+  loadErrorSummaryStatus: null,
+});
 const summaryFulfilled = (state, { payload }) => ({
   ...state,
   loadingSummary: false,
   summary: payload,
+  // Clear BOTH error fields on success. summaryPending already clears both,
+  // and allFulfilled clears both — keeping summaryFulfilled symmetric closes
+  // the door on any future code path that might dispatch fulfilled without
+  // first dispatching pending (e.g. direct test fixtures or manual recovery).
+  loadErrorSummary: null,
+  loadErrorSummaryStatus: null,
 });
 const summaryRejected = (state, { payload }) => ({
   ...state,
   loadingSummary: false,
   loadErrorSummary: Messages.getHttpErrorMessage(payload),
+  // payload is the axios error from rejectWithValue(error); HTTP status lives
+  // on payload.response.status. May be undefined for network errors (which
+  // intentionally falls through to the placeholder, not the silent-hide path).
+  loadErrorSummaryStatus: payload?.response?.status ?? null,
 });
 
 const summaryForPeriodPending = (state) => ({
@@ -328,6 +349,14 @@ const allFulfilled = (state, { payload }) => {
     ...state,
     loadingAll: false,
     ...rest,
+    // allFulfilled guarantees summary is valid (loadAllUsageData rejects when
+    // summaryRes fails, so allFulfilled only fires on summary success). Clear
+    // any stale loadSummary rejection state so the sidebar tile is not
+    // permanently hidden in a same-session recovery scenario (e.g. the user
+    // gains VIEW_USAGE permission mid-session and the Usage page re-mounts,
+    // triggering loadAllUsageData without going through loadSummary.pending).
+    loadErrorSummary: null,
+    loadErrorSummaryStatus: null,
     // Stamp lastRefreshedAt on every successful full load so the "Last refreshed:" subtitle
     // shows a real relative time from first paint, not the "recently" fallback.
     lastRefreshedAt: loadedAt ?? state.lastRefreshedAt,

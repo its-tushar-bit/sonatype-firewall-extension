@@ -37,6 +37,7 @@ export const selectLoadingDailyHistory = createSelector(selectUsageSlice, prop('
 export const selectLoadingAll = createSelector(selectUsageSlice, prop('loadingAll'));
 
 export const selectLoadErrorSummary = createSelector(selectUsageSlice, prop('loadErrorSummary'));
+export const selectLoadErrorSummaryStatus = createSelector(selectUsageSlice, prop('loadErrorSummaryStatus'));
 export const selectLoadErrorHistoryBreakdown = createSelector(selectUsageSlice, prop('loadErrorHistoryBreakdown'));
 export const selectLoadErrorSourceBreakdown = createSelector(selectUsageSlice, prop('loadErrorSourceBreakdown'));
 export const selectLoadErrorStageBreakdown = createSelector(selectUsageSlice, prop('loadErrorStageBreakdown'));

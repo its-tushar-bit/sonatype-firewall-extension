@@ -65,6 +65,35 @@ describe('usageSlice.allFulfilled', () => {
     expect(next.summary).toEqual({ consumed: 10 });
     expect(next.loadingAll).toBe(false);
   });
+
+  it('clears stale loadSummary auth error when the bundled load succeeds (same-session recovery)', () => {
+    // Simulate: loadSummary rejected 403 (sidebar hides), then user gains permission
+    // mid-session and the Usage page re-mounts → loadAllUsageData.fulfilled fires.
+    // Without clearing the stale status the tile stays hidden even with valid data.
+    const afterRejection = reducer(undefined, {
+      type: 'usage/loadSummary/rejected',
+      payload: { response: { status: 403 } },
+    });
+    expect(afterRejection.loadErrorSummaryStatus).toBe(403);
+    expect(afterRejection.loadErrorSummary).not.toBeNull();
+
+    const recoveryAction = makeFulfilledAction({
+      aggregation: 'daily',
+      summary: { consumed: 5, limit: 100 },
+      historyBreakdown: dailyBreakdown,
+      sourceBreakdown: [],
+      stageBreakdown: [],
+      topApps: null,
+      dailyHistory: null,
+      loadedAt: Date.now(),
+    });
+
+    const next = reducer(afterRejection, recoveryAction);
+
+    expect(next.loadErrorSummaryStatus).toBeNull();
+    expect(next.loadErrorSummary).toBeNull();
+    expect(next.summary).toEqual({ consumed: 5, limit: 100 });
+  });
 });
 
 describe('usageSlice.historyBreakdownFulfilled stale-aggregation guard', () => {
@@ -343,6 +372,84 @@ describe('usageSlice new state fields and reducers', () => {
       actions.setCumulativeFilter('last3Months')
     );
     expect(s.cumulativeFilter).toBe('last3Months');
+  });
+});
+
+describe('usageSlice loadSummary.rejected — loadErrorSummaryStatus', () => {
+  // The sidebar tile distinguishes auth-class failures (401/403/404 — hide
+  // the widget silently) from transient 5xx failures (show inline placeholder).
+  // The slice persists the HTTP status alongside the formatted error string
+  // so the tile can route on the actual cause; the status comes from
+  // axios's `error.response.status`.
+  it('records the HTTP status from the rejected payload', () => {
+    const initial = reducer(undefined, { type: '@@INIT' });
+    const s = reducer(initial, {
+      type: 'usage/loadSummary/rejected',
+      payload: { response: { status: 403 } },
+    });
+    expect(s.loadErrorSummaryStatus).toBe(403);
+    expect(s.loadingSummary).toBe(false);
+  });
+
+  it.each([401, 404])('records HTTP status %i — pinning the slice contract for the auth-class hide-set', (status) => {
+    // The sidebar tile's SILENT_HIDE_STATUSES set is {401, 403, 404}. The
+    // 403 case is covered by the previous test; this locks in 401 (session
+    // expired) and 404 (endpoint not deployed) at the reducer level too,
+    // so the silent-hide path the tile relies on stays grounded in the
+    // slice contract — not just in the component's render logic.
+    const initial = reducer(undefined, { type: '@@INIT' });
+    const s = reducer(initial, {
+      type: 'usage/loadSummary/rejected',
+      payload: { response: { status } },
+    });
+    expect(s.loadErrorSummaryStatus).toBe(status);
+    expect(s.loadingSummary).toBe(false);
+  });
+
+  it('resets the HTTP status to null on pending (clears stale rejection state)', () => {
+    const rejected = reducer(undefined, {
+      type: 'usage/loadSummary/rejected',
+      payload: { response: { status: 500 } },
+    });
+    const s = reducer(rejected, { type: 'usage/loadSummary/pending' });
+    expect(s.loadErrorSummaryStatus).toBeNull();
+    expect(s.loadingSummary).toBe(true);
+  });
+
+  it('resets BOTH error fields to null on fulfilled (recovery clears the markers)', () => {
+    // Symmetry contract: pending clears both fields, fulfilled also clears
+    // both. Without this, a direct-dispatch of fulfilled after a prior
+    // rejection (test fixtures, manual recovery hooks, future refactors)
+    // would leave loadErrorSummary truthy while loadErrorSummaryStatus is
+    // null — the sidebar's `if (error && !summary)` placeholder branch would
+    // misfire on what is actually successful data.
+    const rejected = reducer(undefined, {
+      type: 'usage/loadSummary/rejected',
+      payload: { response: { status: 500 } },
+    });
+    expect(rejected.loadErrorSummary).not.toBeNull();
+    expect(rejected.loadErrorSummaryStatus).toBe(500);
+
+    const s = reducer(rejected, {
+      type: 'usage/loadSummary/fulfilled',
+      payload: { consumed: 1, limit: 10 },
+    });
+    expect(s.loadErrorSummary).toBeNull();
+    expect(s.loadErrorSummaryStatus).toBeNull();
+    expect(s.summary).toEqual({ consumed: 1, limit: 10 });
+  });
+
+  it('records null when the error has no response (network failure)', () => {
+    // axios timeout / DNS / CORS errors have no `.response` field — falling
+    // back to null intentionally takes the transient-failure path (the
+    // placeholder), not the silent-hide path. The user can full-page reload
+    // to recover from a transient network glitch.
+    const initial = reducer(undefined, { type: '@@INIT' });
+    const s = reducer(initial, {
+      type: 'usage/loadSummary/rejected',
+      payload: { message: 'Network Error' },
+    });
+    expect(s.loadErrorSummaryStatus).toBeNull();
   });
 });
 

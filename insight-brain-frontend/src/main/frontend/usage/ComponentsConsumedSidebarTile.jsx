@@ -9,10 +9,29 @@ import { useDispatch, useSelector } from 'react-redux';
 import classnames from 'classnames';
 
 import { actions } from './usageSlice';
-import { selectSummary, selectLoadingSummary, selectLoadErrorSummary } from './usageSelectors';
+import {
+  selectSummary,
+  selectLoadingSummary,
+  selectLoadErrorSummary,
+  selectLoadErrorSummaryStatus,
+} from './usageSelectors';
 import { selectIsUsageDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { formatCount } from './usageFormatters';
+
+// HTTP statuses that mean "hide the tile silently" rather than "request
+// transiently failed". A reload won't recover the data:
+//   401 — not authenticated (e.g. session expired)
+//   403 — consumption-reporting feature disabled at the system-config layer,
+//         OR the user lacks CONFIGURE_SYSTEM/VIEW_USAGE permission (both
+//         are authorization-class)
+//   404 — endpoint not mounted in this deployment variant (not strictly an
+//         authorization failure, but the right UX response is the same:
+//         suppress both the tile and its "Couldn't load data" placeholder)
+// For these, a "Couldn't load data" box would imply recoverability and just
+// add confusion. The transient-error placeholder is reserved for 5xx and
+// network failures where reload is an actionable user response.
+const SILENT_HIDE_STATUSES = new Set([401, 403, 404]);
 
 export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   const dispatch = useDispatch();
@@ -20,12 +39,16 @@ export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   const summary = useSelector(selectSummary);
   const loading = useSelector(selectLoadingSummary);
   const error = useSelector(selectLoadErrorSummary);
+  const errorStatus = useSelector(selectLoadErrorSummaryStatus);
+  const isSilentHideStatus = SILENT_HIDE_STATUSES.has(errorStatus);
 
   useEffect(() => {
     // Skip the fetch when the sidebar is collapsed — the tile isn't visible,
     // and firing a request for data that won't render wastes a round-trip.
     // Without `!collapsed` the effect would still run if a parent kept this
-    // mounted with `collapsed={true}` rather than unmounting.
+    // mounted with `collapsed={true}` rather than unmounting. The `!error`
+    // guard also prevents auto-retry on a 401/403, so users without access
+    // do not hammer the BE with the same rejection every render cycle.
     if (!collapsed && enabled && summary === null && !loading && !error) {
       dispatch(actions.loadSummary());
     }
@@ -34,6 +57,16 @@ export default function ComponentsConsumedSidebarTile({ collapsed = false }) {
   if (!enabled) return null;
 
   if (collapsed) {
+    return null;
+  }
+
+  // Silent-hide path: the endpoint returned 401/403/404, meaning either the
+  // user lacks permission, the consumption-reporting feature is disabled, or
+  // the endpoint is not deployed. Hide the tile silently — no placeholder.
+  // The "if no sidebar widget, no placeholder for it" contract: the
+  // placeholder is reserved for transient failures where the data WOULD be
+  // available, not for users who can never see it.
+  if (isSilentHideStatus) {
     return null;
   }
 

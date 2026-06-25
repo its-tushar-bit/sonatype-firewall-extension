@@ -45,15 +45,7 @@ export function ClassicToggleButton() {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 14,
-        right: 320,
-        zIndex: 9999,
-      }}
-      data-testid="classic-toggle-button"
-    >
+    <div data-testid="classic-toggle-button">
       <Theme
         appearance={effectiveTheme}
         accentColor="green"
@@ -61,6 +53,10 @@ export function ClassicToggleButton() {
         radius="full"
         scaling="100%"
         hasBackground={false}
+        // Radix renders this as a root theme (no parent <Theme> in the Classic
+        // bundle), which applies min-height: 100vh. Inside the flex header that
+        // stretches the wrapper full-height and pushes the button off-screen.
+        style={{ minHeight: 0, display: 'inline-flex' }}
       >
         <Button
           size="2"

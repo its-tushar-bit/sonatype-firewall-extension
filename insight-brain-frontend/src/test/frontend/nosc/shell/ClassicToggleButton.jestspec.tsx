@@ -5,34 +5,23 @@
  */
 /* eslint-env jest */
 import React from 'react';
-import { Theme } from '@radix-ui/themes';
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { Provider as ReduxProvider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { render, screen, act, userEvent } from 'TestRoot/SpecUtil';
 import { ClassicToggleButton } from 'MainRoot/nosc/shell/ClassicToggleButton';
 import * as urlUtil from 'MainRoot/util/urlUtil';
 
-function makeStore(previewEnabled = true) {
-  return configureStore({
-    reducer: {
-      productFeatures: () => ({
+// The button is gated on the `preview-nexus-one-ui` master flag. SpecUtil's
+// render wires up the real root store + <Provider> for us; we only seed the
+// product-features slice that this component reads.
+function renderButton(previewEnabled = true) {
+  return render(<ClassicToggleButton />, {
+    preloadedState: {
+      productFeatures: {
         productFeatures: previewEnabled ? { 'preview-nexus-one-ui': true } : {},
         loading: false,
         loadError: null,
-      }),
+      },
     },
   });
-}
-
-function renderInShell(previewEnabled = true) {
-  return render(
-    <ReduxProvider store={makeStore(previewEnabled)}>
-      <Theme>
-        <ClassicToggleButton />
-      </Theme>
-    </ReduxProvider>,
-  );
 }
 
 describe('ClassicToggleButton', () => {
@@ -68,26 +57,26 @@ describe('ClassicToggleButton', () => {
 
   it('renders on a Classic URL when the master flag is ON', () => {
     setHash('#/dashboard/violations');
-    renderInShell(true);
+    renderButton(true);
     expect(screen.getByRole('button', { name: /switch to nexus one ui/i })).toBeInTheDocument();
   });
 
   it('does not render in the nexus-one bundle', () => {
     jest.spyOn(urlUtil, 'isNexusOneBundle').mockReturnValue(true);
     setHash('#/dashboard');
-    renderInShell(true);
+    renderButton(true);
     expect(screen.queryByRole('button', { name: /switch to nexus one ui/i })).not.toBeInTheDocument();
   });
 
   it('does not render when the master flag is OFF', () => {
     setHash('#/dashboard/violations');
-    renderInShell(false);
+    renderButton(false);
     expect(screen.queryByRole('button', { name: /switch to nexus one ui/i })).not.toBeInTheDocument();
   });
 
   it('navigates to the Nexus One equivalent via bundleIndexUrl', async () => {
     setHash('#/dashboard/violations');
-    renderInShell(true);
+    renderButton(true);
 
     await userEvent.click(screen.getByRole('button', { name: /switch to nexus one ui/i }));
 
@@ -97,7 +86,7 @@ describe('ClassicToggleButton', () => {
 
   it('navigates to /applications from Classic application list', async () => {
     setHash('#/management/view/application');
-    renderInShell(true);
+    renderButton(true);
 
     await userEvent.click(screen.getByRole('button', { name: /switch to nexus one ui/i }));
 

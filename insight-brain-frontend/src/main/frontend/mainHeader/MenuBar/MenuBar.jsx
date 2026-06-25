@@ -13,6 +13,7 @@ import LoginButton from './LoginButton/LoginButton';
 import NotificationsMenuContainer from './NotificationsMenu/NotificationsMenuContainer';
 import GlobalHeader from './GlobalHeader';
 import { PRODUCT_NAMES } from './useProductInfo';
+import { ClassicToggleButton } from 'MainRoot/nosc/shell/ClassicToggleButton';
 
 export const MenuBar = ({
   majorMinorVersion = '',
@@ -79,6 +80,7 @@ export const MenuBar = ({
 
   return (
     <GlobalHeader product={product}>
+      <ClassicToggleButton />
       <HelpMenu majorMinorVersion={majorMinorVersion} />
       {isShowNotificationMenuEnabled && !isStandaloneDeveloper && <NotificationsMenuContainer />}
       {hasAnyPermissions && !isStandaloneDeveloper && (

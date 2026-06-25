@@ -26,7 +26,6 @@ import NavigationContainer from './navigationContainer/NavigationContainer';
 import MainHeader from './mainHeader/MainHeader.jsx';
 import Footer from './react/Footer/Footer.jsx';
 import ModalContainer from './modalContainer/ModalContainer';
-import { ClassicToggleButton } from './nosc/shell/ClassicToggleButton';
 
 function PageLayout() {
   const currentState = useSelector(selectRouterState);
@@ -51,7 +50,6 @@ function PageLayout() {
       </div>
       <ToastContainer />
       {!embeddable && <NavigationContainer clmServerVersion={CLM_SERVER_VERSION} />}
-      <ClassicToggleButton />
       <MainHeader />
       <div id="iq-content" className="nx-page-content nx-page-content--full-width">
         <div id="iq-sidebar-container"></div>

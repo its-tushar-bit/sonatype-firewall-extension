@@ -73,9 +73,19 @@ describe('MenuBar', () => {
     isShowNotificationMenuEnabled: true,
   };
 
+  // Enable the master flag so the (real) ClassicToggleButton renders in the
+  // logged-in header path.
+  const previewNexusOneEnabledState = {
+    productFeatures: {
+      productFeatures: { 'preview-nexus-one-ui': true },
+      loading: false,
+      loadError: null,
+    },
+  };
+
   beforeEach(() => {
     renderComponent = (props) => {
-      render(<MenuBar {...props} {...minimalProps} />);
+      render(<MenuBar {...minimalProps} {...props} />, { preloadedState: previewNexusOneEnabledState });
     };
 
     hrefSpy = jest.fn('href').mockImplementation((stateName) => stateName);
@@ -106,6 +116,16 @@ describe('MenuBar', () => {
     renderComponent();
     const solutionSwitcher = screen.getByText('SolutionSwitcherContainer');
     expect(solutionSwitcher).toBeInTheDocument();
+  });
+
+  it('renders ClassicToggleButton in the logged-in header', () => {
+    renderComponent();
+    expect(screen.getByRole('button', { name: /switch to nexus one ui/i })).toBeInTheDocument();
+  });
+
+  it('does not render ClassicToggleButton in the unauthenticated header', () => {
+    renderComponent({ isLoggedIn: false, shouldShowLoginButton: false });
+    expect(screen.queryByRole('button', { name: /switch to nexus one ui/i })).not.toBeInTheDocument();
   });
 
   describe('product logo and homeHref', () => {

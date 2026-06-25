@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.innersource.InnerSourceService;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -62,15 +63,18 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.report.CompositeComparableVersion;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,21 +161,25 @@ public class DevelopmentPrioritiesService
       final boolean includeRemediation,
       final boolean filterOnPolicyActions)
   {
+    throwErrorIfDevelopmentNotEnabledByLicense();
+
     final int skipCount = (page - 1) * pageSize;
 
-    PolicyEvaluation latestBuildStageEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(
-            applicationDAO.getByPublicId(applicationPublicId).getId(), "build");
+    final Application application = applicationDAO.getByPublicId(applicationPublicId);
+    if (application == null) {
+      throw new NotFoundException("Application not found: " + applicationPublicId);
+    }
+    final PolicyEvaluation mainPolicyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
 
-    String scanIdFromLatestBuildStageEvaluation =
-        latestBuildStageEvaluation != null ? latestBuildStageEvaluation.getScanId() : "";
+    final String scanIdFromLatestBuildStageEvaluation =
+        mainPolicyEvaluation != null ? mainPolicyEvaluation.getScanId() : "";
 
-    boolean hasAutoWaiversConfigured = autoPolicyWaiverDAO.getCount() > 0 ? true : false;
+    final boolean hasAutoWaiversConfigured = autoPolicyWaiverDAO.getCount() > 0;
 
-    final List<PrioritizedComponent> allPrioritizedFindings =
-        includeRemediation
-            ? getAllPrioritizedFindings(applicationPublicId, scanId, skipCount, pageSize)
-            : getAllPrioritizedFindings(applicationPublicId, scanId, null, null);
+    final List<PrioritizedComponent> allPrioritizedFindings = includeRemediation
+        ? computePrioritizedFindings(application, scanId, skipCount, pageSize, mainPolicyEvaluation)
+        : computePrioritizedFindings(application, scanId, null, null, mainPolicyEvaluation);
 
     final List<PrioritizedComponent> filteredByNameAndAction = allPrioritizedFindings.stream()
         .filter(prioritizedComponent -> StringUtils.isEmpty(componentNameFilter) ||
@@ -208,20 +216,36 @@ public class DevelopmentPrioritiesService
   {
     throwErrorIfDevelopmentNotEnabledByLicense();
 
-    // checks for read permissions on the app, making this an authorized function
+    final Application application = applicationDAO.getByPublicId(applicationPublicId);
+    if (application == null) {
+      throw new NotFoundException("Application not found: " + applicationPublicId);
+    }
+    final PolicyEvaluation mainPolicyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    return computePrioritizedFindings(application, scanId, remediationSkip, remediationLimit, mainPolicyEvaluation);
+  }
+
+  private List<PrioritizedComponent> computePrioritizedFindings(
+      final Application application,
+      final String scanId,
+      final Integer remediationSkip,
+      final Integer remediationLimit,
+      @Nullable final PolicyEvaluation mainPolicyEvaluation)
+  {
+    final String applicationPublicId = application.getPublicId();
+    final String applicationId = application.getId();
+
+    // Precondition: callers must be @Authorize-annotated; this helper does not enforce
+    // authorization itself. getDependencyInformation below also runs @Authorize on its own
+    // entry, providing defence-in-depth.
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
         developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
-
-    String applicationId = applicationDAO.getByPublicId(applicationPublicId).getId();
 
     PolicyEvaluation policyEvaluation =
         policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
 
     String policyEvaluationStage = policyEvaluation != null ? policyEvaluation.getStageTypeId() : null;
-
-    PolicyEvaluation mainPolicyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndStageId(applicationId, Stage.ID_BUILD);
 
     Set<String> componentsHashesOnBothEvaluations = Stage.ID_DEVELOP.equals(policyEvaluationStage)
         ? getSameComponentHashesInBothEvaluations(policyEvaluation, mainPolicyEvaluation)
@@ -252,6 +276,9 @@ public class DevelopmentPrioritiesService
     else {
       componentInfoByHash = Collections.emptyMap();
     }
+
+    final Map<String, String> innerSourceLatestVersionByPurl =
+        buildInnerSourceLatestVersionMap(apiReportRawDataDTOV2);
 
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
         .stream()
@@ -388,7 +415,8 @@ public class DevelopmentPrioritiesService
               hasAutoWaiver);
         })
         .filter(unprioritizedComponent -> unprioritizedComponent.isAllViolationsWaived
-            || unprioritizedComponent.highestThreat > 0 || hasUpgradePathOfInnerSource(unprioritizedComponent))
+            || unprioritizedComponent.highestThreat > 0
+            || hasUpgradePathOfInnerSource(unprioritizedComponent, innerSourceLatestVersionByPurl))
         .sorted(Comparator.comparingInt((UnprioritizedComponent c) -> getScore(c, isBulkRecommendationsEnabled))
             .thenComparingInt(this::getHighestThreat)
             .reversed())
@@ -741,9 +769,36 @@ public class DevelopmentPrioritiesService
   }
 
   /**
+   * Pre-batches the latest release-stage inner-source version for every inner-source-direct
+   * candidate in the BOM, returning a map keyed by versionless package URL. The downstream
+   * {@link #hasUpgradePathOfInnerSource} filter does a pure map lookup instead of issuing two
+   * DB queries per component.
+   */
+  private Map<String, String> buildInnerSourceLatestVersionMap(final ApiReportRawDataDTOV2 raw) {
+    List<ComponentIdentifier> candidates = raw.components.stream()
+        .filter(c -> DEPENDENCY_TYPE_INNER_SOURCE_DIRECT.equals(getDependencyType(c)))
+        .filter(c -> c.componentIdentifier != null)
+        .map(c -> c.componentIdentifier.toComponentIdentifier())
+        .filter(Objects::nonNull)
+        .toList();
+    if (candidates.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, String> result = innerSourceService.getLatestVersionsByStage(candidates, StageTypes.RELEASE.getId());
+    if (result.size() > 1000) {
+      log.warn("Large inner-source version map built: {} entries. Consider optimizing inner-source registration.",
+          result.size());
+    }
+    return result;
+  }
+
+  /**
    * Checks if the component has an upgrade path of direct Inner Source.
    */
-  private boolean hasUpgradePathOfInnerSource(UnprioritizedComponent unprioritizedComponent) {
+  private boolean hasUpgradePathOfInnerSource(
+      UnprioritizedComponent unprioritizedComponent,
+      Map<String, String> innerSourceLatestVersionByPurl)
+  {
     if (!DEPENDENCY_TYPE_INNER_SOURCE_DIRECT.equals(unprioritizedComponent.dependencyType)) {
       return false;
     }
@@ -753,13 +808,18 @@ public class DevelopmentPrioritiesService
       return false;
     }
 
+    // Mirrors the filter in buildInnerSourceLatestVersionMap — both must stay in sync so the
+    // pre-built map's keys match what this lookup computes.
+    if (unprioritizedComponent.component.componentIdentifier == null) {
+      return false;
+    }
     ComponentIdentifier componentId = unprioritizedComponent.component.componentIdentifier.toComponentIdentifier();
     if (componentId == null) {
       return false;
     }
 
-    String latestVersionByStage = innerSourceService.getComponentLatestVersionByStage(
-        componentId, StageTypes.RELEASE.getId());
+    String versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(componentId).getPackageUrl();
+    String latestVersionByStage = innerSourceLatestVersionByPurl.get(versionlessPurl);
     if (latestVersionByStage == null) {
       return false;
     }

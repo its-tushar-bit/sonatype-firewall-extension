@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.innersource;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -58,6 +62,35 @@ public class InnerSourceVersionDAO
         query = query.and(INNER_SOURCE_VERSION.STAGE_TYPE_ID.eq(stageTypeId));
       }
       return toEntity(query.fetchOne());
+    }
+  }
+
+  /**
+   * Batch-loads inner source versions at a single stage, keyed by inner source application ID.
+   * A null {@code stageTypeId} matches rows where {@code stage_type_id} is NULL.
+   */
+  public Map<String, InnerSourceVersion> getByInnerSourceApplicationIdsAndStage(
+      Set<String> innerSourceApplicationIds,
+      String stageTypeId)
+  {
+    if (innerSourceApplicationIds == null || innerSourceApplicationIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    try (TransactionContext tx = createTransactionContext();
+        var stream = getStreamWithSqlInClause(innerSourceApplicationIds, partition -> {
+          var step = tx.dsl()
+              .selectFrom(INNER_SOURCE_VERSION)
+              .where(INNER_SOURCE_VERSION.INNER_SOURCE_APPLICATION_ID.in(partition));
+          var withStage = stageTypeId == null
+              ? step.and(INNER_SOURCE_VERSION.STAGE_TYPE_ID.isNull())
+              : step.and(INNER_SOURCE_VERSION.STAGE_TYPE_ID.eq(stageTypeId));
+          return withStage.fetchStream().map(this::toEntity);
+        })) {
+      // UNIQUE (inner_source_application_id, stage_type_id) makes duplicate keys impossible.
+      return stream.collect(Collectors.toMap(
+          InnerSourceVersion::getInnerSourceApplicationId,
+          v -> v));
     }
   }
 

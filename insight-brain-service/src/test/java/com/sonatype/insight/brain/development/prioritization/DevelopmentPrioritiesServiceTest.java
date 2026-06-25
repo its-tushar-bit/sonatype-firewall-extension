@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
@@ -155,6 +156,27 @@ public class DevelopmentPrioritiesServiceTest
             GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false))
                 .withFailMessage("This server is not licensed for Sonatype Developer.")
                 .isInstanceOf(NotAuthorizedException.class);
+  }
+
+  @Test
+  public void testGetPrioritizedFindings_shouldThrowNotFoundWhenApplicationMissing() {
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    assertThatThrownBy(() -> developmentPrioritiesService
+        .getPrioritizedFindings("nonexistent-app-id", GIVEN_SOME_SCAN_ID,
+            GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("nonexistent-app-id");
+  }
+
+  @Test
+  public void testGetAllPrioritizedFindings_shouldThrowNotFoundWhenApplicationMissing() {
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    assertThatThrownBy(() -> developmentPrioritiesService
+        .getAllPrioritizedFindings("nonexistent-app-id", GIVEN_SOME_SCAN_ID, null, null))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("nonexistent-app-id");
   }
 
   @Test

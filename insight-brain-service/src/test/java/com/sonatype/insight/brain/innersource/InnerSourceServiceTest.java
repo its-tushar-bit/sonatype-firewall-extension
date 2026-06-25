@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.innersource;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -150,5 +154,76 @@ public class InnerSourceServiceTest
         InnerSourceUtils.getVersionlessPackageUrl(componentIdentifier).getPackageUrl(), app);
 
     assertThat(innerSourceService.isInnerSourceComponent(componentIdentifier)).isTrue();
+  }
+
+  @Test
+  public void testGetLatestVersionsByStage_NullStage() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> innerSourceService.getLatestVersionsByStage(
+            List.of(ComponentIdentifier.createNpmCoordinates("p", "v")), null))
+        .withMessage("stage is required");
+  }
+
+  @Test
+  public void testGetLatestVersionsByStage_EmptyStage() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> innerSourceService.getLatestVersionsByStage(
+            List.of(ComponentIdentifier.createNpmCoordinates("p", "v")), ""))
+        .withMessage("stage is required");
+  }
+
+  @Test
+  public void testGetLatestVersionsByStage_NullOrEmptyInputReturnsEmpty() {
+    assertThat(innerSourceService.getLatestVersionsByStage(null, StageTypes.RELEASE.getId())).isEmpty();
+    assertThat(innerSourceService.getLatestVersionsByStage(Collections.emptyList(), StageTypes.RELEASE.getId()))
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetLatestVersionsByStage_BatchesMultipleComponents() {
+    Application app = tempEntity.newApplicationWithParent();
+    String stage = StageTypes.RELEASE.getId();
+    ComponentIdentifier compA = ComponentIdentifier.createNpmCoordinates("comp-a", "0.0.0");
+    ComponentIdentifier compB = ComponentIdentifier.createNpmCoordinates("comp-b", "0.0.0");
+    ComponentIdentifier compNotInnerSource = ComponentIdentifier.createNpmCoordinates("comp-c", "0.0.0");
+    ComponentIdentifier compWithoutReleaseVersion = ComponentIdentifier.createNpmCoordinates("comp-d", "0.0.0");
+
+    InnerSourceApplication innerA = tempEntity.newInnerSourceApplication(
+        InnerSourceUtils.getVersionlessPackageUrl(compA).getPackageUrl(), app);
+    InnerSourceApplication innerB = tempEntity.newInnerSourceApplication(
+        InnerSourceUtils.getVersionlessPackageUrl(compB).getPackageUrl(), app);
+    // compWithoutReleaseVersion is registered but has no release-stage row
+    tempEntity.newInnerSourceApplication(
+        InnerSourceUtils.getVersionlessPackageUrl(compWithoutReleaseVersion).getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerA, "1.2.3", stage);
+    tempEntity.newInnerSourceVersion(innerB, "4.5.6", stage);
+
+    Map<String, String> result = innerSourceService.getLatestVersionsByStage(
+        List.of(compA, compB, compNotInnerSource, compWithoutReleaseVersion),
+        stage);
+
+    assertThat(result)
+        .hasSize(2)
+        .containsEntry(InnerSourceUtils.getVersionlessPackageUrl(compA).getPackageUrl(), "1.2.3")
+        .containsEntry(InnerSourceUtils.getVersionlessPackageUrl(compB).getPackageUrl(), "4.5.6");
+  }
+
+  @Test
+  public void testGetLatestVersionsByStage_FiltersOutNullComponentIdentifiers() {
+    Application app = tempEntity.newApplicationWithParent();
+    String stage = StageTypes.RELEASE.getId();
+    ComponentIdentifier compA = ComponentIdentifier.createNpmCoordinates("comp-a", "0.0.0");
+
+    InnerSourceApplication innerA = tempEntity.newInnerSourceApplication(
+        InnerSourceUtils.getVersionlessPackageUrl(compA).getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerA, "1.2.3", stage);
+
+    // null entries are dropped; the request still resolves
+    Map<String, String> result = innerSourceService.getLatestVersionsByStage(
+        Arrays.asList(compA, null), stage);
+
+    assertThat(result)
+        .hasSize(1)
+        .containsEntry(InnerSourceUtils.getVersionlessPackageUrl(compA).getPackageUrl(), "1.2.3");
   }
 }

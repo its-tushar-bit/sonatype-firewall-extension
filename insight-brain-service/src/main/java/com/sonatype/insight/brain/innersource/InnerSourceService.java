@@ -5,7 +5,14 @@
  */
 package com.sonatype.insight.brain.innersource;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
@@ -84,5 +91,55 @@ public class InnerSourceService
 
     PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(componentIdentifier);
     return innerSourceApplicationDAO.getByPackageUrl(packageUrl) != null;
+  }
+
+  /**
+   * Batch variant of {@link #getComponentLatestVersionByStage(ComponentIdentifier, String)} —
+   * returns a map of versionless package URL to latest version at the given stage. Components that
+   * have no registered inner source application or no version row at the stage are simply absent
+   * from the map (no exception, unlike the single-component variant).
+   */
+  public Map<String, String> getLatestVersionsByStage(
+      Collection<ComponentIdentifier> componentIdentifiers,
+      String stage)
+  {
+    if (stage == null || stage.isEmpty()) {
+      throw new BadRequestException("stage is required");
+    }
+    if (componentIdentifiers == null || componentIdentifiers.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Set<PackageUrlIdentifier> versionlessPurls = componentIdentifiers.stream()
+        .filter(Objects::nonNull)
+        .map(InnerSourceUtils::getVersionlessPackageUrl)
+        .collect(Collectors.toSet());
+    if (versionlessPurls.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    List<InnerSourceApplication> apps = innerSourceApplicationDAO.getByPackageUrls(versionlessPurls);
+    if (apps.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Set<String> appIds = apps.stream()
+        .map(InnerSourceApplication::getId)
+        .collect(Collectors.toSet());
+    Map<String, InnerSourceVersion> versionByAppId =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdsAndStage(appIds, stage);
+    if (versionByAppId.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    // package_url is UNIQUE on inner_source_application (schema.sql), so duplicate keys are
+    // impossible — the bare Collectors.toMap will fail loud if that ever changes.
+    return apps.stream()
+        .map(app -> {
+          InnerSourceVersion v = versionByAppId.get(app.getId());
+          return v == null ? null : Map.entry(app.getPackageUrl(), v.getLatestVersion());
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

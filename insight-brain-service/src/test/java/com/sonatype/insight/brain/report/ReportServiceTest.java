@@ -1801,6 +1801,42 @@ public class ReportServiceTest
         .isEqualTo("AGPL-1.0");
   }
 
+  /**
+   * reUploadScanToHds materializes the HDS-regenerated report under the transient tempScanId without
+   * enriching it; the single enrichment runs under the canonical scanId. This test calls
+   * fetchReport(scanId) directly (not via the evaluator path) and uses the SBOM merge as the observable
+   * proxy for enrichment.
+   */
+  @Test
+  public void testReUploadScanReport_enrichesOnlyUnderCanonicalScanId() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String tempScanId = "tempScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(tempScanId);
+    doReturn(scanReceipt).when(mockScanUploadService)
+        .upload(any(), any(), eq(StageTypes.BUILD.getId()), any(), eq(clientUserAgent), any(), any(), any(),
+            anyBoolean());
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), tempScanId);
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    // reUploadScanToHds must not enrich under the transient tempScanId.
+    verify(thirdPartyDataServiceSpy, never())
+        .mergeSonatypeDataWithSbomDataWithIndexing(eq(tempScanId), any(), any());
+
+    // Enrichment happens exactly once under the canonical scanId. times(1) (not times(2)) confirms
+    // reUploadScanToHds added none of its own — this direct fetchReport(scanId) is the only contributor.
+    reportService.fetchReport(app, scanId, StageTypes.BUILD.getId());
+    verify(thirdPartyDataServiceSpy, times(1))
+        .mergeSonatypeDataWithSbomDataWithIndexing(eq(scanId), any(), any());
+  }
+
   @Test
   public void testFetchReport_automatedRemediationIsTriggered() throws IOException {
     // Create an InnerSource app

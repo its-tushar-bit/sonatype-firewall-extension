@@ -309,16 +309,22 @@ public class ReportService
       final String stageTypeId,
       final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
   {
-    ApplicationReport applicationReport =
-        reportDataStore.downloadReport(app, scanId,
-            (sid, report, appId) -> processThirdPartyDataWithFallback(sid, report, appId,
-                preservedThirdPartyEntries));
+    ApplicationReport applicationReport = materializeReportFromHds(app, scanId, preservedThirdPartyEntries);
     CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
     applyChanges(app, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
         telemetryUtils, configuration);
     thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport, cpeResultsTelemetry);
     sendCpeResultMetricsTelemetry(app.getId(), cpeResultsTelemetry);
     return applicationReport;
+  }
+
+  private ApplicationReport materializeReportFromHds(
+      final Application app,
+      final String scanId,
+      final Map<String, ReportEntry> preservedThirdPartyEntries) throws IOException
+  {
+    return reportDataStore.downloadReport(app, scanId,
+        (sid, report, appId) -> processThirdPartyDataWithFallback(sid, report, appId, preservedThirdPartyEntries));
   }
 
   // visible for testing
@@ -1614,6 +1620,16 @@ public class ReportService
     return reportDataStore.getReportPdf(appId, scanId);
   }
 
+  /**
+   * Re-uploads the stored scan to HDS and materializes the freshly regenerated report under the canonical
+   * {@code scanId}, preserving any third-party report entries.
+   * <p>
+   * <b>Postcondition:</b> the report left under {@code scanId} is <em>unenriched</em> — {@code applyChanges}
+   * and the SBOM-data merge are intentionally <em>not</em> run here. The caller is responsible for triggering
+   * that enrichment exactly once under the canonical {@code scanId} (e.g. via the evaluator path's
+   * {@code fetchReport(scanId)}) before the report is consumed. Skipping that follow-up step silently yields a
+   * report missing enrichment data such as reachability markers (cf. CLM-38947).
+   */
   @Trace
   @WithSpan
   public PolicyEvaluation reUploadScanToHds(String appId, String scanId, String clientUserAgent) throws IOException {
@@ -1667,7 +1683,11 @@ public class ReportService
     Map<String, ReportEntry> preservedThirdPartyEntries = readThirdPartyEntriesFromReport(application, scanId);
 
     String tempScanId = scanReceipt.getScanId();
-    fetchReport(application, tempScanId, stageTypeId, preservedThirdPartyEntries);
+    // Materialize the HDS-regenerated report under tempScanId without running applyChanges or the
+    // SBOM-data merge. The caller is responsible for triggering that enrichment exactly once under the
+    // canonical scanId: today ReportResource.reevaluatePolicy does so via the evaluator path's
+    // fetchReport(scanId) after this method returns.
+    materializeReportFromHds(application, tempScanId, preservedThirdPartyEntries);
     reportDataStore.moveApplicationReport(appId, tempScanId, scanId);
     return policyEvaluation;
   }

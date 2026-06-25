@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -63,6 +65,8 @@ import static org.jooq.impl.DSL.selectOne;
 public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
+  private static final Logger log = LoggerFactory.getLogger(RepositoryComponentDAO.class);
+
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
   private final TemporaryTableHelper temporaryTableHelper;
@@ -1304,6 +1308,34 @@ public class RepositoryComponentDAO
         .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
         .execute();
+  }
+
+  /**
+   * Look up a repository component by the NXRM-assigned component_id (short hex ID stamped
+   * by {@link #stampComponentId} after a scan upload completes).
+   *
+   * <p>
+   * Note: component_id uniqueness is a NXRM-side contract (NXRM stamps globally unique
+   * hex IDs via {@link #stampComponentId} keyed on (repository_id, pathname)). There is no
+   * UNIQUE DB constraint — only an index — so duplicate values are theoretically possible if
+   * NXRM has a stamping bug. If duplicates are detected, a warning is logged and the first
+   * matching row is returned.
+   */
+  public RepositoryComponent getByNxrmComponentId(final String nxrmComponentId) {
+    if (nxrmComponentId == null) {
+      return null;
+    }
+    try (TransactionContext tx = createTransactionContext()) {
+      var results = tx.dsl()
+          .selectFrom(REPOSITORY_COMPONENT)
+          .where(REPOSITORY_COMPONENT.COMPONENT_ID.eq(nxrmComponentId))
+          .fetch();
+      if (results.size() > 1) {
+        log.warn("Multiple repository_component rows share component_id={} — returning first. " +
+            "This indicates a data integrity issue; component_id should be unique per row.", nxrmComponentId);
+      }
+      return results.isEmpty() ? null : toEntity(results.get(0));
+    }
   }
 
   public void stampScanId(

@@ -3909,6 +3909,21 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, "path");
   }
 
+  /**
+   * Creates a repository component with a stamped component_id so it can be looked up
+   * by {@code RepositoryComponentDAO#getByNxrmComponentId} in tests.
+   */
+  public RepositoryComponent newRepositoryComponentWithComponentId(String repositoryId, String componentId) {
+    RepositoryComponent component = newRepositoryComponent(repositoryId);
+    try (com.sonatype.insight.dataaccess.TransactionContext tx = repositoryComponentDAO.createTransactionContext()) {
+      tx.begin();
+      repositoryComponentDAO.stampComponentId(tx, repositoryId, component.getPathname(), componentId);
+      tx.commit();
+    }
+    component.setComponentId(componentId);
+    return component;
+  }
+
   public RepositoryComponent newRepositoryComponent(String repositoryId, Date evalTime) {
     return newRepositoryComponent(repositoryId, "path" + evalTime.getTime(), evalTime);
   }

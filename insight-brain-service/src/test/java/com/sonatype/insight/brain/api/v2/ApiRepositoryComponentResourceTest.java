@@ -51,18 +51,20 @@ public class ApiRepositoryComponentResourceTest
   @Test
   public void testDeleteComponents_FeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
-    RepositoryComponent component = tempEntity.newRepositoryComponent(hostedRepo.getId());
+    RepositoryComponent component =
+        tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
-    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getId()))).delete();
+    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();
 
     assertThat(response.getStatusCode()).isEqualTo(404);
   }
 
   @Test
   public void testDeleteComponents_Success() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(hostedRepo.getId());
+    RepositoryComponent component =
+        tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
-    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getId()))).delete();
+    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();
 
     assertThat(response.getStatusCode()).isEqualTo(204);
   }
@@ -133,10 +135,11 @@ public class ApiRepositoryComponentResourceTest
   public void testDeleteComponents_ProxyRepoComponent_Returns404() throws Exception {
     Repository proxyRepo =
         tempEntity.newProxyRepository(repositoryManager, "proxy-repo", "maven2", false, false);
-    RepositoryComponent proxyComponent = tempEntity.newRepositoryComponent(proxyRepo.getId());
+    RepositoryComponent proxyComponent =
+        tempEntity.newRepositoryComponentWithComponentId(proxyRepo.getId(), "test-nxrm-proxy-id");
 
     HttpResponse response =
-        componentsRequest().body(JsonUtils.toJson(List.of(proxyComponent.getId()))).delete();
+        componentsRequest().body(JsonUtils.toJson(List.of(proxyComponent.getComponentId()))).delete();
 
     assertThat(response.getStatusCode()).isEqualTo(404);
   }

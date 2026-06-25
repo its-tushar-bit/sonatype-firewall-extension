@@ -653,6 +653,11 @@ CREATE INDEX repository_component_quarantine_idx ON repository_component(reposit
 CREATE INDEX repository_component_release_quarantine_idx ON repository_component (quarantine_time, unquarantine_time, auto_unquarantined);
 CREATE INDEX repository_component_component_coordinates_idx ON repository_component (component_id_format, component_id_coordinates_json);
 CREATE INDEX repository_component_scan_id_idx ON repository_component(scan_id);
+-- Plain index on component_id for fresh installs (H2 + PostgreSQL compatible).
+-- Upgrading installations get the engine-specific variant via schema_incremental_0470
+-- (.pg.sql uses a partial WHERE predicate for storage efficiency on PostgreSQL;
+-- .h2.sql uses a plain index since H2 does not support partial indexes).
+CREATE INDEX idx_repository_component_component_id ON repository_component(component_id);
 CREATE INDEX repository_component_last_evaluation_time_idx ON repository_component(last_evaluation_time);
 
 CREATE TABLE repository_policy_violation (

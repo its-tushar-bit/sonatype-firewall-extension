@@ -382,4 +382,42 @@ describe('RepositoryComponentsList', () => {
 
     expect(screen.getByText('local-nexus')).toBeInTheDocument();
   });
+
+  it('dispatches loadRepositories on mount when managerName is null to restore breadcrumb on refresh', async () => {
+    axiosMock.onGet('/rest/integration/repositories/local-nexus/ui/configuredRepositories').reply(200, {
+      repositories: [],
+      totalCount: 0,
+      manager: { instanceId: 'local-nexus', name: 'My Local NXRM', baseUrl: 'http://localhost:8081' },
+    });
+
+    const stateWithoutManagerName = {
+      ...defaultPreloadedState,
+      hostedReposList: {
+        managerInstanceId: 'local-nexus',
+        managerBaseUrl: null,
+        managerName: null,
+      },
+    };
+
+    renderComponent(stateWithoutManagerName);
+
+    await waitFor(() => expect(axiosMock.history.get.some(r => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories')).toBe(true));
+  });
+
+  it('does not dispatch loadRepositories when managerName is already loaded', async () => {
+    const stateWithManagerName = {
+      ...defaultPreloadedState,
+      hostedReposList: {
+        managerInstanceId: 'local-nexus',
+        managerBaseUrl: 'http://localhost:8081',
+        managerName: 'My Local NXRM',
+      },
+    };
+
+    renderComponent(stateWithManagerName);
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'maven-hosted' })).toBeInTheDocument());
+
+    expect(axiosMock.history.get.some(r => r.url === '/rest/integration/repositories/local-nexus/ui/configuredRepositories')).toBe(false);
+  });
 });

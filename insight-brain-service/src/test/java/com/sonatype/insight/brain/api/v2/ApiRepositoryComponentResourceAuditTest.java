@@ -51,9 +51,10 @@ public class ApiRepositoryComponentResourceAuditTest
 
   @Test
   public void testDeleteComponents_AuditLogged() throws Exception {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(hostedRepo.getId());
+    RepositoryComponent component =
+        tempEntity.newRepositoryComponentWithComponentId(hostedRepo.getId(), "test-nxrm-id-1");
 
-    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getId()))).delete();
+    HttpResponse response = componentsRequest().body(JsonUtils.toJson(List.of(component.getComponentId()))).delete();
 
     assertThat(response.getStatusCode()).isEqualTo(204);
     assertAuditLog(AuditEvent.REMOVE_REPOSITORY, null);

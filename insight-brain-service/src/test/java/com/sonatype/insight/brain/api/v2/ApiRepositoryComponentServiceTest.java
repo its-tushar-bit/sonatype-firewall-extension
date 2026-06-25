@@ -112,8 +112,8 @@ public class ApiRepositoryComponentServiceTest
 
   @Test
   public void testDeleteComponents_Success() {
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(component1);
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_2)).thenReturn(component2);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_2)).thenReturn(component2);
 
     service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1, COMPONENT_ID_2));
 
@@ -143,7 +143,7 @@ public class ApiRepositoryComponentServiceTest
 
   @Test
   public void testDeleteComponents_NullElementsInList_Filtered() {
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(component1);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     service.deleteComponents(RM_INSTANCE_ID, Arrays.asList(COMPONENT_ID_1, null));
 
@@ -154,7 +154,7 @@ public class ApiRepositoryComponentServiceTest
 
   @Test
   public void testDeleteComponents_DuplicateIds_DeletedOnce() {
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(component1);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1, COMPONENT_ID_1));
 
@@ -167,7 +167,7 @@ public class ApiRepositoryComponentServiceTest
   public void testDeleteComponents_NonHostedComponent_ThrowsNotFound() {
     RepositoryComponent proxyComponent = mock(RepositoryComponent.class);
     when(proxyComponent.getRepositoryId()).thenReturn(REPO_ID);
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(proxyComponent);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(proxyComponent);
 
     Repository proxyRepo = mock(Repository.class);
     when(proxyRepo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
@@ -194,12 +194,24 @@ public class ApiRepositoryComponentServiceTest
   }
 
   @Test
+  public void testDeleteComponents_UnknownComponentId_ThrowsNotFound() {
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(null);
+
+    assertThatThrownBy(() -> service.deleteComponents(RM_INSTANCE_ID, List.of(COMPONENT_ID_1)))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageContaining(COMPONENT_ID_1);
+
+    verify(repositoryComponentDeleteService, never()).deleteComponent(any());
+    verify(hostedComponentScanQueueDAO, never()).deletePendingByComponentIds(any(), any());
+  }
+
+  @Test
   public void testDeleteComponents_ComponentBelongsToDifferentRM_ThrowsNotFound() {
     RepositoryManager otherRm = mock(RepositoryManager.class);
     when(otherRm.getId()).thenReturn("other-rm-internal-id");
     when(repositoryManagerDAO.getByInstanceIdNotNull("other-rm")).thenReturn(otherRm);
 
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(component1);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
 
     assertThatThrownBy(() -> service.deleteComponents("other-rm", List.of(COMPONENT_ID_1)))
         .isInstanceOf(NotFoundException.class)
@@ -219,7 +231,7 @@ public class ApiRepositoryComponentServiceTest
     Repository otherRepo = mock(Repository.class);
     when(otherRepo.getRepositoryManagerId()).thenReturn(RM_INTERNAL_ID);
 
-    when(repositoryComponentDAO.getByIdNotNull(COMPONENT_ID_1)).thenReturn(component1);
+    when(repositoryComponentDAO.getByNxrmComponentId(COMPONENT_ID_1)).thenReturn(component1);
     when(repositoryDAO.getByIdNotNull(REPO_ID)).thenReturn(otherRepo);
 
     assertThatThrownBy(() -> service.deleteComponents("other-rm", List.of(COMPONENT_ID_1, COMPONENT_ID_2)))

@@ -84,10 +84,15 @@ public class ApiRepositoryComponentService
         .distinct()
         .collect(Collectors.toList());
 
-    // Validate all components upfront before deleting any, to avoid partial deletes on failure
+    // Validate all components upfront before deleting any, to avoid partial deletes on failure.
+    // componentIds are the short NXRM-assigned IDs stored in the component_id column, not the
+    // internal repository_component_id PK — use getByNxrmComponentId for the lookup.
     List<RepositoryComponent> components = uniqueComponentIds.stream()
         .map(componentId -> {
-          RepositoryComponent component = repositoryComponentDAO.getByIdNotNull(componentId);
+          RepositoryComponent component = repositoryComponentDAO.getByNxrmComponentId(componentId);
+          if (component == null) {
+            throw new NotFoundException("RepositoryComponent with ID " + componentId + " does not exist.");
+          }
           Repository repository = repositoryDAO.getByIdNotNull(component.getRepositoryId());
           if (!repositoryManager.getId().equals(repository.getRepositoryManagerId())) {
             throw new NotFoundException(

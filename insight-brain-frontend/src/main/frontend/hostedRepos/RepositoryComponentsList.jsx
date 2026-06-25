@@ -36,6 +36,7 @@ import {
 } from './repositoryComponentsSelectors';
 import { selectRepositoryManager } from './hostedReposListSelectors';
 import { loadComponents, setFilter, reset } from './repositoryComponentsSlice';
+import { actions as hostedReposListActions } from './hostedReposListSlice';
 
 export default function RepositoryComponentsList() {
   const dispatch = useDispatch();
@@ -67,6 +68,19 @@ export default function RepositoryComponentsList() {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
   }, [repositoryId]);
+
+  // On direct page load or refresh, repositoryManager.name is null because the Redux state
+  // was not populated via navigation. Fetch repositories (which also returns manager info)
+  // to restore the breadcrumb name.
+  // Note: repositoryManager is intentionally not in the dependency array — including it
+  // would re-trigger this effect each time the name populates, creating an infinite loop.
+  // The !repositoryManager?.name guard prevents re-fetching once the name is loaded.
+  const managerName = repositoryManager?.name;
+  useEffect(() => {
+    if (repositoryManagerId && !managerName) {
+      dispatch(hostedReposListActions.loadRepositories({ repositoryManagerId }));
+    }
+  }, [repositoryManagerId, managerName]);
 
   const handleFilterChange = (value) => {
     setInputValue(value);

@@ -8,10 +8,8 @@
 properties([
     parameters([
       booleanParam(defaultValue: true, name: 'CLM'),
-      booleanParam(defaultValue: true, name: 'SDEV'),
       booleanParam(defaultValue: true, name: 'INT'),
       booleanParam(defaultValue: true, name: 'NEXUS'),
-      booleanParam(defaultValue: true, name: 'SBOM'),
     ])
 ])
 
@@ -28,14 +26,11 @@ pipeline {
           if (params.CLM) {
             issues.addAll(getIssuesByFixVersion('CLM', 'brain-next'))
           }
-          if (params.SDEV) {
-            issues.addAll(getIssuesByFixVersion('SDEV', 'brain-next'))
+          if (params.INT) {
+            issues.addAll(getIssuesByFixVersion('INT', 'brain-next'))
           }
           if (params.NEXUS) {
             issues.addAll(getIssuesByFixVersion('NEXUS', 'brain-next'))
-          }
-          if (params.SBOM) {
-            issues.addAll(getIssuesByFixVersion('SBOM', 'brain-next'))
           }
           replaceFixVersionForIssues(issues, 'brain-next', ['saas-next', 'selfhosted-next'])
         }

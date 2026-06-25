@@ -19,7 +19,8 @@ import { useSelector } from 'react-redux';
 export default function BackButton() {
   const uiRouterState = useRouterState();
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
-  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+  const currentParams = useSelector(selectRouterCurrentParams);
+  const { publicId, scanId, origin, repositoryManagerId, repositoryId, repositoryPublicId } = currentParams;
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
   const isDependencyTreePageFromPrioritiesPage = useSelector(selectIsDependencyTreePageFromPrioritiesPage);
@@ -35,5 +36,19 @@ export default function BackButton() {
     });
     return <MenuBarBackButton href={appReportWithBackToPrioritiesHref} text="Back to Application Report" />;
   }
+
+  // Hosted-repo flow: the URL carries origin + repo IDs, so refresh keeps the back link consistent.
+  if (origin === 'hostedRepoComponents') {
+    const hostedRepoReportHref = uiRouterState.href('applicationReport.policy', {
+      publicId,
+      scanId,
+      origin,
+      repositoryManagerId,
+      repositoryId,
+      repositoryPublicId,
+    });
+    return <MenuBarBackButton href={hostedRepoReportHref} text="Back to Repository Component Report" />;
+  }
+
   return <MenuBarBackButton stateName="applicationReport.policy" />;
 }

@@ -131,4 +131,33 @@ describe('ComponentDetailsBackButton', () => {
 
     expect(screen.getByRole('link', { name: 'Back to Application Report' })).toBeInTheDocument();
   });
+
+  describe('hosted repo origin', () => {
+    it('renders "Back to Repository Component Report" when currentParams.origin=hostedRepoComponents (refresh-safe)', () => {
+      const routerPreloadedState = {
+        router: {
+          currentParams: {
+            publicId: 'maven-releases_common_common_1_common-1.jar',
+            scanId: 'bc50a9b4678c4442974aff5e68750034',
+            origin: 'hostedRepoComponents',
+            repositoryManagerId: 'rm-1',
+            repositoryId: 'repo-1',
+            repositoryPublicId: 'maven-releases',
+          },
+        },
+      };
+
+      renderComponent(null, routerPreloadedState);
+
+      expect(screen.getByRole('link', { name: 'Back to Repository Component Report' })).toBeInTheDocument();
+      expect(routerContextMock.href).toHaveBeenCalledWith('applicationReport.policy', {
+        publicId: 'maven-releases_common_common_1_common-1.jar',
+        scanId: 'bc50a9b4678c4442974aff5e68750034',
+        origin: 'hostedRepoComponents',
+        repositoryManagerId: 'rm-1',
+        repositoryId: 'repo-1',
+        repositoryPublicId: 'maven-releases',
+      });
+    });
+  });
 });

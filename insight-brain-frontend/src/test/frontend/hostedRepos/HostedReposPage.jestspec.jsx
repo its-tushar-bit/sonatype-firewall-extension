@@ -502,6 +502,88 @@ describe('HostedReposPage', () => {
     });
   });
 
+  describe('Go to Configuration', () => {
+    const managerWithUrl = {
+      id: 'rm-db-id-1',
+      instanceId: 'nxrm-prod',
+      name: 'Production NXRM',
+      baseUrl: 'http://nxrm-prod:8081',
+      hostedRepositoryCount: 5,
+      connectionStatus: 'CONNECTED',
+      lastActivityTime: recentActivityTime,
+    };
+
+    const managerWithoutUrl = {
+      id: 'rm-db-id-2',
+      instanceId: 'nxrm-no-url',
+      name: 'No URL NXRM',
+      baseUrl: null,
+      hostedRepositoryCount: 0,
+      connectionStatus: 'DISCONNECTED',
+      lastActivityTime: null,
+    };
+
+    const renderWithManager = (manager) => {
+      axiosMock.reset();
+      axiosMock.onGet('/api/v2/lifecycle/repositoryManagers').reply(200, {
+        repositoryManagers: [manager],
+      });
+      return renderComponent();
+    };
+
+    const openDropdown = async (user, container) => {
+      await waitFor(() => expect(screen.getByText(managerWithUrl.name)).toBeInTheDocument());
+      const dropdownToggle = container.querySelector('.nx-icon-dropdown__toggle');
+      await user.click(dropdownToggle);
+    };
+
+    it('opens NXRM hosted repos eval page in a new tab when clicked', async () => {
+      const user = userEvent.setup();
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      const { container } = renderWithManager(managerWithUrl);
+
+      await openDropdown(user, container);
+      await user.click(screen.getByRole('button', { name: /Go to Configuration/i }));
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'http://nxrm-prod:8081/#admin/iq/sonatype-lifecycle/hosted-repos-eval',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      windowOpenSpy.mockRestore();
+    });
+
+    it('strips trailing slashes from baseUrl so the URL is not double-slashed', async () => {
+      const user = userEvent.setup();
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+      const managerWithTrailingSlash = { ...managerWithUrl, baseUrl: 'http://nxrm-prod:8081///' };
+      const { container } = renderWithManager(managerWithTrailingSlash);
+
+      await openDropdown(user, container);
+      await user.click(screen.getByRole('button', { name: /Go to Configuration/i }));
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'http://nxrm-prod:8081/#admin/iq/sonatype-lifecycle/hosted-repos-eval',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      windowOpenSpy.mockRestore();
+    });
+
+    it('disables Go to Configuration when baseUrl is missing', async () => {
+      const user = userEvent.setup();
+      const { container } = renderWithManager(managerWithoutUrl);
+
+      await waitFor(() => expect(screen.getByText(managerWithoutUrl.name)).toBeInTheDocument());
+      const dropdownToggle = container.querySelector('.nx-icon-dropdown__toggle');
+      await user.click(dropdownToggle);
+
+      expect(screen.getByRole('button', { name: /Go to Configuration/i })).toBeDisabled();
+    });
+  });
+
   it('should render cards in a grid layout', async () => {
     const multipleState = {
       ...defaultPreloadedState,
@@ -526,5 +608,4 @@ describe('HostedReposPage', () => {
       expect(cards.length).toBe(2);
     });
   });
-
 });

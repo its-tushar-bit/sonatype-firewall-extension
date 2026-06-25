@@ -321,4 +321,73 @@ describe('ApplicationLatestEvaluationsPage', () => {
       scanId: 'testScan',
     });
   });
+
+  it('renders back button to repository component report when origin=hostedRepoComponents is in URL params (refresh-safe)', async () => {
+    const stateWithHostedRepoOrigin = {
+      ...state,
+      router: {
+        ...state.router,
+        currentParams: {
+          ...state.router.currentParams,
+          scanId: 'testScan',
+          origin: 'hostedRepoComponents',
+          repositoryManagerId: 'rm-1',
+          repositoryId: 'repo-1',
+          repositoryPublicId: 'maven-releases',
+        },
+      },
+    };
+
+    renderComponent(stateWithHostedRepoOrigin);
+
+    const backBtn = await screen.findByRole('link', { name: /^Back to Repository Component Report$/ });
+    expect(backBtn).toBeVisible();
+    expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
+      publicId: 'appPublicId',
+      scanId: 'testScan',
+      origin: 'hostedRepoComponents',
+      repositoryManagerId: 'rm-1',
+      repositoryId: 'repo-1',
+      repositoryPublicId: 'maven-releases',
+    });
+  });
+
+  it('historical View Report links carry the hosted-repo context params so the next hop keeps the back chain intact', async () => {
+    const stateWithHostedRepoOrigin = {
+      ...state,
+      router: {
+        ...state.router,
+        currentParams: {
+          ...state.router.currentParams,
+          scanId: 'testScan',
+          origin: 'hostedRepoComponents',
+          repositoryManagerId: 'rm-1',
+          repositoryId: 'repo-1',
+          repositoryPublicId: 'maven-releases',
+        },
+      },
+    };
+
+    renderComponent(stateWithHostedRepoOrigin);
+
+    await screen.findByRole('heading', { name: 'appName Latest Evaluations' });
+    expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
+      publicId: 'appPublicId',
+      scanId: 'someScanId',
+      origin: 'hostedRepoComponents',
+      repositoryManagerId: 'rm-1',
+      repositoryId: 'repo-1',
+      repositoryPublicId: 'maven-releases',
+    });
+  });
+
+  it('historical View Report links do NOT carry hosted-repo params when there is no hosted-repo context (regression guard)', async () => {
+    renderComponent(state);
+
+    await screen.findByRole('heading', { name: 'appName Latest Evaluations' });
+    expect(mockRouterState.href).toHaveBeenCalledWith('applicationReport.policy', {
+      publicId: 'appPublicId',
+      scanId: 'someScanId',
+    });
+  });
 });

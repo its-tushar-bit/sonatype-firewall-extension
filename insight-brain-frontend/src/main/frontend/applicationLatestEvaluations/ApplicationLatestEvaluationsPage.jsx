@@ -28,7 +28,16 @@ import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 
 export default function ApplicationLatestEvaluationsPage() {
-  const { applicationPublicId, stageId } = useSelector(selectRouterCurrentParams);
+  const currentParams = useSelector(selectRouterCurrentParams);
+  const {
+    applicationPublicId,
+    stageId,
+    origin,
+    scanId,
+    repositoryManagerId,
+    repositoryId,
+    repositoryPublicId,
+  } = currentParams;
   const { loading, loadError, application, applicationReportHistory } = useSelector(
     selectApplicationLatestEvaluationsSlice
   );
@@ -41,10 +50,29 @@ export default function ApplicationLatestEvaluationsPage() {
     dispatch(actions.load({ applicationPublicId, stageId }));
   };
 
-  const backHref =
-    prevState?.name === 'applicationReport.policy'
-      ? uiRouterState.href('applicationReport.policy', prevParams)
-      : uiRouterState.href('violations');
+  // Hosted-repo flow carries the report context as URL params, so the back link survives a refresh.
+  const isFromHostedRepoComponentReport = origin === 'hostedRepoComponents' && scanId;
+  const isFromApplicationReport = prevState?.name === 'applicationReport.policy';
+
+  let backHref;
+  let backText;
+  if (isFromHostedRepoComponentReport) {
+    backHref = uiRouterState.href('applicationReport.policy', {
+      publicId: applicationPublicId,
+      scanId,
+      origin,
+      repositoryManagerId,
+      repositoryId,
+      repositoryPublicId,
+    });
+    backText = 'Back to Repository Component Report';
+  } else if (isFromApplicationReport) {
+    backHref = uiRouterState.href('applicationReport.policy', prevParams);
+    backText = 'Back to Application Report';
+  } else {
+    backHref = uiRouterState.href('violations');
+    backText = 'All Reports';
+  }
 
   useEffect(load, []);
 
@@ -60,10 +88,7 @@ export default function ApplicationLatestEvaluationsPage() {
 
   return (
     <NxPageMain id="application-latest-evaluations-page">
-      <MenuBarBackButton
-        href={backHref}
-        text={prevState?.name === 'applicationReport.policy' ? 'Back to Application Report' : 'All Reports'}
-      />
+      <MenuBarBackButton href={backHref} text={backText} />
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={load}>
         {application && stageId && applicationReportHistory && (
           <>
@@ -125,6 +150,9 @@ export default function ApplicationLatestEvaluationsPage() {
                             href={uiRouterState.href('applicationReport.policy', {
                               publicId: application.publicId,
                               scanId: evaluation.scanId,
+                              ...(isFromHostedRepoComponentReport
+                                ? { origin, repositoryManagerId, repositoryId, repositoryPublicId }
+                                : {}),
                             })}
                           >
                             View Report

@@ -52,7 +52,15 @@ const renderDescription = (metadataDetails) => {
 
 export default function ReportTitle() {
   const metadataDetails = useSelector(selectApplicationReportMetaData);
-  const { publicId, scanId, origin, componentDisplayName } = useSelector(selectRouterCurrentParams);
+  const {
+    publicId,
+    scanId,
+    origin,
+    componentDisplayName,
+    repositoryManagerId,
+    repositoryId,
+    repositoryPublicId,
+  } = useSelector(selectRouterCurrentParams);
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
 
@@ -65,20 +73,33 @@ export default function ReportTitle() {
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isFirewallForDocker = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
+  // When the user is viewing a hosted-repo report, forward the origin + repo params through
+  // the Options dropdown links so the destination pages (and their back buttons) know how to
+  // navigate back even after a hard refresh. scanId rides along too so the Latest Evaluations
+  // page can rebuild the report URL.
+  const isHostedRepoFlow = origin === 'hostedRepoComponents';
+  const hostedRepoParams = isHostedRepoFlow ? { origin, repositoryManagerId, repositoryId, repositoryPublicId } : {};
+  const hostedRepoLatestEvalParams = isHostedRepoFlow ? { scanId, ...hostedRepoParams } : {};
+
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
   const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
 
   const prioritiesUrl = uiRouterState.href('prioritiesPageFromReports', { publicAppId: publicId, scanId });
 
-  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId });
+  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId, ...hostedRepoParams });
 
   const latestEvaluationsUrl = uiRouterState.href('applicationLatestEvaluations', {
     applicationPublicId: publicId,
     stageId: metadataDetails.stageId,
+    ...hostedRepoLatestEvalParams,
   });
 
-  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', { publicId, scanId });
+  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', {
+    publicId,
+    scanId,
+    ...hostedRepoParams,
+  });
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
 

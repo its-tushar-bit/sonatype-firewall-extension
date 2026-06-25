@@ -8,7 +8,8 @@ import ApplicationLatestEvaluationsPage from 'MainRoot/applicationLatestEvaluati
 
 router.stateRegistry.register({
   name: 'applicationLatestEvaluations',
-  url: '/applicationLatestEvaluations/{applicationPublicId}/stage/{stageId}',
+  url:
+    '/applicationLatestEvaluations/{applicationPublicId}/stage/{stageId}?scanId&origin&repositoryManagerId&repositoryId&repositoryPublicId',
   component: ApplicationLatestEvaluationsPage,
   data: {
     title: 'Application Latest Evaluations',

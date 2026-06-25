@@ -53,10 +53,20 @@ export default function ReportStatusBar(props) {
   const pluralTermination = (components) => (components === 1 ? '' : 's');
   const [showApplicationRiskScoreModal, toggleShowApplicationRiskScoreModal] = useToggle(false);
 
+  const riskScoreModalTitle = isContainerImagesEvaluation
+    ? 'Container Risk Score'
+    : isHostedRepoComponent
+    ? 'Repository Component Risk Score'
+    : 'Application Risk Score';
+
   const riskScoreContent = isContainerImagesEvaluation
     ? `Container risk score is the aggregate threat scores of your container's policy violations.
     It indicates the total risk found in the latest scan. Sonatype integrations can help lower your
     container risk score by providing insights based on your container security.`
+    : isHostedRepoComponent
+    ? `Repository Component risk score is the aggregate threat scores of your repository component's policy violations.
+    It indicates the total risk found in the latest scan. Sonatype integrations can help lower your
+    repository component risk score by providing insights based on your repository component security.`
     : `Application risk score is the aggregate threat scores of your application's policy violations.
     It indicates the total risk found in the latest scan. Sonatype integrations can help lower your
     application risk score by providing insights based on your application security.`;
@@ -136,7 +146,7 @@ export default function ReportStatusBar(props) {
               {showApplicationRiskScoreModal && (
                 <NxModal onCancel={toggleShowApplicationRiskScoreModal}>
                   <NxModal.Header>
-                    <NxH2>{isContainerImagesEvaluation ? 'Container Risk Score' : 'Application Risk Score'}</NxH2>
+                    <NxH2>{riskScoreModalTitle}</NxH2>
                   </NxModal.Header>
                   <NxModal.Content>{riskScoreContent}</NxModal.Content>
                   <footer className="nx-footer">

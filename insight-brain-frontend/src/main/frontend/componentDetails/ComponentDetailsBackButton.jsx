@@ -63,14 +63,19 @@ export default function ComponentDetailsBackButton(props) {
     return <MenuBarBackButton href={href} text="Back to Priorities" />;
   }
 
-  if (prevParams?.origin === 'hostedRepoComponents') {
+  // Hosted-repo flow carries origin + repo IDs as URL params, so the back link survives a refresh.
+  // Fall back to prevParams for older entry points where the params were only kept in router state.
+  const isHostedRepoOrigin =
+    currentParams?.origin === 'hostedRepoComponents' || prevParams?.origin === 'hostedRepoComponents';
+  if (isHostedRepoOrigin) {
+    const hostedRepoParams = currentParams?.origin === 'hostedRepoComponents' ? currentParams : prevParams;
     const href = uiRouterState.href('applicationReport.policy', {
       publicId: currentParams.publicId,
       scanId: currentParams.scanId,
       origin: 'hostedRepoComponents',
-      repositoryManagerId: prevParams.repositoryManagerId,
-      repositoryId: prevParams.repositoryId,
-      repositoryPublicId: prevParams.repositoryPublicId,
+      repositoryManagerId: hostedRepoParams.repositoryManagerId,
+      repositoryId: hostedRepoParams.repositoryId,
+      repositoryPublicId: hostedRepoParams.repositoryPublicId,
     });
     return <MenuBarBackButton href={href} text="Back to Repository Component Report" />;
   }

@@ -57,7 +57,13 @@ describe('RepositoryComponentsList', () => {
     stageTypeId: 'build',
     componentIdentifier: {
       format: 'maven',
-      coordinates: { artifactId: 'log4j-core', groupId: 'org.apache.logging.log4j', version: '2.14.1', extension: 'jar', classifier: '' },
+      coordinates: {
+        artifactId: 'log4j-core',
+        groupId: 'org.apache.logging.log4j',
+        version: '2.14.1',
+        extension: 'jar',
+        classifier: '',
+      },
     },
   };
 
@@ -77,6 +83,25 @@ describe('RepositoryComponentsList', () => {
     applicationPublicId: null,
     scanId: null,
     stageTypeId: null,
+    componentIdentifier: null,
+  };
+
+  const componentScannedNoViolations = {
+    id: 'comp003',
+    pathname: 'com/example/clean-1.0.jar',
+    displayName: 'clean : 1.0',
+    hash: 'ghi789',
+    matchStateId: 'exact',
+    lastEvaluationTime: 1700000000000,
+    quarantined: false,
+    violationCount: 0,
+    criticalViolationCount: 0,
+    severeViolationCount: 0,
+    moderateViolationCount: 0,
+    maxThreatLevel: 0,
+    applicationPublicId: 'maven-hosted_com_example_clean-1.0.jar',
+    scanId: 'scan-clean789',
+    stageTypeId: 'release',
     componentIdentifier: null,
   };
 
@@ -206,6 +231,27 @@ describe('RepositoryComponentsList', () => {
     expect(screen.queryByText('Priorities')).not.toBeInTheDocument();
   });
 
+  it('renders Report and Priorities links without threat counter when component is scanned with zero violations', async () => {
+    axiosMock.reset();
+    axiosMock.onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components').reply(200, {
+      components: [componentScannedNoViolations],
+      totalCount: 1,
+      page: 1,
+      pageSize: 25,
+      hasNextPage: false,
+    });
+    const { container } = renderComponent();
+
+    await waitFor(() => expect(screen.getByText('clean : 1.0')).toBeInTheDocument());
+    expect(screen.getByText('No violations')).toBeInTheDocument();
+    // stage and relative time render together separated by " | "
+    expect(screen.getByText(/^Release \| .+ ago$/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Report' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Priorities' })).toBeEnabled();
+    // NxSmallThreatCounter renders a .nx-small-threat-counter-container; assert it's not present
+    expect(container.querySelector('.nx-small-threat-counter-container')).not.toBeInTheDocument();
+  });
+
   it('does not render threat counter or report links when violationCount is 0', async () => {
     axiosMock.reset();
     axiosMock.onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components').reply(200, {
@@ -225,7 +271,7 @@ describe('RepositoryComponentsList', () => {
   it('renders stage label with first letter uppercased', async () => {
     renderComponent();
 
-    await waitFor(() => expect(screen.getByText('Build')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/^Build\b/)).toBeInTheDocument());
   });
 
   it('renders stage label lowercased except first char for COMPLIANCE', async () => {
@@ -239,7 +285,7 @@ describe('RepositoryComponentsList', () => {
     });
     renderComponent();
 
-    await waitFor(() => expect(screen.getByText('Compliance')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/^Compliance\b/)).toBeInTheDocument());
   });
 
   it('shows empty message when no components', async () => {
@@ -257,7 +303,9 @@ describe('RepositoryComponentsList', () => {
 
   it('shows error state with retry button when API fails', async () => {
     axiosMock.reset();
-    axiosMock.onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components').reply(500, { message: 'Server error' });
+    axiosMock
+      .onGet('/api/v2/repositories/local-nexus/repo-uuid-123/components')
+      .reply(500, { message: 'Server error' });
     renderComponent();
     await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument());
   });
@@ -279,9 +327,10 @@ describe('RepositoryComponentsList', () => {
 
     // NxPagination renders navigation buttons; click the next-page or any non-current page button
     const paginationButtons = screen.getAllByRole('button');
-    const nextButton = paginationButtons.find((btn) =>
-      btn.getAttribute('aria-label')?.toLowerCase().includes('next') ||
-      (btn.textContent && !isNaN(parseInt(btn.textContent.trim())) && parseInt(btn.textContent.trim()) === 2)
+    const nextButton = paginationButtons.find(
+      (btn) =>
+        btn.getAttribute('aria-label')?.toLowerCase().includes('next') ||
+        (btn.textContent && !isNaN(parseInt(btn.textContent.trim())) && parseInt(btn.textContent.trim()) === 2)
     );
     expect(nextButton).toBeDefined();
     await user.click(nextButton);

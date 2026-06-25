@@ -219,6 +219,13 @@
   .nx-alert {
     max-width: 100%;
   }
+
+  // Enforce the column widths declared below so long repository component
+  // names get truncated by `.nx-truncate-ellipsis` instead of spilling into
+  // the COMPONENTS / REPORT columns.
+  .nx-table {
+    table-layout: fixed;
+  }
 }
 
 .iq-hosted-repos-components {
@@ -271,6 +278,11 @@
   }
 
   &__report-stage {
+    font-size: 1rem;
+    color: var(--nx-color-text-secondary);
+  }
+
+  &__report-no-violations {
     font-size: 1rem;
     color: var(--nx-color-text-secondary);
   }

@@ -22,6 +22,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 import { goToComponentReport, goToComponentPriorities } from './hostedReposActions';
 import {
   selectComponents,
@@ -151,18 +152,28 @@ export default function RepositoryComponentsList() {
                         {component.componentCount ?? 0}
                       </NxTable.Cell>
                       <NxTable.Cell className="iq-hosted-repos-components__col--report">
-                        {component.violationCount > 0 && (
+                        {component.scanId && (
                           <div className="iq-hosted-repos-components__report-cell">
-                            <NxSmallThreatCounter
-                              criticalCount={component.criticalViolationCount || null}
-                              severeCount={component.severeViolationCount || null}
-                              moderateCount={component.moderateViolationCount || null}
-                            />
+                            {component.violationCount > 0 ? (
+                              <NxSmallThreatCounter
+                                criticalCount={component.criticalViolationCount || null}
+                                severeCount={component.severeViolationCount || null}
+                                moderateCount={component.moderateViolationCount || null}
+                              />
+                            ) : (
+                              <span className="iq-hosted-repos-components__report-no-violations">No violations</span>
+                            )}
                             <div className="iq-hosted-repos-components__report-meta">
-                              {component.stageTypeId && (
+                              {(component.stageTypeId || component.lastEvaluationTime) && (
                                 <span className="iq-hosted-repos-components__report-stage">
-                                  {component.stageTypeId.charAt(0).toUpperCase() +
-                                    component.stageTypeId.slice(1).toLowerCase()}
+                                  {[
+                                    component.stageTypeId &&
+                                      component.stageTypeId.charAt(0).toUpperCase() +
+                                        component.stageTypeId.slice(1).toLowerCase(),
+                                    component.lastEvaluationTime && formatTimeAgo(component.lastEvaluationTime),
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' | ')}
                                 </span>
                               )}
                               <span className="iq-hosted-repos-components__report-links">

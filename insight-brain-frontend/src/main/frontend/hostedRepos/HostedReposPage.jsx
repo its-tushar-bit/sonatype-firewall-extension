@@ -40,7 +40,7 @@ import {
 } from './hostedReposSelectors';
 import { selectIsHostedRepositoryEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-const NXRM_IQ_CONNECTED_PATH = '#admin/iq/connected';
+const NXRM_HOSTED_REPOS_EVAL_PATH = '#admin/iq/sonatype-lifecycle/hosted-repos-eval';
 
 function getActivityIndicator(lastActivityTime) {
   if (lastActivityTime == null) {
@@ -147,7 +147,8 @@ function RepoManagerCardActions({ rm }) {
   const handleGoToConfiguration = (e) => {
     e.stopPropagation();
     if (rm.baseUrl) {
-      window.open(`${rm.baseUrl}/${NXRM_IQ_CONNECTED_PATH}`, '_blank', 'noopener,noreferrer');
+      const normalizedBaseUrl = rm.baseUrl.replace(/\/+$/, '');
+      window.open(`${normalizedBaseUrl}/${NXRM_HOSTED_REPOS_EVAL_PATH}`, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -157,7 +158,12 @@ function RepoManagerCardActions({ rm }) {
         <button className="nx-dropdown-button" onClick={openEditModal}>
           Edit Name
         </button>
-        <button className="nx-dropdown-button" onClick={handleGoToConfiguration}>
+        <button
+          className="nx-dropdown-button"
+          onClick={handleGoToConfiguration}
+          disabled={!rm.baseUrl}
+          title={!rm.baseUrl ? 'No base URL is configured for this repository manager' : undefined}
+        >
           Go to Configuration
         </button>
       </NxStatefulIconDropdown>

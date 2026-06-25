@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.license;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -16,9 +18,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -28,6 +34,8 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupComponentCandidate;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -35,6 +43,9 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,6 +53,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LicenseThreatGroupDAOTest
     extends NameableDAOTest<LicenseThreatGroup>
 {
+  private static final Logger log = LoggerFactory.getLogger(LicenseThreatGroupDAOTest.class);
+
   private OrganizationDAO organizationDAO;
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO;
@@ -539,7 +552,8 @@ public class LicenseThreatGroupDAOTest
     Organization newOrg = tempEntity.newOrganization();
 
     List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, newOrg.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.ORGANIZATION, newOrg.getId())
+            .candidates();
 
     assertThat(candidates).isEmpty();
   }
@@ -562,7 +576,8 @@ public class LicenseThreatGroupDAOTest
     seedMatchingComponent(application, "h-a-1", "GPL-2.0");
 
     List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.ORGANIZATION, organization.getId())
+            .candidates();
 
     assertThat(candidates).hasSize(1);
     assertThat(candidates.get(0).getLicenseThreatGroupName()).isEqualTo("Banned");
@@ -580,7 +595,8 @@ public class LicenseThreatGroupDAOTest
     seedMatchingComponent(app2, "h-b-1", "GPL-2.0");
 
     List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.ORGANIZATION, organization.getId())
+            .candidates();
 
     assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash)
         .containsExactlyInAnyOrder("h-a-1", "h-a-2", "h-b-1");
@@ -596,7 +612,8 @@ public class LicenseThreatGroupDAOTest
     seedMatchingComponent(siblingApp, "h-b-2", "GPL-2.0");
 
     List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.APPLICATION, application.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.APPLICATION, application.getId())
+            .candidates();
 
     assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-a-1");
   }
@@ -609,11 +626,13 @@ public class LicenseThreatGroupDAOTest
     seedMatchingComponent(application, "h-child-1", "GPL-2.0");
 
     List<LicenseThreatGroupComponentCandidate> parentCandidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, parentOrg.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.ORGANIZATION, parentOrg.getId())
+            .candidates();
     assertThat(parentCandidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-child-1");
 
     List<LicenseThreatGroupComponentCandidate> childCandidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(OwnerType.ORGANIZATION, organization.getId());
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(OwnerType.ORGANIZATION, organization.getId())
+            .candidates();
     assertThat(childCandidates).extracting(LicenseThreatGroupComponentCandidate::getHash).containsExactly("h-child-1");
   }
 
@@ -628,7 +647,8 @@ public class LicenseThreatGroupDAOTest
     seedMatchingComponent(otherOrgApp, "h-out", "GPL-2.0");
 
     List<LicenseThreatGroupComponentCandidate> candidates = licenseThreatGroupDAO
-        .listComponentCandidatesByApplicationIds(Set.of(application.getId(), app2.getId()));
+        .getCandidatesWithObligationsByApplicationIds(Set.of(application.getId(), app2.getId()))
+        .candidates();
 
     assertThat(candidates).extracting(LicenseThreatGroupComponentCandidate::getHash)
         .containsExactlyInAnyOrder("h-a-1", "h-b-1");
@@ -636,16 +656,18 @@ public class LicenseThreatGroupDAOTest
 
   @Test
   public void testListComponentCandidatesByApplicationIds_emptyInput() {
-    assertThat(licenseThreatGroupDAO.listComponentCandidatesByApplicationIds(Collections.emptySet())).isEmpty();
+    assertThat(licenseThreatGroupDAO.getCandidatesWithObligationsByApplicationIds(Collections.emptySet())
+        .candidates()).isEmpty();
   }
 
-  private void seedMatchingComponent(Application app, String hash, String licenseId) {
+  private ComponentIdentifier seedMatchingComponent(Application app, String hash, String licenseId) {
     ComponentIdentifier identifier =
         ComponentIdentifier.createMavenCoordinates("g", "a-" + hash, "1.0.0");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, hash, identifier);
     String acId = appComponentDAO().getByApplicationIdAndStageTypeIdAndHash(app.getId(), BuildStageType.ID, hash)
         .getId();
     tempEntity.newApplicationComponentLicense(acId, licenseId);
+    return identifier;
   }
 
   private com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO appComponentDAO() {
@@ -697,5 +719,156 @@ public class LicenseThreatGroupDAOTest
             application.getId(), Set.of("Apache-2.0", "MIT"));
 
     assertThat(result).isEmpty();
+  }
+
+  // ---- Candidate-component obligation queries (LTG unreviewed counter path, CLM-41470) ----
+
+  @Test
+  public void testGetCandidateComponentObligationsByOwner_returnsOnlyScopedComponentsAtObligationOwner() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    Application siblingApp = tempEntity.newApplication(organization.getId());
+
+    ComponentIdentifier inScope = seedMatchingComponent(application, "h-in-scope", "GPL-2.0");
+    ComponentIdentifier siblingScope = seedMatchingComponent(siblingApp, "h-sibling", "GPL-2.0");
+    // A component that is NOT a license-threat-group candidate (no matching license).
+    ComponentIdentifier notCandidate =
+        ComponentIdentifier.createMavenCoordinates("g", "a-not-candidate", "1.0.0");
+
+    ComponentObligation rootNotice = tempEntity.newComponentObligation(inScope, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "root notice", ObligationStatus.OPEN, "hash-in-notice");
+    ComponentObligation rootSource = tempEntity.newComponentObligation(inScope, Organization.ROOT_ORGANIZATION_ID,
+        "SOURCE", "root source", ObligationStatus.FLAGGED, "hash-in-source");
+    tempEntity.newComponentObligation(siblingScope, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "sibling notice", ObligationStatus.OPEN, "hash-sib-notice");
+    // Obligation at the wrong owner (org instead of ROOT) must be excluded.
+    tempEntity.newComponentObligation(inScope, organization.getId(),
+        "NOTICE", "org notice", ObligationStatus.OPEN, "hash-in-org-notice");
+    // Obligation for a non-candidate component must be excluded even at ROOT.
+    tempEntity.newComponentObligation(notCandidate, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "non-candidate notice", ObligationStatus.OPEN, "hash-nc-notice");
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      // Application scope: only this application's candidate component is in scope.
+      Map<ComponentIdentifier, List<ComponentObligation>> byApp =
+          licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(tx, OwnerType.APPLICATION,
+              application.getId()).obligationsByComponent();
+
+      assertThat(byApp.keySet()).containsExactly(inScope);
+      assertThat(byApp.get(inScope)).extracting(ComponentObligation::getId)
+          .containsExactlyInAnyOrder(rootNotice.getId(), rootSource.getId());
+
+      // Organization scope: both this application and the sibling application are in scope.
+      Map<ComponentIdentifier, List<ComponentObligation>> byOrg =
+          licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(tx, OwnerType.ORGANIZATION,
+              organization.getId()).obligationsByComponent();
+
+      assertThat(byOrg.keySet()).containsExactlyInAnyOrder(inScope, siblingScope);
+      assertThat(byOrg.get(inScope)).extracting(ComponentObligation::getId)
+          .containsExactlyInAnyOrder(rootNotice.getId(), rootSource.getId());
+      assertThat(byOrg.get(siblingScope)).extracting(ComponentObligation::getComment)
+          .containsExactly("sibling notice");
+    }
+  }
+
+  @Test
+  public void testGetCandidateComponentObligationsByApplicationIds_scopesToGivenApplications() {
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+    Application app2 = tempEntity.newApplication(organization.getId());
+    Application excludedApp = tempEntity.newApplication(organization.getId());
+
+    ComponentIdentifier inA = seedMatchingComponent(application, "h-a", "GPL-2.0");
+    ComponentIdentifier inB = seedMatchingComponent(app2, "h-b", "GPL-2.0");
+    ComponentIdentifier inExcluded = seedMatchingComponent(excludedApp, "h-excluded", "GPL-2.0");
+
+    tempEntity.newComponentObligation(inA, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "a notice", ObligationStatus.OPEN, "hash-a");
+    tempEntity.newComponentObligation(inB, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "b notice", ObligationStatus.OPEN, "hash-b");
+    tempEntity.newComponentObligation(inExcluded, Organization.ROOT_ORGANIZATION_ID,
+        "NOTICE", "excluded notice", ObligationStatus.OPEN, "hash-excluded");
+
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      Map<ComponentIdentifier, List<ComponentObligation>> result =
+          licenseThreatGroupDAO.getCandidatesWithObligationsByApplicationIds(tx,
+              Set.of(application.getId(), app2.getId())).obligationsByComponent();
+
+      assertThat(result.keySet()).containsExactlyInAnyOrder(inA, inB);
+      assertThat(result).doesNotContainKey(inExcluded);
+    }
+  }
+
+  @Test
+  public void testGetCandidateComponentObligationsByApplicationIds_emptyInput() {
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      assertThat(licenseThreatGroupDAO.getCandidatesWithObligationsByApplicationIds(tx,
+          Collections.emptySet()).obligationsByComponent()).isEmpty();
+    }
+  }
+
+  /**
+   * Scale guard for CLM-41470: the previous implementation shipped every distinct candidate component identifier back
+   * to PostgreSQL in a row-value {@code (format, coords) IN ((?, ?), ...)} clause, which overflowed the parser's
+   * recursion-depth stack ("stack depth limit exceeded") at tens of thousands of tuples. This test seeds
+   * {@code scaleComponentCount} candidate components and asserts the single candidate/obligation LEFT JOIN resolves
+   * all of their
+   * obligations in a single round-trip within a generous wall-clock ceiling — a smoke ceiling to catch a catastrophic
+   * plan regression, NOT a tight SLA (per CLAUDE.md section 6). PostgreSQL-only because the parser-depth overflow it
+   * guards against is PostgreSQL-specific; tagged {@link SlowTest} so it stays out of the fast/CI suite.
+   */
+  @Test
+  @Category({PostgresTestCategory.class, SlowTest.class})
+  @PostgresTest
+  public void testGetCandidateComponentObligationsByOwner_scalesToTensOfThousands_Postgres() {
+    // The historical row-value (format, coords) IN-list overflowed PostgreSQL's parser recursion stack in the tens of
+    // thousands of tuples, so this many candidates is enough to have tripped the old failure mode while keeping the
+    // seeding cost (which dominates the runtime) modest. The new LEFT JOIN never builds that IN-list at any scale.
+    final int scaleComponentCount = 50_000;
+    final int insertBatchSize = 5_000;
+    final long wallClockCeilingMillis = 60_000L;
+
+    tempEntity.newLicenseThreatGroup(organization.getId(), "Banned", 10, "GPL-2.0");
+
+    // Seed candidate components (application_component + application_component_license) and a ROOT obligation each.
+    List<ComponentObligation> obligationBatch = new ArrayList<>(insertBatchSize);
+    Date now = new Date();
+    ComponentObligationDAO componentObligationDAO = daoFactory.createComponentObligationDAO();
+    for (int i = 0; i < scaleComponentCount; i++) {
+      String hash = "h-scale-" + i;
+      ComponentIdentifier ci = seedMatchingComponent(application, hash, "GPL-2.0");
+      ComponentObligation obligation = new ComponentObligation(ci, Organization.ROOT_ORGANIZATION_ID, "NOTICE",
+          "scale notice " + i, ObligationStatus.OPEN, "hash-scale-" + i, "username");
+      obligation.setLastUpdatedAt(now);
+      obligationBatch.add(obligation);
+      if (obligationBatch.size() == insertBatchSize) {
+        try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+          componentObligationDAO.insertBatch(tx, obligationBatch, false);
+          tx.commit();
+        }
+        obligationBatch.clear();
+      }
+    }
+    if (!obligationBatch.isEmpty()) {
+      try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+        componentObligationDAO.insertBatch(tx, obligationBatch, false);
+        tx.commit();
+      }
+    }
+
+    long startNanos = System.nanoTime();
+    LicenseThreatGroupDAO.CandidateComponentObligations result;
+    try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
+      result = licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(tx, OwnerType.APPLICATION,
+          application.getId());
+    }
+    long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
+    log.info("[CLM-41470 perf] candidate/obligation LEFT JOIN over {} candidate components took {} ms",
+        scaleComponentCount, elapsedMillis);
+
+    assertThat(result.obligationsByComponent()).hasSize(scaleComponentCount);
+    // candidates() holds one entry per distinct (ltgId, appId, hash, format, coords, licenseId) tuple. It equals the
+    // component count here only because each component is seeded into exactly one LTG with exactly one license (no
+    // LTG x license fanout); a component matching multiple LTGs/licenses would yield more candidate rows.
+    assertThat(result.candidates()).hasSize(scaleComponentCount);
+    assertThat(elapsedMillis).isLessThan(wallClockCeilingMillis);
   }
 }

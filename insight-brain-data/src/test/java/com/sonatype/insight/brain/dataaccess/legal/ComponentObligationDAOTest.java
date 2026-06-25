@@ -376,36 +376,7 @@ public class ComponentObligationDAOTest
     assertThat(result.get(componentIdentifier2)).containsExactly("name5");
   }
 
-  // ---- Batch owner-id obligation tests (LTG unreviewed counter path) ----
-
-  @Test
-  public void testBatchGetByOwnerIdsAndComponentIdentifiersAndObligationNames_multipleComponents() {
-    ComponentIdentifier ci1 =
-        ComponentIdentifier.createMavenCoordinates("com.sonatype.batch-obligation", "component-one", "1.0");
-    ComponentIdentifier ci2 =
-        ComponentIdentifier.createMavenCoordinates("com.sonatype.batch-obligation", "component-two", "1.0");
-
-    ComponentObligation ob1 = tempEntity.newComponentObligation(ci1, Organization.ROOT_ORGANIZATION_ID,
-        "NOTICE", "comment1", ObligationStatus.OPEN, "hash-batch-1");
-    ComponentObligation ob2 = tempEntity.newComponentObligation(ci2, Organization.ROOT_ORGANIZATION_ID,
-        "SOURCE", "comment2", ObligationStatus.FLAGGED, "hash-batch-2");
-
-    try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<ComponentIdentifier, List<ComponentObligation>> raw =
-          dao.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
-              List.of(Organization.ROOT_ORGANIZATION_ID),
-              List.of(ci1, ci2),
-              Set.of("NOTICE", "SOURCE"));
-
-      assertThat(raw.get(ci1)).extracting(ComponentObligation::getId).containsExactly(ob1.getId());
-      assertThat(raw.get(ci2)).extracting(ComponentObligation::getId).containsExactly(ob2.getId());
-
-      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
-          List.of(Organization.ROOT_ORGANIZATION_ID), raw.get(ci1), Set.of("NOTICE")))
-              .extracting(ComponentObligation::getId)
-              .containsExactly(ob1.getId());
-    }
-  }
+  // ---- Owner-order precedence test (LTG unreviewed counter path) ----
 
   @Test
   public void testResolveObligationsForOwnerOrder_closestOwnerWinsPerObligationName() {
@@ -427,21 +398,20 @@ public class ComponentObligationDAOTest
         List.of(application.getId(), organization.getId(), Organization.ROOT_ORGANIZATION_ID);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      Map<ComponentIdentifier, List<ComponentObligation>> raw =
-          dao.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
-              ownerIds, List.of(ci), Set.of("NOTICE", "SOURCE"));
+      // getByOwnerIdsAndComponentIdentifierAndObligationNames fetches the raw rows and applies
+      // resolveObligationsForOwnerOrder internally, returning the precedence-resolved list.
+      List<ComponentObligation> resolved =
+          dao.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx, ownerIds, ci, Set.of("NOTICE", "SOURCE"));
 
-      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
-          ownerIds, raw.get(ci), Set.of("NOTICE", "SOURCE")))
-              .extracting(ComponentObligation::getObligationName, ComponentObligation::getOwnerId,
-                  ComponentObligation::getComment)
-              .containsExactly(
-                  tuple("NOTICE", application.getId(), "app notice"),
-                  tuple("SOURCE", organization.getId(), "org source"));
-      assertThat(ComponentObligationDAO.resolveObligationsForOwnerOrder(
-          ownerIds, raw.get(ci), Set.of("NOTICE", "SOURCE")))
-              .extracting(ComponentObligation::getId)
-              .containsExactly(appNotice.getId(), orgSource.getId());
+      assertThat(resolved)
+          .extracting(ComponentObligation::getObligationName, ComponentObligation::getOwnerId,
+              ComponentObligation::getComment)
+          .containsExactly(
+              tuple("NOTICE", application.getId(), "app notice"),
+              tuple("SOURCE", organization.getId(), "org source"));
+      assertThat(resolved)
+          .extracting(ComponentObligation::getId)
+          .containsExactly(appNotice.getId(), orgSource.getId());
     }
   }
 

@@ -156,52 +156,6 @@ public class ComponentObligationDAO
   }
 
   /**
-   * Batch-fetches component obligations for many components in chunked {@code IN} queries. Used by
-   * {@code LicenseThreatGroupUnreviewedComponentCounter} to avoid N+1 round-trips on dashboard cache misses. Callers
-   * apply owner-order precedence per component via {@link #resolveObligationsForOwnerOrder}.
-   *
-   * @param obligationNames union of obligation names to include in the SQL filter; callers apply per-component
-   *          subsets via {@link #resolveObligationsForOwnerOrder}
-   * @return raw obligations grouped by component identifier (not owner-order-resolved); components with no rows are
-   *         omitted
-   * @since 1.205
-   */
-  public Map<ComponentIdentifier, List<ComponentObligation>> batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(
-      final TransactionContext tx,
-      final List<String> ownerIds,
-      final Collection<ComponentIdentifier> componentIdentifiers,
-      final Set<String> obligationNames)
-  {
-    if (CollectionUtils.isEmpty(ownerIds) || CollectionUtils.isEmpty(componentIdentifiers)
-        || CollectionUtils.isEmpty(obligationNames))
-    {
-      return Collections.emptyMap();
-    }
-
-    List<ComponentObligation> allRows = getListWithSqlInClause(
-        new ArrayList<>(componentIdentifiers),
-        chunk -> {
-          List<Row2<String, String>> componentRows = chunk.stream()
-              .map(ComponentIdentifierAdapter::toComponentRow)
-              .toList();
-          return tx.dsl()
-              .selectFrom(COMPONENT_OBLIGATION)
-              .where(COMPONENT_OBLIGATION.OWNER_ID.in(ownerIds))
-              .and(DSL.row(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT,
-                  COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON)
-                  .in(componentRows))
-              .and(COMPONENT_OBLIGATION.OBLIGATION_NAME.in(obligationNames))
-              .fetch(super::toEntity);
-        },
-        COMPONENT_IDENTIFIER_PARAMS_PER_ELEMENT,
-        COMPONENT_IDENTIFIER_EXTRA_PARAMS);
-
-    return allRows.stream()
-        .filter(o -> o.getComponentIdentifier() != null)
-        .collect(groupingBy(ComponentObligation::getComponentIdentifier));
-  }
-
-  /**
    * Picks the effective obligation row per name using {@code ownerIds} precedence (first owner wins). Callers must pass
    * {@code ownerIds} in the same most-specific-first order as
    * {@link #getByOwnerIdsAndComponentIdentifierAndObligationNames}; a misordered list silently returns wrong results.

@@ -23,8 +23,8 @@ import jakarta.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalDashboardsService;
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
@@ -45,18 +45,14 @@ public class LicenseThreatGroupUnreviewedComponentCounter
 {
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final ComponentObligationDAO componentObligationDAO;
-
   private final LegalDashboardsService legalDashboardsService;
 
   @Inject
   public LicenseThreatGroupUnreviewedComponentCounter(
       final LicenseThreatGroupDAO licenseThreatGroupDAO,
-      final ComponentObligationDAO componentObligationDAO,
       final LegalDashboardsService legalDashboardsService)
   {
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
-    this.componentObligationDAO = componentObligationDAO;
     this.legalDashboardsService = legalDashboardsService;
   }
 
@@ -71,11 +67,15 @@ public class LicenseThreatGroupUnreviewedComponentCounter
       final OwnerType ownerType,
       final String ownerId)
   {
-    List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByOwner(tx, ownerType, ownerId);
+    // Single LEFT JOIN: getCandidatesWithObligationsByOwner folds the obligation lookup into the candidate join graph
+    // (one query, one round trip), eliminating the row-value (format, coords) IN-list that overflowed the PostgreSQL
+    // parser at large customers (CLM-41470). The DAO de-dupes the LEFT JOIN fanout before returning.
+    LicenseThreatGroupDAO.CandidateComponentObligations candidateObligations =
+        licenseThreatGroupDAO.getCandidatesWithObligationsByOwner(tx, ownerType, ownerId);
     List<LicenseThreatGroup> visibleLtgs =
         licenseThreatGroupDAO.listVisibleLicenseThreatGroupsForOwner(tx, ownerId);
-    return aggregate(tx, candidates, visibleLtgs, true);
+    return aggregate(candidateObligations.candidates(), visibleLtgs, true,
+        candidateObligations.obligationsByComponent());
   }
 
   /**
@@ -90,16 +90,17 @@ public class LicenseThreatGroupUnreviewedComponentCounter
     if (applicationIds == null || applicationIds.isEmpty()) {
       return Collections.emptyList();
     }
-    List<LicenseThreatGroupComponentCandidate> candidates =
-        licenseThreatGroupDAO.listComponentCandidatesByApplicationIds(tx, applicationIds);
-    return aggregate(tx, candidates, List.of(), false);
+    LicenseThreatGroupDAO.CandidateComponentObligations candidateObligations =
+        licenseThreatGroupDAO.getCandidatesWithObligationsByApplicationIds(tx, applicationIds);
+    return aggregate(candidateObligations.candidates(), List.of(), false,
+        candidateObligations.obligationsByComponent());
   }
 
   private List<LicenseThreatGroupCount> aggregate(
-      final TransactionContext tx,
       final List<LicenseThreatGroupComponentCandidate> candidates,
       final List<LicenseThreatGroup> zeroFillLtgs,
-      final boolean includeZeroCountVisibleLtgs)
+      final boolean includeZeroCountVisibleLtgs,
+      final Map<ComponentIdentifier, List<ComponentObligation>> obligationsByComponent)
   {
     Map<String, String> ltgNameById = new HashMap<>();
     Map<String, Integer> ltgThreatLevelById = new HashMap<>();
@@ -131,18 +132,12 @@ public class LicenseThreatGroupUnreviewedComponentCounter
     Map<String, Set<String>> obligationNamesByLicenseId =
         legalDashboardsService.getLicenseObligationsFromHds(allLicenseIds);
 
-    Set<String> allObligationNamesUnion = licenseIdsByComponent.values()
-        .stream()
-        .flatMap(licenseIds -> licenseIds.stream()
-            .filter(obligationNamesByLicenseId::containsKey)
-            .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream()))
-        .collect(Collectors.toSet());
-
     // Root-org obligation scope matches ApiLicenseLegalService.fillReviewProgress and classic Legal tile semantics.
+    // The single-element owner list is what resolveObligationsForOwnerOrder below precedence-resolves against; the
+    // obligations themselves were already fetched at ROOT by the candidate/obligation LEFT JOIN (see
+    // LicenseThreatGroupDAO.getCandidatesWithObligationsBy*), so no component identifiers are shipped back to the
+    // database here (CLM-41470).
     List<String> obligationOwnerIds = List.of(Organization.ROOT_ORGANIZATION_ID);
-    Map<ComponentIdentifier, List<ComponentObligation>> obligationsByComponent =
-        componentObligationDAO.batchGetByOwnerIdsAndComponentIdentifiersAndObligationNames(tx,
-            obligationOwnerIds, componentIdentifierByKey.values(), allObligationNamesUnion);
 
     Map<String, Long> unreviewedCountByLtgId = new HashMap<>();
     for (Map.Entry<ComponentKey, Set<String>> entry : licenseIdsByComponent.entrySet()) {

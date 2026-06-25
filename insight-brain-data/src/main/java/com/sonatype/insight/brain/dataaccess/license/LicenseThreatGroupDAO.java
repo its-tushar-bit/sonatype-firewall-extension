@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,9 +26,11 @@ import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupComponentCandidate;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import jakarta.inject.Inject;
@@ -35,6 +38,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectFieldOrAsterisk;
 import org.jooq.Table;
@@ -42,6 +46,7 @@ import org.jooq.Table;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationAncestor.APPLICATION_ANCESTOR;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponent.APPLICATION_COMPONENT;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.ApplicationComponentLicense.APPLICATION_COMPONENT_LICENSE;
+import static com.sonatype.insight.brain.jooq.generated.ods.tables.ComponentObligation.COMPONENT_OBLIGATION;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroup.LICENSE_THREAT_GROUP;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.LicenseThreatGroupLicense.LICENSE_THREAT_GROUP_LICENSE;
 import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor.OWNER_ANCESTOR;
@@ -51,6 +56,30 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.OwnerAncestor
 public class LicenseThreatGroupDAO
     extends AbstractOperationalSqlDAO<LicenseThreatGroup>
 {
+  /**
+   * Projection for the single-query candidate + obligation join (see
+   * {@link #getCandidatesWithObligationsByOwner}): the candidate columns the counter aggregates on, plus every
+   * {@code component_obligation} column so a {@link ComponentObligation} can be rebuilt from the {@code LEFT JOIN} row
+   * via jOOQ's own {@code into(...)} auto-mapping (the same path {@code ComponentObligationDAO} uses), which keeps the
+   * mapping in lock-step with the entity if a column is later added to the table. The obligation columns are nullable
+   * — a {@code LEFT JOIN} miss (an unreviewed component) leaves them {@code null}.
+   */
+  private static final List<Field<?>> CANDIDATE_OBLIGATION_FIELDS = candidateObligationFields();
+
+  private static List<Field<?>> candidateObligationFields() {
+    List<Field<?>> fields = new ArrayList<>(List.of(
+        LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
+        LICENSE_THREAT_GROUP.NAME,
+        LICENSE_THREAT_GROUP.THREAT_LEVEL,
+        APPLICATION_COMPONENT.APPLICATION_ID,
+        APPLICATION_COMPONENT.HASH,
+        APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
+        APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
+        APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
+    Collections.addAll(fields, COMPONENT_OBLIGATION.fields());
+    return List.copyOf(fields);
+  }
+
   private final OwnerDAO ownerDAO;
 
   private final OrganizationDAO orgDAO;
@@ -451,13 +480,32 @@ public class LicenseThreatGroupDAO
   }
 
   /**
-   * Lists scoped application components whose effective license maps to a visible license threat group for the
-   * given owner. Does not apply obligation review filtering — see
-   * {@code LicenseThreatGroupUnreviewedComponentCounter} in the service module.
+   * Single-query data source for {@code LicenseThreatGroupUnreviewedComponentCounter}: returns every license-threat-
+   * group candidate component in the given owner's scope together with the component obligations recorded at the
+   * {@linkplain Organization#ROOT_ORGANIZATION_ID root organization} (the only scope obligations are stored under), in
+   * one round trip.
+   * <p>
+   * The obligation lookup is folded into the candidate join graph as a {@code LEFT JOIN component_obligation} keyed on
+   * {@code (component_id_format, component_id_coordinates_json)} with {@code owner_id} pinned in the {@code ON} clause.
+   * This replaces the previous design where the candidate identifiers were materialized in Java and shipped back to
+   * the database in a row-value {@code (format, coords) IN ((?,?), ...)} list, which overflowed PostgreSQL's parser
+   * recursion stack at large customers (CLM-41470). No component identifiers are sent back to the database, and no
+   * IN-list is built, so the parser-depth limit is never approached at any scale.
+   * <p>
+   * The join is {@code LEFT} (not inner) and the {@code owner_id} predicate lives in {@code ON} (not {@code WHERE}) so
+   * that candidate components with no recorded obligation — the {@code UNREVIEWED} case the dashboard tile counts —
+   * are still returned. Because a component can map to several {@code (LTG, license)} pairs and carry several
+   * obligations the raw result fans out; {@link #accumulateCandidateObligations} de-dupes candidates and obligation
+   * rows back to the distinct sets the caller expects.
+   * <p>
+   * Obligation names are intentionally not filtered in SQL: the caller re-filters per component in
+   * {@link com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO#resolveObligationsForOwnerOrder}, so
+   * fetching all root-organization obligations for the in-scope components yields an identical result while keeping
+   * this query free of any per-name bind-parameter list.
    *
-   * @since 1.204
+   * @since 1.205
    */
-  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByOwner(
+  public CandidateComponentObligations getCandidatesWithObligationsByOwner(
       final TransactionContext tx,
       final OwnerType ownerType,
       final String ownerId)
@@ -467,16 +515,8 @@ public class LicenseThreatGroupDAO
         .from(OWNER_ANCESTOR)
         .where(OWNER_ANCESTOR.OWNER_ID.eq(ownerId));
 
-    return tx.dsl()
-        .select(
-            LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
-            LICENSE_THREAT_GROUP.NAME,
-            LICENSE_THREAT_GROUP.THREAT_LEVEL,
-            APPLICATION_COMPONENT.APPLICATION_ID,
-            APPLICATION_COMPONENT.HASH,
-            APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
-            APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
-            APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID)
+    List<Record> rows = tx.dsl()
+        .select(CANDIDATE_OBLIGATION_FIELDS)
         .from(LICENSE_THREAT_GROUP)
         .join(LICENSE_THREAT_GROUP_LICENSE)
         .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
@@ -492,84 +532,158 @@ public class LicenseThreatGroupDAO
                     .select(APPLICATION_ANCESTOR.APPLICATION_ID)
                     .from(APPLICATION_ANCESTOR)
                     .where(APPLICATION_ANCESTOR.ANCESTOR_ID.eq(ownerId)))))
+        .leftJoin(COMPONENT_OBLIGATION)
+        .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT)
+            .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON
+                .eq(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
+            .and(COMPONENT_OBLIGATION.OWNER_ID.eq(Organization.ROOT_ORGANIZATION_ID)))
         .where(LICENSE_THREAT_GROUP.OWNER_ID.in(hierarchyOwnerIdsSubquery))
         .and(APPLICATION_COMPONENT.HASH.isNotNull())
-        .fetch(this::toComponentCandidate);
+        .fetch();
+
+    return accumulateCandidateObligations(rows);
   }
 
   /**
-   * @see #listComponentCandidatesByOwner(TransactionContext, OwnerType, String)
+   * @see #getCandidatesWithObligationsByOwner(TransactionContext, OwnerType, String)
    *
-   * @since 1.204
+   * @since 1.205
    */
-  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByOwner(
+  public CandidateComponentObligations getCandidatesWithObligationsByOwner(
       final OwnerType ownerType,
       final String ownerId)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return listComponentCandidatesByOwner(tx, ownerType, ownerId);
+      return getCandidatesWithObligationsByOwner(tx, ownerType, ownerId);
     }
   }
 
   /**
-   * Lists application components whose effective license maps to any license threat group across the supplied
-   * {@code applicationIds}. The caller passes in the user's already-authorized scoped-application set, so this
-   * method does no further authz filtering. An empty {@code applicationIds} short-circuits with an empty list.
+   * Application-scoped counterpart to
+   * {@link #getCandidatesWithObligationsByOwner(TransactionContext, OwnerType, String)}. Chunks
+   * {@code applicationIds} into single-column {@code IN} lists (never subject to the row-value parser-depth limit) and
+   * accumulates the per-chunk rows; {@link #accumulateCandidateObligations} de-dupes across chunk boundaries.
+   * <p>
+   * Unlike the owner-scoped method this applies no {@code LICENSE_THREAT_GROUP.OWNER_ID} hierarchy filter: callers
+   * pass an already-authorized scoped-application set and no owner id is available here. Do not "align" the two
+   * methods on this point — their scope semantics differ by design. An empty {@code applicationIds} short-circuits.
    *
-   * @since 1.204
+   * @since 1.205
    */
-  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIds(
+  public CandidateComponentObligations getCandidatesWithObligationsByApplicationIds(
       final TransactionContext tx,
       final Collection<String> applicationIds)
   {
-    if (applicationIds == null || applicationIds.isEmpty()) {
-      return Collections.emptyList();
+    if (CollectionUtils.isEmpty(applicationIds)) {
+      return new CandidateComponentObligations(Collections.emptyList(), Collections.emptyMap());
     }
 
-    return getListWithSqlInClause(
+    List<Record> rows = getListWithSqlInClause(
         new ArrayList<>(applicationIds),
-        chunk -> listComponentCandidatesByApplicationIdsChunk(tx, chunk));
-  }
+        chunk -> tx.dsl()
+            .select(CANDIDATE_OBLIGATION_FIELDS)
+            .from(LICENSE_THREAT_GROUP)
+            .join(LICENSE_THREAT_GROUP_LICENSE)
+            .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
+                .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
+            .join(APPLICATION_COMPONENT_LICENSE)
+            .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
+            .join(APPLICATION_COMPONENT)
+            .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
+                .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
+                .and(APPLICATION_COMPONENT.APPLICATION_ID.in(chunk)))
+            .leftJoin(COMPONENT_OBLIGATION)
+            .on(COMPONENT_OBLIGATION.COMPONENT_ID_FORMAT.eq(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT)
+                .and(COMPONENT_OBLIGATION.COMPONENT_ID_COORDINATES_JSON
+                    .eq(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON))
+                .and(COMPONENT_OBLIGATION.OWNER_ID.eq(Organization.ROOT_ORGANIZATION_ID)))
+            .where(APPLICATION_COMPONENT.HASH.isNotNull())
+            .fetch());
 
-  private List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIdsChunk(
-      final TransactionContext tx,
-      final Collection<String> applicationIds)
-  {
-    return tx.dsl()
-        .select(
-            LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID,
-            LICENSE_THREAT_GROUP.NAME,
-            LICENSE_THREAT_GROUP.THREAT_LEVEL,
-            APPLICATION_COMPONENT.APPLICATION_ID,
-            APPLICATION_COMPONENT.HASH,
-            APPLICATION_COMPONENT.COMPONENT_ID_FORMAT,
-            APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON,
-            APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID)
-        .from(LICENSE_THREAT_GROUP)
-        .join(LICENSE_THREAT_GROUP_LICENSE)
-        .on(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID
-            .eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_THREAT_GROUP_ID))
-        .join(APPLICATION_COMPONENT_LICENSE)
-        .on(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID.eq(LICENSE_THREAT_GROUP_LICENSE.LICENSE_ID))
-        .join(APPLICATION_COMPONENT)
-        .on(APPLICATION_COMPONENT.APPLICATION_COMPONENT_ID
-            .eq(APPLICATION_COMPONENT_LICENSE.APPLICATION_COMPONENT_ID)
-            .and(APPLICATION_COMPONENT.APPLICATION_ID.in(applicationIds)))
-        .where(APPLICATION_COMPONENT.HASH.isNotNull())
-        .fetch(this::toComponentCandidate);
+    return accumulateCandidateObligations(rows);
   }
 
   /**
-   * @see #listComponentCandidatesByApplicationIds(TransactionContext, Collection)
+   * @see #getCandidatesWithObligationsByApplicationIds(TransactionContext, Collection)
    *
-   * @since 1.204
+   * @since 1.205
    */
-  public List<LicenseThreatGroupComponentCandidate> listComponentCandidatesByApplicationIds(
+  public CandidateComponentObligations getCandidatesWithObligationsByApplicationIds(
       final Collection<String> applicationIds)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      return listComponentCandidatesByApplicationIds(tx, applicationIds);
+      return getCandidatesWithObligationsByApplicationIds(tx, applicationIds);
     }
+  }
+
+  /**
+   * De-dupes the fanned-out {@code LEFT JOIN} result of the candidate/obligation query into the distinct candidate
+   * list and per-component obligation map the counter expects. Candidates are de-duped on their full natural key and
+   * obligations on their primary key, so both cross-{@code (LTG, license)} fanout and cross-chunk repetition collapse.
+   */
+  private CandidateComponentObligations accumulateCandidateObligations(final List<Record> rows) {
+    List<LicenseThreatGroupComponentCandidate> candidates = new ArrayList<>();
+    Set<CandidateKey> seenCandidates = new HashSet<>();
+    Map<ComponentIdentifier, List<ComponentObligation>> obligationsByComponent = new HashMap<>();
+    Set<String> seenObligationIds = new HashSet<>();
+
+    for (Record row : rows) {
+      CandidateKey candidateKey = new CandidateKey(
+          row.get(LICENSE_THREAT_GROUP.LICENSE_THREAT_GROUP_ID),
+          row.get(APPLICATION_COMPONENT.APPLICATION_ID),
+          row.get(APPLICATION_COMPONENT.HASH),
+          row.get(APPLICATION_COMPONENT.COMPONENT_ID_FORMAT),
+          row.get(APPLICATION_COMPONENT.COMPONENT_ID_COORDINATES_JSON),
+          row.get(APPLICATION_COMPONENT_LICENSE.EFFECTIVE_LICENSE_ID));
+      if (seenCandidates.add(candidateKey)) {
+        candidates.add(toComponentCandidate(row));
+      }
+
+      String obligationId = row.get(COMPONENT_OBLIGATION.COMPONENT_OBLIGATION_ID);
+      if (obligationId != null && seenObligationIds.add(obligationId)) {
+        ComponentObligation obligation = toComponentObligation(row);
+        ComponentIdentifier identifier = obligation.getComponentIdentifier();
+        if (identifier != null) {
+          obligationsByComponent.computeIfAbsent(identifier, ignored -> new ArrayList<>()).add(obligation);
+        }
+      }
+    }
+
+    return new CandidateComponentObligations(candidates, obligationsByComponent);
+  }
+
+  /**
+   * Rebuild the {@link ComponentObligation} from its {@code component_obligation} columns in the joined row. We narrow
+   * the joined record to the {@code component_obligation} table first ({@code into(COMPONENT_OBLIGATION)}) — which
+   * resolves the {@code component_id_format}/{@code component_id_coordinates_json} column-name collision with
+   * {@code application_component} — then defer to jOOQ's auto-mapping, the same path {@code ComponentObligationDAO}
+   * uses, so the two stay in sync as the table evolves.
+   */
+  private ComponentObligation toComponentObligation(final Record row) {
+    return row.into(COMPONENT_OBLIGATION).into(ComponentObligation.class);
+  }
+
+  /**
+   * The candidate components in scope plus the component obligations recorded for them, as returned by a single
+   * {@code LEFT JOIN} query. Obligation rows are keyed by {@link ComponentIdentifier}; a candidate with no recorded
+   * obligation simply has no entry in {@code obligationsByComponent}.
+   *
+   * @since 1.205
+   */
+  public record CandidateComponentObligations(
+      List<LicenseThreatGroupComponentCandidate> candidates,
+      Map<ComponentIdentifier, List<ComponentObligation>> obligationsByComponent)
+  {
+  }
+
+  private record CandidateKey(
+      String licenseThreatGroupId,
+      String applicationId,
+      String hash,
+      String componentIdFormat,
+      String componentIdCoordinatesJson,
+      String effectiveLicenseId)
+  {
   }
 
   private LicenseThreatGroupComponentCandidate toComponentCandidate(Record row) {

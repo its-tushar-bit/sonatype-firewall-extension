@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
@@ -698,17 +699,12 @@ public abstract class AbstractSearchIndexClient
   }
 
   private String appendAllowedApplicationsAndOrganizationsToQuery(final String query) {
-    Set<String> contextIdsWithReadPermission =
-        permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
-
-    if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
-        contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID))
-    {
+    Optional<Map<String, OwnerType>> readableContexts = resolveReadableContextIdsForCurrentUser();
+    if (readableContexts.isEmpty()) {
       return query;
     }
 
-    Map<String, OwnerType> contextIdsWithReadPermissionMap = getChildContextIds(contextIdsWithReadPermission);
-
+    Map<String, OwnerType> contextIdsWithReadPermissionMap = readableContexts.get();
     List<String> allowedContextConditions = new ArrayList<>();
 
     contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
@@ -727,6 +723,24 @@ public abstract class AbstractSearchIndexClient
 
     String allowedContextsQuery = String.join(" OR ", allowedContextConditions);
     return "(" + allowedContextsQuery + ") AND (" + query + ")";
+  }
+
+  /**
+   * Resolves readable application/organization context ids for the current user.
+   * {@link Optional#empty()} denotes unrestricted (global) access;
+   * an empty map denotes fail-closed (no readable contexts).
+   */
+  protected Optional<Map<String, OwnerType>> resolveReadableContextIdsForCurrentUser() {
+    Set<String> contextIdsWithReadPermission =
+        permissionService.getContextIdsForUserWithPermission(currentUser.getUserPrincipal(), Permission.READ);
+
+    if (contextIdsWithReadPermission.contains(MembershipMapping.GLOBAL_CONTEXT_ID) ||
+        contextIdsWithReadPermission.contains(Organization.ROOT_ORGANIZATION_ID))
+    {
+      return Optional.empty();
+    }
+
+    return Optional.of(getChildContextIds(contextIdsWithReadPermission));
   }
 
   /**
@@ -1152,6 +1166,41 @@ public abstract class AbstractSearchIndexClient
   @Override
   public void deleteSearchIndexChange(final SearchIndexChange change) {
     searchIndexChangeDAO.delete(change);
+  }
+
+  @Override
+  public abstract long count(String metricQuery);
+
+  @Override
+  public abstract MetricAggregationResult aggregateCountByField(
+      String metricQuery,
+      String bucketField,
+      Map<String, int[]> ranges);
+
+  /**
+   * Validates the {@code aggregateCountByField} range contract at the boundary: every bucket's
+   * bounds must be a non-null {@code int[2]} ({@code [minInclusive, maxInclusive]}). Throws an
+   * explicit {@link IllegalArgumentException} naming the offending bucket rather than letting a
+   * malformed array surface later as an opaque {@code ArrayIndexOutOfBoundsException} wrapped in a
+   * generic search exception.
+   */
+  protected static void validateRangeBounds(final Map<String, int[]> ranges) {
+    if (ranges == null) {
+      throw new IllegalArgumentException("ranges must not be null");
+    }
+    for (Map.Entry<String, int[]> entry : ranges.entrySet()) {
+      int[] bounds = entry.getValue();
+      if (bounds == null || bounds.length < 2) {
+        throw new IllegalArgumentException(
+            "Range bounds for '" + entry.getKey() + "' must be an int[2] [minInclusive, maxInclusive]; got: "
+                + Arrays.toString(bounds));
+      }
+      if (bounds[0] > bounds[1]) {
+        throw new IllegalArgumentException(
+            "Range bounds for '" + entry.getKey() + "' must have minInclusive <= maxInclusive; got: "
+                + Arrays.toString(bounds));
+      }
+    }
   }
 
   protected abstract void updateMaxQueryClauseCount() throws IOException;

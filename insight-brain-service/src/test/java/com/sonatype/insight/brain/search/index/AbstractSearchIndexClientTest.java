@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -569,6 +570,20 @@ public class AbstractSearchIndexClientTest
     public boolean shouldThrow(final Exception e) {
       // For testing, always throw (no cooldown)
       return true;
+    }
+
+    @Override
+    public long count(String metricQuery) {
+      return 0L;
+    }
+
+    @Override
+    public MetricAggregationResult aggregateCountByField(
+        String metricQuery,
+        String bucketField,
+        Map<String, int[]> ranges)
+    {
+      return new MetricAggregationResult(0L, Map.of());
     }
   }
 }

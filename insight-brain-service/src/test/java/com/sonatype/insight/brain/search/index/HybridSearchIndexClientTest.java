@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -49,6 +50,81 @@ public class HybridSearchIndexClientTest
   @Before
   public void setUp() {
     hybridClient = new HybridSearchIndexClient(primaryClient, secondaryClient);
+  }
+
+  @Test
+  public void testCount_DelegatesToPrimaryClient() {
+    // Given
+    long expectedCount = 42L;
+    String metricQuery = "itemType:APPLICATION";
+    when(primaryClient.count(metricQuery)).thenReturn(expectedCount);
+
+    // When
+    long result = hybridClient.count(metricQuery);
+
+    // Then
+    assertThat(result).isEqualTo(expectedCount);
+    verify(primaryClient, times(1)).count(metricQuery);
+    verify(secondaryClient, never()).count(anyString());
+  }
+
+  @Test
+  public void testCount_FallsBackToSecondary_WhenPrimaryFails() {
+    String metricQuery = "itemType:application";
+    when(primaryClient.count(metricQuery)).thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.count(metricQuery)).thenReturn(7L);
+
+    long result = hybridClient.count(metricQuery);
+
+    assertThat(result).isEqualTo(7L);
+    verify(primaryClient, times(1)).count(metricQuery);
+    verify(secondaryClient, times(1)).count(metricQuery);
+  }
+
+  @Test
+  public void testCount_ThrowsException_WhenBothFail() {
+    String metricQuery = "itemType:application";
+    when(primaryClient.count(metricQuery)).thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.count(metricQuery)).thenThrow(new RuntimeException("Secondary client error"));
+
+    assertThatThrownBy(() -> hybridClient.count(metricQuery))
+        .isInstanceOf(SearchIndexException.class)
+        .hasMessageContaining("Count failed on both primary and secondary clients");
+  }
+
+  @Test
+  public void testAggregateCountByField_FallsBackToSecondary_WhenPrimaryFails() {
+    String metricQuery = "itemType:application";
+    String bucketField = "policyViolationThreatLevel";
+    Map<String, int[]> ranges = Map.of("critical", new int[]{9, 10});
+    MetricAggregationResult expectedResult = new MetricAggregationResult(50L, Map.of("critical", 10L));
+    when(primaryClient.aggregateCountByField(metricQuery, bucketField, ranges))
+        .thenThrow(new RuntimeException("Primary client error"));
+    when(secondaryClient.aggregateCountByField(metricQuery, bucketField, ranges)).thenReturn(expectedResult);
+
+    MetricAggregationResult result = hybridClient.aggregateCountByField(metricQuery, bucketField, ranges);
+
+    assertThat(result).isSameAs(expectedResult);
+    verify(primaryClient, times(1)).aggregateCountByField(metricQuery, bucketField, ranges);
+    verify(secondaryClient, times(1)).aggregateCountByField(metricQuery, bucketField, ranges);
+  }
+
+  @Test
+  public void testAggregateCountByField_DelegatesToPrimaryClient() {
+    // Given
+    String metricQuery = "itemType:APPLICATION";
+    String bucketField = "policyViolationThreatLevel";
+    Map<String, int[]> ranges = Map.of("critical", new int[]{9, 10});
+    MetricAggregationResult expectedResult = new MetricAggregationResult(100L, Map.of("critical", 25L));
+    when(primaryClient.aggregateCountByField(metricQuery, bucketField, ranges)).thenReturn(expectedResult);
+
+    // When
+    MetricAggregationResult result = hybridClient.aggregateCountByField(metricQuery, bucketField, ranges);
+
+    // Then
+    assertThat(result).isSameAs(expectedResult);
+    verify(primaryClient, times(1)).aggregateCountByField(metricQuery, bucketField, ranges);
+    verify(secondaryClient, never()).aggregateCountByField(anyString(), anyString(), any());
   }
 
   @Test

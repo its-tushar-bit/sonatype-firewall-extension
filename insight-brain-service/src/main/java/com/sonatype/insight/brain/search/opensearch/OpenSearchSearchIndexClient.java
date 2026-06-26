@@ -11,7 +11,9 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -31,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
@@ -38,6 +41,7 @@ import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
@@ -58,7 +62,12 @@ import org.apache.lucene.document.Document;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.FieldSort;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.OpenSearchException;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
+import org.opensearch.client.opensearch._types.aggregations.AggregationRange;
+import org.opensearch.client.opensearch._types.aggregations.RangeBucket;
+import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.ScoreSort;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
@@ -95,6 +104,9 @@ import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_ID;
 
 /**
  * OpenSearch support for {@link SearchIndexClient}
@@ -692,6 +704,182 @@ public class OpenSearchSearchIndexClient
       }
       return false;
     });
+  }
+
+  @Override
+  public long count(final String metricQuery) {
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .trackTotalHits(new TrackHits.Builder().enabled(true).build())
+          .query(buildMetricQuery(initialQuery))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      return Optional.ofNullable(searchResponse.hits().total()).map(TotalHits::value).orElse(0L);
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      // throwMetricSearchException always throws; this keeps the no-throw path
+      // structurally impossible so a future change can't make count() silently
+      // return an unscoped 0 (which would read as success and fail RBAC open).
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, int[]> ranges)
+  {
+    validateRangeBounds(ranges);
+    try {
+      String initialQuery = createInitialQuery(metricQuery, true);
+      Set<String> fieldNames = getFieldNames(initialQuery);
+      checkFieldNames(fieldNames);
+
+      List<AggregationRange> aggregationRanges = new ArrayList<>();
+      // Upper bound is exclusive in OpenSearch range aggs but inclusive in our contract, so add 1.
+      // Use long arithmetic so an upper bound of Integer.MAX_VALUE doesn't overflow to a negative
+      // value (which would silently produce a zero-count bucket).
+      ranges.forEach((label, bounds) -> aggregationRanges.add(AggregationRange.of(r -> r
+          .key(label)
+          .from(String.valueOf(bounds[0]))
+          .to(String.valueOf((long) bounds[1] + 1)))));
+
+      SearchRequest searchRequest = new SearchRequest.Builder()
+          .index(indexConfigProvider.getIndexConfig().getIndexName())
+          .size(0)
+          .trackTotalHits(new TrackHits.Builder().enabled(true).build())
+          .query(buildMetricQuery(initialQuery))
+          .aggregations("metricBuckets", a -> a
+              .range(r -> r
+                  .field(bucketField)
+                  .ranges(aggregationRanges)))
+          .build();
+
+      SearchResponse<Map> searchResponse = getClient().search(searchRequest, Map.class);
+      long total = Optional.ofNullable(searchResponse.hits().total()).map(TotalHits::value).orElse(0L);
+
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      ranges.keySet().forEach(label -> buckets.put(label, 0L));
+      Map<String, Aggregate> aggs = searchResponse.aggregations();
+      Aggregate aggregate = aggs != null ? aggs.get("metricBuckets") : null;
+      if (aggregate != null && aggregate.isRange()) {
+        for (RangeBucket bucket : aggregate.range().buckets().array()) {
+          String key = bucket.key();
+          if (key != null) {
+            buckets.put(key, bucket.docCount());
+          }
+        }
+      }
+
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (Exception e) {
+      throwMetricSearchException(e);
+      // See count(): never return null here — a null would NPE the caller on
+      // result.total/result.buckets. Fail closed by throwing instead.
+      throw new IllegalStateException("unreachable: throwMetricSearchException always throws", e);
+    }
+  }
+
+  private Query buildMetricQuery(final String initialQuery) {
+    // Metric queries always carry an explicit field prefix (e.g. itemType:application),
+    // so defaultField is never exercised today. Default to itemType (the only field
+    // used by metric queries) so an accidentally prefix-less query degrades to a
+    // sensible field rather than silently searching vulnerability ids.
+    Query userQueryClause = Query.of(q -> q
+        .queryString(qs -> qs
+            .query(initialQuery)
+            .defaultField(FieldIdentifier.ITEM_TYPE.label)));
+
+    Query rbacFilter = buildOpenSearchRbacFilterQuery();
+    if (rbacFilter == null) {
+      return userQueryClause;
+    }
+
+    return Query.of(q -> q
+        .bool(b -> b
+            .must(userQueryClause)
+            .filter(rbacFilter)));
+  }
+
+  /**
+   * Programmatic RBAC filter mirroring {@link com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient}
+   * {@code buildRbacFilterQuery()}. Keyword fields use a lowercase normalizer ({@link IndexMapping}), so context ids
+   * are lowercased to match indexed values.
+   *
+   * @return {@code null} when access is unrestricted; otherwise a filter query (including {@code match_none} when
+   *         fail-closed).
+   */
+  private Query buildOpenSearchRbacFilterQuery() {
+    Optional<Map<String, OwnerType>> readableContexts = resolveReadableContextIdsForCurrentUser();
+    if (readableContexts.isEmpty()) {
+      return null;
+    }
+
+    Map<String, OwnerType> contextIdsWithReadPermissionMap = readableContexts.get();
+    if (contextIdsWithReadPermissionMap.isEmpty()) {
+      return Query.of(q -> q.matchNone(m -> m));
+    }
+
+    List<FieldValue> applicationTerms = new ArrayList<>();
+    List<FieldValue> organizationTerms = new ArrayList<>();
+    contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
+      FieldValue term = FieldValue.of(contextId.toLowerCase(Locale.ROOT));
+      if (OwnerType.APPLICATION.equals(type)) {
+        applicationTerms.add(term);
+      }
+      else if (OwnerType.ORGANIZATION.equals(type)) {
+        organizationTerms.add(term);
+      }
+    });
+
+    // Explicit fail-closed: if the user's readable contexts are all non-APPLICATION/
+    // non-ORGANIZATION types (e.g. a Firewall-only user with only REPOSITORY*), both
+    // term lists are empty. Rather than rely on the engine treating a zero-should
+    // BooleanQuery + minimumShouldMatch=1 as match-none, say so explicitly so the
+    // intent is clear and stays in lockstep with the Lucene sibling.
+    if (applicationTerms.isEmpty() && organizationTerms.isEmpty()) {
+      return Query.of(q -> q.matchNone(m -> m));
+    }
+
+    return Query.of(q -> q
+        .bool(b -> {
+          if (!applicationTerms.isEmpty()) {
+            b.should(s -> s.terms(t -> t
+                .field(APPLICATION_ID.label)
+                .terms(tv -> tv.value(applicationTerms))));
+          }
+          if (!organizationTerms.isEmpty()) {
+            b.should(s -> s.terms(t -> t
+                .field(ORGANIZATION_ID.label)
+                .terms(tv -> tv.value(organizationTerms))));
+          }
+          b.minimumShouldMatch("1");
+          return b;
+        }));
+  }
+
+  private void throwMetricSearchException(final Exception e) {
+    throwIfIndexNotFound(e);
+    if (e instanceof OpenSearchException openSearchException) {
+      String responseJson = openSearchException.response().toJsonString();
+      if (responseJson.contains("too_many_clauses")) {
+        throw TOO_MANY_CLAUSES_EXCEPTION;
+      }
+    }
+    if (e instanceof BadRequestException badRequestException) {
+      throw badRequestException;
+    }
+    throw new SearchIndexException(e);
   }
 
   public static boolean isRateLimitError(final Exception e) {

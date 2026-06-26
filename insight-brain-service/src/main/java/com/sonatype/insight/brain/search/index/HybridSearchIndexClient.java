@@ -11,6 +11,7 @@ import com.sonatype.insight.error.exception.ConflictException;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -290,6 +291,75 @@ public class HybridSearchIndexClient
   @Override
   public void deleteSearchIndexChange(final SearchIndexChange change) {
     primaryClient.deleteSearchIndexChange(change);
+  }
+
+  /**
+   * Attempts the primary client first, falling back to secondary when primary fails — same pattern
+   * as {@link #searchIndex} so dashboard tiles stay available during the OpenSearch re-index window.
+   */
+  @Override
+  public long count(String metricQuery) {
+    Exception primaryException = null;
+    try {
+      return primaryClient.count(metricQuery);
+    }
+    catch (Exception e) {
+      log.warn("Failed to count from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      long result = secondaryClient.count(metricQuery);
+      log.debug("Count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to count from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Count failed on both primary and secondary clients. Primary error: " + primaryException.getMessage() +
+              ", Secondary error: " + e.getMessage(),
+          e);
+    }
+  }
+
+  /**
+   * Attempts the primary client first, falling back to secondary when primary fails — same pattern
+   * as {@link #count}.
+   */
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      String metricQuery,
+      String bucketField,
+      Map<String, int[]> ranges)
+  {
+    Exception primaryException = null;
+    try {
+      return primaryClient.aggregateCountByField(metricQuery, bucketField, ranges);
+    }
+    catch (Exception e) {
+      log.warn("Failed to aggregate counts from primary client, falling back to secondary", e);
+      primaryException = e;
+    }
+
+    try {
+      MetricAggregationResult result =
+          secondaryClient.aggregateCountByField(metricQuery, bucketField, ranges);
+      log.debug("Aggregate count completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Failed to aggregate counts from both primary and secondary clients", e);
+      if (primaryException instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(
+          "Aggregate count failed on both primary and secondary clients. Primary error: " +
+              primaryException.getMessage() + ", Secondary error: " + e.getMessage(),
+          e);
+    }
   }
 
   /**

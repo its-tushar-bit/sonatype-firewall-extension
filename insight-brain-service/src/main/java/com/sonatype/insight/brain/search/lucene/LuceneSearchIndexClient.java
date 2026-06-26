@@ -10,8 +10,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -25,11 +29,13 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.index.MetricAggregationResult;
 import com.sonatype.insight.brain.search.index.SearchIndexException;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -44,6 +50,7 @@ import com.sonatype.insight.error.exception.ConflictException;
 
 import jakarta.inject.Inject;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.CheckIndex.CheckIndexException;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
@@ -59,6 +66,11 @@ import org.apache.lucene.index.TwoPhaseCommitTool.CommitFailException;
 import org.apache.lucene.index.TwoPhaseCommitTool.PrepareCommitFailException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.IndexSearcher.TooManyClauses;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.MatchNoDocsQuery;
+import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -67,7 +79,11 @@ import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.LockReleaseFailedException;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.ThreadInterruptedException;
+
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_ID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -350,5 +366,135 @@ public class LuceneSearchIndexClient
       }
       return false;
     });
+  }
+
+  @Override
+  public long count(final String metricQuery) {
+    // Opens its own Directory/IndexReader per call. Sharing a reader with
+    // aggregateCountByField is tracked for CLM-40927 follow-up (Violations metric PR).
+    updateMaxQueryClauseCount();
+
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      return countWithSearcher(indexSearcher, metricQuery, null, buildRbacFilterQuery());
+    }
+    catch (Exception e) {
+      if (e instanceof TooManyClauses) {
+        throw TOO_MANY_CLAUSES_EXCEPTION;
+      }
+      if (e instanceof BadRequestException badRequestException) {
+        throw badRequestException;
+      }
+      if (e instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(e);
+    }
+  }
+
+  @Override
+  public MetricAggregationResult aggregateCountByField(
+      final String metricQuery,
+      final String bucketField,
+      final Map<String, int[]> ranges)
+  {
+    validateRangeBounds(ranges);
+    updateMaxQueryClauseCount();
+
+    try (Directory directory = openSearchIndex();
+        IndexReader indexReader = DirectoryReader.open(directory))
+    {
+      IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+      // RBAC is identical across total + bucket counts — resolve once per request.
+      Query rbac = buildRbacFilterQuery();
+      long total = countWithSearcher(indexSearcher, metricQuery, null, rbac);
+      Map<String, Long> buckets = new LinkedHashMap<>();
+      for (Map.Entry<String, int[]> entry : ranges.entrySet()) {
+        int[] bounds = entry.getValue();
+        // Build the numeric range programmatically (matching the OpenSearch sibling's
+        // AggregationRange) rather than concatenating bounds + bucketField into a
+        // re-parsed query string — the same string-interpolation footgun this client
+        // deliberately avoids for the RBAC filter (programmatic TermInSetQuery).
+        Query bandFilter = IntPoint.newRangeQuery(bucketField, bounds[0], bounds[1]);
+        buckets.put(entry.getKey(), countWithSearcher(indexSearcher, metricQuery, bandFilter, rbac));
+      }
+      return new MetricAggregationResult(total, buckets);
+    }
+    catch (Exception e) {
+      if (e instanceof TooManyClauses) {
+        throw TOO_MANY_CLAUSES_EXCEPTION;
+      }
+      if (e instanceof BadRequestException badRequestException) {
+        throw badRequestException;
+      }
+      if (e instanceof ConflictException conflictException) {
+        throw conflictException;
+      }
+      throw new SearchIndexException(e);
+    }
+  }
+
+  private long countWithSearcher(
+      final IndexSearcher indexSearcher,
+      final String metricQuery,
+      final Query extraFilter,
+      final Query rbac) throws Exception
+  {
+    String initialQuery = createInitialQuery(metricQuery, true);
+    Set<String> fieldNames = getFieldNames(initialQuery);
+    checkFieldNames(fieldNames);
+    Query metric = conversionHelper.stringToQuery(initialQuery);
+    BooleanQuery.Builder combined = new BooleanQuery.Builder();
+    combined.add(metric, BooleanClause.Occur.MUST);
+    combined.add(rbac, BooleanClause.Occur.FILTER);
+    if (extraFilter != null) {
+      combined.add(extraFilter, BooleanClause.Occur.FILTER);
+    }
+    return indexSearcher.count(combined.build());
+  }
+
+  private Query buildRbacFilterQuery() {
+    Optional<Map<String, OwnerType>> readableContexts = resolveReadableContextIdsForCurrentUser();
+    if (readableContexts.isEmpty()) {
+      return new MatchAllDocsQuery();
+    }
+
+    Map<String, OwnerType> contextIdsWithReadPermissionMap = readableContexts.get();
+    if (contextIdsWithReadPermissionMap.isEmpty()) {
+      return new MatchNoDocsQuery();
+    }
+
+    List<BytesRef> applicationTerms = new ArrayList<>();
+    List<BytesRef> organizationTerms = new ArrayList<>();
+    contextIdsWithReadPermissionMap.forEach((contextId, type) -> {
+      BytesRef term = new BytesRef(contextId.toLowerCase(Locale.ROOT));
+      if (OwnerType.APPLICATION.equals(type)) {
+        applicationTerms.add(term);
+      }
+      else if (OwnerType.ORGANIZATION.equals(type)) {
+        organizationTerms.add(term);
+      }
+    });
+
+    // Explicit fail-closed: if the user's readable contexts are all non-APPLICATION/
+    // non-ORGANIZATION types (e.g. a Firewall-only user with only REPOSITORY*), both
+    // term lists are empty. Return MatchNoDocs explicitly rather than relying on a
+    // zero-should BooleanQuery + minimumShouldMatch=1 reading as match-none (kept in
+    // lockstep with the OpenSearch sibling).
+    if (applicationTerms.isEmpty() && organizationTerms.isEmpty()) {
+      return new MatchNoDocsQuery();
+    }
+
+    BooleanQuery.Builder rbac = new BooleanQuery.Builder();
+    if (!applicationTerms.isEmpty()) {
+      rbac.add(new TermInSetQuery(APPLICATION_ID.label, applicationTerms), BooleanClause.Occur.SHOULD);
+    }
+    if (!organizationTerms.isEmpty()) {
+      rbac.add(new TermInSetQuery(ORGANIZATION_ID.label, organizationTerms), BooleanClause.Occur.SHOULD);
+    }
+    rbac.setMinimumNumberShouldMatch(1);
+    return rbac.build();
   }
 }

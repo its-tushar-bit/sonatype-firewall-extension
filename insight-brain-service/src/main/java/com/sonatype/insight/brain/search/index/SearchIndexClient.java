@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.index;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -70,4 +71,19 @@ public interface SearchIndexClient
       List<String> searchAfter);
 
   List<SearchIndexChange> getSearchIndexChanges();
+
+  /**
+   * RBAC-scoped count of documents matching {@code metricQuery}. Fails closed: callers with no
+   * allowed contexts get 0 (never an unscoped count). {@code metricQuery} is a small, server-built
+   * field query (e.g. {@code itemType:APPLICATION}); the RBAC filter is applied internally and
+   * programmatically (not string-concatenated). Implemented in CLM-40927 PR1.
+   */
+  long count(String metricQuery);
+
+  /**
+   * RBAC-scoped bucketed count. {@code bucketField} is a numeric field (e.g.
+   * policyViolationThreatLevel); {@code ranges} maps a bucket label to an [minInclusive, maxInclusive]
+   * int pair. Implemented in CLM-40927 PR1.
+   */
+  MetricAggregationResult aggregateCountByField(String metricQuery, String bucketField, Map<String, int[]> ranges);
 }

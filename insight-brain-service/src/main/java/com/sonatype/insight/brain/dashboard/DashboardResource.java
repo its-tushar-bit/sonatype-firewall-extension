@@ -30,6 +30,11 @@ import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+/**
+ * Shares the {@code rest/dashboard} class-level path with
+ * {@link com.sonatype.insight.brain.dashboard.metrics.DashboardMetricsResource} (Nexus One metric
+ * endpoints) — sub-paths must stay disjoint between the two classes.
+ */
 @Named
 @Timed
 @Path(DashboardResource.RESOURCE_PATH)

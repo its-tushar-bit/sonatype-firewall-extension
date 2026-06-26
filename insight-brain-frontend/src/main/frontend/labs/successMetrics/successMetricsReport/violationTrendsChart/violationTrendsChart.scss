@@ -8,9 +8,27 @@
 // 24   - top padding
 // 292 = 31*4 + 48*3 + 24
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '../../../../scss/variables' as *;
 
 $chart-height: 292px;
+
+// Reproduce the global `h4` typography from `scss/_typography.scss` scoped to
+// this chart's row labels. The Classic bundle gets these styles from the
+// global typography partial; the Nexus One bundle (which embeds this page
+// natively) deliberately doesn't load that partial because it redefines all
+// `h1`–`h4` globally and would clash with Radix `<Heading>` in native NOUX
+// pages. Without these rules the row labels render at browser-default
+// `<h4>` (24px, mixed case) instead of the compact uppercase labels the
+// chart layout was designed around. CLM-41537.
+.iq-cell--violation-trends-row-label h4 {
+  @include nx-text-helpers.semi-bold;
+
+  font-size: 14px;
+  line-height: 16px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
 
 $total-delta-icon-margin-right: 12px;
 $total-delta-icon-margin-left: 8px;
@@ -90,6 +108,14 @@ $total-delta-icon-margin-left: 8px;
 }
 
 .iq-cell--violation-trends-chart-total-delta-icon {
+  // The Classic bundle gets `float: right` for this element from the global
+  // `.iq-pull-right` helper in `scss/_global.scss`. The Nexus One bundle
+  // doesn't load that partial (its other rules would conflict with NOUX), so
+  // reproduce the float here scoped to this element. Without it the caret
+  // icon stacks above the total number, doubling the row height and
+  // misaligning the row labels with the totals. CLM-41537.
+  float: right;
+
   .iq-violation-trends__delta-icon {
     margin-right: $total-delta-icon-margin-right;
   }

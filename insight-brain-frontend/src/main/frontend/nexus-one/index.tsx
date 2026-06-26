@@ -8,13 +8,16 @@ import { createRoot } from 'react-dom/client';
 // @ts-expect-error - classybrew ships no type declarations
 import ClassyBrew from 'classybrew/src/classybrew';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
-import { actions as displayThemeActions } from 'MainRoot/configuration/displayTheme/displayThemeSlice';
+import initDisplayTheme from 'MainRoot/configuration/displayTheme/initDisplayTheme';
+import { loadConfiguration as loadSuccessMetricsConfig } from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as mainHeaderActions } from 'MainRoot/mainHeader/mainHeaderSlice';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { fetchUser } from 'MainRoot/user/userSessionUtils';
 import store from 'MainRoot/reduxConfig/store';
 import router from 'MainRoot/router/routerInstance';
+import { initializeRouterListener } from 'MainRoot/reduxUiRouter/routerListener';
+import { setStateService } from 'MainRoot/reduxUiRouter/routerMiddleware';
 import App from './App';
 import { ensureNexusOneShellAccess } from './ensureNexusOneShellAccess';
 import './routes';
@@ -31,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   attachAxiosInterceptors();
-  store.dispatch(displayThemeActions.initialize());
+  initDisplayTheme();
 
   // Hydrate the Redux slices the shared shell (LeftNav, TopNav menus) depends
   // on. Classic does this in main.js; the Nexus One bundle has its own store,
@@ -42,11 +45,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchUser(false);
   store.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
   store.dispatch(loadProductLicense());
+  // LeftNav gates Success Metrics on successMetricsConfiguration.serverData.enabled.
+  // Classic loads this in NavigationContainer; the nexus-one bundle must too.
+  store.dispatch(loadSuccessMetricsConfig());
   // The TopNav System Preferences menu gates its items on mainHeader
   // permissions (CONFIGURE_SYSTEM, VIEW_ROLES, etc.). Classic loads these in
   // MainHeader.jsx; the Nexus One bundle must dispatch it too or the gear menu
   // renders "No preferences available".
   store.dispatch(mainHeaderActions.loadPermissions());
+
+  initializeRouterListener(router.transitionService);
+  setStateService(router.stateService);
 
   router.start();
   const container = document.getElementById('nexus-one-root');

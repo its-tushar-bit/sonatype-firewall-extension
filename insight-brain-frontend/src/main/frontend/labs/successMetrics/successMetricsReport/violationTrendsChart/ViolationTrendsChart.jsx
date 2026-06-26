@@ -6,6 +6,12 @@
 
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+// The chart renders a legacy class-based Font Awesome 4 caret icon
+// (`<i class="fa fa-caret-up">`) for the deltas trend indicator. The Classic
+// bundle's `index.jsx` loads `font-awesome.min.css` globally; the Nexus One
+// bundle (which embeds this page natively) does not. Without it the `.fa`
+// glyphs render as empty space. CLM-41537.
+import 'components-font-awesome/css/font-awesome.min.css';
 import { renderCombinedTrendsChart, calculateTotals, getViolationTrendsData } from './ViolationTrendsChartUtils';
 import { violationCountsShape } from '../SuccessMetricsPropTypes';
 

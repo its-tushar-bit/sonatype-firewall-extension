@@ -7,6 +7,27 @@
 import React, { useEffect, Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { faInfoCircle, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
+// The Classic bundle's `index.jsx` loads plottable's stylesheet globally and pulls all
+// chart SCSS partials through `scss/scss.scss` → `labs/_labs.scss`. The Nexus One bundle
+// (which embeds this page natively — see `nexus-one/routes.tsx`) does neither, so without
+// these imports `.plottable-colors-0..9` resolve to `transparent`, plottable's color
+// scale returns null, and chart rendering throws `lightenColor: Cannot read properties
+// of null (reading 'brighter')`. These imports are no-ops in Classic (already in the
+// global cascade) and make the page self-contained for any host bundle. CLM-41537.
+import 'plottable/plottable.css';
+// `_iq-tables.scss` provides base `.iq-table` / `.iq-cell` / `.iq-cell--header`
+// styling (width: 100%, border-collapse: collapse, box-sizing: border-box,
+// uppercase header text, cell padding). The Violation Trends chart uses raw
+// `<table>` markup with `iq-table` / `iq-cell` classes and is unusable without
+// these. All rules in the file are scoped to those classes — the only
+// element-level selectors (`thead`/`tbody`) require an `.iq-table-row` child,
+// so they don't affect native NOUX Radix tables.
+import '../../../scss/_iq-tables.scss';
+import '../_charts.scss';
+import './applicationCountsChart/applicationCountsChart.scss';
+import './mttrChart/mttrChart.scss';
+import './componentCountsChart/componentCountsChart.scss';
+import './violationsByCategoryChart/violationsByCategoryChart.scss';
 import ViolationsByCategoryChart from './violationsByCategoryChart/ViolationsByCategoryChart';
 import ViolationTrendsChart from './violationTrendsChart/ViolationTrendsChart';
 import {

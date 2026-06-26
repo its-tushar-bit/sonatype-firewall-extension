@@ -5,6 +5,11 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+// The Classic bundle pulls these SCSS partials through `scss/scss.scss` →
+// `labs/_labs.scss`; the Nexus One bundle (which embeds this page natively) does not.
+// Importing them here makes the page self-contained for any host bundle. CLM-41537.
+import './_successMetricsReportList.scss';
+import './addSuccessMetricsReport/_add-success-metrics-report.scss';
 import { NxButton, NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import LoadWrapper from '../../react/LoadWrapper';

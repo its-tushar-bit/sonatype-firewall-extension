@@ -24,8 +24,8 @@ export function NexusOneShellLayout({ children }: { readonly children: React.Rea
   const { effectiveTheme } = useNoscTheme();
   const dispatch = useDispatch();
 
-  // Sync resolved light/dark into Redux only — do not call setDisplayTheme thunk,
-  // which would overwrite Classic's displayTheme localStorage (e.g. 'system').
+  // Sync resolved light/dark into Redux so displayThemeHandler toggles nx-html--* on
+  // <html> for mounted Classic RSC content (including system mode + OS dark preference).
   useEffect(() => {
     dispatch(displayThemeActions.setDisplayThemeState(effectiveTheme));
   }, [effectiveTheme, dispatch]);

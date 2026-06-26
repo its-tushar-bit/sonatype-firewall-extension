@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,10 +23,20 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerListDT
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.PermissionService;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for Lifecycle API operations
@@ -36,25 +47,31 @@ import com.sonatype.insight.brain.security.Authorize;
 @Singleton
 public class ApiLifecycleService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiLifecycleService.class);
+
   private final RepositoryManagerDAO repositoryManagerDAO;
 
   private final RepositoryDAO repositoryDAO;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
 
+  private final PermissionService permissionService;
+
   @Inject
   public ApiLifecycleService(
       final RepositoryManagerDAO repositoryManagerDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryComponentDAO repositoryComponentDAO)
+      final RepositoryComponentDAO repositoryComponentDAO,
+      final PermissionService permissionService)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
+    this.permissionService = permissionService;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiLifecycleRepositoryManagerListDTO getRepositoryManagers() {
+    requireAccess();
     List<RepositoryManager> repositoryManagers = repositoryManagerDAO.getAll();
 
     List<Repository> allHostedRepositories =
@@ -130,5 +147,61 @@ public class ApiLifecycleService
 
   private ConnectionStatus determineConnectionStatus(RepositoryManager rm) {
     return rm.isConfigured() ? ConnectionStatus.CONNECTED : ConnectionStatus.DISCONNECTED;
+  }
+
+  /**
+   * Authorize the caller to view the Hosted Repository Scanning configuration.
+   * <p>
+   * Allows System Administrator (via {@link Permission#CONFIGURE_SYSTEM} at global scope)
+   * and Lifecycle roles — Policy Administrator, Owner, Developer, plus any custom role
+   * granted {@link Permission#READ} — that hold READ on any owner (root org, org, or
+   * application).
+   * <p>
+   * CONFIGURE_SYSTEM is a global permission so it's checked at the global context.
+   * READ is non-global, so we check whether the user holds it on at least one owner
+   * (root org / org / application) — matching the access model the Lifecycle UI uses.
+   */
+  private void requireAccess() {
+    if (!isAuthenticated()) {
+      throw new UnauthenticatedException("Authentication required");
+    }
+    if (!isAuthorized()) {
+      throw new UnauthorizedException("Insufficient permissions");
+    }
+  }
+
+  private boolean isAuthenticated() {
+    try {
+      return SecurityUtils.getSubject().isAuthenticated();
+    }
+    catch (Exception e) {
+      log.debug("Error checking authentication status", e);
+      return false;
+    }
+  }
+
+  private boolean isAuthorized() {
+    try {
+      Subject subject = SecurityUtils.getSubject();
+      return hasConfigureSystem(subject) || hasReadOnAnyOwner(subject);
+    }
+    catch (Exception e) {
+      log.debug("Error checking authorization", e);
+      return false;
+    }
+  }
+
+  private boolean hasConfigureSystem(Subject subject) {
+    return !permissionService.validatePermission(
+        subject, OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID,
+        EnumSet.of(Permission.CONFIGURE_SYSTEM)).isEmpty();
+  }
+
+  private boolean hasReadOnAnyOwner(Subject subject) {
+    UserPrincipal user = (UserPrincipal) subject.getPrincipal();
+    if (user == null) {
+      return false;
+    }
+    return !permissionService.getContextIdsForUserWithPermission(user, Permission.READ).isEmpty();
   }
 }

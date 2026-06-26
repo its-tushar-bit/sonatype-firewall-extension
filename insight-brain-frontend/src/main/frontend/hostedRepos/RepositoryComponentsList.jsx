@@ -168,11 +168,14 @@ export default function RepositoryComponentsList() {
                       <NxTable.Cell className="iq-hosted-repos-components__col--report">
                         {component.scanId && (
                           <div className="iq-hosted-repos-components__report-cell">
-                            {component.violationCount > 0 ? (
+                            {(component.criticalViolationCount || 0) +
+                              (component.severeViolationCount || 0) +
+                              (component.moderateViolationCount || 0) >
+                            0 ? (
                               <NxSmallThreatCounter
-                                criticalCount={component.criticalViolationCount || null}
-                                severeCount={component.severeViolationCount || null}
-                                moderateCount={component.moderateViolationCount || null}
+                                criticalCount={component.criticalViolationCount}
+                                severeCount={component.severeViolationCount}
+                                moderateCount={component.moderateViolationCount}
                               />
                             ) : (
                               <span className="iq-hosted-repos-components__report-no-violations">No violations</span>

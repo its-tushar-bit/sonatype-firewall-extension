@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -16,10 +17,18 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLifecycleRepositoryManagerListDT
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.security.SecurityAspectControl;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.PermissionService;
 
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +38,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -50,17 +62,37 @@ public class ApiLifecycleServiceTest
   @Mock
   private RepositoryComponentDAO repositoryComponentDAO;
 
+  @Mock
+  private PermissionService permissionService;
+
+  @Mock
+  private Subject subject;
+
+  @Mock
+  private UserPrincipal userPrincipal;
+
   @InjectMocks
   private ApiLifecycleService service;
 
   @Before
   public void setUp() {
-    SecurityAspectControl.disableEnforcement();
+    // Bind a mock Shiro Subject so SecurityUtils.getSubject() returns it from requireAccess().
+    ThreadContext.bind(subject);
+    when(subject.isAuthenticated()).thenReturn(true);
+    when(subject.getPrincipal()).thenReturn(userPrincipal);
+    // Default: user holds READ on at least one owner — covers Policy Admin / Owner / Developer.
+    when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
+        .thenReturn(java.util.Set.of("some-org-id"));
+    // Default: user does NOT hold CONFIGURE_SYSTEM (the READ branch is the default path).
+    when(permissionService.validatePermission(
+        any(Subject.class), eq(OwnerType.GLOBAL), eq(MembershipMapping.GLOBAL_CONTEXT_ID),
+        eq(EnumSet.of(Permission.CONFIGURE_SYSTEM))))
+            .thenReturn(EnumSet.noneOf(Permission.class));
   }
 
   @After
   public void tearDown() {
-    SecurityAspectControl.enableEnforcement();
+    ThreadContext.unbindSubject();
   }
 
   @Test
@@ -195,6 +227,57 @@ public class ApiLifecycleServiceTest
     rm.setInstanceId(instanceId);
     rm.setConfigured(true);
     return rm;
+  }
+
+  @Test
+  public void getRepositoryManagers_anonymousUser_throwsUnauthenticated() {
+    when(subject.isAuthenticated()).thenReturn(false);
+
+    assertThatThrownBy(() -> service.getRepositoryManagers())
+        .isInstanceOf(UnauthenticatedException.class);
+  }
+
+  @Test
+  public void getRepositoryManagers_userWithoutConfigureSystemOrRead_throwsUnauthorized() {
+    when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
+        .thenReturn(java.util.Set.of());
+    when(permissionService.validatePermission(
+        any(Subject.class), eq(OwnerType.GLOBAL), eq(MembershipMapping.GLOBAL_CONTEXT_ID),
+        eq(EnumSet.of(Permission.CONFIGURE_SYSTEM))))
+            .thenReturn(EnumSet.noneOf(Permission.class));
+
+    assertThatThrownBy(() -> service.getRepositoryManagers())
+        .isInstanceOf(UnauthorizedException.class);
+  }
+
+  @Test
+  public void getRepositoryManagers_userWithOnlyConfigureSystem_succeeds() {
+    // CONFIGURE_SYSTEM is checked first; short-circuits before the READ branch runs.
+    when(permissionService.validatePermission(
+        any(Subject.class), eq(OwnerType.GLOBAL), eq(MembershipMapping.GLOBAL_CONTEXT_ID),
+        eq(EnumSet.of(Permission.CONFIGURE_SYSTEM))))
+            .thenReturn(EnumSet.of(Permission.CONFIGURE_SYSTEM));
+    when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
+    when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
+    when(repositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+
+    ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
+
+    assertThat(result).isNotNull();
+  }
+
+  @Test
+  public void getRepositoryManagers_userWithReadOnAnyOwner_succeeds() {
+    // Explicit setup: user has READ on at least one owner, no CONFIGURE_SYSTEM.
+    when(permissionService.getContextIdsForUserWithPermission(any(UserPrincipal.class), eq(Permission.READ)))
+        .thenReturn(java.util.Set.of("some-org-id"));
+    when(repositoryManagerDAO.getAll()).thenReturn(Collections.emptyList());
+    when(repositoryDAO.getByRepositoryType(RepositoryType.hosted)).thenReturn(Collections.emptyList());
+    when(repositoryComponentDAO.getLastScanTimesByRepositoryIds(anyList())).thenReturn(Collections.emptyMap());
+
+    ApiLifecycleRepositoryManagerListDTO result = service.getRepositoryManagers();
+
+    assertThat(result).isNotNull();
   }
 
   @Test

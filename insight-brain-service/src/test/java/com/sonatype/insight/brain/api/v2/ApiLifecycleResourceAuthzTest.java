@@ -19,7 +19,13 @@ import org.junit.experimental.categories.Category;
 
 /**
  * Authorization tests for ApiLifecycleResource.
- * Tests verify that CONFIGURE_SYSTEM permission is required to access the lifecycle API.
+ * <p>
+ * Access to the Hosted Repository Scanning configuration is restricted to:
+ * <ul>
+ * <li>System Administrator — via {@code CONFIGURE_SYSTEM} permission at the global context.</li>
+ * <li>Policy Administrator, Owner, Developer (and any custom role granted {@code READ}) —
+ * when the user holds {@code READ} on at least one owner (root org, org, or application).</li>
+ * </ul>
  *
  * @since 1.203
  */
@@ -50,8 +56,17 @@ public class ApiLifecycleResourceAuthzTest
   }
 
   @Test
-  public void testGetRepositoryManagers_WithPermissionSucceeds() throws Exception {
+  public void testGetRepositoryManagers_WithConfigureSystemPermissionSucceeds() throws Exception {
     grantConfigureSystemPermission();
+
+    HttpResponse response = restRequest().path("/api/v2/lifecycle/repositoryManagers").auth(authorized).get();
+    assertThat(response.getStatusCode()).isLessThan(400);
+  }
+
+  @Test
+  public void testGetRepositoryManagers_WithReadPermissionOnAnyOwnerSucceeds() throws Exception {
+    // Covers Policy Administrator / Owner / Developer who hold READ instead of CONFIGURE_SYSTEM.
+    grantReadPermission(org.getId());
 
     HttpResponse response = restRequest().path("/api/v2/lifecycle/repositoryManagers").auth(authorized).get();
     assertThat(response.getStatusCode()).isLessThan(400);

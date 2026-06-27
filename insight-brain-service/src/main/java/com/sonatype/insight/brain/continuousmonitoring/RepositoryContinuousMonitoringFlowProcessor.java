@@ -22,6 +22,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.Nullable;
+
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -52,6 +55,9 @@ public class RepositoryContinuousMonitoringFlowProcessor
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryContinuousMonitoringFlowProcessor.class);
 
+  /** Metric name for drop-branch counts (CLM-40971). Tagged with {@code reason}. */
+  static final String DROP_METRIC_NAME = "insight_brain_cm_hosted_repo_drop_total";
+
   private final ContinuousMonitoringHostedRepoItemDAO hostedRepoItemDAO;
 
   private final RepositoryDAO repositoryDAO;
@@ -60,17 +66,34 @@ public class RepositoryContinuousMonitoringFlowProcessor
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
+  private final MeterRegistry meterRegistry;
+
   @Inject
   public RepositoryContinuousMonitoringFlowProcessor(
       final ContinuousMonitoringHostedRepoItemDAO hostedRepoItemDAO,
       final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyEvaluator repositoryPolicyEvaluator)
+      final RepositoryPolicyEvaluator repositoryPolicyEvaluator,
+      @Nullable final MeterRegistry meterRegistry)
   {
     this.hostedRepoItemDAO = hostedRepoItemDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
+    this.meterRegistry = meterRegistry;
+  }
+
+  /**
+   * Records a drop-branch hit on the metrics counter (CLM-40971). Each drop reason is a separate
+   * tag value so operators can distinguish data-integrity patterns (e.g. recurring null
+   * satellite columns) from successful evaluations and from one-off transient drops (e.g.
+   * monitoring toggled off mid-cycle). Null-safe — if no MeterRegistry was wired (legacy code
+   * path) the counter is a no-op.
+   */
+  private void recordDrop(final String reason) {
+    if (meterRegistry != null) {
+      meterRegistry.counter(DROP_METRIC_NAME, "reason", reason).increment();
+    }
   }
 
   @Override
@@ -95,6 +118,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
     ContinuousMonitoringHostedRepoItem satellite = loadSatellite(queueId);
     if (satellite == null) {
       log.warn("Continuous monitoring (hosted_repo): satellite missing for queueId={}; dropping.", queueId);
+      recordDrop("satellite-missing");
       return;
     }
     String repositoryId = satellite.getRepositoryId();
@@ -103,12 +127,14 @@ public class RepositoryContinuousMonitoringFlowProcessor
       // raw inserts: Set.of(null) throws NPE (CLM-37961-style), so handle missing data cleanly.
       log.warn("Continuous monitoring (hosted_repo): satellite has null repository_id for queueId={}; dropping.",
           queueId);
+      recordDrop("satellite-null-repository-id");
       return;
     }
     String componentHash = satellite.getComponentHash();
     if (componentHash == null) {
       log.warn("Continuous monitoring (hosted_repo): satellite has null component_hash for queueId={}; dropping.",
           queueId);
+      recordDrop("satellite-null-component-hash");
       return;
     }
 
@@ -116,16 +142,23 @@ public class RepositoryContinuousMonitoringFlowProcessor
     if (repository == null) {
       log.info("Continuous monitoring (hosted_repo): repository {} no longer exists; dropping queueId={}.",
           repositoryId, queueId);
+      recordDrop("repository-deleted");
       return;
     }
     // Defense in depth: the producer cycle filtered on these conditions, but state can change
-    // between enqueue and consume. Skip cleanly rather than evaluating a no-longer-eligible repo.
-    if (RepositoryType.hosted != repository.getRepositoryType()
-        || !repository.isMonitoringEnabled())
-    {
-      log.info("Continuous monitoring (hosted_repo): repository {} not eligible (type={}, monitoringEnabled={});"
-          + " dropping queueId={}.",
-          repository.getId(), repository.getRepositoryType(), repository.isMonitoringEnabled(), queueId);
+    // between enqueue and consume. Split into two branches so operators can distinguish
+    // a configuration error (proxy/group repo enqueued) from an intentional state change
+    // (monitoring disabled after enqueue).
+    if (RepositoryType.hosted != repository.getRepositoryType()) {
+      log.info("Continuous monitoring (hosted_repo): repository {} not hosted (type={}); dropping queueId={}.",
+          repository.getId(), repository.getRepositoryType(), queueId);
+      recordDrop("repository-not-hosted");
+      return;
+    }
+    if (!repository.isMonitoringEnabled()) {
+      log.info("Continuous monitoring (hosted_repo): repository {} monitoring disabled; dropping queueId={}.",
+          repository.getId(), queueId);
+      recordDrop("monitoring-disabled");
       return;
     }
 
@@ -134,6 +167,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
     if (components.isEmpty()) {
       log.info("Continuous monitoring (hosted_repo): no components for repository={} hash={}; dropping queueId={}.",
           repository.getId(), componentHash, queueId);
+      recordDrop("no-components-for-hash");
       return;
     }
 
@@ -141,6 +175,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
     if (repoFormat == null) {
       log.warn("Continuous monitoring (hosted_repo): repository {} has no format; dropping queueId={}.",
           repository.getId(), queueId);
+      recordDrop("repository-no-format");
       return;
     }
 
@@ -161,6 +196,7 @@ public class RepositoryContinuousMonitoringFlowProcessor
       }
     }
     if (request.components.isEmpty()) {
+      recordDrop("no-evaluatable-components");
       log.info(
           "Continuous monitoring (hosted_repo): no evaluatable components for repository={}, hash={}, queueId={}; dropping.",
           repository.getId(), componentHash, queueId);

@@ -166,8 +166,12 @@ public class ContinuousMonitoringQueueItemDAOTest
   @Test
   public void testDeleteById_removesParentAndCascadesSatellite() {
     String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+    // The (workerId, status=IN_PROGRESS) guard added by CLM-40971 M7 means deleteById only
+    // succeeds for rows the caller currently owns; acquire the row first to satisfy the guard.
+    String workerId = "worker-1";
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, workerId, 10);
 
-    int deleted = dao.deleteById(id);
+    int deleted = dao.deleteById(id, workerId);
 
     assertThat(deleted).isEqualTo(1);
     assertThat(dao.getById(id)).isNull();
@@ -180,7 +184,38 @@ public class ContinuousMonitoringQueueItemDAOTest
 
   @Test
   public void testDeleteById_isNoOpForUnknownId() {
-    assertThat(dao.deleteById(UUID.randomUUID().toString())).isZero();
+    assertThat(dao.deleteById(UUID.randomUUID().toString(), "any-worker")).isZero();
+  }
+
+  /**
+   * CLM-40971 M7: deleteById must not silently dispose of a row another worker now owns. After
+   * worker-A acquires a row, only worker-A can delete it; a stale worker-B attempting deletion
+   * gets 0 rows and a clean signal that ownership has moved.
+   */
+  @Test
+  public void testDeleteById_doesNothingWhenWorkerIdDoesNotMatch() {
+    String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", 10);
+
+    int deleted = dao.deleteById(id, "worker-B");
+
+    assertThat(deleted).isZero();
+    assertThat(dao.getById(id)).isNotNull();
+  }
+
+  /**
+   * CLM-40971 M7: deleteById must not delete PENDING rows even when the workerId matches an
+   * earlier acquire+release cycle. Only IN_PROGRESS rows owned by the calling worker are valid
+   * deletion targets — anything else means the row has been re-queued for another worker.
+   */
+  @Test
+  public void testDeleteById_doesNothingWhenRowNotInProgress() {
+    String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+    // Row stays in PENDING (no acquire). Even passing a workerId, the status guard rejects it.
+    int deleted = dao.deleteById(id, "worker-A");
+
+    assertThat(deleted).isZero();
+    assertThat(dao.getById(id)).isNotNull();
   }
 
   @Test

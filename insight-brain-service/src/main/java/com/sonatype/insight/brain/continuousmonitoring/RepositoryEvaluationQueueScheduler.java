@@ -5,11 +5,10 @@
  */
 package com.sonatype.insight.brain.continuousmonitoring;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -58,6 +57,8 @@ public class RepositoryEvaluationQueueScheduler
 
   private final RepositoryEvaluationQueueProducerJob producer;
 
+  private final Clock clock;
+
   @VisibleForTesting
   public volatile boolean disableForTesting;
 
@@ -67,9 +68,24 @@ public class RepositoryEvaluationQueueScheduler
       final TaskScheduler taskScheduler,
       final RepositoryEvaluationQueueProducerJob producer)
   {
+    this(configuration, taskScheduler, producer, Clock.systemDefaultZone());
+  }
+
+  /**
+   * Test-only constructor allowing a fixed {@link Clock} so {@link #computeStartTime()} can be
+   * pinned for boundary tests near the anchor hour (CLM-40971 I2).
+   */
+  @VisibleForTesting
+  public RepositoryEvaluationQueueScheduler(
+      final Configuration configuration,
+      final TaskScheduler taskScheduler,
+      final RepositoryEvaluationQueueProducerJob producer,
+      final Clock clock)
+  {
     this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.producer = producer;
+    this.clock = clock;
   }
 
   @Override
@@ -144,12 +160,15 @@ public class RepositoryEvaluationQueueScheduler
     // Use LocalDateTime arithmetic throughout to avoid LocalTime.plusMinutes wraparound at midnight.
     // When hour=23 and jitter=60, the anchor math correctly lands on tomorrow rather than wrapping
     // back to today at 00:10 (which would be in the past).
-    LocalDateTime anchor = LocalDateTime.of(LocalDate.now(), LocalTime.of(hour != null ? hour : 0, 0))
+    // Both timestamps below come from the injected Clock (CLM-40971 I2) so a test fixture can
+    // pin "now" deterministically and verify boundary behaviour around the anchor hour.
+    LocalDateTime now = LocalDateTime.now(clock);
+    LocalDateTime anchor = LocalDateTime.of(now.toLocalDate(), LocalTime.of(hour != null ? hour : 0, 0))
         .plusMinutes(PRODUCER_OFFSET_MINUTES + jitterOffset);
-    if (anchor.isBefore(LocalDateTime.now())) {
+    if (anchor.isBefore(now)) {
       anchor = anchor.plusDays(1);
     }
-    return Date.from(anchor.atZone(ZoneId.systemDefault()).toInstant());
+    return Date.from(anchor.atZone(clock.getZone()).toInstant());
   }
 
   private synchronized void stopScheduling() {

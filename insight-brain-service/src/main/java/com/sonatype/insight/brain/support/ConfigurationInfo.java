@@ -74,6 +74,8 @@ public class ConfigurationInfo
         configuration.getMaxContinuousMonitoringRetries());
     entries.put(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES,
         configuration.getContinuousMonitoringJitterMinutes());
+    entries.put(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS,
+        configuration.getContinuousMonitoringPollIntervalMs());
     entries.put(SystemConfigurationProperty.DB_BACKUP_DIR, configuration.getDbBackupDir());
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, MASK);
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, MASK);

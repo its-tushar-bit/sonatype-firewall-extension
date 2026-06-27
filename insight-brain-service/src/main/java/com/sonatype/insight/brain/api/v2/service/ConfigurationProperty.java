@@ -163,6 +163,12 @@ public class ConfigurationProperty
         (p, s) -> NumberUtils.toInt(s, 5),
         (p, o) -> ConfigurationUtils.integerValueToString(o,
             SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES, 0, 240)),
+    // CLM-40971 I5: poll cadence as a runtime-mutable knob. Bounds [1s, 1h] — sub-second polls
+    // would hammer the DB; >1h would let dispatch latency exceed the daily producer cycle.
+    new ConfigurationProperty(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS, Integer.class,
+        (p, s) -> NumberUtils.toInt(s, 300_000),
+        (p, o) -> ConfigurationUtils.integerValueToString(o,
+            SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS, 1_000, 3_600_000)),
     new ConfigurationProperty(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, Integer.class,
         (p, s) -> s == null ? null : NumberUtils.toInt(s, 0), (p, o) -> ConfigurationUtils.integerValueToString(o,
             SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 0, 23)),

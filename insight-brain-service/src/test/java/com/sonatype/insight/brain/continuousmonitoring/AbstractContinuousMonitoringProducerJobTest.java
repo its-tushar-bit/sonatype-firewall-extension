@@ -144,6 +144,30 @@ public class AbstractContinuousMonitoringProducerJobTest
   }
 
   @Test
+  public void testRunCycle_crossCycleDedupReportsZeroOnSecondCycle() {
+    // CLM-40971 M6: a candidate selected in two separate cycles must enqueue only once.
+    // The satellite natural-key UNIQUE + ignoreDuplicateKey in enqueueBatch are what make
+    // back-to-back cycles idempotent. The stub models that constraint by having the second
+    // cycle's enqueueBatch return 0 (every row is a duplicate-key hit). This locks in the
+    // contract: a regression in the natural key or in the ignore-duplicate path would land
+    // here as "second cycle enqueued > 0".
+    StubProducerJob job = new StubProducerJob();
+    job.pageSize = 3;
+    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+
+    AbstractContinuousMonitoringProducerJob.CycleResult first = job.runCycle();
+    assertThat(first.isSuccess()).isTrue();
+    assertThat(first.getEnqueued()).isEqualTo(3);
+
+    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+    // Batch index is stub-global (enqueuedBatches.size()) so the second cycle's first batch is 1.
+    job.dedupReturnFor.put(1, 0);
+    AbstractContinuousMonitoringProducerJob.CycleResult second = job.runCycle();
+    assertThat(second.isSuccess()).isTrue();
+    assertThat(second.getEnqueued()).isEqualTo(0);
+  }
+
+  @Test
   public void testRunCycle_cycleStartIsStableAcrossPages() {
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;

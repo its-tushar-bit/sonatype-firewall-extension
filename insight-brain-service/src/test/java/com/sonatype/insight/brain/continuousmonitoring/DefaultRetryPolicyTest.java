@@ -85,6 +85,25 @@ public class DefaultRetryPolicyTest
     assertThat(policy.isRetryable(new SQLException((String) null))).isFalse();
   }
 
+  /**
+   * CLM-40971: guard against substring drift in the DBCP pool-timeout match. The retry policy
+   * tests for an exact prefix; messages that merely <em>contain</em> "Cannot get a connection"
+   * mid-string (auth-failure messages from some JDBC drivers) must NOT be classified as transient
+   * — that would burn retries on a permanent credential error.
+   */
+  @Test
+  public void testIsRetryable_similarSqlExceptionMessagesAreNotMisclassifiedAsTransient() {
+    // Messages that share the substring but are not the DBCP pool-timeout signal: must NOT retry.
+    assertThat(policy.isRetryable(
+        new SQLException("FATAL: Cannot get a connection for user 'X' (authentication failed)")))
+            .as("auth failure with embedded substring is not the same as DBCP pool timeout")
+            .isFalse();
+    assertThat(policy.isRetryable(
+        new SQLException("ERROR: prefix Cannot get a connection because of policy violation")))
+            .as("substring mid-message must not collapse to the prefix match")
+            .isFalse();
+  }
+
   @Test
   public void testIsRetryable_nullThrowableIsNotRetryable() {
     assertThat(policy.isRetryable(null)).isFalse();

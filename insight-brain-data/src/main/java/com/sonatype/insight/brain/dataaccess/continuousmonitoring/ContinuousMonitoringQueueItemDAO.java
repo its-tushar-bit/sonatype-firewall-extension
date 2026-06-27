@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import jakarta.inject.Inject;
@@ -20,6 +21,7 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
@@ -57,9 +59,10 @@ public class ContinuousMonitoringQueueItemDAO
    * over the satellite FK so producers for any flow can call it after their own satellite
    * insert; the satellite table is derived from {@code satelliteFkField.getTable()}.
    * <p>
-   * Single-statement {@code DELETE … WHERE id IN (chunk) AND NOT EXISTS (SELECT 1 FROM
-   * <satellite> WHERE fk = id)}, chunked through {@code getListWithSqlInClause} so a producer
-   * batch larger than the IN-operator threshold cannot emit an oversized IN clause.
+   * Pre-selects orphans via a single {@code LEFT JOIN ... WHERE satellite.fk IS NULL} per CLAUDE.md
+   * §15 (CLM-40971), then issues an {@code IN (...)}-bounded DELETE. The earlier correlated
+   * {@code NOT EXISTS} re-executed the subquery once per row in the chunk; the rewrite is one
+   * O(parentIds) join + one O(orphans) delete.
    */
   public void deleteOrphanParentsForSatelliteTable(
       final TransactionContext tx,
@@ -71,16 +74,26 @@ public class ContinuousMonitoringQueueItemDAO
     }
     Objects.requireNonNull(satelliteFkField, "satelliteFkField must not be null");
 
-    int deleted = getListWithSqlInClause(parentIds, chunk -> List.of(tx.dsl()
-        .deleteFrom(CONTINUOUS_MONITORING_QUEUE)
-        .where(CONTINUOUS_MONITORING_QUEUE.ID.in(chunk))
-        .andNotExists(DSL.selectOne()
-            .from(satelliteFkField.getTable())
-            .where(satelliteFkField.eq(CONTINUOUS_MONITORING_QUEUE.ID)))
-        .execute()))
-            .stream()
-            .mapToInt(Integer::intValue)
-            .sum();
+    int deleted = getListWithSqlInClause(parentIds, chunk -> {
+      List<String> orphans = tx.dsl()
+          .select(CONTINUOUS_MONITORING_QUEUE.ID)
+          .from(CONTINUOUS_MONITORING_QUEUE)
+          .leftJoin(satelliteFkField.getTable())
+          .on(satelliteFkField.eq(CONTINUOUS_MONITORING_QUEUE.ID))
+          .where(CONTINUOUS_MONITORING_QUEUE.ID.in(chunk))
+          .and(satelliteFkField.isNull())
+          .fetch(CONTINUOUS_MONITORING_QUEUE.ID);
+      if (orphans.isEmpty()) {
+        return List.of(0);
+      }
+      return List.of(tx.dsl()
+          .deleteFrom(CONTINUOUS_MONITORING_QUEUE)
+          .where(CONTINUOUS_MONITORING_QUEUE.ID.in(orphans))
+          .execute());
+    })
+        .stream()
+        .mapToInt(Integer::intValue)
+        .sum();
 
     if (deleted > 0) {
       log.debug("Deleted {} orphan queue rows (satellite deduped on natural key)", deleted);
@@ -206,16 +219,27 @@ public class ContinuousMonitoringQueueItemDAO
   }
 
   /**
-   * Deletes the parent queue row for {@code id}; per-flow satellite rows are removed by
+   * Deletes the parent queue row for {@code id} only if it is currently IN_PROGRESS under the
+   * specified {@code workerId} (CLM-40971 M7). Per-flow satellite rows are removed by
    * {@code ON DELETE CASCADE}.
+   * <p>
+   * The (workerId, status=IN_PROGRESS) guard prevents a stale consumer from disposing of a job
+   * that {@code recoverStaleJobs} has already reset to PENDING and another worker has since
+   * claimed — a rolling-restart double-execution risk. Callers must surface a 0-row result as a
+   * non-fatal "ownership lost" warning rather than silent success.
+   *
+   * @return number of rows deleted (0 if ownership has been transferred elsewhere, 1 normally)
    */
-  public int deleteById(final String id) {
+  public int deleteById(final String id, final String workerId) {
     Objects.requireNonNull(id, "id must not be null");
+    Objects.requireNonNull(workerId, "workerId must not be null");
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       int count = tx.dsl()
           .deleteFrom(CONTINUOUS_MONITORING_QUEUE)
           .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
+          .and(CONTINUOUS_MONITORING_QUEUE.WORKER_ID.eq(workerId))
+          .and(CONTINUOUS_MONITORING_QUEUE.STATUS.eq(ContinuousMonitoringQueueItem.STATUS_IN_PROGRESS))
           .execute();
       tx.commit();
       return count;
@@ -259,6 +283,44 @@ public class ContinuousMonitoringQueueItemDAO
   }
 
   /**
+   * Atomically transitions an IN_PROGRESS row back to PENDING (clearing {@code worker_id} and
+   * {@code acquired_at}) <strong>without</strong> incrementing {@code retry_count} (CLM-40971
+   * C1). Use this for worker-shutdown signals (InterruptedException) where the job did not
+   * actually fail — bumping retry_count for an interrupt would let 3 rolling restarts permanently
+   * delete a healthy job. Returns the number of rows updated (0 if the row was deleted between
+   * acquire and unacquire, 1 normally).
+   * <p>
+   * <strong>Why no {@code workerId} guard:</strong> unlike {@link #deleteById(String, String)},
+   * this method intentionally does not enforce ownership. The destructive operation
+   * ({@code deleteById}) needs a guard because a stale worker disposing of a row reclaimed by
+   * another worker after {@code recoverStaleJobs} would silently lose the new worker's processing
+   * result. A stale {@code unacquire} call is non-destructive: the row simply transitions to
+   * PENDING and is reacquired (correctly, via {@code FOR UPDATE SKIP LOCKED}) on the next poll.
+   * The pathological race — Worker-A interrupted → row recovered → Worker-B acquires → Worker-A's
+   * late unacquire wipes Worker-B's worker_id — is benign because Worker-B's eventual
+   * {@code deleteById(id, workerB)} returns 0 rows under the M7 ownership guard, the
+   * ownership-lost log fires, and the row is reprocessed by another worker. No data loss, no
+   * double-execution.
+   */
+  public int unacquire(final String id) {
+    Objects.requireNonNull(id, "id must not be null");
+    Date now = new Date();
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      int updated = tx.dsl()
+          .update(CONTINUOUS_MONITORING_QUEUE)
+          .set(CONTINUOUS_MONITORING_QUEUE.STATUS, ContinuousMonitoringQueueItem.STATUS_PENDING)
+          .set(CONTINUOUS_MONITORING_QUEUE.WORKER_ID, (String) null)
+          .set(CONTINUOUS_MONITORING_QUEUE.ACQUIRED_AT, (Date) null)
+          .set(CONTINUOUS_MONITORING_QUEUE.UPDATE_TIME, now)
+          .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
+          .execute();
+      tx.commit();
+      return updated;
+    }
+  }
+
+  /**
    * Atomically increments {@code retry_count}, transitions back to PENDING (clearing
    * {@code worker_id} and {@code acquired_at}), and stores a truncated error message.
    * Returns the new retry count, or 0 if the row no longer exists (logged at WARN — typically
@@ -269,34 +331,71 @@ public class ContinuousMonitoringQueueItemDAO
     Date now = new Date();
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      // Update first so retry_count becomes the post-increment value, then read it back.
-      int updated = tx.dsl()
-          .update(CONTINUOUS_MONITORING_QUEUE)
-          .set(CONTINUOUS_MONITORING_QUEUE.STATUS, ContinuousMonitoringQueueItem.STATUS_PENDING)
-          .set(CONTINUOUS_MONITORING_QUEUE.WORKER_ID, (String) null)
-          .set(CONTINUOUS_MONITORING_QUEUE.ACQUIRED_AT, (Date) null)
-          .set(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT, CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT.add(1))
-          .set(CONTINUOUS_MONITORING_QUEUE.ERROR_MESSAGE, truncate(id, errorMessage))
-          .set(CONTINUOUS_MONITORING_QUEUE.UPDATE_TIME, now)
-          .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
-          .execute();
-
-      if (updated == 0) {
-        // Row no longer exists — typically a concurrent delete race. Log at WARN so it is
-        // visible in operations rather than silently swallowed.
-        log.warn("markRetry called for queue id {} but no row was updated; concurrent delete?", id);
-        tx.commit();
-        return 0;
-      }
-
-      Integer newCount = tx.dsl()
-          .select(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT)
-          .from(CONTINUOUS_MONITORING_QUEUE)
-          .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
-          .fetchOneInto(Integer.class);
+      // Postgres path uses UPDATE ... RETURNING so the post-increment retry_count comes back in
+      // a single round-trip (CLM-40971 C4). H2 1.4.x's jOOQ binding doesn't support RETURNING on
+      // UPDATE, so the embedded path keeps the 2-statement read-after-write pattern.
+      Integer newCount = isDatabaseEmbedded()
+          ? markRetryEmbedded(tx, id, now, errorMessage)
+          : markRetryNative(tx, id, now, errorMessage);
       tx.commit();
       return newCount != null ? newCount : 0;
     }
+  }
+
+  private Integer markRetryNative(
+      final TransactionContext tx,
+      final String id,
+      final Date now,
+      final String errorMessage)
+  {
+    Record1<Integer> result = tx.dsl()
+        .update(CONTINUOUS_MONITORING_QUEUE)
+        .set(CONTINUOUS_MONITORING_QUEUE.STATUS, ContinuousMonitoringQueueItem.STATUS_PENDING)
+        .set(CONTINUOUS_MONITORING_QUEUE.WORKER_ID, (String) null)
+        .set(CONTINUOUS_MONITORING_QUEUE.ACQUIRED_AT, (Date) null)
+        .set(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT, CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT.add(1))
+        .set(CONTINUOUS_MONITORING_QUEUE.ERROR_MESSAGE, truncate(id, errorMessage))
+        .set(CONTINUOUS_MONITORING_QUEUE.UPDATE_TIME, now)
+        .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
+        .returningResult(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT)
+        .fetchOne();
+    if (result == null) {
+      // Row no longer exists — typically a concurrent delete race. Log at WARN with tenant
+      // context (CLM-40971) so MTIQ deployments with 1000+ tenants can triage which tenant is
+      // actually exhibiting the race.
+      log.warn("markRetry called for queue id {} (tenant={}) but no row was updated; concurrent delete?",
+          id, TenantThreadLocal.getTenant().tenantSlug);
+      return 0;
+    }
+    return result.value1();
+  }
+
+  private Integer markRetryEmbedded(
+      final TransactionContext tx,
+      final String id,
+      final Date now,
+      final String errorMessage)
+  {
+    int updated = tx.dsl()
+        .update(CONTINUOUS_MONITORING_QUEUE)
+        .set(CONTINUOUS_MONITORING_QUEUE.STATUS, ContinuousMonitoringQueueItem.STATUS_PENDING)
+        .set(CONTINUOUS_MONITORING_QUEUE.WORKER_ID, (String) null)
+        .set(CONTINUOUS_MONITORING_QUEUE.ACQUIRED_AT, (Date) null)
+        .set(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT, CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT.add(1))
+        .set(CONTINUOUS_MONITORING_QUEUE.ERROR_MESSAGE, truncate(id, errorMessage))
+        .set(CONTINUOUS_MONITORING_QUEUE.UPDATE_TIME, now)
+        .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
+        .execute();
+    if (updated == 0) {
+      log.warn("markRetry called for queue id {} (tenant={}) but no row was updated; concurrent delete?",
+          id, TenantThreadLocal.getTenant().tenantSlug);
+      return 0;
+    }
+    return tx.dsl()
+        .select(CONTINUOUS_MONITORING_QUEUE.RETRY_COUNT)
+        .from(CONTINUOUS_MONITORING_QUEUE)
+        .where(CONTINUOUS_MONITORING_QUEUE.ID.eq(id))
+        .fetchOneInto(Integer.class);
   }
 
   /**

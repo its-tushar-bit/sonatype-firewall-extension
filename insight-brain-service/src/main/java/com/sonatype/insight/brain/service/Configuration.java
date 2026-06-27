@@ -202,6 +202,7 @@ public class Configuration
         SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS,
         SystemConfigurationProperty.MAX_CONTINUOUS_MONITORING_RETRIES,
         SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES,
+        SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS,
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS,
@@ -669,6 +670,14 @@ public class Configuration
    */
   public Integer getContinuousMonitoringJitterMinutes() {
     return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_JITTER_MINUTES);
+  }
+
+  /**
+   * Poll interval in milliseconds for the continuous monitoring queue consumer (CLM-40971 I5).
+   * Default 300_000 (5 minutes); runtime-mutable. Bounds [1_000, 3_600_000].
+   */
+  public Integer getContinuousMonitoringPollIntervalMs() {
+    return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS);
   }
 
   public Integer getHistoricalPolicyViolationTelemetryHour() {

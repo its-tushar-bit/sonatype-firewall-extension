@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,14 +67,17 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
   @Mock
   private TransactionContext tx;
 
+  private SimpleMeterRegistry meterRegistry;
+
   private RepositoryContinuousMonitoringFlowProcessor underTest;
 
   @Before
   public void setup() {
     when(hostedRepoItemDAO.createTransactionContext()).thenReturn(tx);
+    meterRegistry = new SimpleMeterRegistry();
     underTest =
         new RepositoryContinuousMonitoringFlowProcessor(hostedRepoItemDAO, repositoryDAO, repositoryComponentDAO,
-            repositoryPolicyEvaluator);
+            repositoryPolicyEvaluator, meterRegistry);
   }
 
   @Test
@@ -87,6 +92,44 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("satellite-missing", 1L);
+  }
+
+  /**
+   * CLM-40971 follow-up: defense-in-depth drop branches around null FK columns on the satellite
+   * row. Schema declares them NOT NULL but a backup restore or partial migration could violate
+   * that — the processor returns silently rather than NPE-ing the consumer.
+   */
+  @Test
+  public void testProcess_dropsWhenSatelliteHasNullRepositoryId() {
+    ContinuousMonitoringHostedRepoItem satellite = new ContinuousMonitoringHostedRepoItem();
+    satellite.setQueueId(QUEUE_ID);
+    satellite.setRepositoryId(null);
+    satellite.setComponentHash(HASH);
+    when(hostedRepoItemDAO.getByQueueIds(any(TransactionContext.class), anyList()))
+        .thenReturn(List.of(satellite));
+
+    underTest.process(queueItem());
+
+    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    verify(repositoryDAO, never()).getById(any());
+    assertDropMetric("satellite-null-repository-id", 1L);
+  }
+
+  @Test
+  public void testProcess_dropsWhenSatelliteHasNullComponentHash() {
+    ContinuousMonitoringHostedRepoItem satellite = new ContinuousMonitoringHostedRepoItem();
+    satellite.setQueueId(QUEUE_ID);
+    satellite.setRepositoryId(REPO_ID);
+    satellite.setComponentHash(null);
+    when(hostedRepoItemDAO.getByQueueIds(any(TransactionContext.class), anyList()))
+        .thenReturn(List.of(satellite));
+
+    underTest.process(queueItem());
+
+    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    verify(repositoryDAO, never()).getById(any());
+    assertDropMetric("satellite-null-component-hash", 1L);
   }
 
   @Test
@@ -97,6 +140,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("repository-deleted", 1L);
   }
 
   @Test
@@ -108,6 +152,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("repository-not-hosted", 1L);
   }
 
   @Test
@@ -119,6 +164,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("monitoring-disabled", 1L);
   }
 
   @Test
@@ -131,6 +177,7 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("no-components-for-hash", 1L);
   }
 
   @Test
@@ -144,6 +191,24 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     underTest.process(queueItem());
 
     verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("repository-no-format", 1L);
+  }
+
+  @Test
+  public void testProcess_dropsWhenNoEvaluatableComponents() {
+    stubSatellite();
+    Repository repo = repository(REPO_ID, RepositoryType.hosted, true, "maven2");
+    when(repositoryDAO.getById(REPO_ID)).thenReturn(repo);
+    // Components exist for the hash, but every one is missing either hash or pathname so
+    // request.components ends up empty — the 9th drop branch (no-evaluatable-components).
+    RepositoryComponent nullPath = component(HASH, null, null);
+    RepositoryComponent nullHash = component(null, "/x.jar", null);
+    when(repositoryComponentDAO.getByRepositoryIdAndHash(REPO_ID, HASH)).thenReturn(List.of(nullPath, nullHash));
+
+    underTest.process(queueItem());
+
+    verify(repositoryPolicyEvaluator, never()).evaluateForMonitoring(any(), any(), any());
+    assertDropMetric("no-evaluatable-components", 1L);
   }
 
   @Test
@@ -207,6 +272,18 @@ public class RepositoryContinuousMonitoringFlowProcessorTest
     repo.setMonitoringEnabled(monitoringEnabled);
     repo.setFormat(format);
     return repo;
+  }
+
+  /**
+   * Asserts that the named drop reason has been counted exactly {@code expected} times. Drives
+   * the CLM-40971 observability requirement that each defense-in-depth drop branch lights up a
+   * tagged counter, so operators can distinguish data-integrity patterns from real evaluations.
+   */
+  private void assertDropMetric(final String reason, final long expected) {
+    assertThat(meterRegistry.counter(
+        RepositoryContinuousMonitoringFlowProcessor.DROP_METRIC_NAME, "reason", reason).count())
+            .as("drop metric reason=%s", reason)
+            .isEqualTo((double) expected);
   }
 
   private static RepositoryComponent component(final String hash, final String pathname, final String stage) {

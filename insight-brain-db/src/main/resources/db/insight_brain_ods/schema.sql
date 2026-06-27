@@ -2487,7 +2487,6 @@ CREATE TABLE continuous_monitoring_queue (
   error_message varchar(500),
   CONSTRAINT continuous_monitoring_queue_pk PRIMARY KEY (id)
 );
-CREATE INDEX continuous_monitoring_queue_status_idx ON continuous_monitoring_queue(status);
 
 CREATE TABLE continuous_monitoring_hosted_repo_item (
   queue_id varchar(50) NOT NULL,

@@ -209,6 +209,14 @@ public class SystemConfigurationProperty
    */
   public static final String CONTINUOUS_MONITORING_JITTER_MINUTES = "continuousMonitoringJitterMinutes";
 
+  /**
+   * Poll interval in milliseconds for the unified continuous monitoring queue consumer
+   * (CLM-40971 I5). Default 300_000 (5 minutes), aligned with {@code EvaluationQueueConsumer}.
+   * Bounds [1_000, 3_600_000]. Runtime-mutable: changes trigger a reschedule of the consumer's
+   * scheduled future via {@link com.sonatype.insight.brain.api.v2.service.ConfigurationListener}.
+   */
+  public static final String CONTINUOUS_MONITORING_POLL_INTERVAL_MS = "continuousMonitoringPollIntervalMs";
+
   public static final String HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR = "historicalPolicyViolationTelemetryHour";
 
   public static final String DB_BACKUP_DIR = "dbBackupDir";

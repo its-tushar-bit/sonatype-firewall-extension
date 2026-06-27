@@ -197,6 +197,12 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
   /**
    * Maximum number of jobs that may sit in the executor's internal queue waiting for a free
    * worker. Combined with {@link #getWorkerThreadCount()} to calculate rows to acquire per tick.
+   * <p>
+   * <strong>Contract on the injected-executor path:</strong> subclasses constructed via
+   * {@link #AbstractPollDispatchQueueConsumer(String, ShutdownHandler, Supplier, Supplier) the
+   * injected-executor constructor} should return {@code 0} here. Back-pressure on that path is
+   * enforced by the injected {@link Semaphore}'s permit count rather than by an executor queue
+   * cap, and the injected dispatch strategy ignores this method's return value.
    */
   protected abstract int getMaxQueuedRows();
 
@@ -328,7 +334,15 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
     if (disableForTesting) {
       return;
     }
-    recoverStaleJobs();
+    // Gate recoverStaleJobs() on isEnabled() (CLM-40971): when the feature is off there are no
+    // IN_PROGRESS rows to reclaim, and the workerId is freshly generated each boot so the
+    // resulting UPDATE matches 0 rows by construction. Without this gate, every disabled-tenant
+    // boot pays for one pointless DB round-trip — at fleet scale that is N tenants × every
+    // restart. Subclasses that need recovery to run unconditionally should override register()
+    // instead of relying on this gate.
+    if (isEnabled()) {
+      recoverStaleJobs();
+    }
     reschedule(isEnabled());
   }
 

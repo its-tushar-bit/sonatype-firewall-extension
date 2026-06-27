@@ -81,7 +81,7 @@ public class ContinuousMonitoringQueueMultiTenantTest
 
       // Attempt to delete tenantA's row while operating as tenantB (should be a no-op
       // due to tenant isolation — the row doesn't exist in this tenant's schema).
-      int deleted = dao.deleteById(idA);
+      int deleted = dao.deleteById(idA, "worker-b");
       assertThat(deleted).isZero();
 
       // Verify tenantB's row is still present after the failed cross-tenant delete.

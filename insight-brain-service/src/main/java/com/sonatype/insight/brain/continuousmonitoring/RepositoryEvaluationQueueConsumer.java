@@ -14,13 +14,18 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantVirtualThreadExecutor;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -49,6 +54,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class RepositoryEvaluationQueueConsumer
     extends AbstractPollDispatchQueueConsumer<ContinuousMonitoringQueueItem>
+    implements ConfigurationListener
 {
   public static final String NAME = "RepositoryEvaluationQueueConsumer";
 
@@ -83,6 +89,15 @@ public class RepositoryEvaluationQueueConsumer
 
   private final String workerId = UUID.randomUUID().toString();
 
+  /**
+   * Per-tenant snapshot of the last poll-interval and enabled value applied via
+   * {@link #handleConfigurationChanged}. Mirrors {@code HostedComponentScanQueueConsumer.configs}:
+   * lets us hand the real previous values to the base class so reschedules only happen when a
+   * watched value actually changed. CLM-40971: replaces the earlier synthetic-delta approach which
+   * forced a reschedule on every event and reset the initial jitter delay.
+   */
+  private final TenantReference<ConfigSnapshot> lastApplied;
+
   @Inject
   public RepositoryEvaluationQueueConsumer(
       final ShutdownHandler shutdownHandler,
@@ -98,6 +113,15 @@ public class RepositoryEvaluationQueueConsumer
     this.processorsByFlow = indexByFlow(flowProcessors);
     this.configuration = configuration;
     this.retryPolicy = new DefaultRetryPolicy(this::readMaxRetries);
+    this.lastApplied = new TenantReference<>(this::loadSnapshot);
+  }
+
+  private ConfigSnapshot loadSnapshot() {
+    return new ConfigSnapshot(readPollIntervalMs(configuration), isEnabled());
+  }
+
+  private record ConfigSnapshot(long pollIntervalMs, boolean enabled)
+  {
   }
 
   private static Map<ContinuousMonitoringFlowType, ContinuousMonitoringFlowProcessor> indexByFlow(
@@ -123,14 +147,47 @@ public class RepositoryEvaluationQueueConsumer
     return new TenantVirtualThreadExecutor(meterRegistry, "continuous_monitoring", NAME);
   }
 
+  private static final int DEFAULT_WORKER_THREADS = 4;
+
+  private static final int DEFAULT_MAX_RETRIES = 3;
+
+  /**
+   * Reads {@code continuousMonitoringWorkerThreads} from configuration with a defense-in-depth
+   * floor (CLM-40971). The REST API enforces {@code [1, 64]} via {@link ConfigurationProperty},
+   * but a value sourced directly from the DB (backup restore, manual UPDATE, partial migration)
+   * could still be 0 or negative — which would zero out the semaphore permit count and silently
+   * stop all dispatch. Falls back to {@link #DEFAULT_WORKER_THREADS} with a WARN if that happens.
+   */
   private static int readWorkerThreads(final Configuration configuration) {
     Integer value = configuration.getContinuousMonitoringWorkerThreads();
-    return value != null ? value : 4;
+    if (value == null) {
+      return DEFAULT_WORKER_THREADS;
+    }
+    if (value <= 0) {
+      log.warn("continuousMonitoringWorkerThreads={} is invalid (must be > 0); falling back to default {}",
+          value, DEFAULT_WORKER_THREADS);
+      return DEFAULT_WORKER_THREADS;
+    }
+    return value;
   }
 
+  /**
+   * Reads {@code maxContinuousMonitoringRetries} from configuration with a defense-in-depth
+   * floor (CLM-40971). REST validates {@code [1, 100]}; DB-injected 0/negative values would
+   * otherwise cause every job to be deleted on first failure (or never deleted, depending on
+   * ordering). Falls back to {@link #DEFAULT_MAX_RETRIES} with a WARN.
+   */
   private int readMaxRetries() {
     Integer value = configuration.getMaxContinuousMonitoringRetries();
-    return value != null ? value : 3;
+    if (value == null) {
+      return DEFAULT_MAX_RETRIES;
+    }
+    if (value <= 0) {
+      log.warn("maxContinuousMonitoringRetries={} is invalid (must be > 0); falling back to default {}",
+          value, DEFAULT_MAX_RETRIES);
+      return DEFAULT_MAX_RETRIES;
+    }
+    return value;
   }
 
   /**
@@ -174,7 +231,25 @@ public class RepositoryEvaluationQueueConsumer
 
   @Override
   protected void onJobSuccess(final ContinuousMonitoringQueueItem job) {
-    queueDAO.deleteById(job.getId());
+    disposeOwnedJob(job, "success");
+  }
+
+  /**
+   * Deletes the queue row only if it is still IN_PROGRESS under {@code workerId} (CLM-40971 M7).
+   * A 0-row delete means {@code recoverStaleJobs} reset the row to PENDING and another worker
+   * has since claimed it (a normal occurrence under MTIQ rolling restarts); the result of this
+   * worker's processing is silently dropped, and the new owner will reprocess. Logged at INFO
+   * because this is an expected outcome of the ownership guard, not a fault — operators looking
+   * for recurring data-integrity issues should watch the per-reason drop counter on the flow
+   * processor instead.
+   */
+  private void disposeOwnedJob(final ContinuousMonitoringQueueItem job, final String reason) {
+    int rows = queueDAO.deleteById(job.getId(), workerId);
+    if (rows == 0) {
+      log.info("{}: queueId={} ownership transferred during {} (post-stale-recovery reclaim); "
+          + "result discarded.",
+          getConsumerName(), job.getId(), reason);
+    }
   }
 
   @Override
@@ -187,7 +262,7 @@ public class RepositoryEvaluationQueueConsumer
   @Override
   protected void unacquireJobs(final Set<String> ids) {
     for (String id : ids) {
-      queueDAO.markRetry(id, "unacquired on shutdown");
+      queueDAO.unacquire(id);
     }
   }
 
@@ -201,37 +276,68 @@ public class RepositoryEvaluationQueueConsumer
   @Override
   protected void permanentlyFailJob(final ContinuousMonitoringQueueItem job, final Exception cause) {
     log.error("{}: queueId={} permanently failed; deleting.", getConsumerName(), job.getId(), cause);
-    queueDAO.deleteById(job.getId());
+    disposeOwnedJob(job, "permanent-failure");
   }
 
   @Override
   protected void onJobFailure(final ContinuousMonitoringQueueItem job, final Exception e) {
-    if (e instanceof InterruptedException) {
+    if (isInterruption(e)) {
       // Per Section 7.2: interrupt is a worker-shutdown signal, not a job failure. Return the
-      // job to PENDING (without incrementing retry count). The abstract base class's processJob
-      // will rethrow UncheckedInterruptedException after this returns so the executor can observe
-      // the interrupt. We use markRetry's unacquire side-effect here but accept that it bumps
-      // retry_count by one — acceptable trade-off vs. adding a DAO method.
-      log.info("{}: queueId={} interrupted; returning to PENDING.", getConsumerName(), job.getId());
-      queueDAO.markRetry(job.getId(), "interrupted");
+      // job to PENDING WITHOUT incrementing retry_count (CLM-40971 C1) — bumping retry_count
+      // here would let 3 rolling restarts during an in-flight job permanently delete it. The
+      // abstract base class's processJob will rethrow UncheckedInterruptedException after this
+      // returns so the executor can observe the interrupt.
+      log.info("{}: queueId={} interrupted; returning to PENDING (retry budget preserved).",
+          getConsumerName(), job.getId());
+      queueDAO.unacquire(job.getId());
       return;
     }
     if (!retryPolicy.isRetryable(e)) {
       log.warn("{}: queueId={} failed with non-retryable error; deleting.",
           getConsumerName(), job.getId(), e);
-      queueDAO.deleteById(job.getId());
+      disposeOwnedJob(job, "non-retryable-failure");
       return;
     }
     int currentAttempt = job.getRetryCount() + 1;
     if (currentAttempt >= retryPolicy.maxRetries()) {
       log.error("{}: queueId={} exhausted {} retries; deleting.",
           getConsumerName(), job.getId(), retryPolicy.maxRetries(), e);
-      queueDAO.deleteById(job.getId());
+      disposeOwnedJob(job, "retry-exhausted");
       return;
     }
     log.warn("{}: queueId={} failed (attempt {}/{}), returning to PENDING.",
         getConsumerName(), job.getId(), currentAttempt, retryPolicy.maxRetries(), e);
-    queueDAO.markRetry(job.getId(), e.getClass().getSimpleName() + ": " + e.getMessage());
+    queueDAO.markRetry(job.getId(), formatErrorMessage(e));
+  }
+
+  /**
+   * Formats an exception for the {@code error_message} column. Defends against
+   * {@code e.getMessage() == null} so we don't store the literal string {@code "null"} (CLM-40971
+   * M5) — happens for some {@link NullPointerException} chains and library-thrown exceptions that
+   * don't supply a message.
+   */
+  static String formatErrorMessage(final Throwable e) {
+    String type = e.getClass().getSimpleName();
+    String msg = e.getMessage();
+    return msg != null ? type + ": " + msg : type;
+  }
+
+  /**
+   * True if {@code e} is an {@link InterruptedException} or has one in its cause or suppressed
+   * chain (CLM-40971 I3). Some flow processors wrap InterruptedException in RuntimeException
+   * (e.g. jOOQ-driven blocking calls) or attach it via {@code addSuppressed} during
+   * try-with-resources cleanup, so the bare {@code instanceof} check would miss those and route
+   * the interrupt through the retry policy as a regular failure — burning retry budget on a
+   * worker-shutdown signal that should leave the job alone.
+   * <p>
+   * Delegates to {@link ExceptionHelper#hasCauseOrSuppressedOfType} so we get both the cause
+   * walk and the suppressed-exception walk plus the shared cycle guard — same idiom used by
+   * {@code ApplicationScopeEventProcessingSuspensionRule}. The caller restores the thread's
+   * interrupt flag via the {@code UncheckedInterruptedException} rethrown by the abstract base.
+   * </p>
+   */
+  static boolean isInterruption(final Throwable e) {
+    return ExceptionHelper.hasCauseOrSuppressedOfType(e, InterruptedException.class);
   }
 
   @Override
@@ -241,14 +347,35 @@ public class RepositoryEvaluationQueueConsumer
 
   @Override
   protected int getMaxQueuedRows() {
-    // Injected-executor mode uses semaphore permits for capacity; this value is ignored by the
-    // injected dispatch strategy but the abstract contract requires it.
+    // Returns 0 per the injected-executor contract (CLM-40971 N4): this consumer is wired via
+    // the injected-executor constructor, so the semaphore permit count
+    // (continuousMonitoringWorkerThreads) controls back-pressure. The injected dispatch strategy
+    // ignores this value; the abstract contract still requires the override.
     return 0;
   }
 
   @Override
   protected long getPollIntervalMs() {
-    return DEFAULT_POLL_INTERVAL_MS;
+    return readPollIntervalMs(configuration);
+  }
+
+  /**
+   * Reads {@code continuousMonitoringPollIntervalMs} from configuration with a defense-in-depth
+   * floor (CLM-40971 I5). REST validates {@code [1_000, 3_600_000]}; DB-injected values out of
+   * range fall back to the default. Note this is read fresh on every reschedule (via the
+   * scheduler abstract base) so a runtime ConfigurationListener flip propagates.
+   */
+  private static long readPollIntervalMs(final Configuration configuration) {
+    Integer value = configuration.getContinuousMonitoringPollIntervalMs();
+    if (value == null) {
+      return DEFAULT_POLL_INTERVAL_MS;
+    }
+    if (value < 1_000 || value > 3_600_000) {
+      log.warn("continuousMonitoringPollIntervalMs={} is outside [1_000, 3_600_000]; falling back to default {}ms",
+          value, DEFAULT_POLL_INTERVAL_MS);
+      return DEFAULT_POLL_INTERVAL_MS;
+    }
+    return value;
   }
 
   @Override
@@ -263,14 +390,52 @@ public class RepositoryEvaluationQueueConsumer
 
   @Override
   protected String getJitterSeed() {
-    // Combines class name + worker id so different replicas/tenants distribute initial poll across
-    // the poll interval rather than thundering on tick zero.
-    return getClass().getName() + ":" + workerId;
+    // Class name + worker id ALONE leaves all MTIQ tenants on the same node sharing the same
+    // jitter seed (workerId is generated once per JVM, not per tenant), so every tenant's first
+    // poll lands on the same instant of the cycle (CLM-40971 N3). Including the current tenant
+    // slug spreads each tenant's initial delay independently across the poll interval.
+    return getClass().getName() + ":" + workerId + ":" + TenantThreadLocal.getTenant().tenantSlug;
   }
 
   @Override
   protected boolean isEnabled() {
     return SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.isEnabled();
+  }
+
+  /**
+   * Picks up live property changes (CLM-40971): when {@code hostedRepositoryEvaluation} is
+   * toggled the consumer's scheduled future is cancelled or recreated. Without this, the scheduler
+   * would stop firing the producer when the flag flipped off but the consumer would keep polling
+   * the queue every 5 minutes — a wasted DB round-trip per tenant per poll for as long as the
+   * flag stays off.
+   * <p>
+   * Worker-thread changes are surfaced via {@link #handleConfigurationChanged} for
+   * symmetry with {@link HostedComponentScanQueueConsumer}; on the injected-executor path the
+   * abstract base only logs (executor sizing is owned externally), so this is effectively a
+   * future-proofing hook.
+   */
+  @Override
+  public void configurationChanged(final Set<String> propertyNames) {
+    if (!propertyNames.contains(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION)
+        && !propertyNames.contains(SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS)
+        && !propertyNames.contains(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS))
+    {
+      return;
+    }
+    // Mirror HostedComponentScanQueueConsumer: capture the previously-applied values, compute the
+    // new ones, then let handleConfigurationChanged decide whether to reschedule. Passing the real
+    // old values is what lets the base class's reschedule guard (newPollInterval != oldPollInterval
+    // || enabled != wasEnabled) actually fire only on real changes — a no-op write or an unrelated
+    // property bundled into the same event no longer resets the initial jitter delay.
+    ConfigSnapshot previous = lastApplied.get();
+    ConfigSnapshot current = loadSnapshot();
+    lastApplied.set(current);
+    handleConfigurationChanged(
+        readWorkerThreads(configuration),
+        current.pollIntervalMs(),
+        current.enabled(),
+        previous.pollIntervalMs(),
+        previous.enabled());
   }
 
   @Override

@@ -67,6 +67,41 @@ Human reviewers should verify:
 
 See `doc/devdocs/concurrent-index-creation.md` for full details on why this happens and how to work around it.
 
+## Quartz Persisted-Job Renames and Removals
+
+Quartz persists job class names in `qrtz_job_details.JOB_CLASS_NAME`. When the scheduler boots it calls `JobStoreSupport.recoverJobs()` which `Class.forName()`s every persisted job class — if the class has been renamed, repackaged, or removed, the call throws `ClassNotFoundException` and Spring fatal-fails on `defaultTenantManagedInitializer`. The misfire handler hits the same hazard at runtime once per minute.
+
+**Rule: any PR that renames, repackages, or removes a Quartz `Job` class (anything implementing `org.quartz.Job`, including `MtiqBatchJob` subclasses) MUST ship a paired `schema_incremental_*.sql` deleting the corresponding rows from the Quartz tables.**
+
+This applies to:
+- A class deleted outright (e.g. PR #16360 removed `HostedRepositoryMonitoringTask` and shipped `schema_incremental_0468.sql` to clean it up).
+- A class moved to a new package (FQCN change → `Class.forName` fails).
+- A class renamed (FQCN change → `Class.forName` fails).
+
+### Migration template
+
+Mirror `schema_incremental_0468.sql`. Delete in FK-safe order — child trigger tables first, then `qrtz_triggers`, then `qrtz_job_details`. The trigger name is usually the simple class name; the job name matches.
+
+```sql
+-- SaaS Compatible
+-- CLM-XXXXX: Remove Quartz rows for renamed/removed <ClassName> on upgrade.
+DELETE FROM QRTZ_SIMPLE_TRIGGERS  WHERE TRIGGER_NAME = '<JobName>';
+DELETE FROM QRTZ_CRON_TRIGGERS    WHERE TRIGGER_NAME = '<JobName>';
+DELETE FROM QRTZ_BLOB_TRIGGERS    WHERE TRIGGER_NAME = '<JobName>';
+DELETE FROM QRTZ_SIMPROP_TRIGGERS WHERE TRIGGER_NAME = '<JobName>';
+DELETE FROM QRTZ_FIRED_TRIGGERS   WHERE JOB_NAME     = '<JobName>';
+DELETE FROM QRTZ_TRIGGERS         WHERE JOB_NAME     = '<JobName>';
+DELETE FROM QRTZ_JOB_DETAILS      WHERE JOB_NAME     = '<JobName>';
+```
+
+### Reviewer checklist for Quartz job changes
+
+- [ ] If the PR deletes / renames / repackages a class that implements `org.quartz.Job`: is there a paired `schema_incremental_*.sql` cleaning the Quartz tables?
+- [ ] Does the cleanup migration delete from all 7 trigger / job tables in FK-safe order?
+- [ ] Has the PR description called out which `JOB_NAME` values the migration targets?
+
+This applies regardless of whether the affected class was scheduled directly or via the abstract framework — Quartz only cares about `JOB_CLASS_NAME` strings, not how they got there.
+
 ## References
 
 - [SaaS Friendly IQ Database Migrations](https://sonatype.atlassian.net/wiki/spaces/MTIQ/pages/36318368)

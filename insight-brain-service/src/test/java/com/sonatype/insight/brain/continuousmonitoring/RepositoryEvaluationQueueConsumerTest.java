@@ -13,12 +13,16 @@ import java.util.List;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -63,11 +67,24 @@ public class RepositoryEvaluationQueueConsumerTest
 
   private RepositoryEvaluationQueueConsumer underTest;
 
+  @BeforeClass
+  public static void installFeatureFlagShim() {
+    HostedRepositoryEvaluationFeatureFlagTestRule.install();
+  }
+
+  @AfterClass
+  public static void uninstallFeatureFlagShim() {
+    HostedRepositoryEvaluationFeatureFlagTestRule.uninstall();
+  }
+
   @Before
   public void setup() {
     when(hostedRepoProcessor.getFlowType()).thenReturn(ContinuousMonitoringFlowType.HOSTED_REPO);
     when(configuration.getContinuousMonitoringWorkerThreads()).thenReturn(WORKER_THREADS);
     when(configuration.getMaxContinuousMonitoringRetries()).thenReturn(MAX_RETRIES);
+    // Reset to enabled at the start of every test so the configurationChanged tests below have a
+    // deterministic baseline. Tests that need it OFF flip the feature flag explicitly.
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(true);
     underTest = new RepositoryEvaluationQueueConsumer(
         shutdownHandler, queueDAO, Set.of(hostedRepoProcessor), configuration, null);
   }
@@ -108,7 +125,7 @@ public class RepositoryEvaluationQueueConsumerTest
     underTest.executeJob(item);
 
     verify(hostedRepoProcessor).process(item);
-    verify(queueDAO, never()).deleteById(anyString());
+    verify(queueDAO, never()).deleteById(anyString(), anyString());
   }
 
   @Test
@@ -131,22 +148,23 @@ public class RepositoryEvaluationQueueConsumerTest
   public void testOnJobSuccess_deletesQueueRow() {
     underTest.onJobSuccess(item(QUEUE_ID, 0));
 
-    verify(queueDAO).deleteById(QUEUE_ID);
+    verify(queueDAO).deleteById(eq(QUEUE_ID), anyString());
   }
 
   @Test
-  public void testUnacquireJobs_marksRetryForEachId() {
+  public void testUnacquireJobs_unacquiresEachId() {
     underTest.unacquireJobs(Set.of("a", "b"));
 
-    verify(queueDAO).markRetry(eq("a"), anyString());
-    verify(queueDAO).markRetry(eq("b"), anyString());
+    verify(queueDAO).unacquire("a");
+    verify(queueDAO).unacquire("b");
+    verify(queueDAO, never()).markRetry(anyString(), anyString());
   }
 
   @Test
   public void testPermanentlyFailJob_deletesQueueRow() {
     underTest.permanentlyFailJob(item(QUEUE_ID, 1), new RuntimeException("boom"));
 
-    verify(queueDAO).deleteById(QUEUE_ID);
+    verify(queueDAO).deleteById(eq(QUEUE_ID), anyString());
   }
 
   // --- retry policy branches (Section 7.1 / 7.2) ------------------------
@@ -156,7 +174,7 @@ public class RepositoryEvaluationQueueConsumerTest
     underTest.onJobFailure(item(QUEUE_ID, 0), new ConnectException("connect refused"));
 
     verify(queueDAO).markRetry(eq(QUEUE_ID), anyString());
-    verify(queueDAO, never()).deleteById(anyString());
+    verify(queueDAO, never()).deleteById(anyString(), anyString());
   }
 
   @Test
@@ -166,7 +184,7 @@ public class RepositoryEvaluationQueueConsumerTest
     underTest.onJobFailure(item(QUEUE_ID, MAX_RETRIES - 1),
         new SQLException("Cannot get a connection, pool error Timeout waiting for idle object"));
 
-    verify(queueDAO).deleteById(QUEUE_ID);
+    verify(queueDAO).deleteById(eq(QUEUE_ID), anyString());
     verify(queueDAO, never()).markRetry(anyString(), anyString());
   }
 
@@ -174,16 +192,38 @@ public class RepositoryEvaluationQueueConsumerTest
   public void testOnJobFailure_deletesForNonRetryableException() {
     underTest.onJobFailure(item(QUEUE_ID, 0), new IllegalArgumentException("bad input"));
 
-    verify(queueDAO).deleteById(QUEUE_ID);
+    verify(queueDAO).deleteById(eq(QUEUE_ID), anyString());
     verify(queueDAO, never()).markRetry(anyString(), anyString());
   }
 
+  /**
+   * CLM-40971 C1: InterruptedException must unacquire (no retry_count bump) so 3 rolling
+   * restarts during an in-flight job don't permanently delete it.
+   */
   @Test
-  public void testOnJobFailureFor_interruptedExceptionMarksRetryWithoutDelete() {
+  public void testOnJobFailureFor_interruptedExceptionUnacquiresWithoutRetryBudget() {
     underTest.onJobFailure(item(QUEUE_ID, 0), new InterruptedException("shutting down"));
 
-    verify(queueDAO).markRetry(eq(QUEUE_ID), anyString());
-    verify(queueDAO, never()).deleteById(anyString());
+    verify(queueDAO).unacquire(QUEUE_ID);
+    verify(queueDAO, never()).markRetry(anyString(), anyString());
+    verify(queueDAO, never()).deleteById(anyString(), anyString());
+  }
+
+  /**
+   * CLM-40971 I3: InterruptedException wrapped in RuntimeException (e.g. by a flow processor's
+   * blocking call) must still be detected and routed to unacquire — otherwise the retry policy
+   * burns retry budget on a worker-shutdown signal.
+   */
+  @Test
+  public void testOnJobFailureFor_wrappedInterruptedExceptionUnacquires() {
+    RuntimeException wrapped = new RuntimeException("eval failed",
+        new RuntimeException("intermediate", new InterruptedException("shutting down")));
+
+    underTest.onJobFailure(item(QUEUE_ID, 0), wrapped);
+
+    verify(queueDAO).unacquire(QUEUE_ID);
+    verify(queueDAO, never()).markRetry(anyString(), anyString());
+    verify(queueDAO, never()).deleteById(anyString(), anyString());
   }
 
   /**
@@ -191,6 +231,10 @@ public class RepositoryEvaluationQueueConsumerTest
    * retry-vs-delete decision must read the current configured value, not a startup snapshot.
    * Configures the override to 1 (so currentAttempt=1 already exhausts) and asserts the row is
    * deleted instead of re-queued for the same retryCount that would mark-retry under the default.
+   * <p>
+   * Doubles as the CLM-40971 boundary test for {@code maxRetries=1} — the property's documented
+   * "single attempt, no retries" semantic — by demonstrating that the very first failure deletes
+   * the row instead of re-queueing it.
    */
   @Test
   public void testOnJobFailure_honorsRuntimeOverrideOfMaxRetries() {
@@ -201,7 +245,7 @@ public class RepositoryEvaluationQueueConsumerTest
 
     underTest.onJobFailure(item(QUEUE_ID, 0), new ConnectException("connect refused"));
 
-    verify(queueDAO).deleteById(QUEUE_ID);
+    verify(queueDAO).deleteById(eq(QUEUE_ID), anyString());
     verify(queueDAO, never()).markRetry(anyString(), anyString());
   }
 
@@ -233,6 +277,49 @@ public class RepositoryEvaluationQueueConsumerTest
     assertThat(underTest.getWorkerThreadCount()).isEqualTo(16);
   }
 
+  // --- configurationChanged ---------------------------------------------
+  // I6: when HOSTED_REPOSITORY_EVALUATION is toggled off at runtime the consumer must cancel its
+  // ScheduledFuture; symmetric reschedule must fire on a poll-interval change. The previous
+  // synthetic-delta approach is replaced by a real per-tenant snapshot — these tests verify that
+  // configurationChanged passes the actual last-applied values to handleConfigurationChanged so
+  // the base class's reschedule guard fires only on real changes.
+
+  @Test
+  public void testConfigurationChanged_featureToggleOffPassesRealPreviousEnabled() {
+    when(configuration.getContinuousMonitoringPollIntervalMs()).thenReturn(60_000);
+    RecordingConsumer recording = new RecordingConsumer();
+    // Warm the snapshot to (60000, true) — feature flag is enabled per setup().
+    recording.configurationChanged(Set.of(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS));
+    recording.lastCall = null;
+
+    SystemConfigurationPropertyFeature.HOSTED_REPOSITORY_EVALUATION.setEnabled(false);
+    recording.configurationChanged(Set.of(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION));
+
+    assertThat(recording.lastCall)
+        .isEqualTo(new HandleCall(WORKER_THREADS, 60_000L, false, 60_000L, true));
+  }
+
+  @Test
+  public void testConfigurationChanged_pollIntervalChangePassesRealPreviousInterval() {
+    when(configuration.getContinuousMonitoringPollIntervalMs()).thenReturn(60_000);
+    RecordingConsumer recording = new RecordingConsumer();
+    recording.configurationChanged(Set.of(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS));
+    recording.lastCall = null;
+
+    when(configuration.getContinuousMonitoringPollIntervalMs()).thenReturn(120_000);
+    recording.configurationChanged(Set.of(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS));
+
+    assertThat(recording.lastCall)
+        .isEqualTo(new HandleCall(WORKER_THREADS, 120_000L, true, 60_000L, true));
+  }
+
+  @Test
+  public void testConfigurationChanged_unrelatedPropertyIsNoOp() {
+    RecordingConsumer recording = new RecordingConsumer();
+    recording.configurationChanged(Set.of("unrelated.property"));
+    assertThat(recording.lastCall).isNull();
+  }
+
   // --- helpers -----------------------------------------------------------
 
   private static ContinuousMonitoringQueueItem item(final String id, final int retryCount) {
@@ -246,5 +333,41 @@ public class RepositoryEvaluationQueueConsumerTest
     ContinuousMonitoringFlowProcessor p = org.mockito.Mockito.mock(ContinuousMonitoringFlowProcessor.class);
     when(p.getFlowType()).thenReturn(type);
     return p;
+  }
+
+  /**
+   * Captures the arguments passed to {@code handleConfigurationChanged} without running the
+   * (private) base-class {@code reschedule()} — that would require a tenant-scoped scheduled
+   * executor that this unit test deliberately doesn't wire. Subclassing is the only way to reach
+   * the protected hook from a sibling package.
+   */
+  private final class RecordingConsumer
+      extends RepositoryEvaluationQueueConsumer
+  {
+    HandleCall lastCall;
+
+    RecordingConsumer() {
+      super(shutdownHandler, queueDAO, Set.of(hostedRepoProcessor), configuration, null);
+    }
+
+    @Override
+    protected void handleConfigurationChanged(
+        final int newWorkerCount,
+        final long newPollIntervalMs,
+        final boolean enabled,
+        final long oldPollIntervalMs,
+        final boolean wasEnabled)
+    {
+      lastCall = new HandleCall(newWorkerCount, newPollIntervalMs, enabled, oldPollIntervalMs, wasEnabled);
+    }
+  }
+
+  private record HandleCall(
+      int newWorkerCount,
+      long newPollIntervalMs,
+      boolean enabled,
+      long oldPollIntervalMs,
+      boolean wasEnabled)
+  {
   }
 }

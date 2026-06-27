@@ -248,8 +248,12 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
         page = selector.fetchPage(offset, pageSize, cycleStart);
       }
       catch (RuntimeException e) {
-        log.warn("Continuous monitoring producer ({}): eligibility page fetch failed at offset {}; aborting cycle.",
-            getFlowLogTag(), offset, e);
+        // ERROR (not WARN) so Quartz alerting picks it up — selector failures are unexpected and
+        // op-actionable (DB connectivity, schema drift), distinct from the WARN-level expected
+        // aborts above (non-positive pageSize, maxCyclePages limit reached). CLM-40971.
+        log.error(
+            "Continuous monitoring producer ({}): eligibility page fetch failed at offset {} ({}); aborting cycle.",
+            getFlowLogTag(), offset, e.getClass().getSimpleName(), e);
         return CycleResult.aborted(totalEnqueued, "selector failure at offset " + offset);
       }
       if (page == null || page.isEmpty()) {
@@ -262,8 +266,10 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
         inserted = enqueueBatch(page, priorities, cycleStart);
       }
       catch (RuntimeException e) {
-        log.warn("Continuous monitoring producer ({}): enqueueBatch failed at offset {}; aborting cycle.",
-            getFlowLogTag(), offset, e);
+        // ERROR for the same reason as the selector catch above (CLM-40971): enqueue failures
+        // are unexpected DB-write errors, not expected aborts.
+        log.error("Continuous monitoring producer ({}): enqueueBatch failed at offset {} ({}); aborting cycle.",
+            getFlowLogTag(), offset, e.getClass().getSimpleName(), e);
         return CycleResult.aborted(totalEnqueued, "enqueue failure at offset " + offset);
       }
       totalEnqueued += inserted;

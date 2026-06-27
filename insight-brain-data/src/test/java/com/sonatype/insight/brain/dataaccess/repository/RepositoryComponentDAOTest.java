@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.utils.DateConverter;
@@ -1637,7 +1638,7 @@ public class RepositoryComponentDAOTest
     newComponentWithEvalTime(hostedRepo.getId(), "/path/fresh.jar", "hash-fresh", afterCycle);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).extracting(RepositoryComponent::getId).containsExactly(stale.getId());
     }
   }
@@ -1666,7 +1667,7 @@ public class RepositoryComponentDAOTest
     newComponentWithEvalTime(repository.getId(), "/p/proxy.jar", "h-proxy", past);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).extracting(RepositoryComponent::getId).containsExactly(eligibleRc.getId());
     }
   }
@@ -1689,7 +1690,7 @@ public class RepositoryComponentDAOTest
     newComponentWithEvalTime(hostedRepo.getId(), "/c/lib.jar", "shared-hash", past);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).hasSize(1);
       assertThat(page).extracting(RepositoryComponent::getRepositoryId, RepositoryComponent::getHash)
           .containsExactly(tuple(hostedRepo.getId(), "shared-hash"));
@@ -1715,12 +1716,44 @@ public class RepositoryComponentDAOTest
     RepositoryComponent newestRow = newComponentWithTimeAndHash(hostedRepo.getId(), "/c", "h", newest);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).hasSize(1);
       assertThat(page.get(0).getId()).isEqualTo(newestRow.getId());
       // Sanity: the older rows do exist in the table; they were filtered, not deleted.
       assertThat(dao.getById(oldestRow.getId())).isNotNull();
       assertThat(dao.getById(middleRow.getId())).isNotNull();
+    }
+  }
+
+  /**
+   * Two rows sharing an exact-millisecond TIME within the same (repository_id, hash) group must
+   * resolve via the secondary {@code repository_component_id DESC} tiebreaker — the higher id
+   * wins (CLM-41005). This protects both dialect paths from a future "simplification" that
+   * drops the secondary term from the row-value comparison: the Postgres path's NOT EXISTS
+   * anti-join uses {@code (time, id) > (rc.time, rc.id)} and the H2 path's third-pass uses
+   * {@code MAX(repository_component_id)} on rows tied at MAX(TIME).
+   */
+  @Test
+  public void getMonitoringEligiblePage_picksHigherIdOnExactTimeCollision() {
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    // Both rows: same repo + same hash + same time. Only repository_component_id differs (the PK
+    // is assigned sequentially by TemporaryEntity, so the second insert gets a lexicographically
+    // greater id — the test asserts on that property, not on numeric ordering, to stay robust to
+    // any id-generation scheme.)
+    Date sharedTime = Date.from(cycle.minusSeconds(100));
+    RepositoryComponent firstInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/a", "h", sharedTime);
+    RepositoryComponent secondInsert = newComponentWithTimeAndHash(hostedRepo.getId(), "/b", "h", sharedTime);
+
+    String winnerId = firstInsert.getId().compareTo(secondInsert.getId()) > 0
+        ? firstInsert.getId()
+        : secondInsert.getId();
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
+      assertThat(page).hasSize(1);
+      assertThat(page.get(0).getId()).isEqualTo(winnerId);
     }
   }
 
@@ -1748,14 +1781,16 @@ public class RepositoryComponentDAOTest
     RepositoryComponent inC = newComponentWithTimeAndHash(repoC.getId(), "/c", "h-c", midTime);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, 0);
+      List<RepositoryComponent> page = dao.getMonitoringEligiblePage(tx, cycleStart, 100, (EligibilityCursor) null);
       assertThat(page).extracting(RepositoryComponent::getId)
           .containsExactly(inB.getId(), inC.getId(), inA.getId());
     }
   }
 
   /**
-   * AT-001 — eligibility query is page-aware: limit + offset slice the deduped, ordered set.
+   * AT-001 (CLM-41005) — eligibility query is page-aware via keyset cursor: limit + cursor on
+   * (time DESC, repository_component_id DESC) slice the deduped, ordered set without skipping
+   * or duplicating rows under concurrent writes.
    */
   @Test
   public void getMonitoringEligiblePage_paginatesDedupedNewestFirstResult() {
@@ -1774,11 +1809,55 @@ public class RepositoryComponentDAOTest
         Date.from(cycle.minusSeconds(400)));
 
     try (TransactionContext tx = dao.createTransactionContext()) {
-      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, 0);
-      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, 2);
-
+      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
       assertThat(page1).extracting(RepositoryComponent::getId).containsExactly(first.getId(), second.getId());
+
+      EligibilityCursor cursor = new EligibilityCursor(second.getTime(), second.getId());
+      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, cursor);
       assertThat(page2).extracting(RepositoryComponent::getId).containsExactly(third.getId(), fourth.getId());
+    }
+  }
+
+  /**
+   * AT-002 (CLM-41005) — the primary correctness benefit of keyset over OFFSET: a row inserted
+   * between the cursor and the eligibility tail does NOT shift pagination and does NOT cause a
+   * skip. With OFFSET, an insert between pages would push later rows past the offset window and
+   * leak them out of the cycle. With keyset on {@code (time, repository_component_id)} the
+   * predicate is independent of position, so the inserted row joins the result set in its proper
+   * order and no eligible row is lost.
+   */
+  @Test
+  public void getMonitoringEligiblePage_keysetSkipsNoRowsUnderConcurrentInsert() {
+    Instant cycle = Instant.now();
+    Date cycleStart = Date.from(cycle);
+    Repository hostedRepo = tempEntity.newHostedRepository(repositoryManager, uuid("repo"), "maven2", false);
+
+    // 4 rows ordered newest-first by time.
+    RepositoryComponent r4 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p4", "h4",
+        Date.from(cycle.minusSeconds(100)));
+    RepositoryComponent r3 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p3", "h3",
+        Date.from(cycle.minusSeconds(200)));
+    RepositoryComponent r2 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p2", "h2",
+        Date.from(cycle.minusSeconds(300)));
+    RepositoryComponent r1 = newComponentWithTimeAndHash(hostedRepo.getId(), "/p1", "h1",
+        Date.from(cycle.minusSeconds(400)));
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<RepositoryComponent> page1 = dao.getMonitoringEligiblePage(tx, cycleStart, 2, null);
+      assertThat(page1).extracting(RepositoryComponent::getId).containsExactly(r4.getId(), r3.getId());
+
+      // Simulate a concurrent insert at time=cycle-250s — strictly between r3 and r2 in the DESC
+      // order. Under OFFSET pagination this would push r1 outside the second page's window; under
+      // keyset the cursor predicate is on the (time, id) tuple, not on row position.
+      RepositoryComponent inserted = newComponentWithTimeAndHash(hostedRepo.getId(), "/p-concurrent",
+          "h-concurrent", Date.from(cycle.minusSeconds(250)));
+
+      EligibilityCursor cursor = new EligibilityCursor(r3.getTime(), r3.getId());
+      List<RepositoryComponent> page2 = dao.getMonitoringEligiblePage(tx, cycleStart, 10, cursor);
+      // The concurrently inserted row joins the result set in DESC (time, id) order; r2 and r1
+      // remain — no row skipped, no row duplicated.
+      assertThat(page2).extracting(RepositoryComponent::getId)
+          .containsExactly(inserted.getId(), r2.getId(), r1.getId());
     }
   }
 

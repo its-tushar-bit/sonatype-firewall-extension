@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 
 import org.junit.Test;
@@ -24,18 +26,24 @@ import org.quartz.JobExecutionContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit tests for {@link AbstractContinuousMonitoringProducerJob#runCycle} (CLM-40039 Section 6.1).
- * Covers paginated cycle, abort-on-failure (Section 7.4), feature-flag gate, max-page guard,
- * priority computation alignment with {@link OrderingStrategy}, admin-task output, and the
- * Quartz contract annotations ({@link org.quartz.DisallowConcurrentExecution} + {@link MtiqBatchJob}).
+ * Unit tests for {@link AbstractContinuousMonitoringProducerJob#runCycle} (CLM-40039 §6.1,
+ * CLM-41005 keyset). Covers paginated cycle, abort-on-failure (§7.4), feature-flag gate,
+ * cursor-advance semantics, priority computation alignment with {@link OrderingStrategy},
+ * admin-task output, and the Quartz contract annotations
+ * ({@link org.quartz.DisallowConcurrentExecution} + {@link MtiqBatchJob}).
  */
 public class AbstractContinuousMonitoringProducerJobTest
 {
+  private static final EligibilityCursor CURSOR_AFTER_1 = new EligibilityCursor(new Date(1L), "id-1");
+
+  private static final EligibilityCursor CURSOR_AFTER_2 = new EligibilityCursor(new Date(2L), "id-2");
+
   @Test
   public void testRunCycle_disabledJobSkipsCycleAndReturnsSuccessZero() {
     StubProducerJob job = new StubProducerJob();
     job.enabled = false;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), CURSOR_AFTER_2, false)));
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getEnqueued()).isEqualTo(0);
@@ -46,9 +54,6 @@ public class AbstractContinuousMonitoringProducerJobTest
 
   @Test
   public void testRunCycle_nonPositivePageSizeAbortsWithReason() {
-    // Misconfiguration (operator set the page-size knob to 0 or negative). Distinct from
-    // success(0) "no eligible work" — abort so the admin-task output surfaces the misconfig
-    // instead of pretending nothing was wrong.
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 0;
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
@@ -70,19 +75,94 @@ public class AbstractContinuousMonitoringProducerJobTest
   }
 
   @Test
-  public void testRunCycle_pagesUntilShortPageThenStops() {
+  public void testRunCycle_advancesByCursorUntilHasMoreFalse() {
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 3;
     job.selector = new RecordingSelector(List.of(
-        List.of(1L, 2L, 3L),
-        List.of(4L, 5L, 6L),
-        List.of(7L)));
+        new Page<>(List.of(1L, 2L, 3L), CURSOR_AFTER_1, true),
+        new Page<>(List.of(4L, 5L, 6L), CURSOR_AFTER_2, true),
+        new Page<>(List.of(7L), null, false)));
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getEnqueued()).isEqualTo(7);
     assertThat(job.enqueuedBatches).hasSize(3);
     assertThat(((RecordingSelector) job.selector).fetchCount).isEqualTo(3);
-    assertThat(((RecordingSelector) job.selector).offsets).containsExactly(0, 3, 6);
+    assertThat(((RecordingSelector) job.selector).cursorsSeen)
+        .containsExactly(null, CURSOR_AFTER_1, CURSOR_AFTER_2);
+  }
+
+  @Test
+  public void testRunCycle_stopsWhenHasMoreFalseEvenIfPageSaturated() {
+    // A selector that returns a page with size == limit but signals hasMore=false must end
+    // the cycle. (Without keyset, "page.size() < pageSize" was the only end-of-stream signal;
+    // CLM-41005 makes that the selector's responsibility, not the framework's.)
+    StubProducerJob job = new StubProducerJob();
+    job.pageSize = 2;
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), null, false)));
+    AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
+    assertThat(result.isSuccess()).isTrue();
+    assertThat(result.getEnqueued()).isEqualTo(2);
+    assertThat(((RecordingSelector) job.selector).fetchCount).isEqualTo(1);
+  }
+
+  @Test
+  public void testRunCycle_safetyNetCapAbortsWhenHasMoreStuckTrue() {
+    // Simulates a buggy selector that perpetually returns hasMore=true. Without the safety net the
+    // cycle would spin until OOM or wall-clock; with it, the cycle aborts after the configured cap
+    // and surfaces a WARN-level abortReason so ops can root-cause the underlying selector bug.
+    StubProducerJob job = new StubProducerJob();
+    job.pageSize = 2;
+    job.safetyNetMaxPages = 3;
+    job.selector = new StuckHasMoreSelector();
+
+    AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
+
+    assertThat(result.isSuccess()).isFalse();
+    assertThat(result.getAbortReason()).contains("safety-net page cap 3 tripped");
+    // 3 pages × 2 rows enqueued before the backstop fires.
+    assertThat(result.getEnqueued()).isEqualTo(6);
+    assertThat(job.enqueuedBatches).hasSize(3);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_nullReturnsDefault() {
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages(null))
+        .isEqualTo(AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_validIntegerReturnsThatValue() {
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("250000"))
+        .isEqualTo(250_000);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_validIntegerWithWhitespaceIsTrimmed() {
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("  500  "))
+        .isEqualTo(500);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_zeroFallsBackToDefault() {
+    // Non-positive value is rejected: a cap of 0 would abort the cycle on the first page,
+    // surely not the operator's intent. WARN logged so the override is not silently ignored.
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("0"))
+        .isEqualTo(AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_negativeFallsBackToDefault() {
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("-1"))
+        .isEqualTo(AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
+  }
+
+  @Test
+  public void parseSafetyNetMaxCyclePages_unparseableFallsBackToDefault() {
+    // Malformed input — WARN-and-fall-back rather than throwing, because the producer must keep
+    // running. The operator-visible signal is the log line, not an exception.
+    assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("not-a-number"))
+        .isEqualTo(AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
   }
 
   @Test
@@ -91,8 +171,8 @@ public class AbstractContinuousMonitoringProducerJobTest
     job.pageSize = 2;
     job.ordering = OrderingStrategy.newestFirst();
     job.selector = new RecordingSelector(List.of(
-        List.of(10L, 20L),
-        List.of(30L)));
+        new Page<>(List.of(10L, 20L), CURSOR_AFTER_2, true),
+        new Page<>(List.of(30L), null, false)));
     job.runCycle();
     List<Long> page0Priorities = job.enqueuedBatches.get(0).priorities;
     List<Long> page1Priorities = job.enqueuedBatches.get(1).priorities;
@@ -107,8 +187,9 @@ public class AbstractContinuousMonitoringProducerJobTest
   public void testRunCycle_selectorFailureAbortsCycleAndReturnsAbortedResult() {
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L)))
-        .failOnFetchAt(1);
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), CURSOR_AFTER_2, true)))
+            .failOnFetchAt(1);
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getEnqueued()).isEqualTo(2);
@@ -122,9 +203,9 @@ public class AbstractContinuousMonitoringProducerJobTest
     job.pageSize = 2;
     job.failEnqueueAtBatch = 1;
     job.selector = new RecordingSelector(List.of(
-        List.of(1L, 2L),
-        List.of(3L, 4L),
-        List.of(5L)));
+        new Page<>(List.of(1L, 2L), CURSOR_AFTER_1, true),
+        new Page<>(List.of(3L, 4L), CURSOR_AFTER_2, true),
+        new Page<>(List.of(5L), null, false)));
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getEnqueued()).isEqualTo(2);
@@ -137,7 +218,8 @@ public class AbstractContinuousMonitoringProducerJobTest
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 3;
     job.dedupReturnFor.put(0, 1);
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L, 3L), null, false)));
     AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getEnqueued()).isEqualTo(1);
@@ -153,13 +235,15 @@ public class AbstractContinuousMonitoringProducerJobTest
     // here as "second cycle enqueued > 0".
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 3;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L, 3L), null, false)));
 
     AbstractContinuousMonitoringProducerJob.CycleResult first = job.runCycle();
     assertThat(first.isSuccess()).isTrue();
     assertThat(first.getEnqueued()).isEqualTo(3);
 
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L, 3L), null, false)));
     // Batch index is stub-global (enqueuedBatches.size()) so the second cycle's first batch is 1.
     job.dedupReturnFor.put(1, 0);
     AbstractContinuousMonitoringProducerJob.CycleResult second = job.runCycle();
@@ -172,8 +256,8 @@ public class AbstractContinuousMonitoringProducerJobTest
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
     job.selector = new RecordingSelector(List.of(
-        List.of(1L, 2L),
-        List.of(3L)));
+        new Page<>(List.of(1L, 2L), CURSOR_AFTER_2, true),
+        new Page<>(List.of(3L), null, false)));
     job.runCycle();
     Instant first = job.enqueuedBatches.get(0).cycleStart;
     Instant second = job.enqueuedBatches.get(1).cycleStart;
@@ -181,29 +265,11 @@ public class AbstractContinuousMonitoringProducerJobTest
   }
 
   @Test
-  public void testRunCycle_maxPageGuardAbortsAfterLimit() {
-    StubProducerJob job = new StubProducerJob();
-    job.pageSize = 2;
-    job.maxPages = 3;
-    // Generate enough pages to trigger the limit (5 full pages)
-    job.selector = new RecordingSelector(List.of(
-        List.of(1L, 2L),
-        List.of(3L, 4L),
-        List.of(5L, 6L),
-        List.of(7L, 8L),
-        List.of(9L, 10L)));
-    AbstractContinuousMonitoringProducerJob.CycleResult result = job.runCycle();
-    assertThat(result.isSuccess()).isFalse();
-    assertThat(result.getEnqueued()).isEqualTo(6); // 3 pages * 2 items each
-    assertThat(result.getAbortReason()).contains("maxCyclePages limit reached");
-    assertThat(job.enqueuedBatches).hasSize(3);
-  }
-
-  @Test
   public void testExecute_adminTaskWritesCompletedOnSuccess() {
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L, 3L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L, 3L), null, false)));
     StringWriter sw = new StringWriter();
     job.execute(Map.of(), new PrintWriter(sw));
     assertThat(sw.toString()).contains("Completed");
@@ -216,7 +282,8 @@ public class AbstractContinuousMonitoringProducerJobTest
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
     job.failEnqueueAtBatch = 0;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), null, false)));
     StringWriter sw = new StringWriter();
     job.execute(Map.of(), new PrintWriter(sw));
     assertThat(sw.toString()).contains("Aborted");
@@ -249,14 +316,11 @@ public class AbstractContinuousMonitoringProducerJobTest
   public void testExecute_quartzPathLogsNextFireOnSuccess() {
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), null, false)));
     JobExecutionContext context = Mockito.mock(JobExecutionContext.class);
     Mockito.when(context.getNextFireTime()).thenReturn(new Date(0L));
 
-    // Real-state assertion: cycle ran (enqueued the batch) and the abstract base's
-    // success-path branch executed without throwing. The InsightJob.execute wrapper guarantees
-    // an uncaught Throwable from runCycle would be logged at ERROR rather than escaping; this
-    // test exercises the no-throw path so the wrapper's catch never fires.
     job.execute(context);
 
     assertThat(job.enqueuedBatches).hasSize(1);
@@ -267,12 +331,11 @@ public class AbstractContinuousMonitoringProducerJobTest
     StubProducerJob job = new StubProducerJob();
     job.pageSize = 2;
     job.failEnqueueAtBatch = 0;
-    job.selector = new RecordingSelector(List.of(List.of(1L, 2L)));
+    job.selector = new RecordingSelector(List.of(
+        new Page<>(List.of(1L, 2L), null, false)));
     JobExecutionContext context = Mockito.mock(JobExecutionContext.class);
     Mockito.when(context.getNextFireTime()).thenReturn(new Date(0L));
 
-    // Real-state assertion: even on abort, the cycle was aborted at batch 0 (no successful
-    // enqueues), proving the abort branch of execute() ran rather than the success branch.
     job.execute(context);
 
     assertThat(job.enqueuedBatches).isEmpty();
@@ -280,19 +343,11 @@ public class AbstractContinuousMonitoringProducerJobTest
 
   @Test
   public void testJob_disallowsConcurrentExecution() {
-    // The class-level @DisallowConcurrentExecution must be present on the concrete instance Quartz
-    // sees (not just on the abstract). A future refactor that drops the annotation silently would
-    // allow two cycles to overlap on a single node — bypassing the cross-node single-cycle
-    // guarantee documented at the class level. JobBuilder reads the annotation off the class,
-    // matching what Quartz does in production.
     assertThat(JobBuilder.newJob(StubProducerJob.class).build().isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test
   public void testJob_isMtiqBatchJob() {
-    // The MtiqBatchJob marker routes execution to the MTIQ batch instance only. A future refactor
-    // that drops the interface silently would cause the job to fire on every MTIQ tenant scheduler
-    // rather than the central batch worker.
     assertThat(new StubProducerJob()).isInstanceOf(MtiqBatchJob.class);
   }
 
@@ -318,7 +373,7 @@ public class AbstractContinuousMonitoringProducerJobTest
 
     int pageSize = 2;
 
-    int maxPages = DEFAULT_MAX_CYCLE_PAGES;
+    int safetyNetMaxPages = AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES;
 
     EligibilitySelector<Long> selector = new RecordingSelector(List.of());
 
@@ -350,13 +405,13 @@ public class AbstractContinuousMonitoringProducerJobTest
     }
 
     @Override
-    protected int getMaxCyclePages() {
-      return maxPages;
+    protected boolean isEnabled() {
+      return enabled;
     }
 
     @Override
-    protected boolean isEnabled() {
-      return enabled;
+    protected int getSafetyNetMaxCyclePages() {
+      return safetyNetMaxPages;
     }
 
     @Override
@@ -384,18 +439,39 @@ public class AbstractContinuousMonitoringProducerJobTest
     }
   }
 
+  /**
+   * Simulates a buggy selector whose {@code Page.hasMore()} is stuck at {@code true} — the case
+   * the safety-net cap exists to defend against.
+   */
+  private static final class StuckHasMoreSelector
+      implements EligibilitySelector<Long>
+  {
+    private long nextId = 0;
+
+    @Override
+    public Page<Long> fetchPage(final EligibilityCursor cursor, final int limit, final Instant cycleStart) {
+      List<Long> rows = new ArrayList<>(limit);
+      for (int i = 0; i < limit; i++) {
+        rows.add(nextId++);
+      }
+      // Always hasMore=true regardless of position — the bug shape the cap defends against.
+      EligibilityCursor next = new EligibilityCursor(new Date(nextId), "id-" + nextId);
+      return new Page<>(rows, next, true);
+    }
+  }
+
   private static final class RecordingSelector
       implements EligibilitySelector<Long>
   {
-    private final List<List<Long>> pages;
+    private final List<Page<Long>> pages;
 
-    final List<Integer> offsets = new ArrayList<>();
+    final List<EligibilityCursor> cursorsSeen = new ArrayList<>();
 
     int fetchCount = 0;
 
     private int failAtCallNumber = -1;
 
-    RecordingSelector(final List<List<Long>> pages) {
+    RecordingSelector(final List<Page<Long>> pages) {
       this.pages = pages;
     }
 
@@ -405,13 +481,13 @@ public class AbstractContinuousMonitoringProducerJobTest
     }
 
     @Override
-    public List<Long> fetchPage(final int offset, final int limit, final Instant cycleStart) {
+    public Page<Long> fetchPage(final EligibilityCursor cursor, final int limit, final Instant cycleStart) {
       if (fetchCount == failAtCallNumber) {
         fetchCount++;
         throw new RuntimeException("forced selector failure");
       }
-      offsets.add(offset);
-      List<Long> page = fetchCount < pages.size() ? pages.get(fetchCount) : List.of();
+      cursorsSeen.add(cursor);
+      Page<Long> page = fetchCount < pages.size() ? pages.get(fetchCount) : Page.empty();
       fetchCount++;
       return page;
     }

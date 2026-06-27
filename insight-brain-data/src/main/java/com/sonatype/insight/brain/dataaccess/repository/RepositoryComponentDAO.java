@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -44,6 +45,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record2;
 import org.jooq.Table;
@@ -174,75 +176,99 @@ public class RepositoryComponentDAO
 
   /**
    * Returns components from monitoring-enabled hosted repositories whose last evaluation predates
-   * the given cycle start, paginated newest-first by component creation time. Used by the unified
-   * continuous monitoring producer (CLM-40039 Section 6.1) to enumerate eligibility for a cycle.
+   * the given cycle start, paginated newest-first by {@code (time DESC, repository_component_id
+   * DESC)} via keyset pagination (CLM-41005). Used by the unified continuous monitoring producer
+   * (CLM-40039 Section 6.1) to enumerate eligibility for a cycle.
+   * <p>
+   * Deduplicates by {@code (repository_id, hash)} and emits globally newest-first. The satellite
+   * table's natural key is {@code (repository_id, component_hash)}, so multiple repository_component
+   * rows sharing the same hash within a repo (same jar at different pathnames) must collapse to one
+   * queue entry — otherwise the satellite UNIQUE constraint drops all but one and the consumer logs
+   * "satellite missing" for the orphan parents.
+   * <p>
+   * Postgres uses a window function (ROW_NUMBER() OVER PARTITION BY) to pick the representative
+   * row per group. H2 1.4.x — the embedded test/dev fixture — does not support window functions,
+   * so we use a GROUP-BY + self-JOIN pattern that produces the same dedup semantics. Both paths
+   * emit the deduped rows ordered by {@code (rc.time DESC, rc.repository_component_id DESC)}.
+   * <p>
+   * Tenant isolation in MTIQ is provided at the connection layer — each tenant is bound to its
+   * own PostgreSQL schema by {@code OperationalDataStore}, and {@code repository}/
+   * {@code repository_component} carry no {@code tenant_id} column. The query inherits that
+   * isolation; no explicit tenant filter is required or possible.
+   *
+   * @param cursor the last {@code (time, repository_component_id)} tuple consumed in this cycle,
+   *          or {@code null} for the first page. The next page contains rows strictly less than
+   *          this tuple in the DESC ordering.
    */
   public List<RepositoryComponent> getMonitoringEligiblePage(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
-      final int offset)
+      final EligibilityCursor cursor)
   {
-    // Deduplicate by (repository_id, hash) and emit globally newest-first.
-    //
-    // The satellite table's natural key is (repository_id, component_hash), so multiple
-    // repository_component rows sharing the same hash within a repo (same jar at different
-    // pathnames) must collapse to one queue entry — otherwise the satellite UNIQUE constraint
-    // drops all but one and the consumer logs "satellite missing" for the orphan parents.
-    //
-    // Postgres uses a window function (ROW_NUMBER() OVER PARTITION BY) to pick the
-    // representative row per group. H2 1.4.x — the embedded test/dev fixture used by this
-    // codebase — does not support window functions, so we use a GROUP-BY + self-JOIN pattern
-    // that produces the same dedup semantics. Both paths emit the deduped rows ordered by
-    // rc.time DESC.
-    //
-    // Note on OFFSET pagination: The producer cycle is short-lived (runs daily) and the satellite
-    // UNIQUE constraint prevents double-enqueue, so any components skipped due to OFFSET drift are
-    // safely picked up on the next fire. This is acceptable for the initial rollout; if performance
-    // becomes an issue at scale, keyset pagination could be introduced.
     return isDatabaseEmbedded()
-        ? getMonitoringEligiblePageH2(tx, cycleStart, limit, offset)
-        : getMonitoringEligiblePagePostgres(tx, cycleStart, limit, offset);
+        ? getMonitoringEligiblePageH2(tx, cycleStart, limit, cursor)
+        : getMonitoringEligiblePagePostgres(tx, cycleStart, limit, cursor);
   }
 
   private List<RepositoryComponent> getMonitoringEligiblePagePostgres(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
-      final int offset)
+      final EligibilityCursor cursor)
   {
-    // Within each (repository_id, hash) group, ROW_NUMBER() picks the row with the most recent
-    // `time` as the representative. Tiebreaker is repository_component_id .desc() so that on
-    // the rare exact-millisecond TIME collision the row with the higher (more recent) id wins,
-    // matching the "newest-first" intent of the outer ORDER BY rc.time DESC.
-    var rowNum = DSL.rowNumber()
-        .over(DSL.partitionBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH)
-            .orderBy(REPOSITORY_COMPONENT.TIME.desc(), REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.desc()))
-        .as("rn");
-    var ranked = tx.dsl()
-        .select(REPOSITORY_COMPONENT.asterisk(), rowNum)
-        .from(REPOSITORY_COMPONENT)
-        .join(REPOSITORY)
-        .on(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
-        .where(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
-        .and(REPOSITORY.MONITORING_ENABLED.isTrue())
-        .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
-        .asTable("ranked");
+    // Driver scan: walk repository_component newest-first via the
+    // (time DESC, repository_component_id DESC) keyset index. The cursor predicate sits
+    // directly on indexed columns of the base table — Postgres uses it as an Index Cond so
+    // each page costs O(limit), not O(deduped-result-set). The NOT EXISTS anti-join below
+    // implements the per-(repository_id, hash) dedup via index probe per emitted row,
+    // replacing the ROW_NUMBER()-over-CTE pattern that defeated index push-down (see PR
+    // #16434 review thread r3465319178 + EXPLAIN ANALYZE comparison in the commit message).
+    //
+    // Why NOT EXISTS and not ROW_NUMBER(): the planner cannot push a row-value predicate
+    // through a window function whose ORDER BY is the predicate columns. The keyset filter
+    // ends up applied to the materialized window output, not to the base scan, so the
+    // covering index is never used. The NOT EXISTS form leaves the cursor predicate on the
+    // indexed base columns where the planner can use it.
+    var rcInner = REPOSITORY_COMPONENT.as("rc_inner");
+    Condition cursorCondition = cursor == null
+        ? DSL.trueCondition()
+        : DSL.row(REPOSITORY_COMPONENT.TIME, REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)
+            .lessThan(DSL.row(cursor.time(), cursor.repositoryComponentId()));
+
     return tx.dsl()
-        .select(ranked.fields(REPOSITORY_COMPONENT.fields()))
-        .from(ranked)
-        .where(ranked.field("rn", Integer.class).eq(1))
-        .orderBy(ranked.field(REPOSITORY_COMPONENT.TIME).desc())
+        .selectFrom(REPOSITORY_COMPONENT)
+        .where(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
+        .and(cursorCondition)
+        // Eligibility: parent repository is a monitoring-enabled hosted repo.
+        .and(DSL.exists(
+            selectOne()
+                .from(REPOSITORY)
+                .where(REPOSITORY.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
+                .and(REPOSITORY.REPOSITORY_TYPE.eq(RepositoryType.hosted.name()))
+                .and(REPOSITORY.MONITORING_ENABLED.isTrue())))
+        // Dedup: within (repository_id, hash) keep only the row with the greatest
+        // (time, repository_component_id) tuple. Anti-join asks "is there a sibling row
+        // strictly greater than me in the natural-key group?"; if not, I'm the rep.
+        .and(notExists(
+            selectOne()
+                .from(rcInner)
+                .where(rcInner.REPOSITORY_ID.eq(REPOSITORY_COMPONENT.REPOSITORY_ID))
+                .and(rcInner.HASH.eq(REPOSITORY_COMPONENT.HASH))
+                .and(rcInner.LAST_EVALUATION_TIME.lt(cycleStart))
+                .and(DSL.row(rcInner.TIME, rcInner.REPOSITORY_COMPONENT_ID)
+                    .greaterThan(
+                        DSL.row(REPOSITORY_COMPONENT.TIME, REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID)))))
+        .orderBy(REPOSITORY_COMPONENT.TIME.desc(), REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.desc())
         .limit(limit)
-        .offset(offset)
-        .fetch(record -> record.into(REPOSITORY_COMPONENT.fields()).into(RepositoryComponent.class));
+        .fetchInto(RepositoryComponent.class);
   }
 
   private List<RepositoryComponent> getMonitoringEligiblePageH2(
       final TransactionContext tx,
       final Date cycleStart,
       final int limit,
-      final int offset)
+      final EligibilityCursor cursor)
   {
     // H2 1.4.x does not support ROW_NUMBER() OVER PARTITION BY, so we replicate the
     // ROW_NUMBER ordering (TIME.desc(), REPOSITORY_COMPONENT_ID.desc()) using two GROUP-BY
@@ -252,12 +278,13 @@ public class RepositoryComponentDAO
     // key for the "newest-first" representative.
     // Pass 2 (`reps`): from the rows matching (repository_id, hash, max_time), find
     // max(repository_component_id). This is the deterministic tiebreaker for the rare
-    // exact-millisecond TIME collision.
-    // Pass 3 (final SELECT): JOIN repository_component on the picked id to fetch the full row,
-    // ordered by rc.time DESC for newest-first emission.
+    // exact-millisecond TIME collision. We carry the rep_time forward so the keyset
+    // predicate in pass 3 can reference it without re-joining repository_component.
+    // Pass 3 (final SELECT): JOIN repository_component on the picked id, apply the keyset
+    // (CLM-41005) cursor predicate, and order by (time DESC, id DESC) for newest-first emission.
     //
-    // The end state is identical to the Postgres window-function path: one representative row
-    // per (repository_id, hash) group, ordered by rc.time DESC.
+    // The end state matches the Postgres window-function path: one representative row per
+    // (repository_id, hash) group, keyset-advanced past the cursor, ordered (time DESC, id DESC).
     Table<?> maxTimes = tx.dsl()
         .select(
             REPOSITORY_COMPONENT.REPOSITORY_ID.as("mt_repo_id"),
@@ -283,12 +310,12 @@ public class RepositoryComponentDAO
     // exact same (repository_id, hash, time) tuple as an eligible row but failing eligibility
     // (e.g. last_evaluation_time >= cycleStart) could be picked as the group representative if
     // its repository_component_id is greater. The Postgres window-function path applies the
-    // filter inside the CTE partition automatically; this mirrors that semantic on H2. The
-    // hosted/monitoring filters are inherited transitively through the maxTimes JOIN tuple.
+    // filter inside the CTE partition automatically; this mirrors that semantic on H2.
     Table<?> reps = tx.dsl()
         .select(
             REPOSITORY_COMPONENT.REPOSITORY_ID.as("rep_repo_id"),
             REPOSITORY_COMPONENT.HASH.as("rep_hash"),
+            REPOSITORY_COMPONENT.TIME.as("rep_time"),
             DSL.max(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID).as("rep_id"))
         .from(REPOSITORY_COMPONENT)
         .join(maxTimes)
@@ -296,19 +323,27 @@ public class RepositoryComponentDAO
         .and(REPOSITORY_COMPONENT.HASH.eq(mtHash))
         .and(REPOSITORY_COMPONENT.TIME.eq(mtTime))
         .and(REPOSITORY_COMPONENT.LAST_EVALUATION_TIME.lt(cycleStart))
-        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH)
+        .groupBy(REPOSITORY_COMPONENT.REPOSITORY_ID, REPOSITORY_COMPONENT.HASH, REPOSITORY_COMPONENT.TIME)
         .asTable("reps");
 
     Field<String> repId = reps.field("rep_id", REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.getDataType());
+    Field<Date> repTime = reps.field("rep_time", REPOSITORY_COMPONENT.TIME.getDataType());
+
+    // Keyset predicate on (rep_time, rep_id). jOOQ renders row-value comparison on H2 either as a
+    // native (a, b) < (c, d) or as the OR-expansion (a < c) OR (a == c AND b < d) depending on
+    // dialect support; both semantics are identical to strictly-less-than under DESC ordering.
+    Condition cursorCondition = cursor == null
+        ? DSL.trueCondition()
+        : DSL.row(repTime, repId).lessThan(DSL.row(cursor.time(), cursor.repositoryComponentId()));
 
     return tx.dsl()
         .select(REPOSITORY_COMPONENT.fields())
         .from(REPOSITORY_COMPONENT)
         .join(reps)
         .on(REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.eq(repId))
-        .orderBy(REPOSITORY_COMPONENT.TIME.desc())
+        .where(cursorCondition)
+        .orderBy(REPOSITORY_COMPONENT.TIME.desc(), REPOSITORY_COMPONENT.REPOSITORY_COMPONENT_ID.desc())
         .limit(limit)
-        .offset(offset)
         .fetch(record -> record.into(REPOSITORY_COMPONENT.fields()).into(RepositoryComponent.class));
   }
 

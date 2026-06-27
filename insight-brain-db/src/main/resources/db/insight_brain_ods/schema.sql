@@ -659,6 +659,7 @@ CREATE INDEX repository_component_scan_id_idx ON repository_component(scan_id);
 -- .h2.sql uses a plain index since H2 does not support partial indexes).
 CREATE INDEX idx_repository_component_component_id ON repository_component(component_id);
 CREATE INDEX repository_component_last_evaluation_time_idx ON repository_component(last_evaluation_time);
+CREATE INDEX repository_component_dedup_keyset_idx ON repository_component (repository_id, hash, time DESC, repository_component_id DESC);
 
 CREATE TABLE repository_policy_violation (
   repository_policy_violation_id varchar(50) NOT NULL,
@@ -929,6 +930,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('PolicyViolationConst
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('DisplayNameForFileCoordinateAsyncDbMigration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('PolicyViolationIndexAsyncDbMigration');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('RepositoryComponentDedupKeysetIndexAsyncDbMigration');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

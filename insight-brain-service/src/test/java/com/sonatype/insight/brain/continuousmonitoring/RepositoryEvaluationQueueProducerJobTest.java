@@ -6,12 +6,13 @@
 package com.sonatype.insight.brain.continuousmonitoring;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.continuousmonitoring.AbstractContinuousMonitoringProducerJob.CycleResult;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringHostedRepoItemDAO;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringHostedRepoItem;
@@ -101,9 +102,8 @@ public class RepositoryEvaluationQueueProducerJobTest
     RepositoryComponent c2 = new RepositoryComponent();
     c2.setRepositoryId("repo-B");
     c2.setHash("hash-B");
-    when(eligibilitySelector.fetchPage(any(Integer.class), any(Integer.class), any(Instant.class)))
-        .thenReturn(List.of(c1, c2))
-        .thenReturn(List.of());
+    when(eligibilitySelector.fetchPage(any(), any(Integer.class), any(Instant.class)))
+        .thenReturn(new Page<>(List.of(c1, c2), new EligibilityCursor(new java.util.Date(2L), "id-2"), false));
 
     CycleResult result = underTest.runCycle();
 
@@ -147,8 +147,8 @@ public class RepositoryEvaluationQueueProducerJobTest
 
   @Test
   public void runCycleEmitsEmptyWhenSelectorReturnsEmpty() {
-    when(eligibilitySelector.fetchPage(any(Integer.class), any(Integer.class), any(Instant.class)))
-        .thenReturn(new ArrayList<>());
+    when(eligibilitySelector.fetchPage(any(), any(Integer.class), any(Instant.class)))
+        .thenReturn(Page.empty());
 
     CycleResult result = underTest.runCycle();
 

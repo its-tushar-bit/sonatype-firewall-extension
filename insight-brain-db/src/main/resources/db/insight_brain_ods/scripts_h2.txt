@@ -6,3 +6,5 @@ schema_incremental_0445.h2.sql
 schema_incremental_0467.h2.sql
 schema_incremental_0469.h2.sql
 schema_incremental_0470.h2.sql
+schema_incremental_0471.h2.sql
+schema_incremental_0472.h2.sql

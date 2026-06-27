@@ -10,6 +10,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.EligibilityCursor;
+import com.sonatype.insight.brain.dataaccess.continuousmonitoring.Page;
 import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
@@ -31,14 +33,19 @@ import org.slf4j.LoggerFactory;
  * cycles; clustered Quartz prevents cross-node overlap via {@code QRTZ_FIRED_TRIGGERS}. The
  * {@link MtiqBatchJob} marker routes execution to the MTIQ batch instance only.
  * <p>
- * Per design Decision G the cycle pages through eligibility with a configurable batch size; per
- * Section 7.4 a failure mid-cycle aborts the cycle (does not advance any checkpoint) and the
- * next Quartz fire re-scans from the top. There is no checkpoint-after-page semantics because
- * the natural-key UNIQUE constraint silently dedups already-enqueued rows on the next fire.
+ * Per design Decision G the cycle pages through eligibility with a configurable batch size via
+ * keyset cursor (CLM-41005); per Section 7.4 a failure mid-cycle aborts the cycle (does not advance
+ * any checkpoint) and the next Quartz fire re-scans from the top. There is no checkpoint-after-page
+ * semantics because the natural-key UNIQUE constraint silently dedups already-enqueued rows on the
+ * next fire.
  * <p>
- * The cycle is bounded by {@link #getMaxCyclePages()} to prevent unbounded enumeration on large
- * eligibility sets. When the page limit is reached, the cycle aborts with a warning and the next
- * Quartz fire continues from the top (same dedup semantics as abort-on-failure).
+ * The cycle runs until the selector reports {@code page.hasMore() == false}. Keyset pagination
+ * on {@code (time DESC, repository_component_id DESC)} makes per-page cost O(limit) regardless of
+ * position and prevents row-skip under concurrent inserts, so the previous 1M-row
+ * {@code maxCyclePages} ceiling is no longer needed for correctness. A high
+ * {@value #DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES}-page safety net remains as a backstop against a
+ * buggy selector that perpetually returns {@code hasMore == true} — at that point the cycle
+ * aborts and logs a WARN so the bug is operator-visible rather than running forever silently.
  *
  * @param <T> per-flow eligibility candidate type
  */
@@ -49,8 +56,14 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractContinuousMonitoringProducerJob.class);
 
-  /** Default maximum pages per cycle to prevent unbounded enumeration. */
-  protected static final int DEFAULT_MAX_CYCLE_PAGES = 1000;
+  /**
+   * Backstop only — not a tenant-size ceiling. At the default {@code pageSize=1000} this is 100M
+   * rows per cycle, well above any realistic tenant. Tripping it indicates a selector or DAO bug
+   * (e.g. {@code Page.hasMore()} stuck at {@code true}); the cycle aborts and logs a WARN so the
+   * bug surfaces in alerts rather than the producer spinning forever. Overridable in tests and
+   * production subclasses.
+   */
+  protected static final int DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES = 100_000;
 
   protected AbstractContinuousMonitoringProducerJob(final String adminTaskName) {
     super(adminTaskName);
@@ -65,18 +78,55 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
   /** Number of candidates fetched per page. Operator-tunable; design default 1000. */
   protected abstract int getEligibilityPageSize();
 
-  /**
-   * Maximum number of pages to process in a single cycle before aborting.
-   * Prevents unbounded enumeration on very large eligibility sets that would block a single
-   * Quartz fire for longer than the schedule interval. Default {@value #DEFAULT_MAX_CYCLE_PAGES}.
-   * Subclasses may override to make this configurable.
-   */
-  protected int getMaxCyclePages() {
-    return DEFAULT_MAX_CYCLE_PAGES;
-  }
-
   /** Whether the producer should run; gated on the flow's feature flag. */
   protected abstract boolean isEnabled();
+
+  /** Name of the JVM system property that overrides the safety-net page cap at runtime. */
+  static final String SAFETY_NET_MAX_CYCLE_PAGES_PROPERTY = "cm.producer.safetyNetMaxCyclePages";
+
+  /**
+   * Backstop page cap. Overridden in tests to exercise the safety-net path without 100K iterations;
+   * production subclasses inherit {@link #DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES}.
+   * <p>
+   * Configurable via system property {@value #SAFETY_NET_MAX_CYCLE_PAGES_PROPERTY} for ops tuning
+   * without a rebuild. Unset, non-positive, or unparseable values fall back to
+   * {@link #DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES}; the bad-value cases log WARN once per call so
+   * operators are not misled into believing their override is in effect (see
+   * {@link #parseSafetyNetMaxCyclePages} for the parser).
+   */
+  protected int getSafetyNetMaxCyclePages() {
+    return parseSafetyNetMaxCyclePages(System.getProperty(SAFETY_NET_MAX_CYCLE_PAGES_PROPERTY));
+  }
+
+  /**
+   * Parses the safety-net override. Separated from {@link #getSafetyNetMaxCyclePages} so unit
+   * tests can drive each branch (null / non-positive / unparseable / valid) without setting
+   * JVM-wide system properties.
+   * <p>
+   * Returns {@link #DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES} when {@code rawValue} is null, blank,
+   * non-positive, or unparseable. Bad values (non-positive or unparseable) emit a WARN — an
+   * operator who set the property explicitly should learn that their override was ignored.
+   */
+  static int parseSafetyNetMaxCyclePages(final String rawValue) {
+    if (rawValue == null) {
+      return DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES;
+    }
+    int parsed;
+    try {
+      parsed = Integer.parseInt(rawValue.trim());
+    }
+    catch (NumberFormatException e) {
+      log.warn("System property {}={} is not a valid integer; using default {}.",
+          SAFETY_NET_MAX_CYCLE_PAGES_PROPERTY, rawValue, DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
+      return DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES;
+    }
+    if (parsed <= 0) {
+      log.warn("System property {}={} is not positive; using default {}.",
+          SAFETY_NET_MAX_CYCLE_PAGES_PROPERTY, rawValue, DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
+      return DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES;
+    }
+    return parsed;
+  }
 
   /**
    * Inserts a batch of parent queue rows + per-flow satellite rows in a single transaction with
@@ -192,7 +242,7 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
     // other Quartz-fired jobs in this codebase — log lines carry the system username MDC).
     // 2. Any Throwable that escapes runCycle (including from the abstract-method calls outside
     // runCycle's own try blocks: isEnabled, getEligibilitySelector, getOrderingStrategy,
-    // getMaxCyclePages, getEligibilityPageSize) is logged at ERROR before Quartz sees it.
+    // getEligibilityPageSize) is logged at ERROR before Quartz sees it.
     execute(() -> {
       CycleResult result = runCycle();
       if (result.isSuccess()) {
@@ -208,7 +258,9 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
 
   /**
    * Runs one cycle: pages through {@link EligibilitySelector#fetchPage} and enqueues each page
-   * via {@link #enqueueBatch}. Returns a {@link CycleResult} indicating success or abort reason.
+   * via {@link #enqueueBatch}. Advances by {@link EligibilityCursor} (CLM-41005) — the selector's
+   * {@code Page.hasMore()} signals end-of-stream. Returns a {@link CycleResult} indicating
+   * success or abort reason.
    */
   protected CycleResult runCycle() {
     if (!isEnabled()) {
@@ -229,59 +281,68 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
     }
     EligibilitySelector<T> selector = getEligibilitySelector();
     OrderingStrategy ordering = getOrderingStrategy();
-    int maxPages = getMaxCyclePages();
 
     int totalEnqueued = 0;
     long totalConsidered = 0;
-    int offset = 0;
     int pageCount = 0;
+    int safetyNetMaxPages = getSafetyNetMaxCyclePages();
+    EligibilityCursor cursor = null;
     while (true) {
-      if (pageCount >= maxPages) {
-        log.warn("Continuous monitoring producer ({}): reached maxCyclePages limit ({}), aborting cycle. "
-            + "Considered={}, enqueued={}. Remaining eligible rows will be picked up on next fire.",
-            getFlowLogTag(), maxPages, totalConsidered, totalEnqueued);
-        return CycleResult.aborted(totalEnqueued,
-            "maxCyclePages limit reached (" + maxPages + ")");
+      if (pageCount >= safetyNetMaxPages) {
+        // Backstop tripped — selector/DAO bug, not a normal big-tenant outcome. WARN (not ERROR)
+        // because the cycle's enqueues remain valid; abort the cycle, let the next Quartz fire
+        // try again, and surface the bug to ops via the alert pipeline.
+        log.warn(
+            "Continuous monitoring producer ({}): safety-net cap of {} pages tripped at cursor {} "
+                + "(considered={}, enqueued={}); aborting cycle. This indicates a bug in the selector "
+                + "or DAO (Page.hasMore() likely stuck true).",
+            getFlowLogTag(), safetyNetMaxPages, cursorLogTag(cursor), totalConsidered, totalEnqueued);
+        return CycleResult.aborted(totalEnqueued, "safety-net page cap " + safetyNetMaxPages + " tripped");
       }
-      List<T> page;
+      Page<T> page;
       try {
-        page = selector.fetchPage(offset, pageSize, cycleStart);
+        page = selector.fetchPage(cursor, pageSize, cycleStart);
       }
       catch (RuntimeException e) {
         // ERROR (not WARN) so Quartz alerting picks it up — selector failures are unexpected and
         // op-actionable (DB connectivity, schema drift), distinct from the WARN-level expected
-        // aborts above (non-positive pageSize, maxCyclePages limit reached). CLM-40971.
+        // aborts above (non-positive pageSize). CLM-40971.
         log.error(
-            "Continuous monitoring producer ({}): eligibility page fetch failed at offset {} ({}); aborting cycle.",
-            getFlowLogTag(), offset, e.getClass().getSimpleName(), e);
-        return CycleResult.aborted(totalEnqueued, "selector failure at offset " + offset);
+            "Continuous monitoring producer ({}): eligibility page fetch failed at cursor {} ({}); aborting cycle.",
+            getFlowLogTag(), cursorLogTag(cursor), e.getClass().getSimpleName(), e);
+        return CycleResult.aborted(totalEnqueued, "selector failure at cursor " + cursorLogTag(cursor));
       }
-      if (page == null || page.isEmpty()) {
+      if (page == null || page.rows().isEmpty()) {
         break;
       }
-      pageCount++;
-      List<Long> priorities = computePriorities(ordering, totalConsidered, page.size());
+      List<T> rows = page.rows();
+      List<Long> priorities = computePriorities(ordering, totalConsidered, rows.size());
       int inserted;
       try {
-        inserted = enqueueBatch(page, priorities, cycleStart);
+        inserted = enqueueBatch(rows, priorities, cycleStart);
       }
       catch (RuntimeException e) {
         // ERROR for the same reason as the selector catch above (CLM-40971): enqueue failures
         // are unexpected DB-write errors, not expected aborts.
-        log.error("Continuous monitoring producer ({}): enqueueBatch failed at offset {} ({}); aborting cycle.",
-            getFlowLogTag(), offset, e.getClass().getSimpleName(), e);
-        return CycleResult.aborted(totalEnqueued, "enqueue failure at offset " + offset);
+        log.error("Continuous monitoring producer ({}): enqueueBatch failed at cursor {} ({}); aborting cycle.",
+            getFlowLogTag(), cursorLogTag(cursor), e.getClass().getSimpleName(), e);
+        return CycleResult.aborted(totalEnqueued, "enqueue failure at cursor " + cursorLogTag(cursor));
       }
       totalEnqueued += inserted;
-      totalConsidered += page.size();
-      if (page.size() < pageSize) {
+      totalConsidered += rows.size();
+      pageCount++;
+      if (!page.hasMore()) {
         break;
       }
-      offset += page.size();
+      cursor = page.nextCursor();
     }
     log.info("Continuous monitoring producer cycle complete ({}): considered={}, enqueued={}.",
         getFlowLogTag(), totalConsidered, totalEnqueued);
     return CycleResult.success(totalEnqueued);
+  }
+
+  private static String cursorLogTag(final EligibilityCursor cursor) {
+    return cursor == null ? "<start>" : cursor.encode();
   }
 
   private static List<Long> computePriorities(

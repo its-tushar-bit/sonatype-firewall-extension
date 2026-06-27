@@ -9,18 +9,19 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.service.AdminTask;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
@@ -82,6 +83,14 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
   private final TenantReference<Set<String>> queuedItemIds;
 
   /**
+   * Per-tenant reference to the {@link AdjustableSemaphore} created by
+   * {@link #createInjectedDispatchStrategy}. Allows {@link #handleConfigurationChanged} to resize
+   * the per-tenant permit count on a live workerThreads change. Empty on the legacy
+   * (non-injected) constructor path.
+   */
+  private final TenantReference<AdjustableSemaphore> injectedSemaphores;
+
+  /**
    * Set {@code true} in tests to prevent thread creation during unit tests.
    * When {@code true}, {@link #register()} returns immediately without scheduling.
    */
@@ -102,13 +111,16 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
     this.scheduledFutures = new TenantReference<>();
     this.running = new TenantReference<>(AtomicBoolean::new);
     this.queuedItemIds = new TenantReference<>(ConcurrentHashMap::newKeySet);
+    this.injectedSemaphores = new TenantReference<>();
   }
 
   /**
    * Injected-executor constructor: the consumer accepts a pre-built per-tenant
-   * {@link ExecutorService} and a {@link Semaphore} that caps the number of in-flight jobs.
-   * Capacity is reported as {@link Semaphore#availablePermits()}; dispatch acquires a permit
-   * before {@code submit()} and releases it when the task finishes (success or failure).
+   * {@link ExecutorService} and an {@link AdjustableSemaphore} that caps the number of in-flight
+   * drain-workers. Capacity is reported via {@link AdjustableSemaphore#availablePermits()};
+   * dispatch acquires a permit before {@code submit()} and the spawned drain-worker releases the
+   * permit when it exits (after processing the seed record and draining any additional pending
+   * records).
    * <p>
    * This path enables virtual-thread-based execution where the legacy capacity math
    * ({@code corePoolSize - activeCount + maxQueuedRows - queue.size()}) does not apply, and is
@@ -135,14 +147,21 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * avoids the race.
    *
    * @param executorSupplier supplies the per-tenant executor that will run job tasks
-   * @param semaphoreSupplier supplies the per-tenant semaphore whose permit count equals the
-   *          maximum number of in-flight jobs
+   * @param semaphoreSupplier supplies the per-tenant {@link AdjustableSemaphore} whose permit
+   *          count equals the maximum number of in-flight drain-workers. The adjustable form is
+   *          required so live config changes to {@code workerThreads} can resize without
+   *          recreating the executor.
+   * @apiNote The semaphore supplier was widened from {@code Supplier<Semaphore>} to
+   *          {@code Supplier<AdjustableSemaphore>}. The only production caller is
+   *          {@code RepositoryEvaluationQueueConsumer}; out-of-tree subclasses using the
+   *          injected-executor constructor must update their supplier to return
+   *          {@code AdjustableSemaphore}.
    */
   protected AbstractPollDispatchQueueConsumer(
       final String consumerName,
       final ShutdownHandler shutdownHandler,
       final Supplier<ExecutorService> executorSupplier,
-      final Supplier<Semaphore> semaphoreSupplier)
+      final Supplier<AdjustableSemaphore> semaphoreSupplier)
   {
     super(consumerName);
     Objects.requireNonNull(executorSupplier, "executorSupplier must not be null");
@@ -155,6 +174,7 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
     this.scheduledFutures = new TenantReference<>();
     this.running = new TenantReference<>(AtomicBoolean::new);
     this.queuedItemIds = new TenantReference<>(ConcurrentHashMap::newKeySet);
+    this.injectedSemaphores = new TenantReference<>();
   }
 
   /**
@@ -162,6 +182,22 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * Implementations should use {@code SELECT ... FOR UPDATE SKIP LOCKED} for concurrency safety.
    */
   protected abstract List<T> acquireJobs(int limit);
+
+  /**
+   * Acquire exactly one pending job for the per-worker drain loop. Called by each
+   * drain-worker after it finishes a record, to fetch the next one without waiting for the
+   * scheduler tick. Implementations should use the same {@code SELECT ... FOR UPDATE SKIP LOCKED}
+   * pattern as {@link #acquireJobs} with {@code limit=1}.
+   * <p>
+   * The default delegates to {@code acquireJobs(1)}; subclasses may override for a more direct
+   * single-row implementation if it produces better plans.
+   *
+   * @return an Optional holding the acquired job, or empty if the queue has no pending rows
+   */
+  protected Optional<T> acquireOneMore() {
+    List<T> one = acquireJobs(1);
+    return one.isEmpty() ? Optional.empty() : Optional.of(one.get(0));
+  }
 
   /** Returns the stable string ID of a job (used for in-flight tracking and unacquire). */
   protected abstract String getJobId(T job);
@@ -201,7 +237,7 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * <strong>Contract on the injected-executor path:</strong> subclasses constructed via
    * {@link #AbstractPollDispatchQueueConsumer(String, ShutdownHandler, Supplier, Supplier) the
    * injected-executor constructor} should return {@code 0} here. Back-pressure on that path is
-   * enforced by the injected {@link Semaphore}'s permit count rather than by an executor queue
+   * enforced by the injected {@link AdjustableSemaphore}'s permit count rather than by an executor queue
    * cap, and the injected dispatch strategy ignores this method's return value.
    */
   protected abstract int getMaxQueuedRows();
@@ -214,6 +250,30 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * Returning {@code Integer.MAX_VALUE} means retry indefinitely (no permanent failure).
    */
   protected abstract int getMaxRetries();
+
+  /**
+   * Rows acquired in one scheduler tick to seed idle drain-workers in a single round-trip.
+   * Only meaningful on the injected-executor path. The tick acquires up to
+   * {@code min(availablePermits, getTickBatchSize())} rows, spawning one drain-worker per row.
+   * Each spawned worker then runs its own self-poll drain loop (see {@link #acquireOneMore}).
+   * <p>
+   * Default {@code 1} preserves the original 1-row-per-tick behaviour; subclasses adopting the
+   * drain-loop model override to return {@code workerThreads} (or higher) so a cold-start tick
+   * saturates all idle workers in one round-trip.
+   */
+  protected int getTickBatchSize() {
+    return 1;
+  }
+
+  /**
+   * Optional grace period a drain-worker waits when {@link #acquireOneMore} returns empty before
+   * exiting the loop. Default {@code 0} means exit immediately on the first empty
+   * self-poll. A non-zero value lets a worker linger briefly to absorb a near-empty-queue
+   * trickle without paying the re-spawn cost; rarely needed.
+   */
+  protected long getIdleBackoffMs() {
+    return 0L;
+  }
 
   /** Short identifier used as thread-name prefix (e.g. {@code "HostedComponentScanQueue"}). */
   protected abstract String getConsumerName();
@@ -291,8 +351,11 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * }
    * }</pre>
    *
-   * @param newWorkerCount new desired worker thread count (ignored for injected-executor path;
-   *          the caller owns executor sizing and must resize externally)
+   * @param newWorkerCount new desired worker thread count. On the legacy path the platform-thread
+   *          pool is resized. On the injected-executor path the {@link AdjustableSemaphore} is
+   *          resized so the cap on concurrent drain-workers takes effect immediately
+   *          for the next dispatch; the executor itself is caller-owned and does not need resizing
+   *          because it spawns virtual threads on demand.
    * @param newPollIntervalMs new poll interval in milliseconds
    * @param enabled whether the consumer should be scheduled
    * @param oldPollIntervalMs previous poll interval — used to detect whether rescheduling is needed
@@ -317,11 +380,22 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
       }
     }
     else {
-      // Injected-executor path: caller owns sizing of the executor and the semaphore. Live
-      // reconfiguration is out of scope here; emit a visible signal so operators tuning the
-      // worker count via live config see that an additional step (caller-side resize) is needed.
-      log.warn("{}: ignoring newWorkerCount={} on injected-executor path — resize the executor "
-          + "and semaphore externally.", getConsumerName(), newWorkerCount);
+      // Injected-executor path: resize the AdjustableSemaphore so the new permit count gates the
+      // next dispatch. Increasing releases extra permits immediately; decreasing reduces the cap
+      // without interrupting running workers (they keep their permits and release on exit). The
+      // injected executor is caller-owned and does not need resizing — it spawns virtual threads
+      // on demand bounded by the semaphore.
+      AdjustableSemaphore semaphore = injectedSemaphores.get();
+      if (semaphore != null) {
+        semaphore.resize(newWorkerCount);
+        log.info("{}: resized semaphore to {} permits (live workerThreads change).",
+            getConsumerName(), newWorkerCount);
+      }
+      else {
+        log.debug("{}: workerCount change with no injected semaphore yet (strategy not initialised "
+            + "for this tenant); will pick up newWorkerCount={} on first dispatch.",
+            getConsumerName(), newWorkerCount);
+      }
     }
 
     if (enabled != wasEnabled || newPollIntervalMs != oldPollIntervalMs) {
@@ -568,27 +642,33 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
 
   private DispatchStrategy createInjectedDispatchStrategy(
       final ExecutorService executor,
-      final Semaphore semaphore)
+      final AdjustableSemaphore semaphore)
   {
     Objects.requireNonNull(executor, "injected executor must not be null");
     Objects.requireNonNull(semaphore, "injected semaphore must not be null");
+    // Stash the semaphore so handleConfigurationChanged() can resize it on a live worker-count
+    // change. The per-tenant TenantReference holds one strategy per tenant; the tenant-scoped
+    // lookup happens in handleConfigurationChanged via dispatchStrategies.get().
+    injectedSemaphores.set(semaphore);
     return new DispatchStrategy()
     {
       @Override
       public int availableCapacity() {
-        // Pull at most one row per poll tick (CLM-40039 design §6.2). The semaphore's permit
-        // count still gates whether we have any worker capacity at all; if no permits are free,
-        // we report zero so the tick is skipped.
-        return semaphore.availablePermits() > 0 ? 1 : 0;
+        // Cold-start tick acquires up to min(permits, tickBatchSize) rows in one round-trip to
+        // seed all idle workers. Each spawned worker then runs its own drain loop (see dispatch()
+        // below) and continues to pull single rows until the queue empties.
+        int permits = semaphore.availablePermits();
+        if (permits <= 0) {
+          return 0;
+        }
+        int tickBatch = getTickBatchSize();
+        return Math.min(permits, Math.max(1, tickBatch));
       }
 
       @Override
       public void dispatch(final QueueTask task) {
-        // tryAcquire is non-blocking: capacity was checked just above under the running latch (the
-        // 'running' AtomicBoolean prevents concurrent dispatch() calls for the same tenant), so
-        // a permit should always be available. This branch handles the theoretical race where a
-        // permit is consumed between availableCapacity() and tryAcquire() — it should never fire
-        // under normal operation but provides defensive recovery if it does.
+        // tryAcquire can race a live resize() shrinking the cap mid-tick; the defer block
+        // below unacquires this row so it's retried on next tick.
         if (!semaphore.tryAcquire()) {
           log.debug("{}: semaphore drained between capacity check and dispatch; deferring job id={}.",
               getConsumerName(), task.getJobId());
@@ -599,9 +679,20 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
           return;
         }
         try {
+          // Drain-worker: process the seed record passed in from the tick, then loop on
+          // acquireOneMore() until the queue is empty. The semaphore permit acquired above is
+          // held for the lifetime of the worker (many records), not per record. Each record's
+          // processing is a single QueueTask.run() pass; on empty self-poll the worker exits and
+          // the permit is released in finally so the next scheduler tick can re-spawn workers.
           executor.submit(() -> {
             try {
+              // If task.run() throws Error (OOME, StackOverflowError, etc.) processJob rethrows
+              // it; drainAdditional() is then skipped — JVM state may be unsafe and a DB call
+              // could compound the failure. The finally{} below still runs and releases the
+              // permit so the next scheduler tick can re-spawn workers. The stranded
+              // IN_PROGRESS row (if any) is reclaimed by recoverStaleJobs on next startup.
               task.run();
+              drainAdditional();
             }
             finally {
               semaphore.release();
@@ -621,6 +712,103 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
     };
   }
 
+  /**
+   * Drains additional records by repeatedly calling {@link #acquireOneMore} until empty.
+   * Called by a drain-worker after it finishes processing the seed record from the
+   * tick. Each iteration is a separate {@code acquireOneMore} round-trip; the worker continues
+   * until the queue returns empty or the thread is interrupted. Optional {@link #getIdleBackoffMs}
+   * grace period before exit lets a worker absorb a near-empty trickle.
+   */
+  private void drainAdditional() {
+    while (!Thread.currentThread().isInterrupted()) {
+      Optional<T> next;
+      try {
+        next = acquireOneMore();
+      }
+      catch (RuntimeException e) {
+        // A DAO failure in the drain loop (DB blip, lock timeout) — log and exit the loop so the
+        // permit returns to the semaphore. The next scheduler tick will retry. We do NOT propagate
+        // the exception because the seed record has already been processed successfully; failing
+        // the drain attempt should not retroactively fail the seed. Preserve any pending interrupt
+        // signal so downstream code observes the shutdown.
+        if (isShutdownSignal(e)) {
+          Thread.currentThread().interrupt();
+        }
+        log.info("{}: acquireOneMore failed during drain; exiting worker drain loop.",
+            getConsumerName(), e);
+        return;
+      }
+      if (next.isEmpty()) {
+        long backoff = getIdleBackoffMs();
+        if (backoff <= 0) {
+          return;
+        }
+        try {
+          Thread.sleep(backoff);
+        }
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+        // One retry after the backoff; if still empty, exit.
+        try {
+          next = acquireOneMore();
+        }
+        catch (RuntimeException e) {
+          if (isShutdownSignal(e)) {
+            Thread.currentThread().interrupt();
+          }
+          log.info("{}: acquireOneMore failed during drain (post-backoff); exiting worker drain loop.",
+              getConsumerName(), e);
+          return;
+        }
+        if (next.isEmpty()) {
+          return;
+        }
+      }
+      T job = next.get();
+      String jobId = getJobId(job);
+      Set<String> inflight = queuedItemIds.get();
+      inflight.add(jobId);
+      try {
+        processJob(job);
+      }
+      catch (RuntimeException e) {
+        // processJob wraps InterruptedException in UncheckedInterruptedException (which clears
+        // the interrupt flag) and flow processors may wrap interrupts in their own RuntimeExceptions
+        // or attach them via addSuppressed. isShutdownSignal walks the full cause and suppressed
+        // chains; if the flag is set without an interrupt in the chain (caller interrupted us
+        // between iterations) Thread.interrupted() catches that. Either way, exit the drain
+        // immediately so we honor the shutdown.
+        if (isShutdownSignal(e)) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+        // Otherwise log and continue draining: a transient failure in one record should not abort
+        // the remaining batch. The failed record's retry count is incremented in processJob via
+        // onJobFailure; if retry-exhausted it is deleted.
+        log.info("{}: processJob failed for job id={}; continuing drain.", getConsumerName(), jobId, e);
+      }
+      finally {
+        inflight.remove(jobId);
+      }
+    }
+  }
+
+  /**
+   * True if {@code e} carries an interrupt signal — either directly (an
+   * {@link UncheckedInterruptedException}), nested in its cause or suppressed chain (a flow
+   * processor wrapping {@code InterruptedException} in its own {@code RuntimeException}), or
+   * indirectly via the current thread's interrupt flag (caller interrupted us between calls but
+   * the thrown exception is unrelated). {@link Thread#interrupted()} clears the flag, so the
+   * callers must re-set it via {@code Thread.currentThread().interrupt()} before returning.
+   */
+  private static boolean isShutdownSignal(final RuntimeException e) {
+    return e instanceof UncheckedInterruptedException
+        || ExceptionHelper.hasCauseOrSuppressedOfType(e, InterruptedException.class)
+        || Thread.interrupted();
+  }
+
   public void cleanup() {
     ScheduledFuture<?> future = scheduledFutures.remove();
     if (future != null) {
@@ -634,8 +822,10 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
     if (executor != null) {
       executor.shutdownNow();
     }
-    // Injected executor lifecycle is owned by the caller; we drop the strategy reference only.
+    // Injected executor lifecycle is owned by the caller; we drop the strategy reference and the
+    // semaphore tenant-binding only.
     dispatchStrategies.remove();
+    injectedSemaphores.remove();
     // On the injected-executor path, queuedItemIds may still contain a job that was submitted
     // to the executor but never started (its QueueTask.onStart callback never fired). Unacquire
     // those rows so they return to PENDING for startup recovery.

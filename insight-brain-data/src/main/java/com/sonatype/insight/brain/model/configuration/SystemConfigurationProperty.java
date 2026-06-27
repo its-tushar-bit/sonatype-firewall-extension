@@ -217,6 +217,24 @@ public class SystemConfigurationProperty
    */
   public static final String CONTINUOUS_MONITORING_POLL_INTERVAL_MS = "continuousMonitoringPollIntervalMs";
 
+  /**
+   * Rows acquired in one scheduler-tick round-trip to seed idle drain-workers when the queue has
+   * pending work. The tick spawns one drain-worker per row; each spawned worker then
+   * runs its own self-poll drain loop until the queue is empty. Recommend {@code >= workerThreads}
+   * so a cold-start tick saturates all idle workers in one round-trip. Default 8. Bounds
+   * {@code [1, 256]}. Runtime-mutable: read fresh on every scheduler tick.
+   */
+  public static final String CONTINUOUS_MONITORING_TICK_BATCH_SIZE = "continuousMonitoringTickBatchSize";
+
+  /**
+   * Optional grace period in milliseconds a drain-worker waits when its self-poll returns empty
+   * before exiting the loop. Default 0 (exit immediately on first empty self-poll).
+   * Non-zero values let a worker linger briefly to absorb a near-empty-queue trickle without
+   * paying the re-spawn cost. Bounds {@code [0, 10_000]}. Runtime-mutable: read fresh on every
+   * drain-loop iteration.
+   */
+  public static final String CONTINUOUS_MONITORING_IDLE_BACKOFF_MS = "continuousMonitoringIdleBackoffMs";
+
   public static final String HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR = "historicalPolicyViolationTelemetryHour";
 
   public static final String DB_BACKUP_DIR = "dbBackupDir";

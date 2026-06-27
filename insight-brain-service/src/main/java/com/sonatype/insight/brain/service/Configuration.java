@@ -680,6 +680,23 @@ public class Configuration
     return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS);
   }
 
+  /**
+   * Rows acquired per scheduler tick to seed idle drain-workers in one round-trip.
+   * Default 8; runtime-mutable. Bounds [1, 256]. Recommend {@code >= workerThreads}.
+   */
+  public Integer getContinuousMonitoringTickBatchSize() {
+    return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_TICK_BATCH_SIZE);
+  }
+
+  /**
+   * Drain-worker idle-backoff in milliseconds: grace period after the first empty self-poll
+   * before the worker exits its drain loop. Default 0 (exit immediately);
+   * runtime-mutable. Bounds [0, 10_000].
+   */
+  public Integer getContinuousMonitoringIdleBackoffMs() {
+    return configCache.get(SystemConfigurationProperty.CONTINUOUS_MONITORING_IDLE_BACKOFF_MS);
+  }
+
   public Integer getHistoricalPolicyViolationTelemetryHour() {
     return configCache.get(SystemConfigurationProperty.HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR);
   }

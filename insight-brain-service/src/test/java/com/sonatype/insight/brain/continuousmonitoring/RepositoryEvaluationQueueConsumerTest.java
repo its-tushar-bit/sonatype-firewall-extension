@@ -277,6 +277,71 @@ public class RepositoryEvaluationQueueConsumerTest
     assertThat(underTest.getWorkerThreadCount()).isEqualTo(16);
   }
 
+  // --- defense-in-depth fallbacks for tickBatchSize and idleBackoffMs ---------------------
+  // REST validates the bounds, but a value injected directly into the DB (backup restore,
+  // manual UPDATE) must not blow up the consumer or stop dispatch silently. Each out-of-range
+  // value must fall back to the default and log a warning.
+
+  @Test
+  public void testReadTickBatchSize_nullReturnsDefault() {
+    when(configuration.getContinuousMonitoringTickBatchSize()).thenReturn(null);
+    assertThat(RepositoryEvaluationQueueConsumer.readTickBatchSize(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_TICK_BATCH_SIZE);
+  }
+
+  @Test
+  public void testReadTickBatchSize_belowFloorFallsBackToDefault() {
+    when(configuration.getContinuousMonitoringTickBatchSize()).thenReturn(0);
+    assertThat(RepositoryEvaluationQueueConsumer.readTickBatchSize(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_TICK_BATCH_SIZE);
+  }
+
+  @Test
+  public void testReadTickBatchSize_aboveCeilingFallsBackToDefault() {
+    when(configuration.getContinuousMonitoringTickBatchSize()).thenReturn(257);
+    assertThat(RepositoryEvaluationQueueConsumer.readTickBatchSize(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_TICK_BATCH_SIZE);
+  }
+
+  @Test
+  public void testReadTickBatchSize_inRangeIsReturnedAsIs() {
+    when(configuration.getContinuousMonitoringTickBatchSize()).thenReturn(32);
+    assertThat(RepositoryEvaluationQueueConsumer.readTickBatchSize(configuration)).isEqualTo(32);
+  }
+
+  @Test
+  public void testReadIdleBackoffMs_nullReturnsDefault() {
+    when(configuration.getContinuousMonitoringIdleBackoffMs()).thenReturn(null);
+    assertThat(RepositoryEvaluationQueueConsumer.readIdleBackoffMs(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_IDLE_BACKOFF_MS);
+  }
+
+  @Test
+  public void testReadIdleBackoffMs_negativeFallsBackToDefault() {
+    when(configuration.getContinuousMonitoringIdleBackoffMs()).thenReturn(-1);
+    assertThat(RepositoryEvaluationQueueConsumer.readIdleBackoffMs(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_IDLE_BACKOFF_MS);
+  }
+
+  @Test
+  public void testReadIdleBackoffMs_aboveCeilingFallsBackToDefault() {
+    when(configuration.getContinuousMonitoringIdleBackoffMs()).thenReturn(10_001);
+    assertThat(RepositoryEvaluationQueueConsumer.readIdleBackoffMs(configuration))
+        .isEqualTo(RepositoryEvaluationQueueConsumer.DEFAULT_IDLE_BACKOFF_MS);
+  }
+
+  @Test
+  public void testReadIdleBackoffMs_zeroIsValid() {
+    when(configuration.getContinuousMonitoringIdleBackoffMs()).thenReturn(0);
+    assertThat(RepositoryEvaluationQueueConsumer.readIdleBackoffMs(configuration)).isEqualTo(0L);
+  }
+
+  @Test
+  public void testReadIdleBackoffMs_inRangeIsReturnedAsIs() {
+    when(configuration.getContinuousMonitoringIdleBackoffMs()).thenReturn(500);
+    assertThat(RepositoryEvaluationQueueConsumer.readIdleBackoffMs(configuration)).isEqualTo(500L);
+  }
+
   // --- configurationChanged ---------------------------------------------
   // I6: when HOSTED_REPOSITORY_EVALUATION is toggled off at runtime the consumer must cancel its
   // ScheduledFuture; symmetric reschedule must fire on a poll-interval change. The previous

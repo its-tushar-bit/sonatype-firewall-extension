@@ -9,11 +9,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
-
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.common.exception.ExceptionHelper;
 import com.sonatype.insight.brain.dataaccess.continuousmonitoring.ContinuousMonitoringQueueItemDAO;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringFlowType;
 import com.sonatype.insight.brain.model.continuousmonitoring.ContinuousMonitoringQueueItem;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
+import com.sonatype.insight.brain.queue.AdjustableSemaphore;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -38,14 +38,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Poll-and-dispatch consumer for the unified continuous monitoring queue (CLM-40039 §6.2).
- * Each tenant gets its own {@link TenantVirtualThreadExecutor} and {@link Semaphore} via the
- * abstract base's {@code TenantReference} machinery; the semaphore's permit count equals
+ * Each tenant gets its own {@link TenantVirtualThreadExecutor} and {@link AdjustableSemaphore} via
+ * the abstract base's {@code TenantReference} machinery; the semaphore's permit count equals
  * {@code continuousMonitoringWorkerThreads} and gates how many jobs are in flight per tenant.
  * <p>
- * Retry budget is read from system-configuration properties on every poll so runtime tuning
- * takes effect without a restart. Worker thread count requires a server restart (the semaphore
- * is constructed once at tenant registration time). On each poll tick the consumer acquires one
- * pending parent row for the {@code HOSTED_REPO} flow per design §6.2, dispatches it to a
+ * All three live-tuning knobs take effect without a server restart, but via two different
+ * mechanisms:
+ * <ul>
+ * <li>{@code continuousMonitoringWorkerThreads} and {@code continuousMonitoringPollIntervalMs}
+ * require an active {@link ConfigurationListener} event because they reshape the semaphore /
+ * reschedule the future. Their property names are listed in
+ * {@link #configurationChanged(java.util.Set)} so a write to either fires the listener path.</li>
+ * <li>{@code continuousMonitoringTickBatchSize} and {@code continuousMonitoringIdleBackoffMs} are
+ * read fresh from {@link #configuration} on every scheduler tick / drain-loop iteration, so a
+ * write to either is picked up automatically by the next tick — no listener event is needed and
+ * they are deliberately absent from {@link #configurationChanged(java.util.Set)}'s guard.</li>
+ * </ul>
+ * <p>
+ * On each poll tick the consumer acquires one pending parent row for the
+ * {@code HOSTED_REPO} flow per design §6.2, dispatches it to a
  * {@link ContinuousMonitoringFlowProcessor}, and applies the framework retry policy (§7.1) on
  * failure: transient throwables under the retry limit go back to PENDING via {@code markRetry};
  * non-retryable throwables and retry-exhausted items are deleted from the queue.
@@ -76,6 +87,16 @@ public class RepositoryEvaluationQueueConsumer
    * scan path with very different latency expectations.
    */
   static final long DEFAULT_POLL_INTERVAL_MS = 300_000L;
+
+  /**
+   * Default rows acquired per scheduler tick to seed idle drain-workers. Should be
+   * {@code >= DEFAULT_WORKER_THREADS} so a cold-start tick can saturate all idle workers in one
+   * round-trip without leaving permits idle until the next tick.
+   */
+  static final int DEFAULT_TICK_BATCH_SIZE = 8;
+
+  /** Default drain-worker idle-backoff. 0 = exit immediately on first empty self-poll. */
+  static final long DEFAULT_IDLE_BACKOFF_MS = 0L;
 
   private static final Logger log = LoggerFactory.getLogger(RepositoryEvaluationQueueConsumer.class);
 
@@ -108,7 +129,7 @@ public class RepositoryEvaluationQueueConsumer
   {
     super(NAME, shutdownHandler,
         () -> createWorkerExecutor(meterRegistry),
-        () -> new Semaphore(readWorkerThreads(configuration)));
+        () -> new AdjustableSemaphore(readWorkerThreads(configuration)));
     this.queueDAO = queueDAO;
     this.processorsByFlow = indexByFlow(flowProcessors);
     this.configuration = configuration;
@@ -152,19 +173,21 @@ public class RepositoryEvaluationQueueConsumer
   private static final int DEFAULT_MAX_RETRIES = 3;
 
   /**
-   * Reads {@code continuousMonitoringWorkerThreads} from configuration with a defense-in-depth
-   * floor (CLM-40971). The REST API enforces {@code [1, 64]} via {@link ConfigurationProperty},
-   * but a value sourced directly from the DB (backup restore, manual UPDATE, partial migration)
-   * could still be 0 or negative — which would zero out the semaphore permit count and silently
-   * stop all dispatch. Falls back to {@link #DEFAULT_WORKER_THREADS} with a WARN if that happens.
+   * Reads {@code continuousMonitoringWorkerThreads} from configuration with defense-in-depth
+   * range enforcement. The REST API enforces {@code [1, 64]} via
+   * {@link ConfigurationProperty}, but values sourced directly from the DB (backup restore,
+   * manual UPDATE, partial migration) could be 0/negative/excessive — which would either zero
+   * out the semaphore permit count (silently stopping all dispatch) or spawn an unreasonable
+   * number of virtual threads. Falls back to {@link #DEFAULT_WORKER_THREADS} with a WARN if
+   * the value is outside {@code [1, 64]}.
    */
   private static int readWorkerThreads(final Configuration configuration) {
     Integer value = configuration.getContinuousMonitoringWorkerThreads();
     if (value == null) {
       return DEFAULT_WORKER_THREADS;
     }
-    if (value <= 0) {
-      log.warn("continuousMonitoringWorkerThreads={} is invalid (must be > 0); falling back to default {}",
+    if (value < 1 || value > 64) {
+      log.warn("continuousMonitoringWorkerThreads={} is outside [1, 64]; falling back to default {}",
           value, DEFAULT_WORKER_THREADS);
       return DEFAULT_WORKER_THREADS;
     }
@@ -203,6 +226,19 @@ public class RepositoryEvaluationQueueConsumer
   @Override
   protected List<ContinuousMonitoringQueueItem> acquireJobs(final int limit) {
     return queueDAO.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, workerId, limit);
+  }
+
+  /**
+   * Per-worker drain-loop acquire. Called by each drain-worker after it finishes a
+   * record to fetch the next one without waiting for the scheduler tick. Single-row {@code LIMIT 1}
+   * acquire: keeps the crash blast radius at one row and spreads MTIQ pod load smoothly via
+   * {@code FOR UPDATE SKIP LOCKED}.
+   */
+  @Override
+  protected Optional<ContinuousMonitoringQueueItem> acquireOneMore() {
+    List<ContinuousMonitoringQueueItem> one =
+        queueDAO.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, workerId, 1);
+    return one.isEmpty() ? Optional.empty() : Optional.of(one.get(0));
   }
 
   @Override
@@ -378,6 +414,61 @@ public class RepositoryEvaluationQueueConsumer
     return value;
   }
 
+  /**
+   * Rows acquired per scheduler tick to seed idle drain-workers in one round-trip.
+   * Read fresh on every tick via the abstract base; a runtime ConfigurationListener flip on
+   * {@code continuousMonitoringTickBatchSize} takes effect on the very next tick with no
+   * reschedule.
+   */
+  @Override
+  protected int getTickBatchSize() {
+    return readTickBatchSize(configuration);
+  }
+
+  /**
+   * Reads {@code continuousMonitoringTickBatchSize} with defense-in-depth fallback.
+   * REST validates {@code [1, 256]}; DB-injected out-of-range values fall back to the default.
+   */
+  static int readTickBatchSize(final Configuration configuration) {
+    Integer value = configuration.getContinuousMonitoringTickBatchSize();
+    if (value == null) {
+      return DEFAULT_TICK_BATCH_SIZE;
+    }
+    if (value < 1 || value > 256) {
+      log.warn("continuousMonitoringTickBatchSize={} is outside [1, 256]; falling back to default {}",
+          value, DEFAULT_TICK_BATCH_SIZE);
+      return DEFAULT_TICK_BATCH_SIZE;
+    }
+    return value;
+  }
+
+  /**
+   * Drain-worker idle-backoff in milliseconds. Read fresh on each drain-loop
+   * iteration; non-zero values let a worker linger briefly to absorb a near-empty trickle before
+   * exit.
+   */
+  @Override
+  protected long getIdleBackoffMs() {
+    return readIdleBackoffMs(configuration);
+  }
+
+  /**
+   * Reads {@code continuousMonitoringIdleBackoffMs} with defense-in-depth fallback.
+   * REST validates {@code [0, 10_000]}; DB-injected out-of-range values fall back to the default.
+   */
+  static long readIdleBackoffMs(final Configuration configuration) {
+    Integer value = configuration.getContinuousMonitoringIdleBackoffMs();
+    if (value == null) {
+      return DEFAULT_IDLE_BACKOFF_MS;
+    }
+    if (value < 0 || value > 10_000) {
+      log.warn("continuousMonitoringIdleBackoffMs={} is outside [0, 10_000]; falling back to default {}ms",
+          value, DEFAULT_IDLE_BACKOFF_MS);
+      return DEFAULT_IDLE_BACKOFF_MS;
+    }
+    return value;
+  }
+
   @Override
   protected int getMaxRetries() {
     return retryPolicy.maxRetries();
@@ -416,6 +507,9 @@ public class RepositoryEvaluationQueueConsumer
    */
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
+    // tickBatchSize and idleBackoffMs are intentionally not handled here: the getTickBatchSize() /
+    // getIdleBackoffMs() overrides read fresh from configCache on every tick / iteration, so a live
+    // flip takes effect on the next dispatch with no reschedule needed.
     if (!propertyNames.contains(SystemConfigurationProperty.HOSTED_REPOSITORY_EVALUATION)
         && !propertyNames.contains(SystemConfigurationProperty.CONTINUOUS_MONITORING_WORKER_THREADS)
         && !propertyNames.contains(SystemConfigurationProperty.CONTINUOUS_MONITORING_POLL_INTERVAL_MS))

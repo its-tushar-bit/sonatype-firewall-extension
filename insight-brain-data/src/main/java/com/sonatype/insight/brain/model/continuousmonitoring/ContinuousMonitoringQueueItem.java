@@ -23,8 +23,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * JPA entity for the shared continuous monitoring queue. Holds only flow-agnostic execution
- * state (status, priority, retry, worker, timestamps); per-flow identity columns live in the
- * corresponding satellite table (e.g. {@code continuous_monitoring_hosted_repo_item}).
+ * state (status, retry, worker, timestamps); per-flow identity columns live in the corresponding
+ * satellite table (e.g. {@code continuous_monitoring_hosted_repo_item}).
+ * <p>
+ * <strong>Note on the {@code priority} column:</strong> the consumer's acquire query orders by
+ * {@code (create_time ASC, id ASC)} only — strict FIFO. The {@code priority} column is retained
+ * as {@code NOT NULL} for schema stability (callers must supply a value at insert time), and
+ * producers write {@link #DEFAULT_PRIORITY}. New flows should follow this convention rather than
+ * reintroduce per-row priorities.
  */
 @Entity
 @Table(name = "continuous_monitoring_queue")
@@ -76,6 +82,15 @@ public class ContinuousMonitoringQueueItem
   public ContinuousMonitoringQueueItem() {
   }
 
+  /**
+   * @param priority should be {@link #DEFAULT_PRIORITY}. The consumer's acquire query ignores
+   *          {@code priority} and orders strictly by {@code (create_time ASC, id ASC)}; the column
+   *          is retained NOT NULL only for schema stability. Non-default values do not affect
+   *          ordering but should not be set by production producers. The constructor does NOT
+   *          reject non-default values because regression-guard tests intentionally insert rows
+   *          with varied priority values to prove the column is ignored. New flow producers
+   *          should always pass {@code DEFAULT_PRIORITY}.
+   */
   public ContinuousMonitoringQueueItem(
       final String id,
       final ContinuousMonitoringFlowType flowType,

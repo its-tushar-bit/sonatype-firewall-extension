@@ -9,3 +9,4 @@ schema_incremental_0469.pg.sql
 schema_incremental_0470.pg.sql
 schema_incremental_0471.pg.sql
 schema_incremental_0472.pg.sql
+schema_incremental_0473.pg.sql

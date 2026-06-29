@@ -119,21 +119,11 @@ public class ContinuousMonitoringQueueItemDAOTest
   }
 
   @Test
-  public void testAcquirePending_ordersByPriorityDesc() {
-    String low = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 1L).getId();
-    String high = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-B", 100L).getId();
-
-    List<ContinuousMonitoringQueueItem> acquired =
-        dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 10);
-
-    // higher priority first
-    assertThat(acquired).extracting(ContinuousMonitoringQueueItem::getId).containsExactly(high, low);
-  }
-
-  @Test
-  public void testAcquirePending_ordersByCreateTimeAscWhenPriorityEqual() {
-    // Insert items with same priority but pinned create_time values to make ordering
-    // deterministic (avoids Thread.sleep flake under low-resolution clocks / loaded CI).
+  public void testAcquirePending_ordersByCreateTimeAscFifo() {
+    // Strict FIFO: rows are returned in the order they entered the queue (create_time ASC),
+    // regardless of any per-row priority value the producer might have written. The priority
+    // column is vestigial (NOT NULL for schema stability) and no longer participates in ordering.
+    // Pinned create_time values keep the assertion deterministic on low-resolution clocks.
     long base = 1_700_000_000_000L;
     String first = tempEntity
         .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 50L, new java.util.Date(base))
@@ -148,8 +138,78 @@ public class ContinuousMonitoringQueueItemDAOTest
     List<ContinuousMonitoringQueueItem> acquired =
         dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 10);
 
-    // Same priority → FIFO order (earlier create_time first)
     assertThat(acquired).extracting(ContinuousMonitoringQueueItem::getId).containsExactly(first, second, third);
+  }
+
+  @Test
+  public void testAcquirePending_higherPriorityDoesNotJumpAheadOfOlderEntry() {
+    // Regression guard against the previous behavior where ORDER BY priority DESC could let a
+    // newer high-priority row leapfrog an older low-priority row already waiting. With strict
+    // FIFO ordering the older entry must always come first regardless of priority value.
+    long base = 1_700_000_000_000L;
+    String olderLowPriority = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 1L, new java.util.Date(base))
+        .getId();
+    String newerHighPriority = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-B", 100L, new java.util.Date(base + 100))
+        .getId();
+
+    List<ContinuousMonitoringQueueItem> acquired =
+        dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 10);
+
+    assertThat(acquired).extracting(ContinuousMonitoringQueueItem::getId)
+        .containsExactly(olderLowPriority, newerHighPriority);
+  }
+
+  @Test
+  public void testAcquirePending_breaksCreateTimeTiesByIdAscDeterministically() {
+    // Within one producer cycle every row shares the cycle's start instant as its create_time, so
+    // without a stable tiebreaker the DB would pick an arbitrary order for the page (Postgres
+    // uses CTID; H2 is unspecified). The acquire ORDER BY falls through to id ASC. Insert several
+    // rows with the SAME create_time and assert the returned IDs are sorted ascending.
+    java.util.Date tiedTime = new java.util.Date(1_700_000_000_000L);
+    for (int i = 0; i < 5; i++) {
+      tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-" + i, 0L, tiedTime);
+    }
+
+    List<ContinuousMonitoringQueueItem> acquired =
+        dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 10);
+
+    assertThat(acquired).hasSize(5);
+    List<String> ids = acquired.stream().map(ContinuousMonitoringQueueItem::getId).toList();
+    // Lexicographic UUID sort — that is what ORDER BY id ASC on a varchar PK produces. The
+    // tiebreaker is intentionally id-order, not insertion-order; within-cycle ordering is
+    // documented as deterministic-but-unspecified on RepositoryEvaluationQueueProducerJob.
+    assertThat(ids).isSortedAccordingTo(java.util.Comparator.naturalOrder());
+  }
+
+  @Test
+  public void testAcquirePending_carryOverFromPreviousCycleIsDrainedBeforeNewlyEnqueuedRows() {
+    // Multi-cycle scenario from CLM-41691: a previous cycle enqueued rows that are still PENDING
+    // when the next cycle fires and adds more. The leftover rows from the older cycle must be
+    // drained first — newly arriving rows must never starve them.
+    long base = 1_700_000_000_000L;
+    String previousCycleA = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-prev-A", 0L, new java.util.Date(base))
+        .getId();
+    String previousCycleB = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-prev-B", 0L, new java.util.Date(base + 10))
+        .getId();
+    // Newer cycle (simulated by a later create_time) drops two more rows in front.
+    String newCycleC = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-new-C", 0L,
+            new java.util.Date(base + 1_000_000L))
+        .getId();
+    String newCycleD = tempEntity
+        .newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-new-D", 0L,
+            new java.util.Date(base + 1_000_010L))
+        .getId();
+
+    List<ContinuousMonitoringQueueItem> acquired =
+        dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 10);
+
+    assertThat(acquired).extracting(ContinuousMonitoringQueueItem::getId)
+        .containsExactly(previousCycleA, previousCycleB, newCycleC, newCycleD);
   }
 
   @Test
@@ -216,6 +276,83 @@ public class ContinuousMonitoringQueueItemDAOTest
 
     assertThat(deleted).isZero();
     assertThat(dao.getById(id)).isNotNull();
+  }
+
+  @Test
+  public void testDeleteById_preventsRollingRestartDoubleExecution() {
+    // Scenario the M7 ownership guard exists to prevent: worker-A acquires the row, then the
+    // node restarts (resetInProgressToPending moves the row back to PENDING with no worker),
+    // worker-B acquires the now-PENDING row, and the stale worker-A wakes up and tries to
+    // dispose of "its" row. The guard must return 0 rows deleted and leave worker-B's row alone.
+    String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", 10);
+    // Simulate a rolling restart of worker-A's node — the row returns to PENDING.
+    dao.resetInProgressToPending("worker-A");
+    // Worker-B picks it up on the next poll.
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-B", 10);
+
+    // Stale worker-A tries to delete: rejected.
+    int deletedByA = dao.deleteById(id, "worker-A");
+    assertThat(deletedByA).isZero();
+    // Row still owned by worker-B.
+    ContinuousMonitoringQueueItem stillOwned = dao.getById(id);
+    assertThat(stillOwned).isNotNull();
+    assertThat(stillOwned.getWorkerId()).isEqualTo("worker-B");
+    assertThat(stillOwned.getStatus()).isEqualTo(ContinuousMonitoringQueueItem.STATUS_IN_PROGRESS);
+
+    // Worker-B can still delete its own row.
+    assertThat(dao.deleteById(id, "worker-B")).isEqualTo(1);
+    assertThat(dao.getById(id)).isNull();
+  }
+
+  @Test
+  public void testUnacquire_transitionsToPendingWithoutIncrementingRetryCount() {
+    // unacquire() is the worker-shutdown signal path: the job did not fail, the worker just
+    // got interrupted. The row must go back to PENDING with worker_id cleared, but retry_count
+    // MUST NOT be incremented (bumping it for an interrupt would let 3 rolling restarts
+    // permanently delete a healthy job — see the Javadoc on unacquire).
+    String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", 10);
+    int retryBefore = dao.getById(id).getRetryCount();
+
+    int updated = dao.unacquire(id);
+
+    assertThat(updated).isEqualTo(1);
+    ContinuousMonitoringQueueItem reread = dao.getById(id);
+    assertThat(reread.getStatus()).isEqualTo(ContinuousMonitoringQueueItem.STATUS_PENDING);
+    assertThat(reread.getWorkerId()).isNull();
+    assertThat(reread.getAcquiredAt()).isNull();
+    assertThat(reread.getRetryCount()).isEqualTo(retryBefore);
+  }
+
+  @Test
+  public void testUnacquire_returnsZeroForNonExistentRow() {
+    // Defensive contract: unacquire of a missing id is a no-op, not an exception. The caller
+    // logs and moves on (the row may have been deleted by another worker between the worker's
+    // acquire and its interrupt-handling).
+    int updated = dao.unacquire(UUID.randomUUID().toString());
+    assertThat(updated).isZero();
+  }
+
+  @Test
+  public void testUnacquire_preservesExistingRetryCount() {
+    // Even after a prior failure has incremented retry_count, an interrupt-driven unacquire
+    // leaves the count alone. Distinguishes shutdown signals from real failures.
+    String id = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 0L).getId();
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", 10);
+    // Simulate one failed attempt — retry_count bumps to 1, row goes back to PENDING.
+    dao.markRetry(id, "transient");
+    // Now reacquire and unacquire (the interrupt path).
+    dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-A", 10);
+
+    int updated = dao.unacquire(id);
+
+    assertThat(updated).isEqualTo(1);
+    ContinuousMonitoringQueueItem reread = dao.getById(id);
+    assertThat(reread.getStatus()).isEqualTo(ContinuousMonitoringQueueItem.STATUS_PENDING);
+    assertThat(reread.getWorkerId()).isNull();
+    assertThat(reread.getRetryCount()).isEqualTo(1);
   }
 
   @Test
@@ -289,8 +426,14 @@ public class ContinuousMonitoringQueueItemDAOTest
   @Test
   public void testResetInProgressToPending_isScopedByWorkerId() {
     // Two workers each acquire one row; reset under worker-1 must not touch worker-2's row.
-    String idA = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 100L).getId();
-    String idB = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-B", 50L).getId();
+    // Use distinct create_time values so the consumer's FIFO order is deterministic — without
+    // this, the random UUID tiebreaker decides which row goes to which worker and the assertion
+    // below cannot pin "idA" to worker-1.
+    long base = 1_700_000_000_000L;
+    String idA = tempEntity.newContinuousMonitoringHostedRepoQueueItem(
+        "repo-1", "hash-A", 100L, new java.util.Date(base)).getId();
+    String idB = tempEntity.newContinuousMonitoringHostedRepoQueueItem(
+        "repo-1", "hash-B", 50L, new java.util.Date(base + 1000)).getId();
 
     dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-1", 1);
     dao.acquirePending(ContinuousMonitoringFlowType.HOSTED_REPO, "worker-2", 1);
@@ -298,11 +441,11 @@ public class ContinuousMonitoringQueueItemDAOTest
     int reset = dao.resetInProgressToPending("worker-1");
 
     assertThat(reset).isEqualTo(1);
-    // Worker-1's row went back to PENDING with worker_id cleared.
+    // Worker-1 picked up the older idA (FIFO); reset returns it to PENDING.
     ContinuousMonitoringQueueItem rereadA = dao.getById(idA);
     assertThat(rereadA.getStatus()).isEqualTo(ContinuousMonitoringQueueItem.STATUS_PENDING);
     assertThat(rereadA.getWorkerId()).isNull();
-    // Worker-2's row was NOT touched — still IN_PROGRESS, still owned by worker-2.
+    // Worker-2 picked up the newer idB — must NOT be touched by worker-1's reset.
     ContinuousMonitoringQueueItem rereadB = dao.getById(idB);
     assertThat(rereadB.getStatus()).isEqualTo(ContinuousMonitoringQueueItem.STATUS_IN_PROGRESS);
     assertThat(rereadB.getWorkerId()).isEqualTo("worker-2");
@@ -334,11 +477,13 @@ public class ContinuousMonitoringQueueItemDAOTest
    */
   @Test
   public void testAcquirePending_contention_h2() throws Exception {
-    String first = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 100L,
+    // Insert three rows in strict create_time order. Priority values vary but should not affect
+    // the order — acquirePending must return them in pure create_time ASC (FIFO).
+    String first = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-A", 50L,
         new java.util.Date(1_700_000_000_000L)).getId();
-    String second = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-B", 50L,
+    String second = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-B", 100L,
         new java.util.Date(1_700_000_000_000L + 100)).getId();
-    String third = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-C", 50L,
+    String third = tempEntity.newContinuousMonitoringHostedRepoQueueItem("repo-1", "hash-C", 1L,
         new java.util.Date(1_700_000_000_000L + 200)).getId();
 
     CountDownLatch tableLockAcquired = new CountDownLatch(1);
@@ -383,8 +528,8 @@ public class ContinuousMonitoringQueueItemDAOTest
     lockingThread.join(5000);
     workerThread.join(5000);
 
-    // Worker should have acquired all three rows, in priority/create-time order
-    // (priority DESC = 100 first, then ties broken by create_time ASC).
+    // Worker should have acquired all three rows in strict create_time ASC (FIFO) order,
+    // regardless of the varying priority values used at insert time.
     assertThat(acquiredHolder[0]).hasSize(3)
         .extracting(ContinuousMonitoringQueueItem::getId)
         .containsExactly(first, second, third);

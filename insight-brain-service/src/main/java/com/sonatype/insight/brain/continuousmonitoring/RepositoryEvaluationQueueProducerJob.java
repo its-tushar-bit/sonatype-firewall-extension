@@ -29,10 +29,22 @@ import static com.sonatype.insight.brain.jooq.generated.ods.tables.ContinuousMon
 /**
  * Continuous monitoring producer for the Hosted Repo flow (CLM-40039 Section 6.1). Runs once per
  * Quartz fire and pages through monitoring-enabled hosted-repo components, enqueueing them as
- * parent + satellite rows newest-first by orchestrating
- * {@link ContinuousMonitoringQueueItemDAO} and {@link ContinuousMonitoringHostedRepoItemDAO}
- * inside a single transaction (insert parents, insert satellites with ignore-duplicate-key,
- * delete orphan parents whose satellite was deduped on the natural-key UNIQUE).
+ * parent + satellite rows by orchestrating {@link ContinuousMonitoringQueueItemDAO} and
+ * {@link ContinuousMonitoringHostedRepoItemDAO} inside a single transaction (insert parents,
+ * insert satellites with ignore-duplicate-key, delete orphan parents whose satellite was deduped
+ * on the natural-key UNIQUE). The consumer drains rows in strict FIFO order by
+ * {@code create_time ASC}, so the producer no longer assigns per-row priorities — every parent
+ * row is written with {@link ContinuousMonitoringQueueItem#DEFAULT_PRIORITY}. The natural-key UNIQUE
+ * on the satellite table guarantees a component already PENDING or IN_PROGRESS is silently
+ * deduped on the next cycle, so its place in line is preserved.
+ * <p>
+ * <strong>Ordering semantics:</strong> Every row inserted during a single producer cycle shares
+ * the same {@code cycleStart} timestamp, so within one cycle the consumer's
+ * {@code ORDER BY create_time ASC, id ASC} falls through to the ID tiebreaker — within-cycle
+ * ordering is therefore deterministic but unrelated to the eligibility selector's emission order.
+ * Across cycles, an older cycle's PENDING rows always drain before any row from a newer cycle.
+ * This matches the contract that the age of an item in the queue is the only thing that affects
+ * its position.
  * Gated on {@link SystemConfigurationPropertyFeature#HOSTED_REPOSITORY_EVALUATION}.
  * <p>
  * <strong>Admin Task Endpoint Rename:</strong> The legacy {@code HostedRepositoryMonitorScheduler}
@@ -73,11 +85,6 @@ public class RepositoryEvaluationQueueProducerJob
     return eligibilitySelector;
   }
 
-  @Override
-  protected OrderingStrategy getOrderingStrategy() {
-    return OrderingStrategy.newestFirst();
-  }
-
   /**
    * Hosted-repo flow uses a fixed page size of {@value #DEFAULT_ELIGIBILITY_PAGE_SIZE}; the
    * abstract base's "operator-tunable" wording on {@code getEligibilityPageSize()} is the contract
@@ -96,11 +103,7 @@ public class RepositoryEvaluationQueueProducerJob
   }
 
   @Override
-  protected int enqueueBatch(
-      final List<RepositoryComponent> candidates,
-      final List<Long> priorities,
-      final Instant cycleStart)
-  {
+  protected int enqueueBatch(final List<RepositoryComponent> candidates, final Instant cycleStart) {
     List<ContinuousMonitoringQueueItem> parents = new ArrayList<>(candidates.size());
     List<ContinuousMonitoringHostedRepoItem> satellites = new ArrayList<>(candidates.size());
     List<String> parentIds = new ArrayList<>(candidates.size());
@@ -110,7 +113,7 @@ public class RepositoryEvaluationQueueProducerJob
       parents.add(new ContinuousMonitoringQueueItem(
           queueId,
           ContinuousMonitoringFlowType.HOSTED_REPO,
-          priorities.get(i),
+          ContinuousMonitoringQueueItem.DEFAULT_PRIORITY,
           Date.from(cycleStart)));
       satellites.add(new ContinuousMonitoringHostedRepoItem(
           queueId,

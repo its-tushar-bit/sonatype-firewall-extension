@@ -133,8 +133,10 @@ public class RepositoryEvaluationQueueProducerJobTest
     assertThat(parents.get(0).getFlowType()).isEqualTo(ContinuousMonitoringFlowType.HOSTED_REPO);
     assertThat(parents.get(1).getFlowType()).isEqualTo(ContinuousMonitoringFlowType.HOSTED_REPO);
 
-    // newest-first: priority strictly decreases across the page
-    assertThat(parents.get(0).getPriority()).isGreaterThan(parents.get(1).getPriority());
+    // FIFO ordering: every parent row carries the model's DEFAULT_PRIORITY (the consumer orders
+    // strictly by create_time ASC; the priority column is vestigial but NOT NULL).
+    assertThat(parents.get(0).getPriority()).isEqualTo(ContinuousMonitoringQueueItem.DEFAULT_PRIORITY);
+    assertThat(parents.get(1).getPriority()).isEqualTo(ContinuousMonitoringQueueItem.DEFAULT_PRIORITY);
 
     // Satellite IDs match parent IDs and carry the natural key forward
     assertThat(satellites.get(0).getQueueId()).isEqualTo(parents.get(0).getId());

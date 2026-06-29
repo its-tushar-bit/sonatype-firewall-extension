@@ -800,13 +800,24 @@ public abstract class AbstractPollDispatchQueueConsumer<T>
    * {@link UncheckedInterruptedException}), nested in its cause or suppressed chain (a flow
    * processor wrapping {@code InterruptedException} in its own {@code RuntimeException}), or
    * indirectly via the current thread's interrupt flag (caller interrupted us between calls but
-   * the thrown exception is unrelated). {@link Thread#interrupted()} clears the flag, so the
-   * callers must re-set it via {@code Thread.currentThread().interrupt()} before returning.
+   * the thrown exception is unrelated). {@link Thread#interrupted()} clears the flag as a side
+   * effect; this helper immediately restores it on the true branch, and callers additionally
+   * call {@code Thread.currentThread().interrupt()} for redundancy.
    */
   private static boolean isShutdownSignal(final RuntimeException e) {
-    return e instanceof UncheckedInterruptedException
-        || ExceptionHelper.hasCauseOrSuppressedOfType(e, InterruptedException.class)
-        || Thread.interrupted();
+    if (e instanceof UncheckedInterruptedException
+        || ExceptionHelper.hasCauseOrSuppressedOfType(e, InterruptedException.class))
+    {
+      return true;
+    }
+    // Thread.interrupted() has a side effect: it clears the interrupt flag. Restore it
+    // immediately so the flag remains observable to any subsequent isInterrupted() check in
+    // this thread between this helper returning and the caller's own interrupt() restoration.
+    if (Thread.interrupted()) {
+      Thread.currentThread().interrupt();
+      return true;
+    }
+    return false;
   }
 
   public void cleanup() {

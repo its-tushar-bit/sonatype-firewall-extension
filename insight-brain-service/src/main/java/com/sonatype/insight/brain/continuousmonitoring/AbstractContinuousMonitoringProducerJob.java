@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Quartz-driven producer that runs one continuous monitoring cycle per fire (CLM-40039,
  * Section 6.1). Knows nothing about specific flows: subclasses plug in an
- * {@link EligibilitySelector}, an {@link OrderingStrategy}, and a flow-specific
+ * {@link EligibilitySelector} and a flow-specific
  * {@link #enqueueBatch} that inserts the parent queue row + per-flow satellite row in one
  * transaction with dedup.
  * <p>
@@ -71,9 +71,6 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
 
   /** Selector returning eligible candidates for this flow. */
   protected abstract EligibilitySelector<T> getEligibilitySelector();
-
-  /** Ordering strategy for assigning {@code priority} to candidates as they are emitted. */
-  protected abstract OrderingStrategy getOrderingStrategy();
 
   /** Number of candidates fetched per page. Operator-tunable; design default 1000. */
   protected abstract int getEligibilityPageSize();
@@ -130,20 +127,16 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
 
   /**
    * Inserts a batch of parent queue rows + per-flow satellite rows in a single transaction with
-   * dedup-on-natural-key (subclass owns the DAO call).
-   * <p>
-   * <strong>Invariant:</strong> {@code priorities.size() == candidates.size()} and aligned 1:1 —
-   * {@code priorities.get(i)} is the priority for {@code candidates.get(i)}. The framework
-   * computes priorities from {@code page.size()} via {@link OrderingStrategy} so the alignment
-   * always holds; subclasses iterate the two lists in lock-step or zip them into satellite rows
-   * and rely on this invariant.
+   * dedup-on-natural-key (subclass owns the DAO call). The framework guarantees strict FIFO
+   * ordering at the consumer (acquire orders rows by {@code create_time ASC}), so the producer
+   * does not assign per-row priorities — newer pages always land behind older pages, and within
+   * a page they tie on {@code create_time} which the database breaks deterministically.
    *
    * @param candidates the page being enqueued (size up to {@link #getEligibilityPageSize()})
-   * @param priorities priority assignments aligned 1:1 with {@code candidates} (same size)
    * @param cycleStart cycle anchor — implementations may persist this on the parent row
    * @return number of parent rows actually inserted (post-dedup)
    */
-  protected abstract int enqueueBatch(List<T> candidates, List<Long> priorities, Instant cycleStart);
+  protected abstract int enqueueBatch(List<T> candidates, Instant cycleStart);
 
   /**
    * Subclass-supplied descriptive name for log lines and the
@@ -241,7 +234,7 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
     // 1. MDCUsernameScope.forSystem() is on the stack while runCycle runs (consistent with all
     // other Quartz-fired jobs in this codebase — log lines carry the system username MDC).
     // 2. Any Throwable that escapes runCycle (including from the abstract-method calls outside
-    // runCycle's own try blocks: isEnabled, getEligibilitySelector, getOrderingStrategy,
+    // runCycle's own try blocks: isEnabled, getEligibilitySelector,
     // getEligibilityPageSize) is logged at ERROR before Quartz sees it.
     execute(() -> {
       CycleResult result = runCycle();
@@ -280,7 +273,6 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
       return CycleResult.aborted(0, "non-positive pageSize " + pageSize);
     }
     EligibilitySelector<T> selector = getEligibilitySelector();
-    OrderingStrategy ordering = getOrderingStrategy();
 
     int totalEnqueued = 0;
     long totalConsidered = 0;
@@ -316,10 +308,9 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
         break;
       }
       List<T> rows = page.rows();
-      List<Long> priorities = computePriorities(ordering, totalConsidered, rows.size());
       int inserted;
       try {
-        inserted = enqueueBatch(rows, priorities, cycleStart);
+        inserted = enqueueBatch(rows, cycleStart);
       }
       catch (RuntimeException e) {
         // ERROR for the same reason as the selector catch above (CLM-40971): enqueue failures
@@ -343,17 +334,5 @@ public abstract class AbstractContinuousMonitoringProducerJob<T>
 
   private static String cursorLogTag(final EligibilityCursor cursor) {
     return cursor == null ? "<start>" : cursor.encode();
-  }
-
-  private static List<Long> computePriorities(
-      final OrderingStrategy ordering,
-      final long positionInCycleStart,
-      final int pageSize)
-  {
-    Long[] result = new Long[pageSize];
-    for (int i = 0; i < pageSize; i++) {
-      result[i] = ordering.priorityFor(positionInCycleStart + i);
-    }
-    return List.of(result);
   }
 }

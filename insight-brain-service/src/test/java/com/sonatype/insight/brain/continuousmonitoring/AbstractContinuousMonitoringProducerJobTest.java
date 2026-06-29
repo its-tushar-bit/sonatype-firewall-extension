@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Unit tests for {@link AbstractContinuousMonitoringProducerJob#runCycle} (CLM-40039 §6.1,
  * CLM-41005 keyset). Covers paginated cycle, abort-on-failure (§7.4), feature-flag gate,
- * cursor-advance semantics, priority computation alignment with {@link OrderingStrategy},
+ * cursor-advance semantics,
  * admin-task output, and the Quartz contract annotations
  * ({@link org.quartz.DisallowConcurrentExecution} + {@link MtiqBatchJob}).
  */
@@ -163,24 +163,6 @@ public class AbstractContinuousMonitoringProducerJobTest
     // running. The operator-visible signal is the log line, not an exception.
     assertThat(AbstractContinuousMonitoringProducerJob.parseSafetyNetMaxCyclePages("not-a-number"))
         .isEqualTo(AbstractContinuousMonitoringProducerJob.DEFAULT_SAFETY_NET_MAX_CYCLE_PAGES);
-  }
-
-  @Test
-  public void testRunCycle_newestFirstPriorityDecreasesAcrossPages() {
-    StubProducerJob job = new StubProducerJob();
-    job.pageSize = 2;
-    job.ordering = OrderingStrategy.newestFirst();
-    job.selector = new RecordingSelector(List.of(
-        new Page<>(List.of(10L, 20L), CURSOR_AFTER_2, true),
-        new Page<>(List.of(30L), null, false)));
-    job.runCycle();
-    List<Long> page0Priorities = job.enqueuedBatches.get(0).priorities;
-    List<Long> page1Priorities = job.enqueuedBatches.get(1).priorities;
-    // newestFirst() assigns the highest priority to the first candidate; priorities therefore
-    // decrease monotonically as position grows. A consumer's ORDER BY priority DESC then dispatches
-    // them newest-first.
-    assertThat(page0Priorities).containsExactly(Long.MAX_VALUE, Long.MAX_VALUE - 1);
-    assertThat(page1Priorities).containsExactly(Long.MAX_VALUE - 2);
   }
 
   @Test
@@ -355,13 +337,10 @@ public class AbstractContinuousMonitoringProducerJobTest
   {
     final List<Long> candidates;
 
-    final List<Long> priorities;
-
     final Instant cycleStart;
 
-    EnqueueCall(final List<Long> candidates, final List<Long> priorities, final Instant cycleStart) {
+    EnqueueCall(final List<Long> candidates, final Instant cycleStart) {
       this.candidates = candidates;
-      this.priorities = priorities;
       this.cycleStart = cycleStart;
     }
   }
@@ -377,8 +356,6 @@ public class AbstractContinuousMonitoringProducerJobTest
 
     EligibilitySelector<Long> selector = new RecordingSelector(List.of());
 
-    OrderingStrategy ordering = OrderingStrategy.fifo();
-
     final List<EnqueueCall> enqueuedBatches = new ArrayList<>();
 
     int failEnqueueAtBatch = -1;
@@ -392,11 +369,6 @@ public class AbstractContinuousMonitoringProducerJobTest
     @Override
     protected EligibilitySelector<Long> getEligibilitySelector() {
       return selector;
-    }
-
-    @Override
-    protected OrderingStrategy getOrderingStrategy() {
-      return ordering;
     }
 
     @Override
@@ -415,16 +387,12 @@ public class AbstractContinuousMonitoringProducerJobTest
     }
 
     @Override
-    protected int enqueueBatch(
-        final List<Long> candidates,
-        final List<Long> priorities,
-        final Instant cycleStart)
-    {
+    protected int enqueueBatch(final List<Long> candidates, final Instant cycleStart) {
       int batchIndex = enqueuedBatches.size();
       if (batchIndex == failEnqueueAtBatch) {
         throw new RuntimeException("forced enqueue failure");
       }
-      enqueuedBatches.add(new EnqueueCall(candidates, priorities, cycleStart));
+      enqueuedBatches.add(new EnqueueCall(candidates, cycleStart));
       return dedupReturnFor.getOrDefault(batchIndex, candidates.size());
     }
 

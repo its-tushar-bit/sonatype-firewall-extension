@@ -141,7 +141,10 @@ public class ContinuousMonitoringQueueItemDAO
         .selectFrom(CONTINUOUS_MONITORING_QUEUE)
         .where(CONTINUOUS_MONITORING_QUEUE.FLOW_TYPE.eq(flowType.name())
             .and(CONTINUOUS_MONITORING_QUEUE.STATUS.eq(ContinuousMonitoringQueueItem.STATUS_PENDING)))
-        .orderBy(CONTINUOUS_MONITORING_QUEUE.PRIORITY.desc(), CONTINUOUS_MONITORING_QUEUE.CREATE_TIME.asc())
+        // ID as secondary sort: every row in a single producer page shares one cycleStart
+        // create_time, so without a stable tiebreaker the DB would pick an arbitrary order for the
+        // page. ID is assigned per row at insert and is unique, giving deterministic ordering.
+        .orderBy(CONTINUOUS_MONITORING_QUEUE.CREATE_TIME.asc(), CONTINUOUS_MONITORING_QUEUE.ID.asc())
         .limit(limit)
         .forUpdate()
         .fetchInto(ContinuousMonitoringQueueItem.class);
@@ -186,7 +189,7 @@ public class ContinuousMonitoringQueueItemDAO
     // FOR UPDATE SKIP LOCKED subquery. The row locks taken during the inner SELECT (not any
     // CTE materialization) are what guarantee disjoint acquisition between concurrent workers.
     // The outer `updated` CTE exists only because UPDATE … RETURNING does not honor ORDER BY,
-    // so we wrap it to re-emit the rows in priority/create-time order.
+    // so we wrap it to re-emit the rows in strict FIFO order.
     Date now = new Date();
 
     var candidateSelect = tx.dsl()
@@ -194,7 +197,10 @@ public class ContinuousMonitoringQueueItemDAO
         .from(CONTINUOUS_MONITORING_QUEUE)
         .where(CONTINUOUS_MONITORING_QUEUE.FLOW_TYPE.eq(flowType.name())
             .and(CONTINUOUS_MONITORING_QUEUE.STATUS.eq(ContinuousMonitoringQueueItem.STATUS_PENDING)))
-        .orderBy(CONTINUOUS_MONITORING_QUEUE.PRIORITY.desc(), CONTINUOUS_MONITORING_QUEUE.CREATE_TIME.asc())
+        // ID as secondary sort: every row in a single producer page shares one cycleStart
+        // create_time, so without a stable tiebreaker the DB would pick an arbitrary order for
+        // the page (CTID on Postgres). ID is assigned per row at insert and is unique.
+        .orderBy(CONTINUOUS_MONITORING_QUEUE.CREATE_TIME.asc(), CONTINUOUS_MONITORING_QUEUE.ID.asc())
         .limit(limit)
         .forUpdate()
         .skipLocked();
@@ -213,8 +219,8 @@ public class ContinuousMonitoringQueueItemDAO
         .with(updated)
         .selectFrom(updated)
         .orderBy(
-            updated.field(CONTINUOUS_MONITORING_QUEUE.PRIORITY).desc(),
-            updated.field(CONTINUOUS_MONITORING_QUEUE.CREATE_TIME).asc())
+            updated.field(CONTINUOUS_MONITORING_QUEUE.CREATE_TIME).asc(),
+            updated.field(CONTINUOUS_MONITORING_QUEUE.ID).asc())
         .fetchInto(ContinuousMonitoringQueueItem.class);
   }
 

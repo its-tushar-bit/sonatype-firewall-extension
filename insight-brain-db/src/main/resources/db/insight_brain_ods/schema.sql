@@ -2500,6 +2500,6 @@ CREATE TABLE continuous_monitoring_hosted_repo_item (
 );
 CREATE INDEX continuous_monitoring_hosted_repo_item_repository_id_idx ON continuous_monitoring_hosted_repo_item(repository_id);
 CREATE INDEX continuous_monitoring_queue_acquired_at_idx ON continuous_monitoring_queue(acquired_at);
--- Note: continuous_monitoring_queue_flow_priority_* index is dialect-specific and lives in
+-- Note: continuous_monitoring_queue_flow_create_* index is dialect-specific and lives in
 -- schema_post_init_h2.sql (plain composite) and schema_post_init_postgres.sql (partial WHERE
 -- status='PENDING'), mirroring the policy_violation_app_stage_open_unfixed_idx precedent.

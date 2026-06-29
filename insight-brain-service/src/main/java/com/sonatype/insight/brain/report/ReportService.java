@@ -406,7 +406,16 @@ public class ReportService
       return true;
     }
     PolicyEvaluation pe = policyEvaluationDAO.getLastByApplicationIdAndScanId(appId, scanId);
-    return pe != null && ScanTriggerType.REPOSITORY_MANAGER == pe.getScanTriggerType();
+    // CLM-41693: Both REPOSITORY_MANAGER (historical hosted scan records) and
+    // HOSTED_REPOSITORY_SCANNING (new in v1.206) identify hosted repository scans.
+    // Existing records in customer databases pre-v1.206 will have REPOSITORY_MANAGER;
+    // we must continue to recognize them as hosted to preserve report rendering.
+    return pe != null && isHostedScanTriggerType(pe.getScanTriggerType());
+  }
+
+  private static boolean isHostedScanTriggerType(final ScanTriggerType scanTriggerType) {
+    return ScanTriggerType.HOSTED_REPOSITORY_SCANNING == scanTriggerType
+        || ScanTriggerType.REPOSITORY_MANAGER == scanTriggerType;
   }
 
   public void reevaluateHostedComponent(final String appId, final String scanId) {
@@ -670,7 +679,11 @@ public class ReportService
     metadata.setForMonitoring(evaluation.isForMonitoring());
     metadata.setBranchName(evaluation.getBranchName());
 
-    if (ScanTriggerType.REPOSITORY_MANAGER == evaluation.getScanTriggerType()) {
+    // CLM-41693: Use the repository-violation total-risk path for both REPOSITORY_MANAGER (historical
+    // hosted scan records) and HOSTED_REPOSITORY_SCANNING (new in v1.206). Falling through to the
+    // application-risk-score branch for new hosted scans would compute totalRisk from the wrong data
+    // source (DEVELOPER_DASHBOARD model vs. repository_policy_violation rows).
+    if (isHostedScanTriggerType(evaluation.getScanTriggerType())) {
       RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
       if (comp != null) {
         List<RepositoryPolicyViolation> violations =

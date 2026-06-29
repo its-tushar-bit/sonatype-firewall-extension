@@ -26,6 +26,7 @@ public enum ScanTriggerType
   SBOM_UI("SBOM Manager UI", true), //
   SBOM_API("SBOM Manager API", true), //
   SONATYPE_CONTAINER_IMAGE_SCANNER_API("Container Image Scanner API", true), //
+  HOSTED_REPOSITORY_SCANNING("Hosted Repository Scanning", true), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.
   // It should never be used in new code anywhere.
   UNKNOWN("Unknown", null);
@@ -58,6 +59,11 @@ public enum ScanTriggerType
     return internal;
   }
 
+  // Trigger types that represent SCM-internal scans triggered automatically by IQ, used by
+  // call sites that need to exclude these from user-initiated scan counts. Does not enumerate
+  // every value with internal=true (e.g. WEB_UI, HOSTED_REPOSITORY_SCANNING, SBOM_*) — those
+  // are user/system-initiated; `internal` here historically meant SCM-internal specifically.
+  //
   // TODO: check if this can be refactored to use `isInternal` see CLM-34546
   public static final List<ScanTriggerType> internalScanTypes = Arrays.asList(
       SOURCE_CONTROL_INTERNAL_ONBOARDING,

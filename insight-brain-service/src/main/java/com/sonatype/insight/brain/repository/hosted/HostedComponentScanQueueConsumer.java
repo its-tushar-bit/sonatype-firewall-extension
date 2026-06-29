@@ -7,8 +7,12 @@ package com.sonatype.insight.brain.repository.hosted;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
@@ -18,6 +22,7 @@ import jakarta.inject.Singleton;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -47,10 +52,13 @@ import com.sonatype.insight.brain.model.repository.HostedComponentScanQueue;
 import com.sonatype.insight.brain.queue.AbstractPollDispatchQueueConsumer;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.service.ApplicationLifecycle;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +120,10 @@ public class HostedComponentScanQueueConsumer
 
   private final ApplicationReportPersistenceService applicationReportPersistenceService;
 
+  private final TelemetryUtils telemetryUtils;
+
+  private final TelemetrySender telemetrySender;
+
   final TenantReference<HostedComponentScanQueueConfig> configs;
 
   @Inject
@@ -128,6 +140,8 @@ public class HostedComponentScanQueueConsumer
       final PolicyEvaluationDAO policyEvaluationDAO,
       final Provider<ReportDataStore> reportDataStoreProvider,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final TelemetryUtils telemetryUtils,
+      final TelemetrySender telemetrySender,
       final ShutdownHandler shutdownHandler)
   {
     super(CONSUMER_NAME, shutdownHandler);
@@ -143,6 +157,8 @@ public class HostedComponentScanQueueConsumer
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.reportDataStoreProvider = reportDataStoreProvider;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.telemetryUtils = telemetryUtils;
+    this.telemetrySender = telemetrySender;
     this.configs = new TenantReference<>(this::loadConfig);
   }
 
@@ -269,6 +285,22 @@ public class HostedComponentScanQueueConsumer
     // the Components page only ever shows the outer artifact.
     evaluatePolicies(job, repositoryId, componentInfos, stage);
 
+    // CLM-41693: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry with
+    // scan_trigger_type=HOSTED_REPOSITORY_SCANNING so telemetry consumers can distinguish
+    // hosted repository scans from other scan trigger types (CLI, IDE, WEB_UI, etc.).
+    //
+    // Guarded on application != null because the application-id is a required attribute of this
+    // telemetry event and is not available on the repository-upload fallback path above
+    // (uploadForRepository). That fallback fires only when the synthetic application could not
+    // be created (logged at WARN — see the else branch above) and is a system-error condition,
+    // not a normal flow. scanReceipt is guaranteed non-null after either upload branch (both
+    // throw on failure), but kept as a defensive guard against future refactors of the upload
+    // contract. Tracked under Phase 2 (CLM-40999) if telemetry needs to cover the fallback path.
+    if (application != null && scanReceipt != null) {
+      sendHostedScanEvaluationTelemetry(
+          scanReceipt.getScanId(), application.getId(), stage, componentInfos);
+    }
+
     stampStage(repositoryId, outerComponentInfo.pathname(), stage.toLowerCase());
 
     if (componentInfos.size() > 1) {
@@ -376,6 +408,13 @@ public class HostedComponentScanQueueConsumer
       log.debug("Re-uploaded scan via application pipeline (sync allow path), scanId={}, appPublicId={}",
           scanReceipt.getScanId(), application.getPublicId());
       persistApplicationLinkedReportFiles(repositoryId, scanEntity, componentInfo, application, scanReceipt, stage);
+
+      // CLM-41693: Emit APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for the sync enforcement
+      // path so synchronous hosted scans appear alongside async-queue hosted scans in the telemetry
+      // stream with scan_trigger_type=HOSTED_REPOSITORY_SCANNING. Without this, real-time enforcement
+      // scans would be silently under-counted.
+      sendHostedScanEvaluationTelemetry(
+          scanReceipt.getScanId(), application.getId(), stage, List.of(componentInfo));
     }
     catch (Exception e) {
       // componentInfo is guaranteed non-null by the early-return guard at the top of this method.
@@ -479,13 +518,62 @@ public class HostedComponentScanQueueConsumer
     }
   }
 
+  /**
+   * Emits {@code APPLICATION_EVALUATION_COMPONENT_COUNTS} telemetry with
+   * {@code scan_trigger_type=HOSTED_REPOSITORY_SCANNING} for hosted repository scans.
+   * <p>
+   * Hosted repo scans go through {@link RepositoryPolicyEvaluator} (not {@code ScanPolicyEvaluator}),
+   * so this event must be emitted explicitly from this path to satisfy CLM-41693: enabling
+   * telemetry consumers to distinguish hosted repository scans from other trigger types
+   * (CLI, IDE, WEB_UI, etc.) using a single telemetry event.
+   */
+  /**
+   * Sentinel for missing {@code format()} in scan component infos. Matches
+   * {@code ScanPolicyEvaluator.UNKNOWN} so the resulting {@code number_of_unknown_components}
+   * telemetry attribute key is identical across hosted-repo and regular scan paths — telemetry
+   * consumers aggregating across scan types must not split on a sentinel-case difference.
+   */
+  private static final String TELEMETRY_UNKNOWN_FORMAT = "unknown";
+
+  @VisibleForTesting
+  void sendHostedScanEvaluationTelemetry(
+      final String scanId,
+      final String applicationId,
+      final String stage,
+      final List<ScanComponentInfo> componentInfos)
+  {
+    try {
+      Map<String, Long> componentCounts = componentInfos.stream()
+          .map(info -> info.format() != null ? info.format() : TELEMETRY_UNKNOWN_FORMAT)
+          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
+          scanId, applicationId, stage.toLowerCase(),
+          ScanTriggerType.HOSTED_REPOSITORY_SCANNING,
+          null, null,
+          Collections.singletonMap("component_counts", componentCounts));
+      telemetrySender.send(telemetryData);
+      log.debug("Sent APPLICATION_EVALUATION_COMPONENT_COUNTS telemetry for hosted scan: "
+          + "scanId={}, appId={}, scan_trigger_type=HOSTED_REPOSITORY_SCANNING", scanId, applicationId);
+    }
+    catch (Exception e) {
+      // Telemetry is auxiliary; swallow exceptions so a telemetry failure cannot abort a hosted
+      // repo scan. This intentionally differs from ScanPolicyEvaluator.sendEvaluationTelemetry,
+      // which propagates failures — that path runs synchronously inside a request lifecycle where
+      // a propagated failure is recoverable by the caller. Hosted scans are async/queue-driven
+      // and a failure here would mark the whole scan job FAILED and burn retries on a telemetry
+      // hiccup (HDS blip, queue full) that has nothing to do with the scan itself. See CLM-41693.
+      log.warn("Failed to send hosted scan evaluation telemetry scanId={} appId={}: {}",
+          scanId, applicationId, e.getMessage(), e);
+    }
+  }
+
   private void createPolicyEvaluationRecord(final String appId, final String scanId, final String stageTypeId) {
     try (TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       tx.begin();
       if (policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) == null) {
         PolicyEvaluation pe = new PolicyEvaluation(
             appId, stageTypeId.toLowerCase(), scanId, false, false, "system",
-            ScanTriggerType.REPOSITORY_MANAGER, null);
+            ScanTriggerType.HOSTED_REPOSITORY_SCANNING, null);
         policyEvaluationDAO.insert(tx, pe);
         log.debug("Created policy_evaluation record appId={} scanId={}", appId, scanId);
       }

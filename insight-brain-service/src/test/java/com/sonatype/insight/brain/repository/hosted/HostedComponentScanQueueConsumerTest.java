@@ -71,6 +71,9 @@ public class HostedComponentScanQueueConsumerTest
   @Inject
   private com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
+  @Inject
+  private com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO policyEvaluationDAO;
+
   @Before
   public void setUpTest() {
     consumer.disableForTesting = true;
@@ -537,6 +540,22 @@ public class HostedComponentScanQueueConsumerTest
         job.getRepositoryId(), "com/example/lib/1.0/lib-1.0.jar");
     assertThat(rc).isNotNull();
     assertThat(rc.getScanId()).isEqualTo("scan-id-stamped");
+
+    // CLM-41693: also verify the policy_evaluation row was tagged with HOSTED_REPOSITORY_SCANNING
+    // (end-to-end DB assertion that complements the telemetry unit tests in
+    // HostedComponentScanQueueConsumerTelemetryTest). The synthetic appId is generated inside
+    // the consumer, so we look up the policy_evaluation row by scanId via getAllLast().
+    com.sonatype.insight.brain.model.policy.PolicyEvaluation pe = policyEvaluationDAO.getAllLast()
+        .stream()
+        .filter(p -> "scan-id-stamped".equals(p.getScanId()))
+        .findFirst()
+        .orElse(null);
+    assertThat(pe)
+        .as("policy_evaluation row should be created for scanId=scan-id-stamped")
+        .isNotNull();
+    assertThat(pe.getScanTriggerType())
+        .as("scan_trigger_type column must be HOSTED_REPOSITORY_SCANNING (CLM-41693)")
+        .isEqualTo(com.sonatype.insight.brain.model.policy.ScanTriggerType.HOSTED_REPOSITORY_SCANNING);
   }
 
   @Test

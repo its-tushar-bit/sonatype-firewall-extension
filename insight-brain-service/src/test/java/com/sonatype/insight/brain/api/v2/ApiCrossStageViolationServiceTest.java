@@ -594,6 +594,67 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result.reachabilityStatus).isEqualTo(ReachabilityStatus.NON_REACHABLE);
   }
 
+  /**
+   * CLM-40943 — for an archive-of-archives upload (e.g. {@code outer.zip} containing
+   * {@code inner.jar}), the evaluator persists inner-pathname {@code RepositoryPolicyViolation}
+   * rows like {@code outer.zip!/inner.jar} but the synthetic {@code Application} is created
+   * ONLY for the outer pathname. The DTO builder must strip the {@code "!/..."} suffix and
+   * resolve to the outer's synthetic app, instead of failing with a 404.
+   */
+  @Test
+  public void testCreateDtoFromRepositoryViolation_innerArchivePathname_resolvesToOuterApp() {
+    com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository("rm1", "r1", "maven2");
+    String outerPathname = "outer.zip";
+    String innerPathname = outerPathname + "!/log4j-core-2.14.1.jar";
+
+    // Create synthetic Application keyed on the OUTER pathname only (matches the consumer's
+    // post-fan-out cleanup pattern: inner repository_component rows are deleted, but inner
+    // repository_policy_violation rows survive and reference the outer Application).
+    String outerAppPublicId =
+        com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService
+            .generatePublicId(repository.getPublicId(), outerPathname);
+    Application outerSyntheticApp = tempEntity.newApplication(
+        "synthetic-app-" + outerPathname, outerAppPublicId, org.getId());
+
+    // Persist an inner-pathname violation. The DAO under test must resolve via the outer app.
+    com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation innerViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), innerPathname);
+
+    ApiCrossStageViolationDTOV2 result =
+        service.getCrossStageViolationByConstituentId(innerViolation.getId());
+
+    assertThat(result.applicationPublicId).isEqualTo(outerSyntheticApp.getPublicId());
+    assertThat(result.policyViolationId).isEqualTo(innerViolation.getId());
+  }
+
+  /**
+   * CLM-40943 — for an outer-pathname violation (no {@code "!/"} marker), behavior is
+   * unchanged from pre-fan-out single-component scans: resolve directly to the outer's
+   * synthetic app.
+   */
+  @Test
+  public void testCreateDtoFromRepositoryViolation_outerPathname_resolvesUnchanged() {
+    com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository("rm2", "r2", "maven2");
+    String outerPathname = "plain-jar-no-inner.jar";
+
+    String outerAppPublicId =
+        com.sonatype.insight.brain.repository.hosted.ApplicationForHostedRepositoryComponentService
+            .generatePublicId(repository.getPublicId(), outerPathname);
+    Application outerSyntheticApp = tempEntity.newApplication(
+        "synthetic-app-" + outerPathname, outerAppPublicId, org.getId());
+
+    com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation outerViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), outerPathname);
+
+    ApiCrossStageViolationDTOV2 result =
+        service.getCrossStageViolationByConstituentId(outerViolation.getId());
+
+    assertThat(result.applicationPublicId).isEqualTo(outerSyntheticApp.getPublicId());
+    assertThat(result.policyViolationId).isEqualTo(outerViolation.getId());
+  }
+
   private void assertCrossStageData(
       ApiCrossStageViolationDTOV2 result,
       String stageId,

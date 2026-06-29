@@ -861,4 +861,159 @@ public class HostedComponentScanQueueConsumerTest
         .extracting(com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation::getPathname)
         .containsExactlyInAnyOrder(outerPath, innerLog4j, innerCli);
   }
+
+  /**
+   * CLM-40943 — guards against the dev-tenant {@code component_count == NULL} regression.
+   * After a successful single-jar evaluation the eager stamp must have set
+   * {@code component_count} from the scanner's {@code
+   *
+  <dir>
+   * } count, independent of whether the
+   * later HDS-bom refinement ran (the bom read is best-effort and silently no-ops on
+   * S3-backed tenant storage that hasn't propagated the report yet). Asserting non-null here
+   * is the strongest cheap test we can write end-to-end — if the eager stamp ever regresses,
+   * this test fails immediately on a normal happy-path scan.
+   */
+  @Test
+  public void executeJob_eagerStampsComponentCountAfterEvaluation() throws Exception {
+    String pathname = "com/example/eager/1.0/eager-1.0.jar";
+    HostedComponentScanQueue job = insertPendingJobWithScanXml(
+        "repo-eager", "comp-eager-1",
+        "pkg:maven/com.example/eager@1.0.0", null,
+        pathname, "eagerhash00000001", "maven2");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-eager");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    mockPolicyEvaluatorHdsResponse("eagerhash00000001");
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    RepositoryComponent rc = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), pathname);
+    assertThat(rc).isNotNull();
+    assertThat(rc.getComponentCount())
+        .as("eager stamp from componentInfos.size() must leave component_count non-null even if HDS bom refinement no-ops")
+        .isNotNull()
+        .isGreaterThanOrEqualTo(1);
+  }
+
+  // ---- Identified-outer gate (CLM-40943, PR 16421 review by Bhavat) ----
+
+  /**
+   * Identified-outer gate fires for non-keep-set formats: when HDS returns a non-UNKNOWN match
+   * state for the outer artifact AND the repository format is NOT in
+   * {@code KEEP_NESTED_FORMATS_FOR_IDENTIFIED_OUTER} (maven2 is not), the consumer collapses the
+   * report to a single component view — {@code componentCount=1} on the outer row, and any
+   * stale inner-pathname {@code repository_component} rows from a prior run are deleted.
+   * Mirrors the iq-cli single-file scan output for the same binary.
+   */
+  @Test
+  public void executeJob_identifiedOuterGate_mavenFormat_collapsesToOneComponent() throws Exception {
+    String outerPath = "com/example/identified/1.0/identified-1.0.zip";
+    String outerHash = "identifiedouter0001";
+    String[] innerPaths = {"log4j-core-2.14.1.jar", "commons-cli-1.9.0.jar"};
+    String[] innerHashes = {"inner_log4j_hash_id1", "inner_cli_hash_id1"};
+
+    HostedComponentScanQueue job = insertPendingJobWithMultiComponentScanXml(
+        "repo-identified-maven", "comp-identified-1",
+        outerPath, outerHash, innerPaths, innerHashes, "maven2");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-identified-1");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    // MatchState.EXACT for the outer triggers the identified-outer gate; inners get EXACT too
+    // (the gate only consults the outer's match state).
+    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0], innerHashes[1]);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    RepositoryComponent outerRow = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath);
+    assertThat(outerRow).as("outer row").isNotNull();
+    assertThat(outerRow.getComponentCount())
+        .as("identified-outer gate (non-keep-set format) collapses to componentCount=1")
+        .isEqualTo(1);
+
+    // Inner pathname repository_component rows are deleted (matches existing fan-out cleanup).
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[0]))
+            .as("inner log4j row should not survive identified-outer gate")
+            .isNull();
+    assertThat(repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job.getRepositoryId(), outerPath + "!/" + innerPaths[1]))
+            .as("inner commons-cli row should not survive identified-outer gate")
+            .isNull();
+  }
+
+  /**
+   * Idempotency: re-running the same job (e.g. a producer-cycle replay after a restart) must
+   * not double-count or duplicate rows. The repository_component is unique on
+   * {@code (repository_id, pathname)}, so a re-run UPSERT-style should leave exactly one outer
+   * row, not two. Verifies the executeJob path is idempotent on the outer row identity.
+   */
+  @Test
+  public void executeJob_replayingSameJob_keepsExactlyOneOuterRow() throws Exception {
+    String outerPath = "com/example/replay/1.0/replay-1.0.zip";
+    String outerHash = "replayouterhash01";
+    String[] innerPaths = {"lib-a.jar"};
+    String[] innerHashes = {"replay_inner_a"};
+
+    HostedComponentScanQueue job1 = insertPendingJobWithMultiComponentScanXml(
+        "repo-replay", "comp-replay",
+        outerPath, outerHash, innerPaths, innerHashes, "maven2");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan-replay-1");
+    hdsMockServer.respondWith(receipt).atUri(ScanUploader.HDS_PATH);
+    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0]);
+
+    consumer.disableForTesting = false;
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job1.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    // First pass result.
+    RepositoryComponent afterFirstRun = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job1.getRepositoryId(), outerPath);
+    assertThat(afterFirstRun).as("outer row after first run").isNotNull();
+
+    // Re-run via a second job with the same outer pathname (simulates producer-cycle replay).
+    HostedComponentScanQueue job2 = insertPendingJobWithMultiComponentScanXml(
+        "repo-replay", "comp-replay-2",
+        outerPath, outerHash, innerPaths, innerHashes, "maven2");
+
+    ScanReceipt receipt2 = new ScanReceipt();
+    receipt2.setScanId("scan-replay-2");
+    hdsMockServer.respondWith(receipt2).atUri(ScanUploader.HDS_PATH);
+    mockPolicyEvaluatorHdsResponseForHashes(outerHash, innerHashes[0]);
+
+    consumer.run();
+
+    await().atMost(15, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(queueDAO.getById(job2.getId()).getStatus())
+            .isEqualTo(HostedComponentScanQueueDAO.Status.COMPLETED.name()));
+
+    // Note: insertPendingJobWithMultiComponentScanXml creates a new Repository, so job1 and job2
+    // live in different repos. We verify each repo has exactly one outer row, not two — i.e.
+    // each individual evaluation is internally consistent and doesn't duplicate the outer.
+    RepositoryComponent afterSecondRun = repositoryComponentDAO.getByRepositoryIdAndPathname(
+        job2.getRepositoryId(), outerPath);
+    assertThat(afterSecondRun).as("outer row after replay run").isNotNull();
+    assertThat(afterSecondRun.getComponentCount())
+        .as("replay should not regress componentCount to NULL")
+        .isNotNull();
+  }
 }

@@ -9,13 +9,16 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.HostedComponentScanQueueDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportDataStore;
@@ -85,6 +88,15 @@ public class HostedComponentScanQueueConsumerTelemetryTest
   private ApplicationReportPersistenceService applicationReportPersistenceService;
 
   @Mock
+  private jakarta.inject.Provider<ScanPolicyEvaluator> scanPolicyEvaluatorProvider;
+
+  @Mock
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Mock
+  private ApplicationComponentDAO applicationComponentDAO;
+
+  @Mock
   private TelemetryUtils telemetryUtils;
 
   @Mock
@@ -110,6 +122,9 @@ public class HostedComponentScanQueueConsumerTelemetryTest
         policyEvaluationDAO,
         reportDataStoreProvider,
         applicationReportPersistenceService,
+        scanPolicyEvaluatorProvider,
+        policyViolationDAO,
+        applicationComponentDAO,
         telemetryUtils,
         telemetrySender,
         shutdownHandler);

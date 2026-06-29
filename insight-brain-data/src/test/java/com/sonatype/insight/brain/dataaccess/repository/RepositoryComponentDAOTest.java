@@ -1584,6 +1584,165 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
+  public void testRaiseComponentCountIfHigher_NullExisting_writes() {
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    assertThat(comp.getComponentCount()).isNull();
+
+    int updated;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      updated = dao.raiseComponentCountIfHigher(tx, repository.getId(), comp.getPathname(), 5);
+      tx.commit();
+    }
+
+    assertThat(updated).isEqualTo(1);
+    assertThat(dao.getById(comp.getId()).getComponentCount()).isEqualTo(5);
+  }
+
+  @Test
+  public void testRaiseComponentCountIfHigher_CandidateLarger_writes() {
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentCount(tx, repository.getId(), comp.getPathname(), 3);
+      tx.commit();
+    }
+
+    int updated;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      updated = dao.raiseComponentCountIfHigher(tx, repository.getId(), comp.getPathname(), 7);
+      tx.commit();
+    }
+
+    assertThat(updated).isEqualTo(1);
+    assertThat(dao.getById(comp.getId()).getComponentCount()).isEqualTo(7);
+  }
+
+  @Test
+  public void testRaiseComponentCountIfHigher_CandidateSmaller_noWrite() {
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentCount(tx, repository.getId(), comp.getPathname(), 10);
+      tx.commit();
+    }
+
+    int updated;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      updated = dao.raiseComponentCountIfHigher(tx, repository.getId(), comp.getPathname(), 4);
+      tx.commit();
+    }
+
+    assertThat(updated).isEqualTo(0);
+    assertThat(dao.getById(comp.getId()).getComponentCount()).isEqualTo(10);
+  }
+
+  @Test
+  public void testRaiseComponentCountIfHigher_CandidateEqual_noWrite() {
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.stampComponentCount(tx, repository.getId(), comp.getPathname(), 6);
+      tx.commit();
+    }
+
+    int updated;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      updated = dao.raiseComponentCountIfHigher(tx, repository.getId(), comp.getPathname(), 6);
+      tx.commit();
+    }
+
+    assertThat(updated).isEqualTo(0);
+    assertThat(dao.getById(comp.getId()).getComponentCount()).isEqualTo(6);
+  }
+
+  @Test
+  public void testRaiseComponentCountIfHigher_doesNotAffectOtherRows() {
+    RepositoryComponent target = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "1.0"));
+    RepositoryComponent other = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "b", "1.0"));
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.raiseComponentCountIfHigher(tx, repository.getId(), target.getPathname(), 8);
+      tx.commit();
+    }
+
+    assertThat(dao.getById(target.getId()).getComponentCount()).isEqualTo(8);
+    assertThat(dao.getById(other.getId()).getComponentCount()).isNull();
+  }
+
+  // ---- getCountWithPolicyViolationInPolicyThreatLevelRange counts distinct outer pathnames
+  // (CLM-40943 Defect 5 site 3) ----
+
+  @Test
+  public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_innerPathnameRollsUpToOuter() {
+    // One archive with violations on inner jars only — count must be 1 (one outer artifact
+    // affected), not 2 (one per inner pathname).
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "archive", "1.0.0"));
+    String outer = comp.getPathname();
+    String innerA = outer + "!/log4j-core.jar";
+    String innerB = outer + "!/commons-cli.jar";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, innerA, false, FailActionType.ID,
+        "p1", "Security-Critical", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, innerB, false, FailActionType.ID,
+        "p1", "Security-Critical", null);
+
+    int count = dao.getCountWithPolicyViolationInPolicyThreatLevelRange(repository.getId(), 8, 10);
+
+    assertThat(count)
+        .as("one outer archive with two inner violations counts as one affected component")
+        .isEqualTo(1);
+  }
+
+  @Test
+  public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_outerAndInnerCountedOnce() {
+    // Outer has a violation AND its inner has a violation — both at the same threat tier. Must
+    // still count as one outer, not two.
+    RepositoryComponent comp = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "archive", "1.0.0"));
+    String outer = comp.getPathname();
+    String inner = outer + "!/log4j-core.jar";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, false, FailActionType.ID,
+        "p2", "Security-Severe", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, inner, false, FailActionType.ID,
+        "p2", "Security-Severe", null);
+
+    int count = dao.getCountWithPolicyViolationInPolicyThreatLevelRange(repository.getId(), 4, 7);
+
+    assertThat(count).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetCountWithPolicyViolationInPolicyThreatLevelRange_distinctOutersCountedSeparately() {
+    // Two distinct archives, each with inner violations — count must be 2.
+    RepositoryComponent comp1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a1", "1.0.0"));
+    RepositoryComponent comp2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        ComponentIdentifier.createMavenCoordinates("g", "a2", "1.0.0"));
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, comp1.getPathname() + "!/x.jar",
+        false, FailActionType.ID, "p1", "Security-Critical", null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, comp2.getPathname() + "!/y.jar",
+        false, FailActionType.ID, "p1", "Security-Critical", null);
+
+    int count = dao.getCountWithPolicyViolationInPolicyThreatLevelRange(repository.getId(), 8, 10);
+
+    assertThat(count).isEqualTo(2);
+  }
+
+  @Test
   public void testGetByRepositoryIdPaged_ReturnsPaginatedResults() {
     for (int i = 0; i < 5; i++) {
       tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,

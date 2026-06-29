@@ -26,7 +26,9 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion.Compone
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -1041,6 +1043,36 @@ public class ApiAutoPolicyWaiverServiceTest
     result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
     assertThat(result).isNull();
+  }
+
+  /**
+   * CLM-40943 — when the Report page calls this endpoint for a hosted-repo violation
+   * (which lives in {@code repository_policy_violation}, a different table), we return
+   * {@code null} (no applicable auto-waiver) rather than 404. Auto-waivers are an
+   * application-scan concept; hosted-repo violations don't support them.
+   */
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_HostedRepoViolation_returnsNull() {
+    Repository repository = tempEntity.newRepository("rm1", "r1", "maven2");
+    RepositoryPolicyViolation repoViolation = tempEntity.newRepositoryPolicyViolation(
+        repository.getId(), "outer.zip!/inner.jar");
+
+    ApiAutoPolicyWaiverDTO result =
+        apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(repoViolation.getId());
+
+    assertThat(result).isNull();
+  }
+
+  /**
+   * CLM-40943 — for a truly unknown violation ID (not in {@code policy_violation} or
+   * {@code repository_policy_violation}), preserve the pre-existing 404 behavior so callers
+   * can still distinguish "doesn't exist" from "exists but no waiver applies."
+   */
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_UnknownViolationId_throws404() {
+    assertThatThrownBy(
+        () -> apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver("definitely-not-a-real-id"))
+            .isInstanceOf(NotFoundException.class);
   }
 
   @Test

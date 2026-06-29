@@ -604,19 +604,63 @@ public class ReportService
         ? repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
             comp.getRepositoryId(), comp.getPathname())
         : List.of();
+    // CLM-40943: read bom.json early so we can extract the outer's HDS identification hash
+    // and thread it through to policythreats.json + data.json. For npm/nuget/pub the bom hash
+    // differs from repository_policy_violation.hash (which is the file SHA1) — without aligning,
+    // the LC Application Report body joins violations to bom entries by hash and finds zero
+    // matches, leaving the outer component with no attached violations.
+    Application application = applicationDAO.getByIdNotNull(appId);
+    ApplicationReport report = reportDataStore.getApplicationReport(application, scanId);
+    ReportEntry bomEntry = report != null ? report.getEntry("bom.json") : null;
+    String bomOuterHashOverride = bomEntry != null ? extractBomOuterHash(bomEntry.buf) : null;
     for (String fileName : List.of("policythreats.json", "summary.json")) {
-      byte[] content = HostedReportFileBuilder.build(fileName, comp, violations);
+      byte[] content = HostedReportFileBuilder.build(fileName, comp, violations, bomOuterHashOverride);
       applicationReportPersistenceService.saveReportFile(appId, scanId, fileName,
           new ByteArrayInputStream(content));
     }
     // Patch bom.json displayName — required by PDF generator (ApiReportDataServiceV2:289 NPE)
-    Application application = applicationDAO.getByIdNotNull(appId);
-    ApplicationReport report = reportDataStore.getApplicationReport(application, scanId);
-    ReportEntry bomEntry = report != null ? report.getEntry("bom.json") : null;
     if (bomEntry != null) {
       byte[] patched = HostedReportFileBuilder.patchBomDisplayName(bomEntry.buf, comp);
       applicationReportPersistenceService.saveReportFile(appId, scanId, "bom.json",
           new ByteArrayInputStream(patched));
+    }
+    // CLM-40943: patch data.json.policyComponentCount + policyCounts to reflect the rolled-up
+    // inner violations. HDS's data.json doesn't know about the inner-pathname violations the IQ
+    // evaluator persisted under synthetic `outer!/inner.jar` paths, so without this the report
+    // header pill reads "N VIOLATIONS Affecting 0 components" even when the threat list below
+    // shows N distinct components. The same patch is applied during normal save in
+    // HostedComponentScanQueueConsumer.saveReportFiles; this recovery path is the safety net
+    // for reports persisted before that fix landed (or for any other reason where the overlay
+    // is missing on UI load).
+    ReportEntry dataEntry = report != null ? report.getEntry("data.json") : null;
+    if (dataEntry != null && dataEntry.buf != null) {
+      byte[] patchedData = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+          dataEntry.buf, comp, violations, bomOuterHashOverride);
+      if (patchedData != dataEntry.buf) {
+        applicationReportPersistenceService.saveReportFile(appId, scanId, "data.json",
+            new ByteArrayInputStream(patchedData));
+      }
+    }
+  }
+
+  /**
+   * CLM-40943: pull aaData[0].hash from bom.json so downstream overlays can join on the same
+   * hash bom.json carries. Returns null on parse failure or empty aaData.
+   */
+  private static String extractBomOuterHash(final byte[] bom) {
+    if (bom == null || bom.length == 0) {
+      return null;
+    }
+    try {
+      JsonNode aa = new ObjectMapper().readTree(bom).path("aaData");
+      if (!aa.isArray() || aa.isEmpty()) {
+        return null;
+      }
+      String h = aa.get(0).path("hash").asText("");
+      return h.isEmpty() ? null : h;
+    }
+    catch (Exception e) {
+      return null;
     }
   }
 
@@ -686,8 +730,14 @@ public class ReportService
     if (isHostedScanTriggerType(evaluation.getScanTriggerType())) {
       RepositoryComponent comp = repositoryComponentDAO.getByScanId(scanId);
       if (comp != null) {
+        // CLM-40943: roll up inner-pathname violations into the outer artifact's totalRisk so
+        // archive-of-archives reports show the real risk surface, not just the outer's own
+        // (typically "component-unknown") violations. The outer row's repository_component still
+        // exists, but inner-pathname violations (`outer.zip!/inner.jar`) live alongside it after
+        // the fan-out evaluator and must be counted under the outer.
         List<RepositoryPolicyViolation> violations =
-            repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(comp.getRepositoryId(), comp.getPathname());
+            repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathnameOrInnerPathnames(
+                comp.getRepositoryId(), comp.getPathname());
         int totalRisk = violations.stream()
             .filter(v -> !v.isWaived())
             .mapToInt(RepositoryPolicyViolation::getThreatLevel)

@@ -120,8 +120,7 @@ export default function RepositoryComponentsList() {
       </NxPageTitle>
       {hasQueuedScans && (
         <NxInfoAlert>
-          This repository is currently being evaluated. Report and Priorities results may be incomplete until the queue
-          is cleared.
+          This repository is currently being audited. Evaluations will appear as they are completed.
         </NxInfoAlert>
       )}
       <NxLoadWrapper
@@ -196,8 +195,12 @@ export default function RepositoryComponentsList() {
                               <span className="iq-hosted-repos-components__report-links">
                                 <button
                                   className="nx-text-link iq-hosted-repos-components__report-link"
-                                  disabled={!component.applicationPublicId || !component.scanId || hasQueuedScans}
-                                  title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
+                                  disabled={!component.applicationPublicId || !component.scanId}
+                                  title={
+                                    !component.applicationPublicId || !component.scanId
+                                      ? 'Evaluation pending — results not yet available'
+                                      : undefined
+                                  }
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     dispatch(
@@ -217,8 +220,12 @@ export default function RepositoryComponentsList() {
                                 {' | '}
                                 <button
                                   className="nx-text-link iq-hosted-repos-components__report-link"
-                                  disabled={!component.applicationPublicId || !component.scanId || hasQueuedScans}
-                                  title={hasQueuedScans ? 'In queue — results not yet available' : undefined}
+                                  disabled={!component.applicationPublicId || !component.scanId}
+                                  title={
+                                    !component.applicationPublicId || !component.scanId
+                                      ? 'Evaluation pending — results not yet available'
+                                      : undefined
+                                  }
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     dispatch(goToComponentPriorities(component.applicationPublicId, component.scanId));

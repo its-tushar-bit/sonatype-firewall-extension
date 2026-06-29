@@ -1079,18 +1079,23 @@ public class RepositoryComponentDAO
       int minPolicyThreatLevel,
       int maxPolicyThreatLevel)
   {
-    // Jan 19, 2023: jOOQ query is used for type safety while maintaining performance.
-    // Original JPA query was about 2x slower than native SQL.
+    String stripExpr = "CASE WHEN POSITION('!/' IN pathname) > 0 "
+        + "THEN SUBSTRING(pathname, 1, POSITION('!/' IN pathname) - 1) "
+        + "ELSE pathname END";
+    String sQuery =
+        " SELECT COUNT(DISTINCT " + stripExpr + ")" +
+            " FROM " + getDatabaseSchema() + ".repository_policy_violation" +
+            " WHERE repository_id = ?" +
+            "   AND active = true" +
+            "   AND waived = false" +
+            "   AND threat_level >= ?" +
+            "   AND threat_level <= ?";
     try (TransactionContext tx = createTransactionContext()) {
-      return tx.dsl()
-          .select(DSL.countDistinct(REPOSITORY_POLICY_VIOLATION.PATHNAME))
-          .from(REPOSITORY_POLICY_VIOLATION)
-          .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
-          .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
-          .and(REPOSITORY_POLICY_VIOLATION.WAIVED.eq(false))
-          .and(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.ge((short) minPolicyThreatLevel))
-          .and(REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.le((short) maxPolicyThreatLevel))
-          .fetchOne(0, Integer.class);
+      Object[] result = tx.dsl()
+          .resultQuery(sQuery, repositoryId, (short) minPolicyThreatLevel, (short) maxPolicyThreatLevel)
+          .fetchOne()
+          .intoArray();
+      return result[0] == null ? 0 : ((Number) result[0]).intValue();
     }
   }
 
@@ -1398,6 +1403,30 @@ public class RepositoryComponentDAO
         .set(REPOSITORY_COMPONENT.COMPONENT_COUNT, componentCount)
         .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
         .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .execute();
+  }
+
+  /**
+   * Atomically updates {@code component_count} only when {@code candidate} is strictly higher
+   * than the currently-persisted value (or that value is {@code NULL}). The check is enforced at
+   * the SQL level via an extra {@code WHERE} clause, removing any read-then-write race between
+   * the eager scanner-count stamp and the later HDS-bom refinement.
+   *
+   * @return number of rows updated (0 when the candidate is not higher than the existing value).
+   */
+  public int raiseComponentCountIfHigher(
+      final TransactionContext tx,
+      final String repositoryId,
+      final String pathname,
+      final int candidate)
+  {
+    return tx.dsl()
+        .update(REPOSITORY_COMPONENT)
+        .set(REPOSITORY_COMPONENT.COMPONENT_COUNT, candidate)
+        .where(REPOSITORY_COMPONENT.REPOSITORY_ID.eq(repositoryId))
+        .and(REPOSITORY_COMPONENT.PATHNAME.eq(pathname))
+        .and(REPOSITORY_COMPONENT.COMPONENT_COUNT.isNull()
+            .or(REPOSITORY_COMPONENT.COMPONENT_COUNT.lessThan(candidate)))
         .execute();
   }
 

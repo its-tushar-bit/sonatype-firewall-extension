@@ -341,8 +341,15 @@ public class ApiCrossStageViolationService
   {
     Repository repository = repositoryDAO.getById(violation.getRepositoryId());
     String repoPublicId = repository != null ? repository.getPublicId() : null;
+    // For archive-of-archives fan-out (CLM-40943) the evaluator persists inner-jar violations
+    // against synthetic inner pathnames like `outer.zip!/inner.jar`, but only ONE synthetic
+    // application is created — for the OUTER pathname. Resolve inner-pathname violations to
+    // the outer's synthetic app by stripping the "!/..." suffix before generating the
+    // publicId; outer-pathname violations and pre-fan-out single-component scans go through
+    // unchanged because they don't contain "!/" .
+    String resolvedPathname = stripInnerArchiveSuffix(violation.getPathname());
     String appPublicId = ApplicationForHostedRepositoryComponentService
-        .generatePublicId(repoPublicId, violation.getPathname());
+        .generatePublicId(repoPublicId, resolvedPathname);
     Application app = applicationDAO.getByPublicId(appPublicId);
     if (app == null) {
       throwNotFound(violation.getId());
@@ -383,5 +390,19 @@ public class ApiCrossStageViolationService
 
   private void throwNotFound(String violationId) {
     throw new NotFoundException("Policy Violation " + violationId + " not found");
+  }
+
+  /**
+   * Strips the inner-archive {@code "!/..."} suffix from a pathname so that an
+   * archive-of-archives inner-jar pathname (e.g. {@code outer.zip!/log4j-core-2.14.1.jar})
+   * resolves to the outer artifact's synthetic application (e.g. {@code outer.zip}). Returns
+   * the input unchanged if there is no {@code "!/"} marker.
+   */
+  private static String stripInnerArchiveSuffix(final String pathname) {
+    if (pathname == null) {
+      return null;
+    }
+    int sep = pathname.indexOf("!/");
+    return sep < 0 ? pathname : pathname.substring(0, sep);
   }
 }

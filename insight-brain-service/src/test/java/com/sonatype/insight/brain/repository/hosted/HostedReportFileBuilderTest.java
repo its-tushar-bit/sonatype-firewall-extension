@@ -270,6 +270,189 @@ public class HostedReportFileBuilderTest
     assertThat(group.path("policyThreatLevel").asInt()).isEqualTo(8);
   }
 
+  // ---- patchDataJsonPolicyCounts (CLM-40943 Defect 5) ----
+
+  @Test
+  public void patchDataJsonPolicyCounts_outerPlusTwoInners_setsCorrectCounts() throws Exception {
+    // 3 unique pathnames: outer + 2 inners. Threats: outer=2, log4j inner=10, cli inner=1.
+    // Expected: policyCounts[10]=1 (log4j), policyCounts[2]=1 (outer), policyCounts[1]=1 (cli).
+    // policyComponentCount counts buckets with maxThreat>=2 = 2 (outer + log4j).
+    String outer = "archive/archive/1/archive-1.zip";
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn(outer, "h0", null, "p0", "Component-Unknown", 2),
+        violationOn(outer + "!/log4j-core.jar", "h1", null, "p1", "Security-Critical", 10),
+        violationOn(outer + "!/commons-cli.jar", "h2", null, "p2", "Architecture-Quality", 1));
+    String originalData = "{\"reportVersion\":4,\"totalArtifactCount\":3,"
+        + "\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, violations);
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(result.path("policyCounts").isArray()).isTrue();
+    assertThat(result.path("policyCounts").size()).isEqualTo(11);
+    assertThat(result.path("policyCounts").get(1).asInt()).isEqualTo(1);
+    assertThat(result.path("policyCounts").get(2).asInt()).isEqualTo(1);
+    assertThat(result.path("policyCounts").get(10).asInt()).isEqualTo(1);
+    // Preserves pre-existing fields.
+    assertThat(result.path("totalArtifactCount").asInt()).isEqualTo(3);
+    assertThat(result.path("reportVersion").asInt()).isEqualTo(4);
+  }
+
+  /**
+   * CLM-40943 — byte-identical inner jars (e.g. {@code spring-beans-5.3.17.jar} and
+   * {@code spring-beans-5.3.17 (1).jar} from a duplicated drag-and-drop) must count as ONE
+   * component, not two. The scanner emits two {@code
+   *
+  <dir>
+   * } entries with identical sha1, the
+   * evaluator persists two batches of violations on distinct synthetic pathnames, but they are
+   * the same logical artifact. This is what the application-evaluation path produces — and
+   * what the QA report's "Affecting N components" pill compares against.
+   */
+  @Test
+  public void patchDataJsonPolicyCounts_byteIdenticalInnersDedupedByHash() throws Exception {
+    String outer = "archive-7-7-7-7.7.7.zip";
+    String springBeans = outer + "!/spring-beans-5.3.17.jar";
+    String springBeansDup = outer + "!/spring-beans-5.3.17 (1).jar";
+    // Outer + 5 distinct inner artifacts, but spring-beans appears twice with the SAME hash.
+    // Expected: 6 unique components (1 outer + 5 unique inners), not 7.
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn(outer, "h_outer", null, "p0", "Component-Unknown", 2),
+        violationOn(outer + "!/commons-text.jar", "h_commons", null, "p1", "Security-Severe", 5),
+        violationOn(outer + "!/jackson.jar", "h_jackson", null, "p2", "Security-Critical", 9),
+        violationOn(springBeans, "h_spring", null, "p3", "Security-Severe", 6),
+        violationOn(springBeansDup, "h_spring", null, "p3", "Security-Severe", 6),
+        violationOn(outer + "!/struts2.jar", "h_struts", null, "p4", "Security-Critical", 10),
+        violationOn(outer + "!/tika.jar", "h_tika", null, "p5", "Security-Severe", 7));
+    String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, violations);
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt())
+        .as("byte-identical inner jars must count as one component (matches app-eval semantics)")
+        .isEqualTo(6);
+    // Sanity: 6 buckets total across all threat levels.
+    int totalBuckets = 0;
+    for (int i = 0; i < 11; i++) {
+      totalBuckets += result.path("policyCounts").get(i).asInt();
+    }
+    assertThat(totalBuckets).isEqualTo(6);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_distinctHashesNotDedup() throws Exception {
+    // Two inners with different hashes — must count as two components.
+    String outer = "archive.zip";
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn(outer + "!/a.jar", "h_a", null, "p1", "Severe", 5),
+        violationOn(outer + "!/b.jar", "h_b", null, "p2", "Severe", 5));
+    String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, violations);
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(result.path("policyCounts").get(5).asInt()).isEqualTo(2);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_nullHashesFallBackToPathnameDedup() throws Exception {
+    // Two distinct pathnames, both with null hash and no outer-fallback. They must still count
+    // as two separate components (no false collapse to one).
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn("a.jar", null, null, "p1", "Severe", 5),
+        violationOn("b.jar", null, null, "p2", "Severe", 5));
+    String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, violations);
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt()).isEqualTo(2);
+    assertThat(result.path("policyCounts").get(5).asInt()).isEqualTo(2);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_multipleViolationsSamePathname_takesMaxThreat() throws Exception {
+    // Same outer pathname has both moderate and critical violations — max wins.
+    String outer = "g/a-1.jar";
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn(outer, "h", null, "p1", "Moderate", 3),
+        violationOn(outer, "h", null, "p2", "Critical", 9));
+    String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, violations);
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt()).isEqualTo(1);
+    assertThat(result.path("policyCounts").get(9).asInt()).isEqualTo(1);
+    assertThat(result.path("policyCounts").get(3).asInt()).isEqualTo(0);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_waivedViolationsIgnored() throws Exception {
+    String outer = "g/a-1.jar";
+    RepositoryPolicyViolation waived = violationOn(outer, "h", null, "p1", "Critical", 9);
+    waived.setWaived(true);
+    RepositoryPolicyViolation active = violationOn(outer, "h", null, "p2", "Moderate", 3);
+    String originalData = "{\"policyComponentCount\":0,\"policyCounts\":[0,0,0,0,0,0,0,0,0,0,0]}";
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(
+        originalData.getBytes(), null, List.of(waived, active));
+
+    JsonNode result = MAPPER.readTree(patched);
+    assertThat(result.path("policyComponentCount").asInt()).isEqualTo(1);
+    assertThat(result.path("policyCounts").get(9).asInt())
+        .as("waived critical violation must not contribute to critical count")
+        .isEqualTo(0);
+    assertThat(result.path("policyCounts").get(3).asInt()).isEqualTo(1);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_emptyViolations_returnsOriginalUnchanged() {
+    byte[] original = "{\"policyComponentCount\":99,\"policyCounts\":[0,0,5,0,0,0,0,0,0,0,0]}".getBytes();
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(original, null, List.of());
+
+    assertThat(patched).isSameAs(original);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_nullViolations_returnsOriginalUnchanged() {
+    byte[] original = "{\"policyComponentCount\":1}".getBytes();
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(original, null, null);
+
+    assertThat(patched).isSameAs(original);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_malformedJson_returnsOriginalUnchanged() {
+    byte[] original = "not-json-at-all".getBytes();
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn("a.jar", "h", null, "p", "Critical", 9));
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(original, null, violations);
+
+    assertThat(patched).isSameAs(original);
+  }
+
+  @Test
+  public void patchDataJsonPolicyCounts_nullDataJson_returnsNullUnchanged() {
+    List<RepositoryPolicyViolation> violations = List.of(
+        violationOn("a.jar", "h", null, "p", "Critical", 9));
+
+    byte[] patched = HostedReportFileBuilder.patchDataJsonPolicyCounts(null, null, violations);
+
+    assertThat(patched).isNull();
+  }
+
   private static RepositoryPolicyViolation violationOn(
       String pathname,
       String hash,

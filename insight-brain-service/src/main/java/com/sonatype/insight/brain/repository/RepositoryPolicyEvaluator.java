@@ -389,7 +389,21 @@ public class RepositoryPolicyEvaluator
         component.addPathname(componentEvaluationRequest.pathname);
         component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
 
-        if (component.getComponentIdentifier() == null) {
+        // CLM-40943: prefer path-derived identifier when HDS's hash-only lookup returns a
+        // cross-format coordinate. Common case: a real npm tarball (e.g. form-data-2.3.3.tgz)
+        // has the same SHA as the webjars maven re-publish (org.webjars.npm:form-data:2.3.3),
+        // so HDS returns the maven coordinate even though the request is unambiguously npm.
+        // The repository_pathname parser uses the format the caller sent (npm/pypi/...) and
+        // produces the format-native identifier; trust it over an HDS hit whose format
+        // disagrees with the request. The original "only fall back when HDS returned nothing"
+        // behaviour remains for cases where the path can't be parsed.
+        ComponentIdentifier existingIdentifier = component.getComponentIdentifier();
+        boolean hdsDisagreesOnFormat = existingIdentifier != null
+            && componentEvaluationRequest.format != null
+            && existingIdentifier.getFormat() != null
+            && !componentEvaluationRequest.format.equalsIgnoreCase(existingIdentifier.getFormat());
+
+        if (existingIdentifier == null || hdsDisagreesOnFormat) {
           ComponentIdentifier parsedIdentifier = null;
           String pathnameToUse = componentEvaluationRequest.pathname;
 
@@ -423,7 +437,23 @@ public class RepositoryPolicyEvaluator
             }
           }
 
-          component.setComponentIdentifier(parsedIdentifier);
+          // Only overwrite the existing HDS identifier when we successfully parsed a
+          // path-derived one in the requested format — otherwise keep what HDS gave us
+          // (a wrong-format coordinate is better than no coordinate at all for downstream
+          // policy matching that's purely hash-based).
+          if (parsedIdentifier != null
+              && (existingIdentifier == null
+                  || (componentEvaluationRequest.format != null
+                      && componentEvaluationRequest.format.equalsIgnoreCase(parsedIdentifier.getFormat()))))
+          {
+            if (existingIdentifier != null) {
+              log.debug(
+                  "Overriding cross-format HDS identifier (HDS={}, request={}) with path-derived identifier for pathname={}",
+                  existingIdentifier.getFormat(), componentEvaluationRequest.format,
+                  componentEvaluationRequest.pathname);
+            }
+            component.setComponentIdentifier(parsedIdentifier);
+          }
         }
         components.add(component);
       }

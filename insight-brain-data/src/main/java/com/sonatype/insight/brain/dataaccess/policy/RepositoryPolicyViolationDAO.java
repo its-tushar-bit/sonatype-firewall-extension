@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
+import com.google.common.collect.Lists;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsCountSummary;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
@@ -35,6 +37,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -147,6 +150,63 @@ public class RepositoryPolicyViolationDAO
     }
   }
 
+  /**
+   * Batch variant of {@link #getActiveByRepositoryIdAndPathnameOrInnerPathnames}: returns active
+   * violations whose pathname matches any of the supplied outer pathnames OR is an inner pathname
+   * ({@code outer + "!/..."} ) under any of them. Used by the per-repository components-list page
+   * so a single query covers a whole page of outer artifacts plus all of their inner-jar
+   * violations, replacing the legacy N+1 pattern that fetched only the outer's own violations.
+   * <p>
+   * Partitions by {@code getInOperatorThreshold()} when the outer list is large; each chunk
+   * issues one query with an {@code IN (...)} clause for exact matches plus a {@code LIKE OR ...}
+   * tail for the inner-pathname prefixes. The {@code %} and {@code _} characters are escaped on
+   * each outer pathname before being assembled into the LIKE pattern so user-supplied path
+   * characters cannot widen the match.
+   */
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+      String repositoryId,
+      List<String> outerPathnames)
+  {
+    if (repositoryId == null || outerPathnames == null || outerPathnames.isEmpty()) {
+      return List.of();
+    }
+    List<String> nonNullOuters = outerPathnames.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    if (nonNullOuters.isEmpty()) {
+      return List.of();
+    }
+    List<List<String>> partitions = Lists.partition(nonNullOuters, getInOperatorThreshold());
+    return partitions.stream()
+        .flatMap(partition -> {
+          try (TransactionContext tx = createTransactionContext()) {
+            Condition exactMatch = REPOSITORY_POLICY_VIOLATION.PATHNAME.in(partition);
+            Condition prefixMatch = null;
+            for (String outer : partition) {
+              String innerPrefix = outer + "!/";
+              String escapedPrefix = innerPrefix
+                  .replace("\\", "\\\\")
+                  .replace("%", "\\%")
+                  .replace("_", "\\_");
+              Condition like = REPOSITORY_POLICY_VIOLATION.PATHNAME.like(escapedPrefix + "%", '\\');
+              prefixMatch = prefixMatch == null ? like : prefixMatch.or(like);
+            }
+            Condition pathnameMatch = prefixMatch == null ? exactMatch : exactMatch.or(prefixMatch);
+            return tx.dsl()
+                .selectFrom(REPOSITORY_POLICY_VIOLATION)
+                .where(REPOSITORY_POLICY_VIOLATION.REPOSITORY_ID.eq(repositoryId))
+                .and(pathnameMatch)
+                .and(REPOSITORY_POLICY_VIOLATION.ACTIVE.eq(true))
+                .orderBy(REPOSITORY_POLICY_VIOLATION.PATHNAME,
+                    REPOSITORY_POLICY_VIOLATION.THREAT_LEVEL.desc(),
+                    REPOSITORY_POLICY_VIOLATION.POLICY_ID)
+                .fetch(this::toEntity)
+                .stream();
+          }
+        })
+        .collect(Collectors.toList());
+  }
+
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
       TransactionContext tx,
       String repositoryId,
@@ -224,13 +284,20 @@ public class RepositoryPolicyViolationDAO
   }
 
   public PolicyViolationSummary getPolicyViolationSummary(final String repositoryId) {
-    // CLM-40943: exclude inner-pathname rows (`outer.zip!/inner.jar`) from the per-repo
-    // summary. The hosted-repo archive-of-archives fan-out persists per-inner-jar violations
-    // against synthetic inner pathnames so the outer's report can roll them up, but the
-    // Repository Manager list shows ONE row per uploaded artifact (the outer). Without this
-    // filter the summary would count the outer plus every inner separately — e.g. a single
-    // archive with 3 violating inner jars would inflate the critical-count by 3 against a
-    // single Components-page row.
+    // CLM-40943: roll inner-pathname rows (`outer.zip!/inner.jar`) into the outer artifact when
+    // computing the per-repo summary. The hosted-repo archive-of-archives fan-out persists
+    // per-inner-jar violations against synthetic inner pathnames; the Components page shows ONE
+    // row per uploaded outer artifact and that row's threat tier must reflect the worst threat
+    // anywhere inside the archive — outer's own violations OR any inner. Strip the "!/..." tail
+    // before grouping so all inner rows fold under their outer, then take MAX threat-level per
+    // outer and bucket outers by tier. Pure outers (no "!/") and inner-only outers both group
+    // correctly under the same key.
+    // Standard-SQL pathname normalizer: strip "!/..." tail. Compatible with both H2 and
+    // PostgreSQL (POSITION + SUBSTRING are SQL:2003). The CASE handles pathnames without "!/"
+    // by returning them unchanged.
+    String stripExpr = "CASE WHEN POSITION('!/' IN pathname) > 0 "
+        + "THEN SUBSTRING(pathname, 1, POSITION('!/' IN pathname) - 1) "
+        + "ELSE pathname END";
     String sQuery =
         " SELECT COUNT(CASE WHEN max_threat_level >= 8 THEN 1 END)                              AS criticalCount," +
             "        COUNT(CASE WHEN max_threat_level >= 4 AND max_threat_level < 8 THEN 1 END) AS severeCount," +
@@ -240,8 +307,7 @@ public class RepositoryPolicyViolationDAO
             "       WHERE repository_id=?" +
             "         AND active=true" +
             "         AND waived=false" +
-            "         AND pathname NOT LIKE '%!/%'" +
-            "       GROUP BY pathname) AS subquery";
+            "       GROUP BY " + stripExpr + ") AS subquery";
 
     try (TransactionContext tx = createTransactionContext()) {
       Object[] result = tx.dsl()

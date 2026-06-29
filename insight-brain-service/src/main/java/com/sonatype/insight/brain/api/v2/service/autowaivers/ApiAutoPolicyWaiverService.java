@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -62,6 +63,8 @@ public class ApiAutoPolicyWaiverService
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
   private final OwnerDAO ownerDAO;
 
   private final CurrentUser currentUser;
@@ -78,6 +81,7 @@ public class ApiAutoPolicyWaiverService
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       PolicyViolationDAO policyViolationDAO,
+      RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       OwnerDAO ownerDAO,
       CurrentUser currentUser,
       AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
@@ -88,6 +92,7 @@ public class ApiAutoPolicyWaiverService
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.policyViolationDAO = policyViolationDAO;
+    this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
@@ -316,6 +321,15 @@ public class ApiAutoPolicyWaiverService
     AutoPolicyWaiverUtil.validateAutoWaiversFeatureEnabled();
     PolicyViolation policyViolation = policyViolationDAO.getById(violationId);
     if (policyViolation == null) {
+      // Hosted-repo violations live in `repository_policy_violation` (a different table) and
+      // do not support auto-waivers — that's an application-scan concept. The Report page
+      // unconditionally calls this endpoint for every violation it renders, including
+      // hosted-repo ones from archive-of-archives fan-out (CLM-40943). Returning null (no
+      // applicable auto-waiver) instead of 404 keeps the page from rendering a "data load
+      // error" banner over violations that are otherwise displayable.
+      if (repositoryPolicyViolationDAO.getById(violationId) != null) {
+        return null;
+      }
       throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
     }
 

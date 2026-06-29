@@ -296,6 +296,128 @@ public class RepositoryPolicyViolationDAOTest
     assertThat(result.get(3).getThreatLevel()).isEqualTo(7);
   }
 
+  // ---- getActiveByRepositoryIdAndPathnamesOrInnerPathnames batch variant (CLM-40943 Defect 5) ----
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnamesOrInnerPathnames_batchRollsUpInnersPerOuter() {
+    String outer1 = "g/a1/1/a1-1.zip";
+    String outer2 = "g/a2/1/a2-1.zip";
+    String outer3UnusedNoMatch = "g/a3/1/a3-1.zip";
+    String inner1A = outer1 + "!/log4j-core.jar";
+    String inner1B = outer1 + "!/commons-cli.jar";
+    String inner2 = outer2 + "!/jackson.jar";
+    String unrelated = "g/other/1/other-1.jar";
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer1, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, inner1A, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 3, inner1B, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, outer2, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, inner2, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, unrelated, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6, outer3UnusedNoMatch, null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+            repository.getId(), java.util.List.of(outer1, outer2));
+
+    // The batch query returns: outer1 + inner1A + inner1B + outer2 + inner2 (five rows).
+    // Unrelated row and outer3 (not in the input list) are excluded.
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer1, inner1A, inner1B, outer2, inner2);
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnamesOrInnerPathnames_emptyInputReturnsEmpty() {
+    assertThat(dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+        repository.getId(), java.util.List.of())).isEmpty();
+    assertThat(dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+        repository.getId(), null)).isEmpty();
+    assertThat(dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(
+        null, java.util.List.of("a"))).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnamesOrInnerPathnames_nullsInListSkipped() {
+    String outer = "g/a/1/a-1.zip";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+
+    List<String> input = new java.util.ArrayList<>();
+    input.add(null);
+    input.add(outer);
+    input.add(null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(repository.getId(), input);
+
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname).containsExactly(outer);
+  }
+
+  @Test
+  public void testGetActiveByRepositoryIdAndPathnamesOrInnerPathnames_prefixIsolatedAcrossOuters() {
+    // Ensures the LIKE pattern for outer1 does not bleed into outer2's namespace.
+    String outer1 = "g/a/1/a-1.zip";
+    String outer1Inner = outer1 + "!/x.jar";
+    String outer1Look = outer1 + "Suffix/extra.jar"; // not a true inner — different outer
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer1, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6, outer1Inner, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, outer1Look, null);
+
+    List<RepositoryPolicyViolation> result =
+        dao.getActiveByRepositoryIdAndPathnamesOrInnerPathnames(repository.getId(),
+            java.util.List.of(outer1));
+
+    // The "!/x.jar" inner matches; the "Suffix/extra.jar" sibling that lacks "!/" does NOT.
+    assertThat(result).extracting(RepositoryPolicyViolation::getPathname)
+        .containsExactlyInAnyOrder(outer1, outer1Inner);
+  }
+
+  // ---- getPolicyViolationSummary rolls inner pathnames under outer (CLM-40943 Defect 5) ----
+
+  @Test
+  public void testGetPolicyViolationSummary_rollsInnerThreatLevelIntoOuter() {
+    String outer = "archive/archive/1/archive-1.zip";
+    String innerCritical = outer + "!/log4j-core-2.14.1.jar";
+    // Outer's own violation is only severe (5); the inner is critical (9). After rollup the
+    // outer's tier reflects the worst threat anywhere inside the archive = critical.
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, outer, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, innerCritical, null);
+
+    PolicyViolationSummary summary = dao.getPolicyViolationSummary(repository.getId());
+
+    assertThat(summary.getCriticalCount()).isEqualTo(1L);
+    assertThat(summary.getSevereCount()).isEqualTo(0L);
+    assertThat(summary.getModerateCount()).isEqualTo(0L);
+  }
+
+  @Test
+  public void testGetPolicyViolationSummary_innerOnlyOuterCountsOnce() {
+    // Outer has zero rows of its own — all violations are on inner pathnames. The outer must
+    // still be counted as one affected component, tier=max(inner threats).
+    String outer = "archive/archive/2/archive-2.zip";
+    String innerCritical = outer + "!/x.jar";
+    String innerSevere = outer + "!/y.jar";
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 9, innerCritical, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, innerSevere, null);
+
+    PolicyViolationSummary summary = dao.getPolicyViolationSummary(repository.getId());
+
+    assertThat(summary.getCriticalCount()).isEqualTo(1L);
+    assertThat(summary.getSevereCount()).isEqualTo(0L);
+  }
+
+  @Test
+  public void testGetPolicyViolationSummary_pureOuterUnchanged() {
+    // Regression guard: a non-archive single-jar with one severe violation must still produce a
+    // severe count of 1. Pre-CLM-40943 behavior for pathnames without "!/" is preserved.
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "g/jar/1/jar-1.jar", null);
+
+    PolicyViolationSummary summary = dao.getPolicyViolationSummary(repository.getId());
+
+    assertThat(summary.getCriticalCount()).isEqualTo(0L);
+    assertThat(summary.getSevereCount()).isEqualTo(1L);
+    assertThat(summary.getModerateCount()).isEqualTo(0L);
+  }
+
   // ---- stampComponentIdOnPathnameOrInnerPathnames (CLM-40943) ----
 
   @Test

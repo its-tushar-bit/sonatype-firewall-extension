@@ -43,8 +43,32 @@ public class HostedReportFileBuilder
       final RepositoryComponent component,
       final List<RepositoryPolicyViolation> violations) throws Exception
   {
+    return build(name, component, violations, null);
+  }
+
+  /**
+   * CLM-40943: overload that accepts an {@code outerHashOverride} — the hash HDS's
+   * {@code bom.json} uses for the outer component. When the bom hash differs from
+   * {@code repository_component.hash} (npm and most nuget formats — file SHA1 vs HDS-derived
+   * package hash), the synthesised {@code policythreats.json} must use bom's hash so the
+   * downstream LC Application Report body can join violations to bom entries by hash. Without
+   * this the body table shows the outer component with zero violations attached even when the
+   * pill header reports many. Formats whose file SHA1 already equals HDS's hash (maven, pypi,
+   * rubygems, conda, helm, r) pass {@code null} and behave as before.
+   * <p>
+   * The override applies ONLY to the outer-pathname row (the row whose pathname equals
+   * {@code component.getPathname()}). Inner-pathname rows (from the archive-of-archives mirror)
+   * keep their own per-violation hash, which is already the HDS identification hash for the
+   * inner component.
+   */
+  public static byte[] build(
+      final String name,
+      final RepositoryComponent component,
+      final List<RepositoryPolicyViolation> violations,
+      final String outerHashOverride) throws Exception
+  {
     if (POLICY_THREATS.getName().equals(name)) {
-      return buildPolicyThreats(component, violations);
+      return buildPolicyThreats(component, violations, outerHashOverride);
     }
     if (BOM_JSON.getName().equals(name)) {
       return buildBom(component);
@@ -67,6 +91,14 @@ public class HostedReportFileBuilder
   private static byte[] buildPolicyThreats(
       final RepositoryComponent component,
       final List<RepositoryPolicyViolation> violations) throws Exception
+  {
+    return buildPolicyThreats(component, violations, null);
+  }
+
+  private static byte[] buildPolicyThreats(
+      final RepositoryComponent component,
+      final List<RepositoryPolicyViolation> violations,
+      final String outerHashOverride) throws Exception
   {
     ObjectNode root = MAPPER.createObjectNode();
     root.put("version", 5);
@@ -95,15 +127,22 @@ public class HostedReportFileBuilder
       // hash never disagree. Null-effective-hash groups fall back to the pathname as the dedup
       // key — that way two distinct null-hash groups don't both emit `hash=""` and re-trigger
       // the same Duplicate-key crash on the empty-string side.
+      String outerPathname = component != null ? component.getPathname() : null;
       Set<String> seenHashes = new java.util.HashSet<>();
       for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
         List<RepositoryPolicyViolation> group = entry.getValue();
-        String effectiveHash = effectiveHashForGroup(group, component);
+        // CLM-40943: only the outer-pathname row gets the bom-hash override. Inner-pathname rows
+        // (`outer.zip!/inner.jar`) keep their own per-violation hash, which is already the inner
+        // component's HDS identification hash.
+        boolean isOuter = outerHashOverride != null && outerPathname != null
+            && outerPathname.equals(entry.getKey());
+        String hashOverrideForThisGroup = isOuter ? outerHashOverride : null;
+        String effectiveHash = effectiveHashForGroup(group, component, hashOverrideForThisGroup);
         String dedupKey = effectiveHash != null ? effectiveHash : "__null_hash__::" + entry.getKey();
         if (!seenHashes.add(dedupKey)) {
           continue;
         }
-        aaData.add(buildAaDataEntry(entry.getKey(), group, component));
+        aaData.add(buildAaDataEntry(entry.getKey(), group, component, hashOverrideForThisGroup));
       }
     }
     return MAPPER.writeValueAsBytes(root);
@@ -124,9 +163,24 @@ public class HostedReportFileBuilder
       final List<RepositoryPolicyViolation> group,
       final RepositoryComponent outerComponent)
   {
+    return effectiveHashForGroup(group, outerComponent, null);
+  }
+
+  private static String effectiveHashForGroup(
+      final List<RepositoryPolicyViolation> group,
+      final RepositoryComponent outerComponent,
+      final String outerHashOverride)
+  {
     RepositoryPolicyViolation top = selectTopViolation(group);
     if (top == null) {
       return null;
+    }
+    // CLM-40943: when caller supplied a bom-hash override for this outer-pathname group, use it
+    // unconditionally. This wins over the persisted RepositoryPolicyViolation.hash, which for
+    // npm/nuget is the file SHA1 (`.tgz`/`.nupkg`) — HDS's bom.json carries a different
+    // identification hash and the LC Application Report body joins on bom's hash.
+    if (outerHashOverride != null) {
+      return outerHashOverride;
     }
     if (top.getHash() != null) {
       return top.getHash();
@@ -173,6 +227,15 @@ public class HostedReportFileBuilder
       final List<RepositoryPolicyViolation> groupViolations,
       final RepositoryComponent outerComponent)
   {
+    return buildAaDataEntry(pathname, groupViolations, outerComponent, null);
+  }
+
+  private static ObjectNode buildAaDataEntry(
+      final String pathname,
+      final List<RepositoryPolicyViolation> groupViolations,
+      final RepositoryComponent outerComponent,
+      final String outerHashOverride)
+  {
     ArrayNode active = MAPPER.createArrayNode();
     ArrayNode waived = MAPPER.createArrayNode();
     ArrayNode all = MAPPER.createArrayNode();
@@ -213,9 +276,18 @@ public class HostedReportFileBuilder
     // older single-component shape that pre-dates the multi-`<dir>` fan-out, where violations
     // were minted without per-row hash metadata), fall back to the outer component's identity.
     // This keeps single-component scans byte-for-byte compatible with the pre-fan-out builder.
-    String hash = top.getHash();
-    if (hash == null && outerComponent != null && outerComponent.getHash() != null) {
-      hash = outerComponent.getHash();
+    // CLM-40943: when the caller supplied an outerHashOverride (bom.json's hash for the outer
+    // entry — different from RepositoryPolicyViolation.hash for npm/nuget/pub formats), use it
+    // so the LC Application Report body table can join violations to bom entries by hash.
+    String hash;
+    if (outerHashOverride != null) {
+      hash = outerHashOverride;
+    }
+    else {
+      hash = top.getHash();
+      if (hash == null && outerComponent != null && outerComponent.getHash() != null) {
+        hash = outerComponent.getHash();
+      }
     }
     group.put("hash", hash != null ? hash : "");
 
@@ -364,6 +436,281 @@ public class HostedReportFileBuilder
       }
     }
     return patched ? MAPPER.writeValueAsBytes(bomJson) : originalBom;
+  }
+
+  /**
+   * Overwrites {@code policyComponentCount} and {@code policyCounts[]} in the HDS-supplied
+   * {@code data.json} based on rolled-up {@code RepositoryPolicyViolation} rows from the IQ
+   * evaluator. Mirrors the algorithm in {@code ScanPolicyEvaluator.updateDataJson} — for each
+   * UNIQUE component (deduped by effective hash, the same dedup logic
+   * {@link #buildPolicyThreats} uses to emit one aaData entry per byte-identical inner jar),
+   * take the max threat-level across that component's active (non-waived) violations; the
+   * number of buckets with maxThreat≥2 becomes {@code policyComponentCount}, and
+   * {@code policyCounts[i]} is the count of buckets whose maxThreat equals {@code i}.
+   * <p>
+   * Hash-based dedup matters when an archive contains byte-identical copies of the same jar
+   * (e.g. {@code lib.jar} and {@code lib (1).jar}): the scanner emits two {@code
+   *
+  <dir>
+   * } entries
+   * with identical sha1, the evaluator persists two batches of violations on distinct synthetic
+   * pathnames, but they are still ONE logical component. The application-evaluation path dedups
+   * the same way; without this, hosted-repo would report one more affected component than the
+   * application path for the same upload.
+   * <p>
+   * Returns the original bytes unchanged if {@code violations} is null/empty or
+   * {@code originalDataJson} cannot be parsed as an object node — fail-soft.
+   */
+  /**
+   * Trims the HDS-supplied {@code bom.json}'s {@code aaData[]} array to keep only the entry
+   * whose hash matches the outer artifact's hash — used by the identified-outer gate in
+   * {@link HostedComponentScanQueueConsumer} so the drill-in Build Report's body component
+   * list matches {@code iq-cli <single-file>}'s output for the same binary (per Dariush's
+   * Slack confirmation 2026-06-26 "match the CLI scan as though you just passed it the
+   * binary").
+   * <p>
+   * HDS's {@code bom.json.aaData[]} for an identified rubygems / pypi / npm / maven / r
+   * artifact contains both the outer itself AND a dependency-manifest expansion (Gemfile.lock
+   * entries, requirements.txt entries, package-lock.json entries) that iq-cli does NOT
+   * surface for the same binary. Trimming aaData to the outer is the IQ-side equivalent of
+   * what iq-cli's bom contains — a one-entry view.
+   * <p>
+   * Nuget is excluded from the collapse by the caller because nuget's bom entries are real
+   * binary DLLs that ship inside the .nupkg (framework-fanout, localization resource DLLs);
+   * iq-cli reports all 21, so hosted must too. Caller checks the format set before invoking.
+   * <p>
+   * Returns the original bytes unchanged if {@code outerHash} is null/empty, if
+   * {@code originalBom} cannot be parsed as an object with an array {@code aaData}, or if no
+   * aaData entry matches the outer hash — fail-soft so a parse failure can never zero out
+   * the body table.
+   */
+  public static byte[] patchBomKeepOuterOnly(final byte[] originalBom, final String outerHash) {
+    if (originalBom == null || originalBom.length == 0 || outerHash == null || outerHash.isEmpty()) {
+      return originalBom;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalBom);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalBom;
+      }
+      ObjectNode root = (ObjectNode) parsed;
+      JsonNode aaDataNode = root.get("aaData");
+      if (!(aaDataNode instanceof ArrayNode)) {
+        return originalBom;
+      }
+      ArrayNode aaData = (ArrayNode) aaDataNode;
+      // CLM-40943: rubygems specifically — HDS's bom for a .gem like devise-4.4.0.gem contains
+      // many aaData entries that ALL share the same hash (the outer file SHA1 or HDS-derived
+      // package hash). Most are `dependency:`-prefixed Gemfile.lock-derived entries. The
+      // legitimate outer entry (componentIdentifier coords == devise 4.4.0) is in that same
+      // hash-group too. A naive "first hash-matching entry" trim would keep whichever entry
+      // HDS happened to list first — frequently a manifest-derived neighbor like
+      // activemodel-serializers-xml — and the body row would label the outer's violations
+      // with the wrong component name.
+      //
+      // Two-pass: first try to find an entry that BOTH matches the outer hash AND has no
+      // `dependency:`-prefixed pathname (i.e. is direct-identification). Fall back to the
+      // first hash-match of any kind if no direct entry exists.
+      ArrayNode kept = MAPPER.createArrayNode();
+      JsonNode firstHashMatch = null;
+      for (JsonNode entry : aaData) {
+        if (!entryHashMatches(entry, outerHash)) {
+          continue;
+        }
+        if (firstHashMatch == null) {
+          firstHashMatch = entry;
+        }
+        if (isDirectIdentificationBomEntry(entry)) {
+          kept.add(entry);
+          break;
+        }
+      }
+      if (kept.size() == 0 && firstHashMatch != null) {
+        // No direct-identification entry shared the outer hash; keep the first hash-match
+        // entry as a fallback (preserves old behaviour for npm/maven/pypi/single-entry boms).
+        kept.add(firstHashMatch);
+      }
+      if (kept.size() == 0) {
+        // No entry matched the outer hash — refuse to write an empty body table. Leaves the
+        // overlay as HDS wrote it. Logged at the caller; no exception here so the broader
+        // gate path doesn't fail.
+        return originalBom;
+      }
+      root.set("aaData", kept);
+      return MAPPER.writeValueAsBytes(root);
+    }
+    catch (Exception e) {
+      return originalBom;
+    }
+  }
+
+  /**
+   * CLM-40943: a bom {@code aaData[]} entry is "direct-identification" iff at least one of its
+   * {@code pathnames} does NOT start with {@code "dependency:"}. The {@code "dependency:"}
+   * prefix is insight-scanner's marker for components discovered via manifest extraction
+   * (Gemfile.lock entry, requirements.txt entry, package-lock.json entry). When HDS returns
+   * multiple aaData entries with the same hash — common for rubygems where the .gem file SHA1
+   * is shared between the outer entry and all its Gemfile.lock-derived siblings — we want to
+   * prefer the direct-identification one so the Build Report body labels violations with the
+   * actual uploaded component's coordinates, not a manifest neighbour's.
+   * <p>
+   * Entries with no {@code pathnames} array are treated as direct (preserves single-entry-bom
+   * behaviour for npm/maven/pypi/etc. where HDS doesn't emit pathnames at all).
+   */
+  private static boolean isDirectIdentificationBomEntry(final JsonNode entry) {
+    JsonNode paths = entry.path("pathnames");
+    if (!paths.isArray() || paths.isEmpty()) {
+      return true;
+    }
+    for (JsonNode p : paths) {
+      String s = p.asText("");
+      if (!s.startsWith("dependency:")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean entryHashMatches(final JsonNode entry, final String outerHash) {
+    if (entry == null || outerHash == null) {
+      return false;
+    }
+    if (outerHash.equalsIgnoreCase(entry.path("hash").asText(""))) {
+      return true;
+    }
+    JsonNode coords = entry.path("componentIdentifier").path("coordinates");
+    if (outerHash.equalsIgnoreCase(coords.path("sha1").asText(""))
+        || outerHash.equalsIgnoreCase(coords.path("sha256").asText(""))
+        || outerHash.equalsIgnoreCase(coords.path("hash").asText("")))
+    {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Overwrites {@code totalArtifactCount} and {@code knownArtifactCount} in the HDS-supplied
+   * {@code data.json} so the Build Report header ("X COMPONENTS, 100% of all components
+   * identified") matches the Hosted Repos list COMPONENTS column for the same outer artifact.
+   * <p>
+   * HDS's view of {@code totalArtifactCount} reflects its full bom expansion, which for
+   * formats whose payload includes a dependency manifest (Gemfile.lock inside a .gem,
+   * requirements.txt inside a sdist, package-lock.json inside an npm tarball) inflates beyond
+   * what is physically present in the artifact. Per Ross's guidance the hosted-repo scan
+   * should report only physically-present components, so this method writes the directly-
+   * identified count both as {@code totalArtifactCount} (the "X COMPONENTS" total) and as
+   * {@code knownArtifactCount} (the numerator of the "% identified" percentage) so the header
+   * stays internally consistent.
+   * <p>
+   * Returns the original bytes unchanged if {@code directCount} is negative or
+   * {@code originalDataJson} cannot be parsed as an object node — fail-soft.
+   */
+  public static byte[] patchDataJsonTotalArtifactCount(
+      final byte[] originalDataJson,
+      final int directCount)
+  {
+    if (originalDataJson == null || originalDataJson.length == 0 || directCount < 0) {
+      return originalDataJson;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalDataJson);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalDataJson;
+      }
+      ObjectNode data = (ObjectNode) parsed;
+      data.put("totalArtifactCount", directCount);
+      data.put("knownArtifactCount", directCount);
+      return MAPPER.writeValueAsBytes(data);
+    }
+    catch (Exception e) {
+      return originalDataJson;
+    }
+  }
+
+  public static byte[] patchDataJsonPolicyCounts(
+      final byte[] originalDataJson,
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations)
+  {
+    return patchDataJsonPolicyCounts(originalDataJson, outerComponent, violations, null);
+  }
+
+  /**
+   * Overload accepting {@code outerHashOverride} — the hash bom.json carries for the outer
+   * entry, used as the dedup key for the outer-pathname group so the count of buckets in
+   * data.json's {@code policyComponentCount} matches what {@code policythreats.json} (built with
+   * the same override) emits. See {@link #build(String, RepositoryComponent, List, String)}
+   * for the rationale on per-format hash divergence.
+   */
+  public static byte[] patchDataJsonPolicyCounts(
+      final byte[] originalDataJson,
+      final RepositoryComponent outerComponent,
+      final List<RepositoryPolicyViolation> violations,
+      final String outerHashOverride)
+  {
+    if (originalDataJson == null || originalDataJson.length == 0
+        || violations == null || violations.isEmpty())
+    {
+      return originalDataJson;
+    }
+    try {
+      JsonNode parsed = MAPPER.readTree(originalDataJson);
+      if (!(parsed instanceof ObjectNode)) {
+        return originalDataJson;
+      }
+      ObjectNode data = (ObjectNode) parsed;
+
+      // Pass 1: group active (non-waived) violations by pathname — the natural unit produced
+      // by the evaluator (one batch per (repository, pathname)).
+      Map<String, List<RepositoryPolicyViolation>> byPathname = new LinkedHashMap<>();
+      for (RepositoryPolicyViolation v : violations) {
+        if (v.isWaived() || v.getPathname() == null) {
+          continue;
+        }
+        byPathname.computeIfAbsent(v.getPathname(), k -> new java.util.ArrayList<>()).add(v);
+      }
+
+      // Pass 2: dedup by effective hash — same dedup key buildPolicyThreats uses so the count
+      // of buckets here matches the count of aaData entries in policythreats.json (which is
+      // what the application-evaluation path also produces). Null-effective-hash groups fall
+      // back to the pathname as the dedup key so two distinct null-hash groups still count as
+      // two components (no false collapse).
+      String outerPathname = outerComponent != null ? outerComponent.getPathname() : null;
+      Set<String> seenHashes = new java.util.HashSet<>();
+      int[] policyCounts = new int[11];
+      int policyComponentCount = 0;
+      for (Map.Entry<String, List<RepositoryPolicyViolation>> entry : byPathname.entrySet()) {
+        List<RepositoryPolicyViolation> group = entry.getValue();
+        // CLM-40943: apply the outerHashOverride only to the outer-pathname group so the dedup
+        // key matches buildPolicyThreats's emitted hash for that aaData entry.
+        boolean isOuter = outerHashOverride != null && outerPathname != null
+            && outerPathname.equals(entry.getKey());
+        String effectiveHash = effectiveHashForGroup(group, outerComponent, isOuter ? outerHashOverride : null);
+        String dedupKey = effectiveHash != null ? effectiveHash : "__null_hash__::" + entry.getKey();
+        if (!seenHashes.add(dedupKey)) {
+          continue;
+        }
+        int maxThreat = group.stream()
+            .mapToInt(RepositoryPolicyViolation::getThreatLevel)
+            .max()
+            .orElse(0);
+        int bucketed = maxThreat < 0 ? 0 : Math.min(maxThreat, 10);
+        policyCounts[bucketed]++;
+        if (maxThreat >= 2) {
+          policyComponentCount++;
+        }
+      }
+
+      ArrayNode countsNode = data.putArray("policyCounts");
+      for (int c : policyCounts) {
+        countsNode.add(c);
+      }
+      data.put("policyComponentCount", policyComponentCount);
+      return MAPPER.writeValueAsBytes(data);
+    }
+    catch (Exception e) {
+      return originalDataJson;
+    }
   }
 
   private static byte[] buildData(

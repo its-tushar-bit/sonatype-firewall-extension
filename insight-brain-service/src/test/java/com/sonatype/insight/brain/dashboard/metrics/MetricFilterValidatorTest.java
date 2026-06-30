@@ -33,10 +33,23 @@ public class MetricFilterValidatorTest
         Organization.ROOT_ORGANIZATION_ID,
         "2FAB4462f587401299AC3728ee21ADDc");
     request.applicationIds = Set.of("9CDe1234F567890123ABcdef45678901");
-    request.stageIds = Set.of(ID_BUILD, "stage-release");
-    request.tagIds = Set.of("a1b2c3d4e5f6789012345678901234ab");
 
     assertThatCode(() -> validator.validate(request)).doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testValidateRejectsUnsupportedStageAndTagFilters() {
+    DashboardMetricsRequestDTO stageRequest = new DashboardMetricsRequestDTO();
+    stageRequest.stageIds = Set.of(ID_BUILD);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> validator.validate(stageRequest))
+        .withMessage("stageIds and tagIds filters are not yet supported.");
+
+    DashboardMetricsRequestDTO tagRequest = new DashboardMetricsRequestDTO();
+    tagRequest.tagIds = Set.of("a1b2c3d4e5f6789012345678901234ab");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> validator.validate(tagRequest))
+        .withMessage("stageIds and tagIds filters are not yet supported.");
   }
 
   @Test
@@ -75,22 +88,6 @@ public class MetricFilterValidatorTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> validator.validate(request))
         .withMessage("Too many organizationIds filter ids (max 1000).");
-  }
-
-  @Test
-  public void testRejectUnsupportedFiltersRejectsNonEmptySets() {
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of(Organization.ROOT_ORGANIZATION_ID);
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> validator.rejectUnsupportedFilters(request))
-        .withMessage("Request filters are not supported yet.");
-  }
-
-  @Test
-  public void testRejectUnsupportedFiltersAllowsEmptyRequest() {
-    assertThatCode(() -> validator.rejectUnsupportedFilters(new DashboardMetricsRequestDTO()))
-        .doesNotThrowAnyException();
   }
 
   private void assertInvalidId(String invalidId) {

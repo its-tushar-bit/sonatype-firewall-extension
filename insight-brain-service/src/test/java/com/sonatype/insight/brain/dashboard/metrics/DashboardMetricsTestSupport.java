@@ -51,13 +51,13 @@ final class DashboardMetricsTestSupport
 
   static void clearDashboardMetricsCache(final DashboardMetricsService dashboardMetricsService) {
     @SuppressWarnings("unchecked")
-    TenantReference<Cache<String, DashboardMetricsDTO>> caches =
-        (TenantReference<Cache<String, DashboardMetricsDTO>>) ReflectionTestUtils.getField(
+    TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>> caches =
+        (TenantReference<Cache<DashboardMetricsCacheKey, DashboardMetricsDTO>>) ReflectionTestUtils.getField(
             dashboardMetricsService, "caches");
     if (caches == null) {
       return;
     }
-    Cache<String, DashboardMetricsDTO> cache = caches.get();
+    Cache<DashboardMetricsCacheKey, DashboardMetricsDTO> cache = caches.get();
     if (cache != null) {
       cache.invalidateAll();
     }

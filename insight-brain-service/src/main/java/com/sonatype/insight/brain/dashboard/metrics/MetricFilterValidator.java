@@ -43,22 +43,12 @@ public class MetricFilterValidator
     validateIdSet(request.applicationIds, "applicationIds");
     validateIdSet(request.stageIds, "stageIds");
     validateIdSet(request.tagIds, "tagIds");
+    rejectUnsupportedFilters(request);
   }
 
-  /**
-   * PR1 walking skeleton returns RBAC-scoped totals only. Reject non-empty filter sets so clients
-   * cannot mistake a no-op filter for a scoped count; hierarchy-inclusive filtering lands in PR2.
-   */
-  public void rejectUnsupportedFilters(DashboardMetricsRequestDTO request) {
-    if (request == null) {
-      return;
-    }
-    if (hasNonEmptyFilterSet(request.organizationIds)
-        || hasNonEmptyFilterSet(request.applicationIds)
-        || hasNonEmptyFilterSet(request.stageIds)
-        || hasNonEmptyFilterSet(request.tagIds))
-    {
-      throw new BadRequestException("Request filters are not supported yet.");
+  private static void rejectUnsupportedFilters(DashboardMetricsRequestDTO request) {
+    if (hasNonEmptyFilterSet(request.stageIds) || hasNonEmptyFilterSet(request.tagIds)) {
+      throw new BadRequestException("stageIds and tagIds filters are not yet supported.");
     }
   }
 

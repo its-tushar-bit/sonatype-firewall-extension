@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.model.Organization;
@@ -100,6 +101,35 @@ public class DashboardMetricsServiceAuthzTest
     DashboardMetricsDTO metricsForUserB = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
     assertThat(metricsForUserB.applications.total).isEqualTo(3);
     assertThat(metricsForUserB.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
+  }
+
+  @Test
+  public void testGetMetrics_ExplicitOrganizationFilterCannotProbeUnreadableOrg() {
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+
+    loginAs(userA);
+
+    DashboardMetricsRequestDTO filterToUnreadableOrg = new DashboardMetricsRequestDTO();
+    filterToUnreadableOrg.organizationIds = Set.of(orgB.getId());
+    DashboardMetricsDTO unreadableOrgMetrics = dashboardMetricsService.getMetrics(filterToUnreadableOrg);
+    assertThat(unreadableOrgMetrics.applications.total).isZero();
+    assertThat(unreadableOrgMetrics.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
+
+    DashboardMetricsRequestDTO filterToReadableOrg = new DashboardMetricsRequestDTO();
+    filterToReadableOrg.organizationIds = Set.of(orgA.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterToReadableOrg).applications.total).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetMetrics_ExplicitApplicationFilterCannotProbeUnreadableApp() {
+    String unreadableAppId = tempEntity.newApplication(orgB.getId()).getId();
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+
+    loginAs(userA);
+
+    DashboardMetricsRequestDTO filterToUnreadableApp = new DashboardMetricsRequestDTO();
+    filterToUnreadableApp.applicationIds = Set.of(unreadableAppId);
+    assertThat(dashboardMetricsService.getMetrics(filterToUnreadableApp).applications.total).isZero();
   }
 
   private void loginAs(User user) {

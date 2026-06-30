@@ -14,10 +14,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -32,8 +36,8 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.error.exception.ConflictException;
 
-import jakarta.ws.rs.BadRequestException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.SimplePrincipalCollection;
@@ -66,6 +70,136 @@ public class DashboardMetricsServiceTest
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "evalExecutors");
     DashboardMetricsTestSupport.resetTenantExecutor(lookup(DocumentBuilderHelper.class), "componentExecutors");
     DashboardMetricsTestSupport.clearDashboardMetricsCache(dashboardMetricsService);
+  }
+
+  @Test
+  public void testGetMetrics_OrganizationFilterHierarchyInclusive() {
+    Organization parentOrg = tempEntity.newOrganization("metrics-parent-org");
+    Organization childOrg = tempEntity.newOrganization("metrics-child-org", parentOrg);
+    Organization siblingOrg = tempEntity.newOrganization("metrics-sibling-org");
+
+    tempEntity.newApplication(parentOrg.getId());
+    tempEntity.newApplication(childOrg.getId());
+    tempEntity.newApplication(childOrg.getId());
+    Application siblingApp = tempEntity.newApplication(siblingOrg.getId());
+    tempEntity.newApplication(siblingOrg.getId());
+    tempEntity.newApplication(siblingOrg.getId());
+
+    User reader = tempEntity.newUser("metrics-hierarchy-reader");
+    Role readRole = tempEntity.newRole(false /* global */, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, readRole.getId(), reader.getUsername());
+
+    DashboardMetricsTestSupport.populateIndex(luceneSearchIndexClient);
+    loginAs(reader);
+
+    DashboardMetricsDTO unfiltered = dashboardMetricsService.getMetrics(new DashboardMetricsRequestDTO());
+    assertThat(unfiltered.applications.total).isEqualTo(6);
+    assertIndexSourcedMetric(unfiltered);
+
+    DashboardMetricsRequestDTO filterByChild = new DashboardMetricsRequestDTO();
+    filterByChild.organizationIds = Set.of(childOrg.getId());
+    DashboardMetricsDTO childScoped = dashboardMetricsService.getMetrics(filterByChild);
+    assertThat(childScoped.applications.total).isEqualTo(2);
+    assertIndexSourcedMetric(childScoped);
+
+    DashboardMetricsRequestDTO filterByParent = new DashboardMetricsRequestDTO();
+    filterByParent.organizationIds = Set.of(parentOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByParent).applications.total).isEqualTo(3);
+
+    DashboardMetricsRequestDTO filterBySibling = new DashboardMetricsRequestDTO();
+    filterBySibling.organizationIds = Set.of(siblingOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterBySibling).applications.total).isEqualTo(3);
+
+    DashboardMetricsRequestDTO filterByRoot = new DashboardMetricsRequestDTO();
+    filterByRoot.organizationIds = Set.of(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(dashboardMetricsService.getMetrics(filterByRoot).applications.total).isEqualTo(6);
+
+    DashboardMetricsRequestDTO filterByMultipleOrgs = new DashboardMetricsRequestDTO();
+    filterByMultipleOrgs.organizationIds = Set.of(parentOrg.getId(), siblingOrg.getId());
+    assertThat(dashboardMetricsService.getMetrics(filterByMultipleOrgs).applications.total).isEqualTo(6);
+
+    DashboardMetricsRequestDTO applicationOnly = new DashboardMetricsRequestDTO();
+    applicationOnly.applicationIds = Set.of(siblingApp.getId());
+    assertThat(dashboardMetricsService.getMetrics(applicationOnly).applications.total).isEqualTo(1);
+
+    DashboardMetricsRequestDTO combinedOrgAndApp = new DashboardMetricsRequestDTO();
+    combinedOrgAndApp.organizationIds = Set.of(parentOrg.getId());
+    combinedOrgAndApp.applicationIds = Set.of(siblingApp.getId());
+    assertThat(dashboardMetricsService.getMetrics(combinedOrgAndApp).applications.total).isEqualTo(4);
+
+    DashboardMetricsRequestDTO unknownOrg = new DashboardMetricsRequestDTO();
+    unknownOrg.organizationIds = Set.of("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    assertThat(dashboardMetricsService.getMetrics(unknownOrg).applications.total).isZero();
+  }
+
+  @Test
+  public void testGetMetrics_OrganizationFilterRejectsOversizedExpansion() {
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    List<Organization> expandedOrgs = new java.util.ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      Organization org = mock(Organization.class);
+      when(org.getId()).thenReturn("expanded-org-" + i);
+      expandedOrgs.add(org);
+    }
+    when(organizationDAO.getAllChildOrganizations("big-org")).thenReturn(expandedOrgs);
+
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
+
+    DashboardMetricsService service =
+        new DashboardMetricsService(
+            mock(SearchIndexClient.class),
+            new MetricFilterValidator(),
+            organizationDAO,
+            configuration,
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of("big-org");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getMetrics(request))
+        .withMessageContaining("too many organizations");
+  }
+
+  @Test
+  public void testGetMetrics_OrganizationFilterAcceptsExpansionAtMaxClauseCount() {
+    OrganizationDAO organizationDAO = mock(OrganizationDAO.class);
+    List<Organization> expandedOrgs = new java.util.ArrayList<>();
+    for (int i = 0; i < 5; i++) {
+      Organization org = mock(Organization.class);
+      when(org.getId()).thenReturn("expanded-org-" + i);
+      expandedOrgs.add(org);
+    }
+    when(organizationDAO.getAllChildOrganizations("max-org")).thenReturn(expandedOrgs);
+
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getMaxAdvancedSearchClauseCount()).thenReturn(5);
+
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.getUserPrincipal()).thenReturn(
+        new UserPrincipal("filter-user", "filter-user", User.INTERNAL_REALM_ID));
+
+    SearchIndexClient searchIndexClient = mock(SearchIndexClient.class);
+    when(searchIndexClient.count(anyString())).thenReturn(1L);
+    when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
+
+    DashboardMetricsService service =
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            organizationDAO,
+            configuration,
+            currentUser);
+
+    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
+    request.organizationIds = Set.of("max-org");
+
+    assertThat(service.getMetrics(request).applications.total).isEqualTo(1);
   }
 
   @Test
@@ -135,7 +269,12 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.getLastIndexTime()).thenReturn(99_000L);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(searchIndexClient, new MetricFilterValidator(), currentUser);
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
     DashboardMetricsDTO first = service.getMetrics(request);
@@ -162,7 +301,12 @@ public class DashboardMetricsServiceTest
         .thenReturn(nullRealmPrincipal, explicitRealmPrincipal, nullRealmPrincipal, explicitRealmPrincipal);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(searchIndexClient, new MetricFilterValidator(), currentUser);
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
 
@@ -181,44 +325,32 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.count(anyString())).thenReturn(5L, 9L);
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
-    // A single Singleton service must isolate cache entries between two principals that share a
-    // username but differ in realm. Use ONE service instance (so the same TenantReference cache is
-    // consulted) and swap the principal returned by the same CurrentUser mock between calls — the
-    // cache key is built from getUserPrincipal() once per getMetrics() call.
     UserPrincipal internalPrincipal =
         new UserPrincipal("shared-user", "shared-user", User.INTERNAL_REALM_ID);
-    UserPrincipal ldapPrincipal = new UserPrincipal("shared-user", "shared-user", "ldap-realm-id");
+    UserPrincipal ldapPrincipal =
+        new UserPrincipal("shared-user", "shared-user", "ldap-realm-id");
 
     CurrentUser currentUser = mock(CurrentUser.class);
     when(currentUser.getUserPrincipal())
         .thenReturn(internalPrincipal, ldapPrincipal, internalPrincipal, ldapPrincipal);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(searchIndexClient, new MetricFilterValidator(), currentUser);
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
 
     DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
 
-    // Distinct realms must miss each other's cache entry → two separate index counts.
     assertThat(service.getMetrics(request).applications.total).isEqualTo(5);
     assertThat(service.getMetrics(request).applications.total).isEqualTo(9);
 
-    // Repeating each identity must hit the existing cache entry → no further index counts.
     service.getMetrics(request);
     service.getMetrics(request);
 
     verify(searchIndexClient, times(2)).count(anyString());
-  }
-
-  @Test
-  public void testGetMetrics_UnsupportedFiltersRejected() {
-    Organization org = tempEntity.newOrganization();
-
-    DashboardMetricsRequestDTO request = new DashboardMetricsRequestDTO();
-    request.organizationIds = Set.of(org.getId());
-
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> dashboardMetricsService.getMetrics(request))
-        .withMessage("Request filters are not supported yet.");
   }
 
   @Test
@@ -231,7 +363,12 @@ public class DashboardMetricsServiceTest
     when(searchIndexClient.getLastIndexTime()).thenReturn(1L);
 
     DashboardMetricsService service =
-        new DashboardMetricsService(searchIndexClient, new MetricFilterValidator(), currentUser);
+        new DashboardMetricsService(
+            searchIndexClient,
+            new MetricFilterValidator(),
+            mock(OrganizationDAO.class),
+            mockConfiguration(),
+            currentUser);
 
     DashboardMetricsRequestDTO requestA = new DashboardMetricsRequestDTO();
     DashboardMetricsRequestDTO requestB = new DashboardMetricsRequestDTO();
@@ -243,6 +380,16 @@ public class DashboardMetricsServiceTest
     service.getMetrics(requestB);
 
     verify(searchIndexClient, times(1)).count(anyString());
+  }
+
+  private static void assertIndexSourcedMetric(DashboardMetricsDTO metrics) {
+    assertThat(metrics.applications.source).isEqualTo(DashboardMetricsService.METRIC_SOURCE_INDEX);
+    assertThat(metrics.applications.breakdown).isNull();
+    assertThat(metrics.lastUpdatedAt).isNotNull();
+  }
+
+  private static Configuration mockConfiguration() {
+    return mock(Configuration.class);
   }
 
   private void loginAs(final User user) {

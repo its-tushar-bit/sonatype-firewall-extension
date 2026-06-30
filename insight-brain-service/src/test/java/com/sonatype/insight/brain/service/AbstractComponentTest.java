@@ -270,6 +270,19 @@ public class AbstractComponentTest
 
   protected void setUpSecurity() {
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", InternalRealm.ID));
+    stubSubjectAssociateWith();
+    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(subject);
+  }
+
+  /**
+   * Stubs {@link Subject#associateWith} so async tasks (e.g. {@code TenantAwareOneTimeRunnable}) run with the security
+   * context bound, mirroring a real {@code DelegatingSubject}. Re-apply after {@link org.mockito.Mockito#reset} on the
+   * subject, otherwise the unstubbed mock returns {@code null} and any async path that calls {@code associateWith}
+   * NPEs on its worker thread, leaving the caller's {@code CompletableFuture.join} blocked forever.
+   */
+  protected void stubSubjectAssociateWith() {
     lenient().when(subject.associateWith(any(Runnable.class)))
         .thenAnswer(invocation -> {
           Runnable runnable = invocation.getArgument(0);
@@ -300,9 +313,6 @@ public class AbstractComponentTest
             }
           };
         });
-    lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
-    ThreadContext.bind(securityManager);
-    ThreadContext.bind(subject);
   }
 
   protected void tearDownSecurity() {
